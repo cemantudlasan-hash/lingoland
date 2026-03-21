@@ -1,0 +1,27 @@
+
+[
+  {
+    "type": "A",
+    "name": "@",
+    "value": "35.219.200.10",
+    "ttl": 3600
+  },
+  {
+    "type": "TXT",
+    "name": "@",
+    "value": "fah-claim-002-02-5f1b700b-a568-4ac6-9649-633181f1fa01",
+    "ttl": 3600
+  },
+  {
+    "type": "A",
+    "name": "www",
+    "value": "35.219.200.10",
+    "ttl": 3600
+  },
+  {
+    "type": "TXT",
+    "name": "www",
+    "value": "fah-claim-002-02-a33aff37-52de-4a72-86ce-a2bd4b64d272",
+    "ttl": 3600
+  }
+]
