@@ -1,0 +1,15 @@
+
+{
+  "profileCover": {
+    "url": "https://picsum.photos/seed/abstract-space/1200/400",
+    "hint": "abstract space",
+    "width": 1200,
+    "height": 400
+  },
+  "defaultAvatar": {
+    "url": "https://api.dicebear.com/8.x/adventurer/svg?seed=default",
+    "hint": "user avatar",
+    "width": 200,
+    "height": 200
+  }
+}
