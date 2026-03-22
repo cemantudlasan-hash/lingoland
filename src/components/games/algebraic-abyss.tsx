@@ -49,23 +49,35 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
   }, []);
 
   const generateProblem = (): Problem => {
-    const a = Math.floor(Math.random() * 15) + 1;
-    const b = Math.floor(Math.random() * 10) + 1;
-    const x = Math.floor(Math.random() * 10) + 2;
+    // 0 = addition (ax + b = c), 1 = subtraction (ax - b = c)
+    const type = Math.floor(Math.random() * 2);
     
-    // Create equation like: ax + b = ?
-    const answer = a * x + b;
-    const equation = `${a}x + ${b} = ${answer}`;
+    // Wider ranges for more variety
+    const a = Math.floor(Math.random() * 20) + 2; 
+    const b = Math.floor(Math.random() * 30) + 1;
+    const x = Math.floor(Math.random() * 15) + 3;
+    
+    let answer: number;
+    let equationString: string;
+
+    if (type === 0) {
+      answer = a * x + b;
+      equationString = `${a}x + ${b} = ${answer}`;
+    } else {
+      answer = a * x - b;
+      equationString = `${a}x - ${b} = ${answer}`;
+    }
     
     const options = [x];
     while (options.length < 4) {
-      const wrong = x + (Math.floor(Math.random() * 5) - 2);
+      // Generate plausible wrong answers close to the real one
+      const wrong = x + (Math.floor(Math.random() * 9) - 4);
       if (!options.includes(wrong) && wrong > 0) options.push(wrong);
     }
 
     return {
       id: Math.random().toString(36).substr(2, 9),
-      equation: `${a}x + ${b} = ${answer}`,
+      equation: equationString,
       answer: x,
       options: options.sort(() => Math.random() - 0.5),
       startTime: Date.now(),
@@ -161,6 +173,11 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
       <CardHeader className="z-10 bg-black/40 backdrop-blur-md border-b border-white/10 relative">
         <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" asChild className="text-white/50 hover:text-white mr-2">
+                    <Link href="/games">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    </Link>
+                </Button>
                 <Binary className="h-8 w-8 text-blue-400 animate-pulse" />
                 <div>
                     <CardTitle className="text-2xl font-black text-white tracking-widest uppercase">Algebraic Abyss</CardTitle>

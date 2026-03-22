@@ -36,6 +36,7 @@ import {
   FileQuestion,
   Coffee,
   Clapperboard,
+  ClipboardList,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
@@ -72,6 +73,7 @@ const privateItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/profile", label: "Profile", icon: User },
     { href: "/my-postings", label: "My Postings", icon: FileText },
+    { href: "/students-record", label: "Students Record", icon: ClipboardList },
 ];
 
 const adminItems = [

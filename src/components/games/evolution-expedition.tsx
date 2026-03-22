@@ -25,42 +25,22 @@ interface Stage {
   creatureType: "aquatic" | "amphibian" | "terrestrial" | "aerial";
 }
 
-const STAGES: Stage[] = [
-  {
-    environment: "Deep Sea",
-    description: "The pressure is immense and light is non-existent. How will your organism survive?",
-    correctAdaptation: "Gills",
-    options: ["Lungs", "Gills", "Wings", "Thick Fur"],
-    creatureType: "aquatic",
-  },
-  {
-    environment: "Coastal",
-    description: "Your organism is moving into shallower waters. Movement is key. What feature is needed?",
-    correctAdaptation: "Fin",
-    options: ["Fin", "Thick Fur", "Nocturnal", "Water Storage"],
-    creatureType: "aquatic",
-  },
-  {
-    environment: "Tropical Forest",
-    description: "Trees are everywhere. To find food and escape predators, moving between trees is a must.",
-    correctAdaptation: "Wings",
-    options: ["Water Storage", "Gills", "Wings", "Nocturnal"],
-    creatureType: "aerial",
-  },
-  {
-    environment: "Arid Desert",
-    description: "Water is scarce and the sun is brutal. Survival depends on resource management.",
-    correctAdaptation: "Water Storage",
-    options: ["Thick Fur", "Water Storage", "Gills", "Lungs"],
-    creatureType: "terrestrial",
-  },
-  {
-    environment: "Tundra",
-    description: "The temperature has dropped far below freezing. Heat loss is your biggest threat.",
-    correctAdaptation: "Thick Fur",
-    options: ["Camouflage", "Fin", "Thick Fur", "Wings"],
-    creatureType: "terrestrial",
-  }
+const ALL_STAGES: Stage[] = [
+  { environment: "Deep Sea", description: "The pressure is immense and light is non-existent. How will your organism survive?", correctAdaptation: "Gills", options: ["Lungs", "Gills", "Wings", "Thick Fur"], creatureType: "aquatic" },
+  { environment: "Coastal", description: "Your organism is moving into shallower waters. Movement is key. What feature is needed?", correctAdaptation: "Fin", options: ["Fin", "Thick Fur", "Nocturnal", "Water Storage"], creatureType: "aquatic" },
+  { environment: "Tropical Forest", description: "Trees are everywhere. To find food and escape predators, moving between trees is a must.", correctAdaptation: "Wings", options: ["Water Storage", "Gills", "Wings", "Nocturnal"], creatureType: "aerial" },
+  { environment: "Arid Desert", description: "Water is scarce and the sun is brutal. Survival depends on resource management.", correctAdaptation: "Water Storage", options: ["Thick Fur", "Water Storage", "Gills", "Lungs"], creatureType: "terrestrial" },
+  { environment: "Tundra", description: "The temperature has dropped far below freezing. Heat loss is your biggest threat.", correctAdaptation: "Thick Fur", options: ["Camouflage", "Fin", "Thick Fur", "Wings"], creatureType: "terrestrial" },
+  { environment: "High Mountain", description: "Oxygen is thin and predators circle above. You need to blend in with the rocky snowy peaks.", correctAdaptation: "Camouflage", options: ["Gills", "Water Storage", "Camouflage", "Fin"], creatureType: "terrestrial" },
+  { environment: "Tropical Forest", description: "The forest floor is incredibly dangerous during the day. How do you forage safely?", correctAdaptation: "Nocturnal", options: ["Nocturnal", "Gills", "Fin", "Thick Fur"], creatureType: "terrestrial" },
+  { environment: "Deep Sea", description: "Bioluminescent predators are hunting you. You need to hide in the pitch black water.", correctAdaptation: "Camouflage", options: ["Camouflage", "Lungs", "Wings", "Thick Fur"], creatureType: "aquatic" },
+  { environment: "Arid Desert", description: "The scorching sun makes daytime travel impossible. When will you hunt?", correctAdaptation: "Nocturnal", options: ["Water Storage", "Nocturnal", "Gills", "Fin"], creatureType: "terrestrial" },
+  { environment: "Coastal", description: "You are venturing onto the tidal rocks. You need to breathe air for short periods.", correctAdaptation: "Lungs", options: ["Gills", "Fin", "Lungs", "Wings"], creatureType: "amphibian" },
+  { environment: "Tundra", description: "The snowy landscape makes you an easy target for wolves. How do you hide?", correctAdaptation: "Camouflage", options: ["Water Storage", "Camouflage", "Fin", "Gills"], creatureType: "terrestrial" },
+  { environment: "High Mountain", description: "You need to migrate across deep chasms efficiently.", correctAdaptation: "Wings", options: ["Thick Fur", "Fin", "Water Storage", "Wings"], creatureType: "aerial" },
+  { environment: "Deep Sea", description: "You need to swim faster to catch nimble prey in the dark depths.", correctAdaptation: "Fin", options: ["Fin", "Thick Fur", "Wings", "Lungs"], creatureType: "aquatic" },
+  { environment: "Tropical Forest", description: "Heavy rains cause constant flooding. You must survive both on land and in giant puddles.", correctAdaptation: "Lungs", options: ["Gills", "Lungs", "Thick Fur", "Nocturnal"], creatureType: "amphibian" },
+  { environment: "Arid Desert", description: "Predators can spot you from miles away on the flat dunes. Avoid detection.", correctAdaptation: "Camouflage", options: ["Water Storage", "Camouflage", "Gills", "Lungs"], creatureType: "terrestrial" }
 ];
 
 export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
@@ -70,12 +50,23 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [isWrong, setIsWrong] = React.useState(false);
 
+  const [sessionStages, setSessionStages] = React.useState<Stage[]>(ALL_STAGES.slice(0, 5));
   const { user } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
   const game = getGameBySlug(slug);
 
-  const currentStage = STAGES[currentStageIndex];
+  React.useEffect(() => {
+    if (gameState === "idle") {
+      const shuffled = [...ALL_STAGES].sort(() => Math.random() - 0.5).slice(0, 5);
+      setSessionStages(shuffled);
+    }
+  }, [gameState]);
+
+  const currentStage = sessionStages[currentStageIndex];
+  
+  // Prevent crash if currentStage is completely missing somehow
+  if (!currentStage && gameState === "playing") return null;
 
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -92,7 +83,7 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
         className: "bg-green-600 text-white",
       });
       
-      if (currentStageIndex < STAGES.length - 1) {
+      if (currentStageIndex < sessionStages.length - 1) {
         setCurrentStageIndex(prev => prev + 1);
       } else {
         setGameState("finished");
@@ -155,6 +146,11 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
       <CardHeader className="z-10 bg-emerald-900/40 backdrop-blur-md border-b border-white/5">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" asChild className="text-white/50 hover:text-white mr-2">
+                <Link href="/games">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </Link>
+            </Button>
             <div className="p-2 bg-emerald-500/20 rounded-xl">
                 <Dna className="h-8 w-8 text-emerald-400" />
             </div>
@@ -322,7 +318,7 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
                   <div className="h-2 bg-emerald-900/50 rounded-full overflow-hidden border border-emerald-500/10">
                     <motion.div 
                         initial={{ width: 0 }}
-                        animate={{ width: `${((currentStageIndex) / STAGES.length) * 100}%` }}
+                        animate={{ width: `${((currentStageIndex) / sessionStages.length) * 100}%` }}
                         className="h-full bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)]"
                     />
                   </div>

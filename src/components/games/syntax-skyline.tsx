@@ -20,32 +20,22 @@ interface Sentence {
   difficulty: "Simple" | "Compound" | "Complex";
 }
 
-const SENTENCES: Sentence[] = [
-  {
-    parts: ["The", "cat", "sat", "on", "the", "mat."],
-    correctOrder: ["The", "cat", "sat", "on", "the", "mat."],
-    difficulty: "Simple",
-  },
-  {
-    parts: ["he", "Because", "was", "hungry,", "ate", "pizza.", "he"],
-    correctOrder: ["Because", "he", "was", "hungry,", "he", "ate", "pizza."],
-    difficulty: "Complex",
-  },
-  {
-    parts: ["and", "She", "went", "to", "the", "park,", "played", "she", "football."],
-    correctOrder: ["She", "went", "to", "the", "park,", "and", "she", "played", "football."],
-    difficulty: "Compound",
-  },
-  {
-    parts: ["Although", "it", "was", "raining,", "outside.", "they", "went"],
-    correctOrder: ["Although", "it", "was", "raining,", "they", "went", "outside."],
-    difficulty: "Complex",
-  },
-  {
-    parts: ["wanted", "I", "to", "go,", "I", "but", "was", "too", "tired."],
-    correctOrder: ["I", "wanted", "to", "go,", "but", "I", "was", "too", "tired."],
-    difficulty: "Compound",
-  }
+const ALL_SENTENCES: Sentence[] = [
+  { parts: ["The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog."], correctOrder: ["The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog."], difficulty: "Simple" },
+  { parts: ["he", "Because", "was", "hungry,", "ate", "pizza.", "he"], correctOrder: ["Because", "he", "was", "hungry,", "he", "ate", "pizza."], difficulty: "Complex" },
+  { parts: ["and", "She", "went", "to", "the", "park,", "played", "she", "football."], correctOrder: ["She", "went", "to", "the", "park,", "and", "she", "played", "football."], difficulty: "Compound" },
+  { parts: ["Although", "it", "was", "raining,", "outside.", "they", "went"], correctOrder: ["Although", "it", "was", "raining,", "they", "went", "outside."], difficulty: "Complex" },
+  { parts: ["wanted", "I", "to", "go,", "I", "but", "was", "too", "tired."], correctOrder: ["I", "wanted", "to", "go,", "but", "I", "was", "too", "tired."], difficulty: "Compound" },
+  { parts: ["The", "sun", "is", "shining", "brightly", "today."], correctOrder: ["The", "sun", "is", "shining", "brightly", "today."], difficulty: "Simple" },
+  { parts: ["When", "the", "bell", "rings,", "will", "leave.", "students", "the"], correctOrder: ["When", "the", "bell", "rings,", "the", "students", "will", "leave."], difficulty: "Complex" },
+  { parts: ["He", "studied", "hard,", "failed", "the", "test.", "yet", "he"], correctOrder: ["He", "studied", "hard,", "yet", "he", "failed", "the", "test."], difficulty: "Compound" },
+  { parts: ["If", "you", "study,", "will", "pass", "the", "exam.", "you"], correctOrder: ["If", "you", "study,", "you", "will", "pass", "the", "exam."], difficulty: "Complex" },
+  { parts: ["She", "likes", "coffee,", "and", "he", "likes", "tea."], correctOrder: ["She", "likes", "coffee,", "and", "he", "likes", "tea."], difficulty: "Compound" },
+  { parts: ["The", "tall", "building", "scraped", "the", "sky."], correctOrder: ["The", "tall", "building", "scraped", "the", "sky."], difficulty: "Simple" },
+  { parts: ["Since", "it", "is", "late,", "should", "go", "to", "bed.", "we"], correctOrder: ["Since", "it", "is", "late,", "we", "should", "go", "to", "bed."], difficulty: "Complex" },
+  { parts: ["I", "have", "a", "dog,", "and", "my", "sister", "has", "a", "cat."], correctOrder: ["I", "have", "a", "dog,", "and", "my", "sister", "has", "a", "cat."], difficulty: "Compound" },
+  { parts: ["Unless", "you", "hurry,", "will", "miss", "the", "train.", "you"], correctOrder: ["Unless", "you", "hurry,", "you", "will", "miss", "the", "train."], difficulty: "Complex" },
+  { parts: ["The", "birds", "are", "singing", "in", "the", "trees."], correctOrder: ["The", "birds", "are", "singing", "in", "the", "trees."], difficulty: "Simple" }
 ];
 
 export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
@@ -56,15 +46,26 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
   const [score, setScore] = React.useState(0);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
 
+  const [sessionSentences, setSessionSentences] = React.useState<Sentence[]>(ALL_SENTENCES.slice(0, 5));
   const { user } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
   const game = getGameBySlug(slug);
 
-  const currentSentence = SENTENCES[currentSentenceIndex];
+  React.useEffect(() => {
+    if (gameState === "idle") {
+      const shuffled = [...ALL_SENTENCES].sort(() => Math.random() - 0.5).slice(0, 5);
+      setSessionSentences(shuffled);
+    }
+  }, [gameState]);
+
+  const currentSentence = sessionSentences[currentSentenceIndex];
+  
+  // Prevent crash if currentSentence is completely missing
+  if (!currentSentence && gameState === "playing") return null;
   const availableWords = React.useMemo(() => {
     return currentSentence ? [...currentSentence.parts].sort(() => Math.random() - 0.5) : [];
-  }, [currentSentenceIndex]);
+  }, [currentSentenceIndex, currentSentence]);
 
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -92,7 +93,7 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
         className: "bg-indigo-600 text-white",
       });
       
-      if (currentSentenceIndex < SENTENCES.length - 1) {
+      if (currentSentenceIndex < sessionSentences.length - 1) {
         setCurrentSentenceIndex(prev => prev + 1);
         setSelectedWords([]);
       } else {
@@ -174,6 +175,11 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
       <CardHeader className="z-10 bg-slate-900/60 backdrop-blur-xl border-b border-white/10">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
+             <Button variant="ghost" size="icon" asChild className="text-white/50 hover:text-white mr-2">
+                <Link href="/games">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </Link>
+             </Button>
              <div className="h-10 w-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)]">
                 <Building2 className="text-white h-6 w-6" />
              </div>
@@ -375,7 +381,7 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
             <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.6em]">Syntax Skyline // Neural Architect v4.0</span>
         </div>
         <div className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
-            {currentSentenceIndex + 1} OF {SENTENCES.length} MODULES REMAINING
+            {currentSentenceIndex + 1} OF {sessionSentences.length} MODULES REMAINING
         </div>
       </CardFooter>
     </Card>

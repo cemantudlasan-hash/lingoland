@@ -40,6 +40,10 @@ service cloud.firestore {
         }
       }
 
+      match /students-record/{recordId} {
+        allow read, write: if isOwner(userId);
+      }
+
       match /notifications/{notificationId} {
         allow create: if request.auth != null;
         allow read, update, delete: if isOwner(userId);
