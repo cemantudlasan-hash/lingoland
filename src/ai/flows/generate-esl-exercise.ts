@@ -27,22 +27,15 @@ const GenerateEslExerciseOutputSchema = z.object({
 export type GenerateEslExerciseOutput = z.infer<typeof GenerateEslExerciseOutputSchema>;
 
 
-export async function generateEslExercise(input: GenerateEslExerciseInput): Promise<{ exercise?: string; error?: string }> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
-  
-  if (!apiKey) {
-    return { error: "API Key still missing in production. Please check Firebase App Hosting Secrets." };
-  }
-
+export async function generateEslExercise(input: GenerateEslExerciseInput): Promise<GenerateEslExerciseOutput> {
   try {
-    const result = await generateEslExerciseFlow(input);
-    return { exercise: result.exercise };
+    return await generateEslExerciseFlow(input);
   } catch (err: any) {
-    const errorMsg = err?.message || String(err);
-    console.error("🔴 GENKIT_ERROR:", errorMsg);
-    return { error: errorMsg };
+    console.error("🔴 GENKIT_ERROR:", err?.message || err);
+    throw err;
   }
 }
+
 
 
 
