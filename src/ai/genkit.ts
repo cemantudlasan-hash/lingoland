@@ -7,8 +7,6 @@ export const ai = genkit({
 });
 
 
-// Deployment Version: 2.5.2
-
 
 
 
