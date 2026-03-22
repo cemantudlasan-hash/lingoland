@@ -67,13 +67,13 @@ const publicItems = [
   { href: "/lounge", label: "Lounge", icon: MessageCircle },
   { href: "/homework-hub", label: "Homework Hub", icon: BookMarked },
   { href: "/onet-practice", label: "O-Net Test Practice", icon: BookMarked },
+  { href: "/students-record", label: "Students Record", icon: ClipboardList },
 ];
 
 const privateItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/profile", label: "Profile", icon: User },
     { href: "/my-postings", label: "My Postings", icon: FileText },
-    { href: "/students-record", label: "Students Record", icon: ClipboardList },
 ];
 
 const adminItems = [
