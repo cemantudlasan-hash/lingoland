@@ -31,10 +31,13 @@ export async function generateEslExercise(input: GenerateEslExerciseInput): Prom
   try {
     return await generateEslExerciseFlow(input);
   } catch (err: any) {
-    console.error("🔴 GENKIT_ERROR FULL DUMP:", err?.message || err);
-    throw err;
+    const errorMsg = err?.message || String(err);
+    console.error("🔴 GENKIT_ERROR FULL DUMP:", errorMsg);
+    // Explicitly returning the error message in a way that might be helpful if caught by the client
+    throw new Error(`AI Generation Failed: ${errorMsg}`);
   }
 }
+
 
 
 const generateEslExercisePrompt = ai.definePrompt({
