@@ -8,9 +8,10 @@ runConfig:
 
 env:
   - variable: GEMINI_API_KEY
-    secret: GEMINI_API_KEY
+    secret: GEMINIAPIKEY
   - variable: GOOGLE_GENAI_API_KEY
-    secret: GEMINI_API_KEY
+    secret: GEMINIAPIKEY
+
 
 
 
