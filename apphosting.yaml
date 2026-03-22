@@ -9,5 +9,8 @@ runConfig:
 env:
   - variable: GEMINI_API_KEY
     value: AIzaSyBsK5je05O2nHOSVsR8hyFVMx9rOIml8Hk
+  - variable: GOOGLE_GENAI_API_KEY
+    value: AIzaSyBsK5je05O2nHOSVsR8hyFVMx9rOIml8Hk
+
 
 
