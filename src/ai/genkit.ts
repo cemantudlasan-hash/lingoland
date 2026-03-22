@@ -6,6 +6,8 @@ export const ai = genkit({
   model: 'googleai/gemini-2.5-flash',
 });
 
+// Deployment Version: 2.5.2
+
 
 
 
