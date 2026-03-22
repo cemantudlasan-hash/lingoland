@@ -76,13 +76,14 @@ export function GeneratorForm() {
           details: { topic: values.topic, difficulty: values.difficultyLevel }
         });
       }
-    } catch (e) {
+    } catch (e: any) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Could not generate an exercise. Please try again.",
+        description: e.message || "Could not generate an exercise. Please try again.",
       });
     }
+
     setIsLoading(false);
   };
   
