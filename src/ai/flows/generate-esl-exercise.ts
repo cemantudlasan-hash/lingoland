@@ -28,14 +28,22 @@ export type GenerateEslExerciseOutput = z.infer<typeof GenerateEslExerciseOutput
 
 
 export async function generateEslExercise(input: GenerateEslExerciseInput): Promise<GenerateEslExerciseOutput> {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
+  
+  if (!apiKey) {
+    console.error("🔴 GENKIT_RUNTIME_ERROR: API Key is missing from process.env in production.");
+    throw new Error("API Key configuration error. Please ensure GEMINI_API_KEY is correctly set in Firebase Secrets.");
+  }
+
   try {
     return await generateEslExerciseFlow(input);
   } catch (err: any) {
     const errorMsg = err?.message || String(err);
-    console.error("🔴 GENKIT_ERROR FULL DUMP:", errorMsg);
+    console.error("🔴 GENKIT_FLOW_ERROR:", errorMsg);
     throw new Error(`AI Generation Failed: ${errorMsg}`);
   }
 }
+
 
 
 
