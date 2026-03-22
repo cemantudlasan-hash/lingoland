@@ -50,7 +50,7 @@ const generatePronunciationPhraseFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await ai.generate({
-        model: 'googleai/gemini-1.5-flash',
+        model: 'googleai/gemini-2.5-flash',
         prompt: `Generate a single, short, simple English phrase for a {{difficulty}}-level student to practice pronunciation.
     {{#if topic}} The phrase should be about {{topic}}.{{/if}}
     The phrase should be clear and easy to say. Do not include any special characters or punctuation other than a period at the end.
@@ -84,8 +84,9 @@ const evaluatePronunciationFlow = ai.defineFlow({
     outputSchema: EvaluatePronunciationOutputSchema,
 }, async (input) => {
     const {output} = await ai.generate({
-      model: 'googleai/gemini-1.5-flash',
+      model: 'googleai/gemini-2.5-flash',
       prompt: [
+
         {
           text: `You are an expert English pronunciation coach. Your task is to evaluate a student's pronunciation.
         The target phrase is: "${input.phrase}"

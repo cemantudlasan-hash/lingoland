@@ -48,7 +48,7 @@ const generateMysteryBoxItemFlow = ai.defineFlow(
     let attempts = 0;
     while (attempts < 5) {
         const { output } = await ai.generate({
-            model: 'googleai/gemini-1.5-flash',
+            model: 'googleai/gemini-2.5-flash',
             prompt: prompt,
 
             context: [input], // Note: We do not pass `usedQuestions` here for performance
@@ -65,8 +65,9 @@ const generateMysteryBoxItemFlow = ai.defineFlow(
     // If we still have a duplicate after 5 attempts, just return the last generated one.
     // The chance of this happening is extremely low.
     const { output } = await ai.generate({
-        model: 'googleai/gemini-1.5-flash',
+        model: 'googleai/gemini-2.5-flash',
         prompt: prompt,
+
 
         context: [input],
         output: { schema: GenerateMysteryBoxItemOutputSchema },

@@ -33,10 +33,11 @@ export async function generateEslExercise(input: GenerateEslExerciseInput): Prom
   } catch (err: any) {
     const errorMsg = err?.message || String(err);
     console.error("🔴 GENKIT_ERROR FULL DUMP:", errorMsg);
-    // Explicitly returning the error message in a way that might be helpful if caught by the client
     throw new Error(`AI Generation Failed: ${errorMsg}`);
   }
 }
+
+
 
 
 
