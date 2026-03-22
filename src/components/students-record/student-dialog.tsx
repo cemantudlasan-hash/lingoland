@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore } from "@/firebase";
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, updateDoc, doc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ const DEFAULT_STATE: Omit<Student, 'id' | 'createdAt' | 'updatedAt'> = {
 
 export function StudentDialog({ isOpen, onOpenChange, student, existingGroups }: StudentDialogProps) {
   const [formData, setFormData] = React.useState(DEFAULT_STATE);
+  const [submissionDate, setSubmissionDate] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   const { user } = useAuth();
@@ -48,8 +49,17 @@ export function StudentDialog({ isOpen, onOpenChange, student, existingGroups }:
   React.useEffect(() => {
     if (student) {
       setFormData(student);
+      if (student.updatedAt && typeof student.updatedAt.toDate === "function") {
+         const date = student.updatedAt.toDate();
+         const offset = date.getTimezoneOffset() * 60000;
+         const localISOTime = (new Date(date.getTime() - offset)).toISOString().slice(0, 16);
+         setSubmissionDate(localISOTime);
+      } else {
+         setSubmissionDate("");
+      }
     } else {
       setFormData(DEFAULT_STATE);
+      setSubmissionDate("");
     }
   }, [student, isOpen]);
 
@@ -97,19 +107,24 @@ export function StudentDialog({ isOpen, onOpenChange, student, existingGroups }:
     try {
       const classRef = collection(firestore, `users/${user.uid}/students`);
       
+      let finalUpdatedAt = serverTimestamp();
+      if (submissionDate) {
+         finalUpdatedAt = Timestamp.fromDate(new Date(submissionDate));
+      }
+
       if (student?.id) {
         // Update
         await updateDoc(doc(firestore, `users/${user.uid}/students`, student.id), {
           ...formData,
-          updatedAt: serverTimestamp()
+          updatedAt: finalUpdatedAt
         });
         toast({ title: "Record Updated", description: `${formData.fullName}'s specific submission has been updated.` });
       } else {
         // Create
         await addDoc(classRef, {
           ...formData,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+          createdAt: finalUpdatedAt,
+          updatedAt: finalUpdatedAt
         });
         toast({ title: student ? "Record Added" : "Student Added", description: `${formData.fullName}'s new submission has been recorded.` });
       }
@@ -225,6 +240,21 @@ export function StudentDialog({ isOpen, onOpenChange, student, existingGroups }:
                 </div>
               </div>
 
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-sm font-bold text-primary uppercase tracking-wider border-b pb-2">Submission Details</h4>
+            <div className="space-y-2">
+              <Label htmlFor="submissionDate">Override Submission Date / Time</Label>
+              <Input 
+                type="datetime-local" 
+                id="submissionDate" 
+                value={submissionDate} 
+                onChange={(e) => setSubmissionDate(e.target.value)} 
+                className="max-w-[200px]"
+              />
+              <p className="text-xs text-muted-foreground">Leave empty to use the current date and time.</p>
             </div>
           </div>
 

@@ -28,8 +28,14 @@ export type GenerateEslExerciseOutput = z.infer<typeof GenerateEslExerciseOutput
 
 
 export async function generateEslExercise(input: GenerateEslExerciseInput): Promise<GenerateEslExerciseOutput> {
-  return generateEslExerciseFlow(input);
+  try {
+    return await generateEslExerciseFlow(input);
+  } catch (err: any) {
+    console.error("🔴 GENKIT_ERROR FULL DUMP:", err?.message || err);
+    throw err;
+  }
 }
+
 
 const generateEslExercisePrompt = ai.definePrompt({
   name: 'generateEslExercisePrompt',
