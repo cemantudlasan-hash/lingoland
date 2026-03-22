@@ -27,14 +27,17 @@ const GenerateEslExerciseOutputSchema = z.object({
 export type GenerateEslExerciseOutput = z.infer<typeof GenerateEslExerciseOutputSchema>;
 
 
-export async function generateEslExercise(input: GenerateEslExerciseInput): Promise<GenerateEslExerciseOutput> {
+export async function generateEslExercise(input: GenerateEslExerciseInput): Promise<{ exercise?: string; error?: string }> {
   try {
-    return await generateEslExerciseFlow(input);
+    const result = await generateEslExerciseFlow(input);
+    return { exercise: result.exercise };
   } catch (err: any) {
-    console.error("🔴 GENKIT_ERROR:", err?.message || err);
-    throw err;
+    const errorMsg = err?.message || String(err);
+    console.error("🔴 GENKIT_ERROR:", errorMsg);
+    return { error: errorMsg };
   }
 }
+
 
 
 
