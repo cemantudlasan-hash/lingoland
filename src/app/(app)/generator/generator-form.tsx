@@ -69,20 +69,33 @@ export function GeneratorForm() {
     setStudentAnswer("");
     try {
       const result = await generateEslExercise(values);
-      setExercise(result.exercise);
-      if (firestore) {
-        logAnalyticsEvent(firestore, user?.uid || 'guest', {
-          type: 'exercise_generated',
-          details: { topic: values.topic, difficulty: values.difficultyLevel }
+      if (result.error) {
+        toast({
+          variant: "destructive",
+          title: "AI Generation Error",
+          description: result.error,
         });
+        setIsLoading(false);
+        return;
+      }
+      if (result.exercise) {
+        setExercise(result.exercise);
+
+        if (firestore) {
+          logAnalyticsEvent(firestore, user?.uid || 'guest', {
+            type: 'exercise_generated',
+            details: { topic: values.topic, difficulty: values.difficultyLevel }
+          });
+        }
       }
     } catch (e: any) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: e.message || "Could not generate an exercise. Please try again.",
+        title: "Network Error",
+        description: e.message || "Could not connect to the server.",
       });
     }
+
 
     setIsLoading(false);
   };

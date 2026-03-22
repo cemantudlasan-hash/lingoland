@@ -27,22 +27,24 @@ const GenerateEslExerciseOutputSchema = z.object({
 export type GenerateEslExerciseOutput = z.infer<typeof GenerateEslExerciseOutputSchema>;
 
 
-export async function generateEslExercise(input: GenerateEslExerciseInput): Promise<GenerateEslExerciseOutput> {
+export async function generateEslExercise(input: GenerateEslExerciseInput): Promise<{ exercise?: string; error?: string }> {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
   
   if (!apiKey) {
     console.error("🔴 GENKIT_RUNTIME_ERROR: API Key is missing from process.env in production.");
-    throw new Error("API Key configuration error. Please ensure GEMINI_API_KEY is correctly set in Firebase Secrets.");
+    return { error: "API Key configuration error. Please ensure GEMINI_API_KEY is correctly set in Firebase Secrets." };
   }
 
   try {
-    return await generateEslExerciseFlow(input);
+    const result = await generateEslExerciseFlow(input);
+    return { exercise: result.exercise };
   } catch (err: any) {
     const errorMsg = err?.message || String(err);
     console.error("🔴 GENKIT_FLOW_ERROR:", errorMsg);
-    throw new Error(`AI Generation Failed: ${errorMsg}`);
+    return { error: errorMsg };
   }
 }
+
 
 
 
