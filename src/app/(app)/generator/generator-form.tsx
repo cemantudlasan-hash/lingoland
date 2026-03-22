@@ -69,6 +69,15 @@ export function GeneratorForm() {
     setStudentAnswer("");
     try {
       const result = await generateEslExercise(values);
+      if (result.error) {
+        toast({
+          variant: "destructive",
+          title: "Production Error",
+          description: result.error,
+        });
+        setIsLoading(false);
+        return;
+      }
       if (result.exercise) {
         setExercise(result.exercise);
         if (firestore) {
@@ -78,13 +87,14 @@ export function GeneratorForm() {
           });
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Could not generate an exercise. Please try again.",
+        title: "Network Error",
+        description: e.message || "Could not connect to the server.",
       });
     }
+
 
     setIsLoading(false);
   };
