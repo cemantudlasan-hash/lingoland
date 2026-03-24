@@ -11,6 +11,10 @@ env:
     secret: GEMINIAPIKEY
   - variable: GOOGLE_GENAI_API_KEY
     secret: GEMINIAPIKEY
+  - variable: GEMINI_API_KEY_ALT
+    secret: GEMINI_API_KEY
+  - variable: GOOGLE_GENAI_API_KEY_ALT
+    secret: GEMINI_API_KEY
 
 
 
