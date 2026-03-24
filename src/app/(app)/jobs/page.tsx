@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import type { Job } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, MapPin, Globe, Check, School2, Search, PlusCircle, Edit, Trash2, UserPlus, Loader2, Calendar } from "lucide-react";
+import { Briefcase, MapPin, Globe, Check, School2, Search, PlusCircle, Edit, Trash2, UserPlus, Loader2, Calendar, Filter, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ApplyJobDialog } from "./apply-job-dialog";
 import { AddEditJobDialog } from "./add-edit-job-dialog";
@@ -31,6 +31,10 @@ import { useToast } from "@/hooks/use-toast";
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 
 
 function JobsPageComponent() {
@@ -123,148 +127,274 @@ function JobsPageComponent() {
     }
 
     return (
-        <div className="flex flex-col gap-8 max-w-7xl mx-auto">
-            <Card>
-                <CardHeader className="text-white bg-gradient-to-r from-purple-500 to-indigo-600">
-                    <CardTitle>Find Your Next Teaching Job</CardTitle>
-                    <CardDescription className="text-gray-300">Search for opportunities or post a new opening.</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col md:flex-row gap-4 items-center pt-6 bg-gray-200/50 backdrop-blur-sm text-black">
-                    <div className="relative w-full md:flex-grow">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search by city or country..."
-                            value={locationFilter}
-                            onChange={(e) => setLocationFilter(e.target.value)}
-                            className="pl-10 bg-gray-100"
-                        />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Switch id="remote-only" checked={remoteOnly} onCheckedChange={setRemoteOnly} />
-                        <Label htmlFor="remote-only">Show remote jobs only</Label>
-                    </div>
-                    {user && !isGuest && (
-                        <div className="flex items-center gap-2">
-                            <div className="border-l border-border h-8 mx-2 hidden md:block"></div>
-                            <Button onClick={handleAddJobClick} className="bg-blue-600 hover:bg-blue-700">
-                                <PlusCircle className="mr-2 h-4 w-4"/>
-                                Post a Job
-                            </Button>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-            {isGuest ? (
-                 <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full gap-4 border border-dashed rounded-lg p-12">
-                    <Briefcase className="h-16 w-16" />
-                    <h3 className="text-xl font-bold">Do you need a job, or do you want to post a job?</h3>
-                    <p>Sign-in or create an account to view and apply for job openings.</p>
-                    <Button asChild>
-                        <Link href="/auth">Sign In or Create Account</Link>
-                    </Button>
+        <div className="flex flex-col gap-6 max-w-7xl mx-auto p-4 md:p-6 min-h-screen">
+            {/* modern dashboard header */}
+            <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2"
+            >
+                <div>
+                  <h1 className="text-3xl font-extrabold tracking-tight text-white mb-1">
+                    Job Board
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Discover your next career move in the Lingolandverse
+                  </p>
                 </div>
+                {user && !isGuest && (
+                    <Button onClick={handleAddJobClick} className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95">
+                        <PlusCircle className="mr-2 h-4 w-4"/>
+                        Post a Job
+                    </Button>
+                )}
+            </motion.div>
+
+            {/* glass search/filter bar */}
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl"
+            >
+                <div className="md:col-span-8 relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Input 
+                        placeholder="Search by city or country..."
+                        value={locationFilter}
+                        onChange={(e) => setLocationFilter(e.target.value)}
+                        className="pl-10 h-12 bg-white/5 border-white/10 focus-visible:ring-primary focus-visible:border-primary/50 text-white placeholder:text-muted-foreground/50 rounded-xl"
+                    />
+                </div>
+                <div className="md:col-span-4 flex items-center justify-between md:justify-end gap-6 px-2">
+                    <div className="flex items-center space-x-3">
+                        <Switch 
+                          id="remote-only" 
+                          checked={remoteOnly} 
+                          onCheckedChange={setRemoteOnly}
+                          className="data-[state=checked]:bg-primary"
+                        />
+                        <Label htmlFor="remote-only" className="text-sm font-medium text-white/80 cursor-pointer">Remote Only</Label>
+                    </div>
+                    {locationFilter && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setLocationFilter("")}
+                        className="text-muted-foreground hover:text-white"
+                      >
+                        <X className="h-4 w-4 mr-1" /> Clear
+                      </Button>
+                    )}
+                </div>
+            </motion.div>
+
+            {isGuest ? (
+                 <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex flex-col items-center justify-center p-12 text-center bg-white/5 backdrop-blur-sm border border-dashed border-white/20 rounded-3xl gap-6 mt-8"
+                 >
+                    <div className="p-4 bg-primary/10 rounded-full">
+                      <Briefcase className="h-12 w-12 text-primary" />
+                    </div>
+                    <div className="space-y-2 max-w-sm">
+                      <h3 className="text-2xl font-bold text-white">Unlock Opportunities</h3>
+                      <p className="text-muted-foreground">Sign in to view detailed candidate requirements and apply for top teaching positions.</p>
+                    </div>
+                    <Button asChild size="lg" className="px-8 rounded-xl font-bold shadow-xl shadow-primary/20">
+                        <Link href="/auth">Connect Now</Link>
+                    </Button>
+                </motion.div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                    {/* Job List */}
-                    <div className="md:col-span-4 lg:col-span-3 space-y-2">
-                        <h2 className="text-xl font-bold px-4">{filteredJobs.length} Openings Found</h2>
-                        <Card className="p-2 max-h-[60vh] overflow-y-auto bg-white text-black">
-                             {isLoading ? <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div> : (
-                                <div className="space-y-1">
-                                    {filteredJobs.map(job => (
-                                        <button
-                                            key={job.id} 
-                                            className={`w-full text-left p-3 rounded-lg transition-colors ${selectedJob?.id === job.id ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
-                                            onClick={() => handleSelectJob(job)}
-                                        >
-                                            <p className="font-semibold text-blue-800">{job.title}</p>
-                                            <p className="text-sm text-gray-700">{job.company}</p>
-                                            <div className="flex items-center gap-2 text-sm text-gray-500 pt-1">
-                                                <MapPin className="h-4 w-4" />
-                                                <span>{job.location}</span>
-                                            </div>
-                                        </button>
-                                    ))}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
+                    {/* jobs list pane */}
+                    <div className="lg:col-span-4 flex flex-col gap-4">
+                        <div className="flex items-center justify-between px-2">
+                          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                            {filteredJobs.length} Openings Found
+                          </h2>
+                        </div>
+                        
+                        <ScrollArea className="h-[calc(100vh-280px)] pr-4">
+                          <div className="flex flex-col gap-3">
+                              {isLoading ? (
+                                Array.from({length: 4}).map((_, i) => (
+                                  <div key={i} className="h-24 w-full bg-white/5 animate-pulse rounded-2xl" />
+                                ))
+                              ) : filteredJobs.length === 0 ? (
+                                <div className="text-center py-12 text-muted-foreground bg-white/5 rounded-2xl border border-dashed border-white/10">
+                                  No results found
                                 </div>
-                             )}
-                        </Card>
+                              ) : (
+                                <LayoutGroup>
+                                  {filteredJobs.map((job, index) => (
+                                      <motion.button
+                                          layout
+                                          initial={{ opacity: 0, x: -20 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                          transition={{ delay: index * 0.05 }}
+                                          key={job.id} 
+                                          className={cn(
+                                            "relative w-full text-left p-4 rounded-2xl transition-all duration-300 group overflow-hidden border",
+                                            selectedJobId === job.id 
+                                            ? "bg-primary/20 border-primary/50 shadow-lg shadow-primary/10" 
+                                            : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                                          )}
+                                          onClick={() => handleSelectJob(job)}
+                                      >
+                                          {selectedJobId === job.id && (
+                                            <motion.div 
+                                              layoutId="active-job"
+                                              className="absolute left-0 top-0 bottom-0 w-1 bg-primary"
+                                            />
+                                          )}
+                                          <div className="space-y-1 relative z-10 min-w-0">
+                                            <div className="flex justify-between items-start gap-2">
+                                              <p className={cn(
+                                                "font-bold text-lg transition-colors line-clamp-2 flex-1",
+                                                selectedJobId === job.id ? "text-primary" : "text-white"
+                                              )}>
+                                                {job.title}
+                                              </p>
+                                              {job.isRemote && (
+                                                <Badge variant="outline" className="text-[10px] py-0 px-2 border-primary/30 text-primary/80 shrink-0 mt-1">Remote</Badge>
+                                              )}
+                                            </div>
+                                            <p className="text-sm text-white/60 font-medium group-hover:text-white/80 transition-colors truncate">{job.company}</p>
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
+                                                <MapPin className="h-3 w-3" />
+                                                <span className="truncate">{job.location}</span>
+                                            </div>
+                                          </div>
+                                      </motion.button>
+                                  ))}
+                                </LayoutGroup>
+                              )}
+                          </div>
+                        </ScrollArea>
                     </div>
 
-                    {/* Job Details */}
-                    <div className="md:col-span-8 lg:col-span-9">
-                        {selectedJob ? (
-                            <Card className="sticky top-24 bg-white text-black">
-                                <CardHeader>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <CardTitle className="text-2xl text-blue-900">{selectedJob.title}</CardTitle>
-                                            <CardDescription className="text-base text-gray-600">{selectedJob.company}</CardDescription>
-                                        </div>
-                                        <Badge variant={selectedJob.type === 'Full-time' ? 'default' : 'secondary'} className="bg-blue-100 text-blue-800">
-                                            {selectedJob.type}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex flex-wrap gap-4 text-sm text-gray-500 pt-2">
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="h-4 w-4" />
-                                            <span>{selectedJob.location}</span>
-                                        </div>
-                                        {selectedJob.isRemote && (
-                                            <div className="flex items-center gap-2">
-                                                <Globe className="h-4 w-4" />
-                                                <span>Remote</span>
+                    {/* details pane */}
+                    <div className="lg:col-span-8">
+                        <AnimatePresence mode="wait">
+                          {selectedJob ? (
+                              <motion.div 
+                                key={selectedJob.id}
+                                initial={{ opacity: 0, scale: 0.98, x: 10 }}
+                                animate={{ opacity: 1, scale: 1, x: 0 }}
+                                exit={{ opacity: 0, scale: 0.98, x: -10 }}
+                                transition={{ type: "spring", damping: 20 }}
+                                className="w-full"
+                              >
+                                <Card className="bg-white/5 backdrop-blur-md border-white/10 rounded-3xl overflow-hidden shadow-2xl h-full flex flex-col">
+                                    <div className="h-2 w-full bg-gradient-to-r from-primary to-indigo-500" />
+                                    <CardHeader className="p-8">
+                                        <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                                            <div className="space-y-3 flex-1 min-w-0">
+                                                <div className="flex flex-wrap items-center gap-3">
+                                                  <CardTitle className="text-3xl font-black text-white leading-tight break-words">{selectedJob.title}</CardTitle>
+                                                  <Badge className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 shrink-0">
+                                                      {selectedJob.type}
+                                                  </Badge>
+                                                </div>
+                                                <CardDescription className="text-lg font-medium text-white/70 truncate">at {selectedJob.company}</CardDescription>
                                             </div>
-                                        )}
-                                        {selectedJob.createdAt && (
-                                            <div className="flex items-center gap-2">
-                                                <Calendar className="h-4 w-4" />
-                                                <span>Posted {formatDistanceToNow(selectedJob.createdAt.toDate(), { addSuffix: true })}</span>
+
+                                            
+                                            <div className="flex gap-2 w-full md:w-auto">
+                                              {user && (isAdmin || user.uid === selectedJob.userId) && (
+                                                  <div className="flex gap-2">
+                                                      <Button variant="outline" size="sm" onClick={() => handleEditJobClick(selectedJob)} className="border-white/10 bg-white/5 hover:bg-white/10 text-white">
+                                                        <Edit className="h-4 w-4 mr-2"/> Edit
+                                                      </Button>
+                                                      <Button variant="ghost" size="sm" onClick={() => handleDeleteClick(selectedJob)} className="text-destructive hover:bg-destructive/10">
+                                                        <Trash2 className="h-4 w-4"/>
+                                                      </Button>
+                                                  </div>
+                                              )}
                                             </div>
-                                        )}
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div>
-                                        <h3 className="font-bold mb-2 text-gray-800">Job Description</h3>
-                                        <p className="text-gray-600 whitespace-pre-line">{selectedJob.description}</p>
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold mt-4 mb-2 text-gray-800">Requirements</h3>
-                                        <ul className="space-y-2">
-                                            {selectedJob.requirements.map((req, i) => (
-                                                <li key={i} className="flex items-start gap-2">
-                                                    <Check className="h-4 w-4 mt-1 text-green-500 flex-shrink-0" />
-                                                    <span className="text-gray-600">{req}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </CardContent>
-                                <CardFooter className="flex justify-between">
-                                    {!isGuest && (
-                                        <Button onClick={handleApplyClick} className="bg-blue-600 hover:bg-blue-700">
-                                            <School2 className="mr-2 h-4 w-4" />
-                                            Apply for this Job
+                                        </div>
+                                        
+                                        <div className="flex flex-wrap gap-4 text-sm text-white/50 pt-6">
+                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+                                                <MapPin className="h-4 w-4 text-primary" />
+                                                <span>{selectedJob.location}</span>
+                                            </div>
+                                            {selectedJob.isRemote && (
+                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+                                                    <Globe className="h-4 w-4 text-primary" />
+                                                    <span>Worldwide Remote</span>
+                                                </div>
+                                            )}
+                                            {selectedJob.createdAt && (
+                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+                                                    <Calendar className="h-4 w-4 text-primary" />
+                                                    <span>{formatDistanceToNow(selectedJob.createdAt.toDate(), { addSuffix: true })}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </CardHeader>
+                                    
+                                    <ScrollArea className="flex-1 max-h-[50vh]">
+                                      <CardContent className="px-8 pb-8 space-y-10">
+                                          <div className="space-y-4">
+                                              <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+                                                <Briefcase className="h-5 w-5 text-primary" />
+                                                <h3 className="font-bold text-white text-lg">Job Description</h3>
+                                              </div>
+                                              <p className="text-white/70 leading-relaxed whitespace-pre-line text-base">
+                                                {selectedJob.description}
+                                              </p>
+                                          </div>
+                                          
+                                          <div className="space-y-4">
+                                              <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+                                                <Check className="h-5 w-5 text-primary" />
+                                                <h3 className="font-bold text-white text-lg">Requirements</h3>
+                                              </div>
+                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                  {selectedJob.requirements.map((req, i) => (
+                                                      <div key={i} className="flex items-start gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group transition-colors hover:border-primary/30">
+                                                          <div className="mt-1 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20">
+                                                            <Check className="h-3 w-3 text-primary" />
+                                                          </div>
+                                                          <span className="text-white/80 text-sm leading-snug">{req}</span>
+                                                      </div>
+                                                  ))}
+                                              </div>
+                                          </div>
+                                      </CardContent>
+                                    </ScrollArea>
+                                    
+                                    <CardFooter className="p-8 bg-white/5 border-t border-white/10 flex justify-between items-center">
+                                        <div className="hidden md:block">
+                                          <p className="text-xs text-muted-foreground">Ready to take the next step?</p>
+                                          <p className="text-sm font-semibold text-white">Apply now to start your journey.</p>
+                                        </div>
+                                        <Button onClick={handleApplyClick} size="lg" className="bg-primary hover:bg-primary/90 text-white px-10 rounded-xl font-bold transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto">
+                                            Apply for this Position
                                         </Button>
-                                    )}
-                                    {user && (isAdmin || user.uid === selectedJob.userId) && (
-                                        <div className="flex gap-2">
-                                            <Button variant="secondary" onClick={() => handleEditJobClick(selectedJob)}><Edit className="mr-2 h-4 w-4"/>Edit</Button>
-                                            <Button variant="destructive" onClick={() => handleDeleteClick(selectedJob)}><Trash2 className="mr-2 h-4 w-4"/>Delete</Button>
-                                        </div>
-                                    )}
-                                </CardFooter>
-                            </Card>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center text-center h-full rounded-lg border border-dashed p-8">
-                                <Briefcase className="h-16 w-16 text-muted-foreground/50" />
-                                <h3 className="text-xl font-semibold mt-4">No jobs match your criteria</h3>
-                                <p className="text-muted-foreground mt-1">Try adjusting your filters.</p>
-                            </div>
-                        )}
+                                    </CardFooter>
+                                </Card>
+                              </motion.div>
+                          ) : (
+                              <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex flex-col items-center justify-center text-center h-full min-h-[400px] rounded-3xl border border-dashed border-white/10 bg-white/5 p-12"
+                              >
+                                  <div className="animate-bounce-slow">
+                                    <Briefcase className="h-20 w-20 text-white/10" />
+                                  </div>
+                                  <h3 className="text-2xl font-bold text-white mt-6">Select a position</h3>
+                                  <p className="text-muted-foreground mt-2 max-w-xs mx-auto">Click on a job from the list to view full details and apply.</p>
+                              </motion.div>
+                          )}
+                        </AnimatePresence>
                     </div>
                 </div>
             )}
+
             <ApplyJobDialog
                 isOpen={isApplyDialogOpen}
                 onOpenChange={setIsApplyDialogOpen}

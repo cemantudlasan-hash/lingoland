@@ -305,6 +305,7 @@ export function StudentsTable() {
     const groups = new Map<string, StudentGroup>();
     
     students.forEach(doc => {
+       if (!doc.tableId) return;
        const key = doc.tableId.toLowerCase().trim();
        if (!groups.has(key)) {
            groups.set(key, {
@@ -357,9 +358,14 @@ export function StudentsTable() {
   }, [students]);
 
   const filteredGroups = studentGroups.filter(g => {
-    const matchesSearch = g.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          g.tableId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (g.nickname || "").toLowerCase().includes(searchQuery.toLowerCase());
+    const searchLow = searchQuery.toLowerCase();
+    const tableIdLow = (g.tableId || "").toLowerCase();
+    const fullNameLow = (g.fullName || "").toLowerCase();
+    const nicknameLow = (g.nickname || "").toLowerCase();
+
+    const matchesSearch = fullNameLow.includes(searchLow) ||
+                          tableIdLow.includes(searchLow) ||
+                          nicknameLow.includes(searchLow);
     
     const matchesClass = selectedClass === "all" || g.classSession === selectedClass;
     
