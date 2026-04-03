@@ -23,7 +23,7 @@ interface Problem {
   startTime: number;
 }
 
-type GameState = "idle" | "playing" | "finished" | "instructions";
+type GameState = "idle" | "playing" | "finished" | "instructions" | "showing_result";
 
 const TIMER_LIMIT = 8;
 
@@ -35,7 +35,7 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
   const [timeLeft, setTimeLeft] = React.useState(TIMER_LIMIT);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [combo, setCombo] = React.useState(0);
-  
+  const [resultData, setResultData] = React.useState<{ status: "correct" | "incorrect" | "timeout", points?: number, trueAnswer?: number }>({ status: "correct" });
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
   const firestore = useFirestore();
@@ -104,24 +104,30 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
   const handleAnswer = (selected: number) => {
     if (gameState !== "playing" || !currentProblem) return;
 
-    if (selected === currentProblem.answer) {
+    const correct = selected === currentProblem.answer;
+    let pointsEarned = 0;
+    let status: "correct" | "incorrect" | "timeout" = "incorrect";
+
+    if (correct) {
+      status = "correct";
       const bonus = Math.floor(timeLeft * 2);
-      setScore(prev => prev + 100 + bonus);
+      pointsEarned = 100 + bonus;
+      setScore(prev => prev + pointsEarned);
       setCombo(prev => prev + 1);
-      toast({
-        title: "Correct!",
-        description: `+${100 + bonus} points!`,
-        className: "bg-green-500 text-white",
-      });
-    } else {
+    } else if (selected === -1) {
+      status = "timeout";
       setCombo(0);
-      toast({
-        title: "Incorrect",
-        description: `The answer was ${currentProblem.answer}`,
-        variant: "destructive",
-      });
+    } else {
+      status = "incorrect";
+      setCombo(0);
     }
-    startNextRound();
+    
+    setResultData({ status, points: pointsEarned, trueAnswer: currentProblem.answer });
+    setGameState("showing_result");
+
+    setTimeout(() => {
+      startNextRound();
+    }, 2000);
   };
 
   React.useEffect(() => {
@@ -314,6 +320,41 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
                   </Progress>
                </div>
             </div>
+          )}
+
+          {gameState === "showing_result" && (
+            <motion.div 
+              key="result"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.2 }}
+              className="w-full h-full flex flex-col items-center justify-center relative text-center"
+            >
+                {resultData.status === "correct" && (
+                    <>
+                        <h2 className="text-6xl font-black text-green-400 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(74,222,128,0.5)]">
+                            Correct
+                        </h2>
+                        <p className="text-2xl text-white mt-4 font-bold">+{resultData.points} Points</p>
+                    </>
+                )}
+                {resultData.status === "incorrect" && (
+                    <>
+                        <h2 className="text-6xl font-black text-red-500 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                            Incorrect
+                        </h2>
+                        <p className="text-2xl text-white mt-4">The correct value of X was <span className="font-bold text-red-400">{resultData.trueAnswer}</span></p>
+                    </>
+                )}
+                {resultData.status === "timeout" && (
+                    <>
+                        <h2 className="text-6xl font-black text-orange-500 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]">
+                            Time Out!
+                        </h2>
+                        <p className="text-2xl text-white mt-4">The correct value of X was <span className="font-bold text-orange-400">{resultData.trueAnswer}</span></p>
+                    </>
+                )}
+            </motion.div>
           )}
 
           {gameState === "finished" && (
