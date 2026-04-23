@@ -70,6 +70,18 @@ export const gameComponentMap = {
   'algebraic-abyss': dynamic(() => import('@/components/games/algebraic-abyss').then(mod => mod.AlgebraicAbyss)),
   'evolution-expedition': dynamic(() => import('@/components/games/evolution-expedition').then(mod => mod.EvolutionExpedition)),
   'syntax-skyline': dynamic(() => import('@/components/games/syntax-skyline').then(mod => mod.SyntaxSkyline)),
+  'math-matrix': dynamic(() => import('@/components/games/math-matrix').then(mod => mod.MathMatrix)),
+  'vocab-vortex': dynamic(() => import('@/components/games/vocab-vortex').then(mod => mod.VocabVortex)),
+  'quantum-quest': dynamic(() => import('@/components/games/quantum-quest').then(mod => mod.QuantumQuest)),
+  'grammar-gladiator': dynamic(() => import('@/components/games/grammar-gladiator').then(mod => mod.GrammarGladiator)),
+  'synonym-sniper': dynamic(() => import('@/components/games/synonym-sniper').then(mod => mod.SynonymSniper)),
+  'idiom-inferno': dynamic(() => import('@/components/games/idiom-inferno').then(mod => mod.IdiomInferno)),
+  'molecule-maker': dynamic(() => import('@/components/games/molecule-maker').then(mod => mod.MoleculeMaker)),
+  'bio-hazard': dynamic(() => import('@/components/games/bio-hazard').then(mod => mod.BioHazard)),
+  'newtons-nightmare': dynamic(() => import('@/components/games/newtons-nightmare').then(mod => mod.NewtonsNightmare)),
+  'fraction-fortress': dynamic(() => import('@/components/games/fraction-fortress').then(mod => mod.FractionFortress)),
+  'data-detective': dynamic(() => import('@/components/games/data-detective').then(mod => mod.DataDetective)),
+  'geometry-genius': dynamic(() => import('@/components/games/geometry-genius').then(mod => mod.GeometryGenius)),
   'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
 };
 
