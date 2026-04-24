@@ -231,46 +231,48 @@ export default function AuthPage() {
     }
     
     return (
-        <div className="flex min-h-screen items-center justify-center relative">
-            <div
-                className="relative z-10 w-full max-w-md"
-            >
-                <Card>
-                    <CardHeader className="text-center">
-                        <CardTitle className="text-2xl font-bold tracking-tighter">Welcome to LingoLandVerse</CardTitle>
-                        <CardDescription>Sign in, create an account, or continue as a guest.</CardDescription>
-                        <p className="text-sm text-muted-foreground pt-2">Ideas and created by Ceman Dejamo Tudlasan, Powered by Ai.</p>
-                    </CardHeader>
-                    <CardContent>
-                        <Tabs value={activeTab} onValueChange={setActiveTab}>
-                            <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                            </TabsList>
-                            <TabsContent value="signin" className="pt-4">
-                                <LoginForm />
-                            </TabsContent>
-                            <TabsContent value="signup" className="pt-4">
-                                <SignUpForm onSignupSuccess={() => setActiveTab("signin")} />
-                            </TabsContent>
-                        </Tabs>
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t" />
+        <>
+            <div className="flex min-h-screen items-center justify-center relative">
+                <div
+                    className="relative z-10 w-full max-w-md"
+                >
+                    <Card>
+                        <CardHeader className="text-center">
+                            <CardTitle className="text-2xl font-bold tracking-tighter">Welcome to LingoLandVerse</CardTitle>
+                            <CardDescription>Sign in, create an account, or continue as a guest.</CardDescription>
+                            <p className="text-sm text-muted-foreground pt-2">Ideas and created by Ceman Dejamo Tudlasan, Powered by Ai.</p>
+                        </CardHeader>
+                        <CardContent>
+                            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="signin">Sign In</TabsTrigger>
+                                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="signin" className="pt-4">
+                                    <LoginForm />
+                                </TabsContent>
+                                <TabsContent value="signup" className="pt-4">
+                                    <SignUpForm onSignupSuccess={() => setActiveTab("signin")} />
+                                </TabsContent>
+                            </Tabs>
+                            <div className="relative my-6">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t" />
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="px-2 text-muted-foreground bg-card">
+                                    Or
+                                    </span>
+                                </div>
                             </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="px-2 text-muted-foreground bg-card">
-                                Or
-                                </span>
-                            </div>
-                        </div>
-                        <Button variant="secondary" className="w-full" onClick={handleGuestLogin} disabled={isGuest}>
-                           <LogIn className="mr-2 h-4 w-4" /> {isGuest ? "Already browsing as Guest" : "Continue as a Guest"}
-                        </Button>
-                    </CardContent>
-                </Card>
+                            <Button variant="secondary" className="w-full" onClick={handleGuestLogin} disabled={isGuest}>
+                               <LogIn className="mr-2 h-4 w-4" /> {isGuest ? "Already browsing as Guest" : "Continue as a Guest"}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-        </div>
-        <VisitorCounter />
+            <VisitorCounter />
+        </>
     )
 }
