@@ -25,6 +25,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/auth-context";
+import { VisitorCounter } from "@/components/layout/VisitorCounter";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -270,5 +271,6 @@ export default function AuthPage() {
                 </Card>
             </div>
         </div>
+        <VisitorCounter />
     )
 }
