@@ -5,6 +5,7 @@ import { AuthProviderWrapper } from '@/context/auth-provider-wrapper';
 import { PT_Sans, Roboto, Lato, Montserrat } from 'next/font/google';
 import { FirebaseClientProvider } from '@/firebase';
 import PlexusBackground from '@/components/layout/PlexusBackground';
+import { VisitorCounter } from '@/components/layout/VisitorCounter';
 
 const ptSans = PT_Sans({ 
     subsets: ['latin'], 
@@ -48,6 +49,7 @@ export default function RootLayout({
           <FirebaseClientProvider>
               <AuthProviderWrapper>
                   {children}
+                  <VisitorCounter />
               </AuthProviderWrapper>
           </FirebaseClientProvider>
         </div>
