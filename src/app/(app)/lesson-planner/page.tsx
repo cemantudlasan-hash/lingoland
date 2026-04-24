@@ -40,6 +40,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
 import html2canvas from 'html2canvas';
+import { useAuth } from '@/context/auth-context';
+import Link from 'next/link';
 
 type FormValues = z.infer<typeof GenerateLessonPlanInputSchema>;
 
@@ -50,6 +52,28 @@ export default function LessonPlannerPage() {
   const printableAreaRef = React.useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
+  const { user, isGuest, isLoading: isAuthLoading } = useAuth();
+
+  if (isAuthLoading) {
+    return <div className="flex justify-center items-center h-[60vh]"><Loader2 className="animate-spin h-12 w-12 text-primary" /></div>;
+  }
+
+  if (isGuest || !user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-6">
+        <div className="p-6 bg-primary/10 rounded-full">
+          <FileText className="h-20 w-20 text-primary animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter text-foreground">LESSON PLANNER ACCESS RESTRICTED</h2>
+          <p className="text-muted-foreground text-lg">Please sign in or create an account to access the Lesson Planner.</p>
+        </div>
+        <Button asChild size="lg" className="h-14 px-10 text-xl font-bold rounded-2xl bg-gradient-to-r from-blue-600 to-teal-600">
+          <Link href="/auth">Sign In or Create Account</Link>
+        </Button>
+      </div>
+    );
+  }
 
   const form = useForm<FormValues>({
     resolver: zodResolver(GenerateLessonPlanInputSchema),
