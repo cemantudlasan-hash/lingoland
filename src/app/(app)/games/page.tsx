@@ -180,7 +180,7 @@ export default function GamesPage() {
                                 <CardContent className="flex-grow">
                                               <p className="text-sm text-muted-foreground">
                                                 {game.description}
-                                              </p>p>
+                                              </p>
                                 </CardContent>
                                 <CardFooter>
                                               <Link href={`/games/${game.slug}`} className="w-full">
