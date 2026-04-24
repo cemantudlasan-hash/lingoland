@@ -43,5 +43,4 @@ export function VisitorCounter() {
       <span>{count.toLocaleString()} visitors</span>
     </div>
   );
-}</content>
-<parameter name="filePath">/workspaces/lingoland/src/components/layout/VisitorCounter.tsx
+}
