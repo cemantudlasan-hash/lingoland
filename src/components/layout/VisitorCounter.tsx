@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useFirestore } from '@/firebase';
-import { doc, setDoc, onSnapshot, increment } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, onSnapshot, increment } from 'firebase/firestore';
 import { Users } from 'lucide-react';
 
 export function VisitorCounter() {
@@ -13,13 +13,30 @@ export function VisitorCounter() {
     if (!firestore) return;
 
     const counterRef = doc(firestore, 'stats', 'visitorCount');
+    const sessionKey = 'visitorCountIncremented';
 
-    // Increment the count on load
+    // Only increment once per browser session
     const incrementCount = async () => {
+      if (sessionStorage.getItem(sessionKey)) {
+        // Already incremented this session, just listen for updates
+        return;
+      }
+
       try {
-        await setDoc(counterRef, {
-          count: increment(1)
-        }, { merge: true });
+        const docSnap = await getDoc(counterRef);
+        if (docSnap.exists()) {
+          // Document exists, increment it
+          await updateDoc(counterRef, {
+            count: increment(1)
+          });
+        } else {
+          // Document doesn't exist, create it with count 1
+          await setDoc(counterRef, {
+            count: 1
+          });
+        }
+        // Mark as incremented for this session
+        sessionStorage.setItem(sessionKey, 'true');
       } catch (error) {
         console.error('Error incrementing visitor count:', error);
       }
