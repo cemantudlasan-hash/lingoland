@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useFirestore } from '@/firebase';
-import { doc, onSnapshot, increment, runTransaction } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, increment, runTransaction } from 'firebase/firestore';
 import { Users } from 'lucide-react';
 
 export function VisitorCounter() {
@@ -11,7 +11,10 @@ export function VisitorCounter() {
   const firestore = useFirestore();
 
   useEffect(() => {
-    if (!firestore) return;
+    if (!firestore) {
+      setError('Firestore is not available.');
+      return;
+    }
 
     const counterRef = doc(firestore, 'stats', 'visitorCount');
     const sessionKey = 'visitorCountIncremented';
@@ -32,22 +35,54 @@ export function VisitorCounter() {
           }
         });
         sessionStorage.setItem(sessionKey, 'true');
-      } catch (transactionError) {
+      } catch (transactionError: unknown) {
         console.error('Visitor counter transaction failed:', transactionError);
-        setError('Unable to update visitor count.');
+        setError(
+          transactionError instanceof Error
+            ? `Unable to update visitor count: ${transactionError.message}`
+            : 'Unable to update visitor count.'
+        );
       }
     };
 
-    incrementCount();
-
-    const unsubscribe = onSnapshot(counterRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setCount(docSnap.data().count || 0);
+    const loadCount = async () => {
+      try {
+        const docSnap = await getDoc(counterRef);
+        if (docSnap.exists()) {
+          setCount(docSnap.data().count || 0);
+          setError(null);
+        }
+      } catch (loadError: unknown) {
+        console.error('Visitor counter load error:', loadError);
+        if (!error) {
+          setError(
+            loadError instanceof Error
+              ? `Unable to load visitor count: ${loadError.message}`
+              : 'Unable to load visitor count.'
+          );
+        }
       }
-    }, (snapshotError) => {
-      console.error('Visitor counter snapshot error:', snapshotError);
-      setError('Unable to load visitor count.');
-    });
+    };
+
+    incrementCount().then(loadCount);
+
+    const unsubscribe = onSnapshot(
+      counterRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setCount(docSnap.data().count || 0);
+          setError(null);
+        }
+      },
+      (snapshotError) => {
+        console.error('Visitor counter snapshot error:', snapshotError);
+        setError(
+          snapshotError instanceof Error
+            ? `Unable to load visitor count: ${snapshotError.message}`
+            : 'Unable to load visitor count.'
+        );
+      }
+    );
 
     return () => {
       unsubscribe();
