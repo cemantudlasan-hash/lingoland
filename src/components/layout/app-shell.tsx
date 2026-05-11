@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import dynamic from 'next/dynamic';
 import { SidebarProvider, Sidebar, SidebarInset, useSidebar } from "@/components/ui/sidebar";
 import { AppHeader } from "@/components/layout/app-header";
@@ -17,21 +17,21 @@ const AppSidebar = dynamic(() => import('@/components/layout/app-sidebar').then(
 function HoverSidebarWrapper({ children }: { children: ReactNode }) {
   const { setOpen, isMobile } = useSidebar();
 
-  // Initialize as collapsed on desktop
-  useEffect(() => {
-    if (!isMobile) {
-      setOpen(false);
-    }
-  }, [isMobile, setOpen]);
-
   return (
-    <Sidebar 
-      collapsible="icon" 
-      onMouseEnter={() => !isMobile && setOpen(true)}
-      onMouseLeave={() => !isMobile && setOpen(false)}
-    >
-      {children}
-    </Sidebar>
+    <>
+      <div 
+        className="fixed left-0 top-0 bottom-0 w-8 z-[60] bg-transparent"
+        onMouseEnter={() => !isMobile && setOpen(true)}
+      />
+      <div 
+        className="h-full z-[70] flex"
+        onMouseLeave={() => !isMobile && setOpen(false)}
+      >
+        <Sidebar collapsible="offcanvas">
+          {children}
+        </Sidebar>
+      </div>
+    </>
   );
 }
 
