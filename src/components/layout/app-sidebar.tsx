@@ -189,9 +189,9 @@ export function AppSidebar() {
       </div>
       <div className="relative z-10 flex h-full flex-col p-2 gap-2">
         <SidebarHeader className="hidden md:flex bg-card/10">
-          <div className="flex items-center gap-2 p-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-bold font-headline">LingoLandVerse</h1>
+          <div className="flex items-center gap-2 p-2 overflow-hidden">
+            <GraduationCap className="h-8 w-8 shrink-0 text-primary" />
+            <h1 className="text-xl font-bold font-headline truncate transition-opacity group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:hidden">LingoLandVerse</h1>
           </div>
         </SidebarHeader>
         <SidebarContent className="bg-card/10">
