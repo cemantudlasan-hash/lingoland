@@ -235,7 +235,7 @@ export default function PublicProfilePage() {
                     <div className="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16 mb-8">
                         <div className={cn("rounded-full p-1.5 transition-all duration-500", currentFrameClass)}>
                             <Avatar className="h-32 w-32 rounded-full border-4 border-background shadow-2xl bg-background">
-                                <AvatarImage src={`https://api.dicebear.com/8.x/adventurer/svg?seed=${profile.avatarSeed || profile.uid}`} />
+                                <AvatarImage src={`https://api.dicebear.com/8.x/notionists/svg?seed=${profile.avatarSeed || profile.uid}&backgroundColor=18181b`} />
                                 <AvatarFallback className="text-4xl">{profile.displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
                             </Avatar>
                         </div>
@@ -308,7 +308,7 @@ export default function PublicProfilePage() {
                                                         className="group flex items-start gap-3 p-3 rounded-2xl bg-muted/30 border border-white/5 transition-colors hover:bg-muted/50"
                                                     >
                                                         <Avatar className="h-8 w-8">
-                                                            <AvatarImage src={`https://api.dicebear.com/8.x/adventurer/svg?seed=${comment.authorId}`} />
+                                                            <AvatarImage src={`https://api.dicebear.com/8.x/notionists/svg?seed=${comment.authorId}&backgroundColor=18181b`} />
                                                             <AvatarFallback>{comment.authorName.substring(0, 2)}</AvatarFallback>
                                                         </Avatar>
                                                         <div className="flex-1">

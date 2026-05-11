@@ -485,13 +485,13 @@ export default function LoungePage() {
                             {canViewProfile ? (
                                 <Link href={`/users/${suggestion.authorId}`} className="transition-transform hover:scale-110 active:scale-95">
                                     <Avatar className="h-12 w-12 border-2 border-primary/20 flex-shrink-0">
-                                        <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/adventurer/svg?seed=${authorProfile.avatarSeed}` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
+                                        <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${authorProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
                                         <AvatarFallback>{getInitials(suggestion.authorName)}</AvatarFallback>
                                     </Avatar>
                                 </Link>
                             ) : (
                                 <Avatar className="h-12 w-12 border-2 border-background flex-shrink-0">
-                                    <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/adventurer/svg?seed=${authorProfile.avatarSeed}` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
+                                    <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${authorProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
                                     <AvatarFallback>{getInitials(suggestion.authorName)}</AvatarFallback>
                                 </Avatar>
                             )}
@@ -544,7 +544,7 @@ export default function LoungePage() {
                 mentionableUsers.map(p => (
                     <div key={p.uid} onClick={() => handleMentionSelect(p.displayName!)} className="p-2 hover:bg-primary/10 rounded cursor-pointer flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                            <AvatarImage src={p.avatarSeed ? `https://api.dicebear.com/8.x/adventurer/svg?seed=${p.avatarSeed}` : `https://api.dicebear.com/8.x/initials/svg?seed=${p.displayName}`} alt={p.displayName!} />
+                            <AvatarImage src={p.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${p.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${p.displayName}`} alt={p.displayName!} />
                             <AvatarFallback>{getInitials(p.displayName)}</AvatarFallback>
                         </Avatar>
                         <span>{p.displayName}</span>
@@ -604,7 +604,7 @@ export default function LoungePage() {
                       mentionableUsers.map(p => (
                         <div key={p.uid} onClick={() => handleMentionSelect(p.displayName!)} className="p-2 hover:bg-primary/10 rounded cursor-pointer flex items-center gap-2">
                           <Avatar className="h-6 w-6">
-                            <AvatarImage src={p.avatarSeed ? `https://api.dicebear.com/8.x/adventurer/svg?seed=${p.avatarSeed}` : `https://api.dicebear.com/8.x/initials/svg?seed=${p.displayName}`} alt={p.displayName!} />
+                            <AvatarImage src={p.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${p.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${p.displayName}`} alt={p.displayName!} />
                             <AvatarFallback>{getInitials(p.displayName)}</AvatarFallback>
                           </Avatar>
                           <span>{p.displayName}</span>
@@ -625,7 +625,7 @@ export default function LoungePage() {
                 )}
                 <div className="flex w-full items-center gap-2">
                   <Avatar>
-                    <AvatarImage src={userProfile.avatarSeed ? `https://api.dicebear.com/8.x/adventurer/svg?seed=${userProfile.avatarSeed}` : `https://api.dicebear.com/8.x/initials/svg?seed=${userProfile.displayName}`} alt={userProfile.displayName || ''} />
+                    <AvatarImage src={userProfile.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${userProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${userProfile.displayName}`} alt={userProfile.displayName || ''} />
                     <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
                   </Avatar>
                   <Textarea
@@ -707,3 +707,4 @@ export default function LoungePage() {
     </div>
   );
 }
+

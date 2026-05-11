@@ -270,7 +270,7 @@ export function AppHeader() {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-10 w-10 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0">
                         <Avatar className="h-10 w-10 border-2 border-transparent hover:border-primary">
-                            <AvatarImage src={userProfile.avatarSeed ? `https://api.dicebear.com/8.x/adventurer/svg?seed=${userProfile.avatarSeed}` : `https://api.dicebear.com/8.x/initials/svg?seed=${userProfile.displayName}`} alt={userProfile.displayName || 'user'} />
+                            <AvatarImage src={userProfile.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${userProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${userProfile.displayName}`} alt={userProfile.displayName || 'user'} />
                             <AvatarFallback>{getInitials(userProfile.displayName)}</AvatarFallback>
                         </Avatar>
                         </Button>
@@ -348,3 +348,4 @@ export function AppHeader() {
     </header>
   );
 }
+
