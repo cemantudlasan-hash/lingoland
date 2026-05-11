@@ -12,13 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, Save, Sparkles, PencilLine, ShieldCheck } from "lucide-react";
+import { Loader2, RefreshCw, Save, Sparkles, PencilLine, ShieldCheck, Camera } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import dynamic from 'next/dynamic';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import placeholderData from "@/app/lib/placeholder-images.json";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "Display name must be at least 2 characters."),
@@ -43,36 +44,46 @@ const AESTHETIC_PRESETS = [
 ];
 
 const AVATAR_FRAMES = [
-    { id: 'none', label: 'No Frame', class: 'frame-none' },
-    { id: 'neon', label: 'Neon Glow', class: 'frame-neon' },
-    { id: 'rainbow', label: 'Rainbow Orbit', class: 'frame-rainbow' },
-    { id: 'gold', label: 'Royal Gold', class: 'frame-gold' },
-    { id: 'cyber', label: 'Cyber Grid', class: 'frame-cyber' },
-    { id: 'portal', label: 'Void Portal', class: 'frame-portal' },
-    { id: 'fire', label: 'Solar Flare', class: 'frame-fire' },
-    { id: 'frost', label: 'Glacial Ice', class: 'frame-frost' },
-    { id: 'nature', label: 'Bio-Signal', class: 'frame-nature' },
-    { id: 'diamond', label: 'Diamond Spark', class: 'frame-diamond' },
-    { id: 'obsidian', label: 'Dark Matter', class: 'frame-obsidian' },
+    { id: 'none', label: 'Minimalist', class: 'frame-none' },
+    { id: 'neon', label: 'Luminous', class: 'frame-neon' },
+    { id: 'rainbow', label: 'Prismatic', class: 'frame-rainbow' },
+    { id: 'gold', label: 'Aureate', class: 'frame-gold' },
+    { id: 'cyber', label: 'Lattice', class: 'frame-cyber' },
+    { id: 'portal', label: 'Eclipse', class: 'frame-portal' },
+    { id: 'fire', label: 'Ignition', class: 'frame-fire' },
+    { id: 'frost', label: 'Crystalline', class: 'frame-frost' },
+    { id: 'nature', label: 'Organic', class: 'frame-nature' },
+    { id: 'diamond', label: 'Brilliant', class: 'frame-diamond' },
+    { id: 'obsidian', label: 'Void', class: 'frame-obsidian' },
 ];
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+        opacity: 1,
+        transition: { staggerChildren: 0.08, delayChildren: 0.1, ease: "easeOut" }
+    }
+};
+
+const itemVariants = {
+    hidden: { y: 15, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] } }
+};
 
 function ProfileSkeleton() {
     return (
-        <Card className="w-full max-w-3xl mx-auto">
-            <CardHeader>
-                <Skeleton className="h-48 w-full rounded-t-lg mb-4" />
-                <CardTitle>Your Profile</CardTitle>
-                <CardDescription>Update your personal information and learning goals here.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="flex justify-center -mt-12">
-                    <Skeleton className="h-24 w-24 rounded-full border-4 border-background" />
+        <Card className="w-full max-w-4xl mx-auto bg-zinc-950/80 backdrop-blur-2xl border border-zinc-800/50 shadow-2xl">
+            <div className="relative h-64 w-full bg-zinc-900 animate-pulse rounded-t-lg"></div>
+            <CardContent className="space-y-8 py-8 relative z-20">
+                <div className="flex justify-center -mt-24">
+                    <Skeleton className="h-32 w-32 rounded-full border-[6px] border-zinc-950 bg-zinc-800" />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2"><Skeleton className="h-4 w-20" /><Skeleton className="h-10 w-full" /></div>
-                    <div className="space-y-2"><Skeleton className="h-4 w-20" /><Skeleton className="h-10 w-full" /></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3"><Skeleton className="h-4 w-24 bg-zinc-800" /><Skeleton className="h-12 w-full bg-zinc-900 rounded-md" /></div>
+                    <div className="space-y-3"><Skeleton className="h-4 w-24 bg-zinc-800" /><Skeleton className="h-12 w-full bg-zinc-900 rounded-md" /></div>
                 </div>
-                <Skeleton className="h-10 w-32" />
+                <div className="space-y-3"><Skeleton className="h-4 w-32 bg-zinc-800" /><Skeleton className="h-24 w-full bg-zinc-900 rounded-md" /></div>
+                <Skeleton className="h-14 w-full bg-zinc-800 rounded-md" />
             </CardContent>
         </Card>
     )
@@ -147,7 +158,6 @@ function ProfilePageComponent() {
     }
   }, [user, reset, toast]);
 
-
   useEffect(() => {
     if (!authLoading) {
         setRandomSeed(Date.now().toString());
@@ -170,7 +180,7 @@ function ProfilePageComponent() {
       await refreshUserProfile();
       toast({
         title: "Profile Updated",
-        description: "Your changes have been saved successfully.",
+        description: "Your changes have been successfully saved.",
       });
     } catch (error: any) {
       toast({
@@ -196,179 +206,240 @@ function ProfilePageComponent() {
   }
 
   if (authLoading || isProfileLoading) {
-    return <ProfileSkeleton />;
+    return (
+        <div className="py-12 min-h-screen flex items-center justify-center bg-zinc-950/50">
+            <ProfileSkeleton />
+        </div>
+    );
   }
 
   const currentCover = coverPhotoUrl || `https://picsum.photos/seed/${coverPhotoHint.replace(/\s+/g, '-')}-${randomSeed}/1200/400`;
   const currentFrameClass = AVATAR_FRAMES.find(f => f.id === avatarFrame)?.class || 'frame-none';
 
   return (
-    <div className="py-8">
-        <Card className="w-full max-w-3xl mx-auto bg-card text-card-foreground shadow-2xl border-none overflow-hidden">
-            <div className="relative h-48 w-full group">
-                <Image 
-                    key={currentCover}
-                    src={currentCover} 
-                    alt="Cover" 
-                    fill 
-                    unoptimized
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    data-ai-hint={coverPhotoUrl ? "" : coverPhotoHint}
-                />
-                <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] z-0" />
-                <div className="absolute bottom-4 right-4 flex gap-2 z-20">
-                    <Button 
-                        type="button" 
-                        variant="secondary" 
-                        size="sm" 
-                        className="bg-black/50 text-white border-white/20 hover:bg-black/70 cursor-pointer font-bold"
-                        onClick={handleRandomizeCover}
+    <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="py-12 relative z-10 min-h-screen flex items-center justify-center bg-zinc-950/30"
+    >
+        <div className="w-full max-w-4xl mx-auto px-4">
+            <Card className="bg-zinc-950/80 backdrop-blur-2xl border border-zinc-800/50 shadow-2xl text-zinc-100 overflow-hidden relative rounded-2xl">
+                {/* Subtle Ambient Glow */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-indigo-500/10 blur-[100px] pointer-events-none z-10" />
+
+                {/* Header Cover */}
+                <div className="relative h-64 w-full group overflow-hidden bg-zinc-900">
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 1.2 }}
+                        className="w-full h-full"
                     >
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Randomize AI Cover
-                    </Button>
-                </div>
-            </div>
-            <CardContent className="relative py-8">
-                <div className="flex flex-col items-center -mt-20 mb-8">
-                    <div className={cn("rounded-full p-1.5 transition-all duration-500", currentFrameClass)}>
-                        <Avatar className="h-32 w-32 border-4 border-background shadow-2xl bg-background">
-                            <AvatarImage src={`https://api.dicebear.com/8.x/adventurer/svg?seed=${avatarSeed || user?.uid}`} alt={user?.displayName || ''} />
-                            <AvatarFallback>{watch("displayName")?.substring(0, 2).toUpperCase() || 'U'}</AvatarFallback>
-                        </Avatar>
-                    </div>
-                    <Button type="button" variant="link" size="sm" className="mt-2 text-primary hover:text-primary/80" onClick={handleGenerateAvatar}>
-                        <RefreshCw className="mr-2 h-3 w-3"/>
-                        New Avatar
-                    </Button>
-                </div>
-
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="displayName">Display Name</Label>
-                            <Input id="displayName" {...register("displayName")} className="bg-muted/50" />
-                            {errors.displayName && <p className="text-sm text-destructive">{errors.displayName.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email (Private)</Label>
-                            <Input id="email" type="email" value={user?.email || ""} disabled className="bg-muted/30 opacity-50" />
-                        </div>
-                    </div>
-
-                    <div className="space-y-4 pt-4 border-t border-white/10">
-                        <Label className="text-primary font-black uppercase tracking-widest text-xs flex items-center gap-2">
-                            <ShieldCheck className="h-4 w-4"/>
-                            Linguistic Rank (Avatar Frames)
-                        </Label>
-                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                            {AVATAR_FRAMES.map(frame => (
-                                <Button 
-                                    key={frame.id}
-                                    type="button"
-                                    variant={avatarFrame === frame.id ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setValue("avatarFrame", frame.id)}
-                                    className={cn("h-auto py-2 flex flex-col gap-1", avatarFrame === frame.id && "ring-2 ring-primary")}
-                                >
-                                    <div className={cn("w-8 h-8 rounded-full border-2", frame.class)}></div>
-                                    <span className="text-[10px] uppercase font-black">{frame.label.split(' ')[0]}</span>
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="schoolName">School Name</Label>
-                            <Input id="schoolName" {...register("schoolName")} placeholder="e.g., LingoLand Academy" className="bg-muted/50" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="age">Age</Label>
-                            <Input id="age" {...register("age")} placeholder="e.g., 15" className="bg-muted/50" />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="hobbies">Hobbies & Interests</Label>
-                        <Input id="hobbies" {...register("hobbies")} placeholder="e.g., Gaming, Reading, Soccer" className="bg-muted/50" />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="dailyPost" className="flex items-center gap-2">
-                            <PencilLine className="h-4 w-4 text-primary" />
-                            About My Day (Status Post)
-                        </Label>
-                        <Textarea
-                            id="dailyPost"
-                            {...register("dailyPost")}
-                            placeholder="Share something interesting that happened today..."
-                            rows={3}
-                            className="bg-muted/50 resize-none"
+                        <Image 
+                            key={currentCover}
+                            src={currentCover} 
+                            alt="Cover" 
+                            fill 
+                            unoptimized
+                            className="object-cover transition-transform duration-[2s] group-hover:scale-105"
+                            data-ai-hint={coverPhotoUrl ? "" : coverPhotoHint}
                         />
-                        <p className="text-[10px] text-muted-foreground italic">This post will be visible to anyone who views your profile.</p>
+                    </motion.div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent z-0" />
+                    
+                    <div className="absolute bottom-6 right-6 flex gap-3 z-20">
+                        <Button 
+                            type="button" 
+                            variant="secondary" 
+                            size="sm" 
+                            className="bg-zinc-900/60 backdrop-blur-xl text-zinc-200 border border-zinc-700/50 hover:bg-zinc-100 hover:text-zinc-900 transition-all duration-300 shadow-xl"
+                            onClick={handleRandomizeCover}
+                        >
+                            <Camera className="mr-2 h-4 w-4" />
+                            Update Backdrop
+                        </Button>
                     </div>
-
-                    <div className="space-y-4 pt-4 border-t border-white/10">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-primary font-black uppercase tracking-widest text-xs">Profile Aesthetic (AI Backdrops)</Label>
+                </div>
+                
+                <CardContent className="relative px-8 pb-12 pt-0 z-20">
+                    {/* Avatar Section */}
+                    <div className="flex flex-col md:flex-row items-center md:items-end justify-between -mt-20 mb-12 gap-6 pointer-events-none">
+                        <div className="flex flex-col items-center md:items-start relative group cursor-pointer pointer-events-auto" onClick={handleGenerateAvatar}>
+                            <motion.div 
+                                className={cn("rounded-full p-1.5 transition-all duration-700 bg-zinc-950/80 backdrop-blur-xl group-hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]", currentFrameClass)}
+                            >
+                                <Avatar className="h-36 w-36 border-[6px] border-zinc-950 shadow-2xl bg-zinc-900 transition-transform duration-500 group-hover:scale-[1.02]">
+                                    <AvatarImage src={`https://api.dicebear.com/8.x/notionists/svg?seed=${avatarSeed || user?.uid}&backgroundColor=18181b`} alt={user?.displayName || ''} />
+                                    <AvatarFallback className="bg-zinc-800 text-zinc-300 text-3xl font-medium tracking-widest">
+                                        {watch("displayName")?.substring(0, 2).toUpperCase() || 'U'}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </motion.div>
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full bg-black/40 backdrop-blur-sm m-2">
+                                <RefreshCw className="h-8 w-8 text-white" />
+                            </div>
                         </div>
                         
-                        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-                            {AESTHETIC_PRESETS.map(preset => (
-                                <Button 
-                                    key={preset}
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => { 
-                                        setRandomSeed(Date.now().toString());
-                                        setValue("coverPhotoHint", preset); 
-                                        setValue("coverPhotoUrl", ""); 
-                                    }}
-                                    className={cn("px-1 text-[10px] uppercase font-black truncate h-8", coverPhotoHint === preset && !coverPhotoUrl && "border-primary bg-primary/10")}
-                                >
-                                    {preset.split(' ')[0]}
-                                </Button>
-                            ))}
+                        <div className="flex-1 text-center md:text-left space-y-1 md:pl-4 mb-4 md:mb-0 pointer-events-auto">
+                            <h1 className="text-3xl font-semibold tracking-tight text-white">{watch("displayName") || "Anonymous User"}</h1>
+                            <p className="text-zinc-400 font-medium">{watch("schoolName") || "No organization specified"}</p>
                         </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="coverPhotoHint" className="text-xs text-muted-foreground">Custom AI Keyword:</Label>
-                            <Input 
-                                id="coverPhotoHint" 
-                                {...register("coverPhotoHint")} 
-                                placeholder="Describe your vibe (e.g. 'tokyo night', 'minimalist', 'forest')" 
-                                className="bg-muted/50"
-                                onChange={(e) => {
-                                    setRandomSeed(Date.now().toString());
-                                    setValue("coverPhotoHint", e.target.value);
-                                    setValue("coverPhotoUrl", "");
-                                }}
-                            />
-                        </div>
-                        <p className="text-[10px] text-muted-foreground italic">Type a keyword or pick a preset to instantly update your AI background imagery.</p>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="learningGoals">My English Goals</Label>
-                        <Textarea
-                            id="learningGoals"
-                            {...register("learningGoals")}
-                            placeholder="e.g., 'I want to be able to talk to people from all over the world!'"
-                            rows={4}
-                            className="bg-muted/50 resize-none"
-                        />
-                    </div>
+                    <motion.form 
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        onSubmit={handleSubmit(onSubmit)} 
+                        className="space-y-10"
+                    >
+                        {/* Profile Info Section */}
+                        <div className="space-y-6">
+                            <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 border-b border-zinc-800/50 pb-2">Personal Information</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <motion.div variants={itemVariants} className="space-y-3">
+                                    <Label htmlFor="displayName" className="text-zinc-300 font-medium">Display Name</Label>
+                                    <Input id="displayName" {...register("displayName")} className="h-12 bg-zinc-900/50 border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all text-zinc-100 placeholder:text-zinc-600" />
+                                    {errors.displayName && <p className="text-xs text-rose-400 font-medium mt-1">{errors.displayName.message}</p>}
+                                </motion.div>
+                                <motion.div variants={itemVariants} className="space-y-3">
+                                    <Label htmlFor="email" className="text-zinc-300 font-medium">Email Address</Label>
+                                    <Input id="email" type="email" value={user?.email || ""} disabled className="h-12 bg-zinc-900/30 border-zinc-800/50 text-zinc-500 cursor-not-allowed" />
+                                </motion.div>
+                            </div>
 
-                    <Button type="submit" disabled={isSaving} className="w-full h-12 text-lg font-bold bg-gradient-to-r from-purple-600 to-indigo-600 shadow-xl shadow-purple-500/20">
-                        {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
-                        Save Public Profile
-                    </Button>
-                </form>
-            </CardContent>
-        </Card>
-    </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <motion.div variants={itemVariants} className="space-y-3">
+                                    <Label htmlFor="schoolName" className="text-zinc-300 font-medium">Organization / School</Label>
+                                    <Input id="schoolName" {...register("schoolName")} placeholder="e.g., LingoLand Academy" className="h-12 bg-zinc-900/50 border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all text-zinc-100 placeholder:text-zinc-600" />
+                                </motion.div>
+                                <motion.div variants={itemVariants} className="space-y-3">
+                                    <Label htmlFor="age" className="text-zinc-300 font-medium">Age</Label>
+                                    <Input id="age" {...register("age")} placeholder="e.g., 25" className="h-12 bg-zinc-900/50 border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all text-zinc-100 placeholder:text-zinc-600" />
+                                </motion.div>
+                            </div>
+                        </div>
+
+                        {/* About Section */}
+                        <div className="space-y-6">
+                            <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 border-b border-zinc-800/50 pb-2">About Me</h2>
+                            <motion.div variants={itemVariants} className="space-y-3">
+                                <Label htmlFor="hobbies" className="text-zinc-300 font-medium">Hobbies & Interests</Label>
+                                <Input id="hobbies" {...register("hobbies")} placeholder="Reading, Photography, Traveling..." className="h-12 bg-zinc-900/50 border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all text-zinc-100 placeholder:text-zinc-600" />
+                            </motion.div>
+
+                            <motion.div variants={itemVariants} className="space-y-3">
+                                <Label htmlFor="learningGoals" className="text-zinc-300 font-medium">Learning Objectives</Label>
+                                <Textarea
+                                    id="learningGoals"
+                                    {...register("learningGoals")}
+                                    placeholder="What do you hope to achieve?"
+                                    rows={3}
+                                    className="bg-zinc-900/50 border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all text-zinc-100 placeholder:text-zinc-600 resize-none py-3"
+                                />
+                            </motion.div>
+
+                            <motion.div variants={itemVariants} className="space-y-3">
+                                <Label htmlFor="dailyPost" className="flex items-center gap-2 text-zinc-300 font-medium">
+                                    <PencilLine className="h-4 w-4 text-zinc-400" />
+                                    Current Status
+                                </Label>
+                                <Textarea
+                                    id="dailyPost"
+                                    {...register("dailyPost")}
+                                    placeholder="Share a brief update..."
+                                    rows={2}
+                                    className="bg-zinc-900/50 border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all text-zinc-100 placeholder:text-zinc-600 resize-none py-3"
+                                />
+                            </motion.div>
+                        </div>
+
+                        {/* Aesthetics Section */}
+                        <div className="space-y-6">
+                            <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 border-b border-zinc-800/50 pb-2">Aesthetics</h2>
+                            
+                            <motion.div variants={itemVariants} className="space-y-4">
+                                <Label className="text-zinc-300 font-medium flex items-center gap-2">
+                                    <ShieldCheck className="h-4 w-4 text-zinc-400"/>
+                                    Avatar Frame
+                                </Label>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                                    {AVATAR_FRAMES.map(frame => (
+                                        <div key={frame.id}>
+                                            <Button 
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => setValue("avatarFrame", frame.id)}
+                                                className={cn(
+                                                    "w-full h-auto py-4 flex flex-col gap-3 bg-zinc-900/30 border-zinc-800 hover:bg-zinc-800 hover:text-zinc-200 transition-all text-zinc-400", 
+                                                    avatarFrame === frame.id && "bg-zinc-800 border-zinc-500 text-zinc-100 ring-1 ring-zinc-500/50"
+                                                )}
+                                            >
+                                                <div className={cn("w-6 h-6 rounded-full border-2", frame.class)}></div>
+                                                <span className="text-[11px] font-medium tracking-wide">{frame.label}</span>
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.div>
+
+                            <motion.div variants={itemVariants} className="space-y-4 pt-4">
+                                <Label className="text-zinc-300 font-medium">Backdrop Vibe</Label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2">
+                                    {AESTHETIC_PRESETS.map(preset => (
+                                        <div key={preset}>
+                                            <Button 
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => { 
+                                                    setRandomSeed(Date.now().toString());
+                                                    setValue("coverPhotoHint", preset); 
+                                                    setValue("coverPhotoUrl", ""); 
+                                                }}
+                                                className={cn(
+                                                    "w-full px-2 text-[10px] font-medium truncate h-9 bg-zinc-900/30 border-zinc-800 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-all capitalize", 
+                                                    coverPhotoHint === preset && !coverPhotoUrl && "bg-zinc-800 border-zinc-500 text-zinc-100"
+                                                )}
+                                            >
+                                                {preset.split(' ')[0]}
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="space-y-3 pt-2">
+                                    <Label htmlFor="coverPhotoHint" className="text-xs text-zinc-500 font-medium">Or enter a custom aesthetic prompt:</Label>
+                                    <Input 
+                                        id="coverPhotoHint" 
+                                        {...register("coverPhotoHint")} 
+                                        placeholder="e.g., 'minimalist architecture', 'cinematic lighting'" 
+                                        className="h-12 bg-zinc-900/50 border-zinc-800 focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all text-zinc-100 placeholder:text-zinc-600"
+                                        onChange={(e) => {
+                                            setRandomSeed(Date.now().toString());
+                                            setValue("coverPhotoHint", e.target.value);
+                                            setValue("coverPhotoUrl", "");
+                                        }}
+                                    />
+                                </div>
+                            </motion.div>
+                        </div>
+
+                        <motion.div variants={itemVariants} className="pt-8 pb-4">
+                            <Button 
+                                type="submit" 
+                                disabled={isSaving} 
+                                className="w-full h-14 text-sm font-semibold tracking-wide bg-zinc-100 hover:bg-zinc-200 text-zinc-900 transition-all rounded-lg"
+                            >
+                                {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
+                                {isSaving ? "Saving Changes..." : "Save Profile"}
+                            </Button>
+                        </motion.div>
+                    </motion.form>
+                </CardContent>
+            </Card>
+        </div>
+    </motion.div>
   );
 }
 
