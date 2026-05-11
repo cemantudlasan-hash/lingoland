@@ -331,11 +331,15 @@ export function AppHeader() {
       )}
       <div className="relative z-10 flex h-16 w-full items-center justify-between px-4 sm:px-6 bg-card/10 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={toggleSidebar} className="md:hidden -ml-2 px-2 text-sidebar-foreground gap-1">
-                <PanelLeft className="h-5 w-5" />
-                <span className="font-semibold">Menu</span>
+            <Button variant="ghost" onClick={toggleSidebar} className="group -ml-2 px-2 text-sidebar-foreground gap-2 transition-all hover:bg-card/20">
+                <PanelLeft className="h-5 w-5 text-primary group-hover:animate-none animate-pulse" />
+                <div className="flex flex-col items-start">
+                    <span className="font-semibold text-sm leading-none">Menu</span>
+                    <span className="text-[10px] text-muted-foreground leading-none hidden md:block mt-1">Hover left edge</span>
+                </div>
             </Button>
-             <div className="items-center gap-2 p-2 hidden md:flex">
+            <div className="h-6 w-px bg-border/50 hidden md:block mx-1"></div>
+            <div className="items-center gap-2 p-2 hidden md:flex">
                 <GraduationCap className="h-8 w-8 text-primary" />
                 <h1 className="text-xl font-bold font-headline">LingoLandVerse</h1>
             </div>
