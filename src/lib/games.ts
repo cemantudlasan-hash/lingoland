@@ -620,6 +620,33 @@ export const allGames: Game[] = [
     subject: "math",
     icon: Hexagon,
   },
+  {
+    title: "Neon Numbers Labyrinth",
+    slug: "neon-numbers-labyrinth",
+    description: "Navigate a retro-futuristic grid by solving complex arithmetic sequences.",
+    level: "intermediate",
+    focus: "geometry",
+    subject: "math",
+    icon: Binary,
+  },
+  {
+    title: "Galactic Cell Defender",
+    slug: "galactic-cell-defender",
+    description: "Defend your cellular core from viruses by answering biology and chemistry trivia.",
+    level: "advanced",
+    focus: "biology",
+    subject: "science",
+    icon: Dna,
+  },
+  {
+    title: "Mystic Synonym Spire",
+    slug: "mystic-synonym-spire",
+    description: "Build a magical bridge by matching synonyms and antonyms to climb the spire.",
+    level: "intermediate",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Castle,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {

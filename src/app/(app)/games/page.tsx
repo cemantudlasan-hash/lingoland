@@ -81,6 +81,9 @@ export const gameComponentMap = {
       'fraction-fortress': dynamic(() => import('@/components/games/fraction-fortress').then(mod => mod.FractionFortress)),
       'data-detective': dynamic(() => import('@/components/games/data-detective').then(mod => mod.DataDetective)),
       'geometry-genius': dynamic(() => import('@/components/games/geometry-genius').then(mod => mod.GeometryGenius)),
+      'neon-numbers-labyrinth': dynamic(() => import('@/components/games/neon-numbers-labyrinth').then(mod => mod.NeonNumbersLabyrinth)),
+      'galactic-cell-defender': dynamic(() => import('@/components/games/galactic-cell-defender').then(mod => mod.GalacticCellDefender)),
+      'mystic-synonym-spire': dynamic(() => import('@/components/games/mystic-synonym-spire').then(mod => mod.MysticSynonymSpire)),
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
 };
 
