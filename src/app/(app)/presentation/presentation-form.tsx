@@ -296,7 +296,7 @@ export function PresentationForm() {
         </head>
         <body>
             <h1 style="font-size: 36px; text-align: center;">${title}</h1>
-            ${htmlContent}
+            ${slideHtml}
         </body>
         </html>
     `;
