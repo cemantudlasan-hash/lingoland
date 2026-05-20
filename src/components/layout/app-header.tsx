@@ -183,6 +183,10 @@ export function AppHeader() {
   };
   
   const handleSupportClick = () => {
+    router.push('/support');
+  };
+
+  const handleCoffeeClick = () => {
     window.open("https://www.buymeacoffee.com/cemantudlasan", "_blank");
   };
   
@@ -280,7 +284,7 @@ export function AppHeader() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => router.push('/profile')}>Profile</DropdownMenuItem>
                         {isAdmin && <DropdownMenuItem onClick={() => router.push('/admin')}>Admin Dashboard</DropdownMenuItem>}
-                        <DropdownMenuItem onClick={handleSupportClick}>Support</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSupportClick}>Customer Support</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
                     </DropdownMenuContent>
@@ -323,7 +327,7 @@ export function AppHeader() {
       )}
       {!isAdmin && (
         <div className="w-full bg-yellow-400 text-black py-1 text-sm font-bold text-center">
-            <Button variant="link" className="text-black p-0 h-auto font-bold" onClick={handleSupportClick}>
+            <Button variant="link" className="text-black p-0 h-auto font-bold" onClick={handleCoffeeClick}>
                 <Coffee className="h-5 w-5 flex-shrink-0 mr-2"/>
                 <span>Enjoying this site/app? Consider supporting its maintenance. Buy me a coffee! Feel free to donate starts at 1$.</span>
             </Button>
