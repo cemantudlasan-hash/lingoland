@@ -82,7 +82,17 @@ export default function RubricsPage() {
             scale: 2, 
             backgroundColor: '#ffffff',
             useCORS: true,
+            windowWidth: 1024,
             ignoreElements: (element) => element.classList.contains('export-hidden'),
+            onclone: (clonedDoc) => {
+                const elements = clonedDoc.getElementsByClassName('printable-area');
+                for (let i = 0; i < elements.length; i++) {
+                    const el = elements[i] as HTMLElement;
+                    el.style.width = '1024px';
+                    el.style.maxWidth = '1024px';
+                    el.style.padding = '24px';
+                }
+            }
         }).then(canvas => {
             const link = document.createElement('a');
             link.download = 'rubric.jpg';
