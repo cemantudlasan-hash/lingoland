@@ -244,7 +244,7 @@ export default function AuthPage() {
                         <CardHeader className="text-center">
                             <CardTitle className="text-2xl font-bold tracking-tighter">Welcome to LingoLandVerse</CardTitle>
                             <CardDescription>Sign in, create an account, or continue as a guest.</CardDescription>
-                            <p className="text-sm text-muted-foreground pt-2">Ideas and created by Ceman Dejamo Tudlasan, Powered by Ai.</p>
+                            <p className="text-sm text-muted-foreground pt-2">Ideas and created by: CSC Tech Corp., Powered by Ai.</p>
                         </CardHeader>
                         <CardContent>
                             <Tabs value={activeTab} onValueChange={setActiveTab}>
