@@ -10,8 +10,9 @@ import { Scoreboard } from './scoreboard';
 import { MorningDashboard } from './morning-dashboard';
 import { CommentGenerator } from './comment-generator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote } from 'lucide-react';
+import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import MemorandumPage from '../memorandum/page';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -48,6 +49,7 @@ export default function ClassroomToolsPage() {
     { value: 'group-maker', label: 'Group Maker', icon: Users },
     { value: 'scoreboard', label: 'Scoreboard', icon: Trophy },
     { value: 'comment-generator', label: 'Comments', icon: MessageSquareQuote },
+    { value: 'memorandum', label: 'Memorandum', icon: StickyNote },
   ];
 
   return (
@@ -157,6 +159,12 @@ export default function ClassroomToolsPage() {
                     <CardContent className="flex-grow overflow-y-auto">
                         <CommentGenerator />
                     </CardContent>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="memorandum" className="flex-grow mt-0 h-full">
+                <Card className="h-full flex flex-col overflow-y-auto">
+                    <MemorandumPage />
                 </Card>
             </TabsContent>
         </Tabs>
