@@ -147,14 +147,15 @@ export function NoiseMeter() {
       return;
     }
 
+    // Create the AudioContext synchronously within the user gesture context (critical for iOS/Safari)
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    const audioContext = new AudioContextClass();
+    audioContextRef.current = audioContext;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       streamRef.current = stream;
       setMicPermission('granted');
-
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      const audioContext = new AudioContextClass();
-      audioContextRef.current = audioContext;
 
       const source = audioContext.createMediaStreamSource(stream);
       const analyser = audioContext.createAnalyser();
@@ -162,6 +163,11 @@ export function NoiseMeter() {
       analyserRef.current = analyser;
 
       source.connect(analyser);
+
+      // Force resume the AudioContext (essential for Safari/Chrome on mobile)
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
 
       setIsListening(true);
       setIsAlertActive(false);
@@ -173,6 +179,12 @@ export function NoiseMeter() {
     } catch (err: any) {
       console.error('Microphone access error:', err);
       setMicPermission('denied');
+      
+      // Clean up the AudioContext if stream acquisition failed
+      if (audioContext) {
+        audioContext.close().catch(() => {});
+        audioContextRef.current = null;
+      }
       
       let title = "Microphone Access Denied";
       let description = "Please check your browser or OS settings to allow microphone access.";
