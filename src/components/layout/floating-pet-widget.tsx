@@ -236,7 +236,7 @@ export function FloatingPetWidget() {
             </button>
 
             {/* Full Pet Avatar with Equipped Cosmetics */}
-            <div className="w-full h-full pointer-events-none">
+            <div className="w-full h-full pointer-events-none p-1.5 flex items-center justify-center">
               <LingoPetVisual
                 petType={petType}
                 level={petLevel}
@@ -247,6 +247,7 @@ export function FloatingPetWidget() {
                 isPetting={false}
                 isSleeping={false}
                 isTalking={false}
+                className="min-h-0 w-full h-full border-none shadow-none bg-transparent"
               />
             </div>
           </motion.div>

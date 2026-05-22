@@ -471,6 +471,7 @@ export default function PublicProfilePage() {
                                             mood={100}
                                             equippedCosmetics={petData.equippedCosmetics}
                                             currentBackground="cozy-room"
+                                            className="min-h-0 w-full h-full border-none shadow-none bg-transparent"
                                         />
                                     </div>
                                     {/* Level Badge */}

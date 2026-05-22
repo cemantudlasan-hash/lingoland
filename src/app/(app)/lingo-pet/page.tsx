@@ -209,6 +209,8 @@ const SHOP_ITEMS = [
   { id: 'golden_sneakers', name: 'Golden Sneakers', price: 300, category: 'shoes', icon: '👟', description: 'Golden wingtip sneakers with trailing wing dust.' },
 
   // Wings
+  { id: 'archangel_wings', name: 'Archangel Wings', price: 480, category: 'wings', icon: '👼', description: 'Divine golden feather wings that emit holy light and flap majestically.' },
+  { id: 'dragon_wings', name: 'Dragon Overlord Wings', price: 490, category: 'wings', icon: '🦇', description: 'Massive dark red dragon wings with animated glowing volcanic veins.' },
   { id: 'phoenix_wings', name: 'Phoenix Wings', price: 480, category: 'wings', icon: '🔥', description: 'Radiant fire wings that flap and emit fire sparks.' },
   { id: 'butterfly_wings', name: 'Butterfly Wings', price: 450, category: 'wings', icon: '🦋', description: 'Ethereal glowing butterfly wings with magical color-changing aura.' },
   { id: 'cyber_wings', name: 'Cyber Wings', price: 500, category: 'wings', icon: '🤖', description: 'Cybernetic neon wings with pulsing circuit lines.' },

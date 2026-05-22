@@ -19,6 +19,7 @@ interface LingoPetVisualProps {
   isPetting?: boolean;
   isSleeping?: boolean;
   isTalking?: boolean;
+  className?: string;
 }
 
 export function LingoPetVisual({
@@ -31,6 +32,7 @@ export function LingoPetVisual({
   isPetting = false,
   isSleeping = false,
   isTalking = false,
+  className,
 }: LingoPetVisualProps) {
   // Determine pet animation state
   const isTired = energy < 30;
@@ -614,14 +616,14 @@ export function LingoPetVisual({
         return (
           <g transform={`translate(${cx}, ${cy})`}>
             <g className="animate-phoenix">
-              {/* Left phoenix wing */}
-              <g transform="translate(-18, -5) scale(-1, 1)">
+              {/* Left phoenix wing - shifted from -18 to -40 for high visibility */}
+              <g transform="translate(-40, -5) scale(-1, 1)">
                 <path d="M 0 10 C -25 35, -45 -10, -60 -25 C -40 -15, -20 -15, -5 0 C -25 -25, -40 -35, -50 -45 C -35 -25, -20 -20, 0 -10 Z" fill="#ef4444" stroke="#b91c1c" strokeWidth="1.5" />
                 <path d="M -10 -5 C -25 -10, -40 -25, -45 -35 C -35 -20, -20 -15, -5 -8 Z" fill="#f97316" opacity="0.8" />
                 <path d="M -8 2 C -18 5, -28 -5, -35 -15 C -25 -8, -15 -5, -3 0 Z" fill="#fbbf24" opacity="0.9" />
               </g>
-              {/* Right phoenix wing */}
-              <g transform="translate(18, -5)">
+              {/* Right phoenix wing - shifted from 18 to 40 for high visibility */}
+              <g transform="translate(40, -5)">
                 <path d="M 0 10 C -25 35, -45 -10, -60 -25 C -40 -15, -20 -15, -5 0 C -25 -25, -40 -35, -50 -45 C -35 -25, -20 -20, 0 -10 Z" fill="#ef4444" stroke="#b91c1c" strokeWidth="1.5" />
                 <path d="M -10 -5 C -25 -10, -40 -25, -45 -35 C -35 -20, -20 -15, -5 -8 Z" fill="#f97316" opacity="0.8" />
                 <path d="M -8 2 C -18 5, -28 -5, -35 -15 C -25 -8, -15 -5, -3 0 Z" fill="#fbbf24" opacity="0.9" />
@@ -633,15 +635,15 @@ export function LingoPetVisual({
         return (
           <g transform={`translate(${cx}, ${cy})`}>
             <g className="animate-butterfly">
-              {/* Left butterfly wing */}
-              <g transform="translate(-14, 5) scale(-1, 1)">
+              {/* Left butterfly wing - shifted from -14 to -36 */}
+              <g transform="translate(-36, 5) scale(-1, 1)">
                 <path d="M 0 0 C -20 20, -45 25, -45 5 C -45 -15, -30 -30, -5 -15" fill="rgba(168,85,247,0.7)" stroke="#a855f7" strokeWidth="2" />
                 <path d="M -5 -15 C -20 -35, -40 -40, -40 -25 C -40 -10, -20 -5, 0 0" fill="rgba(236,72,153,0.7)" stroke="#ec4899" strokeWidth="2" />
                 <circle cx="-25" cy="-20" r="4" fill="#fff" opacity="0.5" />
                 <circle cx="-28" cy="6" r="3" fill="#fff" opacity="0.5" />
               </g>
-              {/* Right butterfly wing */}
-              <g transform="translate(14, 5)">
+              {/* Right butterfly wing - shifted from 14 to 36 */}
+              <g transform="translate(36, 5)">
                 <path d="M 0 0 C -20 20, -45 25, -45 5 C -45 -15, -30 -30, -5 -15" fill="rgba(168,85,247,0.7)" stroke="#a855f7" strokeWidth="2" />
                 <path d="M -5 -15 C -20 -35, -40 -40, -40 -25 C -40 -10, -20 -5, 0 0" fill="rgba(236,72,153,0.7)" stroke="#ec4899" strokeWidth="2" />
                 <circle cx="-25" cy="-20" r="4" fill="#fff" opacity="0.5" />
@@ -654,19 +656,67 @@ export function LingoPetVisual({
         return (
           <g transform={`translate(${cx}, ${cy})`}>
             <g className="animate-cyber">
-              {/* Left cyber wing */}
-              <g transform="translate(-16, -2) scale(-1, 1)">
+              {/* Left cyber wing - shifted from -16 to -38 */}
+              <g transform="translate(-38, -2) scale(-1, 1)">
                 <polygon points="0,0 -20,-15 -50,-10 -40,5 -15,5" fill="rgba(6,182,212,0.6)" stroke="#22d3ee" strokeWidth="1.5" />
                 <polygon points="-10,-10 -35,-30 -55,-25 -40,-10" fill="rgba(6,182,212,0.4)" stroke="#06b6d4" strokeWidth="1.5" />
                 <path d="M 0 -2 L -15 -12 L -35 -12" fill="none" stroke="#fff" strokeWidth="1" opacity="0.7" />
                 <circle cx="-35" cy="-12" r="1.5" fill="#fff" />
               </g>
-              {/* Right cyber wing */}
-              <g transform="translate(16, -2)">
+              {/* Right cyber wing - shifted from 16 to 38 */}
+              <g transform="translate(38, -2)">
                 <polygon points="0,0 -20,-15 -50,-10 -40,5 -15,5" fill="rgba(6,182,212,0.6)" stroke="#22d3ee" strokeWidth="1.5" />
                 <polygon points="-10,-10 -35,-30 -55,-25 -40,-10" fill="rgba(6,182,212,0.4)" stroke="#06b6d4" strokeWidth="1.5" />
                 <path d="M 0 -2 L -15 -12 L -35 -12" fill="none" stroke="#fff" strokeWidth="1" opacity="0.7" />
                 <circle cx="-35" cy="-12" r="1.5" fill="#fff" />
+              </g>
+            </g>
+          </g>
+        );
+      case 'archangel_wings':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="animate-archangel">
+              {/* Left wing - massive golden feather design */}
+              <g transform="translate(-40, -10) scale(-1.2, 1.2)">
+                <path d="M 0 0 C -30 -30, -70 -40, -90 -20 C -80 0, -50 10, 0 5" fill="#fef08a" stroke="#fbbf24" strokeWidth="2" />
+                <path d="M -10 -5 C -40 -25, -70 -25, -80 -10 C -70 5, -40 10, 0 5" fill="#ffffff" opacity="0.9" />
+                <path d="M -20 -8 C -45 -20, -65 -15, -70 -5 C -60 5, -45 5, 0 2" fill="#fef08a" opacity="0.8" />
+                <path d="M -30 2 C -40 15, -45 15, -40 2" fill="#ffffff" stroke="#fbbf24" strokeWidth="1" />
+                <path d="M -50 0 C -60 12, -65 12, -60 0" fill="#ffffff" stroke="#fbbf24" strokeWidth="1" />
+                <path d="M -70 -5 C -80 8, -83 8, -78 -5" fill="#ffffff" stroke="#fbbf24" strokeWidth="1" />
+              </g>
+              {/* Right wing - massive golden feather design */}
+              <g transform="translate(40, -10) scale(1.2, 1.2)">
+                <path d="M 0 0 C -30 -30, -70 -40, -90 -20 C -80 0, -50 10, 0 5" fill="#fef08a" stroke="#fbbf24" strokeWidth="2" />
+                <path d="M -10 -5 C -40 -25, -70 -25, -80 -10 C -70 5, -40 10, 0 5" fill="#ffffff" opacity="0.9" />
+                <path d="M -20 -8 C -45 -20, -65 -15, -70 -5 C -60 5, -45 5, 0 2" fill="#fef08a" opacity="0.8" />
+                <path d="M -30 2 C -40 15, -45 15, -40 2" fill="#ffffff" stroke="#fbbf24" strokeWidth="1" />
+                <path d="M -50 0 C -60 12, -65 12, -60 0" fill="#ffffff" stroke="#fbbf24" strokeWidth="1" />
+                <path d="M -70 -5 C -80 8, -83 8, -78 -5" fill="#ffffff" stroke="#fbbf24" strokeWidth="1" />
+              </g>
+            </g>
+          </g>
+        );
+      case 'dragon_wings':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="animate-dragon-wings">
+              {/* Left wing - massive demonic spiky wing design */}
+              <g transform="translate(-40, -5) scale(-1.3, 1.3)">
+                <path d="M 0 0 L -30 -25 L -75 -15 L -60 10 L -35 5 L -10 15 Z" fill="#1e1b4b" stroke="#311042" strokeWidth="2" />
+                <path d="M 0 0 C -15 -10, -25 -20, -30 -25 C -45 -20, -65 -15, -75 -15 C -65 -2, -60 5, -60 10 C -50 8, -40 5, -35 5 C -25 8, -15 12, 0 0 Z" fill="#991b1b" opacity="0.95" />
+                <path d="M 0 0 L -30 -25 L -75 -15" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />
+                <polygon points="-30,-25 -28,-28 -32,-28" fill="#ef4444" />
+                <polygon points="-75,-15 -78,-17 -76,-13" fill="#ef4444" />
+              </g>
+              {/* Right wing - massive demonic spiky wing design */}
+              <g transform="translate(40, -5) scale(1.3, 1.3)">
+                <path d="M 0 0 L -30 -25 L -75 -15 L -60 10 L -35 5 L -10 15 Z" fill="#1e1b4b" stroke="#311042" strokeWidth="2" />
+                <path d="M 0 0 C -15 -10, -25 -20, -30 -25 C -45 -20, -65 -15, -75 -15 C -65 -2, -60 5, -60 10 C -50 8, -40 5, -35 5 C -25 8, -15 12, 0 0 Z" fill="#991b1b" opacity="0.95" />
+                <path d="M 0 0 L -30 -25 L -75 -15" fill="none" stroke="#ef4444" strokeWidth="1.5" opacity="0.8" />
+                <polygon points="-30,-25 -28,-28 -32,-28" fill="#ef4444" />
+                <polygon points="-75,-15 -78,-17 -76,-13" fill="#ef4444" />
               </g>
             </g>
           </g>
@@ -793,7 +843,10 @@ export function LingoPetVisual({
   };
 
   return (
-    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-800 shadow-2xl flex items-center justify-center min-h-[300px]">
+    <div className={cn(
+      "relative w-full h-full rounded-2xl overflow-hidden border border-slate-800 shadow-2xl flex items-center justify-center",
+      className || "min-h-[300px]"
+    )}>
       {/* Background Layer */}
       {renderBackground()}
 
@@ -808,9 +861,9 @@ export function LingoPetVisual({
         </div>
       )}
 
-      {/* Mascot Layer */}
+      {/* Mascot Layer - made completely responsive using w-[82%] h-[82%] aspect-square */}
       <div className={cn(
-        "relative w-64 h-64 z-20 transition-all duration-300 select-none",
+        "relative w-[82%] h-[82%] aspect-square z-20 transition-all duration-300 select-none flex items-center justify-center",
         isSleeping && "brightness-75"
       )}>
         {renderPetMascot()}
