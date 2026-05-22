@@ -123,18 +123,47 @@ export function FloatingPetWidget() {
     return () => clearInterval(interval);
   }, [isOpen, messages.length]);
 
-  const handleClose = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsOpen(false);
-    if (typeof window !== 'undefined') {
-      const closeKey = user ? `lingoland_floating_pet_closed_${user.uid}` : (isGuest ? 'lingoland_floating_pet_closed_guest' : 'lingoland_floating_pet_closed');
-      sessionStorage.setItem(closeKey, 'true');
-    }
-  };
-
   const handleNavigate = () => {
     router.push('/lingo-pet');
   };
+
+  const closeBtnRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    const btn = closeBtnRef.current;
+    if (!btn) return;
+
+    const stop = (e: Event) => {
+      e.stopPropagation();
+    };
+
+    const handleCloseNative = (e: Event) => {
+      e.stopPropagation();
+      setIsOpen(false);
+      if (typeof window !== 'undefined') {
+        const closeKey = user ? `lingoland_floating_pet_closed_${user.uid}` : (isGuest ? 'lingoland_floating_pet_closed_guest' : 'lingoland_floating_pet_closed');
+        sessionStorage.setItem(closeKey, 'true');
+      }
+    };
+
+    btn.addEventListener('click', handleCloseNative);
+    btn.addEventListener('pointerdown', stop);
+    btn.addEventListener('pointerup', stop);
+    btn.addEventListener('mousedown', stop);
+    btn.addEventListener('mouseup', stop);
+    btn.addEventListener('touchstart', stop);
+    btn.addEventListener('touchend', stop);
+
+    return () => {
+      btn.removeEventListener('click', handleCloseNative);
+      btn.removeEventListener('pointerdown', stop);
+      btn.removeEventListener('pointerup', stop);
+      btn.removeEventListener('mousedown', stop);
+      btn.removeEventListener('mouseup', stop);
+      btn.removeEventListener('touchstart', stop);
+      btn.removeEventListener('touchend', stop);
+    };
+  }, [isOpen, user, user?.uid, isGuest]);
 
   // Simplified vector illustrations for the mini floating avatar
   const renderMiniMascot = () => {
@@ -246,10 +275,7 @@ export function FloatingPetWidget() {
           >
             {/* Close Button */}
             <button
-              onClick={handleClose}
-              onPointerDown={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
+              ref={closeBtnRef}
               className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-slate-950/80 border border-slate-800 hover:bg-rose-950/80 hover:border-rose-800 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors shadow opacity-0 group-hover:opacity-100 focus:opacity-100 z-55"
               title="Close companion"
             >
