@@ -10,10 +10,11 @@ import { Scoreboard } from './scoreboard';
 import { MorningDashboard } from './morning-dashboard';
 import { CommentGenerator } from './comment-generator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote, Volume2 } from 'lucide-react';
+import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote, Volume2, Newspaper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MemorandumTool } from './memorandum-tool';
 import { NoiseMeter } from './noise-meter';
+import { DailyVerse } from '@/components/games/daily-verse';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -26,7 +27,7 @@ export default function ClassroomToolsPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab && ['morning-dashboard', 'timer', 'noise-meter', 'random-name-picker', 'group-maker', 'scoreboard', 'comment-generator', 'memorandum'].includes(tab)) {
+      if (tab && ['morning-dashboard', 'timer', 'noise-meter', 'random-name-picker', 'group-maker', 'scoreboard', 'comment-generator', 'memorandum', 'daily-verse'].includes(tab)) {
         setActiveTab(tab);
       }
     }
@@ -62,6 +63,7 @@ export default function ClassroomToolsPage() {
     { value: 'scoreboard', label: 'Scoreboard', icon: Trophy },
     { value: 'comment-generator', label: 'Comments', icon: MessageSquareQuote },
     { value: 'memorandum', label: 'Memorandum', icon: StickyNote },
+    { value: 'daily-verse', label: 'Daily Verse', icon: Newspaper },
   ];
 
   return (
@@ -188,6 +190,18 @@ export default function ClassroomToolsPage() {
                     </CardHeader>
                     <CardContent className="flex-grow overflow-y-auto">
                         <NoiseMeter />
+                    </CardContent>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="daily-verse" className="flex-grow mt-0 h-full">
+                <Card className="h-full flex flex-col">
+                    <CardHeader className="pb-2">
+                        <CardTitle>The Daily Verse</CardTitle>
+                        <CardDescription>AI News Aggregator & Quiz Game for students.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow overflow-y-auto">
+                        <DailyVerse slug="daily-verse" />
                     </CardContent>
                 </Card>
             </TabsContent>

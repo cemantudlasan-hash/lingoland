@@ -50,6 +50,7 @@ import {
   Dna,
   Building2,
   Grid3X3,
+  Newspaper,
 } from "lucide-react";
 
 export const allGames: Game[] = [
@@ -673,6 +674,15 @@ export const allGames: Game[] = [
     focus: "reading",
     subject: "english",
     icon: BookText,
+  },
+  {
+    title: "The Daily Verse",
+    slug: "daily-verse",
+    description: "Read simplified daily news and test your comprehension in this AI-powered aggregator game.",
+    level: "intermediate",
+    focus: "reading",
+    subject: "english",
+    icon: Newspaper,
   },
 ];
 

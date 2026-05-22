@@ -87,6 +87,7 @@ export const gameComponentMap = {
       'coordinate-cosmos': dynamic(() => import('@/components/games/coordinate-cosmos').then(mod => mod.CoordinateCosmos)),
       'gene-genius': dynamic(() => import('@/components/games/gene-genius').then(mod => mod.GeneGenius)),
       'literary-device-legend': dynamic(() => import('@/components/games/literary-device-legend').then(mod => mod.LiteraryDeviceLegend)),
+      'daily-verse': dynamic(() => import('@/components/games/daily-verse').then(mod => mod.DailyVerse)),
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
 };
 
