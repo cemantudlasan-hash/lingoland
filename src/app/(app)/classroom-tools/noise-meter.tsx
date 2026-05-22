@@ -137,6 +137,16 @@ export function NoiseMeter() {
 
   // Start listening to mic input
   const startListening = async () => {
+    if (typeof window !== 'undefined' && (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)) {
+      setMicPermission('denied');
+      toast({
+        variant: "destructive",
+        title: "Secure Connection Required",
+        description: "Browser microphone access is blocked on insecure (HTTP) sites. Please access the website via HTTPS (https://) or localhost.",
+      });
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       streamRef.current = stream;
@@ -163,10 +173,31 @@ export function NoiseMeter() {
     } catch (err: any) {
       console.error('Microphone access error:', err);
       setMicPermission('denied');
+      
+      let title = "Microphone Access Denied";
+      let description = "Please check your browser or OS settings to allow microphone access.";
+
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        title = "Microphone Permission Blocked";
+        description = "Microphone access was blocked. Please click the site settings icon in the URL bar (left of the address bar) and allow microphone permissions.";
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        title = "Microphone Device Not Found";
+        description = "No microphone was detected. Please connect an audio input device and try again.";
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        title = "Microphone Busy";
+        description = "Your microphone is already in use by another tab or app (like Zoom, Teams, or Meet).";
+      } else if (err.name === 'SecurityError') {
+        title = "Security Restriction";
+        description = "Microphone access is restricted. Make sure you are on a secure (HTTPS) connection, or if inside an iframe, verify that allow=\"microphone\" is enabled.";
+      } else if (err instanceof TypeError) {
+        title = "Secure Connection Required";
+        description = "Microphone access is blocked on unencrypted HTTP connections. Please access the site using HTTPS.";
+      }
+
       toast({
         variant: "destructive",
-        title: "Microphone Access Denied",
-        description: "Please enable microphone permissions in your browser settings to use the Noise Meter.",
+        title,
+        description,
       });
     }
   };
@@ -443,12 +474,26 @@ export function NoiseMeter() {
                 
                 {!isListening && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[1px] text-center p-4">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                      <MicOff className="w-3.5 h-3.5" /> Monitor Inactive
-                    </p>
-                    <p className="text-[11px] text-slate-500 mt-1 max-w-[280px]">
-                      Click "Start Monitor" above to visualize real-time decibel waves.
-                    </p>
+                    {typeof window !== 'undefined' && (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) ? (
+                      <div className="flex flex-col items-center max-w-[340px] px-4">
+                        <AlertTriangle className="w-7 h-7 text-red-500 animate-pulse mb-1.5" />
+                        <p className="text-xs font-bold text-red-500 uppercase tracking-wider">
+                          Secure Connection Required
+                        </p>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                          Your browser blocks microphone access on unencrypted connections. Please ensure the URL starts with <span className="font-semibold text-slate-200">https://</span> or run on <span className="font-semibold text-slate-200">localhost</span>.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <MicOff className="w-3.5 h-3.5" /> Monitor Inactive
+                        </p>
+                        <p className="text-[11px] text-slate-500 mt-1 max-w-[280px]">
+                          Click "Start Monitor" above to visualize real-time decibel waves.
+                        </p>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
