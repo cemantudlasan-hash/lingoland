@@ -223,32 +223,37 @@ export function FloatingPetWidget() {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            onTap={handleNavigate}
-            className="w-16 h-16 md:w-20 md:h-20 rounded-full cursor-pointer bg-gradient-to-br from-indigo-600/90 to-purple-600/90 hover:from-indigo-500 hover:to-purple-500 flex items-center justify-center relative border-2 border-indigo-400 shadow-2xl transition-shadow duration-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] group overflow-hidden"
+            className="relative group flex items-center justify-center"
           >
             {/* Close Button */}
             <button
               ref={closeBtnRef}
-              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-slate-950/80 border border-slate-800 hover:bg-rose-950/80 hover:border-rose-800 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors shadow opacity-0 group-hover:opacity-100 focus:opacity-100 z-[55]"
+              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-slate-950/80 border border-slate-800 hover:bg-rose-950/80 hover:border-rose-800 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors shadow opacity-0 group-hover:opacity-100 focus:opacity-100 z-[110]"
               title="Close companion"
             >
               <X className="w-3 h-3" />
             </button>
 
-            {/* Full Pet Avatar with Equipped Cosmetics */}
-            <div className="w-full h-full pointer-events-none p-1.5 flex items-center justify-center">
-              <LingoPetVisual
-                petType={petType}
-                level={petLevel}
-                energy={100}
-                mood={100}
-                equippedCosmetics={equippedCosmetics}
-                currentBackground="cozy-room"
-                isPetting={false}
-                isSleeping={false}
-                isTalking={false}
-                className="min-h-0 w-full h-full border-none shadow-none bg-transparent"
-              />
+            {/* Avatar Circle Container */}
+            <div
+              onClick={handleNavigate}
+              className="w-16 h-16 md:w-20 md:h-20 rounded-full cursor-pointer bg-gradient-to-br from-indigo-600/90 to-purple-600/90 hover:from-indigo-500 hover:to-purple-500 flex items-center justify-center relative border-2 border-indigo-400 shadow-2xl transition-shadow duration-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] overflow-hidden"
+            >
+              {/* Full Pet Avatar with Equipped Cosmetics */}
+              <div className="w-full h-full pointer-events-none p-1.5 flex items-center justify-center">
+                <LingoPetVisual
+                  petType={petType}
+                  level={petLevel}
+                  energy={100}
+                  mood={100}
+                  equippedCosmetics={equippedCosmetics}
+                  currentBackground="cozy-room"
+                  isPetting={false}
+                  isSleeping={false}
+                  isTalking={false}
+                  className="min-h-0 w-full h-full border-none shadow-none bg-transparent"
+                />
+              </div>
             </div>
           </motion.div>
         </motion.div>

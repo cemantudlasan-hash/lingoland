@@ -184,6 +184,7 @@ const WAKEUP_QUESTIONS = [
 
 const SHOP_ITEMS = [
   // Hats
+  { id: 'ufo_hat', name: 'Alien UFO Hat', price: 360, category: 'hat', icon: '🛸', description: 'A glowing alien UFO that hovers above the head, emitting a pulsing green tractor beam.' },
   { id: 'aurora_crown', name: 'Aurora Crown', price: 325, category: 'hat', icon: '👑', description: 'A premium neon crown displaying color-shifting polar lights.' },
   { id: 'dragon_horns', name: 'Dragon Horns', price: 280, category: 'hat', icon: '😈', description: 'Fiery glowing horns from the volcanic peaks.' },
   { id: 'angel_halo', name: 'Angel Halo', price: 240, category: 'hat', icon: '😇', description: 'A floating celestial halo with divine golden glow.' },
@@ -193,6 +194,7 @@ const SHOP_ITEMS = [
   { id: 'party_hat', name: 'Party Hat', price: 40, category: 'hat', icon: '🥳', description: 'Celebrate learning milestones!' },
   
   // Glasses
+  { id: 'hypno_glasses', name: 'Hypnotic Swirls', price: 220, category: 'glasses', icon: '🌀', description: 'Quirky glasses with concentric spirals that spin endlessly.' },
   { id: 'laser_visor', name: 'Laser Visor', price: 260, category: 'glasses', icon: '🕶️', description: 'A futuristic cybernetic visor with scanning laser line.' },
   { id: 'steampunk_goggles', name: 'Steampunk Goggles', price: 250, category: 'glasses', icon: '⚙️', description: 'Cyber-gears steampunk goggles with a pulsing warm glow.' },
   { id: 'starry_shades', name: 'Starry Shades', price: 350, category: 'glasses', icon: '⭐', description: 'Neon star-shaped sunglasses with a flashing neon outline.' },
@@ -201,14 +203,17 @@ const SHOP_ITEMS = [
   { id: 'gold_glasses', name: 'Scholar Glasses', price: 50, category: 'glasses', icon: '👓', description: 'Boost reading focus.' },
 
   // Necklaces
+  { id: 'phoenix_amulet', name: 'Phoenix Amulet', price: 275, category: 'necklace', icon: '📿', description: 'An ancient glowing pendant that emits rising fire embers.' },
   { id: 'ruby_pendant', name: 'Ruby Pendant', price: 220, category: 'necklace', icon: '💖', description: 'A shining gold chain with a glowing ruby heart pendant.' },
   { id: 'crystal_collar', name: 'Crystal Collar', price: 380, category: 'necklace', icon: '💎', description: 'A collar with icy blue diamond shards that sparkles.' },
 
   // Shoes
+  { id: 'lightning_cleats', name: 'Storm Runners', price: 340, category: 'shoes', icon: '⚡', description: 'Electric shoes that crackle with animated flashing lightning sparks.' },
   { id: 'hover_boots', name: 'Hover Boots', price: 420, category: 'shoes', icon: '🚀', description: 'Futuristic jet boots with combustion flames.' },
   { id: 'golden_sneakers', name: 'Golden Sneakers', price: 300, category: 'shoes', icon: '👟', description: 'Golden wingtip sneakers with trailing wing dust.' },
 
   // Wings
+  { id: 'void_wings', name: 'Void Rift Wings', price: 495, category: 'wings', icon: '🌌', description: 'Wings woven from dark matter and starlight, emitting a cosmic pulsing purple nebula.' },
   { id: 'archangel_wings', name: 'Archangel Wings', price: 480, category: 'wings', icon: '👼', description: 'Divine golden feather wings that emit holy light and flap majestically.' },
   { id: 'dragon_wings', name: 'Dragon Overlord Wings', price: 490, category: 'wings', icon: '🦇', description: 'Massive dark red dragon wings with animated glowing volcanic veins.' },
   { id: 'phoenix_wings', name: 'Phoenix Wings', price: 480, category: 'wings', icon: '🔥', description: 'Radiant fire wings that flap and emit fire sparks.' },

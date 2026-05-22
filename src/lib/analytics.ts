@@ -158,6 +158,21 @@ export const logAnalyticsEvent = (firestore: Firestore, userId: string | 'guest'
   // Reward pet on game completion
   if (event.type === 'game_played') {
     updatePetOnGamePlay(firestore, userId, event);
+    if (typeof window !== 'undefined') {
+      try {
+        const target = sessionStorage.getItem('lingoland_donation_games_target');
+        if (!target) {
+          const randomTarget = Math.floor(Math.random() * 4) + 2; // 2, 3, 4, 5
+          sessionStorage.setItem('lingoland_donation_games_target', randomTarget.toString());
+        }
+        const currentCountStr = sessionStorage.getItem('lingoland_classroom_games_played') || '0';
+        const currentCount = parseInt(currentCountStr, 10) + 1;
+        sessionStorage.setItem('lingoland_classroom_games_played', currentCount.toString());
+        window.dispatchEvent(new CustomEvent('lingoland_game_played', { detail: { count: currentCount } }));
+      } catch (err) {
+        console.error("Error managing game played sessionStorage count:", err);
+      }
+    }
   }
 };
 

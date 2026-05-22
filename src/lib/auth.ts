@@ -59,6 +59,17 @@ export async function signOut() {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('ai_usage_count');
       sessionStorage.removeItem('ai_popup_shown');
+      sessionStorage.removeItem('donation_popup_shown');
+      sessionStorage.removeItem('lingoland_classroom_games_played');
+      sessionStorage.removeItem('lingoland_donation_games_target');
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('lingoland_floating_pet_closed')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => sessionStorage.removeItem(k));
     }
     return { error: null };
   } catch (e) {

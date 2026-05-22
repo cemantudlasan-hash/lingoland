@@ -64,6 +64,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
 
+  const clearCompanionAndDonationSession = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('ai_usage_count');
+      sessionStorage.removeItem('ai_popup_shown');
+      sessionStorage.removeItem('donation_popup_shown');
+      sessionStorage.removeItem('lingoland_classroom_games_played');
+      sessionStorage.removeItem('lingoland_donation_games_target');
+      
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('lingoland_floating_pet_closed')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => sessionStorage.removeItem(k));
+    }
+  }, []);
+
   useEffect(() => {
     // Check for session storage guest status on initial load
     const guestStatus = sessionStorage.getItem('isGuest');
@@ -77,6 +96,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsGuest(false); // Real user logged in, not a guest
         sessionStorage.removeItem('isGuest');
         setIsAdmin(user.email === ADMIN_EMAIL);
+        // Clear companion closed state and donation triggers on login
+        clearCompanionAndDonationSession();
         const profile = await getUserProfile(user.uid);
         setUserProfile(profile);
       } else {
@@ -87,16 +108,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         setIsAdmin(false);
         setUserProfile(null);
-        if (typeof window !== 'undefined') {
-          sessionStorage.removeItem('ai_usage_count');
-          sessionStorage.removeItem('ai_popup_shown');
-        }
+        // Clear companion closed state and donation triggers on logout
+        clearCompanionAndDonationSession();
       }
       setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [clearCompanionAndDonationSession]);
 
   const loginAsGuest = () => {
     if (user) { // if a real user is logged in, sign them out first
@@ -104,11 +123,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setIsGuest(true);
     sessionStorage.setItem('isGuest', 'true');
+    // Clear companion closed state and donation triggers on guest login
+    clearCompanionAndDonationSession();
   };
 
   const logoutGuest = () => {
     setIsGuest(false);
     sessionStorage.removeItem('isGuest');
+    // Clear companion closed state and donation triggers on guest logout
+    clearCompanionAndDonationSession();
   };
   
   const contextValue = {

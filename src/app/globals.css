@@ -592,4 +592,60 @@
   }
 }
 
+/* 5 New Premium Lingo-Pet Cosmetics Animations */
+.animate-ufo-beam {
+  animation: ufo-beam-pulse 2s infinite ease-in-out;
+}
+
+@keyframes ufo-beam-pulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.35; }
+}
+
+.animate-hypno-spin {
+  animation: hypno-spin 3s infinite linear;
+  transform-origin: center;
+}
+
+@keyframes hypno-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-phoenix-ember {
+  animation: phoenix-ember-rise 1.5s infinite ease-in;
+}
+
+@keyframes phoenix-ember-rise {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-20px) scale(0.3); opacity: 0; }
+}
+
+.animate-spark-flash {
+  animation: spark-flash 0.4s infinite alternate ease-in-out;
+  transform-origin: bottom center;
+}
+
+@keyframes spark-flash {
+  0% { transform: scale(0.8) skewX(-5deg); opacity: 0.4; filter: brightness(1); }
+  100% { transform: scale(1.15) skewX(5deg); opacity: 1; filter: brightness(1.4) drop-shadow(0 0 6px #fbbf24); }
+}
+
+.animate-void-wing {
+  animation: void-wing-flap 2s infinite ease-in-out;
+  transform-origin: center top;
+}
+
+@keyframes void-wing-flap {
+  0%, 100% {
+    transform: scaleY(1) translateY(0);
+    filter: drop-shadow(0 0 8px #a855f7) drop-shadow(0 0 2px #ec4899);
+  }
+  50% {
+    transform: scaleY(0.9) translateY(1.5px);
+    filter: drop-shadow(0 0 16px #3b0764) drop-shadow(0 0 4px #c084fc);
+  }
+}
+
+
 

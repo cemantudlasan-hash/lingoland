@@ -413,6 +413,27 @@ export function LingoPetVisual({
     if (!hat) return null;
 
     switch (hat) {
+      case 'ufo_hat':
+        return (
+          <g transform={`translate(${cx}, ${cy - 12})`}>
+            {/* Pulsing Green Tractor Beam */}
+            <polygon points="-35,65 -10,12 10,12 35,65" fill="rgba(34,197,94,0.18)" className="animate-ufo-beam pointer-events-none" />
+            <g className="animate-halo">
+              {/* UFO Body */}
+              <ellipse cx="0" cy="8" rx="22" ry="5.5" fill="#94a3b8" stroke="#475569" strokeWidth="1.5" />
+              {/* Glass Dome */}
+              <path d="M -10 6 C -10 -4, 10 -4, 10 6 Z" fill="rgba(34,197,94,0.7)" stroke="#22c55e" strokeWidth="1.5" />
+              {/* Little Alien head silhouette inside dome */}
+              <circle cx="0" cy="3" r="2.5" fill="#15803d" />
+              {/* UFO lights */}
+              <circle cx="-14" cy="8" r="1.5" fill="#fbbf24" className="animate-pulse" />
+              <circle cx="-7" cy="9" r="1.5" fill="#ec4899" className="animate-pulse" style={{ animationDelay: '150ms' }} />
+              <circle cx="0" cy="9.5" r="1.5" fill="#22c55e" className="animate-pulse" style={{ animationDelay: '300ms' }} />
+              <circle cx="7" cy="9" r="1.5" fill="#3b82f6" className="animate-pulse" style={{ animationDelay: '450ms' }} />
+              <circle cx="14" cy="8" r="1.5" fill="#fbbf24" className="animate-pulse" style={{ animationDelay: '600ms' }} />
+            </g>
+          </g>
+        );
       case 'angel_halo':
         return (
           <g transform={`translate(${cx}, ${cy - 12})`}>
@@ -508,6 +529,29 @@ export function LingoPetVisual({
     if (!glasses) return null;
 
     switch (glasses) {
+      case 'hypno_glasses':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Left Frame & Spiral */}
+            <g transform="translate(-18, 0)">
+              <circle cx="0" cy="0" r="11" fill="#000" stroke="#d946ef" strokeWidth="2.5" />
+              <g className="animate-hypno-spin">
+                {/* Spiral path */}
+                <path d="M 0 0 Q -3 -3 -5 0 Q -7 3 -4 6 Q 0 8 5 4 Q 8 -2 3 -7 Q -4 -9 -9 -4 Q -12 3 -5 10 Q 3 13 10 5" fill="none" stroke="#d946ef" strokeWidth="1.5" strokeLinecap="round" />
+              </g>
+            </g>
+            {/* Right Frame & Spiral */}
+            <g transform="translate(18, 0)">
+              <circle cx="0" cy="0" r="11" fill="#000" stroke="#d946ef" strokeWidth="2.5" />
+              <g className="animate-hypno-spin">
+                {/* Spiral path */}
+                <path d="M 0 0 Q -3 -3 -5 0 Q -7 3 -4 6 Q 0 8 5 4 Q 8 -2 3 -7 Q -4 -9 -9 -4 Q -12 3 -5 10 Q 3 13 10 5" fill="none" stroke="#d946ef" strokeWidth="1.5" strokeLinecap="round" />
+              </g>
+            </g>
+            {/* Bridge */}
+            <rect x="-8" y="-2" width="16" height="3" fill="#d946ef" rx="1" />
+          </g>
+        );
       case 'steampunk_goggles':
         return (
           <g transform={`translate(${cx}, ${cy})`}>
@@ -612,6 +656,34 @@ export function LingoPetVisual({
     if (!wings) return null;
 
     switch (wings) {
+      case 'void_wings':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="animate-void-wing">
+              {/* Left Wing - shifted to -40 for high visibility */}
+              <g transform="translate(-40, -5) scale(-1.2, 1.2)" className="drop-shadow-[0_0_12px_rgba(168,85,247,0.7)]">
+                {/* Dark Nebula Feather Outlines */}
+                <path d="M 0 0 C -25 -25, -65 -35, -85 -15 C -75 5, -45 15, 0 5" fill="#1e1b4b" stroke="#a855f7" strokeWidth="2" />
+                <path d="M -10 -5 C -35 -20, -60 -20, -75 -5 C -65 5, -35 10, 0 5" fill="#3b0764" opacity="0.8" />
+                <path d="M -20 -8 C -40 -15, -55 -10, -60 0 C -50 5, -35 5, 0 2" fill="rgba(168,85,247,0.4)" />
+                {/* Star sparkles */}
+                <circle cx="-50" cy="-15" r="1.5" fill="#fff" className="animate-pulse" />
+                <circle cx="-30" cy="-5" r="1" fill="#fff" className="animate-pulse" style={{ animationDelay: '400ms' }} />
+                <polygon points="-65,-8 -63,-6 -65,-4 -67,-6" fill="#f472b6" className="animate-pulse" />
+              </g>
+              {/* Right Wing - shifted to 40 for high visibility */}
+              <g transform="translate(40, -5) scale(1.2, 1.2)" className="drop-shadow-[0_0_12px_rgba(168,85,247,0.7)]">
+                <path d="M 0 0 C -25 -25, -65 -35, -85 -15 C -75 5, -45 15, 0 5" fill="#1e1b4b" stroke="#a855f7" strokeWidth="2" />
+                <path d="M -10 -5 C -35 -20, -60 -20, -75 -5 C -65 5, -35 10, 0 5" fill="#3b0764" opacity="0.8" />
+                <path d="M -20 -8 C -40 -15, -55 -10, -60 0 C -50 5, -35 5, 0 2" fill="rgba(168,85,247,0.4)" />
+                {/* Star sparkles */}
+                <circle cx="-50" cy="-15" r="1.5" fill="#fff" className="animate-pulse" />
+                <circle cx="-30" cy="-5" r="1" fill="#fff" className="animate-pulse" style={{ animationDelay: '400ms' }} />
+                <polygon points="-65,-8 -63,-6 -65,-4 -67,-6" fill="#f472b6" className="animate-pulse" />
+              </g>
+            </g>
+          </g>
+        );
       case 'phoenix_wings':
         return (
           <g transform={`translate(${cx}, ${cy})`}>
@@ -732,6 +804,27 @@ export function LingoPetVisual({
     if (!necklace) return null;
 
     switch (necklace) {
+      case 'phoenix_amulet':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Chain */}
+            <path d="M -22 -6 Q 0 16 22 -6" fill="none" stroke="#ea580c" strokeWidth="2.2" />
+            <path d="M -22 -6 Q 0 16 22 -6" fill="none" stroke="#f97316" strokeWidth="0.8" />
+            
+            {/* Amulet Center */}
+            <g transform="translate(0, 8)" className="drop-shadow-[0_0_8px_rgba(234,88,12,0.95)]">
+              {/* Flame aura shape */}
+              <path d="M 0,-10 C -6,-4 -8,0 -8,5 C -8,10 -4,12 0,12 C 4,12 8,10 8,5 C 8,0 6,-4 0,-10 Z" fill="#ea580c" className="animate-fire-glow" />
+              {/* Glowing Ruby Core */}
+              <polygon points="0,-6 -5,1 0,8 5,1" fill="#fef08a" stroke="#f97316" strokeWidth="1" />
+              
+              {/* Floating embers (little animated circles) */}
+              <circle cx="-5" cy="-8" r="1.5" fill="#f97316" className="animate-phoenix-ember" style={{ animationDelay: '0ms' }} />
+              <circle cx="5" cy="-12" r="1.2" fill="#fbbf24" className="animate-phoenix-ember" style={{ animationDelay: '300ms' }} />
+              <circle cx="0" cy="-15" r="1.8" fill="#ef4444" className="animate-phoenix-ember" style={{ animationDelay: '600ms' }} />
+            </g>
+          </g>
+        );
       case 'ruby_pendant':
         return (
           <g transform={`translate(${cx}, ${cy})`}>
@@ -767,6 +860,31 @@ export function LingoPetVisual({
     if (!shoes) return null;
 
     switch (shoes) {
+      case 'lightning_cleats':
+        return (
+          <g>
+            {/* Left Cleat */}
+            <g transform={`translate(${leftCx}, ${cy})`}>
+              <path d="M -11 -6 L -11 3 C -11 6, -8 7, 2 7 C 9 7, 11 5, 11 1 C 11 -2, 6 -3, 6 -6 Z" fill="#fbbf24" stroke="#d97706" strokeWidth="1.5" />
+              <path d="M -11 3 L 11 3" stroke="#eab308" strokeWidth="2.5" />
+              {/* Animated Jagged Lightning */}
+              <g className="animate-spark-flash" transform="translate(0, -6)">
+                <path d="M -6 0 L 0 -8 L -2 -3 L 6 -12 L 0 -4 L 2 -8 Z" fill="#fef08a" stroke="#eab308" strokeWidth="0.8" />
+              </g>
+            </g>
+            {/* Right Cleat */}
+            <g transform={`translate(${rightCx}, ${cy})`}>
+              <g transform="scale(-1, 1)">
+                <path d="M -11 -6 L -11 3 C -11 6, -8 7, 2 7 C 9 7, 11 5, 11 1 C 11 -2, 6 -3, 6 -6 Z" fill="#fbbf24" stroke="#d97706" strokeWidth="1.5" />
+                <path d="M -11 3 L 11 3" stroke="#eab308" strokeWidth="2.5" />
+                {/* Animated Jagged Lightning */}
+                <g className="animate-spark-flash" transform="translate(0, -6)" style={{ animationDelay: '200ms' }}>
+                  <path d="M -6 0 L 0 -8 L -2 -3 L 6 -12 L 0 -4 L 2 -8 Z" fill="#fef08a" stroke="#eab308" strokeWidth="0.8" />
+                </g>
+              </g>
+            </g>
+          </g>
+        );
       case 'hover_boots':
         return (
           <g>

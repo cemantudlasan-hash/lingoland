@@ -13,11 +13,46 @@ export function DonationPopup() {
 
   useEffect(() => {
     if (isAdmin) return;
-    const hasShown = sessionStorage.getItem('ai_popup_shown') === 'true';
-    if (count >= 3 && count <= 5 && !hasShown) {
-      setIsOpen(true);
-      sessionStorage.setItem('ai_popup_shown', 'true');
-    }
+
+    const checkTriggers = () => {
+      const hasShown = sessionStorage.getItem('donation_popup_shown') === 'true' || sessionStorage.getItem('ai_popup_shown') === 'true';
+      if (hasShown) return;
+
+      // 1. Check AI counter trigger
+      if (count >= 3 && count <= 5) {
+        setIsOpen(true);
+        sessionStorage.setItem('donation_popup_shown', 'true');
+        sessionStorage.setItem('ai_popup_shown', 'true');
+        return;
+      }
+
+      // 2. Check Classroom games played trigger
+      const gamesPlayedStr = sessionStorage.getItem('lingoland_classroom_games_played');
+      const targetGamesStr = sessionStorage.getItem('lingoland_donation_games_target');
+
+      if (gamesPlayedStr && targetGamesStr) {
+        const gamesPlayed = parseInt(gamesPlayedStr, 10);
+        const targetGames = parseInt(targetGamesStr, 10);
+        if (gamesPlayed >= targetGames) {
+          setIsOpen(true);
+          sessionStorage.setItem('donation_popup_shown', 'true');
+          sessionStorage.setItem('ai_popup_shown', 'true');
+        }
+      }
+    };
+
+    // Run check initially
+    checkTriggers();
+
+    // Listen to custom window event
+    const handleGamePlayed = () => {
+      checkTriggers();
+    };
+
+    window.addEventListener('lingoland_game_played', handleGamePlayed as EventListener);
+    return () => {
+      window.removeEventListener('lingoland_game_played', handleGamePlayed as EventListener);
+    };
   }, [count, isAdmin]);
 
   const handleDonate = () => {
