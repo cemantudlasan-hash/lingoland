@@ -167,15 +167,25 @@ export const useFirebaseApp = (): FirebaseApp => {
   return firebaseApp;
 };
 
-type MemoFirebase <T> = T & {__memo?: boolean};
+const memoizedObjects = new WeakMap<object, boolean>();
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
+export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T {
   const memoized = useMemo(factory, deps);
   
-  if(typeof memoized !== 'object' || memoized === null) return memoized;
-  (memoized as MemoFirebase<T>).__memo = true;
+  if (memoized && typeof memoized === 'object') {
+    try {
+      memoizedObjects.set(memoized, true);
+    } catch (e) {
+      console.warn("useMemoFirebase: Failed to flag object in WeakMap", e);
+    }
+  }
   
   return memoized;
+}
+
+export function isMemoizedFirebase(obj: any): boolean {
+  if (!obj || typeof obj !== 'object') return false;
+  return memoizedObjects.has(obj);
 }
 
 /**
