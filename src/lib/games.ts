@@ -647,6 +647,33 @@ export const allGames: Game[] = [
     subject: "english",
     icon: Castle,
   },
+  {
+    title: "Coordinate Cosmos",
+    slug: "coordinate-cosmos",
+    description: "Navigate through space coordinates by identifying quadrants, reflecting points, and calculating distances.",
+    level: "intermediate",
+    focus: "geometry",
+    subject: "math",
+    icon: Orbit,
+  },
+  {
+    title: "Gene Genius",
+    slug: "gene-genius",
+    description: "Predict the offspring's genetic outcomes using Punnett squares in a modern lab simulator.",
+    level: "intermediate",
+    focus: "biology",
+    subject: "science",
+    icon: Dna,
+  },
+  {
+    title: "Literary Device Legend",
+    slug: "literary-device-legend",
+    description: "Identify similes, metaphors, hyperboles, and other literary devices in an epic arcade language duel.",
+    level: "intermediate",
+    focus: "reading",
+    subject: "english",
+    icon: BookText,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {

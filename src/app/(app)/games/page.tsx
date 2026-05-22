@@ -84,6 +84,9 @@ export const gameComponentMap = {
       'neon-numbers-labyrinth': dynamic(() => import('@/components/games/neon-numbers-labyrinth').then(mod => mod.NeonNumbersLabyrinth)),
       'galactic-cell-defender': dynamic(() => import('@/components/games/galactic-cell-defender').then(mod => mod.GalacticCellDefender)),
       'mystic-synonym-spire': dynamic(() => import('@/components/games/mystic-synonym-spire').then(mod => mod.MysticSynonymSpire)),
+      'coordinate-cosmos': dynamic(() => import('@/components/games/coordinate-cosmos').then(mod => mod.CoordinateCosmos)),
+      'gene-genius': dynamic(() => import('@/components/games/gene-genius').then(mod => mod.GeneGenius)),
+      'literary-device-legend': dynamic(() => import('@/components/games/literary-device-legend').then(mod => mod.LiteraryDeviceLegend)),
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
 };
 
