@@ -38,6 +38,7 @@ import {
   Clapperboard,
   ClipboardList,
   StickyNote,
+  Egg,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
@@ -53,6 +54,7 @@ import type { InternalQuery } from "@/firebase/firestore/use-collection";
 
 
 const publicItems = [
+  { href: "/lingo-pet", label: "Lingo-Pet", icon: Egg },
   { href: "/games", label: "Classroom Games", icon: Gamepad2 },
   { href: "/classroom-tools", label: "Classroom Tools", icon: Wrench },
   { href: "/reader", label: "Reader", icon: BookOpen },

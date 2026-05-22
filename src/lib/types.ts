@@ -39,6 +39,26 @@ export type UserProfile = {
     dailyPost?: string;
 };
 
+export interface UserPet {
+  userId: string;
+  petType: 'owl' | 'dino' | 'kitty';
+  petName: string;
+  level: number;
+  xp: number;
+  energy: number;       // 0 to 100
+  intelligence: number; // 0 to 100
+  mood: number;         // 0 to 100
+  coins: number;
+  unlockedCosmetics: string[];
+  equippedCosmetics: {
+    hat?: string;
+    glasses?: string;
+    clothes?: string;
+  };
+  currentBackground: string;
+  lastActive: string; // ISO string
+}
+
 export type DailyPostComment = {
     id: string;
     authorId: string;

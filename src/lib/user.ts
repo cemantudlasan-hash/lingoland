@@ -1,7 +1,7 @@
 
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, writeBatch, collectionGroup } from "firebase/firestore";
 import { initializeFirebase } from "@/firebase";
-import type { UserProfile } from "./types";
+import type { UserProfile, UserPet } from "./types";
 import type { User } from "firebase/auth";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
@@ -110,4 +110,22 @@ export async function updateUserProfile(uid: string, data: Partial<Omit<UserProf
   }
 
   setDocumentNonBlocking(userRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+// Function to get user pet details
+export async function getUserPet(uid: string): Promise<UserPet | null> {
+  const { firestore } = initializeFirebase();
+  const petRef = doc(firestore, "user_pets", uid);
+  const docSnap = await getDoc(petRef);
+  if (docSnap.exists()) {
+    return docSnap.data() as UserPet;
+  }
+  return null;
+}
+
+// Function to save user pet details
+export async function saveUserPet(uid: string, pet: Partial<UserPet>) {
+  const { firestore } = initializeFirebase();
+  const petRef = doc(firestore, "user_pets", uid);
+  await setDoc(petRef, { ...pet, userId: uid, updatedAt: serverTimestamp() }, { merge: true });
 }
