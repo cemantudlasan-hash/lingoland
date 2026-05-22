@@ -70,7 +70,11 @@ export function FloatingPetWidget() {
     // Do not show on auth pages or directly on the pet page
     const isAuthPage = pathname?.includes('/auth') || pathname?.includes('/login') || pathname?.includes('/signup');
     const isPetPage = pathname === '/lingo-pet';
-    const isClosedThisSession = typeof window !== 'undefined' && sessionStorage.getItem('lingoland_floating_pet_closed') === 'true';
+    let isClosedThisSession = false;
+    if (typeof window !== 'undefined') {
+      const closeKey = user ? `lingoland_floating_pet_closed_${user.uid}` : (isGuest ? 'lingoland_floating_pet_closed_guest' : 'lingoland_floating_pet_closed');
+      isClosedThisSession = sessionStorage.getItem(closeKey) === 'true';
+    }
 
     if (isAuthPage || isPetPage || isClosedThisSession || (!user && !isGuest)) {
       setIsOpen(false);
@@ -123,7 +127,8 @@ export function FloatingPetWidget() {
     e.stopPropagation();
     setIsOpen(false);
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('lingoland_floating_pet_closed', 'true');
+      const closeKey = user ? `lingoland_floating_pet_closed_${user.uid}` : (isGuest ? 'lingoland_floating_pet_closed_guest' : 'lingoland_floating_pet_closed');
+      sessionStorage.setItem(closeKey, 'true');
     }
   };
 
@@ -242,6 +247,9 @@ export function FloatingPetWidget() {
             {/* Close Button */}
             <button
               onClick={handleClose}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-slate-950/80 border border-slate-800 hover:bg-rose-950/80 hover:border-rose-800 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors shadow opacity-0 group-hover:opacity-100 focus:opacity-100 z-55"
               title="Close companion"
             >
