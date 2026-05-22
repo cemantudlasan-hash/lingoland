@@ -15,7 +15,7 @@ import { Input } from "../ui/input";
 import {
   generatePhonicsWords,
 } from "@/ai/flows/generate-phonics-word";
-import { Loader2, Sparkles, Repeat, Timer, Check, X, HelpCircle, RotateCcw, SkipForward, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles, Repeat, Timer, Check, X, HelpCircle, RotateCcw, SkipForward, Maximize, Minimize, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import Link from "next/link";

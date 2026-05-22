@@ -23,7 +23,7 @@ import {
 } from '../ui/dialog';
 import { generateGrammarPair } from '@/ai/flows/generate-verb-pair';
 import type { GenerateGrammarPairOutput } from '@/ai/flows/schemas/verb-pair-schema';
-import { Loader2, Sparkles, UserPlus, Trash2, Repeat, Gift, Bomb, Timer, Maximize, Minimize } from 'lucide-react';
+import { Loader2, Sparkles, UserPlus, Trash2, Repeat, Gift, Bomb, Timer, Maximize, Minimize, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -31,7 +31,7 @@ import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 
-type GameState = 'setup' | 'loading' | 'playing' | 'result' | 'finished' | 'instructions';
+type GameState = 'setup' | 'loading' | 'playing' | 'result' | 'finished' | 'instructions' | 'idle';
 type Team = { name: string; score: number };
 type GiftChoice = {
     isGood: boolean;

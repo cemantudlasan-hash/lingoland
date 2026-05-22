@@ -14,7 +14,7 @@ import {
 } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Loader2, Sparkles, Timer, CheckCircle, XCircle, Repeat, Maximize, Minimize, Eraser, Undo, ScrollText, Send, SkipForward } from "lucide-react";
+import { Loader2, Sparkles, Timer, CheckCircle, XCircle, Repeat, Maximize, Minimize, Eraser, Undo, ScrollText, Send, SkipForward, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";

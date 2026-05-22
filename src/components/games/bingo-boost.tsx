@@ -12,7 +12,7 @@ import {
 } from "../ui/card";
 import { Button } from "../ui/button";
 import { generateVocabExercise } from "@/ai/flows/generate-vocab-exercise";
-import { Loader2, Sparkles, Check, Repeat, Volume2, Star, Printer, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles, Check, Repeat, Volume2, Star, Printer, Maximize, Minimize, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";

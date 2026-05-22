@@ -16,7 +16,7 @@ import {
   generateAuctionItem,
   type GenerateAuctionItemOutput,
 } from "@/ai/flows/generate-auction-item";
-import { Loader2, UserPlus, Trash2, RotateCcw, ThumbsUp, ThumbsDown, Send, CheckCircle, XCircle, Skull, Gift, Maximize, Minimize, Sparkles } from "lucide-react";
+import { Loader2, UserPlus, Trash2, RotateCcw, ThumbsUp, ThumbsDown, Send, CheckCircle, XCircle, Skull, Gift, Maximize, Minimize, Sparkles, Repeat } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
