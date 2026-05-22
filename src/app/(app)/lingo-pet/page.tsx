@@ -205,7 +205,7 @@ const SHOP_ITEMS = [
 ];
 
 export default function LingoPetPage() {
-  const { user, isGuest } = useAuth();
+  const { user, isGuest, isAdmin = false } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
 
@@ -377,7 +377,7 @@ export default function LingoPetPage() {
   // Feed interaction
   const handleFeed = () => {
     if (!pet || pet.energy === 0) return;
-    if (pet.coins < 15) {
+    if (!isAdmin && pet.coins < 15) {
       toast({
         title: "Insufficient Coins",
         description: "Feeding snacks costs 15 Lingo-Coins. Complete games to earn more!",
@@ -387,7 +387,7 @@ export default function LingoPetPage() {
     setChatMessage(`Nom Nom Nom... Yummy! I feel full of energy now!`);
     const newEnergy = Math.min(100, pet.energy + 20);
     const newMood = Math.min(100, pet.mood + 10);
-    const newCoins = pet.coins - 15;
+    const newCoins = isAdmin ? pet.coins : pet.coins - 15;
     updatePetState({ energy: newEnergy, mood: newMood, coins: newCoins });
   };
 
@@ -402,7 +402,7 @@ export default function LingoPetPage() {
   // Lingo-Shop Logic
   const handlePurchase = (item: typeof SHOP_ITEMS[number]) => {
     if (!pet) return;
-    if (pet.coins < item.price) {
+    if (!isAdmin && pet.coins < item.price) {
       toast({
         variant: "destructive",
         title: "Purchase Failed",
@@ -420,11 +420,13 @@ export default function LingoPetPage() {
     }
 
     const updatedUnlocked = [...pet.unlockedCosmetics, item.id];
-    const newCoins = pet.coins - item.price;
+    const newCoins = isAdmin ? pet.coins : pet.coins - item.price;
     updatePetState({ unlockedCosmetics: updatedUnlocked, coins: newCoins });
     toast({
       title: "Item Purchased!",
-      description: `Bought ${item.name} for ${item.price} coins!`,
+      description: isAdmin 
+        ? `Unlocked ${item.name} for free (Admin Mode)!` 
+        : `Bought ${item.name} for ${item.price} coins!`,
     });
   };
 
@@ -577,7 +579,14 @@ export default function LingoPetPage() {
         <div className="flex items-center gap-3">
           <div className="bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-inner">
             <Coins className="h-5 w-5 text-amber-400 animate-pulse" />
-            <span className="font-black text-amber-300 text-sm">{pet.coins} Lingo-Coins</span>
+            <span className="font-black text-amber-300 text-sm">
+              {isAdmin ? "∞" : pet.coins} Lingo-Coins
+            </span>
+            {isAdmin && (
+              <Badge variant="outline" className="border-amber-500/30 bg-amber-500/20 text-amber-300 text-[10px] uppercase font-bold px-2 py-0 h-5">
+                Admin
+              </Badge>
+            )}
           </div>
           
           <Button 
