@@ -194,9 +194,24 @@ const SHOP_ITEMS = [
   
   // Glasses
   { id: 'laser_visor', name: 'Laser Visor', price: 260, category: 'glasses', icon: '🕶️', description: 'A futuristic cybernetic visor with scanning laser line.' },
+  { id: 'steampunk_goggles', name: 'Steampunk Goggles', price: 250, category: 'glasses', icon: '⚙️', description: 'Cyber-gears steampunk goggles with a pulsing warm glow.' },
+  { id: 'starry_shades', name: 'Starry Shades', price: 350, category: 'glasses', icon: '⭐', description: 'Neon star-shaped sunglasses with a flashing neon outline.' },
   { id: 'monocle', name: 'Golden Monocle', price: 90, category: 'glasses', icon: '🧐', description: 'Look highly sophisticated.' },
   { id: 'cool_shades', name: 'Cool Shades', price: 60, category: 'glasses', icon: '😎', description: 'Too cool for grammar errors.' },
   { id: 'gold_glasses', name: 'Scholar Glasses', price: 50, category: 'glasses', icon: '👓', description: 'Boost reading focus.' },
+
+  // Necklaces
+  { id: 'ruby_pendant', name: 'Ruby Pendant', price: 220, category: 'necklace', icon: '💖', description: 'A shining gold chain with a glowing ruby heart pendant.' },
+  { id: 'crystal_collar', name: 'Crystal Collar', price: 380, category: 'necklace', icon: '💎', description: 'A collar with icy blue diamond shards that sparkles.' },
+
+  // Shoes
+  { id: 'hover_boots', name: 'Hover Boots', price: 420, category: 'shoes', icon: '🚀', description: 'Futuristic jet boots with combustion flames.' },
+  { id: 'golden_sneakers', name: 'Golden Sneakers', price: 300, category: 'shoes', icon: '👟', description: 'Golden wingtip sneakers with trailing wing dust.' },
+
+  // Wings
+  { id: 'phoenix_wings', name: 'Phoenix Wings', price: 480, category: 'wings', icon: '🔥', description: 'Radiant fire wings that flap and emit fire sparks.' },
+  { id: 'butterfly_wings', name: 'Butterfly Wings', price: 450, category: 'wings', icon: '🦋', description: 'Ethereal glowing butterfly wings with magical color-changing aura.' },
+  { id: 'cyber_wings', name: 'Cyber Wings', price: 500, category: 'wings', icon: '🤖', description: 'Cybernetic neon wings with pulsing circuit lines.' },
 
   // Background environments
   { id: 'bg_london', name: 'London Study', price: 200, category: 'background', icon: '💂', value: 'london-study', description: 'A cozy library room overlooking London.' },
@@ -445,6 +460,12 @@ export default function LingoPetPage() {
       currentEquipped.hat = currentEquipped.hat === item.id ? undefined : item.id;
     } else if (item.category === 'glasses') {
       currentEquipped.glasses = currentEquipped.glasses === item.id ? undefined : item.id;
+    } else if (item.category === 'necklace') {
+      currentEquipped.necklace = currentEquipped.necklace === item.id ? undefined : item.id;
+    } else if (item.category === 'shoes') {
+      currentEquipped.shoes = currentEquipped.shoes === item.id ? undefined : item.id;
+    } else if (item.category === 'wings') {
+      currentEquipped.wings = currentEquipped.wings === item.id ? undefined : item.id;
     }
 
     updatePetState({ equippedCosmetics: currentEquipped });
@@ -887,6 +908,12 @@ export default function LingoPetPage() {
                       isEquipped = pet.equippedCosmetics.hat === item.id;
                     } else if (item.category === 'glasses') {
                       isEquipped = pet.equippedCosmetics.glasses === item.id;
+                    } else if (item.category === 'necklace') {
+                      isEquipped = pet.equippedCosmetics.necklace === item.id;
+                    } else if (item.category === 'shoes') {
+                      isEquipped = pet.equippedCosmetics.shoes === item.id;
+                    } else if (item.category === 'wings') {
+                      isEquipped = pet.equippedCosmetics.wings === item.id;
                     }
 
                     return (

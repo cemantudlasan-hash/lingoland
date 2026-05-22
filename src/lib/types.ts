@@ -53,6 +53,9 @@ export interface UserPet {
   equippedCosmetics: {
     hat?: string;
     glasses?: string;
+    necklace?: string;
+    shoes?: string;
+    wings?: string;
     clothes?: string;
   };
   currentBackground: string;

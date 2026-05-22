@@ -11,6 +11,9 @@ interface LingoPetVisualProps {
   equippedCosmetics: {
     hat?: string;
     glasses?: string;
+    necklace?: string;
+    shoes?: string;
+    wings?: string;
   };
   currentBackground: string;
   isPetting?: boolean;
@@ -132,8 +135,14 @@ export function LingoPetVisual({
           !isPetting && !isTalking && !isSleeping && "animate-breathing"
         )}>
           {/* Wings */}
-          <path d="M 50 110 C 35 110, 30 135, 45 150 C 48 140, 52 120, 60 115" fill="#4f46e5" />
-          <path d="M 150 110 C 165 110, 170 135, 155 150 C 152 140, 148 120, 140 115" fill="#4f46e5" />
+          {renderWings(100, 125)}
+
+          {!equippedCosmetics.wings && (
+            <>
+              <path d="M 50 110 C 35 110, 30 135, 45 150 C 48 140, 52 120, 60 115" fill="#4f46e5" />
+              <path d="M 150 110 C 165 110, 170 135, 155 150 C 152 140, 148 120, 140 115" fill="#4f46e5" />
+            </>
+          )}
 
           {/* Main Body */}
           <circle cx="100" cy="115" r="50" fill="#6366f1" />
@@ -143,6 +152,9 @@ export function LingoPetVisual({
           <path d="M 90 115 L 95 120 L 100 115 L 105 120 L 110 115" stroke="#c7d2fe" strokeWidth="2.5" fill="none" />
           <path d="M 85 128 L 92 135 L 100 128 L 108 135 L 115 128" stroke="#c7d2fe" strokeWidth="2.5" fill="none" />
 
+          {/* Necklace */}
+          {renderNecklace(100, 112)}
+
           {/* Ears/Tufts */}
           <polygon points="55,75 50,55 75,70" fill="#4f46e5" />
           <polygon points="145,75 150,55 125,70" fill="#4f46e5" />
@@ -150,6 +162,7 @@ export function LingoPetVisual({
           {/* Feet */}
           <ellipse cx="80" cy="164" rx="10" ry="6" fill="#f59e0b" />
           <ellipse cx="120" cy="164" rx="10" ry="6" fill="#f59e0b" />
+          {renderShoes(80, 120, 164)}
 
           {/* Eyes Group */}
           <g className={cn("transition-all duration-300", isSleeping && "opacity-80")}>
@@ -220,6 +233,9 @@ export function LingoPetVisual({
           isSleeping && "translate-y-1",
           !isPetting && !isTalking && !isSleeping && "animate-breathing"
         )}>
+          {/* Wings */}
+          {renderWings(95, 115)}
+
           {/* Tail */}
           <path d="M 60 135 C 30 145, 20 120, 15 130 C 10 140, 30 160, 65 150" fill="#059669" />
           
@@ -234,6 +250,9 @@ export function LingoPetVisual({
           {/* Dino Belly */}
           <path d="M 85 95 C 85 80, 115 80, 115 95 C 115 110, 110 130, 105 145 C 98 152, 90 148, 88 135 C 85 120, 85 110, 85 95" fill="#a7f3d0" />
 
+          {/* Necklace */}
+          {renderNecklace(98, 92)}
+
           {/* Tiny Arms */}
           <path d="M 72 108 Q 62 105 60 111" stroke="#059669" strokeWidth="5" strokeLinecap="round" fill="none" />
           <path d="M 124 108 Q 134 105 136 111" stroke="#059669" strokeWidth="5" strokeLinecap="round" fill="none" />
@@ -241,6 +260,7 @@ export function LingoPetVisual({
           {/* Feet */}
           <path d="M 75 160 Q 75 168 85 168 Q 90 160 85 158" fill="#059669" />
           <path d="M 105 160 Q 105 168 115 168 Q 120 160 115 158" fill="#059669" />
+          {renderShoes(80, 112, 162)}
 
           {/* Eyes */}
           {isSleeping ? (
@@ -305,6 +325,9 @@ export function LingoPetVisual({
           isSleeping && "translate-y-1",
           !isPetting && !isTalking && !isSleeping && "animate-breathing"
         )}>
+          {/* Wings */}
+          {renderWings(100, 130)}
+
           {/* Tail */}
           <path d="M 140 140 C 165 140, 175 110, 170 100 C 165 90, 155 110, 143 130" fill="#ea580c" />
 
@@ -313,6 +336,9 @@ export function LingoPetVisual({
           
           {/* Tummy/Chest patch */}
           <ellipse cx="100" cy="138" rx="28" ry="20" fill="#ffedd5" />
+
+          {/* Necklace */}
+          {renderNecklace(100, 112)}
 
           {/* Head */}
           <circle cx="100" cy="92" r="38" fill="#f97316" />
@@ -327,6 +353,7 @@ export function LingoPetVisual({
           {/* Feet */}
           <ellipse cx="78" cy="162" rx="10" ry="7" fill="#ea580c" />
           <ellipse cx="122" cy="162" rx="10" ry="7" fill="#ea580c" />
+          {renderShoes(78, 122, 162)}
           {/* Paws front */}
           <circle cx="88" cy="148" r="8" fill="#ffedd5" />
           <circle cx="112" cy="148" r="8" fill="#ffedd5" />
@@ -386,25 +413,29 @@ export function LingoPetVisual({
     switch (hat) {
       case 'angel_halo':
         return (
-          <g transform={`translate(${cx}, ${cy - 12})`} className="drop-shadow-[0_0_12px_rgba(251,191,36,0.9)] animate-halo">
-            {/* Oval ring of the halo */}
-            <ellipse cx="0" cy="0" rx="20" ry="6" fill="none" stroke="#fbbf24" strokeWidth="4.5" />
-            <ellipse cx="0" cy="0" rx="20" ry="6" fill="none" stroke="#fef08a" strokeWidth="1.5" opacity="0.8" />
-            {/* Glow particles */}
-            <circle cx="-15" cy="-2" r="1.2" fill="#fff" className="animate-ping" />
-            <circle cx="15" cy="2" r="1.2" fill="#fff" className="animate-ping" />
+          <g transform={`translate(${cx}, ${cy - 12})`}>
+            <g className="drop-shadow-[0_0_12px_rgba(251,191,36,0.9)] animate-halo">
+              {/* Oval ring of the halo */}
+              <ellipse cx="0" cy="0" rx="20" ry="6" fill="none" stroke="#fbbf24" strokeWidth="4.5" />
+              <ellipse cx="0" cy="0" rx="20" ry="6" fill="none" stroke="#fef08a" strokeWidth="1.5" opacity="0.8" />
+              {/* Glow particles */}
+              <circle cx="-15" cy="-2" r="1.2" fill="#fff" className="animate-ping" />
+              <circle cx="15" cy="2" r="1.2" fill="#fff" className="animate-ping" />
+            </g>
           </g>
         );
       case 'dragon_horns':
         return (
-          <g transform={`translate(${cx}, ${cy})`} className="drop-shadow-[0_0_10px_rgba(239,68,68,0.85)] animate-fire-glow">
-            {/* Left horn */}
-            <path d="M -18 4 Q -35 -15 -28 -32 Q -22 -20 -10 -2 Z" fill="#ef4444" stroke="#7f1d1d" strokeWidth="1.5" />
-            <path d="M -18 4 Q -30 -12 -25 -26 C -22 -16 -12 -2 -18 4" fill="#f87171" opacity="0.6" />
-            
-            {/* Right horn */}
-            <path d="M 18 4 Q 35 -15 28 -32 Q 22 -20 10 -2 Z" fill="#ef4444" stroke="#7f1d1d" strokeWidth="1.5" />
-            <path d="M 18 4 Q 30 -12 25 -26 C 22 -16 12 -2 18 4" fill="#f87171" opacity="0.6" />
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="drop-shadow-[0_0_10px_rgba(239,68,68,0.85)] animate-fire-glow">
+              {/* Left horn */}
+              <path d="M -18 4 Q -35 -15 -28 -32 Q -22 -20 -10 -2 Z" fill="#ef4444" stroke="#7f1d1d" strokeWidth="1.5" />
+              <path d="M -18 4 Q -30 -12 -25 -26 C -22 -16 -12 -2 -18 4" fill="#f87171" opacity="0.6" />
+              
+              {/* Right horn */}
+              <path d="M 18 4 Q 35 -15 28 -32 Q 22 -20 10 -2 Z" fill="#ef4444" stroke="#7f1d1d" strokeWidth="1.5" />
+              <path d="M 18 4 Q 30 -12 25 -26 C 22 -16 12 -2 18 4" fill="#f87171" opacity="0.6" />
+            </g>
           </g>
         );
       case 'aurora_crown':
@@ -475,6 +506,52 @@ export function LingoPetVisual({
     if (!glasses) return null;
 
     switch (glasses) {
+      case 'steampunk_goggles':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="animate-steampunk">
+              {/* Left gear lens */}
+              <g transform="translate(-18, 0)">
+                <circle cx="0" cy="0" r="10" fill="#78350f" stroke="#d97706" strokeWidth="2.5" />
+                {[...Array(6)].map((_, i) => (
+                  <rect key={i} x="-2" y="-13" width="4" height="4" fill="#d97706" transform={`rotate(${i * 60})`} />
+                ))}
+                <circle cx="0" cy="0" r="7" fill="none" stroke="#f59e0b" strokeWidth="1.5" className="animate-pulse" />
+                <circle cx="0" cy="0" r="3" fill="#f59e0b" />
+              </g>
+              {/* Right gear lens */}
+              <g transform="translate(18, 0)">
+                <circle cx="0" cy="0" r="10" fill="#78350f" stroke="#d97706" strokeWidth="2.5" />
+                {[...Array(6)].map((_, i) => (
+                  <rect key={i} x="-2" y="-13" width="4" height="4" fill="#d97706" transform={`rotate(${i * 60 + 30})`} />
+                ))}
+                <circle cx="0" cy="0" r="7" fill="none" stroke="#f59e0b" strokeWidth="1.5" className="animate-pulse" />
+                <circle cx="0" cy="0" r="3" fill="#f59e0b" />
+              </g>
+              {/* Bridge */}
+              <rect x="-8" y="-2" width="16" height="3.5" fill="#d97706" rx="1" />
+              {/* Strap */}
+              <path d="M -28 0 Q -38 -5 -40 -1" fill="none" stroke="#78350f" strokeWidth="2" />
+              <path d="M 28 0 Q 38 -5 40 -1" fill="none" stroke="#78350f" strokeWidth="2" />
+            </g>
+          </g>
+        );
+      case 'starry_shades':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="animate-starry">
+              {/* Left Star */}
+              <polygon points="-28,4 -22,4 -20,-2 -18,4 -12,4 -17,8 -15,14 -20,10 -25,14 -23,8" fill="rgba(236,72,153,0.3)" stroke="#ec4899" strokeWidth="2" />
+              {/* Right Star */}
+              <polygon points="12,4 18,4 20,-2 22,4 28,4 23,8 25,14 20,10 15,14 17,8" fill="rgba(236,72,153,0.3)" stroke="#ec4899" strokeWidth="2" />
+              {/* Bridge */}
+              <path d="M -12 4 C -6 1, 6 1, 12 4" fill="none" stroke="#ec4899" strokeWidth="2" />
+              {/* Glint line */}
+              <line x1="-24" y1="2" x2="-16" y2="10" stroke="#fff" strokeWidth="1.5" opacity="0.6" strokeLinecap="round" />
+              <line x1="16" y1="2" x2="24" y2="10" stroke="#fff" strokeWidth="1.5" opacity="0.6" strokeLinecap="round" />
+            </g>
+          </g>
+        );
       case 'laser_visor':
         return (
           <g transform={`translate(${cx}, ${cy})`} className="drop-shadow-[0_0_10px_rgba(6,182,212,0.9)]">
@@ -520,6 +597,182 @@ export function LingoPetVisual({
             {/* Side frames */}
             <line x1="-30" y1="0" x2="-35" y2="-4" stroke="#f59e0b" strokeWidth="1.5" />
             <line x1="30" y1="0" x2="35" y2="-4" stroke="#f59e0b" strokeWidth="1.5" />
+          </g>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Cosmetic Renderer: Wings (Rendered behind the body)
+  const renderWings = (cx: number, cy: number) => {
+    const wings = equippedCosmetics.wings;
+    if (!wings) return null;
+
+    switch (wings) {
+      case 'phoenix_wings':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="animate-phoenix">
+              {/* Left phoenix wing */}
+              <g transform="translate(-18, -5) scale(-1, 1)">
+                <path d="M 0 10 C -25 35, -45 -10, -60 -25 C -40 -15, -20 -15, -5 0 C -25 -25, -40 -35, -50 -45 C -35 -25, -20 -20, 0 -10 Z" fill="#ef4444" stroke="#b91c1c" strokeWidth="1.5" />
+                <path d="M -10 -5 C -25 -10, -40 -25, -45 -35 C -35 -20, -20 -15, -5 -8 Z" fill="#f97316" opacity="0.8" />
+                <path d="M -8 2 C -18 5, -28 -5, -35 -15 C -25 -8, -15 -5, -3 0 Z" fill="#fbbf24" opacity="0.9" />
+              </g>
+              {/* Right phoenix wing */}
+              <g transform="translate(18, -5)">
+                <path d="M 0 10 C -25 35, -45 -10, -60 -25 C -40 -15, -20 -15, -5 0 C -25 -25, -40 -35, -50 -45 C -35 -25, -20 -20, 0 -10 Z" fill="#ef4444" stroke="#b91c1c" strokeWidth="1.5" />
+                <path d="M -10 -5 C -25 -10, -40 -25, -45 -35 C -35 -20, -20 -15, -5 -8 Z" fill="#f97316" opacity="0.8" />
+                <path d="M -8 2 C -18 5, -28 -5, -35 -15 C -25 -8, -15 -5, -3 0 Z" fill="#fbbf24" opacity="0.9" />
+              </g>
+            </g>
+          </g>
+        );
+      case 'butterfly_wings':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="animate-butterfly">
+              {/* Left butterfly wing */}
+              <g transform="translate(-14, 5) scale(-1, 1)">
+                <path d="M 0 0 C -20 20, -45 25, -45 5 C -45 -15, -30 -30, -5 -15" fill="rgba(168,85,247,0.7)" stroke="#a855f7" strokeWidth="2" />
+                <path d="M -5 -15 C -20 -35, -40 -40, -40 -25 C -40 -10, -20 -5, 0 0" fill="rgba(236,72,153,0.7)" stroke="#ec4899" strokeWidth="2" />
+                <circle cx="-25" cy="-20" r="4" fill="#fff" opacity="0.5" />
+                <circle cx="-28" cy="6" r="3" fill="#fff" opacity="0.5" />
+              </g>
+              {/* Right butterfly wing */}
+              <g transform="translate(14, 5)">
+                <path d="M 0 0 C -20 20, -45 25, -45 5 C -45 -15, -30 -30, -5 -15" fill="rgba(168,85,247,0.7)" stroke="#a855f7" strokeWidth="2" />
+                <path d="M -5 -15 C -20 -35, -40 -40, -40 -25 C -40 -10, -20 -5, 0 0" fill="rgba(236,72,153,0.7)" stroke="#ec4899" strokeWidth="2" />
+                <circle cx="-25" cy="-20" r="4" fill="#fff" opacity="0.5" />
+                <circle cx="-28" cy="6" r="3" fill="#fff" opacity="0.5" />
+              </g>
+            </g>
+          </g>
+        );
+      case 'cyber_wings':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="animate-cyber">
+              {/* Left cyber wing */}
+              <g transform="translate(-16, -2) scale(-1, 1)">
+                <polygon points="0,0 -20,-15 -50,-10 -40,5 -15,5" fill="rgba(6,182,212,0.6)" stroke="#22d3ee" strokeWidth="1.5" />
+                <polygon points="-10,-10 -35,-30 -55,-25 -40,-10" fill="rgba(6,182,212,0.4)" stroke="#06b6d4" strokeWidth="1.5" />
+                <path d="M 0 -2 L -15 -12 L -35 -12" fill="none" stroke="#fff" strokeWidth="1" opacity="0.7" />
+                <circle cx="-35" cy="-12" r="1.5" fill="#fff" />
+              </g>
+              {/* Right cyber wing */}
+              <g transform="translate(16, -2)">
+                <polygon points="0,0 -20,-15 -50,-10 -40,5 -15,5" fill="rgba(6,182,212,0.6)" stroke="#22d3ee" strokeWidth="1.5" />
+                <polygon points="-10,-10 -35,-30 -55,-25 -40,-10" fill="rgba(6,182,212,0.4)" stroke="#06b6d4" strokeWidth="1.5" />
+                <path d="M 0 -2 L -15 -12 L -35 -12" fill="none" stroke="#fff" strokeWidth="1" opacity="0.7" />
+                <circle cx="-35" cy="-12" r="1.5" fill="#fff" />
+              </g>
+            </g>
+          </g>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Cosmetic Renderer: Necklace (Rendered on body but below head)
+  const renderNecklace = (cx: number, cy: number) => {
+    const necklace = equippedCosmetics.necklace;
+    if (!necklace) return null;
+
+    switch (necklace) {
+      case 'ruby_pendant':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <path d="M -22 -6 Q 0 14 22 -6" fill="none" stroke="#fbbf24" strokeWidth="2" />
+            <g transform="translate(0, 7)">
+              <g className="animate-ruby">
+                <path d="M 0,-4 C -3,-8 -8,-8 -8,-4 C -8,-1 0,5 0,7 C 0,5 8,-1 8,-4 C 8,-8 3,-8 0,-4 Z" fill="#ef4444" stroke="#b91c1c" strokeWidth="1" />
+                <circle cx="-2" cy="-4" r="1.5" fill="#fff" opacity="0.7" />
+              </g>
+            </g>
+          </g>
+        );
+      case 'crystal_collar':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <path d="M -20 -4 Q 0 10 20 -4" fill="none" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" />
+            <path d="M -20 -4 Q 0 10 20 -4" fill="none" stroke="#93c5fd" strokeWidth="1" strokeLinecap="round" />
+            <g className="animate-crystal">
+              <polygon points="0,5 -3,11 0,16 3,11" fill="#bae6fd" stroke="#0284c7" strokeWidth="0.8" />
+              <polygon points="-8,3 -10,8 -8,12 -6,8" fill="#bae6fd" stroke="#0284c7" strokeWidth="0.8" transform="rotate(-15, -8, 3)" />
+              <polygon points="8,3 6,8 8,12 10,8" fill="#bae6fd" stroke="#0284c7" strokeWidth="0.8" transform="rotate(15, 8, 3)" />
+            </g>
+          </g>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Cosmetic Renderer: Shoes (Rendered on top of feet)
+  const renderShoes = (leftCx: number, rightCx: number, cy: number) => {
+    const shoes = equippedCosmetics.shoes;
+    if (!shoes) return null;
+
+    switch (shoes) {
+      case 'hover_boots':
+        return (
+          <g>
+            {/* Left Boot */}
+            <g transform={`translate(${leftCx}, ${cy})`}>
+              <g transform="translate(0, 6)">
+                <g className="animate-hover-boot">
+                  <path d="M -6 0 Q 0 16 6 0 Q 3 8 0 4 Q -3 8 -6 0" fill="#f97316" />
+                  <path d="M -3 0 Q 0 10 3 0" fill="#f59e0b" />
+                </g>
+              </g>
+              <path d="M -12 -8 L -12 2 C -12 6, -6 6, 2 6 C 10 6, 12 4, 12 0 L 12 -4 L 6 -4 L 6 -8 Z" fill="#475569" stroke="#1e293b" strokeWidth="1.5" />
+              <rect x="-8" y="-6" width="10" height="2" fill="#0891b2" />
+            </g>
+            {/* Right Boot */}
+            <g transform={`translate(${rightCx}, ${cy})`}>
+              <g transform="translate(0, 6)">
+                <g className="animate-hover-boot">
+                  <path d="M -6 0 Q 0 16 6 0 Q 3 8 0 4 Q -3 8 -6 0" fill="#f97316" />
+                  <path d="M -3 0 Q 0 10 3 0" fill="#f59e0b" />
+                </g>
+              </g>
+              <path d="M -12 -4 L -12 0 C -12 4, -10 6, -2 6 C 6 6, 12 6, 12 2 L 12 -8 L 6 -8 L 6 -4 Z" fill="#475569" stroke="#1e293b" strokeWidth="1.5" />
+              <rect x="-2" y="-6" width="10" height="2" fill="#0891b2" />
+            </g>
+          </g>
+        );
+      case 'golden_sneakers':
+        return (
+          <g>
+            {/* Left Sneaker */}
+            <g transform={`translate(${leftCx}, ${cy})`}>
+              <g transform="translate(-10, -6)">
+                <g className="animate-sneaker-wing">
+                  <path d="M 0 0 C -6 -6, -12 -2, -10 4 C -6 2, -2 2, 0 0" fill="#fff" stroke="#d97706" strokeWidth="1" />
+                  <path d="M 0 2 C -4 -2, -8 0, -7 4" fill="none" stroke="#d97706" strokeWidth="0.8" />
+                </g>
+              </g>
+              <path d="M -11 -6 L -11 3 C -11 6, -8 7, 2 7 C 9 7, 11 5, 11 1 C 11 -2, 6 -3, 6 -6 Z" fill="#fbbf24" stroke="#d97706" strokeWidth="1.5" />
+              <path d="M -11 3 L 11 3" stroke="#fff" strokeWidth="2.5" />
+              <line x1="-3" y1="-3" x2="3" y2="-1" stroke="#fff" strokeWidth="1.5" />
+              <line x1="-1" y1="-6" x2="5" y2="-4" stroke="#fff" strokeWidth="1.5" />
+            </g>
+            {/* Right Sneaker */}
+            <g transform={`translate(${rightCx}, ${cy})`}>
+              <g transform="translate(10, -6) scale(-1, 1)">
+                <g className="animate-sneaker-wing">
+                  <path d="M 0 0 C -6 -6, -12 -2, -10 4 C -6 2, -2 2, 0 0" fill="#fff" stroke="#d97706" strokeWidth="1" />
+                  <path d="M 0 2 C -4 -2, -8 0, -7 4" fill="none" stroke="#d97706" strokeWidth="0.8" />
+                </g>
+              </g>
+              <path d="M -11 -6 L -6 -3 C -6 -2, -11 -2, -11 1 C -11 5, -9 7, -2 7 C 8 7, 11 3, 11 -6 Z" fill="#fbbf24" stroke="#d97706" strokeWidth="1.5" />
+              <path d="M -11 3 L 11 3" stroke="#fff" strokeWidth="2.5" />
+              <line x1="-3" y1="-1" x2="3" y2="-3" stroke="#fff" strokeWidth="1.5" />
+              <line x1="-5" y1="-4" x2="1" y2="-6" stroke="#fff" strokeWidth="1.5" />
+            </g>
           </g>
         );
       default:
