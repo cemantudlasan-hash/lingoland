@@ -16,6 +16,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import type { Game, SkillLevel, LanguageFocus, Subject } from "@/lib/types";
 import { allGames } from "@/lib/games";
+import { Gamepad2, Coins } from "lucide-react";
+import { getDailyBonusGame } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 export const gameComponentMap = {
       'arithmetic-ace': dynamic(() => import('@/components/games/arithmetic-ace').then(mod => mod.ArithmeticAce)),
@@ -56,7 +59,7 @@ export const gameComponentMap = {
       'mystery-box': dynamic(() => import('@/components/games/mystery-box').then(mod => mod.MysteryBox)),
       'crossword-connect': dynamic(() => import('@/components/games/crossword-connect').then(mod => mod.CrosswordConnect)),
       'phonics-flash': dynamic(() => import('@/components/games/phonics-flash').then(mod => mod.PhonicsFlash)),
-        'article-architect': dynamic(() => import('@/components/games/article-architect').then(mod => mod.ArticleArchitect)),
+      'article-architect': dynamic(() => import('@/components/games/article-architect').then(mod => mod.ArticleArchitect)),
       'jeopardy-classroom': dynamic(() => import('@/components/games/jeopardy-classroom').then(mod => mod.JeopardyClassroom)),
       'choose-your-gift': dynamic(() => import('@/components/games/choose-your-gift').then(mod => mod.ChooseYourGift)),
       'vocabulary-match-up': dynamic(() => import('@/components/games/vocabulary-match-up').then(mod => mod.VocabularyMatchUp)),
@@ -91,110 +94,144 @@ export const gameComponentMap = {
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
 };
 
-
 export default function GamesPage() {
       const [level, setLevel] = useState<SkillLevel | "all">("all");
       const [focus, setFocus] = useState<LanguageFocus | "all">("all");
       const [subject, setSubject] = useState<Subject | "all">("all");
       const [search, setSearch] = useState("");
 
-  const filteredGames = allGames.filter((game) => {
-          return (
-                    (level === "all" || game.level === level) &&
-                    (focus === "all" || game.focus === focus) &&
-                    (subject === "all" || game.subject === subject) &&
-                    game.title.toLowerCase().includes(search.toLowerCase())
-                  );
-  }).sort((a, b) => a.title.localeCompare(b.title));
+      const { slug: dailyBonusSlug, bonusAmount: dailyBonusAmount } = getDailyBonusGame();
+
+      const filteredGames = allGames.filter((game) => {
+            return (
+                  (level === "all" || game.level === level) &&
+                  (focus === "all" || game.focus === focus) &&
+                  (subject === "all" || game.subject === subject) &&
+                  game.title.toLowerCase().includes(search.toLowerCase())
+            );
+      }).sort((a, b) => a.title.localeCompare(b.title));
+
       return (
-              <div className="space-y-6">
-                    <div className="flex flex-col gap-4 md:flex-row">
-                            <Input
-                                          placeholder="Search for a game..."
-                                          value={search}
-                                          onChange={(e) => setSearch(e.target.value)}
-                                          className="max-w-sm"
-                                        />
-                            <div className="flex flex-wrap gap-4">
-                                      <Select
-                                                      value={subject}
-                                                      onValueChange={(v) => setSubject(v as Subject | "all")}
-                                                    >
-                                                  <SelectTrigger className="w-[180px]">
-                                                                <SelectValue placeholder="Subject" />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                                <SelectItem value="all">All Subjects</SelectItem>
-                                                                <SelectItem value="english">English</SelectItem>
-                                                                <SelectItem value="science">Science</SelectItem>
-                                                                <SelectItem value="math">Math</SelectItem>
-                                                  </SelectContent>
-                                      </Select>
-                                      <Select
-                                                      value={level}
-                                                      onValueChange={(v) => setLevel(v as SkillLevel | "all")}
-                                                    >
-                                                  <SelectTrigger className="w-[180px]">
-                                                                <SelectValue placeholder="Skill Level" />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                                <SelectItem value="all">All Levels</SelectItem>
-                                                                <SelectItem value="beginner">Beginner</SelectItem>
-                                                                <SelectItem value="intermediate">Intermediate</SelectItem>
-                                                                <SelectItem value="advanced">Advanced</SelectItem>
-                                                  </SelectContent>
-                                      </Select>
-                                      <Select
-                                                      value={focus}
-                                                      onValueChange={(v) => setFocus(v as LanguageFocus | "all")}
-                                                    >
-                                                  <SelectTrigger className="w-[180px]">
-                                                                <SelectValue placeholder="Learning Focus" />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                                <SelectItem value="all">All Focus Areas</SelectItem>
-                                                                <SelectItem value="grammar">Grammar</SelectItem>
-                                                                <SelectItem value="vocabulary">Vocabulary</SelectItem>
-                                                                <SelectItem value="pronunciation">Pronunciation</SelectItem>
-                                                                <SelectItem value="reading">Reading</SelectItem>
-                                                                <SelectItem value="biology">Biology</SelectItem>
-                                                                <SelectItem value="geometry">Geometry</SelectItem>
-                                                                <SelectItem value="conversation">Conversation</SelectItem>
-                                                  </SelectContent>
-                                      </Select>
-                            </div>
-                    </div>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {filteredGames.map((game) => (
-                            <Card
-                                            key={game.title}
-                                            className="flex flex-col bg-card/80 backdrop-blur-sm border-border/20 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-                                          >
-                                        <CardHeader className="flex flex-row items-center gap-4">
+            <div className="space-y-6">
+                  {/* Premium Header with Total Games Count */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
+                        <div>
+                              <h1 className="text-3xl font-extrabold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent flex items-center gap-2.5">
+                                    <Gamepad2 className="h-7 w-7 text-indigo-400" />
+                                    Classroom Games
+                              </h1>
+                              <p className="text-xs text-slate-400 mt-1">
+                                    Complete learning games to level up your pet and earn Lingo-Coins!
+                              </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                              <div className="bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1.5 rounded-full flex items-center gap-2">
+                                    <span className="text-xs font-bold text-indigo-300">Total Games: {allGames.length}</span>
+                              </div>
+                        </div>
+                  </div>
+
+                  <div className="flex flex-col gap-4 md:flex-row">
+                        <Input
+                              placeholder="Search for a game..."
+                              value={search}
+                              onChange={(e) => setSearch(e.target.value)}
+                              className="max-w-sm"
+                        />
+                        <div className="flex flex-wrap gap-4">
+                              <Select
+                                    value={subject}
+                                    onValueChange={(v) => setSubject(v as Subject | "all")}
+                              >
+                                    <SelectTrigger className="w-[180px]">
+                                          <SelectValue placeholder="Subject" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                          <SelectItem value="all">All Subjects</SelectItem>
+                                          <SelectItem value="english">English</SelectItem>
+                                          <SelectItem value="science">Science</SelectItem>
+                                          <SelectItem value="math">Math</SelectItem>
+                                    </SelectContent>
+                              </Select>
+                              <Select
+                                    value={level}
+                                    onValueChange={(v) => setLevel(v as SkillLevel | "all")}
+                              >
+                                    <SelectTrigger className="w-[180px]">
+                                          <SelectValue placeholder="Skill Level" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                          <SelectItem value="all">All Levels</SelectItem>
+                                          <SelectItem value="beginner">Beginner</SelectItem>
+                                          <SelectItem value="intermediate">Intermediate</SelectItem>
+                                          <SelectItem value="advanced">Advanced</SelectItem>
+                                    </SelectContent>
+                              </Select>
+                              <Select
+                                    value={focus}
+                                    onValueChange={(v) => setFocus(v as LanguageFocus | "all")}
+                              >
+                                    <SelectTrigger className="w-[180px]">
+                                          <SelectValue placeholder="Learning Focus" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                          <SelectItem value="all">All Focus Areas</SelectItem>
+                                          <SelectItem value="grammar">Grammar</SelectItem>
+                                          <SelectItem value="vocabulary">Vocabulary</SelectItem>
+                                          <SelectItem value="pronunciation">Pronunciation</SelectItem>
+                                          <SelectItem value="reading">Reading</SelectItem>
+                                          <SelectItem value="biology">Biology</SelectItem>
+                                          <SelectItem value="geometry">Geometry</SelectItem>
+                                          <SelectItem value="conversation">Conversation</SelectItem>
+                                    </SelectContent>
+                              </Select>
+                        </div>
+                  </div>
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {filteredGames.map((game) => {
+                              const isDailyBonus = game.slug === dailyBonusSlug;
+                              return (
+                                    <Card
+                                          key={game.title}
+                                          className={cn(
+                                                "flex flex-col bg-card/80 backdrop-blur-sm border-border/20 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
+                                                isDailyBonus && "border-amber-500/40 bg-amber-500/[0.02] shadow-amber-500/5 ring-1 ring-amber-500/20"
+                                          )}
+                                    >
+                                          <CardHeader className="flex flex-row items-start justify-between gap-4">
+                                                <div className="flex items-center gap-4">
                                                       <game.icon className="h-10 w-10 text-primary" />
                                                       <div>
-                                                                      <CardTitle>{game.title}</CardTitle>
-                                                                      <div className="flex gap-1 mt-1">
-                                                                                          <Badge variant="outline" className="text-[10px] uppercase">{game.subject}</Badge>
-                                                                                          <Badge variant="outline" className="text-[10px] uppercase">{game.level}</Badge>
-                                                                      </div>
+                                                            <CardTitle>{game.title}</CardTitle>
+                                                            <div className="flex gap-1 mt-1">
+                                                                  <Badge variant="outline" className="text-[10px] uppercase">{game.subject}</Badge>
+                                                                  <Badge variant="outline" className="text-[10px] uppercase">{game.level}</Badge>
+                                                            </div>
                                                       </div>
-                                        </CardHeader>
-                                        <CardContent className="flex-grow">
-                                                      <p className="text-sm text-muted-foreground">
-                                                          {game.description}
-                                                      </p>
-                                        </CardContent>
-                                        <CardFooter>
-                                                      <Link href={`/games/${game.slug}`} className="w-full">
-                                                                      <Button className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                                                                                        Play Now
-                                                                      </Button>
-                                                      </Link>
-                                        </CardFooter>
-                            </Card>
-                          ))}
-                    </div>
-              </div>
-            );
+                                                </div>
+                                                {isDailyBonus && (
+                                                      <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black border-none flex items-center gap-1 shadow-md shadow-amber-500/10 shrink-0">
+                                                            <Coins className="h-3 w-3 fill-slate-950 animate-pulse" />
+                                                            +{dailyBonusAmount.toFixed(2)} Coin
+                                                      </Badge>
+                                                )}
+                                          </CardHeader>
+                                          <CardContent className="flex-grow">
+                                                <p className="text-sm text-muted-foreground">
+                                                      {game.description}
+                                                </p>
+                                          </CardContent>
+                                          <CardFooter>
+                                                <Link href={`/games/${game.slug}`} className="w-full">
+                                                      <Button className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                                                            Play Now
+                                                      </Button>
+                                                </Link>
+                                          </CardFooter>
+                                    </Card>
+                              );
+                        })}
+                  </div>
+            </div>
+      );
 }

@@ -3,13 +3,41 @@
 import { collection, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import type { Firestore } from 'firebase/firestore';
+import { allGames } from './games';
 
 type AnalyticsEventData = {
   type: 'game_played' | 'article_read' | 'exercise_generated';
   details: Record<string, any>;
 };
 
-async function updatePetOnGamePlay(firestore: Firestore, userId: string) {
+// Helper to get daily bonus game deterministically
+export function getDailyBonusGame(): { slug: string; bonusAmount: number } {
+  const games = allGames;
+  if (!games || games.length === 0) return { slug: '', bonusAmount: 0.5 };
+  
+  // Create a date-based seed using UTC date
+  const today = new Date();
+  const dateString = `${today.getUTCFullYear()}-${today.getUTCMonth() + 1}-${today.getUTCDate()}`;
+  
+  // Simple hash function to get a deterministic index
+  let hash = 0;
+  for (let i = 0; i < dateString.length; i++) {
+    hash = dateString.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  const index = Math.abs(hash) % games.length;
+  const game = games[index];
+  
+  // Deterministic bonus amount between 0.50 and 1.00 (two decimal places)
+  const bonusAmount = 0.5 + (Math.abs(hash * 31) % 51) / 100;
+  
+  return {
+    slug: game.slug,
+    bonusAmount: parseFloat(bonusAmount.toFixed(2))
+  };
+}
+
+async function updatePetOnGamePlay(firestore: Firestore, userId: string, event?: AnalyticsEventData) {
   if (userId === 'guest') {
     if (typeof window !== 'undefined') {
       const petKey = 'lingoland_guest_pet';
@@ -17,7 +45,12 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string) {
       if (petRaw) {
         try {
           const pet = JSON.parse(petRaw);
-          pet.coins = (pet.coins || 0) + 20;
+          
+          const { slug: bonusSlug, bonusAmount } = getDailyBonusGame();
+          const isDailyBonus = event?.details?.slug === bonusSlug;
+          const extraCoins = isDailyBonus ? bonusAmount : 0;
+
+          pet.coins = parseFloat(((pet.coins || 0) + 20 + extraCoins).toFixed(2));
           pet.xp = (pet.xp || 0) + 100;
           pet.energy = Math.min(100, (pet.energy || 100) + 10);
           pet.intelligence = Math.min(100, (pet.intelligence || 50) + 15);
@@ -42,6 +75,11 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string) {
   try {
     const petRef = doc(firestore, 'user_pets', userId);
     const docSnap = await getDoc(petRef);
+    
+    const { slug: bonusSlug, bonusAmount } = getDailyBonusGame();
+    const isDailyBonus = event?.details?.slug === bonusSlug;
+    const extraCoins = isDailyBonus ? bonusAmount : 0;
+
     if (docSnap.exists()) {
       const pet = docSnap.data();
       let xp = (pet.xp || 0) + 100;
@@ -52,7 +90,7 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string) {
         level += 1;
       }
       await setDoc(petRef, {
-        coins: (pet.coins || 0) + 20,
+        coins: parseFloat(((pet.coins || 0) + 20 + extraCoins).toFixed(2)),
         xp,
         level,
         energy: Math.min(100, (pet.energy || 100) + 10),
@@ -71,7 +109,7 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string) {
         energy: 100,
         intelligence: 65,
         mood: 60,
-        coins: 20,
+        coins: parseFloat((20 + extraCoins).toFixed(2)),
         unlockedCosmetics: [],
         equippedCosmetics: {},
         currentBackground: 'cozy-room',
@@ -95,9 +133,10 @@ export const logAnalyticsEvent = (firestore: Firestore, userId: string | 'guest'
 
   // Reward pet on game completion
   if (event.type === 'game_played') {
-    updatePetOnGamePlay(firestore, userId);
+    updatePetOnGamePlay(firestore, userId, event);
   }
 };
+
 
 
     

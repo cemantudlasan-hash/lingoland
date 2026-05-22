@@ -49,6 +49,136 @@ const WAKEUP_QUESTIONS = [
     question: "What does the idiom 'Piece of cake' mean?",
     options: ["Very easy", "Very hard", "A slice of dessert", "A birthday gift"],
     answer: "Very easy",
+  },
+  {
+    question: "What is the antonym of 'Reluctant'?",
+    options: ["Eager", "Hesitant", "Slow", "Careful"],
+    answer: "Eager",
+  },
+  {
+    question: "Which of the following is a synonym of 'Exquisite'?",
+    options: ["Ugly", "Ordinary", "Beautiful", "Old"],
+    answer: "Beautiful",
+  },
+  {
+    question: "Complete the sentence: 'By the time the movie started, we ___ our popcorn.'",
+    options: ["eat", "have eaten", "had eaten", "will eat"],
+    answer: "had eaten",
+  },
+  {
+    question: "Which word is a noun?",
+    options: ["Quickly", "Happiness", "Beautiful", "Under"],
+    answer: "Happiness",
+  },
+  {
+    question: "What does the idiom 'Bite the bullet' mean?",
+    options: ["Eat something hard", "Face a difficult situation with courage", "Shoot a gun", "Give up"],
+    answer: "Face a difficult situation with courage",
+  },
+  {
+    question: "Complete the sentence: 'If I ___ you, I would study harder.'",
+    options: ["was", "am", "were", "be"],
+    answer: "were",
+  },
+  {
+    question: "What does the idiom 'Break a leg' mean?",
+    options: ["Get hurt", "Good luck", "Run fast", "Dance well"],
+    answer: "Good luck",
+  },
+  {
+    question: "What is the antonym of 'Plentiful'?",
+    options: ["Scarce", "Abundant", "Rich", "Green"],
+    answer: "Scarce",
+  },
+  {
+    question: "Complete the sentence: 'She is very good ___ playing the piano.'",
+    options: ["on", "at", "in", "with"],
+    answer: "at",
+  },
+  {
+    question: "Which sentence is in the passive voice?",
+    options: [
+      "John wrote the letter.",
+      "The letter was written by John.",
+      "John is writing a letter.",
+      "John has written a letter."
+    ],
+    answer: "The letter was written by John.",
+  },
+  {
+    question: "Which of the following is a synonym of 'Meticulous'?",
+    options: ["Lazy", "Messy", "Careful", "Quick"],
+    answer: "Careful",
+  },
+  {
+    question: "Complete the sentence: 'I look forward to ___ you soon.'",
+    options: ["meet", "meeting", "met", "meets"],
+    answer: "meeting",
+  },
+  {
+    question: "What does the idiom 'Spill the beans' mean?",
+    options: ["Cook dinner", "Reveal a secret", "Clean the floor", "Drop food"],
+    answer: "Reveal a secret",
+  },
+  {
+    question: "What is the antonym of 'Arrogant'?",
+    options: ["Proud", "Humble", "Angry", "Loud"],
+    answer: "Humble",
+  },
+  {
+    question: "Complete the sentence: 'The weather was bad, ___ they decided to go anyway.'",
+    options: ["so", "because", "yet", "although"],
+    answer: "yet",
+  },
+  {
+    question: "Which word is spelled correctly?",
+    options: ["Acommodate", "Accomodate", "Accommodate", "Acomodate"],
+    answer: "Accommodate",
+  },
+  {
+    question: "What does the idiom 'Under the weather' mean?",
+    options: ["In the rain", "Feeling slightly sick", "Below the clouds", "Happy"],
+    answer: "Feeling slightly sick",
+  },
+  {
+    question: "Complete the sentence: 'He has a lot of influence ___ his younger brother.'",
+    options: ["at", "over", "with", "to"],
+    answer: "over",
+  },
+  {
+    question: "Which of the following is a synonym of 'Vigilant'?",
+    options: ["Sleepy", "Watchful", "Careless", "Strong"],
+    answer: "Watchful",
+  },
+  {
+    question: "What is the antonym of 'Amateur'?",
+    options: ["Novice", "Professional", "Beginner", "Player"],
+    answer: "Professional",
+  },
+  {
+    question: "Which of the following is a relative pronoun?",
+    options: ["He", "Who", "Slowly", "Run"],
+    answer: "Who",
+  },
+  {
+    question: "Complete the sentence: 'The book ___ I borrowed yesterday is very interesting.'",
+    options: ["who", "whose", "which", "where"],
+    answer: "which",
+  },
+  {
+    question: "What does the idiom 'Once in a blue moon' mean?",
+    options: ["Every night", "Very rarely", "During the day", "Once a month"],
+    answer: "Very rarely",
+  },
+  {
+    question: "Complete the sentence: 'He is the ___ of the two brothers.'",
+    options: ["tall", "taller", "tallest", "more tall"],
+    answer: "taller",
+  },
+  {
+    question: "Which of the following is a synonym of 'Cooperate'?",
+    options: ["Compete", "Collaborate", "Argue", "Divide"],
+    answer: "Collaborate",
   }
 ];
 
@@ -94,6 +224,7 @@ export default function LingoPetPage() {
   const [quizStep, setQuizStep] = React.useState(0);
   const [selectedQuizAnswer, setSelectedQuizAnswer] = React.useState<string | null>(null);
   const [quizScore, setQuizScore] = React.useState(0);
+  const [currentQuizQuestions, setCurrentQuizQuestions] = React.useState<typeof WAKEUP_QUESTIONS>([]);
 
   // Load Lingo-Pet on mount
   React.useEffect(() => {
@@ -357,6 +488,10 @@ export default function LingoPetPage() {
 
   // Wake-up quiz trigger
   const handleStartWakeupQuiz = () => {
+    // Shuffle and pick 5 unique questions
+    const shuffled = [...WAKEUP_QUESTIONS].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 5);
+    setCurrentQuizQuestions(selected);
     setQuizActive(true);
     setQuizStep(0);
     setQuizScore(0);
@@ -366,15 +501,15 @@ export default function LingoPetPage() {
   const handleSelectQuizAnswer = (option: string) => {
     if (selectedQuizAnswer !== null) return;
     setSelectedQuizAnswer(option);
-    const currentQ = WAKEUP_QUESTIONS[quizStep];
-    if (option === currentQ.answer) {
+    const currentQ = currentQuizQuestions[quizStep];
+    if (currentQ && option === currentQ.answer) {
       setQuizScore(prev => prev + 1);
     }
   };
 
   const handleNextQuizQuestion = () => {
     setSelectedQuizAnswer(null);
-    if (quizStep + 1 < WAKEUP_QUESTIONS.length) {
+    if (quizStep + 1 < currentQuizQuestions.length) {
       setQuizStep(prev => prev + 1);
     } else {
       // Quiz finished
@@ -496,11 +631,12 @@ export default function LingoPetPage() {
                 <div>
                   <div className="flex justify-between items-center pb-3 border-b border-slate-900 mb-4">
                     <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Brain Activation Quiz</span>
-                    <span className="text-xs text-slate-500">Question {quizStep + 1} of 5</span>
+                    <span className="text-xs text-slate-500">Question {quizStep + 1} of {currentQuizQuestions.length}</span>
                   </div>
                   
                   {(() => {
-                    const currentQ = WAKEUP_QUESTIONS[quizStep];
+                    const currentQ = currentQuizQuestions[quizStep];
+                    if (!currentQ) return null;
                     return (
                       <div className="flex flex-col gap-4">
                         <h4 className="text-sm font-bold text-slate-200">{currentQ.question}</h4>
@@ -538,10 +674,10 @@ export default function LingoPetPage() {
                   {selectedQuizAnswer !== null && (
                     <Button 
                       onClick={handleNextQuizQuestion}
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold"
+                      className="bg-indigo-650 hover:bg-indigo-500 text-white font-bold"
                       size="sm"
                     >
-                      {quizStep + 1 === WAKEUP_QUESTIONS.length ? "Finish Quiz" : "Next Question"}
+                      {quizStep + 1 === currentQuizQuestions.length ? "Finish Quiz" : "Next Question"}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   )}
