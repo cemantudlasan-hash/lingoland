@@ -86,11 +86,23 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        // This logic extracts the path from either a ref or a query
-        const path: string =
-          memoizedTargetRefOrQuery.type === 'collection'
-            ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+        // This logic extracts the path from either a ref or a query safely without relying on internal non-standard properties in production
+        let path = 'unknown';
+        if (memoizedTargetRefOrQuery) {
+          try {
+            if (memoizedTargetRefOrQuery.type === 'collection') {
+              path = (memoizedTargetRefOrQuery as CollectionReference).path;
+            } else {
+              const queryObj = memoizedTargetRefOrQuery as any;
+              path = queryObj.path || 
+                     queryObj._query?.path?.canonicalString?.() || 
+                     queryObj._query?.path?.toString?.() || 
+                     'query';
+            }
+          } catch (e) {
+            console.warn('Failed to extract Firestore query path safely:', e);
+          }
+        }
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',

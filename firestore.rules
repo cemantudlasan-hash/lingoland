@@ -48,6 +48,10 @@ service cloud.firestore {
         allow create: if request.auth != null;
         allow read, update, delete: if isOwner(userId);
       }
+
+      match /memorandums/{memoId} {
+        allow read, write: if isOwner(userId);
+      }
     }
     
     match /blockedUsers/{userId} {
