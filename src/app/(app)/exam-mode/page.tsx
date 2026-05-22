@@ -180,6 +180,8 @@ export default function ExamModePage() {
       content += `</div>`;
     });
 
+    content += `<br/><div style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 10pt; color: #a0aec0; font-family: Arial, sans-serif;">www.lingolandverse.com</div>`;
+
     const source = header + content + footer;
     const file = new Blob([source], { type: 'application/msword' });
     const fileUrl = URL.createObjectURL(file);
@@ -262,6 +264,8 @@ export default function ExamModePage() {
       content += `</tr>`;
     }
     content += `</table>`;
+
+    content += `<br/><div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 9pt; color: #a0aec0; font-family: Arial, sans-serif;">www.lingolandverse.com</div>`;
 
     const source = header + content + footer;
     const file = new Blob([source], { type: 'application/msword' });

@@ -126,7 +126,7 @@ export function GeneratorForm() {
     const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Generated Exercise</title></head><body>`;
     const footer = "</body></html>";
     const exerciseParagraphs = exercise.split('\n').filter(p => p.trim() !== '').map(p => `<p>${p}</p>`).join('');
-    const content = `<h1>Exercise: ${topic} (${difficulty})</h1>${exerciseParagraphs}`;
+    const content = `<h1>Exercise: ${topic} (${difficulty})</h1>${exerciseParagraphs}<br/><div style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 10pt; color: #a0aec0; font-family: Arial, sans-serif;">www.lingolandverse.com</div>`;
     
     const source = header + content + footer;
 

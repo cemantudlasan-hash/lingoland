@@ -159,7 +159,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
           wordPool.forEach(pair => {
             htmlContent += `<div class="call-sheet-item"><strong>${pair.word}:</strong> ${pair.definition}</div>`;
           });
-          htmlContent += `</div></div>`;
+          htmlContent += `</div><div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; text-align: center; font-size: 12px; color: #aaa;">www.lingolandverse.com</div></div>`;
           
           for (let i = 0; i < CLASSROOM_CARD_COUNT; i++) {
             const cardWords = shuffleArray(wordPool).slice(0, 24);
@@ -185,7 +185,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
               }
               htmlContent += '</tr>';
             }
-            htmlContent += `</tbody></table></div>`;
+            htmlContent += `</tbody></table><div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 5px; text-align: center; font-size: 12px; color: #aaa; width: 500px;">www.lingolandverse.com</div></div>`;
           }
           
           htmlContent += '</body></html>';

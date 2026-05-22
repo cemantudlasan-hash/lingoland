@@ -440,6 +440,9 @@ const PrintableLessonPlan = React.forwardRef<HTMLDivElement, { lessonPlan: Gener
                 <PrintSection title="Homework" content={lessonPlan.homework || 'None'} icon={FileText} isOptional={!lessonPlan.homework}/>
 
             </div>
+            <div className="mt-12 pt-4 border-t border-gray-200 text-center text-xs text-gray-400 font-sans tracking-widest">
+                www.lingolandverse.com
+            </div>
         </div>
     );
 });

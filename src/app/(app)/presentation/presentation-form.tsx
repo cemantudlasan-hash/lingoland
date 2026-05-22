@@ -270,11 +270,14 @@ export function PresentationForm() {
     const slideHtml = slides
       .map(
         (slide) => `
-        <div style="page-break-after: always; padding: 40px; border: 1px solid #ccc; margin-bottom: 20px;">
+        <div style="page-break-after: always; padding: 40px; border: 1px solid #ccc; margin-bottom: 20px; position: relative;">
             <h2 style="font-size: 24px; font-family: Arial, sans-serif;">${slide.title}</h2>
-            <ul style="font-size: 18px; font-family: Arial, sans-serif; line-height: 1.6;">
+            <ul style="font-size: 18px; font-family: Arial, sans-serif; line-height: 1.6; margin-bottom: 40px;">
                 ${slide.content.map((point) => `<li>${point}</li>`).join('')}
             </ul>
+            <div style="position: absolute; bottom: 15px; left: 0; right: 0; text-align: center; font-size: 11px; color: #a0aec0; font-family: Arial, sans-serif; border-top: 1px solid #eee; padding-top: 5px; margin: 0 40px;">
+                www.lingolandverse.com
+            </div>
         </div>
     `
       )

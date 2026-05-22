@@ -285,6 +285,9 @@ export default function RubricsPage() {
                     <Textarea id="comments" className="mt-2 bg-white text-black border border-black" rows={4} value={comments} onChange={(e) => setComments(e.target.value)} />
                 </div>
             </div>
+            <div className="mt-12 pt-4 border-t border-gray-200 text-center text-xs text-gray-400 font-sans tracking-widest">
+                www.lingolandverse.com
+            </div>
           </CardContent>
         </Card>
       )}
