@@ -71,6 +71,7 @@ export function GeneratorForm() {
       const result = await generateEslExercise(values);
       if (result.exercise) {
         setExercise(result.exercise);
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('ai_usage_increment'));
         if (firestore) {
           logAnalyticsEvent(firestore, user?.uid || 'guest', {
             type: 'exercise_generated',

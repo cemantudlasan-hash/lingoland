@@ -1,5 +1,7 @@
 'use client';
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from 'react';
 import { getGameBySlug } from '@/lib/games';
 import {
@@ -124,7 +126,7 @@ export function MysteryBox({ slug, onToggleFullscreen }: { slug: string; onToggl
       
       setUsedQuestions(currentUsedQuestions);
 
-      const shuffledPoints = [...boxPointValues].sort(() => Math.random() - 0.5);
+      const shuffledPoints = shuffleArray([...boxPointValues]);
 
       const finalBoxes = newBoxesData.map((item, index) => ({
         id: index,

@@ -1,6 +1,8 @@
 
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -79,7 +81,7 @@ export function SolarSystemScout({ slug, onToggleFullscreen }: { slug: string; o
     }
 
     setCurrentTarget(target);
-    setOptions(opts.sort(() => Math.random() - 0.5));
+    setOptions(shuffleArray(opts));
     setIsCorrect(null);
     setUsedBodies(prev => [...prev, target.name]);
     setGameState("playing");

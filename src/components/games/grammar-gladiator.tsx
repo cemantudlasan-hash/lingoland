@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -117,7 +119,7 @@ export function GrammarGladiator({ slug, onToggleFullscreen }: { slug: string; o
     const problem = pool[Math.floor(Math.random() * pool.length)];
     setCurrentProblem({
       ...problem,
-      options: [...problem.options].sort(() => Math.random() - 0.5)
+      options: shuffleArray([...problem.options])
     });
     setTimeLeft(getTimerLimit());
     setGameState("playing");

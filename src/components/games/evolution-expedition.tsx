@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -58,7 +60,7 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
 
   React.useEffect(() => {
     if (gameState === "idle") {
-      const shuffled = [...ALL_STAGES].sort(() => Math.random() - 0.5).slice(0, 5);
+      const shuffled = shuffleArray([...ALL_STAGES]).slice(0, 5);
       setSessionStages(shuffled);
     }
   }, [gameState]);

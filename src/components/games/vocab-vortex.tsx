@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -65,7 +67,7 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
   const generateProblem = (): Problem => {
     const item = DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)];
     const options = [item.synonym];
-    const availableDistractors = [...item.distractors].sort(() => Math.random() - 0.5);
+    const availableDistractors = shuffleArray([...item.distractors]);
     
     while (options.length < 4 && availableDistractors.length > 0) {
       options.push(availableDistractors.pop()!);
@@ -75,7 +77,7 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
       id: Math.random().toString(36).substr(2, 9),
       word: item.word,
       answer: item.synonym,
-      options: options.sort(() => Math.random() - 0.5),
+      options: shuffleArray(options),
       startTime: Date.now(),
     };
   };

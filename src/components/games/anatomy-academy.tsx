@@ -1,6 +1,8 @@
 
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -62,7 +64,7 @@ export function AnatomyAcademy({ slug, onToggleFullscreen }: { slug: string; onT
       });
       setChallenge({
         ...result,
-        options: [...result.options].sort(() => Math.random() - 0.5)
+        options: shuffleArray([...result.options])
       });
       setUsedAnswers(prev => [...prev, result.answer]);
       setGameState("playing");

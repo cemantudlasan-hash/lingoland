@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -55,7 +57,7 @@ export function ReadingComprehension({ slug, onToggleFullscreen }: { slug: strin
       const newExercise = await generateReadingComprehension({ difficulty: level, usedTopics });
       setExercise({
         ...newExercise,
-        options: [...newExercise.options].sort(() => Math.random() - 0.5)
+        options: shuffleArray([...newExercise.options])
       });
       setUsedTopics(prev => [...prev, newExercise.topic]);
       setGameState("playing");

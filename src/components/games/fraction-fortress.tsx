@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -73,7 +75,7 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
       ];
     }
 
-    return { q, a, options: [a, ...wrong].sort(() => Math.random() - 0.5) };
+    return { q, a, options: shuffleArray([a, ...wrong]) };
   };
 
   const getTimerLimit = () => {

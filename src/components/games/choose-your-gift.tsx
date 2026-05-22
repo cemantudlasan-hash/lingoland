@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from 'react';
 import { getGameBySlug } from '@/lib/games';
 import {
@@ -115,7 +117,7 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
             { isGood: false, sentence: badSentence, points: badPoints, explanation: explanation },
         ];
         
-        setGifts(newGifts.sort(() => Math.random() - 0.5)); // Shuffle the gifts
+        setGifts(shuffleArray(newGifts)); // Shuffle the gifts
         setRound(prev => prev + 1);
         setTimeLeft(30);
         setGameState('playing');

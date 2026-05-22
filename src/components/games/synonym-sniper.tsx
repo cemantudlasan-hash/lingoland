@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -96,7 +98,7 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
   const generateProblem = () => {
     const pool = problemsByDifficulty[difficulty];
     const item = pool[Math.floor(Math.random() * pool.length)];
-    const options = [item.synonym, ...item.wrong].sort(() => Math.random() - 0.5);
+    const options = shuffleArray([item.synonym, ...item.wrong]);
     return { baseWord: item.word, synonym: item.synonym, options };
   };
 

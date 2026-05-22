@@ -1,6 +1,8 @@
 
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -93,7 +95,7 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
       });
       setChallenge({
         ...result,
-        options: [...result.options].sort(() => Math.random() - 0.5)
+        options: shuffleArray([...result.options])
       });
       setUsedScenarios(prev => [...prev, result.scenario]);
       setGameState("playing");

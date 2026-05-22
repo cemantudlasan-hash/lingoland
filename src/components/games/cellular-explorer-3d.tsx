@@ -1,6 +1,8 @@
 
 'use client';
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { getGameBySlug } from '@/lib/games';
@@ -106,7 +108,7 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
 
     const levelThreshold = level === 'beginner' ? 1 : level === 'intermediate' ? 2 : 3;
     const filteredData = CELL_DATA.filter(item => item.level <= levelThreshold);
-    const shuffled = [...filteredData].sort(() => Math.random() - 0.5);
+    const shuffled = shuffleArray([...filteredData]);
     
     const newNodes: OrganelleNode[] = shuffled.map((item, i) => {
       const phi = Math.acos(-1 + (2 * i) / (shuffled.length - 1));

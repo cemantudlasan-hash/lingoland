@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -91,7 +93,7 @@ export function IdiomInferno({ slug, onToggleFullscreen }: { slug: string; onTog
     setRound(1);
     const pool = idiomsByDifficulty[diff];
     const item = pool[Math.floor(Math.random() * pool.length)];
-    setCurrentIdiom({ idiom: item.idiom, meaning: item.meaning, options: [item.meaning, ...item.wrong].sort(() => Math.random() - 0.5) });
+    setCurrentIdiom({ idiom: item.idiom, meaning: item.meaning, options: shuffleArray([item.meaning, ...item.wrong]) });
     setLavaLevel(0);
     setGameState("playing");
   };
@@ -106,7 +108,7 @@ export function IdiomInferno({ slug, onToggleFullscreen }: { slug: string; onTog
     }
     const pool = idiomsByDifficulty[difficulty];
     const item = pool[Math.floor(Math.random() * pool.length)];
-    setCurrentIdiom({ idiom: item.idiom, meaning: item.meaning, options: [item.meaning, ...item.wrong].sort(() => Math.random() - 0.5) });
+    setCurrentIdiom({ idiom: item.idiom, meaning: item.meaning, options: shuffleArray([item.meaning, ...item.wrong]) });
     setRound(r => r + 1);
     setLavaLevel(0);
     setGameState("playing");

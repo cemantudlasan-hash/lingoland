@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -95,7 +97,7 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
     setGameState("playing");
     const pool = questionsByDifficulty[diff];
     const item = pool[Math.floor(Math.random() * pool.length)];
-    setCurrentProblem({ q: item.q, a: item.a, options: [item.a, ...item.wrong].sort(() => Math.random() - 0.5) });
+    setCurrentProblem({ q: item.q, a: item.a, options: shuffleArray([item.a, ...item.wrong]) });
     setTimeLeft(getTimerLimit());
   };
 
@@ -109,7 +111,7 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
     }
     const pool = questionsByDifficulty[difficulty];
     const item = pool[Math.floor(Math.random() * pool.length)];
-    setCurrentProblem({ q: item.q, a: item.a, options: [item.a, ...item.wrong].sort(() => Math.random() - 0.5) });
+    setCurrentProblem({ q: item.q, a: item.a, options: shuffleArray([item.a, ...item.wrong]) });
     setRound(r => r + 1);
     setTimeLeft(getTimerLimit());
     setGameState("playing");

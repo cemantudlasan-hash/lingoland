@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -54,7 +56,7 @@ export function SynonymSleuth({ slug, onToggleFullscreen }: { slug: string; onTo
       const newExercise = await generateSynonymExercise({ difficulty: level, usedWords });
       setExercise({
         ...newExercise,
-        options: [...newExercise.options].sort(() => Math.random() - 0.5)
+        options: shuffleArray([...newExercise.options])
       });
       setUsedWords(prev => [...prev, newExercise.word]);
       setGameState("playing");

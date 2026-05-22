@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -70,7 +72,7 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
     const options = [element.name];
     
     // Select 3 random distractors
-    const availableDistractors = ELEMENTS.filter(e => e.symbol !== element.symbol).sort(() => Math.random() - 0.5);
+    const availableDistractors = shuffleArray(ELEMENTS.filter(e => e.symbol !== element.symbol));
     while (options.length < 4 && availableDistractors.length > 0) {
       options.push(availableDistractors.pop()!.name);
     }
@@ -79,7 +81,7 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
       id: Math.random().toString(36).substr(2, 9),
       symbol: element.symbol,
       answer: element.name,
-      options: options.sort(() => Math.random() - 0.5),
+      options: shuffleArray(options),
       startTime: Date.now(),
     };
   };

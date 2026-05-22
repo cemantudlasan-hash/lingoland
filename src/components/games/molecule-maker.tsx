@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -95,7 +97,7 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
     setGameState("playing");
     const pool = moleculesByDifficulty[diff];
     const item = pool[Math.floor(Math.random() * pool.length)];
-    setCurrentProblem({ name: item.name, formula: item.formula, options: [item.formula, ...item.wrong].sort(() => Math.random() - 0.5) });
+    setCurrentProblem({ name: item.name, formula: item.formula, options: shuffleArray([item.formula, ...item.wrong]) });
     setTimeLeft(getTimerLimit());
   };
 
@@ -109,7 +111,7 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
     }
     const pool = moleculesByDifficulty[difficulty];
     const item = pool[Math.floor(Math.random() * pool.length)];
-    setCurrentProblem({ name: item.name, formula: item.formula, options: [item.formula, ...item.wrong].sort(() => Math.random() - 0.5) });
+    setCurrentProblem({ name: item.name, formula: item.formula, options: shuffleArray([item.formula, ...item.wrong]) });
     setRound(r => r + 1);
     setTimeLeft(getTimerLimit());
     setGameState("playing");

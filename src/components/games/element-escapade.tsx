@@ -1,6 +1,8 @@
 
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -94,7 +96,7 @@ export function ElementEscapade({ slug, onToggleFullscreen }: { slug: string; on
     
     // Minimize repeating choices by selecting unique distractors from the whole table
     const distractorPool = ELEMENTS.filter(e => e.name !== target.name);
-    const shuffledDistractors = [...distractorPool].sort(() => Math.random() - 0.5);
+    const shuffledDistractors = shuffleArray([...distractorPool]);
     
     const opts = [target.name];
     let i = 0;
@@ -104,7 +106,7 @@ export function ElementEscapade({ slug, onToggleFullscreen }: { slug: string; on
     }
 
     setCurrentElement(target);
-    setOptions(opts.sort(() => Math.random() - 0.5));
+    setOptions(shuffleArray(opts));
     setIsCorrect(null);
     setUsedInSession([...history, target.name]);
     setGameState("playing");

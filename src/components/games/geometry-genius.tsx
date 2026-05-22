@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -93,7 +95,7 @@ export function GeometryGenius({ slug, onToggleFullscreen }: { slug: string; onT
         type: t, 
         q, 
         a: String(Math.round(ans)), 
-        options: [String(Math.round(ans)), ...wrongStrs.slice(0, 3)].sort(() => Math.random() - 0.5) 
+        options: shuffleArray([String(Math.round(ans)), ...wrongStrs.slice(0, 3)]) 
     };
   };
 

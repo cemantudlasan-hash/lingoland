@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -79,7 +81,7 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
       id: Math.random().toString(36).substr(2, 9),
       equation: equationString,
       answer: x,
-      options: options.sort(() => Math.random() - 0.5),
+      options: shuffleArray(options),
       startTime: Date.now(),
     };
   };

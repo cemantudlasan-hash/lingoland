@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -89,7 +91,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         type: t, 
         data, 
         a: String(answer), 
-        options: [String(answer), ...Array.from(wrongPool).map(String)].sort(() => Math.random() - 0.5) 
+        options: shuffleArray([String(answer), ...Array.from(wrongPool).map(String)]) 
     };
   };
 

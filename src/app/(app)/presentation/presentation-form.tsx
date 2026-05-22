@@ -249,6 +249,7 @@ export function PresentationForm() {
     try {
       const result = await generatePresentation(values);
       setPresentation(result);
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('ai_usage_increment'));
       setupWordAnimation(result.slides);
     } catch (e) {
       toast({

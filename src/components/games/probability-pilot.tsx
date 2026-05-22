@@ -1,6 +1,8 @@
 
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -55,7 +57,7 @@ export function ProbabilityPilot({ slug, onToggleFullscreen }: { slug: string; o
       });
       setChallenge({
         ...result,
-        options: [...result.options].sort(() => Math.random() - 0.5)
+        options: shuffleArray([...result.options])
       });
       setGameState("playing");
     } catch (error) {

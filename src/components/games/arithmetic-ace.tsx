@@ -1,6 +1,8 @@
 
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -113,7 +115,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     return {
       question: `${a} ${op} ${b}`,
       answer: ans,
-      options: options.sort(() => Math.random() - 0.5),
+      options: shuffleArray(options),
     };
   };
 

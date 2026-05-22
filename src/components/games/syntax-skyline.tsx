@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
@@ -54,7 +56,7 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
 
   React.useEffect(() => {
     if (gameState === "idle") {
-      const shuffled = [...ALL_SENTENCES].sort(() => Math.random() - 0.5).slice(0, 5);
+      const shuffled = shuffleArray([...ALL_SENTENCES]).slice(0, 5);
       setSessionSentences(shuffled);
     }
   }, [gameState]);
@@ -64,7 +66,7 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
   // Prevent crash if currentSentence is completely missing
   if (!currentSentence && gameState === "playing") return null;
   const availableWords = React.useMemo(() => {
-    return currentSentence ? [...currentSentence.parts].sort(() => Math.random() - 0.5) : [];
+    return currentSentence ? shuffleArray([...currentSentence.parts]) : [];
   }, [currentSentenceIndex, currentSentence]);
 
   React.useEffect(() => {

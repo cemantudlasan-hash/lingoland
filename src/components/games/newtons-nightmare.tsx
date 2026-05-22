@@ -1,5 +1,7 @@
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -113,7 +115,7 @@ export function NewtonsNightmare({ slug, onToggleFullscreen }: { slug: string; o
       }
     }
 
-    return { q, a: a.toString(), options: [a.toString(), ...wrong].sort(() => Math.random() - 0.5) };
+    return { q, a: a.toString(), options: shuffleArray([a.toString(), ...wrong]) };
   };
 
   const getTimerLimit = () => {

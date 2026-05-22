@@ -1,6 +1,8 @@
 
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -90,7 +92,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
     return {
       numerator: num,
       denominator: den,
-      options: options.sort(() => Math.random() - 0.5),
+      options: shuffleArray(options),
     };
   };
 

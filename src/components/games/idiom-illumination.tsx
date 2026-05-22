@@ -1,6 +1,8 @@
 
 "use client";
 
+import { shuffleArray } from "@/lib/shuffle";
+
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import {
@@ -54,7 +56,7 @@ export function IdiomIllumination({ slug, onToggleFullscreen }: { slug: string; 
       const newExercise = await generateIdiomExercise({ difficulty: game.level, usedIdioms });
       setExercise({
         ...newExercise,
-        options: [...newExercise.options].sort(() => Math.random() - 0.5)
+        options: shuffleArray([...newExercise.options])
       });
       setUsedIdioms(prev => [...prev, newExercise.idiom]);
       setGameState("playing");

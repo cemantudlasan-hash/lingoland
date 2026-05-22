@@ -37,6 +37,7 @@ import {
   Coffee,
   Clapperboard,
   ClipboardList,
+  StickyNote,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
@@ -74,6 +75,7 @@ const privateItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/profile", label: "Profile", icon: User },
     { href: "/my-postings", label: "My Postings", icon: FileText },
+    { href: "/memorandum", label: "Memorandum", icon: StickyNote },
 ];
 
 const adminItems = [
@@ -169,10 +171,10 @@ export function AppSidebar() {
   const handleLogout = async () => {
     if (isGuest) {
         logoutGuest();
-        router.push('/auth');
+        window.location.href = '/auth';
     } else {
         await signOut();
-        router.push('/auth');
+        window.location.href = '/auth';
     }
   };
   

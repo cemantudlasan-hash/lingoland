@@ -179,7 +179,7 @@ export function AppHeader() {
     } else {
       await signOut();
     }
-    router.push('/auth');
+    window.location.href = '/auth';
   };
   
   const handleSupportClick = () => {
