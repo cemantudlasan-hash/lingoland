@@ -36,7 +36,7 @@ export default function MemorandumPage() {
     return query(collection(firestore, `users/${user.uid}/memorandums`), orderBy('createdAt', 'desc'));
   }, [firestore, user, isGuest]);
 
-  const { data: memos, loading } = useCollection<Memo>(memosQuery);
+  const { data: memos, isLoading } = useCollection<Memo>(memosQuery);
 
   if (isGuest || !user) {
     return (
@@ -156,7 +156,7 @@ export default function MemorandumPage() {
         </Card>
       )}
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center p-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -167,7 +167,7 @@ export default function MemorandumPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="line-clamp-1" title={memo.title}>{memo.title}</CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  {memo.updatedAt ? format(memo.updatedAt.toDate(), 'MMM d, yyyy • h:mm a') : 'Just now'}
+                  {typeof memo.updatedAt?.toDate === 'function' ? format(memo.updatedAt.toDate(), 'MMM d, yyyy • h:mm a') : 'Just now'}
                 </p>
               </CardHeader>
               <CardContent className="flex-grow">

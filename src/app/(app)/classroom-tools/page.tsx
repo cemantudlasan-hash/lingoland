@@ -63,7 +63,7 @@ export default function ClassroomToolsPage() {
     >
         <Tabs value={activeTab} onValueChange={setActiveTab} className={cn("w-full flex flex-col", isFullscreen ? "max-w-7xl" : "h-full")}>
             <div className="flex items-center justify-between gap-2 mb-4">
-                <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 flex-grow relative">
+                <TabsList className="flex flex-wrap w-full justify-start items-center gap-1 md:gap-2 flex-grow relative overflow-visible h-auto p-1">
                     {tabs.map((tab) => (
                         <div key={tab.value} className="relative">
                             <TabsTrigger value={tab.value} className="w-full relative z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none">
