@@ -5,18 +5,30 @@ import {cn} from '@/lib/utils';
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<'textarea'>>(
   ({className, ...props}, ref) => {
-    // A little trick to auto-resize the textarea
     const internalRef = React.useRef<HTMLTextAreaElement>(null);
     React.useImperativeHandle(ref, () => internalRef.current as HTMLTextAreaElement);
 
-    React.useEffect(() => {
-        const el = internalRef.current;
-        if(el) {
-            el.style.height = 'inherit';
-            el.style.height = `${el.scrollHeight}px`;
-        }
-    }, [props.value]);
+    const adjustHeight = React.useCallback(() => {
+      const el = internalRef.current;
+      if (el) {
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight}px`;
+      }
+    }, []);
 
+    // Listen to native input event for uncontrolled typing resizing
+    React.useEffect(() => {
+      const el = internalRef.current;
+      if (!el) return;
+
+      el.addEventListener('input', adjustHeight);
+      return () => el.removeEventListener('input', adjustHeight);
+    }, [adjustHeight]);
+
+    // Resize when initial value or external value updates
+    React.useEffect(() => {
+      adjustHeight();
+    }, [props.value, adjustHeight]);
 
     return (
       <textarea
