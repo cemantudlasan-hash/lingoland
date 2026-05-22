@@ -86,7 +86,7 @@ const LAST_VISIT_KEY_NOTIFICATIONS = 'lingoland_notifications_last_visit';
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { user, isGuest, logoutGuest, isAdmin } = useAuth();
+  const { user, isGuest, logoutGuest, isAdmin, setAuthAction } = useAuth();
   const router = useRouter();
   const firestore = useFirestore();
   const [hasNewLoungeMessages, setHasNewLoungeMessages] = useState(false);
@@ -168,13 +168,13 @@ export function AppSidebar() {
 
 
   const handleLogout = async () => {
+    setAuthAction('logout');
     if (isGuest) {
         logoutGuest();
-        window.location.href = '/auth';
     } else {
         await signOut();
-        window.location.href = '/auth';
     }
+    window.location.href = '/auth';
   };
   
   const baseItems = user ? [...privateItems, ...publicItems] : publicItems;
