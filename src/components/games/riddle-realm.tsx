@@ -55,7 +55,10 @@ export function RiddleRealm({ slug, onToggleFullscreen }: { slug: string; onTogg
         difficulty: level,
         usedAnswers: usedAnswers,
       });
-      setChallenge(result);
+      setChallenge({
+        ...result,
+        options: [...result.options].sort(() => Math.random() - 0.5)
+      });
       setUsedAnswers(prev => [...prev, result.answer]);
       setGameState("playing");
     } catch (error) {

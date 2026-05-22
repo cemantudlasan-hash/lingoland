@@ -52,7 +52,10 @@ export function IdiomIllumination({ slug, onToggleFullscreen }: { slug: string; 
     setIsCorrect(null);
     try {
       const newExercise = await generateIdiomExercise({ difficulty: game.level, usedIdioms });
-      setExercise(newExercise);
+      setExercise({
+        ...newExercise,
+        options: [...newExercise.options].sort(() => Math.random() - 0.5)
+      });
       setUsedIdioms(prev => [...prev, newExercise.idiom]);
       setGameState("playing");
     } catch (error) {

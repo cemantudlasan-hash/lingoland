@@ -114,7 +114,11 @@ export function GrammarGladiator({ slug, onToggleFullscreen }: { slug: string; o
     }
     setRound(prev => prev + 1);
     const pool = problemsByDifficulty[difficulty];
-    setCurrentProblem(pool[Math.floor(Math.sortedRandom ? Math.random() : Math.random() * pool.length)]);
+    const problem = pool[Math.floor(Math.random() * pool.length)];
+    setCurrentProblem({
+      ...problem,
+      options: [...problem.options].sort(() => Math.random() - 0.5)
+    });
     setTimeLeft(getTimerLimit());
     setGameState("playing");
   };

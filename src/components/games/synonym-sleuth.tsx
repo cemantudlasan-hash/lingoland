@@ -52,7 +52,10 @@ export function SynonymSleuth({ slug, onToggleFullscreen }: { slug: string; onTo
     setIsCorrect(null);
     try {
       const newExercise = await generateSynonymExercise({ difficulty: level, usedWords });
-      setExercise(newExercise);
+      setExercise({
+        ...newExercise,
+        options: [...newExercise.options].sort(() => Math.random() - 0.5)
+      });
       setUsedWords(prev => [...prev, newExercise.word]);
       setGameState("playing");
     } catch (error) {

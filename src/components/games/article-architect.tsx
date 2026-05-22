@@ -55,7 +55,10 @@ export function ArticleArchitect({ slug, onToggleFullscreen }: { slug: string; o
       });
       const originalSentence = newExercise.sentenceWithBlank.replace('___', newExercise.correctAnswer);
       setUsedSentences(prev => [...prev, originalSentence]);
-      setExercise(newExercise);
+      setExercise({
+        ...newExercise,
+        options: [...newExercise.options].sort(() => Math.random() - 0.5)
+      });
       setGameState("playing");
     } catch (error) {
       console.error("Failed to generate exercise:", error);

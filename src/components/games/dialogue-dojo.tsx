@@ -91,7 +91,10 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
         category: selectedCategory,
         usedScenarios: usedScenarios,
       });
-      setChallenge(result);
+      setChallenge({
+        ...result,
+        options: [...result.options].sort(() => Math.random() - 0.5)
+      });
       setUsedScenarios(prev => [...prev, result.scenario]);
       setGameState("playing");
     } catch (error) {

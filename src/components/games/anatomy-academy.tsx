@@ -60,7 +60,10 @@ export function AnatomyAcademy({ slug, onToggleFullscreen }: { slug: string; onT
         difficulty: level,
         usedAnswers: usedAnswers,
       });
-      setChallenge(result);
+      setChallenge({
+        ...result,
+        options: [...result.options].sort(() => Math.random() - 0.5)
+      });
       setUsedAnswers(prev => [...prev, result.answer]);
       setGameState("playing");
     } catch (error) {

@@ -53,7 +53,10 @@ export function TimeTraveler({ slug, onToggleFullscreen }: { slug: string; onTog
       const result = await generateTimeChallenge({
         difficulty: level,
       });
-      setChallenge(result);
+      setChallenge({
+        ...result,
+        options: [...result.options].sort(() => Math.random() - 0.5)
+      });
       setGameState("playing");
     } catch (error) {
       console.error("Failed to generate challenge:", error);

@@ -53,7 +53,10 @@ export function ProbabilityPilot({ slug, onToggleFullscreen }: { slug: string; o
       const result = await generateProbabilityChallenge({
         difficulty: level,
       });
-      setChallenge(result);
+      setChallenge({
+        ...result,
+        options: [...result.options].sort(() => Math.random() - 0.5)
+      });
       setGameState("playing");
     } catch (error) {
       console.error("Failed to generate challenge:", error);

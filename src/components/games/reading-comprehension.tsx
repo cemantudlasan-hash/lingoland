@@ -53,7 +53,10 @@ export function ReadingComprehension({ slug, onToggleFullscreen }: { slug: strin
     setIsCorrect(null);
     try {
       const newExercise = await generateReadingComprehension({ difficulty: level, usedTopics });
-      setExercise(newExercise);
+      setExercise({
+        ...newExercise,
+        options: [...newExercise.options].sort(() => Math.random() - 0.5)
+      });
       setUsedTopics(prev => [...prev, newExercise.topic]);
       setGameState("playing");
     } catch (error) {
