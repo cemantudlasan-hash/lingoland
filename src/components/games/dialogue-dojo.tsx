@@ -26,6 +26,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore } from "@/firebase";
 import { logAnalyticsEvent, getDailyBonusGame } from "@/lib/analytics";
+import { doc, getDoc } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
 
 type GameState = "idle" | "loading" | "playing" | "answered" | "instructions" | "selecting_category";
@@ -64,6 +65,7 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
   const [earnedCoins, setEarnedCoins] = React.useState<number>(0);
   const [isDailyBonus, setIsDailyBonus] = React.useState<boolean>(false);
   const [dailyBonusAmount, setDailyBonusAmount] = React.useState<number>(0);
+  const [lastClaimedDate, setLastClaimedDate] = React.useState<string | null>(null);
   
   const { toast } = useToast();
   const game = getGameBySlug(slug);
@@ -73,6 +75,35 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
     document.addEventListener('fullscreenchange', handler);
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
+
+  React.useEffect(() => {
+    const fetchClaimedDate = async () => {
+      if (!firestore || !user) {
+        if (typeof window !== 'undefined') {
+          const local = localStorage.getItem('lingoland_guest_pet');
+          if (local) {
+            try {
+              const parsed = JSON.parse(local);
+              setLastClaimedDate(parsed.lastDailyBonusClaimedDate || null);
+            } catch (e) {}
+          }
+        }
+        return;
+      }
+      try {
+        const petRef = doc(firestore, 'user_pets', user.uid);
+        const docSnap = await getDoc(petRef);
+        if (docSnap.exists()) {
+          setLastClaimedDate(docSnap.data().lastDailyBonusClaimedDate || null);
+        }
+      } catch (e) {
+        console.error("Error fetching pet claimed date:", e);
+      }
+    };
+    if (gameState === "playing" || gameState === "instructions") {
+      fetchClaimedDate();
+    }
+  }, [user, firestore, gameState]);
 
   // Load history on mount
   React.useEffect(() => {
@@ -153,17 +184,21 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
   };
 
   const handleEndGame = async () => {
+    const today = new Date();
+    const todayUTC = `${today.getUTCFullYear()}-${today.getUTCMonth() + 1}-${today.getUTCDate()}`;
     const { slug: bonusSlug, bonusAmount } = getDailyBonusGame();
+    
     const isBonus = slug === bonusSlug;
-    const extraCoins = isBonus ? bonusAmount : 0;
-    const totalEarnedCoins = 20 + extraCoins;
+    const isBonusAvailable = isBonus && lastClaimedDate !== todayUTC;
+    const extraCoins = isBonusAvailable ? bonusAmount : 0;
+    const totalEarnedCoins = 10 + extraCoins;
 
-    setIsDailyBonus(isBonus);
+    setIsDailyBonus(isBonusAvailable);
     setDailyBonusAmount(bonusAmount);
     setEarnedCoins(totalEarnedCoins);
 
-    if (firestore) {
-      logAnalyticsEvent(firestore, user?.uid || 'guest', {
+    if (firestore && user) {
+      logAnalyticsEvent(firestore, user.uid, {
         type: 'game_played',
         details: {
           slug: slug,
@@ -185,6 +220,10 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
             pet.intelligence = Math.min(100, (pet.intelligence || 50) + 15);
             pet.lastActive = new Date().toISOString();
             
+            if (isBonusAvailable) {
+              pet.lastDailyBonusClaimedDate = todayUTC;
+            }
+
             let xpNeeded = pet.level * 500;
             if (pet.xp >= xpNeeded) {
               pet.xp -= xpNeeded;
@@ -464,7 +503,7 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
                     Daily coins received with the amount of coins transferred to the Lingo-Pet tab. :)
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    (Base: +20.00 | Daily Match Bonus: +{dailyBonusAmount.toFixed(2)})
+                    (Base: +10.00 | Daily Match Bonus: +{dailyBonusAmount.toFixed(2)})
                   </p>
                 </div>
               ) : (
@@ -473,7 +512,7 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
                     Reward Transferred!
                   </p>
                   <p className="text-sm font-semibold text-foreground/90">
-                    20.00 Lingo-Coins have been automatically transferred to your Lingo-Pet!
+                    10.00 Lingo-Coins have been automatically transferred to your Lingo-Pet!
                   </p>
                 </div>
               )}

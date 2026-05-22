@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,13 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useFirestore, useMemoFirebase } from "@/firebase";
-import { doc, onSnapshot, setDoc, type FirestoreError } from "firebase/firestore";
+import { doc, onSnapshot, type FirestoreError } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-
 
 export default function AdminPage() {
     const { user, isAdmin, isLoading } = useAuth();
@@ -28,12 +26,20 @@ export default function AdminPage() {
     const [isAnnouncementActive, setIsAnnouncementActive] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
+
+    const [widgetMsg1, setWidgetMsg1] = useState("");
+    const [widgetMsg2, setWidgetMsg2] = useState("");
+    const [isSavingWidget, setIsSavingWidget] = useState(false);
     
     const announcementRef = useMemoFirebase(() => {
         if (!firestore) return null;
         return doc(firestore, "announcements", "main_banner");
     }, [firestore]);
 
+    const widgetMessagesRef = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return doc(firestore, "announcements", "floating_pet_widget");
+    }, [firestore]);
 
     useEffect(() => {
         if (!isLoading && !isAdmin) {
@@ -67,6 +73,28 @@ export default function AdminPage() {
         return () => unsubscribe();
     }, [announcementRef, isLoading, isAdmin]);
 
+    useEffect(() => {
+        if (!widgetMessagesRef || isLoading || !isAdmin) return;
+
+        const unsubscribe = onSnapshot(widgetMessagesRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                if (data.messages && Array.isArray(data.messages)) {
+                    setWidgetMsg1(data.messages[0] || "");
+                    setWidgetMsg2(data.messages[1] || "");
+                }
+            }
+        },
+        (error: FirestoreError) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+              operation: 'get',
+              path: widgetMessagesRef.path,
+            }));
+          }
+        );
+        return () => unsubscribe();
+    }, [widgetMessagesRef, isLoading, isAdmin]);
+
     const handleSave = async () => {
         if (!announcementRef || !user) return;
         setIsSaving(true);
@@ -83,6 +111,26 @@ export default function AdminPage() {
         setIsSaving(false);
     };
 
+    const handleSaveWidget = async () => {
+        if (!widgetMessagesRef || !user) return;
+        setIsSavingWidget(true);
+        
+        const dataToSave = { 
+            messages: [
+                widgetMsg1.trim() || "Hello, how's your day?",
+                widgetMsg2.trim() || "Visit me, you can feed me. :)"
+            ] 
+        };
+
+        setDocumentNonBlocking(widgetMessagesRef, dataToSave, { merge: true });
+
+        toast({
+            title: "Success",
+            description: "Floating pet speech bubbles have been updated.",
+        });
+
+        setIsSavingWidget(false);
+    };
 
     if (isLoading || isFetching) {
         return <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin" /></div>
@@ -93,45 +141,86 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="container mx-auto py-8">
+        <div className="container mx-auto py-8 space-y-6">
             <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-            <Card>
-                <CardHeader
-                  className="bg-white text-black"
-                  style={{
-                    backgroundImage: `repeating-linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 10px)`,
-                    backgroundSize: '20px 20px',
-                  }}
-                >
-                    <CardTitle>Manage Announcement Banner</CardTitle>
-                    <CardDescription>
-                        Control the scrolling text banner shown at the top of the app for all users.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6 pt-6">
-                    <div className="space-y-2">
-                        <Label htmlFor="announcement-text">Banner Text</Label>
-                        <Textarea
-                            id="announcement-text"
-                            value={announcementText}
-                            onChange={(e) => setAnnouncementText(e.target.value)}
-                            placeholder="Enter your announcement here..."
-                        />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Switch
-                            id="announcement-active"
-                            checked={isAnnouncementActive}
-                            onCheckedChange={setIsAnnouncementActive}
-                        />
-                        <Label htmlFor="announcement-active">Show banner to users</Label>
-                    </div>
-                     <Button onClick={handleSave} disabled={isSaving}>
-                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Changes
-                    </Button>
-                </CardContent>
-            </Card>
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                    <CardHeader
+                      className="bg-white text-black"
+                      style={{
+                        backgroundImage: `repeating-linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 10px)`,
+                        backgroundSize: '20px 20px',
+                      }}
+                    >
+                        <CardTitle>Manage Announcement Banner</CardTitle>
+                        <CardDescription>
+                            Control the scrolling text banner shown at the top of the app for all users.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6 pt-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="announcement-text">Banner Text</Label>
+                            <Textarea
+                                id="announcement-text"
+                                value={announcementText}
+                                onChange={(e) => setAnnouncementText(e.target.value)}
+                                placeholder="Enter your announcement here..."
+                            />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                id="announcement-active"
+                                checked={isAnnouncementActive}
+                                onCheckedChange={setIsAnnouncementActive}
+                            />
+                            <Label htmlFor="announcement-active">Show banner to users</Label>
+                        </div>
+                         <Button onClick={handleSave} disabled={isSaving}>
+                            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save Changes
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader
+                      className="bg-white text-black"
+                      style={{
+                        backgroundImage: `repeating-linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 10px)`,
+                        backgroundSize: '20px 20px',
+                      }}
+                    >
+                        <CardTitle>Manage Floating Companion Speech Bubbles</CardTitle>
+                        <CardDescription>
+                            Edit the messages shown in the speech bubble of the hovering pet widget.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6 pt-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="widget-msg-1">First Speech Bubble Message</Label>
+                            <Textarea
+                                id="widget-msg-1"
+                                value={widgetMsg1}
+                                onChange={(e) => setWidgetMsg1(e.target.value)}
+                                placeholder="Hello, how's your day?"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="widget-msg-2">Second Speech Bubble Message</Label>
+                            <Textarea
+                                id="widget-msg-2"
+                                value={widgetMsg2}
+                                onChange={(e) => setWidgetMsg2(e.target.value)}
+                                placeholder="Visit me, you can feed me. :)"
+                            />
+                        </div>
+                         <Button onClick={handleSaveWidget} disabled={isSavingWidget}>
+                            {isSavingWidget && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save Companion Texts
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }

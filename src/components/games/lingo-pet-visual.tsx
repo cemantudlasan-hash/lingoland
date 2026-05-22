@@ -384,6 +384,41 @@ export function LingoPetVisual({
     if (!hat) return null;
 
     switch (hat) {
+      case 'angel_halo':
+        return (
+          <g transform={`translate(${cx}, ${cy - 12})`} className="drop-shadow-[0_0_12px_rgba(251,191,36,0.9)] animate-halo">
+            {/* Oval ring of the halo */}
+            <ellipse cx="0" cy="0" rx="20" ry="6" fill="none" stroke="#fbbf24" strokeWidth="4.5" />
+            <ellipse cx="0" cy="0" rx="20" ry="6" fill="none" stroke="#fef08a" strokeWidth="1.5" opacity="0.8" />
+            {/* Glow particles */}
+            <circle cx="-15" cy="-2" r="1.2" fill="#fff" className="animate-ping" />
+            <circle cx="15" cy="2" r="1.2" fill="#fff" className="animate-ping" />
+          </g>
+        );
+      case 'dragon_horns':
+        return (
+          <g transform={`translate(${cx}, ${cy})`} className="drop-shadow-[0_0_10px_rgba(239,68,68,0.85)] animate-fire-glow">
+            {/* Left horn */}
+            <path d="M -18 4 Q -35 -15 -28 -32 Q -22 -20 -10 -2 Z" fill="#ef4444" stroke="#7f1d1d" strokeWidth="1.5" />
+            <path d="M -18 4 Q -30 -12 -25 -26 C -22 -16 -12 -2 -18 4" fill="#f87171" opacity="0.6" />
+            
+            {/* Right horn */}
+            <path d="M 18 4 Q 35 -15 28 -32 Q 22 -20 10 -2 Z" fill="#ef4444" stroke="#7f1d1d" strokeWidth="1.5" />
+            <path d="M 18 4 Q 30 -12 25 -26 C 22 -16 12 -2 18 4" fill="#f87171" opacity="0.6" />
+          </g>
+        );
+      case 'aurora_crown':
+        return (
+          <g transform={`translate(${cx}, ${cy - 2})`} className="drop-shadow-[0_0_12px_rgba(168,85,247,0.85)] animate-aurora">
+            {/* Multi-point crown base and spikes */}
+            <path d="M -22 2 L -25 -16 L -12 -5 L 0 -22 L 12 -5 L 25 -16 L 22 2 Z" fill="#a855f7" stroke="#3b82f6" strokeWidth="1.5" />
+            <ellipse cx="0" cy="0" rx="14" ry="2.5" fill="#1e1b4b" opacity="0.5" />
+            {/* Crown Jewels on tips */}
+            <circle cx="0" cy="-22" r="3" fill="#ec4899" className="animate-pulse" />
+            <circle cx="-25" cy="-16" r="2.5" fill="#3b82f6" className="animate-pulse" />
+            <circle cx="25" cy="-16" r="2.5" fill="#10b981" className="animate-pulse" />
+          </g>
+        );
       case 'crown':
         return (
           <g transform={`translate(${cx}, ${cy})`} className="drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)] animate-float">
@@ -440,6 +475,17 @@ export function LingoPetVisual({
     if (!glasses) return null;
 
     switch (glasses) {
+      case 'laser_visor':
+        return (
+          <g transform={`translate(${cx}, ${cy})`} className="drop-shadow-[0_0_10px_rgba(6,182,212,0.9)]">
+            {/* Visor Frame */}
+            <polygon points="-28,-5 28,-5 25,6 -25,6" fill="rgba(6,182,212,0.25)" stroke="#0891b2" strokeWidth="2" />
+            {/* Cybernetics / Laser scan line */}
+            <line x1="-24" y1="0" x2="24" y2="0" stroke="#22d3ee" strokeWidth="2.5" className="animate-scan" />
+            <line x1="-27" y1="-5" x2="-25" y2="6" stroke="#0891b2" strokeWidth="1.5" />
+            <line x1="27" y1="-5" x2="25" y2="6" stroke="#0891b2" strokeWidth="1.5" />
+          </g>
+        );
       case 'monocle':
         return (
           <g transform={`translate(${cx - 18}, ${cy})`} className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">

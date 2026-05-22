@@ -38,6 +38,9 @@ export function getDailyBonusGame(): { slug: string; bonusAmount: number } {
 }
 
 async function updatePetOnGamePlay(firestore: Firestore, userId: string, event?: AnalyticsEventData) {
+  const today = new Date();
+  const todayUTC = `${today.getUTCFullYear()}-${today.getUTCMonth() + 1}-${today.getUTCDate()}`;
+
   if (userId === 'guest') {
     if (typeof window !== 'undefined') {
       const petKey = 'lingoland_guest_pet';
@@ -48,9 +51,14 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string, event?:
           
           const { slug: bonusSlug, bonusAmount } = getDailyBonusGame();
           const isDailyBonus = event?.details?.slug === bonusSlug;
-          const extraCoins = isDailyBonus ? bonusAmount : 0;
+          const isBonusAvailable = isDailyBonus && pet.lastDailyBonusClaimedDate !== todayUTC;
+          const extraCoins = isBonusAvailable ? bonusAmount : 0;
 
-          pet.coins = parseFloat(((pet.coins || 0) + 20 + extraCoins).toFixed(2));
+          if (isBonusAvailable) {
+            pet.lastDailyBonusClaimedDate = todayUTC;
+          }
+
+          pet.coins = parseFloat(((pet.coins || 0) + 10 + extraCoins).toFixed(2));
           pet.xp = (pet.xp || 0) + 100;
           pet.energy = Math.min(100, (pet.energy || 100) + 10);
           pet.intelligence = Math.min(100, (pet.intelligence || 50) + 15);
@@ -78,10 +86,12 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string, event?:
     
     const { slug: bonusSlug, bonusAmount } = getDailyBonusGame();
     const isDailyBonus = event?.details?.slug === bonusSlug;
-    const extraCoins = isDailyBonus ? bonusAmount : 0;
 
     if (docSnap.exists()) {
       const pet = docSnap.data();
+      const isBonusAvailable = isDailyBonus && pet.lastDailyBonusClaimedDate !== todayUTC;
+      const extraCoins = isBonusAvailable ? bonusAmount : 0;
+
       let xp = (pet.xp || 0) + 100;
       let level = pet.level || 1;
       let xpNeeded = level * 500;
@@ -89,18 +99,26 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string, event?:
         xp -= xpNeeded;
         level += 1;
       }
-      await setDoc(petRef, {
-        coins: parseFloat(((pet.coins || 0) + 20 + extraCoins).toFixed(2)),
+
+      const updateData: any = {
+        coins: parseFloat(((pet.coins || 0) + 10 + extraCoins).toFixed(2)),
         xp,
         level,
         energy: Math.min(100, (pet.energy || 100) + 10),
         intelligence: Math.min(100, (pet.intelligence || 50) + 15),
         lastActive: new Date().toISOString(),
         updatedAt: serverTimestamp(),
-      }, { merge: true });
+      };
+
+      if (isBonusAvailable) {
+        updateData.lastDailyBonusClaimedDate = todayUTC;
+      }
+
+      await setDoc(petRef, updateData, { merge: true });
     } else {
       // Initialize default pet for the user
-      await setDoc(petRef, {
+      const extraCoins = isDailyBonus ? bonusAmount : 0;
+      const initData: any = {
         userId,
         petType: 'owl',
         petName: 'Lingo',
@@ -109,13 +127,19 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string, event?:
         energy: 100,
         intelligence: 65,
         mood: 60,
-        coins: parseFloat((20 + extraCoins).toFixed(2)),
+        coins: parseFloat((10 + extraCoins).toFixed(2)),
         unlockedCosmetics: [],
         equippedCosmetics: {},
         currentBackground: 'cozy-room',
         lastActive: new Date().toISOString(),
         updatedAt: serverTimestamp(),
-      });
+      };
+
+      if (isDailyBonus) {
+        initData.lastDailyBonusClaimedDate = todayUTC;
+      }
+
+      await setDoc(petRef, initData);
     }
   } catch (err) {
     console.error("Error updating user pet on game play in firestore:", err);

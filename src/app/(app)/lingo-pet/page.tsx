@@ -184,12 +184,16 @@ const WAKEUP_QUESTIONS = [
 
 const SHOP_ITEMS = [
   // Hats
+  { id: 'aurora_crown', name: 'Aurora Crown', price: 325, category: 'hat', icon: '👑', description: 'A premium neon crown displaying color-shifting polar lights.' },
+  { id: 'dragon_horns', name: 'Dragon Horns', price: 280, category: 'hat', icon: '😈', description: 'Fiery glowing horns from the volcanic peaks.' },
+  { id: 'angel_halo', name: 'Angel Halo', price: 240, category: 'hat', icon: '😇', description: 'A floating celestial halo with divine golden glow.' },
   { id: 'crown', name: 'Golden Crown', price: 150, category: 'hat', icon: '👑', description: 'Royal headwear for the best student.' },
   { id: 'wizard_hat', name: 'Wizard Hat', price: 100, category: 'hat', icon: '🧙‍♂️', description: 'Imbued with grammar magic.' },
   { id: 'detective_cap', name: 'Detective Cap', price: 80, category: 'hat', icon: '🕵️‍♂️', description: 'Solve vocabulary mysteries.' },
   { id: 'party_hat', name: 'Party Hat', price: 40, category: 'hat', icon: '🥳', description: 'Celebrate learning milestones!' },
   
   // Glasses
+  { id: 'laser_visor', name: 'Laser Visor', price: 260, category: 'glasses', icon: '🕶️', description: 'A futuristic cybernetic visor with scanning laser line.' },
   { id: 'monocle', name: 'Golden Monocle', price: 90, category: 'glasses', icon: '🧐', description: 'Look highly sophisticated.' },
   { id: 'cool_shades', name: 'Cool Shades', price: 60, category: 'glasses', icon: '😎', description: 'Too cool for grammar errors.' },
   { id: 'gold_glasses', name: 'Scholar Glasses', price: 50, category: 'glasses', icon: '👓', description: 'Boost reading focus.' },
@@ -716,7 +720,7 @@ export default function LingoPetPage() {
             </div>
             <Progress value={(pet.xp / (pet.level * 500)) * 100} className="bg-slate-950 h-2" />
             <p className="text-[10px] text-slate-500 leading-normal mt-1">
-              🏆 Earn **100 XP** and **20 Coins** automatically every time you complete a vocabulary, reading, or science quiz game on LingoLand!
+              🏆 Earn **100 XP** and **10 Coins** automatically every time you complete a vocabulary, reading, or science quiz game on LingoLand!
             </p>
           </Card>
         </div>

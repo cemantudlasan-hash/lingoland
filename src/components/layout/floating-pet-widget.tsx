@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useFirestore } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -20,10 +20,10 @@ export function FloatingPetWidget() {
   const [currentTextIdx, setCurrentTextIdx] = React.useState(0);
   const [dragBounds, setDragBounds] = React.useState({ left: -400, right: 20, top: -600, bottom: 20 });
 
-  const messages = [
+  const [messages, setMessages] = React.useState<string[]>([
     "Hello, how's your day? 🌟",
     "Visit me, you can feed me! 🍪"
-  ];
+  ]);
 
   // Adjust bounds dynamically on resize
   React.useEffect(() => {
@@ -42,6 +42,28 @@ export function FloatingPetWidget() {
     window.addEventListener('resize', updateBounds);
     return () => window.removeEventListener('resize', updateBounds);
   }, []);
+
+  // Listen to custom speech bubble messages from Firestore
+  React.useEffect(() => {
+    if (!firestore) return;
+    const widgetDocRef = doc(firestore, 'announcements', 'floating_pet_widget');
+    const unsubscribe = onSnapshot(widgetDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages);
+        }
+      }
+    }, (error) => {
+      console.error("Error listening to floating pet widget custom messages:", error);
+    });
+    return () => unsubscribe();
+  }, [firestore]);
+
+  // Reset index when messages change to avoid out of bounds
+  React.useEffect(() => {
+    setCurrentTextIdx(0);
+  }, [messages]);
 
   // Determine visibility and load pet data
   React.useEffect(() => {
@@ -90,12 +112,12 @@ export function FloatingPetWidget() {
 
   // Alternate dialogue text
   React.useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || messages.length === 0) return;
     const interval = setInterval(() => {
-      setCurrentTextIdx(prev => (prev === 0 ? 1 : 0));
+      setCurrentTextIdx(prev => (prev + 1) % messages.length);
     }, 4500);
     return () => clearInterval(interval);
-  }, [isOpen]);
+  }, [isOpen, messages.length]);
 
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();

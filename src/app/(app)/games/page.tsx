@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import dynamic from 'next/dynamic';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -16,9 +16,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import type { Game, SkillLevel, LanguageFocus, Subject } from "@/lib/types";
 import { allGames } from "@/lib/games";
-import { Gamepad2, Coins } from "lucide-react";
+import { Gamepad2, Coins, Check } from "lucide-react";
 import { getDailyBonusGame } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/auth-context";
+import { useFirestore } from "@/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export const gameComponentMap = {
       'arithmetic-ace': dynamic(() => import('@/components/games/arithmetic-ace').then(mod => mod.ArithmeticAce)),
@@ -99,8 +102,42 @@ export default function GamesPage() {
       const [focus, setFocus] = useState<LanguageFocus | "all">("all");
       const [subject, setSubject] = useState<Subject | "all">("all");
       const [search, setSearch] = useState("");
+      const [lastDailyBonusClaimedDate, setLastDailyBonusClaimedDate] = useState<string | null>(null);
+
+      const { user } = useAuth();
+      const firestore = useFirestore();
 
       const { slug: dailyBonusSlug, bonusAmount: dailyBonusAmount } = getDailyBonusGame();
+
+      const today = new Date();
+      const todayUTC = `${today.getUTCFullYear()}-${today.getUTCMonth() + 1}-${today.getUTCDate()}`;
+
+      useEffect(() => {
+            const fetchClaimedDate = async () => {
+                  if (!firestore || !user) {
+                        if (typeof window !== 'undefined') {
+                              const local = localStorage.getItem('lingoland_guest_pet');
+                              if (local) {
+                                    try {
+                                          const parsed = JSON.parse(local);
+                                          setLastDailyBonusClaimedDate(parsed.lastDailyBonusClaimedDate || null);
+                                    } catch (e) {}
+                              }
+                        }
+                        return;
+                  }
+                  try {
+                        const petRef = doc(firestore, 'user_pets', user.uid);
+                        const docSnap = await getDoc(petRef);
+                        if (docSnap.exists()) {
+                              setLastDailyBonusClaimedDate(docSnap.data().lastDailyBonusClaimedDate || null);
+                        }
+                  } catch (e) {
+                        console.error("Error fetching pet claimed date:", e);
+                  }
+            };
+            fetchClaimedDate();
+      }, [user, firestore]);
 
       const filteredGames = allGames.filter((game) => {
             return (
@@ -195,7 +232,8 @@ export default function GamesPage() {
                                           key={game.title}
                                           className={cn(
                                                 "flex flex-col bg-card/80 backdrop-blur-sm border-border/20 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
-                                                isDailyBonus && "border-amber-500/40 bg-amber-500/[0.02] shadow-amber-500/5 ring-1 ring-amber-500/20"
+                                                isDailyBonus && lastDailyBonusClaimedDate !== todayUTC && "border-amber-500/40 bg-amber-500/[0.02] shadow-amber-500/5 ring-1 ring-amber-500/20",
+                                                isDailyBonus && lastDailyBonusClaimedDate === todayUTC && "border-slate-700/60 bg-slate-800/10"
                                           )}
                                     >
                                           <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -210,10 +248,17 @@ export default function GamesPage() {
                                                       </div>
                                                 </div>
                                                 {isDailyBonus && (
-                                                      <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black border-none flex items-center gap-1 shadow-md shadow-amber-500/10 shrink-0">
-                                                            <Coins className="h-3 w-3 fill-slate-950 animate-pulse" />
-                                                            +{dailyBonusAmount.toFixed(2)} Coin
-                                                      </Badge>
+                                                      lastDailyBonusClaimedDate === todayUTC ? (
+                                                            <Badge className="bg-slate-700/80 text-slate-300 font-medium border border-slate-600 flex items-center gap-1 shrink-0">
+                                                                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                                                                  Claimed Today
+                                                            </Badge>
+                                                      ) : (
+                                                            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black border-none flex items-center gap-1 shadow-md shadow-amber-500/10 shrink-0">
+                                                                  <Coins className="h-3 w-3 fill-slate-950 animate-pulse" />
+                                                                  +{dailyBonusAmount.toFixed(2)} Coin
+                                                            </Badge>
+                                                      )
                                                 )}
                                           </CardHeader>
                                           <CardContent className="flex-grow">
