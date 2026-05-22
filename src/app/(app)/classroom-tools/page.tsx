@@ -12,7 +12,7 @@ import { CommentGenerator } from './comment-generator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import MemorandumPage from '../memorandum/page';
+import { MemorandumTool } from './memorandum-tool';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -164,7 +164,7 @@ export default function ClassroomToolsPage() {
 
             <TabsContent value="memorandum" className="flex-grow mt-0 h-full">
                 <Card className="h-full flex flex-col overflow-y-auto">
-                    <MemorandumPage />
+                    <MemorandumTool />
                 </Card>
             </TabsContent>
         </Tabs>

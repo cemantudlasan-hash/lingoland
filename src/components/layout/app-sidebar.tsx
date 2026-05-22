@@ -75,7 +75,6 @@ const privateItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/profile", label: "Profile", icon: User },
     { href: "/my-postings", label: "My Postings", icon: FileText },
-    { href: "/memorandum", label: "Memorandum", icon: StickyNote },
 ];
 
 const adminItems = [

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { collection, query, orderBy, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, type Timestamp } from 'firebase/firestore';
@@ -20,7 +20,7 @@ interface Memo {
   updatedAt: Timestamp | null;
 }
 
-export default function MemorandumPage() {
+export function MemorandumTool() {
   const { user, isGuest } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -111,6 +111,20 @@ export default function MemorandumPage() {
     }
   };
 
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return 'Just now';
+    try {
+      const date = typeof timestamp.toDate === 'function' ? timestamp.toDate() : new Date(timestamp.seconds * 1000);
+      if (isNaN(date.getTime())) {
+        return 'Just now';
+      }
+      return format(date, 'MMM d, yyyy • h:mm a');
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return 'Just now';
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 md:p-8 space-y-8 max-w-5xl">
       <div className="flex justify-between items-center">
@@ -167,7 +181,7 @@ export default function MemorandumPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="line-clamp-1" title={memo.title}>{memo.title}</CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  {typeof memo.updatedAt?.toDate === 'function' ? format(memo.updatedAt.toDate(), 'MMM d, yyyy • h:mm a') : 'Just now'}
+                  {formatDate(memo.updatedAt)}
                 </p>
               </CardHeader>
               <CardContent className="flex-grow">
