@@ -16,11 +16,12 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuth } from "@/context/auth-context";
-import { collection, query, where, orderBy, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { collection, query, where, orderBy, doc, serverTimestamp, setDoc, getDoc } from "firebase/firestore";
 import placeholderData from "@/app/lib/placeholder-images.json";
 import { formatDistanceToNow } from 'date-fns';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
+import { LingoPetVisual } from "@/components/games/lingo-pet-visual";
 
 const AVATAR_FRAMES = [
     { id: 'none', label: 'No Frame', class: 'frame-none' },
@@ -49,6 +50,17 @@ export default function PublicProfilePage() {
     const [commentText, setCommentText] = useState("");
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [replyingTo, setReplyingTo] = useState<DailyPostComment | null>(null);
+    const [petData, setPetData] = useState<{
+        petType: 'owl' | 'dino' | 'kitty';
+        level: number;
+        equippedCosmetics: {
+            hat?: string;
+            glasses?: string;
+            necklace?: string;
+            shoes?: string;
+            wings?: string;
+        };
+    } | null>(null);
     
     const commentInputRef = useRef<HTMLInputElement>(null);
     const commentRefs = useRef<Record<string, HTMLDivElement>>({});
@@ -106,6 +118,28 @@ export default function PublicProfilePage() {
         };
         if (uid) fetchProfile();
     }, [uid]);
+
+    // Fetch Lingo-Pet data for the profile owner
+    useEffect(() => {
+        if (!uid || !firestore) return;
+        const fetchPetData = async () => {
+            try {
+                const petRef = doc(firestore, 'user_pets', uid);
+                const petSnap = await getDoc(petRef);
+                if (petSnap.exists()) {
+                    const d = petSnap.data();
+                    setPetData({
+                        petType: d.petType || 'owl',
+                        level: d.level || 1,
+                        equippedCosmetics: d.equippedCosmetics || {},
+                    });
+                }
+            } catch (e) {
+                // silently ignore if not accessible
+            }
+        };
+        fetchPetData();
+    }, [uid, firestore]);
 
     const handleAddComment = async () => {
         if (!commentText.trim() || !currentUser || !profile || !firestore) return;
@@ -421,6 +455,65 @@ export default function PublicProfilePage() {
                                     </div>
                                 </div>
                             </Card>
+
+                            {/* Lingo-Pet Section */}
+                            {petData && (
+                                <Card className="bg-indigo-950/60 border-indigo-700/30 rounded-3xl p-6">
+                                    <h4 className="font-black uppercase text-xs tracking-widest text-indigo-300 mb-4 flex items-center gap-2">
+                                        🐾 Lingo-Pet
+                                    </h4>
+                                    {/* Mini Pet Preview */}
+                                    <div className="w-full aspect-square max-w-[140px] mx-auto rounded-2xl overflow-hidden border border-indigo-700/30 mb-4">
+                                        <LingoPetVisual
+                                            petType={petData.petType}
+                                            level={petData.level}
+                                            energy={100}
+                                            mood={100}
+                                            equippedCosmetics={petData.equippedCosmetics}
+                                            currentBackground="cozy-room"
+                                        />
+                                    </div>
+                                    {/* Level Badge */}
+                                    <div className="flex justify-center mb-3">
+                                        <Badge className="bg-indigo-600/80 text-white border-none px-4 py-1 text-sm font-black">
+                                            ✨ Level {petData.level}
+                                        </Badge>
+                                    </div>
+                                    {/* Equipped Items */}
+                                    {Object.keys(petData.equippedCosmetics).some(k => (petData.equippedCosmetics as any)[k]) && (
+                                        <div>
+                                            <p className="text-[10px] uppercase tracking-widest text-indigo-400 font-bold mb-2 text-center">Equipped</p>
+                                            <div className="flex flex-wrap gap-1.5 justify-center">
+                                                {petData.equippedCosmetics.hat && (
+                                                    <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
+                                                        🎩 {petData.equippedCosmetics.hat.replace(/_/g, ' ')}
+                                                    </Badge>
+                                                )}
+                                                {petData.equippedCosmetics.glasses && (
+                                                    <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
+                                                        👓 {petData.equippedCosmetics.glasses.replace(/_/g, ' ')}
+                                                    </Badge>
+                                                )}
+                                                {petData.equippedCosmetics.necklace && (
+                                                    <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
+                                                        💎 {petData.equippedCosmetics.necklace.replace(/_/g, ' ')}
+                                                    </Badge>
+                                                )}
+                                                {petData.equippedCosmetics.shoes && (
+                                                    <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
+                                                        👟 {petData.equippedCosmetics.shoes.replace(/_/g, ' ')}
+                                                    </Badge>
+                                                )}
+                                                {petData.equippedCosmetics.wings && (
+                                                    <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
+                                                        🪽 {petData.equippedCosmetics.wings.replace(/_/g, ' ')}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </Card>
+                            )}
                         </div>
                     </div>
                 </CardContent>
