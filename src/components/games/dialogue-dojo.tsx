@@ -16,13 +16,17 @@ import {
 import { Button } from "../ui/button";
 import { generateConversationChallenge } from "@/ai/flows/generate-conversation-challenge";
 import type { GenerateConversationChallengeOutput } from "@/ai/flows/schemas/conversation-schema";
-import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, User, Utensils, Plane, Briefcase, GraduationCap, Users, HeartPulse, RotateCcw, ShoppingBag, Home, Bike, Laptop } from "lucide-react";
+import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, User, Utensils, Plane, Briefcase, GraduationCap, Users, HeartPulse, RotateCcw, ShoppingBag, Home, Bike, Laptop, Coins, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
 import type { SkillLevel } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
+import { useAuth } from "@/context/auth-context";
+import { useFirestore } from "@/firebase";
+import { logAnalyticsEvent, getDailyBonusGame } from "@/lib/analytics";
+import { motion, AnimatePresence } from "framer-motion";
 
 type GameState = "idle" | "loading" | "playing" | "answered" | "instructions" | "selecting_category";
 
@@ -50,6 +54,16 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
   const [difficulty, setDifficulty] = React.useState<SkillLevel>("intermediate");
   const [category, setCategory] = React.useState<typeof CATEGORIES[number]['value']>("Social");
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const { user } = useAuth();
+  const firestore = useFirestore();
+
+  const [maxRounds, setMaxRounds] = React.useState<number>(10);
+  const [currentRound, setCurrentRound] = React.useState<number>(0);
+  const [score, setScore] = React.useState<number>(0);
+  const [showGameOver, setShowGameOver] = React.useState<boolean>(false);
+  const [earnedCoins, setEarnedCoins] = React.useState<number>(0);
+  const [isDailyBonus, setIsDailyBonus] = React.useState<boolean>(false);
+  const [dailyBonusAmount, setDailyBonusAmount] = React.useState<number>(0);
   
   const { toast } = useToast();
   const game = getGameBySlug(slug);
@@ -98,6 +112,14 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
         options: shuffleArray([...result.options])
       });
       setUsedScenarios(prev => [...prev, result.scenario]);
+      
+      if (currentRound === 0 || gameState === "selecting_category") {
+        setCurrentRound(1);
+        setScore(0);
+      } else {
+        setCurrentRound(prev => prev + 1);
+      }
+      
       setGameState("playing");
     } catch (error) {
       console.error("Failed to generate challenge:", error);
@@ -115,6 +137,9 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
     setSelectedOptionIndex(index);
     const correct = challenge.options[index].isCorrect;
     setIsCorrect(correct);
+    if (correct) {
+      setScore(prev => prev + 1);
+    }
     setGameState("answered");
   };
 
@@ -125,7 +150,63 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
       title: "History Cleared",
       description: "You can now experience previous scenarios again.",
     });
-  }
+  };
+
+  const handleEndGame = async () => {
+    const { slug: bonusSlug, bonusAmount } = getDailyBonusGame();
+    const isBonus = slug === bonusSlug;
+    const extraCoins = isBonus ? bonusAmount : 0;
+    const totalEarnedCoins = 20 + extraCoins;
+
+    setIsDailyBonus(isBonus);
+    setDailyBonusAmount(bonusAmount);
+    setEarnedCoins(totalEarnedCoins);
+
+    if (firestore) {
+      logAnalyticsEvent(firestore, user?.uid || 'guest', {
+        type: 'game_played',
+        details: {
+          slug: slug,
+          title: game.title,
+          score: score,
+          totalQuestions: maxRounds
+        }
+      });
+    } else {
+      if (typeof window !== 'undefined') {
+        const petKey = 'lingoland_guest_pet';
+        const petRaw = localStorage.getItem(petKey);
+        if (petRaw) {
+          try {
+            const pet = JSON.parse(petRaw);
+            pet.coins = parseFloat(((pet.coins || 0) + totalEarnedCoins).toFixed(2));
+            pet.xp = (pet.xp || 0) + 100;
+            pet.energy = Math.min(100, (pet.energy || 100) + 10);
+            pet.intelligence = Math.min(100, (pet.intelligence || 50) + 15);
+            pet.lastActive = new Date().toISOString();
+            
+            let xpNeeded = pet.level * 500;
+            if (pet.xp >= xpNeeded) {
+              pet.xp -= xpNeeded;
+              pet.level += 1;
+            }
+            localStorage.setItem(petKey, JSON.stringify(pet));
+          } catch (e) {
+            console.error("Failed to update guest pet manually:", e);
+          }
+        }
+      }
+    }
+
+    setShowGameOver(true);
+  };
+
+  const handleRestartGame = () => {
+    setCurrentRound(0);
+    setScore(0);
+    setShowGameOver(false);
+    setGameState("selecting_category");
+  };
 
   const Icon = game.icon;
 
@@ -153,9 +234,15 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
         )}
         <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
         <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
-        <div className="flex justify-center pt-2 gap-2">
+        <div className="flex justify-center pt-2 gap-2 flex-wrap">
             <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{difficulty.toUpperCase()}</Badge>
-            {(gameState === 'playing' || gameState === 'answered') && <Badge variant="secondary" className={cn(isFullscreen && "text-xl px-6 py-1")}>{category.toUpperCase()}</Badge>}
+            {(gameState === 'playing' || gameState === 'answered') && (
+              <>
+                <Badge variant="secondary" className={cn(isFullscreen && "text-xl px-6 py-1")}>{category.toUpperCase()}</Badge>
+                <Badge className={cn("bg-indigo-600 hover:bg-indigo-700 text-white font-black", isFullscreen && "text-xl px-6 py-1")}>ROUND {currentRound} OF {maxRounds}</Badge>
+                <Badge variant="outline" className={cn("border-amber-500/50 text-amber-500 font-black", isFullscreen && "text-xl px-6 py-1")}>SCORE: {score}/{currentRound - (gameState === 'playing' ? 1 : 0)}</Badge>
+              </>
+            )}
         </div>
       </CardHeader>
       <CardContent className={cn(
@@ -189,6 +276,14 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
                     <div className="flex gap-2">
                         {['beginner', 'intermediate', 'advanced'].map((lvl) => (
                             <Button key={lvl} variant={difficulty === lvl ? "default" : "outline"} size="sm" onClick={() => setDifficulty(lvl as SkillLevel)} className="uppercase font-black text-[10px]">{lvl}</Button>
+                        ))}
+                    </div>
+                </div>
+                <div className="w-full flex flex-col items-center gap-2 mt-4">
+                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Set Game Rounds</p>
+                    <div className="flex gap-2">
+                        {[10, 20, 30].map((rounds) => (
+                            <Button key={rounds} variant={maxRounds === rounds ? "default" : "outline"} size="sm" onClick={() => setMaxRounds(rounds)} className="uppercase font-black text-[10px]">{rounds} Rounds</Button>
                         ))}
                     </div>
                 </div>
@@ -297,7 +392,17 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
           <Link href="/games">Back to Library</Link>
         </Button>
         <div className="flex gap-4">
-            {gameState === 'answered' && <Button onClick={() => handleStartGame(category)} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}><Repeat className={cn("mr-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")}/>Next Scenario</Button>}
+            {gameState === 'answered' && (
+              currentRound < maxRounds ? (
+                <Button onClick={() => handleStartGame(category)} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}>
+                  <Repeat className={cn("mr-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")} />Next Scenario
+                </Button>
+              ) : (
+                <Button onClick={handleEndGame} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}>
+                  <Trophy className={cn("mr-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")} />Finish Game
+                </Button>
+              )
+            )}
             {(gameState === 'playing' || gameState === 'answered' || gameState === 'selecting_category') && (
                 <div className="flex gap-2">
                     <Button variant="ghost" onClick={handleClearHistory} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
@@ -308,6 +413,90 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
             )}
         </div>
       </CardFooter>
+      <AnimatePresence>
+        {showGameOver && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-[999] p-4 animate-fade-in"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-card/95 border-2 border-primary/30 max-w-lg w-full rounded-[2.5rem] p-8 md:p-10 shadow-2xl flex flex-col items-center text-center relative overflow-hidden"
+            >
+              {/* Animated sparkles background effect */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 via-transparent to-indigo-500/10 pointer-events-none" />
+              
+              <div className="bg-primary/10 p-6 rounded-full border-4 border-primary mb-6 animate-bounce">
+                <Trophy className="h-16 w-16 text-primary" />
+              </div>
+
+              <h2 className="text-3xl font-black uppercase tracking-tight bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-500 bg-clip-text text-transparent mb-2">
+                Dojo Training Complete!
+              </h2>
+              
+              <p className="text-muted-foreground font-bold mb-6">
+                You successfully completed {maxRounds} rounds of conversational English.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 w-full mb-8 bg-muted/30 p-6 rounded-3xl border border-border/20">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs uppercase font-black text-muted-foreground tracking-wider">Score</span>
+                  <span className="text-2xl font-black text-foreground">{score} / {maxRounds}</span>
+                </div>
+                <div className="flex flex-col items-center border-l border-border/50">
+                  <span className="text-xs uppercase font-black text-muted-foreground tracking-wider flex items-center gap-1">
+                    <Coins className="h-3 w-3 text-amber-500" /> Coins Earned
+                  </span>
+                  <span className="text-2xl font-black text-amber-400">+{earnedCoins.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {isDailyBonus ? (
+                <div className="bg-amber-500/10 border-2 border-amber-500/30 rounded-3xl p-4 mb-8 w-full">
+                  <p className="text-amber-500 font-black text-xs uppercase tracking-widest mb-1 flex items-center justify-center gap-2">
+                    <Sparkles className="h-4 w-4 text-amber-500 animate-spin" /> Daily Bonus Applied!
+                  </p>
+                  <p className="text-sm font-semibold text-foreground/90 leading-snug">
+                    Daily coins received with the amount of coins transferred to the Lingo-Pet tab. :)
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    (Base: +20.00 | Daily Match Bonus: +{dailyBonusAmount.toFixed(2)})
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-primary/5 border border-primary/20 rounded-3xl p-4 mb-8 w-full">
+                  <p className="text-primary font-black text-xs uppercase tracking-widest mb-1">
+                    Reward Transferred!
+                  </p>
+                  <p className="text-sm font-semibold text-foreground/90">
+                    20.00 Lingo-Coins have been automatically transferred to your Lingo-Pet!
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <Button 
+                  onClick={handleRestartGame} 
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black h-12 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Play Again
+                </Button>
+                <Button 
+                  variant="outline" 
+                  asChild
+                  className="flex-1 h-12 rounded-2xl border-2 font-bold"
+                >
+                  <Link href="/games">Exit to Library</Link>
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Card>
   );
 }
