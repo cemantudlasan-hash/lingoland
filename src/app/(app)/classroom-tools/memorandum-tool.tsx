@@ -8,9 +8,12 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, Plus, Edit2, Trash2, Save, X, Bell, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface Memo {
   id: string;
@@ -18,6 +21,9 @@ interface Memo {
   content: string;
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
+  notifyAt?: Timestamp | null;
+  showPopup?: boolean;
+  notified?: boolean | null;
 }
 
 export function MemorandumTool() {
@@ -29,6 +35,8 @@ export function MemorandumTool() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [notifyAt, setNotifyAt] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const memosQuery = useMemoFirebase(() => {
@@ -52,6 +60,8 @@ export function MemorandumTool() {
     setEditingId(null);
     setTitle('');
     setContent('');
+    setNotifyAt('');
+    setShowPopup(false);
   };
 
   const handleEdit = (memo: Memo) => {
@@ -59,6 +69,19 @@ export function MemorandumTool() {
     setEditingId(memo.id);
     setTitle(memo.title);
     setContent(memo.content);
+    if (memo.notifyAt) {
+      const date = typeof memo.notifyAt.toDate === 'function' ? memo.notifyAt.toDate() : new Date(memo.notifyAt.seconds * 1000);
+      try {
+        const localString = format(date, "yyyy-MM-dd'T'HH:mm");
+        setNotifyAt(localString);
+      } catch (e) {
+        console.error("Error formatting notifyAt:", e);
+        setNotifyAt('');
+      }
+    } else {
+      setNotifyAt('');
+    }
+    setShowPopup(memo.showPopup || false);
   };
 
   const handleCancel = () => {
@@ -66,6 +89,8 @@ export function MemorandumTool() {
     setEditingId(null);
     setTitle('');
     setContent('');
+    setNotifyAt('');
+    setShowPopup(false);
   };
 
   const handleSave = async () => {
@@ -77,20 +102,44 @@ export function MemorandumTool() {
 
     setIsSaving(true);
     try {
+      const newNotifyAtDate = notifyAt ? new Date(notifyAt) : null;
+      
+      let isNotifyAtChanged = false;
+      if (isCreating) {
+        isNotifyAtChanged = !!newNotifyAtDate;
+      } else if (editingId) {
+        const originalMemo = memos?.find(m => m.id === editingId);
+        const oldNotifyAt = originalMemo?.notifyAt;
+        const oldNotifyAtDate = oldNotifyAt ? (typeof oldNotifyAt.toDate === 'function' ? oldNotifyAt.toDate() : new Date(oldNotifyAt.seconds * 1000)) : null;
+        
+        if (newNotifyAtDate?.getTime() !== oldNotifyAtDate?.getTime()) {
+          isNotifyAtChanged = true;
+        }
+      }
+
       if (isCreating) {
         await addDoc(collection(firestore, `users/${user.uid}/memorandums`), {
           title: title.trim(),
           content: content.trim(),
+          notifyAt: newNotifyAtDate,
+          showPopup: newNotifyAtDate ? showPopup : false,
+          notified: newNotifyAtDate ? false : null,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
         toast({ title: 'Success', description: 'Memorandum created.' });
       } else if (editingId) {
-        await updateDoc(doc(firestore, `users/${user.uid}/memorandums`, editingId), {
+        const updateData: any = {
           title: title.trim(),
           content: content.trim(),
+          notifyAt: newNotifyAtDate,
+          showPopup: newNotifyAtDate ? showPopup : false,
           updatedAt: serverTimestamp(),
-        });
+        };
+        if (isNotifyAtChanged) {
+          updateData.notified = newNotifyAtDate ? false : null;
+        }
+        await updateDoc(doc(firestore, `users/${user.uid}/memorandums`, editingId), updateData);
         toast({ title: 'Success', description: 'Memorandum updated.' });
       }
       handleCancel();
@@ -122,6 +171,20 @@ export function MemorandumTool() {
     } catch (e) {
       console.error('Error formatting date:', e);
       return 'Just now';
+    }
+  };
+
+  const formatNotifyDate = (timestamp: any) => {
+    if (!timestamp) return '';
+    try {
+      const date = typeof timestamp.toDate === 'function' ? timestamp.toDate() : new Date(timestamp.seconds * 1000);
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+      return format(date, 'MMM d, yyyy • h:mm a');
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return '';
     }
   };
 
@@ -157,6 +220,28 @@ export function MemorandumTool() {
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[200px]"
             />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/50 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="notifyAt" className="text-sm font-semibold">Notification Date & Time (Optional)</Label>
+                <Input
+                  id="notifyAt"
+                  type="datetime-local"
+                  value={notifyAt}
+                  onChange={(e) => setNotifyAt(e.target.value)}
+                  className="w-full text-foreground bg-background"
+                />
+              </div>
+              {notifyAt && (
+                <div className="flex items-center space-x-2 pt-8">
+                  <Switch
+                    id="showPopup"
+                    checked={showPopup}
+                    onCheckedChange={setShowPopup}
+                  />
+                  <Label htmlFor="showPopup" className="cursor-pointer text-sm font-medium">Show pop-up message on screen</Label>
+                </div>
+              )}
+            </div>
           </CardContent>
           <CardFooter className="justify-end gap-2">
             <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
@@ -184,10 +269,32 @@ export function MemorandumTool() {
                   {formatDate(memo.updatedAt)}
                 </p>
               </CardHeader>
-              <CardContent className="flex-grow">
+              <CardContent className="flex-grow space-y-4">
                 <p className="whitespace-pre-wrap text-sm line-clamp-6 text-muted-foreground">
                   {memo.content}
                 </p>
+                {memo.notifyAt && (
+                  <div className="flex flex-wrap items-center gap-2 pt-2">
+                    <span className={cn(
+                      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border",
+                      memo.notified 
+                        ? "bg-muted text-muted-foreground border-border" 
+                        : "bg-primary/10 text-primary border-primary/20"
+                    )}>
+                      <Bell className={cn("h-3 w-3", !memo.notified && "animate-pulse")} />
+                      <span>
+                        {memo.notified ? 'Notified: ' : 'Notify: '}
+                        {formatNotifyDate(memo.notifyAt)}
+                      </span>
+                    </span>
+                    {memo.showPopup && !memo.notified && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                        <Eye className="h-3 w-3" />
+                        <span>Pop-up</span>
+                      </span>
+                    )}
+                  </div>
+                )}
               </CardContent>
               <CardFooter className="justify-end gap-2 pt-4 border-t border-border/50 bg-muted/20">
                 <Button variant="ghost" size="sm" onClick={() => handleEdit(memo)}>

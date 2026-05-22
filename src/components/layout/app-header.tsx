@@ -89,6 +89,7 @@ export function AppHeader() {
 
   const [announcement, setAnnouncement] = useState<{ text: string; isActive: boolean } | null>(null);
   const [isClearAlertOpen, setIsClearAlertOpen] = useState(false);
+  const [activeReminders, setActiveReminders] = useState<{ id: string; title: string; content: string }[]>([]);
 
 
   const notificationsQuery = useMemoFirebase(() => {
@@ -170,6 +171,70 @@ export function AppHeader() {
 
     return () => unsubscribe();
   }, [firestore]);
+
+  useEffect(() => {
+    if (!firestore || !user) return;
+
+    const memosRef = collection(firestore, `users/${user.uid}/memorandums`);
+    
+    const unsubscribe = onSnapshot(memosRef, async (snapshot) => {
+      const now = new Date();
+      const batch = writeBatch(firestore);
+      let hasUpdates = false;
+      const popupsToShow: { id: string; title: string; content: string }[] = [];
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const notifyAt = data.notifyAt;
+        const notified = data.notified;
+        const showPopup = data.showPopup;
+
+        if (notifyAt && notified === false) {
+          const notifyDate = typeof notifyAt.toDate === 'function' ? notifyAt.toDate() : new Date(notifyAt.seconds * 1000);
+          if (notifyDate <= now) {
+            // Create notification doc in notifications subcollection
+            const notifRef = doc(collection(firestore, `users/${user.uid}/notifications`));
+            batch.set(notifRef, {
+              userId: user.uid,
+              type: 'memorandum_reminder',
+              text: `Reminder: "${data.title || 'Untitled'}" - ${data.content || ''}`,
+              link: '/classroom-tools?tab=memorandum',
+              isRead: false,
+              createdAt: serverTimestamp(),
+              fromUserName: 'Memorandum Reminder',
+            });
+
+            // Mark memo as notified
+            const memoRef = doc(firestore, `users/${user.uid}/memorandums`, docSnap.id);
+            batch.update(memoRef, { notified: true });
+            
+            if (showPopup) {
+              popupsToShow.push({
+                id: docSnap.id,
+                title: data.title || 'Untitled',
+                content: data.content || '',
+              });
+            }
+            
+            hasUpdates = true;
+          }
+        }
+      });
+
+      if (hasUpdates) {
+        try {
+          await batch.commit();
+          if (popupsToShow.length > 0) {
+            setActiveReminders((prev) => [...prev, ...popupsToShow]);
+          }
+        } catch (err) {
+          console.error("Error committing notification batch:", err);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [firestore, user]);
 
 
   const handleLogout = async () => {
@@ -353,6 +418,34 @@ export function AppHeader() {
             {renderAuthContent()}
         </div>
       </div>
+      {activeReminders.length > 0 && (
+        <AlertDialog open={true} onOpenChange={() => {}}>
+          <AlertDialogContent className="border-2 border-primary/20 shadow-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-xl font-bold font-headline text-primary">
+                <Bell className="animate-bounce h-6 w-6 text-yellow-500" />
+                Memorandum Reminder
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-foreground mt-4 space-y-2">
+                <p className="font-bold text-lg">{activeReminders[0].title}</p>
+                <div className="bg-muted/50 p-4 rounded-lg whitespace-pre-wrap max-h-[40vh] overflow-y-auto border border-border text-sm">
+                  {activeReminders[0].content}
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction
+                onClick={() => {
+                  setActiveReminders(prev => prev.slice(1));
+                }}
+                className="bg-primary hover:bg-primary/95 text-primary-foreground font-semibold px-6"
+              >
+                Got it!
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </header>
   );
 }

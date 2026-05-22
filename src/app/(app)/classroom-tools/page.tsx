@@ -21,6 +21,16 @@ export default function ClassroomToolsPage() {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('morning-dashboard');
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab && ['morning-dashboard', 'timer', 'random-name-picker', 'group-maker', 'scoreboard', 'comment-generator', 'memorandum'].includes(tab)) {
+        setActiveTab(tab);
+      }
+    }
+  }, []);
+
   const handleFullScreen = () => {
     const elem = containerRef.current;
     if (!elem) return;
