@@ -28,6 +28,7 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
   const [gameState, setGameState] = React.useState<"idle" | "playing" | "showing_result" | "finished">("idle");
   const [difficulty, setDifficulty] = React.useState<Difficulty>("easy");
   const [currentProblem, setCurrentProblem] = React.useState<{name: string, formula: string, options: string[]} | null>(null);
+  const [sessionMolecules, setSessionMolecules] = React.useState<MoleculeProblem[]>([]);
   const [score, setScore] = React.useState(0);
   const [round, setRound] = React.useState(0);
   const [timeLeft, setTimeLeft] = React.useState(15);
@@ -56,7 +57,37 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
       { name: "Carbon Monoxide", formula: "CO", wrong: ["CO2", "C2O", "C"] },
       { name: "Methane", formula: "CH4", wrong: ["CH3", "C2H4", "CH2"] },
       { name: "Ozone", formula: "O3", wrong: ["O2", "O", "O4"] },
-      { name: "Hydrochloric Acid", formula: "HCl", wrong: ["H2Cl", "HCl2", "ClH"] }
+      { name: "Hydrochloric Acid", formula: "HCl", wrong: ["H2Cl", "HCl2", "ClH"] },
+      { name: "Sulfur Dioxide", formula: "SO2", wrong: ["S2O", "SO3", "SO"] },
+      { name: "Nitrous Oxide", formula: "N2O", wrong: ["NO2", "NO", "N2O4"] },
+      { name: "Sulfur Trioxide", formula: "SO3", wrong: ["SO2", "S2O3", "SO"] },
+      { name: "Carbon Disulfide", formula: "CS2", wrong: ["CS", "C2S", "CS3"] },
+      { name: "Silicon Dioxide", formula: "SiO2", wrong: ["Si2O", "SiO", "SiO3"] },
+      { name: "Hydrogen Fluoride", formula: "HF", wrong: ["H2F", "HF2", "FH"] },
+      { name: "Hydrogen Bromide", formula: "HBr", wrong: ["H2Br", "HBr2", "BrH"] },
+      { name: "Hydrogen Iodide", formula: "HI", wrong: ["H2I", "HI2", "IH"] },
+      { name: "Hydrogen Sulfide", formula: "H2S", wrong: ["HS2", "HS", "H3S"] },
+      { name: "Phosphine", formula: "PH3", wrong: ["PH4", "PH2", "P2H3"] },
+      { name: "Borane", formula: "BH3", wrong: ["BH4", "BH", "B2H6"] },
+      { name: "Calcium Oxide", formula: "CaO", wrong: ["Ca2O", "CaO2", "Ca2O2"] },
+      { name: "Magnesium Oxide", formula: "MgO", wrong: ["Mg2O", "MgO2", "Mg2O2"] },
+      { name: "Potassium Chloride", formula: "KCl", wrong: ["KCl2", "K2Cl", "PCl"] },
+      { name: "Lithium Chloride", formula: "LiCl", wrong: ["Li2Cl", "LiCl2", "LCl"] },
+      { name: "Calcium Chloride", formula: "CaCl2", wrong: ["CaCl", "Ca2Cl", "CaCl3"] },
+      { name: "Magnesium Chloride", formula: "MgCl2", wrong: ["MgCl", "Mg2Cl", "MgCl3"] },
+      { name: "Sodium Fluoride", formula: "NaF", wrong: ["Na2F", "NaF2", "SF"] },
+      { name: "Potassium Fluoride", formula: "KF", wrong: ["K2F", "KF2", "PF"] },
+      { name: "Aluminum Oxide", formula: "Al2O3", wrong: ["AlO", "Al3O2", "AlO3"] },
+      { name: "Aluminum Chloride", formula: "AlCl3", wrong: ["AlCl", "AlCl2", "Al2Cl3"] },
+      { name: "Iron(II) Oxide", formula: "FeO", wrong: ["Fe2O", "FeO2", "Fe2O3"] },
+      { name: "Iron(III) Oxide", formula: "Fe2O3", wrong: ["FeO", "Fe3O2", "FeO2"] },
+      { name: "Copper(II) Oxide", formula: "CuO", wrong: ["Cu2O", "CuO2", "Cu2O2"] },
+      { name: "Copper(I) Oxide", formula: "Cu2O", wrong: ["CuO", "Cu2O2", "CuO2"] },
+      { name: "Zinc Oxide", formula: "ZnO", wrong: ["Zn2O", "ZnO2", "Zn2O2"] },
+      { name: "Zinc Chloride", formula: "ZnCl2", wrong: ["ZnCl", "Zn2Cl", "ZnCl3"] },
+      { name: "Barium Oxide", formula: "BaO", wrong: ["Ba2O", "BaO2", "Ba2O2"] },
+      { name: "Barium Chloride", formula: "BaCl2", wrong: ["BaCl", "Ba2Cl", "BaCl3"] },
+      { name: "Lead(II) Oxide", formula: "PbO", wrong: ["Pb2O", "PbO2", "Pb2O2"] }
     ],
     intermediate: [
       { name: "Ammonia", formula: "NH3", wrong: ["NH2", "NH4", "N2H3"] },
@@ -68,7 +99,37 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
       { name: "Sodium Bicarbonate", formula: "NaHCO3", wrong: ["NaCO3", "Na2CO3", "NaHCO2"] },
       { name: "Propane", formula: "C3H8", wrong: ["C3H6", "C4H10", "C2H6"] },
       { name: "Potassium Permanganate", formula: "KMnO4", wrong: ["KMnO3", "K2MnO4", "MnKO4"] },
-      { name: "Silver Nitrate", formula: "AgNO3", wrong: ["AgNO2", "Ag2NO3", "AgN"] }
+      { name: "Silver Nitrate", formula: "AgNO3", wrong: ["AgNO2", "Ag2NO3", "AgN"] },
+      { name: "Methanol", formula: "CH3OH", wrong: ["C2H5OH", "CH4O", "CH2OH"] },
+      { name: "Acetic Acid", formula: "CH3COOH", wrong: ["CH3OOH", "C2H4O", "CH3COH"] },
+      { name: "Acetone", formula: "CH3COCH3", wrong: ["C2H6O", "C3H6O2", "CH3OCH3"] },
+      { name: "Butane", formula: "C4H10", wrong: ["C3H8", "C4H8", "C5H12"] },
+      { name: "Pentane", formula: "C5H12", wrong: ["C4H10", "C5H10", "C6H14"] },
+      { name: "Hexane", formula: "C6H14", wrong: ["C5H12", "C6H12", "C7H16"] },
+      { name: "Benzene", formula: "C6H6", wrong: ["C6H12", "C5H5", "C6H8"] },
+      { name: "Sodium Carbonate", formula: "Na2CO3", wrong: ["NaCO3", "Na2CO2", "NaHCO3"] },
+      { name: "Potassium Carbonate", formula: "K2CO3", wrong: ["KCO3", "K2CO2", "KHCO3"] },
+      { name: "Sodium Hydroxide", formula: "NaOH", wrong: ["Na2OH", "NaOH2", "SOH"] },
+      { name: "Potassium Hydroxide", formula: "KOH", wrong: ["K2OH", "KOH2", "POH"] },
+      { name: "Calcium Hydroxide", formula: "Ca(OH)2", wrong: ["CaOH", "Ca2OH", "CaOH2"] },
+      { name: "Magnesium Hydroxide", formula: "Mg(OH)2", wrong: ["MgOH", "Mg2OH", "MgOH2"] },
+      { name: "Ammonium Nitrate", formula: "NH4NO3", wrong: ["NH3NO3", "NH4NO2", "N2H4O3"] },
+      { name: "Copper(II) Sulfate", formula: "CuSO4", wrong: ["Cu2SO4", "CuSO3", "CuS"] },
+      { name: "Zinc Sulfate", formula: "ZnSO4", wrong: ["Zn2SO4", "ZnSO3", "ZnS"] },
+      { name: "Magnesium Sulfate", formula: "MgSO4", wrong: ["Mg2SO4", "MgSO3", "MgS"] },
+      { name: "Iron(II) Sulfate", formula: "FeSO4", wrong: ["Fe2SO4", "FeSO3", "FeS"] },
+      { name: "Silver Chloride", formula: "AgCl", wrong: ["Ag2Cl", "AgCl2", "SCl"] },
+      { name: "Barium Sulfate", formula: "BaSO4", wrong: ["Ba2SO4", "BaSO3", "BaS"] },
+      { name: "Phosphoric Acid", formula: "H3PO4", wrong: ["H2PO4", "H3PO3", "HPO4"] },
+      { name: "Nitrous Acid", formula: "HNO2", wrong: ["HNO3", "H2NO2", "NO2"] },
+      { name: "Formic Acid", formula: "HCOOH", wrong: ["HCOH", "H2CO2", "HCOOH2"] },
+      { name: "Formaldehyde", formula: "CH2O", wrong: ["CHO", "CH4O", "CH2O2"] },
+      { name: "Ethylene", formula: "C2H4", wrong: ["C2H6", "C2H2", "CH4"] },
+      { name: "Acetylene", formula: "C2H2", wrong: ["C2H4", "C2H6", "CH2"] },
+      { name: "Propylene", formula: "C3H6", wrong: ["C3H8", "C3H4", "C2H4"] },
+      { name: "Glycerol", formula: "C3H8O3", wrong: ["C3H6O3", "C3H8O2", "C4H10O3"] },
+      { name: "Urea", formula: "CO(NH2)2", wrong: ["CON2H4", "CO(NH)2", "CON2H2"] },
+      { name: "Hydrogen Peroxide", formula: "H2O2", wrong: ["H2O", "HO2", "H3O2"] }
     ],
     pro: [
       { name: "Caffeine", formula: "C8H10N4O2", wrong: ["C8H12N4O2", "C7H10N4O2", "C8H10N3O2"] },
@@ -80,7 +141,37 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
       { name: "Dopamine", formula: "C8H11NO2", wrong: ["C8H12NO2", "C7H11NO2", "C8H11N2O2"] },
       { name: "Serotonin", formula: "C10H12N2O", wrong: ["C10H10N2O", "C11H12N2O", "C10H12N2O2"] },
       { name: "Adrenaline", formula: "C9H13NO3", wrong: ["C9H12NO3", "C8H13NO3", "C9H13N2O3"] },
-      { name: "Chlorophyll a", formula: "C55H72MgN4O5", wrong: ["C55H70MgN4O5", "C54H72MgN4O5", "C55H72MgN4O6"] }
+      { name: "Chlorophyll a", formula: "C55H72MgN4O5", wrong: ["C55H70MgN4O5", "C54H72MgN4O5", "C55H72MgN4O6"] },
+      { name: "Nicotine", formula: "C10H14N2", wrong: ["C10H12N2", "C9H14N2", "C10H14N3"] },
+      { name: "Morphine", formula: "C17H19NO3", wrong: ["C17H17NO3", "C16H19NO3", "C17H19N2O3"] },
+      { name: "Cocaine", formula: "C17H21NO4", wrong: ["C17H19NO4", "C16H21NO4", "C17H21N2O4"] },
+      { name: "Ibuprofen", formula: "C13H18O2", wrong: ["C12H18O2", "C13H16O2", "C13H18O3"] },
+      { name: "Sucrose", formula: "C12H22O11", wrong: ["C12H20O11", "C11H22O11", "C12H22O10"] },
+      { name: "Lactose", formula: "C12H22O11", wrong: ["C12H22O12", "C10H20O10", "C12H24O11"] },
+      { name: "Fructose", formula: "C6H12O6", wrong: ["C6H10O6", "C6H12O5", "C5H10O5"] },
+      { name: "Ascorbic Acid", formula: "C6H8O6", wrong: ["C6H6O6", "C5H8O6", "C6H8O5"] },
+      { name: "Citric Acid", formula: "C6H8O7", wrong: ["C6H6O7", "C5H8O7", "C6H8O6"] },
+      { name: "Malic Acid", formula: "C4H6O5", wrong: ["C4H4O5", "C3H6O5", "C4H6O4"] },
+      { name: "Salicylic Acid", formula: "C7H6O3", wrong: ["C7H4O3", "C6H6O3", "C7H6O2"] },
+      { name: "Trinitrotoluene", formula: "C7H5N3O6", wrong: ["C7H3N3O6", "C6H5N3O6", "C7H5N2O6"] },
+      { name: "Nitroglycerin", formula: "C3H5N3O9", wrong: ["C3H3N3O9", "C2H5N3O9", "C3H5N2O9"] },
+      { name: "Testosterone", formula: "C19H28O2", wrong: ["C19H26O2", "C18H28O2", "C19H28O3"] },
+      { name: "Progesterone", formula: "C21H30O2", wrong: ["C21H28O2", "C20H30O2", "C21H30O3"] },
+      { name: "Estradiol", formula: "C18H24O2", wrong: ["C18H22O2", "C17H24O2", "C18H24O3"] },
+      { name: "Melatonin", formula: "C13H16N2O2", wrong: ["C13H14N2O2", "C12H16N2O2", "C13H16N3O2"] },
+      { name: "Capsaicin", formula: "C18H27NO3", wrong: ["C18H25NO3", "C17H27NO3", "C18H27N2O3"] },
+      { name: "Menthol", formula: "C10H20O", wrong: ["C10H18O", "C9H20O", "C10H20O2"] },
+      { name: "Camphor", formula: "C10H16O", wrong: ["C10H14O", "C9H16O", "C10H16O2"] },
+      { name: "Limonene", formula: "C10H16", wrong: ["C10H14", "C9H16", "C10H18"] },
+      { name: "Benzene Sulfonic Acid", formula: "C6H6O3S", wrong: ["C6H6O3", "C5H6O3S", "C6H6O2S"] },
+      { name: "Glutamic Acid", formula: "C5H9NO4", wrong: ["C5H7NO4", "C4H9NO4", "C5H9N2O4"] },
+      { name: "Aspartic Acid", formula: "C4H7NO4", wrong: ["C4H5NO4", "C3H7NO4", "C4H7N2O4"] },
+      { name: "Lysine", formula: "C6H14N2O2", wrong: ["C6H12N2O2", "C5H14N2O2", "C6H14N3O2"] },
+      { name: "Glycine", formula: "C2H5NO2", wrong: ["C2H3NO2", "C1H5NO2", "C2H5N2O2"] },
+      { name: "Alanine", formula: "C3H7NO2", wrong: ["C3H5NO2", "C2H7NO2", "C3H7N2O2"] },
+      { name: "Valine", formula: "C5H11NO2", wrong: ["C5H9NO2", "C4H11NO2", "C5H11N2O2"] },
+      { name: "Leucine", formula: "C6H13NO2", wrong: ["C6H11NO2", "C5H13NO2", "C6H13N2O2"] },
+      { name: "Methionine", formula: "C5H11NO2S", wrong: ["C5H9NO2S", "C4H11NO2S", "C5H11N2O2S"] }
     ]
   };
 
@@ -94,11 +185,13 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
     setDifficulty(diff);
     setRound(1);
     setScore(0);
-    setGameState("playing");
     const pool = moleculesByDifficulty[diff];
-    const item = pool[Math.floor(Math.random() * pool.length)];
+    const shuffled = shuffleArray([...pool]);
+    setSessionMolecules(shuffled);
+    const item = shuffled[0];
     setCurrentProblem({ name: item.name, formula: item.formula, options: shuffleArray([item.formula, ...item.wrong]) });
     setTimeLeft(getTimerLimit());
+    setGameState("playing");
   };
 
   const nextRound = () => {
@@ -109,9 +202,10 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
       }
       return;
     }
-    const pool = moleculesByDifficulty[difficulty];
-    const item = pool[Math.floor(Math.random() * pool.length)];
-    setCurrentProblem({ name: item.name, formula: item.formula, options: shuffleArray([item.formula, ...item.wrong]) });
+    const item = sessionMolecules[round];
+    if (item) {
+      setCurrentProblem({ name: item.name, formula: item.formula, options: shuffleArray([item.formula, ...item.wrong]) });
+    }
     setRound(r => r + 1);
     setTimeLeft(getTimerLimit());
     setGameState("playing");

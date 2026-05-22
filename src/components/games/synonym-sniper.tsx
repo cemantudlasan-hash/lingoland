@@ -33,6 +33,7 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
   const [timeLeft, setTimeLeft] = React.useState(7);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [resultData, setResultData] = React.useState<{ status: "hit" | "miss" | "timeout", points?: number, trueAnswer?: string }>({ status: "hit" });
+  const [sessionProblems, setSessionProblems] = React.useState<Problem[]>([]);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
   const firestore = useFirestore();
@@ -57,7 +58,35 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
       { word: "Loud", synonym: "Noisy", wrong: ["Quiet", "Silent", "Calm"] },
       { word: "Hard", synonym: "Difficult", wrong: ["Easy", "Simple", "Soft"] },
       { word: "Easy", synonym: "Simple", wrong: ["Hard", "Tough", "Complex"] },
-      { word: "Rich", synonym: "Wealthy", wrong: ["Poor", "Broke", "Needy"] }
+      { word: "Rich", synonym: "Wealthy", wrong: ["Poor", "Broke", "Needy"] },
+      { word: "Bright", synonym: "Radiant", wrong: ["Dim", "Dark", "Gloomy"] },
+      { word: "Dark", synonym: "Shadowy", wrong: ["Light", "Bright", "Shiny"] },
+      { word: "Quiet", synonym: "Silent", wrong: ["Loud", "Noisy", "Rowdy"] },
+      { word: "Angry", synonym: "Furious", wrong: ["Calm", "Pleased", "Peaceful"] },
+      { word: "Brave", synonym: "Courageous", wrong: ["Cowardly", "Fearful", "Afraid"] },
+      { word: "Clean", synonym: "Neat", wrong: ["Dirty", "Messy", "Filthy"] },
+      { word: "Dirty", synonym: "Soiled", wrong: ["Pure", "Spotless", "Fresh"] },
+      { word: "Near", synonym: "Close", wrong: ["Far", "Distant", "Remote"] },
+      { word: "Far", synonym: "Distant", wrong: ["Close", "Nearby", "Local"] },
+      { word: "Strong", synonym: "Powerful", wrong: ["Weak", "Frail", "Feeble"] },
+      { word: "Weak", synonym: "Feeble", wrong: ["Strong", "Mighty", "Robust"] },
+      { word: "Sweet", synonym: "Sugary", wrong: ["Sour", "Bitter", "Salty"] },
+      { word: "Sour", synonym: "Tart", wrong: ["Sweet", "Mild", "Bland"] },
+      { word: "Begin", synonym: "Start", wrong: ["End", "Finish", "Stop"] },
+      { word: "Finish", synonym: "Complete", wrong: ["Start", "Begin", "Open"] },
+      { word: "Choose", synonym: "Select", wrong: ["Refuse", "Reject", "Keep"] },
+      { word: "Keep", synonym: "Hold", wrong: ["Lose", "Drop", "Discard"] },
+      { word: "Cry", synonym: "Weep", wrong: ["Laugh", "Smile", "Cheer"] },
+      { word: "Laugh", synonym: "Giggle", wrong: ["Cry", "Sob", "Frown"] },
+      { word: "Pretty", synonym: "Beautiful", wrong: ["Ugly", "Plain", "Hideous"] },
+      { word: "Ugly", synonym: "Hideous", wrong: ["Lovely", "Pretty", "Cute"] },
+      { word: "Old", synonym: "Ancient", wrong: ["New", "Young", "Modern"] },
+      { word: "New", synonym: "Modern", wrong: ["Old", "Ancient", "Antique"] },
+      { word: "Safe", synonym: "Secure", wrong: ["Risky", "Unsafe", "Dangerous"] },
+      { word: "Dangerous", synonym: "Risky", wrong: ["Safe", "Harmless", "Protected"] },
+      { word: "Fat", synonym: "Plump", wrong: ["Thin", "Slim", "Skinny"] },
+      { word: "Thin", synonym: "Slender", wrong: ["Fat", "Thick", "Heavy"] },
+      { word: "Tall", synonym: "Lofty", wrong: ["Short", "Low", "Tiny"] }
     ],
     intermediate: [
       { word: "Abundant", synonym: "Plentiful", wrong: ["Scarce", "Small", "Empty"] },
@@ -71,7 +100,35 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
       { word: "Harmonious", synonym: "Amiable", wrong: ["Hostile", "Rude", "Angry"] },
       { word: "Intricate", synonym: "Complex", wrong: ["Simple", "Plain", "Basic"] },
       { word: "Obstinate", synonym: "Stubborn", wrong: ["Flexible", "Yielding", "Soft"] },
-      { word: "Serene", synonym: "Peaceful", wrong: ["Chaotic", "Loud", "Busy"] }
+      { word: "Serene", synonym: "Peaceful", wrong: ["Chaotic", "Loud", "Busy"] },
+      { word: "Apparent", synonym: "Obvious", wrong: ["Hidden", "Unclear", "Secret"] },
+      { word: "Bizarre", synonym: "Weird", wrong: ["Normal", "Common", "Regular"] },
+      { word: "Brief", synonym: "Short", wrong: ["Long", "Extended", "Endless"] },
+      { word: "Calm", synonym: "Tranquil", wrong: ["Stormy", "Angry", "Agitated"] },
+      { word: "Cautious", synonym: "Careful", wrong: ["Careless", "Rash", "Bold"] },
+      { word: "Complex", synonym: "Complicated", wrong: ["Plain", "Simple", "Easy"] },
+      { word: "Defiant", synonym: "Rebellious", wrong: ["Obedient", "Submissive", "Mild"] },
+      { word: "Diverse", synonym: "Varied", wrong: ["Uniform", "Same", "Identical"] },
+      { word: "Eager", synonym: "Enthusiastic", wrong: ["Indifferent", "Bored", "Apathetic"] },
+      { word: "Fragile", synonym: "Delicate", wrong: ["Sturdy", "Tough", "Strong"] },
+      { word: "Grateful", synonym: "Thankful", wrong: ["Thankless", "Unappreciative", "Rude"] },
+      { word: "Hostile", synonym: "Aggressive", wrong: ["Friendly", "Kind", "Warm"] },
+      { word: "Idle", synonym: "Inactive", wrong: ["Busy", "Active", "Working"] },
+      { word: "Jolly", synonym: "Cheerful", wrong: ["Gloomy", "Sad", "Serious"] },
+      { word: "Keen", synonym: "Sharp", wrong: ["Dull", "Blunt", "Slow"] },
+      { word: "Loyal", synonym: "Faithful", wrong: ["Disloyal", "Treacherous", "False"] },
+      { word: "Mutual", synonym: "Shared", wrong: ["Individual", "Single", "Private"] },
+      { word: "Nimble", synonym: "Agile", wrong: ["Clumsy", "Slow", "Stiff"] },
+      { word: "Obvious", synonym: "Clear", wrong: ["Vague", "Hidden", "Dark"] },
+      { word: "Peculiar", synonym: "Strange", wrong: ["Ordinary", "Normal", "Common"] },
+      { word: "Polite", synonym: "Courteous", wrong: ["Rude", "Impolite", "Mean"] },
+      { word: "Prompt", synonym: "Punctual", wrong: ["Late", "Tardy", "Delayed"] },
+      { word: "Reluctant", synonym: "Unwilling", wrong: ["Eager", "Ready", "Willing"] },
+      { word: "Solitary", synonym: "Alone", wrong: ["Social", "Grouped", "Together"] },
+      { word: "Tense", synonym: "Strained", wrong: ["Relaxed", "Calm", "Loose"] },
+      { word: "Vague", synonym: "Unclear", wrong: ["Specific", "Definite", "Clear"] },
+      { word: "Vivid", synonym: "Bright", wrong: ["Dull", "Pale", "Dim"] },
+      { word: "Weary", synonym: "Tired", wrong: ["Fresh", "Energetic", "Active"] }
     ],
     pro: [
       { word: "Ephemeral", synonym: "Transitory", wrong: ["Permanent", "Eternal", "Endless"] },
@@ -85,7 +142,35 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
       { word: "Mellifluous", synonym: "Harmonious", wrong: ["Harsh", "Grating", "Piercing"] },
       { word: "Nefarious", synonym: "Wicked", wrong: ["Noble", "Virtuous", "Heroic"] },
       { word: "Obsequious", synonym: "Sycophantic", wrong: ["Defiant", "Rebellious", "Proud"] },
-      { word: "Pernicious", synonym: "Harmful", wrong: ["Beneficial", "Helpful", "Healing"] }
+      { word: "Pernicious", synonym: "Harmful", wrong: ["Beneficial", "Helpful", "Healing"] },
+      { word: "Alacrity", synonym: "Eagerness", wrong: ["Apathy", "Lethargy", "Delay"] },
+      { word: "Anachronism", synonym: "Misplacement", wrong: ["Accuracy", "Chronology", "Sync"] },
+      { word: "Bellicose", synonym: "Hostile", wrong: ["Peaceful", "Friendly", "Calm"] },
+      { word: "Capricious", synonym: "Fickle", wrong: ["Constant", "Stable", "Predictable"] },
+      { word: "Chicanery", synonym: "Deception", wrong: ["Honesty", "Truth", "Candor"] },
+      { word: "Dearth", synonym: "Scarcity", wrong: ["Abundance", "Surplus", "Plenty"] },
+      { word: "Diatribe", synonym: "Tirade", wrong: ["Praise", "Eulogy", "Compliment"] },
+      { word: "Equivocate", synonym: "Prevaricate", wrong: ["Confront", "Declare", "Simplify"] },
+      { word: "Garrulous", synonym: "Talkative", wrong: ["Silent", "Taciturn", "Quiet"] },
+      { word: "Iconoclast", synonym: "Maverick", wrong: ["Conformist", "Follower", "Traditionalist"] },
+      { word: "Inimical", synonym: "Hostile", wrong: ["Friendly", "Warm", "Welcoming"] },
+      { word: "Loquacious", synonym: "Wordy", wrong: ["Quiet", "Silent", "Mute"] },
+      { word: "Lugubrious", synonym: "Mournful", wrong: ["Joyful", "Cheerful", "Lively"] },
+      { word: "Magnanimous", synonym: "Generous", wrong: ["Mean", "Petty", "Stingy"] },
+      { word: "Mendacious", synonym: "Untruthful", wrong: ["Honest", "Frank", "Sincere"] },
+      { word: "Munificent", synonym: "Generous", wrong: ["Parsimonious", "Miserly", "Greedy"] },
+      { word: "Ostentatious", synonym: "Showy", wrong: ["Humble", "Modest", "Plain"] },
+      { word: "Parsimonious", synonym: "Stingy", wrong: ["Generous", "Lavish", "Giving"] },
+      { word: "Querulous", synonym: "Complaining", wrong: ["Content", "Happy", "Easygoing"] },
+      { word: "Recondite", synonym: "Abstruse", wrong: ["Simple", "Direct", "Easy"] },
+      { word: "Sagacious", synonym: "Wise", wrong: ["Foolish", "Ignorant", "Silly"] },
+      { word: "Sinecure", synonym: "Soft-job", wrong: ["Hardship", "Chore", "Labor"] },
+      { word: "Specious", synonym: "Plausible-but-false", wrong: ["Valid", "Genuine", "True"] },
+      { word: "Taciturn", synonym: "Silent", wrong: ["Talkative", "Garrulous", "Loud"] },
+      { word: "Ubiquitous", synonym: "Omnipresent", wrong: ["Rare", "Scarce", "Isolated"] },
+      { word: "Vacillate", synonym: "Waver", wrong: ["Decide", "Stand", "Persist"] },
+      { word: "Vociferous", synonym: "Clamorous", wrong: ["Quiet", "Silent", "Soft"] },
+      { word: "Zenith", synonym: "Pinnacle", wrong: ["Nadir", "Bottom", "Base"] }
     ]
   };
 
@@ -95,26 +180,18 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
      return 4;
   };
 
-  const generateProblem = () => {
-    const pool = problemsByDifficulty[difficulty];
-    const item = pool[Math.floor(Math.random() * pool.length)];
-    const options = shuffleArray([item.synonym, ...item.wrong]);
-    return { baseWord: item.word, synonym: item.synonym, options };
-  };
-
   const startGame = (diff: Difficulty) => {
     setDifficulty(diff);
     setRound(1);
-    setCurrentProblem({ baseWord: "", synonym: "", options: [] }); // Trigger nextRound effectively
+    setScore(0);
+    const pool = problemsByDifficulty[diff];
+    const shuffled = shuffleArray([...pool]);
+    setSessionProblems(shuffled);
+    const item = shuffled[0];
+    setCurrentProblem({ baseWord: item.word, synonym: item.synonym, options: shuffleArray([item.synonym, ...item.wrong]) });
+    setTimeLeft(diff === "easy" ? 10 : diff === "intermediate" ? 7 : 4);
     setGameState("playing");
   };
-
-  React.useEffect(() => {
-    if (gameState === "playing" && currentProblem && currentProblem.baseWord === "") {
-        setCurrentProblem(generateProblem());
-        setTimeLeft(getTimerLimit());
-    }
-  }, [gameState, currentProblem]);
 
   const nextRound = () => {
     if (round >= 10) {
@@ -124,8 +201,9 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
       }
       return;
     }
+    const item = sessionProblems[round];
+    setCurrentProblem({ baseWord: item.word, synonym: item.synonym, options: shuffleArray([item.synonym, ...item.wrong]) });
     setRound(prev => prev + 1);
-    setCurrentProblem(generateProblem());
     setTimeLeft(getTimerLimit());
     setGameState("playing");
   };

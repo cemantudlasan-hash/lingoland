@@ -27,6 +27,7 @@ export function IdiomInferno({ slug, onToggleFullscreen }: { slug: string; onTog
   const [gameState, setGameState] = React.useState<"idle" | "playing" | "showing_result" | "finished">("idle");
   const [difficulty, setDifficulty] = React.useState<Difficulty>("easy");
   const [currentIdiom, setCurrentIdiom] = React.useState<{idiom: string, meaning: string, options: string[]} | null>(null);
+  const [sessionIdioms, setSessionIdioms] = React.useState<IdiomProblem[]>([]);
   const [score, setScore] = React.useState(0);
   const [round, setRound] = React.useState(0);
   const [lavaLevel, setLavaLevel] = React.useState(0); // 0 to 100
@@ -54,7 +55,37 @@ export function IdiomInferno({ slug, onToggleFullscreen }: { slug: string; onTog
       { idiom: "Call it a day", meaning: "Stop working", wrong: ["Look at calendar", "Name a holiday", "Go outside"] },
       { idiom: "Miss the boat", meaning: "Miss an opportunity", wrong: ["Drop your ticket", "Fail to swim", "Wait at the dock"] },
       { idiom: "See eye to eye", meaning: "Agree with someone", wrong: ["Stare closely", "Stand together", "Check vision"] },
-      { idiom: "Once in a blue moon", meaning: "Very rarely", wrong: ["During the night", "Every month", "A lunar event"] }
+      { idiom: "Once in a blue moon", meaning: "Very rarely", wrong: ["During the night", "Every month", "A lunar event"] },
+      { idiom: "Bite the dust", meaning: "To fail or die", wrong: ["To clean up", "To eat dirt", "To work hard"] },
+      { idiom: "Burn bridges", meaning: "Ruin relationships", wrong: ["Build pathways", "Cross a river", "Set fire to wood"] },
+      { idiom: "Cry over spilled milk", meaning: "Complain about past", wrong: ["Drink milk", "Clean the floor", "Be happy"] },
+      { idiom: "Cut the slack", meaning: "Don't be critical", wrong: ["Tighten rope", "Work overtime", "Loosen restrictions"] },
+      { idiom: "Draw the line", meaning: "Set a limit", wrong: ["Paint a picture", "Make a path", "Cancel a rule"] },
+      { idiom: "Easy does it", meaning: "Slow down", wrong: ["Work faster", "Do it well", "Simple task"] },
+      { idiom: "Feel blue", meaning: "Feel sad", wrong: ["Feel cold", "Feel energetic", "Feel green"] },
+      { idiom: "Go cold turkey", meaning: "Stop suddenly", wrong: ["Eat leftovers", "Travel north", "Get sick"] },
+      { idiom: "Hang in there", meaning: "Don't give up", wrong: ["Climb high", "Wait outside", "Fall down"] },
+      { idiom: "In the same boat", meaning: "Same situation", wrong: ["Sailing together", "Drowning", "Having fun"] },
+      { idiom: "Keep in touch", meaning: "Maintain contact", wrong: ["Hold hands", "Stay close", "Never write"] },
+      { idiom: "Let the cat out of the bag", meaning: "Reveal secret", wrong: ["Set pet free", "Go shopping", "Lose a game"] },
+      { idiom: "Make a long story short", meaning: "Come to the point", wrong: ["Write a book", "Tell a joke", "Speak slowly"] },
+      { idiom: "Play second fiddle", meaning: "Be less important", wrong: ["Play music", "Tune instrument", "Help the leader"] },
+      { idiom: "Read between the lines", meaning: "Find hidden meaning", wrong: ["Wear glasses", "Scan quickly", "Skip pages"] },
+      { idiom: "Ring a bell", meaning: "Sound familiar", wrong: ["Make noise", "Call someone", "Time to leave"] },
+      { idiom: "Run out of steam", meaning: "Lose energy", wrong: ["Boil water", "Train delay", "Speed up"] },
+      { idiom: "Safe and sound", meaning: "Safe", wrong: ["Hear noise", "Very quiet", "Locked up"] },
+      { idiom: "Take it easy", meaning: "Relax", wrong: ["Work harder", "Bring objects", "Go faster"] },
+      { idiom: "The last straw", meaning: "Final problem", wrong: ["Drinking tube", "Farm harvest", "Small victory"] },
+      { idiom: "Through the grapevine", meaning: "Rumors", wrong: ["Fruit garden", "Wine press", "Direct news"] },
+      { idiom: "Time flies", meaning: "Passes quickly", wrong: ["Insects buzzing", "Clocks moving", "Wasting hours"] },
+      { idiom: "Touch and go", meaning: "Risky", wrong: ["Tap screen", "Run away", "Land plane"] },
+      { idiom: "Under your nose", meaning: "In front of you", wrong: ["Smelling food", "Sneeze coming", "Hidden away"] },
+      { idiom: "Up in the air", meaning: "Undecided", wrong: ["Flying plane", "Tossing coin", "High altitude"] },
+      { idiom: "Watch your step", meaning: "Be careful", wrong: ["Look at shoes", "Count stairs", "Walk fast"] },
+      { idiom: "Wear heart on sleeve", meaning: "Open emotions", wrong: ["Tattoo design", "Dress warmly", "Hide feelings"] },
+      { idiom: "When pigs fly", meaning: "Never", wrong: ["Animal farm", "High speed", "Soon"] },
+      { idiom: "Up the creek", meaning: "In trouble", wrong: ["Boating trip", "Going up", "Lost path"] },
+      { idiom: "Rule of thumb", meaning: "Broad principle", wrong: ["Finger print", "Hit nail", "Measure size"] }
     ],
     intermediate: [
       { idiom: "Bite the bullet", meaning: "Endure a painful situation", wrong: ["Eat something hard", "Shoot an animal", "Run very fast"] },
@@ -66,7 +97,37 @@ export function IdiomInferno({ slug, onToggleFullscreen }: { slug: string; onTog
       { idiom: "Jumping on the bandwagon", meaning: "Joining a popular trend", wrong: ["Playing instruments", "Riding a wagon", "Starting a band"] },
       { idiom: "Pulling my leg", meaning: "Joking with someone", wrong: ["Stretching", "Tripping someone", "Hurting me"] },
       { idiom: "Wrap my head around it", meaning: "Understand something complex", wrong: ["Wear a hat", "Spin around", "Get a headache"] },
-      { idiom: "Hit the nail on the head", meaning: "Exactly right", wrong: ["Use a hammer", "Hurt your finger", "Build a house"] }
+      { idiom: "Hit the nail on the head", meaning: "Exactly right", wrong: ["Use a hammer", "Hurt your finger", "Build a house"] },
+      { idiom: "Beat around the bush", meaning: "Avoid main topic", wrong: ["Trim plants", "Hunt animals", "Walk in circles"] },
+      { idiom: "Burn the midnight oil", meaning: "Work late", wrong: ["Light a fire", "Cook food", "Waste fuel"] },
+      { idiom: "Call the shots", meaning: "Decide", wrong: ["Take photos", "Drink small cups", "Aim weapon"] },
+      { idiom: "Cry wolf", meaning: "False alarm", wrong: ["Hunt wild animal", "Shout loudly", "Be afraid"] },
+      { idiom: "Devil's advocate", meaning: "Opposite side", wrong: ["Evil spirit", "Lawyer in court", "Satanic worship"] },
+      { idiom: "Face the music", meaning: "Consequences", wrong: ["Listen to song", "Look at band", "Sing along"] },
+      { idiom: "Get out of hand", meaning: "Out of control", wrong: ["Drop object", "Wash hands", "Quit job"] },
+      { idiom: "Go the extra mile", meaning: "Extra effort", wrong: ["Run marathon", "Drive longer", "Get lost"] },
+      { idiom: "Hit the books", meaning: "Study", wrong: ["Throw textbook", "Read novel", "Buy bookshelf"] },
+      { idiom: "Let off steam", meaning: "Release anger", wrong: ["Boil water", "Take sauna", "Cool down"] },
+      { idiom: "Lose your touch", meaning: "Lose skill", wrong: ["Drop item", "Stop feeling", "Get numb"] },
+      { idiom: "On the ball", meaning: "Alert/capable", wrong: ["Play sports", "Roll sphere", "Bounce high"] },
+      { idiom: "Pitch in", meaning: "Help", wrong: ["Throw ball", "Set tent", "Shout loud"] },
+      { idiom: "Pull yourself together", meaning: "Calm down", wrong: ["Stand up", "Hug tightly", "Gather items"] },
+      { idiom: "Rain on my parade", meaning: "Spoil plans", wrong: ["Weather forecast", "Walk in rain", "Watch festival"] },
+      { idiom: "Rock the boat", meaning: "Cause trouble", wrong: ["Sail in storm", "Listen to music", "Catch fish"] },
+      { idiom: "Skeleton in closet", meaning: "Hidden secret", wrong: ["Halloween prop", "Bones structure", "Wardrobe storage"] },
+      { idiom: "Take with grain of salt", meaning: "Skeptical", wrong: ["Season food", "Eat healthily", "Add flavor"] },
+      { idiom: "Elephant in the room", meaning: "Ignored issue", wrong: ["Wild animal", "Large furniture", "Zoo visit"] },
+      { idiom: "Throw in the towel", meaning: "Give up", wrong: ["Dry yourself", "Do laundry", "Clean floor"] },
+      { idiom: "Touch base", meaning: "Brief contact", wrong: ["Play baseball", "Build foundation", "Paint walls"] },
+      { idiom: "Under wraps", meaning: "Secret", wrong: ["Wrap gifts", "Wear bandage", "Eat burritos"] },
+      { idiom: "Up to speed", meaning: "Informed", wrong: ["Driving fast", "Accelerating", "Running late"] },
+      { idiom: "Water under the bridge", meaning: "Past is past", wrong: ["River flow", "Crossing bridge", "Flooded path"] },
+      { idiom: "Blow off steam", meaning: "Release stress", wrong: ["Clean engine", "Open valve", "Boil kettle"] },
+      { idiom: "Burn a hole in pocket", meaning: "Want to spend", wrong: ["Fire hazard", "Lose coins", "Torn clothes"] },
+      { idiom: "Close but no cigar", meaning: "Almost made it", wrong: ["Smoking habit", "Near distance", "Won prize"] },
+      { idiom: "Down to earth", meaning: "Realistic", wrong: ["Fall down", "Dig soil", "Gravity pull"] },
+      { idiom: "Clear as mud", meaning: "Very confusing", wrong: ["Wash face", "Rain shower", "Dirty water"] },
+      { idiom: "Right off the bat", meaning: "Immediately", wrong: ["Play baseball", "Flying mammal", "Hit object"] }
     ],
     pro: [
       { idiom: "Kick the bucket", meaning: "To die", wrong: ["Play soccer", "Spill water", "Stub a toe"] },
@@ -78,7 +139,37 @@ export function IdiomInferno({ slug, onToggleFullscreen }: { slug: string; onTog
       { idiom: "Hear it on the grapevine", meaning: "Hear rumors", wrong: ["Drink wine", "Visit a farm", "Listen to radio"] },
       { idiom: "It takes two to tango", meaning: "Actions need two people to happen", wrong: ["Dancing lessons", "Going to a club", "Learning Spanish"] },
       { idiom: "Kill two birds with one stone", meaning: "Achieve two things at once", wrong: ["Hunting animals", "Throwing rocks", "Being cruel"] },
-      { idiom: "Method to my madness", meaning: "A specific purpose in strange actions", wrong: ["Being crazy", "Losing your mind", "Acting angrily"] }
+      { idiom: "Method to my madness", meaning: "A specific purpose in strange actions", wrong: ["Being crazy", "Losing your mind", "Acting angrily"] },
+      { idiom: "Actions speak louder than words", meaning: "Deeds matter", wrong: ["Shouting loud", "Talking fast", "Silent movie"] },
+      { idiom: "Add insult to injury", meaning: "Worse situation", wrong: ["Doctor fee", "Say mean things", "Get bandaged"] },
+      { idiom: "Blessing in disguise", meaning: "Good but seemed bad", wrong: ["Wearing mask", "Church service", "Lucky charm"] },
+      { idiom: "At the drop of a hat", meaning: "Instantly", wrong: ["Wind blowing", "Losing clothing", "Pick up item"] },
+      { idiom: "Beat a dead horse", meaning: "Waste energy", wrong: ["Riding animal", "Veterinary care", "Farm work"] },
+      { idiom: "Between a rock and hard place", meaning: "Two bad choices", wrong: ["Mountain climbing", "Get trapped", "Build house"] },
+      { idiom: "Bite your tongue", meaning: "Stop speaking", wrong: ["Eat dinner", "Oral injury", "Taste food"] },
+      { idiom: "Burn candle at both ends", meaning: "Overwork", wrong: ["Power outage", "Make light", "Save energy"] },
+      { idiom: "Don't put all eggs in one basket", meaning: "Don't risk everything", wrong: ["Shopping trip", "Farm chores", "Break shell"] },
+      { idiom: "Hit below the belt", meaning: "Act unfairly", wrong: ["Boxer punch", "Wear trousers", "Low level"] },
+      { idiom: "In heat of the moment", meaning: "Say/do without thinking", wrong: ["Summer weather", "Warm kitchen", "Hurry up"] },
+      { idiom: "Leave no stone unturned", meaning: "Search completely", wrong: ["Build path", "Look for bugs", "Throw rocks"] },
+      { idiom: "Make no bones about it", meaning: "Direct", wrong: ["Skeleton anatomy", "Cook meat", "Speak softly"] },
+      { idiom: "No pain no gain", meaning: "Suffering for progress", wrong: ["Get injured", "Win nothing", "Physical therapy"] },
+      { idiom: "On cloud nine", meaning: "Very happy", wrong: ["Flying high", "Weather forecast", "Rain shower"] },
+      { idiom: "Penny for thoughts", meaning: "What are you thinking?", wrong: ["Give money", "Buy items", "Save coins"] },
+      { idiom: "Put cart before horse", meaning: "Wrong order", wrong: ["Farm driving", "Ride carriage", "Feed animal"] },
+      { idiom: "Throw caution to wind", meaning: "Act recklessly", wrong: ["Stormy weather", "Fly kite", "Be careful"] },
+      { idiom: "Wouldn't be caught dead", meaning: "Would never do", wrong: ["Cemetery visit", "Dressed up", "Passed away"] },
+      { idiom: "Speak of the devil", meaning: "Talked person appears", wrong: ["Evil spirit", "Priest sermon", "Scary movie"] },
+      { idiom: "Straight from horse's mouth", meaning: "High authority", wrong: ["Farm animal", "Dentist check", "Whisper secret"] },
+      { idiom: "Cold shoulder", meaning: "Unfriendly", wrong: ["Winter weather", "Joint injury", "Wear jacket"] },
+      { idiom: "Play fast and loose", meaning: "Irresponsible", wrong: ["Fast runner", "Untie knots", "Win games"] },
+      { idiom: "Keep at bay", meaning: "Prevent coming near", wrong: ["Sailing boat", "Dog barking", "Water body"] },
+      { idiom: "A penny saved is a penny earned", meaning: "Saving is wise", wrong: ["Spend coins", "Find money", "Bank deposit"] },
+      { idiom: "Cut to the chase", meaning: "Get to the point", wrong: ["Run fast", "Action movie", "Car racing"] },
+      { idiom: "Fit as a fiddle", meaning: "Very healthy", wrong: ["Tuned instrument", "Play music", "Correct size"] },
+      { idiom: "Get a second wind", meaning: "Renewed energy", wrong: ["Blowing breeze", "Storm coming", "Breathe deeply"] },
+      { idiom: "Go down in flames", meaning: "Fail spectacularly", wrong: ["Fire hazard", "Flying plane", "Light matches"] },
+      { idiom: "Look before you leap", meaning: "Plan before acting", wrong: ["Jump high", "Check distance", "Safety first"] }
     ]
   };
 
@@ -92,7 +183,9 @@ export function IdiomInferno({ slug, onToggleFullscreen }: { slug: string; onTog
     setDifficulty(diff);
     setRound(1);
     const pool = idiomsByDifficulty[diff];
-    const item = pool[Math.floor(Math.random() * pool.length)];
+    const shuffled = shuffleArray([...pool]);
+    setSessionIdioms(shuffled);
+    const item = shuffled[0];
     setCurrentIdiom({ idiom: item.idiom, meaning: item.meaning, options: shuffleArray([item.meaning, ...item.wrong]) });
     setLavaLevel(0);
     setGameState("playing");
@@ -106,9 +199,10 @@ export function IdiomInferno({ slug, onToggleFullscreen }: { slug: string; onTog
       }
       return;
     }
-    const pool = idiomsByDifficulty[difficulty];
-    const item = pool[Math.floor(Math.random() * pool.length)];
-    setCurrentIdiom({ idiom: item.idiom, meaning: item.meaning, options: shuffleArray([item.meaning, ...item.wrong]) });
+    const item = sessionIdioms[round];
+    if (item) {
+      setCurrentIdiom({ idiom: item.idiom, meaning: item.meaning, options: shuffleArray([item.meaning, ...item.wrong]) });
+    }
     setRound(r => r + 1);
     setLavaLevel(0);
     setGameState("playing");

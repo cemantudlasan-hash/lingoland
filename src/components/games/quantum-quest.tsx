@@ -44,12 +44,48 @@ const ELEMENTS = [
     { symbol: "C", name: "Carbon" },
     { symbol: "O", name: "Oxygen" },
     { symbol: "Rn", name: "Radon" },
-    { symbol: "U", name: "Uranium" }
+    { symbol: "U", name: "Uranium" },
+    { symbol: "H", name: "Hydrogen" },
+    { symbol: "Li", name: "Lithium" },
+    { symbol: "Be", name: "Beryllium" },
+    { symbol: "B", name: "Boron" },
+    { symbol: "N", name: "Nitrogen" },
+    { symbol: "F", name: "Fluorine" },
+    { symbol: "Ne", name: "Neon" },
+    { symbol: "Mg", name: "Magnesium" },
+    { symbol: "Al", name: "Aluminum" },
+    { symbol: "Si", name: "Silicon" },
+    { symbol: "P", name: "Phosphorus" },
+    { symbol: "S", name: "Sulfur" },
+    { symbol: "Cl", name: "Chlorine" },
+    { symbol: "Ar", name: "Argon" },
+    { symbol: "Ca", name: "Calcium" },
+    { symbol: "Sc", name: "Scandium" },
+    { symbol: "Ti", name: "Titanium" },
+    { symbol: "V", name: "Vanadium" },
+    { symbol: "Cr", name: "Chromium" },
+    { symbol: "Mn", name: "Manganese" },
+    { symbol: "Co", name: "Cobalt" },
+    { symbol: "Ni", name: "Nickel" },
+    { symbol: "Zn", name: "Zinc" },
+    { symbol: "Ga", name: "Gallium" },
+    { symbol: "Ge", name: "Germanium" },
+    { symbol: "As", name: "Arsenic" },
+    { symbol: "Se", name: "Selenium" },
+    { symbol: "Br", name: "Bromine" },
+    { symbol: "Kr", name: "Krypton" },
+    { symbol: "Rb", name: "Rubidium" },
+    { symbol: "Sr", name: "Strontium" },
+    { symbol: "Y", name: "Yttrium" },
+    { symbol: "Zr", name: "Zirconium" },
+    { symbol: "Nb", name: "Niobium" },
+    { symbol: "Mo", name: "Molybdenum" }
 ];
 
 export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const [gameState, setGameState] = React.useState<GameState>("idle");
   const [currentProblem, setCurrentProblem] = React.useState<Problem | null>(null);
+  const [sessionElements, setSessionElements] = React.useState<typeof ELEMENTS>([]);
   const [score, setScore] = React.useState(0);
   const [round, setRound] = React.useState(0);
   const [timeLeft, setTimeLeft] = React.useState(TIMER_LIMIT);
@@ -67,8 +103,7 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  const generateProblem = (): Problem => {
-    const element = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+  const generateProblem = (element: typeof ELEMENTS[0]): Problem => {
     const options = [element.name];
     
     // Select 3 random distractors
@@ -97,8 +132,17 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
       }
       return;
     }
+
+    let currentPool = sessionElements;
+    if (round === 0) {
+      const shuffled = shuffleArray([...ELEMENTS]);
+      currentPool = shuffled;
+      setSessionElements(shuffled);
+    }
+
+    const element = currentPool[round] || ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+    setCurrentProblem(generateProblem(element));
     setRound(prev => prev + 1);
-    setCurrentProblem(generateProblem());
     setTimeLeft(TIMER_LIMIT);
     setGameState("playing");
   };

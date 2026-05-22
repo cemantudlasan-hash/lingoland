@@ -42,6 +42,39 @@ const DICTIONARY = [
     { word: "Obscure", synonym: "Hidden", distractors: ["Obvious", "Famous", "Loved", "Seen"] },
     { word: "Pristine", synonym: "Pure", distractors: ["Dirty", "Spoiled", "Used", "Old"] },
     { word: "Resilient", synonym: "Tough", distractors: ["Fragile", "Brittle", "Weak", "Soft"] },
+    { word: "Alacrity", synonym: "Eagerness", distractors: ["Apathy", "Hesitation", "Sadness", "Dullness"] },
+    { word: "Benevolent", synonym: "Kind", distractors: ["Cruel", "Greedy", "Hateful", "Selfish"] },
+    { word: "Candid", synonym: "Frank", distractors: ["Deceitful", "Shy", "Quiet", "Sneaky"] },
+    { word: "Diligent", synonym: "Hardworking", distractors: ["Lazy", "Idle", "Careless", "Slow"] },
+    { word: "Eloquent", synonym: "Articulate", distractors: ["Mute", "Silent", "Inarticulate", "Slow"] },
+    { word: "Frugal", synonym: "Thrifty", distractors: ["Wasteful", "Rich", "Lavish", "Careless"] },
+    { word: "Gregarious", synonym: "Outgoing", distractors: ["Shy", "Quiet", "Reclusive", "Wild"] },
+    { word: "Haughty", synonym: "Proud", distractors: ["Humble", "Shy", "Lowly", "Mild"] },
+    { word: "Impetuous", synonym: "Rash", distractors: ["Careful", "Slow", "Calm", "Wise"] },
+    { word: "Jovial", synonym: "Cheerful", distractors: ["Sad", "Gloomy", "Serious", "Quiet"] },
+    { word: "Knack", synonym: "Talent", distractors: ["Inability", "Clumsiness", "Weakness", "Failure"] },
+    { word: "Loquacious", synonym: "Talkative", distractors: ["Quiet", "Silent", "Taciturn", "Mute"] },
+    { word: "Magnanimous", synonym: "Generous", distractors: ["Stingy", "Mean", "Selfish", "Cruel"] },
+    { word: "Nefarious", synonym: "Wicked", distractors: ["Noble", "Good", "Honest", "Holy"] },
+    { word: "Ostentatious", synonym: "Showy", distractors: ["Humble", "Simple", "Quiet", "Plain"] },
+    { word: "Pacify", synonym: "Calm", distractors: ["Angers", "Irritates", "Excites", "Harms"] },
+    { word: "Quell", synonym: "Suppress", distractors: ["Encourage", "Spark", "Start", "Grow"] },
+    { word: "Recondite", synonym: "Abstruse", distractors: ["Simple", "Clear", "Direct", "Easy"] },
+    { word: "Sagacious", synonym: "Wise", distractors: ["Foolish", "Silly", "Ignorant", "Wild"] },
+    { word: "Taciturn", synonym: "Reserved", distractors: ["Talkative", "Loud", "Friendly", "Bold"] },
+    { word: "Ubiquitous", synonym: "Widespread", distractors: ["Rare", "Scarce", "Isolated", "Few"] },
+    { word: "Vacillate", synonym: "Waver", distractors: ["Decide", "Stand", "Remain", "Persist"] },
+    { word: "Wary", synonym: "Cautious", distractors: ["Careless", "Rash", "Bold", "Foolish"] },
+    { word: "Xenophobic", synonym: "Intolerant", distractors: ["Welcoming", "Tolerant", "Friendly", "Kind"] },
+    { word: "Yearn", synonym: "Long", distractors: ["Hate", "Dislike", "Reject", "Avoid"] },
+    { word: "Zenith", synonym: "Peak", distractors: ["Bottom", "Base", "Valley", "Low"] },
+    { word: "Acrimony", synonym: "Bitterness", distractors: ["Goodwill", "Kindness", "Love", "Peace"] },
+    { word: "Cacophony", synonym: "Noise", distractors: ["Silence", "Music", "Quiet", "Melody"] },
+    { word: "Debilitate", synonym: "Weaken", distractors: ["Strengthen", "Heal", "Grow", "Build"] },
+    { word: "Eclectic", synonym: "Diverse", distractors: ["Uniform", "Narrow", "Simple", "Same"] },
+    { word: "Fabricate", synonym: "Create", distractors: ["Destroy", "Ruin", "Break", "Stop"] },
+    { word: "Garish", synonym: "Gaudy", distractors: ["Plain", "Simple", "Modest", "Dark"] },
+    { word: "Hapless", synonym: "Unlucky", distractors: ["Lucky", "Happy", "Rich", "Safe"] },
 ];
 
 export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
@@ -53,6 +86,7 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [combo, setCombo] = React.useState(0);
   const [resultData, setResultData] = React.useState<{ status: "correct" | "incorrect" | "timeout", points?: number, trueAnswer?: string }>({ status: "correct" });
+  const [sessionWords, setSessionWords] = React.useState<typeof DICTIONARY>([]);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
   const firestore = useFirestore();
@@ -64,8 +98,8 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  const generateProblem = (): Problem => {
-    const item = DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)];
+  const generateProblem = (index: number, pool: typeof DICTIONARY): Problem => {
+    const item = pool[index];
     const options = [item.synonym];
     const availableDistractors = shuffleArray([...item.distractors]);
     
@@ -82,7 +116,8 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
     };
   };
 
-  const startNextRound = () => {
+  const startNextRound = (currentRoundPool?: typeof DICTIONARY) => {
+    const activePool = currentRoundPool || sessionWords;
     if (round >= ROUNDS) {
       setGameState("finished");
       if (firestore && game) {
@@ -93,8 +128,8 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
       }
       return;
     }
+    setCurrentProblem(generateProblem(round, activePool));
     setRound(prev => prev + 1);
-    setCurrentProblem(generateProblem());
     setTimeLeft(TIMER_LIMIT);
     setGameState("playing");
   };
@@ -216,7 +251,11 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
                 Words are being pulled into the synaptic black hole. Find their true synonyms to stabilize the core.
               </p>
               <Button 
-                onClick={() => setGameState('instructions')} 
+                onClick={() => {
+                  const shuffled = shuffleArray([...DICTIONARY]);
+                  setSessionWords(shuffled);
+                  setGameState('instructions');
+                }} 
                 className="h-20 px-12 text-2xl font-black bg-gradient-to-r from-indigo-600 to-fuchsia-600 hover:from-indigo-500 hover:to-fuchsia-500 text-white rounded-full shadow-[0_0_40px_rgba(192,38,211,0.4)] transition-all hover:scale-105 uppercase tracking-widest border border-white/20"
               >
                 OPEN PORTAL
@@ -249,7 +288,7 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
                   <span>Gravity is increasing; solve it before the time collapses.</span>
                 </div>
               </div>
-              <Button onClick={startNextRound} className="w-full mt-12 h-16 text-xl font-black bg-white text-indigo-950 hover:bg-indigo-100 transition-colors uppercase tracking-widest rounded-xl">
+              <Button onClick={() => startNextRound(sessionWords)} className="w-full mt-12 h-16 text-xl font-black bg-white text-indigo-950 hover:bg-indigo-100 transition-colors uppercase tracking-widest rounded-xl">
                 Initiate Sequence
               </Button>
             </motion.div>

@@ -33,6 +33,7 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
   const [timeLeft, setTimeLeft] = React.useState(12);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [resultStatus, setResultStatus] = React.useState<"correct" | "incorrect" | "timeout">("correct");
+  const [sessionProblems, setSessionProblems] = React.useState<BioProblem[]>([]);
   
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
@@ -56,7 +57,37 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
       { q: "What do we breathe in that our bodies need to survive?", a: "Oxygen", wrong: ["Carbon Dioxide", "Nitrogen", "Argon"] },
       { q: "How many bones are in the adult human skeleton?", a: "206", wrong: ["106", "306", "406"] },
       { q: "Which animal is a mammal?", a: "Whale", wrong: ["Shark", "Tuna", "Salmon"] },
-      { q: "What is the main function of the heart?", a: "Pump blood", wrong: ["Breathe air", "Digest food", "Think clearly"] }
+      { q: "What is the main function of the heart?", a: "Pump blood", wrong: ["Breathe air", "Digest food", "Think clearly"] },
+      { q: "What gas do plants release during photosynthesis?", a: "Oxygen", wrong: ["Carbon Dioxide", "Nitrogen", "Hydrogen"] },
+      { q: "What is the primary function of white blood cells?", a: "Fighting infections", wrong: ["Carrying oxygen", "Clotting blood", "Filtering waste"] },
+      { q: "Which of the following is a decomposer?", a: "Fungi", wrong: ["Tree", "Rabbit", "Fox"] },
+      { q: "What do plant cells have that animal cells do not?", a: "Cell wall", wrong: ["Cell membrane", "Nucleus", "Ribosome"] },
+      { q: "What is the term for animals that only eat plants?", a: "Herbivores", wrong: ["Carnivores", "Omnivores", "Decomposers"] },
+      { q: "Which part of the cell contains genetic material?", a: "Nucleus", wrong: ["Cytoplasm", "Cell membrane", "Mitochondria"] },
+      { q: "What is the process of plants turning sunlight into food?", a: "Photosynthesis", wrong: ["Respiration", "Transpiration", "Digestion"] },
+      { q: "How many chambers are there in a human heart?", a: "4", wrong: ["2", "3", "5"] },
+      { q: "What is the main source of energy for most ecosystems?", a: "Sunlight", wrong: ["Soil", "Water", "Oxygen"] },
+      { q: "Which tissue transports water in plants?", a: "Xylem", wrong: ["Phloem", "Epidermis", "Cortex"] },
+      { q: "What pigment makes leaves green?", a: "Chlorophyll", wrong: ["Carotene", "Xanthophyll", "Melanin"] },
+      { q: "Which organ filters and processes nutrients in humans?", a: "Liver", wrong: ["Heart", "Lungs", "Spleen"] },
+      { q: "What type of organism is yeast?", a: "Fungus", wrong: ["Bacterium", "Virus", "Algae"] },
+      { q: "Which animal has an exoskeleton?", a: "Crab", wrong: ["Fish", "Bird", "Frog"] },
+      { q: "What is the liquid portion of blood called?", a: "Plasma", wrong: ["Platelets", "Serum", "Hemoglobin"] },
+      { q: "Which organ helps us breathe?", a: "Lungs", wrong: ["Stomach", "Kidneys", "Brain"] },
+      { q: "What is the study of living things called?", a: "Biology", wrong: ["Chemistry", "Physics", "Geology"] },
+      { q: "What do we call a baby frog?", a: "Tadpole", wrong: ["Caterpillar", "Fry", "Larva"] },
+      { q: "Where is bile produced?", a: "Liver", wrong: ["Gallbladder", "Pancreas", "Stomach"] },
+      { q: "What is the main role of red blood cells?", a: "Transport oxygen", wrong: ["Fight germs", "Clot blood", "Produce hormones"] },
+      { q: "Which gas is primarily exhaled by humans?", a: "Carbon Dioxide", wrong: ["Oxygen", "Nitrogen", "Helium"] },
+      { q: "What structural protein forms hair and nails?", a: "Keratin", wrong: ["Collagen", "Elastin", "Myosin"] },
+      { q: "Which organ stores bile?", a: "Gallbladder", wrong: ["Liver", "Pancreas", "Stomach"] },
+      { q: "What is the basic unit of life?", a: "Cell", wrong: ["Atom", "Molecule", "Organ"] },
+      { q: "How many lungs do humans have?", a: "2", wrong: ["1", "3", "4"] },
+      { q: "What is a group of similar cells working together called?", a: "Tissue", wrong: ["Organ", "System", "Organism"] },
+      { q: "Which organelle makes proteins in a cell?", a: "Ribosome", wrong: ["Mitochondria", "Nucleus", "Vacuole"] },
+      { q: "What is the hard outer layer of a plant cell?", a: "Cell wall", wrong: ["Cell membrane", "Cytoplasm", "Capsule"] },
+      { q: "What is the main organ of the human nervous system?", a: "Brain", wrong: ["Heart", "Lungs", "Liver"] },
+      { q: "Which animal breathes through its skin and lungs?", a: "Frog", wrong: ["Snake", "Fish", "Lizard"] }
     ],
     intermediate: [
       { q: "Which organ is primarily responsible for filtering blood?", a: "Kidneys", wrong: ["Heart", "Lungs", "Stomach"] },
@@ -68,7 +99,37 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
       { q: "What are the building blocks of proteins?", a: "Amino Acids", wrong: ["Glucose", "Fatty Acids", "Nucleotides"] },
       { q: "Which system is responsible for transporting nutrients throughout the body?", a: "Circulatory System", wrong: ["Nervous System", "Digestive System", "Endocrine System"] },
       { q: "Where is the smallest bone in the human body located?", a: "Ear", wrong: ["Nose", "Finger", "Toe"] },
-      { q: "What type of organism can make its own food?", a: "Autotroph", wrong: ["Heterotroph", "Saprophyte", "Parasite"] }
+      { q: "What type of organism can make its own food?", a: "Autotroph", wrong: ["Heterotroph", "Saprophyte", "Parasite"] },
+      { q: "What is the name of the process by which water moves across a semi-permeable membrane?", a: "Osmosis", wrong: ["Diffusion", "Active transport", "Endocytosis"] },
+      { q: "Which hormone lowers blood glucose levels?", a: "Insulin", wrong: ["Glucagon", "Adrenaline", "Thyroxine"] },
+      { q: "What is the division of cytoplasm called?", a: "Cytokinesis", wrong: ["Karyokinesis", "Mitosis", "Meiosis"] },
+      { q: "What type of joint is the human shoulder?", a: "Ball and socket joint", wrong: ["Hinge joint", "Pivot joint", "Gliding joint"] },
+      { q: "What is the standard start codon in DNA translation?", a: "AUG", wrong: ["UAA", "UAG", "UGA"] },
+      { q: "Which division of the nervous system controls involuntary actions?", a: "Autonomic", wrong: ["Somatic", "Central", "Sensory"] },
+      { q: "What is the primary site of nutrient absorption in humans?", a: "Small intestine", wrong: ["Stomach", "Large intestine", "Esophagus"] },
+      { q: "Which vitamin is fat-soluble?", a: "Vitamin A", wrong: ["Vitamin C", "Vitamin B12", "Vitamin B6"] },
+      { q: "What are the air sacs in the lungs called?", a: "Alveoli", wrong: ["Bronchioles", "Trachea", "Capillaries"] },
+      { q: "Which blood vessel carries oxygenated blood from the lungs to the heart?", a: "Pulmonary vein", wrong: ["Pulmonary artery", "Aorta", "Vena cava"] },
+      { q: "What is the genetic makeup of an organism called?", a: "Genotype", wrong: ["Phenotype", "Karyotype", "Allele"] },
+      { q: "What produces antibodies in the immune system?", a: "B cells", wrong: ["T cells", "Red blood cells", "Macrophages"] },
+      { q: "What is the process of converting glucose into pyruvate?", a: "Glycolysis", wrong: ["Krebs Cycle", "Gluconeogenesis", "Fermentation"] },
+      { q: "What is the term for a symbiotic relationship where one benefits and the other is unharmed?", a: "Commensalism", wrong: ["Mutualism", "Parasitism", "Competition"] },
+      { q: "Which plant hormone promotes fruit ripening?", a: "Ethylene", wrong: ["Auxin", "Gibberellin", "Cytokinin"] },
+      { q: "What is the primary function of the large intestine?", a: "Absorb water", wrong: ["Digest proteins", "Absorb lipids", "Filter blood"] },
+      { q: "Which muscle separates the thoracic and abdominal cavities?", a: "Diaphragm", wrong: ["Intercostal muscle", "Rectus abdominis", "Pectoralis major"] },
+      { q: "What is the main nitrogenous waste excreted by humans?", a: "Urea", wrong: ["Uric acid", "Ammonia", "Creatinine"] },
+      { q: "Which organelle breaks down waste in an animal cell?", a: "Lysosome", wrong: ["Ribosome", "Centrosome", "Peroxisome"] },
+      { q: "What is the sensory receptor organ for hearing?", a: "Cochlea", wrong: ["Vestibule", "Tympanic membrane", "Ossicles"] },
+      { q: "Which hormone stimulates uterine contractions during childbirth?", a: "Oxytocin", wrong: ["Progesterone", "Estrogen", "Prolactin"] },
+      { q: "What type of RNA carries amino acids to the ribosome?", a: "tRNA", wrong: ["mRNA", "rRNA", "snRNA"] },
+      { q: "What is the tissue in plants that conducts sugars?", a: "Phloem", wrong: ["Xylem", "Cambium", "Pith"] },
+      { q: "Which valve separates the left atrium and left ventricle?", a: "Mitral valve", wrong: ["Tricuspid valve", "Aortic valve", "Pulmonary valve"] },
+      { q: "What structure connects muscles to bones?", a: "Tendon", wrong: ["Ligament", "Cartilage", "Fascia"] },
+      { q: "What is the outer protective layer of the brain called?", a: "Dura mater", wrong: ["Pia mater", "Arachnoid mater", "Myelin"] },
+      { q: "Which organelle modifies and packages proteins?", a: "Golgi Apparatus", wrong: ["Endoplasmic reticulum", "Ribosome", "Nucleolus"] },
+      { q: "What are the non-coding sections of a gene called?", a: "Introns", wrong: ["Exons", "Promoters", "Codons"] },
+      { q: "Which gland is known as the master gland of the endocrine system?", a: "Pituitary gland", wrong: ["Thyroid gland", "Adrenal gland", "Pancreas"] },
+      { q: "What is the resting phase of the cell cycle called?", a: "Interphase", wrong: ["Prophase", "Metaphase", "Anaphase"] }
     ],
     pro: [
       { q: "What is the programmed death of a cell called?", a: "Apoptosis", wrong: ["Necrosis", "Phagocytosis", "Endocytosis"] },
@@ -80,7 +141,37 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
       { q: "What is the term for an organism's observable characteristics?", a: "Phenotype", wrong: ["Genotype", "Allele", "Locus"] },
       { q: "Which protein is the main component of hair and nails?", a: "Keratin", wrong: ["Collagen", "Elastin", "Fibrin"] },
       { q: "What is the name of the fluid that surrounds the brain and spinal cord?", a: "Cerebrospinal Fluid", wrong: ["Plasma", "Lymph", "Synovial Fluid"] },
-      { q: "Which infectious agent consists only of protein?", a: "Prion", wrong: ["Virus", "Bacterium", "Viroid"] }
+      { q: "Which infectious agent consists only of protein?", a: "Prion", wrong: ["Virus", "Bacterium", "Viroid"] },
+      { q: "Which antibody is the most abundant in human secretions like saliva?", a: "IgA", wrong: ["IgG", "IgM", "IgE"] },
+      { q: "What is the primary electron donor in photosystem II?", a: "Water", wrong: ["Plastoquinone", "Ferredoxin", "Oxygen"] },
+      { q: "Which enzyme seals nicks in the sugar-phosphate backbone of DNA?", a: "DNA Ligase", wrong: ["DNA Polymerase", "DNA Helicase", "Topoisomerase"] },
+      { q: "What metabolic pathway occurs in both aerobic and anaerobic respiration?", a: "Glycolysis", wrong: ["Krebs Cycle", "Electron Transport Chain", "Oxidative Phosphorylation"] },
+      { q: "Which cofactor is essential for the function of hemoglobin?", a: "Iron", wrong: ["Magnesium", "Copper", "Zinc"] },
+      { q: "What is the direct product of the Calvin cycle?", a: "G3P", wrong: ["Glucose", "RuBP", "Pyruvate"] },
+      { q: "Which protein filament interacts with myosin to cause muscle contraction?", a: "Actin", wrong: ["Tubulin", "Keratin", "Dynein"] },
+      { q: "What type of mutation results in a premature stop codon?", a: "Nonsense mutation", wrong: ["Missense mutation", "Silent mutation", "Frameshift mutation"] },
+      { q: "Which cranial nerve is responsible for transmitting visual information?", a: "Optic nerve", wrong: ["Olfactory nerve", "Oculomotor nerve", "Vagus nerve"] },
+      { q: "What is the term for the movement of alleles between populations?", a: "Gene flow", wrong: ["Genetic drift", "Natural selection", "Founder effect"] },
+      { q: "Which secondary messenger is produced by adenylyl cyclase?", a: "cAMP", wrong: ["IP3", "DAG", "Calcium ions"] },
+      { q: "What structure allows bacteria to transfer genetic material during conjugation?", a: "Pilus", wrong: ["Flagellum", "Fimbriae", "Capsule"] },
+      { q: "Which plant tissue contains actively dividing cells?", a: "Meristem", wrong: ["Parenchyma", "Sclerenchyma", "Collenchyma"] },
+      { q: "What is the term for a gene that has the potential to cause cancer?", a: "Oncogene", wrong: ["Proto-oncogene", "Tumor suppressor gene", "Pseudogene"] },
+      { q: "Which compound is the immediate precursor to epinephrine?", a: "Norepinephrine", wrong: ["Dopamine", "L-DOPA", "Tyrosine"] },
+      { q: "What is the name of the theory describing the origin of eukaryotic organelles from prokaryotes?", a: "Endosymbiotic theory", wrong: ["Evolutionary theory", "Spontaneous generation", "Cell theory"] },
+      { q: "Which cell junction prevents fluids from leaking between epithelial cells?", a: "Tight junctions", wrong: ["Desmosomes", "Gap junctions", "Adherens junctions"] },
+      { q: "What enzyme converts RNA into DNA?", a: "Reverse Transcriptase", wrong: ["RNA Polymerase", "DNA Polymerase", "Integrase"] },
+      { q: "Which hormone inhibits the release of growth hormone?", a: "Somatostatin", wrong: ["Somatotropin", "Ghrelin", "Leptin"] },
+      { q: "What is the principal site of lipid synthesis in eukaryotic cells?", a: "Smooth Endoplasmic Reticulum", wrong: ["Rough Endoplasmic Reticulum", "Golgi Apparatus", "Lysosome"] },
+      { q: "Which protein complexes are responsible for target protein degradation?", a: "Proteasomes", wrong: ["Lysosomes", "Ribosomes", "Peroxisomes"] },
+      { q: "What is the primary pigment of purple sulfur bacteria?", a: "Bacteriochlorophyll", wrong: ["Chlorophyll a", "Phycobilin", "Carotenoid"] },
+      { q: "Which factor is responsible for recognizing the promoter region in bacterial transcription?", a: "Sigma factor", wrong: ["Rho factor", "TATA-binding protein", "Alpha subunit"] },
+      { q: "What is the term for the maximum population size an environment can support?", a: "Carrying capacity", wrong: ["Biotic potential", "Exponential growth", "Niche"] },
+      { q: "Which receptor type is a GPCR?", a: "Beta-adrenergic receptor", wrong: ["Nicotinic receptor", "Insulin receptor", "Estrogen receptor"] },
+      { q: "What molecule is the major extracellular buffer in human blood?", a: "Bicarbonate", wrong: ["Phosphate", "Albumin", "Hemoglobin"] },
+      { q: "What is the primary function of the nucleolus?", a: "Ribosome assembly", wrong: ["DNA replication", "mRNA transcription", "Lipid metabolism"] },
+      { q: "Which class of enzymes catalyzes the hydrolysis of chemical bonds?", a: "Hydrolases", wrong: ["Isomerases", "Ligases", "Transferases"] },
+      { q: "What is the specialized region of a chromosome where sister chromatids are held together?", a: "Centromere", wrong: ["Centrosome", "Telomere", "Kinetochore"] },
+      { q: "Which toxin binds irreversibly to acetylcholine receptors at the neuromuscular junction?", a: "Alpha-bungarotoxin", wrong: ["Tetrodotoxin", "Botulinum toxin", "Cholera toxin"] }
     ]
   };
 
@@ -96,7 +187,9 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
     setScore(0);
     setGameState("playing");
     const pool = questionsByDifficulty[diff];
-    const item = pool[Math.floor(Math.random() * pool.length)];
+    const shuffled = shuffleArray([...pool]);
+    setSessionProblems(shuffled);
+    const item = shuffled[0];
     setCurrentProblem({ q: item.q, a: item.a, options: shuffleArray([item.a, ...item.wrong]) });
     setTimeLeft(getTimerLimit());
   };
@@ -109,8 +202,7 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
       }
       return;
     }
-    const pool = questionsByDifficulty[difficulty];
-    const item = pool[Math.floor(Math.random() * pool.length)];
+    const item = sessionProblems[round];
     setCurrentProblem({ q: item.q, a: item.a, options: shuffleArray([item.a, ...item.wrong]) });
     setRound(r => r + 1);
     setTimeLeft(getTimerLimit());
