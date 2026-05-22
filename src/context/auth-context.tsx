@@ -87,6 +87,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         setIsAdmin(false);
         setUserProfile(null);
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('ai_usage_count');
+          sessionStorage.removeItem('ai_popup_shown');
+        }
       }
       setIsLoading(false);
     });

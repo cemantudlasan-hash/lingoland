@@ -40,25 +40,13 @@ export function DonationPopup() {
           </AlertDialogDescription>
         </AlertDialogHeader>
         
-        {/* Buy Me a Coffee Visual Badge */}
-        <div className="my-4 flex justify-center">
-          <a 
-            href="https://www.buymeacoffee.com/cemantudlasan" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="flex items-center gap-2.5 px-5 py-2.5 bg-[#FFDD00] hover:bg-[#FFDD00]/90 text-black font-extrabold text-sm rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md border border-black/10"
-          >
-            <Coffee className="w-5 h-5 fill-current" />
-            <span>Buy me a coffee</span>
-          </a>
-        </div>
-
-        <AlertDialogFooter className="flex items-center justify-center gap-2 sm:justify-center">
+        <AlertDialogFooter className="flex items-center justify-center gap-2 sm:justify-center mt-4">
           <AlertDialogCancel onClick={() => setIsOpen(false)} className="border-border/60 hover:bg-muted font-bold transition-all">
             Maybe Later
           </AlertDialogCancel>
-          <AlertDialogAction onClick={handleDonate} className="bg-[#FFDD00] hover:bg-[#FFDD00]/90 text-black font-black transition-all px-6 border border-black/5 shadow-md">
-            Donate Now
+          <AlertDialogAction onClick={handleDonate} className="bg-[#FFDD00] hover:bg-[#FFDD00]/90 text-black font-black transition-all px-6 border border-black/5 shadow-md flex items-center gap-2">
+            <Coffee className="w-4 h-4 fill-current" />
+            Buy me a coffee
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

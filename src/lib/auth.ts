@@ -56,6 +56,10 @@ export async function signOut() {
   try {
     const { auth } = initializeFirebase();
     await firebaseSignOut(auth);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('ai_usage_count');
+      sessionStorage.removeItem('ai_popup_shown');
+    }
     return { error: null };
   } catch (e) {
     const error = e as AuthError;

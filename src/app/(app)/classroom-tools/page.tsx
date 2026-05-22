@@ -10,9 +10,10 @@ import { Scoreboard } from './scoreboard';
 import { MorningDashboard } from './morning-dashboard';
 import { CommentGenerator } from './comment-generator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote } from 'lucide-react';
+import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MemorandumTool } from './memorandum-tool';
+import { NoiseMeter } from './noise-meter';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -25,7 +26,7 @@ export default function ClassroomToolsPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab && ['morning-dashboard', 'timer', 'random-name-picker', 'group-maker', 'scoreboard', 'comment-generator', 'memorandum'].includes(tab)) {
+      if (tab && ['morning-dashboard', 'timer', 'noise-meter', 'random-name-picker', 'group-maker', 'scoreboard', 'comment-generator', 'memorandum'].includes(tab)) {
         setActiveTab(tab);
       }
     }
@@ -55,6 +56,7 @@ export default function ClassroomToolsPage() {
   const tabs = [
     { value: 'morning-dashboard', label: 'Dashboard', icon: Monitor },
     { value: 'timer', label: 'Timer', icon: Timer },
+    { value: 'noise-meter', label: 'Noise Meter', icon: Volume2 },
     { value: 'random-name-picker', label: 'Name Picker', icon: User },
     { value: 'group-maker', label: 'Group Maker', icon: Users },
     { value: 'scoreboard', label: 'Scoreboard', icon: Trophy },
@@ -175,6 +177,18 @@ export default function ClassroomToolsPage() {
             <TabsContent value="memorandum" className="flex-grow mt-0 h-full">
                 <Card className="h-full flex flex-col overflow-y-auto">
                     <MemorandumTool />
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="noise-meter" className="flex-grow mt-0 h-full">
+                <Card className="h-full flex flex-col">
+                    <CardHeader className="pb-2">
+                        <CardTitle>Classroom Noise Meter</CardTitle>
+                        <CardDescription>Monitor and manage classroom sound levels using your microphone.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow overflow-y-auto">
+                        <NoiseMeter />
+                    </CardContent>
                 </Card>
             </TabsContent>
         </Tabs>
