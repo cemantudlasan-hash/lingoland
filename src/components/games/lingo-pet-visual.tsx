@@ -47,7 +47,7 @@ export function LingoPetVisual({
             {/* Big Ben window silhouette */}
             <div className="absolute inset-y-0 left-6 w-32 border-r border-indigo-900/30 flex flex-col justify-between p-4 opacity-20">
               <div className="w-16 h-16 rounded-full border-4 border-indigo-700/30 flex items-center justify-center">
-                <div className="w-10 h-1 bg-indigo-700/30 transform rotate-45 Origin-left" />
+                <div className="w-10 h-1 bg-indigo-700/30 transform rotate-45 origin-left" />
               </div>
               <div className="w-24 h-48 border-t-4 border-x-4 border-indigo-700/30 rounded-t-full" />
             </div>
@@ -99,6 +99,148 @@ export function LingoPetVisual({
             </div>
           </div>
         );
+      case 'cosmic-nebula':
+        return (
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-indigo-950 to-purple-950 overflow-hidden transition-all duration-700">
+            {/* Nebula Dust Clouds */}
+            <div className="absolute top-[-50px] left-[-50px] w-48 h-48 rounded-full bg-pink-500/20 blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
+            <div className="absolute bottom-[-50px] right-[-50px] w-64 h-64 rounded-full bg-indigo-500/25 blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
+            <div className="absolute top-1/3 right-1/4 w-36 h-36 rounded-full bg-purple-500/20 blur-2xl animate-nebula-pulse" />
+            
+            {/* Spinning Starfield */}
+            <div className="absolute inset-[-50px] opacity-40 animate-nebula-spin pointer-events-none">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-1.5 h-1.5 bg-white rounded-full"
+                  style={{
+                    top: `${10 + (i * 17) % 80}%`,
+                    left: `${10 + (i * 23) % 80}%`,
+                    boxShadow: '0 0 4px #fff, 0 0 8px #a855f7',
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Shooting Comets */}
+            {[...Array(2)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute h-[1px] bg-gradient-to-r from-transparent via-white to-transparent opacity-60"
+                style={{
+                  top: `${15 + i * 40}%`,
+                  left: `${-20}%`,
+                  width: '80px',
+                  transform: 'rotate(-25deg)',
+                  animation: `ufo-beam-pulse ${3 + i}s infinite linear`,
+                }}
+              />
+            ))}
+          </div>
+        );
+      case 'volcanic-core':
+        return (
+          <div className="absolute inset-0 bg-gradient-to-b from-stone-950 via-stone-900 to-red-950 overflow-hidden transition-all duration-700">
+            {/* Molten Glow at Bottom */}
+            <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-red-600/30 to-orange-500/0 blur-md" />
+            <div className="absolute bottom-[-20px] left-1/4 w-40 h-20 bg-orange-600/20 rounded-full blur-xl animate-lava-flow" />
+            <div className="absolute bottom-[-30px] right-1/4 w-48 h-24 bg-red-600/20 rounded-full blur-xl animate-lava-flow" style={{ animationDelay: '1.5s' }} />
+            
+            {/* Volcanic Sparks / Embers */}
+            <div className="absolute inset-0 pointer-events-none">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-1.5 h-1.5 bg-orange-400 rounded-full animate-lava-ember"
+                  style={{
+                    left: `${10 + (i * 12.5)}%`,
+                    bottom: '0px',
+                    boxShadow: '0 0 6px #f97316',
+                    animationDuration: `${2 + (i % 3) * 0.7}s`,
+                    animationDelay: `${i * 300}ms`,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Glowing Volcanic Veins on the sides */}
+            <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-red-800/10 to-transparent border-l border-red-500/10" />
+            <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-red-800/10 to-transparent border-r border-red-500/10" />
+          </div>
+        );
+      case 'ancient-temple':
+        return (
+          <div className="absolute inset-0 bg-gradient-to-b from-teal-950 via-slate-900 to-amber-950 overflow-hidden transition-all duration-700">
+            {/* Shafts of holy light */}
+            <div className="absolute inset-0 pointer-events-none flex justify-around">
+              <div className="w-16 h-full bg-gradient-to-r from-transparent via-amber-400/5 to-transparent transform -rotate-12 animate-light-beam" />
+              <div className="w-24 h-full bg-gradient-to-r from-transparent via-teal-300/5 to-transparent transform rotate-12 animate-light-beam" style={{ animationDelay: '2.5s' }} />
+            </div>
+
+            {/* Floating Runic Stones / Glyphs */}
+            <div className="absolute inset-0 pointer-events-none">
+              {[
+                { top: '20%', left: '15%', symbol: '✴', color: 'text-teal-400/40', delay: '0s' },
+                { top: '35%', right: '12%', symbol: '✦', color: 'text-amber-400/40', delay: '1s' },
+                { top: '60%', left: '10%', symbol: '❂', color: 'text-teal-300/35', delay: '2s' },
+                { top: '70%', right: '15%', symbol: '❈', color: 'text-amber-300/35', delay: '1.5s' },
+              ].map((rune, idx) => (
+                <div
+                  key={idx}
+                  className={cn("absolute text-xl font-bold animate-temple-float", rune.color)}
+                  style={{
+                    top: rune.top,
+                    left: rune.left,
+                    right: rune.right,
+                    animationDelay: rune.delay,
+                    textShadow: '0 0 8px rgba(251,191,36,0.3)',
+                  }}
+                >
+                  {rune.symbol}
+                </div>
+              ))}
+            </div>
+            {/* Shrine structure silhouette */}
+            <div className="absolute bottom-0 inset-x-0 h-6 bg-slate-950/80 border-t border-teal-500/20" />
+          </div>
+        );
+      case 'neon-grid':
+        return (
+          <div className="absolute inset-0 bg-slate-950 overflow-hidden transition-all duration-700">
+            {/* Cyber Grid Base */}
+            <div className="absolute inset-0"
+              style={{
+                backgroundImage: 'linear-gradient(rgba(99,102,241,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.08) 1px, transparent 1px)',
+                backgroundSize: '24px 24px',
+              }}
+            />
+            {/* Glowing horizon line */}
+            <div className="absolute bottom-[20%] inset-x-0 h-[1px] bg-indigo-500/30 shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+            
+            {/* Neon Sunset / Skyline glow */}
+            <div className="absolute bottom-[20%] inset-x-0 h-40 bg-gradient-to-t from-pink-500/10 via-purple-500/0 to-transparent blur-md" />
+            
+            {/* Cyber scan / grid lines */}
+            <div className="absolute top-[20%] bottom-0 inset-x-0 pointer-events-none overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent animate-cyber-laser" />
+            </div>
+
+            {/* Flying digital bytes */}
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute text-[8px] font-mono text-cyan-400/20"
+                style={{
+                  top: `${30 + i * 15}%`,
+                  left: `${15 + i * 20}%`,
+                  animation: `ufo-beam-pulse ${2 + i}s infinite alternate ease-in-out`,
+                }}
+              >
+                {i % 2 === 0 ? '0101' : '1010'}
+              </div>
+            ))}
+          </div>
+        );
       case 'cozy-room':
       default:
         return (
@@ -106,7 +248,7 @@ export function LingoPetVisual({
             {/* Bookshelf lines */}
             <div className="absolute top-4 left-4 w-48 h-20 border-b border-indigo-950/40 opacity-40 flex gap-2 items-end px-2">
               <div className="w-3 h-12 bg-indigo-900/20 rounded-sm" />
-              <div className="w-4 h-14 bg-purple-900/25 rounded-sm transform -rotate-12 Origin-bottom" />
+              <div className="w-4 h-14 bg-purple-900/25 rounded-sm transform -rotate-12 origin-bottom" />
               <div className="w-3 h-10 bg-blue-900/20 rounded-sm" />
             </div>
             {/* Fireplace glow */}
@@ -123,6 +265,56 @@ export function LingoPetVisual({
 
   // SVG Render of Mascot Owl
   const renderOwl = () => {
+    const isLvl15 = level >= 15;
+    const isLvl30 = level >= 30;
+    const isLvl45 = level >= 45;
+    const isLvl60 = level >= 60;
+    const isLvl75 = level >= 75;
+    const isLvl90 = level >= 90;
+    const isLvl100 = level >= 100;
+
+    let bodyColor = "#6366f1";
+    let wingColor = "#4f46e5";
+    let tummyColor = "#e0e7ff";
+    let earsColor = "#4f46e5";
+
+    if (isLvl100) {
+      bodyColor = "#0f172a";
+      wingColor = "#3b0764";
+      tummyColor = "#cbd5e1";
+      earsColor = "#3b0764";
+    } else if (isLvl90) {
+      bodyColor = "#1e1b4b";
+      wingColor = "#312e81";
+      tummyColor = "#e0e7ff";
+      earsColor = "#312e81";
+    } else if (isLvl75) {
+      bodyColor = "#0f172a";
+      wingColor = "#1e293b";
+      tummyColor = "#e2e8f0";
+      earsColor = "#1e293b";
+    } else if (isLvl60) {
+      bodyColor = "#5b21b6";
+      wingColor = "#4c1d95";
+      tummyColor = "#f5f3ff";
+      earsColor = "#4c1d95";
+    } else if (isLvl45) {
+      bodyColor = "#3730a3";
+      wingColor = "#312e81";
+      tummyColor = "#e0e7ff";
+      earsColor = "#312e81";
+    } else if (isLvl30) {
+      bodyColor = "#6d28d9";
+      wingColor = "#5b21b6";
+      tummyColor = "#f5f3ff";
+      earsColor = "#5b21b6";
+    } else if (isLvl15) {
+      bodyColor = "#4f46e5";
+      wingColor = "#3730a3";
+      tummyColor = "#e0e7ff";
+      earsColor = "#3730a3";
+    }
+
     return (
       <svg viewBox="0 0 200 200" className="w-full h-full">
         {/* Shadow */}
@@ -136,30 +328,96 @@ export function LingoPetVisual({
           isSleeping && "translate-y-1",
           !isPetting && !isTalking && !isSleeping && "animate-breathing"
         )}>
-          {/* Wings */}
+          {/* Dragon wings behind body (lvl 100+) */}
+          {isLvl100 && !equippedCosmetics.wings && (
+            <g className="animate-dragon-wings">
+              <path d="M 60,115 C 20,75 5,85 -10,105 C 10,125 35,120 60,115 Z" fill="#3b0764" stroke="#d946ef" strokeWidth="1.5" />
+              <path d="M 140,115 C 180,75 195,85 210,105 C 190,125 165,120 140,115 Z" fill="#3b0764" stroke="#d946ef" strokeWidth="1.5" />
+            </g>
+          )}
+
+          {/* Phoenix wings behind body (lvl 60+) */}
+          {isLvl60 && !isLvl100 && !equippedCosmetics.wings && (
+            <g className="animate-phoenix">
+              <path d="M 60,115 C 25,90 15,110 10,130 C 25,135 45,125 60,115" fill="#ea580c" stroke="#f97316" strokeWidth="1" />
+              <path d="M 140,115 C 175,90 185,110 190,130 C 175,135 155,125 140,115" fill="#ea580c" stroke="#f97316" strokeWidth="1" />
+            </g>
+          )}
+
+          {/* Dragon tail behind body (lvl 100+) */}
+          {isLvl100 && (
+            <g className="animate-dragon-wings" transform="translate(100, 125)">
+              <path d="M 40,25 C 65,30 80,50 85,60 C 90,55 85,45 60,30 Z" fill="#0f172a" stroke="#d946ef" strokeWidth="1.5" />
+              <polygon points="85,60 93,58 88,66" fill="#d946ef" />
+            </g>
+          )}
+
+          {/* Normal Wings */}
           {renderWings(100, 125)}
 
-          {!equippedCosmetics.wings && (
+          {!equippedCosmetics.wings && !isLvl60 && !isLvl100 && (
             <>
-              <path d="M 50 110 C 35 110, 30 135, 45 150 C 48 140, 52 120, 60 115" fill="#4f46e5" />
-              <path d="M 150 110 C 165 110, 170 135, 155 150 C 152 140, 148 120, 140 115" fill="#4f46e5" />
+              <path d="M 50 110 C 35 110, 30 135, 45 150 C 48 140, 52 120, 60 115" fill={wingColor} />
+              <path d="M 150 110 C 165 110, 170 135, 155 150 C 152 140, 148 120, 140 115" fill={wingColor} />
             </>
           )}
 
           {/* Main Body */}
-          <circle cx="100" cy="115" r="50" fill="#6366f1" />
+          <circle cx="100" cy="115" r="50" fill={bodyColor} />
           {/* Tummy */}
-          <circle cx="100" cy="125" r="35" fill="#e0e7ff" />
+          <circle cx="100" cy="125" r="35" fill={tummyColor} />
+
           {/* Tummy chest feathers */}
-          <path d="M 90 115 L 95 120 L 100 115 L 105 120 L 110 115" stroke="#c7d2fe" strokeWidth="2.5" fill="none" />
-          <path d="M 85 128 L 92 135 L 100 128 L 108 135 L 115 128" stroke="#c7d2fe" strokeWidth="2.5" fill="none" />
+          {!isLvl45 && (
+            <>
+              <path d="M 90 115 L 95 120 L 100 115 L 105 120 L 110 115" stroke={isLvl30 ? "#d8b4fe" : "#c7d2fe"} strokeWidth="2.5" fill="none" />
+              <path d="M 85 128 L 92 135 L 100 128 L 108 135 L 115 128" stroke={isLvl30 ? "#d8b4fe" : "#c7d2fe"} strokeWidth="2.5" fill="none" />
+            </>
+          )}
+
+          {/* Silver chest plate armor (lvl 45+) */}
+          {isLvl45 && (
+            <path d="M 82,125 Q 100,148 118,125 L 110,138 Q 100,150 90,138 Z" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="1.5" />
+          )}
 
           {/* Necklace */}
           {renderNecklace(100, 112)}
 
           {/* Ears/Tufts */}
-          <polygon points="55,75 50,55 75,70" fill="#4f46e5" />
-          <polygon points="145,75 150,55 125,70" fill="#4f46e5" />
+          <polygon points="55,75 50,55 75,70" fill={earsColor} />
+          <polygon points="145,75 150,55 125,70" fill={earsColor} />
+
+          {/* Head Crest Feather (lvl 15+) */}
+          {isLvl15 && !isLvl100 && (
+            <polygon points="97,68 100,48 103,68" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
+          )}
+
+          {/* Dragon Horns (lvl 100+) */}
+          {isLvl100 && (
+            <>
+              <path d="M 62,68 Q 50,45 35,52 Q 50,58 62,68" fill="#0f172a" stroke="#d946ef" strokeWidth="1.5" />
+              <path d="M 138,68 Q 150,45 165,52 Q 150,58 138,68" fill="#0f172a" stroke="#d946ef" strokeWidth="1.5" />
+            </>
+          )}
+
+          {/* Forehead Crescent Moon / Rune (lvl 30+) */}
+          {isLvl30 && (
+            <path d="M 97,84 A 3,3 0 0,0 103,84 A 2.2,2.2 0 0,1 97,84" fill={isLvl75 ? "#22d3ee" : "#fef08a"} opacity="0.9" />
+          )}
+
+          {/* Lightning Crown (lvl 75+) */}
+          {isLvl75 && (
+            <g className="animate-spark-flash">
+              <polygon points="92,44 100,24 108,44 103,44 100,34 97,44" fill="#22d3ee" stroke="#0891b2" strokeWidth="1" />
+            </g>
+          )}
+
+          {/* Mystical runic ring (lvl 90+) */}
+          {isLvl90 && (
+            <g className="animate-nebula-spin" opacity="0.7">
+              <circle cx="100" cy="115" r="54" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="4,6" />
+            </g>
+          )}
 
           {/* Feet */}
           <ellipse cx="80" cy="164" rx="10" ry="6" fill="#f59e0b" />
@@ -192,8 +450,8 @@ export function LingoPetVisual({
             ) : (
               // Normal / Happy eyes
               <>
-                <circle cx="78" cy="100" r="9" fill="#1e1b4b" className={cn(isTalking && "animate-pulse")} />
-                <circle cx="122" cy="100" r="9" fill="#1e1b4b" className={cn(isTalking && "animate-pulse")} />
+                <circle cx="78" cy="100" r="9" fill={isLvl75 ? "#0284c7" : "#1e1b4b"} className={cn(isTalking && "animate-pulse")} />
+                <circle cx="122" cy="100" r="9" fill={isLvl75 ? "#0284c7" : "#1e1b4b"} className={cn(isTalking && "animate-pulse")} />
                 {/* Pupils */}
                 <circle cx="75" cy="97" r="3" fill="white" />
                 <circle cx="119" cy="97" r="3" fill="white" />
@@ -223,6 +481,56 @@ export function LingoPetVisual({
 
   // SVG Render of Mascot Dino
   const renderDino = () => {
+    const isLvl15 = level >= 15;
+    const isLvl30 = level >= 30;
+    const isLvl45 = level >= 45;
+    const isLvl60 = level >= 60;
+    const isLvl75 = level >= 75;
+    const isLvl90 = level >= 90;
+    const isLvl100 = level >= 100;
+
+    let bodyColor = "#10b981";
+    let backPlatesColor = "#059669";
+    let bellyColor = "#a7f3d0";
+    let eyeColor = "#064e3b";
+
+    if (isLvl100) {
+      bodyColor = "#1e1b4b";
+      backPlatesColor = "#ef4444";
+      bellyColor = "#f87171";
+      eyeColor = "#ef4444";
+    } else if (isLvl90) {
+      bodyColor = "#022c22";
+      backPlatesColor = "#fbbf24";
+      bellyColor = "#6ee7b7";
+      eyeColor = "#34d399";
+    } else if (isLvl75) {
+      bodyColor = "#475569";
+      backPlatesColor = "#cbd5e1";
+      bellyColor = "#94a3b8";
+      eyeColor = "#0f172a";
+    } else if (isLvl60) {
+      bodyColor = "#b45309";
+      backPlatesColor = "#ea580c";
+      bellyColor = "#ffedd5";
+      eyeColor = "#78350f";
+    } else if (isLvl45) {
+      bodyColor = "#0f766e";
+      backPlatesColor = "#0d9488";
+      bellyColor = "#cbd5e1"; // Steel plate visual
+      eyeColor = "#115e59";
+    } else if (isLvl30) {
+      bodyColor = "#047857";
+      backPlatesColor = "#34d399";
+      bellyColor = "#a7f3d0";
+      eyeColor = "#064e3b";
+    } else if (isLvl15) {
+      bodyColor = "#059669";
+      backPlatesColor = "#10b981";
+      bellyColor = "#a7f3d0";
+      eyeColor = "#064e3b";
+    }
+
     return (
       <svg viewBox="0 0 200 200" className="w-full h-full">
         {/* Shadow */}
@@ -235,54 +543,123 @@ export function LingoPetVisual({
           isSleeping && "translate-y-1",
           !isPetting && !isTalking && !isSleeping && "animate-breathing"
         )}>
+          {/* Dragon wings behind body (lvl 100+) */}
+          {isLvl100 && !equippedCosmetics.wings && (
+            <g className="animate-dragon-wings">
+              <path d="M 65,110 C 25,70 5,80 -20,95 C 5,115 30,115 65,110 Z" fill="#7f1d1d" stroke="#ef4444" strokeWidth="1.5" />
+              <path d="M 125,110 C 165,70 185,80 210,95 C 185,115 160,115 125,110 Z" fill="#7f1d1d" stroke="#ef4444" strokeWidth="1.5" />
+            </g>
+          )}
+
           {/* Wings */}
           {renderWings(95, 115)}
 
           {/* Tail */}
-          <path d="M 60 135 C 30 145, 20 120, 15 130 C 10 140, 30 160, 65 150" fill="#059669" />
+          <path d="M 60 135 C 30 145, 20 120, 15 130 C 10 140, 30 160, 65 150" fill={bodyColor} />
           
-          {/* Back plates */}
-          <polygon points="50,90 40,82 55,80" fill="#10b981" />
-          <polygon points="58,110 46,102 62,100" fill="#10b981" />
-          <polygon points="62,125 50,118 68,115" fill="#10b981" />
+          {/* Tail fire (lvl 60+) */}
+          {isLvl60 && (
+            <g transform="translate(15, 126)" className="animate-fire-glow">
+              <circle cx="0" cy="0" r="10" fill="#ef4444" opacity="0.8" />
+              <circle cx="0" cy="0" r="6" fill="#f97316" />
+              <circle cx="0" cy="0" r="3" fill="#fbbf24" />
+            </g>
+          )}
+
+          {/* Tail Spikes (lvl 75+) */}
+          {isLvl75 && (
+            <g transform="translate(18, 132)">
+              <polygon points="-6,-6 -14,0 -6,6 0,0" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+            </g>
+          )}
+
+          {/* Back plates / Spikes (lvl 30+ has larger spikes) */}
+          {isLvl30 ? (
+            <>
+              <polygon points="46,88 28,78 52,76" fill={backPlatesColor} stroke={isLvl100 ? "#ef4444" : "none"} strokeWidth="1" />
+              <polygon points="54,108 36,98 60,96" fill={backPlatesColor} stroke={isLvl100 ? "#ef4444" : "none"} strokeWidth="1" />
+              <polygon points="58,124 40,114 66,112" fill={backPlatesColor} stroke={isLvl100 ? "#ef4444" : "none"} strokeWidth="1" />
+            </>
+          ) : (
+            <>
+              <polygon points="50,90 40,82 55,80" fill={backPlatesColor} />
+              <polygon points="58,110 46,102 62,100" fill={backPlatesColor} />
+              <polygon points="62,125 50,118 68,115" fill={backPlatesColor} />
+            </>
+          )}
 
           {/* Main Dino Body */}
-          <path d="M 70 85 C 70 50, 130 50, 130 85 C 130 100, 120 120, 115 140 C 110 155, 120 160, 110 165 C 95 168, 75 165, 75 145 C 75 130, 70 105, 70 85" fill="#10b981" />
+          <path d="M 70 85 C 70 50, 130 50, 130 85 C 130 100, 120 120, 115 140 C 110 155, 120 160, 110 165 C 95 168, 75 165, 75 145 C 75 130, 70 105, 70 85" fill={bodyColor} />
           
-          {/* Dino Belly */}
-          <path d="M 85 95 C 85 80, 115 80, 115 95 C 115 110, 110 130, 105 145 C 98 152, 90 148, 88 135 C 85 120, 85 110, 85 95" fill="#a7f3d0" />
+          {/* Dino Belly (lvl 45+ is steel, lvl 100 is volcanic magma red) */}
+          <path d="M 85 95 C 85 80, 115 80, 115 95 C 115 110, 110 130, 105 145 C 98 152, 90 148, 88 135 C 85 120, 85 110, 85 95" fill={bellyColor} stroke={isLvl45 && !isLvl100 ? "#475569" : "none"} strokeWidth={isLvl45 ? 1.5 : 0} />
+
+          {/* Cybernetic code lines (lvl 90+) */}
+          {isLvl90 && !isLvl100 && (
+            <>
+              <path d="M 88,110 L 112,110" stroke="#22d3ee" strokeWidth="1.5" strokeDasharray="3,3" className="animate-pulse" />
+              <path d="M 92,125 L 108,125" stroke="#22d3ee" strokeWidth="1.5" strokeDasharray="3,3" className="animate-pulse" />
+            </>
+          )}
+
+          {/* Volcanic magma cracks (lvl 100+) */}
+          {isLvl100 && (
+            <>
+              <path d="M 78,105 L 85,115 L 75,122" fill="none" stroke="#ef4444" strokeWidth="2.5" />
+              <path d="M 122,105 L 115,115 L 125,122" fill="none" stroke="#ef4444" strokeWidth="2.5" />
+            </>
+          )}
 
           {/* Necklace */}
           {renderNecklace(98, 92)}
 
           {/* Tiny Arms */}
-          <path d="M 72 108 Q 62 105 60 111" stroke="#059669" strokeWidth="5" strokeLinecap="round" fill="none" />
-          <path d="M 124 108 Q 134 105 136 111" stroke="#059669" strokeWidth="5" strokeLinecap="round" fill="none" />
+          <path d="M 72 108 Q 62 105 60 111" stroke={isLvl100 ? "#ef4444" : "#059669"} strokeWidth="5" strokeLinecap="round" fill="none" />
+          <path d="M 124 108 Q 134 105 136 111" stroke={isLvl100 ? "#ef4444" : "#059669"} strokeWidth="5" strokeLinecap="round" fill="none" />
 
           {/* Feet */}
-          <path d="M 75 160 Q 75 168 85 168 Q 90 160 85 158" fill="#059669" />
-          <path d="M 105 160 Q 105 168 115 168 Q 120 160 115 158" fill="#059669" />
+          <path d="M 75 160 Q 75 168 85 168 Q 90 160 85 158" fill={isLvl100 ? "#0f172a" : "#059669"} />
+          <path d="M 105 160 Q 105 168 115 168 Q 120 160 115 158" fill={isLvl100 ? "#0f172a" : "#059669"} />
           {renderShoes(80, 112, 162)}
+
+          {/* Nose Horn (lvl 15+) */}
+          {isLvl15 && !isLvl100 && (
+            <polygon points="124,70 134,68 126,76" fill="#fbbf24" stroke="#d97706" strokeWidth="0.8" />
+          )}
+
+          {/* Dragon head horns (lvl 100+) */}
+          {isLvl100 && (
+            <>
+              <path d="M 75,55 Q 60,35 50,45 Q 65,50 75,55" fill="#1e1b4b" stroke="#ef4444" strokeWidth="1.5" />
+              <path d="M 125,55 Q 140,35 150,45 Q 135,50 125,55" fill="#1e1b4b" stroke="#ef4444" strokeWidth="1.5" />
+            </>
+          )}
 
           {/* Eyes */}
           {isSleeping ? (
             <>
-              <path d="M 85 75 Q 92 82 100 75" stroke="#064e3b" strokeWidth="3" fill="none" />
-              <path d="M 110 75 Q 118 82 125 75" stroke="#064e3b" strokeWidth="3" fill="none" />
+              <path d="M 85 75 Q 92 82 100 75" stroke={eyeColor} strokeWidth="3" fill="none" />
+              <path d="M 110 75 Q 118 82 125 75" stroke={eyeColor} strokeWidth="3" fill="none" />
             </>
           ) : isSad ? (
             <>
-              <ellipse cx="92" cy="74" rx="7" ry="9" fill="#064e3b" />
-              <ellipse cx="118" cy="74" rx="7" ry="9" fill="#064e3b" />
-              <path d="M 82 63 L 95 67" stroke="#064e3b" strokeWidth="3" strokeLinecap="round" />
-              <path d="M 128 63 L 115 67" stroke="#064e3b" strokeWidth="3" strokeLinecap="round" />
+              <ellipse cx="92" cy="74" rx="7" ry="9" fill={eyeColor} />
+              <ellipse cx="118" cy="74" rx="7" ry="9" fill={eyeColor} />
+              <path d="M 82 63 L 95 67" stroke={eyeColor} strokeWidth="3" strokeLinecap="round" />
+              <path d="M 128 63 L 115 67" stroke={eyeColor} strokeWidth="3" strokeLinecap="round" />
             </>
           ) : (
             <>
-              <circle cx="92" cy="74" r="8" fill="#064e3b" />
-              <circle cx="118" cy="74" r="8" fill="#064e3b" />
+              <circle cx="92" cy="74" r="8" fill={eyeColor} />
+              <circle cx="118" cy="74" r="8" fill={eyeColor} />
               <circle cx="90" cy="71" r="2.5" fill="white" />
               <circle cx="116" cy="71" r="2.5" fill="white" />
+              {isLvl100 && (
+                <>
+                  <circle cx="92" cy="74" r="4.5" fill="#fbbf24" className="animate-pulse" />
+                  <circle cx="118" cy="74" r="4.5" fill="#fbbf24" className="animate-pulse" />
+                </>
+              )}
             </>
           )}
 
@@ -290,13 +667,18 @@ export function LingoPetVisual({
           <circle cx="82" cy="80" r="4" fill="#f87171" opacity="0.6" />
           <circle cx="126" cy="80" r="4" fill="#f87171" opacity="0.6" />
 
-          {/* Cute Mouth */}
+          {/* Cute Mouth (breathing fire for lvl 100+) */}
           {isSleeping ? (
-            <path d="M 102 85 Q 106 87 110 85" stroke="#064e3b" strokeWidth="2" fill="none" />
+            <path d="M 102 85 Q 106 87 110 85" stroke={isLvl100 ? "#ef4444" : "#064e3b"} strokeWidth="2" fill="none" />
           ) : isTalking ? (
-            <ellipse cx="106" cy="88" rx="5" ry="4" fill="#7f1d1d" />
+            <ellipse cx="106" cy="88" rx="5" ry="4" fill={isLvl100 ? "#ef4444" : "#7f1d1d"} />
           ) : (
-            <path d="M 102 85 Q 106 90 110 85" stroke="#064e3b" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            <path d="M 102 85 Q 106 90 110 85" stroke={isLvl100 ? "#ef4444" : "#064e3b"} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          )}
+
+          {/* Volcanic fire breath sparkles (lvl 100+) */}
+          {isLvl100 && (
+            <circle cx="108" cy="92" r="3.5" fill="#fbbf24" className="animate-ping" />
           )}
 
           {/* LEVEL BADGE */}
@@ -315,6 +697,56 @@ export function LingoPetVisual({
 
   // SVG Render of Mascot Kitty
   const renderKitty = () => {
+    const isLvl15 = level >= 15;
+    const isLvl30 = level >= 30;
+    const isLvl45 = level >= 45;
+    const isLvl60 = level >= 60;
+    const isLvl75 = level >= 75;
+    const isLvl90 = level >= 90;
+    const isLvl100 = level >= 100;
+
+    let bodyColor = "#f97316";
+    let earsColor = "#d97706";
+    let tummyColor = "#ffedd5";
+    let feetColor = "#ea580c";
+
+    if (isLvl100) {
+      bodyColor = "#fffbeb";
+      earsColor = "#fef3c7";
+      tummyColor = "#fef3c7";
+      feetColor = "#fef3c7";
+    } else if (isLvl90) {
+      bodyColor = "#faf5ff";
+      earsColor = "#f3e8ff";
+      tummyColor = "#f3e8ff";
+      feetColor = "#faf5ff";
+    } else if (isLvl75) {
+      bodyColor = "#cbd5e1";
+      earsColor = "#94a3b8";
+      tummyColor = "#f1f5f9";
+      feetColor = "#94a3b8";
+    } else if (isLvl60) {
+      bodyColor = "#be185d";
+      earsColor = "#9d174d";
+      tummyColor = "#fdf2f8";
+      feetColor = "#9d174d";
+    } else if (isLvl45) {
+      bodyColor = "#701a75";
+      earsColor = "#4a044e";
+      tummyColor = "#fdf4ff";
+      feetColor = "#4a044e";
+    } else if (isLvl30) {
+      bodyColor = "#db2777";
+      earsColor = "#be185d";
+      tummyColor = "#fdf2f8";
+      feetColor = "#be185d";
+    } else if (isLvl15) {
+      bodyColor = "#ea580c";
+      earsColor = "#c2410c";
+      tummyColor = "#ffedd5";
+      feetColor = "#c2410c";
+    }
+
     return (
       <svg viewBox="0 0 200 200" className="w-full h-full">
         {/* Shadow */}
@@ -330,35 +762,109 @@ export function LingoPetVisual({
           {/* Wings */}
           {renderWings(100, 130)}
 
-          {/* Tail */}
-          <path d="M 140 140 C 165 140, 175 110, 170 100 C 165 90, 155 110, 143 130" fill="#ea580c" />
+          {/* Seraphim angel wings (lvl 100+) */}
+          {isLvl100 && !equippedCosmetics.wings && (
+            <g className="animate-archangel">
+              {/* Left Golden Wing */}
+              <path d="M 60,100 C 25,60 10,70 -10,85 C 10,110 35,110 60,100" fill="#fbbf24" opacity="0.9" stroke="#f59e0b" strokeWidth="1" />
+              {/* Right Golden Wing */}
+              <path d="M 140,100 C 170,60 190,70 210,85 C 190,110 165,110 140,100" fill="#fbbf24" opacity="0.9" stroke="#f59e0b" strokeWidth="1" />
+            </g>
+          )}
+
+          {/* Seraphim wings (lvl 45+) */}
+          {isLvl45 && !isLvl100 && !equippedCosmetics.wings && (
+            <g className="animate-butterfly">
+              <path d="M 60,120 C 45,115 42,130 58,135 Z" fill="#fef08a" opacity="0.8" />
+              <path d="M 140,120 C 155,115 158,130 142,135 Z" fill="#fef08a" opacity="0.8" />
+            </g>
+          )}
+
+          {/* Multiple Tails (lvl 90+) */}
+          {isLvl90 ? (
+            <>
+              {/* Left tail */}
+              <path d="M 140,140 C 160,135 170,105 162,95 C 155,90 150,110 143,130" fill={feetColor} opacity="0.75" />
+              {/* Right tail */}
+              <path d="M 140,140 C 170,145 180,115 178,105 C 170,95 160,115 143,130" fill={feetColor} opacity="0.75" />
+              {/* Middle tail */}
+              <path d="M 140,140 C 165,140 175,110 170,100 C 165,90 155,110 143,130" fill={feetColor} />
+            </>
+          ) : (
+            <path d="M 140 140 C 165 140, 175 110, 170 100 C 165 90, 155 110, 143 130" fill={feetColor} />
+          )}
+
+          {/* Goddess Scarf Ribbon (lvl 100+) */}
+          {isLvl100 && (
+            <path d="M 50,130 Q 100,165 150,130 Q 180,110 168,145 Q 100,175 32,145 Q 20,110 50,130" fill="none" stroke="#fbbf24" strokeWidth="2.5" opacity="0.8" className="animate-float" />
+          )}
 
           {/* Main Body */}
-          <ellipse cx="100" cy="130" rx="45" ry="35" fill="#f97316" />
+          <ellipse cx="100" cy="130" rx="45" ry="35" fill={bodyColor} />
           
           {/* Tummy/Chest patch */}
-          <ellipse cx="100" cy="138" rx="28" ry="20" fill="#ffedd5" />
+          <ellipse cx="100" cy="138" rx="28" ry="20" fill={tummyColor} />
+
+          {/* Valkyrie chest plate (lvl 75+) */}
+          {isLvl75 && (
+            <path d="M 85,128 Q 100,145 115,128 L 110,136 Q 100,146 90,136 Z" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="1.2" />
+          )}
 
           {/* Necklace */}
           {renderNecklace(100, 112)}
 
           {/* Head */}
-          <circle cx="100" cy="92" r="38" fill="#f97316" />
+          <circle cx="100" cy="92" r="38" fill={bodyColor} />
 
           {/* Ears */}
-          <polygon points="68,75 58,45 85,68" fill="#d97706" />
+          <polygon points="68,75 58,45 85,68" fill={earsColor} />
           <polygon points="68,75 62,52 80,68" fill="#fecaca" />
           
-          <polygon points="132,75 142,45 115,68" fill="#d97706" />
+          <polygon points="132,75 142,45 115,68" fill={earsColor} />
           <polygon points="132,75 138,52 120,68" fill="#fecaca" />
 
+          {/* Valkyrie ear wings (lvl 75+) */}
+          {isLvl75 && (
+            <>
+              <path d="M 58,45 Q 46,35 42,45 Q 50,47 58,45" fill="#cbd5e1" stroke="#fbbf24" strokeWidth="0.8" />
+              <path d="M 142,45 Q 154,35 158,45 Q 150,47 142,45" fill="#cbd5e1" stroke="#fbbf24" strokeWidth="0.8" />
+            </>
+          )}
+
+          {/* Goddess Halo (lvl 100+) */}
+          {isLvl100 && (
+            <g className="animate-halo" transform="translate(100, 44)">
+              <ellipse cx="0" cy="0" rx="28" ry="8" fill="none" stroke="#fbbf24" strokeWidth="3" opacity="0.95" />
+              <ellipse cx="0" cy="0" rx="28" ry="8" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5" />
+            </g>
+          )}
+
+          {/* Crystal tiara (lvl 60+) */}
+          {isLvl60 && !isLvl100 && (
+            <path d="M 90,66 L 88,58 L 95,61 L 100,51 L 105,61 L 112,58 L 110,66 Z" fill="#ec4899" stroke="#cbd5e1" strokeWidth="1" />
+          )}
+
+          {/* Ribbon neck collar (lvl 15+) */}
+          {isLvl15 && !isLvl100 && (
+            <g>
+              <rect x="86" y="110" width="28" height="4" fill="#f43f5e" rx="2" />
+              <circle cx="100" cy="112" r="3" fill="#fbbf24" className="animate-pulse" />
+            </g>
+          )}
+
+          {/* Forehead Moon (lvl 30+) */}
+          {isLvl30 && (
+            <path d="M 97,80 A 3,3 0 0,0 103,80 A 2.2,2.2 0 0,1 97,80" fill={isLvl90 ? "#a855f7" : "#fbbf24"} opacity="0.9" />
+          )}
+
           {/* Feet */}
-          <ellipse cx="78" cy="162" rx="10" ry="7" fill="#ea580c" />
-          <ellipse cx="122" cy="162" rx="10" ry="7" fill="#ea580c" />
+          <ellipse cx="78" cy="162" rx="10" ry="7" fill={feetColor} />
+          <ellipse cx="122" cy="162" rx="10" ry="7" fill={feetColor} />
           {renderShoes(78, 122, 162)}
+          
           {/* Paws front */}
-          <circle cx="88" cy="148" r="8" fill="#ffedd5" />
-          <circle cx="112" cy="148" r="8" fill="#ffedd5" />
+          <circle cx="88" cy="148" r="8" fill={tummyColor} />
+          <circle cx="112" cy="148" r="8" fill={tummyColor} />
 
           {/* Eyes */}
           {isSleeping ? (
@@ -375,8 +881,8 @@ export function LingoPetVisual({
             </>
           ) : (
             <>
-              <circle cx="85" cy="91" r="8" fill="#78350f" />
-              <circle cx="115" cy="91" r="8" fill="#78350f" />
+              <circle cx="85" cy="91" r="8" fill={isLvl100 ? "#b45309" : isLvl60 ? "#db2777" : "#78350f"} />
+              <circle cx="115" cy="91" r="8" fill={isLvl100 ? "#b45309" : isLvl60 ? "#db2777" : "#78350f"} />
               <circle cx="83" cy="88" r="2.5" fill="white" />
               <circle cx="113" cy="88" r="2.5" fill="white" />
             </>
@@ -413,6 +919,40 @@ export function LingoPetVisual({
     if (!hat) return null;
 
     switch (hat) {
+      case 'phoenix_tiara':
+        return (
+          <g transform={`translate(${cx}, ${cy - 2})`}>
+            <g className="drop-shadow-[0_0_10px_rgba(249,115,22,0.9)] animate-fire-glow">
+              {/* Tiara Base */}
+              <path d="M -16 2 L -18 -6 L -8 -1 L 0 -12 L 8 -1 L 18 -6 L 16 2 Z" fill="#fbbf24" stroke="#ea580c" strokeWidth="1.5" />
+              {/* Center Ruby */}
+              <polygon points="0,-1 3,3 0,7 -3,3" fill="#ef4444" />
+              {/* Floating Flames */}
+              <circle cx="-10" cy="-10" r="1.5" fill="#f97316" className="animate-phoenix-ember" style={{ animationDelay: '100ms' }} />
+              <circle cx="10" cy="-12" r="1.8" fill="#fbbf24" className="animate-phoenix-ember" style={{ animationDelay: '400ms' }} />
+              <circle cx="0" cy="-16" r="2.2" fill="#ef4444" className="animate-phoenix-ember" style={{ animationDelay: '200ms' }} />
+            </g>
+          </g>
+        );
+      case 'goddess_laurel':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]">
+              {/* Wreath branches */}
+              <path d="M -20 2 Q -22 -10 -4 -8 Q 0 -10 4 -8 Q 22 -10 20 2" fill="none" stroke="#d97706" strokeWidth="2.5" />
+              {/* Gold Leaves */}
+              <path d="M -18 -6 Q -14 -12 -12 -5" fill="#fbbf24" />
+              <path d="M -10 -8 Q -6 -14 -5 -7" fill="#fbbf24" />
+              <path d="M -2 -9 Q 2 -15 3 -8" fill="#fbbf24" />
+              <path d="M 6 -8 Q 10 -14 11 -7" fill="#fbbf24" />
+              <path d="M 14 -6 Q 18 -12 16 -5" fill="#fbbf24" />
+              {/* Falling light particles */}
+              <circle cx="-15" cy="5" r="1.2" fill="#fff" className="animate-goddess-leaf" style={{ animationDelay: '0ms' }} />
+              <circle cx="15" cy="8" r="1.5" fill="#fff" className="animate-goddess-leaf" style={{ animationDelay: '500ms' }} />
+              <circle cx="0" cy="12" r="1" fill="#fff" className="animate-goddess-leaf" style={{ animationDelay: '1000ms' }} />
+            </g>
+          </g>
+        );
       case 'ufo_hat':
         return (
           <g transform={`translate(${cx}, ${cy - 12})`}>
@@ -529,6 +1069,20 @@ export function LingoPetVisual({
     if (!glasses) return null;
 
     switch (glasses) {
+      case 'tech_visor':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="drop-shadow-[0_0_10px_rgba(34,197,94,0.85)]">
+              {/* Visor shield */}
+              <polygon points="-26,-4 26,-4 24,7 -24,7" fill="rgba(34,197,94,0.2)" stroke="#22c55e" strokeWidth="2" />
+              {/* Binary matrix elements */}
+              <text x="-18" y="4" fill="#4ade80" fontSize="5" fontFamily="monospace" opacity="0.8" className="animate-pulse">01</text>
+              <text x="10" y="4" fill="#4ade80" fontSize="5" fontFamily="monospace" opacity="0.8" className="animate-pulse" style={{ animationDelay: '500ms' }}>10</text>
+              {/* Scanline */}
+              <line x1="-23" y1="1" x2="23" y2="1" stroke="#a7f3d0" strokeWidth="1" className="animate-scan" />
+            </g>
+          </g>
+        );
       case 'hypno_glasses':
         return (
           <g transform={`translate(${cx}, ${cy})`}>
@@ -804,6 +1358,21 @@ export function LingoPetVisual({
     if (!necklace) return null;
 
     switch (necklace) {
+      case 'dragon_pearl':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Jade chain */}
+            <path d="M -22 -6 Q 0 16 22 -6" fill="none" stroke="#059669" strokeWidth="2.5" />
+            {/* Glowing Pearl */}
+            <g transform="translate(0, 9)">
+              {/* Expanding Ripple Ring */}
+              <circle cx="0" cy="0" r="10" fill="none" stroke="#34d399" strokeWidth="1" className="animate-pearl-pulse" />
+              {/* Pearl Core */}
+              <circle cx="0" cy="0" r="5" fill="#6ee7b7" stroke="#047857" strokeWidth="1.5" className="drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
+              <circle cx="-1.5" cy="-1.5" r="1" fill="#fff" opacity="0.8" />
+            </g>
+          </g>
+        );
       case 'phoenix_amulet':
         return (
           <g transform={`translate(${cx}, ${cy})`}>

@@ -647,5 +647,81 @@
   }
 }
 
+/* Premium Lingo-Pet Evolution and Shop animations */
+.animate-nebula-spin {
+  animation: nebula-rotate 60s infinite linear;
+  transform-origin: center;
+}
+@keyframes nebula-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-nebula-pulse {
+  animation: nebula-glow 8s infinite alternate ease-in-out;
+}
+@keyframes nebula-glow {
+  0% { filter: hue-rotate(0deg) brightness(0.8); }
+  100% { filter: hue-rotate(45deg) brightness(1.1); }
+}
+
+.animate-lava-flow {
+  animation: lava-shift 10s infinite alternate ease-in-out;
+}
+@keyframes lava-shift {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-5px) scale(1.05); }
+}
+.animate-lava-ember {
+  animation: lava-ember-rise 2.5s infinite ease-in;
+}
+@keyframes lava-ember-rise {
+  0% { transform: translateY(15px) scale(0.8); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(-30px) scale(0.3); opacity: 0; }
+}
+
+.animate-temple-float {
+  animation: temple-float 4s infinite ease-in-out;
+}
+@keyframes temple-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
+}
+.animate-light-beam {
+  animation: beam-pulse 5s infinite alternate ease-in-out;
+}
+@keyframes beam-pulse {
+  0% { opacity: 0.1; }
+  100% { opacity: 0.3; }
+}
+
+.animate-cyber-laser {
+  animation: cyber-scan 3s infinite ease-in-out;
+}
+@keyframes cyber-scan {
+  0%, 100% { transform: translateY(-100%); opacity: 0.3; }
+  50% { transform: translateY(100%); opacity: 0.8; }
+}
+
+.animate-goddess-leaf {
+  animation: leaf-fall 3s infinite linear;
+}
+@keyframes leaf-fall {
+  0% { transform: translateY(-15px) rotate(0deg) scale(0.5); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(20px) rotate(180deg) scale(0.8); opacity: 0; }
+}
+
+.animate-pearl-pulse {
+  animation: pearl-glow 2s infinite ease-in-out;
+}
+@keyframes pearl-glow {
+  0%, 100% { r: 5; opacity: 0.2; }
+  50% { r: 15; opacity: 0.6; }
+}
+
+
 
 

@@ -185,6 +185,8 @@ const WAKEUP_QUESTIONS = [
 
 const SHOP_ITEMS = [
   // Hats
+  { id: 'phoenix_tiara', name: 'Phoenix Tiara', price: 270, category: 'hat', icon: '👑', description: 'A crown of eternal flames that emits hot spark embers.' },
+  { id: 'goddess_laurel', name: 'Goddess Laurel', price: 290, category: 'hat', icon: '🌿', description: 'A shimmering laurel wreath of golden leaves and falling light.' },
   { id: 'ufo_hat', name: 'Alien UFO Hat', price: 360, category: 'hat', icon: '🛸', description: 'A glowing alien UFO that hovers above the head, emitting a pulsing green tractor beam.' },
   { id: 'aurora_crown', name: 'Aurora Crown', price: 325, category: 'hat', icon: '👑', description: 'A premium neon crown displaying color-shifting polar lights.' },
   { id: 'dragon_horns', name: 'Dragon Horns', price: 280, category: 'hat', icon: '😈', description: 'Fiery glowing horns from the volcanic peaks.' },
@@ -195,6 +197,7 @@ const SHOP_ITEMS = [
   { id: 'party_hat', name: 'Party Hat', price: 40, category: 'hat', icon: '🥳', description: 'Celebrate learning milestones!' },
   
   // Glasses
+  { id: 'tech_visor', name: 'Tech Visor', price: 240, category: 'glasses', icon: '🕶️', description: 'A hacker cybernetic visor displaying green scanning code arrays.' },
   { id: 'hypno_glasses', name: 'Hypnotic Swirls', price: 220, category: 'glasses', icon: '🌀', description: 'Quirky glasses with concentric spirals that spin endlessly.' },
   { id: 'laser_visor', name: 'Laser Visor', price: 260, category: 'glasses', icon: '🕶️', description: 'A futuristic cybernetic visor with scanning laser line.' },
   { id: 'steampunk_goggles', name: 'Steampunk Goggles', price: 250, category: 'glasses', icon: '⚙️', description: 'Cyber-gears steampunk goggles with a pulsing warm glow.' },
@@ -204,6 +207,7 @@ const SHOP_ITEMS = [
   { id: 'gold_glasses', name: 'Scholar Glasses', price: 50, category: 'glasses', icon: '👓', description: 'Boost reading focus.' },
 
   // Necklaces
+  { id: 'dragon_pearl', name: 'Dragon Pearl', price: 230, category: 'necklace', icon: '📿', description: 'An emerald-green dragon amulet that emits glowing ripples.' },
   { id: 'phoenix_amulet', name: 'Phoenix Amulet', price: 275, category: 'necklace', icon: '📿', description: 'An ancient glowing pendant that emits rising fire embers.' },
   { id: 'ruby_pendant', name: 'Ruby Pendant', price: 220, category: 'necklace', icon: '💖', description: 'A shining gold chain with a glowing ruby heart pendant.' },
   { id: 'crystal_collar', name: 'Crystal Collar', price: 380, category: 'necklace', icon: '💎', description: 'A collar with icy blue diamond shards that sparkles.' },
@@ -225,6 +229,10 @@ const SHOP_ITEMS = [
   { id: 'bg_london', name: 'London Study', price: 200, category: 'background', icon: '💂', value: 'london-study', description: 'A cozy library room overlooking London.' },
   { id: 'bg_tokyo', name: 'Tokyo Garden', price: 200, category: 'background', icon: '🌸', value: 'tokyo-garden', description: 'A peaceful garden with cherry blossoms.' },
   { id: 'bg_nyc', name: 'NYC Cafe', price: 200, category: 'background', icon: '☕', value: 'nyc-cafe', description: 'A vibrant coffee shop in Manhattan.' },
+  { id: 'bg_nebula', name: 'Cosmic Nebula', price: 280, category: 'background', icon: '🌌', value: 'cosmic-nebula', description: 'A pulsing space nebula with rotating stars and comets.' },
+  { id: 'bg_volcanic', name: 'Volcanic Core', price: 300, category: 'background', icon: '🌋', value: 'volcanic-core', description: 'Molten lava rivers, heatwaves, and rising volcanic sparks.' },
+  { id: 'bg_temple', name: 'Ancient Sanctuary', price: 260, category: 'background', icon: '🏛️', value: 'ancient-temple', description: 'Floating runic stones, golden light beams, and holy sparkles.' },
+  { id: 'bg_cyberpunk', name: 'Neon Grid', price: 290, category: 'background', icon: '🌆', value: 'neon-grid', description: 'Holographic floor grids, scanning lasers, and matrix data streams.' },
 ];
 
 export default function LingoPetPage() {
@@ -793,6 +801,93 @@ export default function LingoPetPage() {
               🏆 Earn **100 XP** and **10 Coins** automatically every time you complete a vocabulary, reading, or science quiz game on LingoLand!
             </p>
           </Card>
+
+          {/* Admin Evolution Testing Controls */}
+          {isAdmin && (
+            <Card className="bg-slate-900/50 border-amber-500/30 backdrop-blur-md p-4 flex flex-col gap-3 border shadow-lg shadow-amber-500/5">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <span className="font-black text-xs text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Admin Evolution Tester
+                </span>
+                <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-300 text-[9px] uppercase px-1.5 py-0">
+                  Admin Exclusive
+                </Badge>
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <div className="text-[10px] text-slate-455 leading-tight text-slate-400">
+                  Modify your companion's level to view the design evolutions (Milestones: 15, 30, 45, 60, 75, 90, 100+).
+                </div>
+                
+                {/* Level Up/Down buttons */}
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      const newLevel = Math.max(1, pet.level - 1);
+                      updatePetState({ level: newLevel });
+                    }}
+                    className="flex-1 bg-slate-950 border-slate-800 text-[10px] h-8 hover:bg-slate-900 text-slate-300"
+                  >
+                    -1 Level
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      const newLevel = Math.max(1, pet.level - 15);
+                      updatePetState({ level: newLevel });
+                    }}
+                    className="flex-1 bg-slate-950 border-slate-800 text-[10px] h-8 hover:bg-slate-900 text-slate-300"
+                  >
+                    -15 Levels
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      const newLevel = pet.level + 15;
+                      updatePetState({ level: newLevel });
+                    }}
+                    className="flex-1 bg-slate-950 border-slate-800 text-[10px] h-8 hover:bg-slate-900 text-slate-300"
+                  >
+                    +15 Levels
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      const newLevel = pet.level + 1;
+                      updatePetState({ level: newLevel });
+                    }}
+                    className="flex-1 bg-slate-950 border-slate-800 text-[10px] h-8 hover:bg-slate-900 text-slate-300"
+                  >
+                    +1 Level
+                  </Button>
+                </div>
+
+                {/* Milestone Quick Jumps */}
+                <div className="grid grid-cols-4 gap-1.5 mt-1">
+                  {[1, 15, 30, 45, 60, 75, 90, 100].map(lvl => (
+                    <button
+                      key={lvl}
+                      onClick={() => updatePetState({ level: lvl })}
+                      className={cn(
+                        "h-7 text-[10px] font-black rounded border transition-all",
+                        (lvl === 100 ? pet.level >= 100 : pet.level === lvl)
+                          ? "bg-amber-500/20 border-amber-500 text-amber-300 font-bold"
+                          : "bg-slate-950/60 border-slate-850 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                      )}
+                    >
+                      Lvl {lvl === 100 ? "100+" : lvl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* RIGHT COLUMN: VITALITY BARS, SHOP, SPEECH & ACTIONS */}

@@ -11,7 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { useFirestore, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, type FirestoreError } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -217,6 +218,35 @@ export default function AdminPage() {
                          <Button onClick={handleSaveWidget} disabled={isSavingWidget}>
                             {isSavingWidget && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save Companion Texts
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader
+                      className="bg-white text-black"
+                      style={{
+                        backgroundImage: `repeating-linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 10px)`,
+                        backgroundSize: '20px 20px',
+                      }}
+                    >
+                        <CardTitle className="flex items-center gap-1.5">
+                            <Sparkles className="h-5 w-5 text-amber-500 fill-amber-500/20" />
+                            Lingo-Pet Evolution Tester
+                        </CardTitle>
+                        <CardDescription>
+                            Directly adjust and preview the level-based growth designs of your active Lingo-Pet.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pt-6">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                            To test all pet evolutions (Level ranges: 1-14, 15, 30, 45, 60, 75, 90, 100+), access the interactive testing panel built directly into the Lingo-Pet companion dashboard page.
+                        </p>
+                        <Button asChild className="w-full bg-slate-900 text-slate-100 hover:bg-slate-800 border border-slate-700/50">
+                            <Link href="/lingo-pet">
+                                Open Lingo-Pet Testing Panel
+                                <ChevronRight className="ml-1.5 h-4 w-4" />
+                            </Link>
                         </Button>
                     </CardContent>
                 </Card>
