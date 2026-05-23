@@ -283,16 +283,92 @@ export default function FlashcardsPage() {
     }
   };
 
-  // Export to JPG Action
+  // Export to JPG Action – builds a temporary offscreen element with inline
+  // styles so html2canvas can render every text element reliably.
   const handleExportJpg = async (card: Flashcard) => {
-    const element = document.getElementById(`export-card-${card.id}`);
-    if (!element) return;
+    // Build an offscreen container
+    const container = document.createElement("div");
+    container.style.cssText =
+      "position:fixed;left:-9999px;top:0;width:420px;padding:32px;border-radius:24px;" +
+      "background:#0f172a;border:1px solid rgba(99,102,241,0.25);font-family:system-ui,sans-serif;";
+
+    // Box badge
+    const badge = document.createElement("div");
+    badge.style.cssText =
+      "font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;" +
+      "color:#818cf8;background:rgba(99,102,241,0.08);display:inline-block;padding:3px 10px;" +
+      "border-radius:6px;border:1px solid rgba(99,102,241,0.15);margin-bottom:8px;";
+    badge.textContent = `Box ${card.box}`;
+    container.appendChild(badge);
+
+    // Next review date (right-aligned)
+    const dateRow = document.createElement("div");
+    dateRow.style.cssText =
+      "font-size:10px;font-weight:700;color:#64748b;text-align:right;margin-top:-22px;margin-bottom:16px;";
+    dateRow.textContent = new Date(card.nextReviewDate).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+    container.appendChild(dateRow);
+
+    // Word
+    const wordEl = document.createElement("h3");
+    wordEl.style.cssText =
+      "font-size:22px;font-weight:900;color:#ffffff;margin:0 0 10px 0;letter-spacing:0.02em;";
+    wordEl.textContent = card.word;
+    container.appendChild(wordEl);
+
+    // Definition
+    const defEl = document.createElement("p");
+    defEl.style.cssText =
+      "font-size:13px;font-weight:600;color:#cbd5e1;line-height:1.6;margin:0 0 10px 0;";
+    defEl.textContent = card.definition;
+    container.appendChild(defEl);
+
+    // Translation
+    const transEl = document.createElement("p");
+    transEl.style.cssText =
+      "font-size:13px;font-weight:500;font-style:italic;color:#94a3b8;margin:0 0 12px 0;";
+    transEl.textContent = card.translation;
+    container.appendChild(transEl);
+
+    // Example sentence (if any)
+    if (card.exampleSentence) {
+      const exEl = document.createElement("p");
+      exEl.style.cssText =
+        "font-size:12px;font-style:italic;color:#a78bfa;line-height:1.5;margin:0 0 10px 0;" +
+        "padding:8px 12px;background:rgba(139,92,246,0.08);border-radius:10px;" +
+        "border:1px solid rgba(139,92,246,0.12);";
+      exEl.textContent = `"${card.exampleSentence}"`;
+      container.appendChild(exEl);
+    }
+
+    // Hint (if any)
+    if (card.hint) {
+      const hintEl = document.createElement("p");
+      hintEl.style.cssText =
+        "font-size:12px;color:#c4b5fd;margin:0;" +
+        "padding:8px 12px;background:rgba(139,92,246,0.06);border-radius:10px;" +
+        "border:1px solid rgba(139,92,246,0.1);";
+      hintEl.textContent = `💡 ${card.hint}`;
+      container.appendChild(hintEl);
+    }
+
+    // Branding footer
+    const footer = document.createElement("div");
+    footer.style.cssText =
+      "margin-top:18px;padding-top:12px;border-top:1px solid rgba(100,116,139,0.15);" +
+      "font-size:10px;font-weight:700;color:#475569;text-align:right;letter-spacing:0.05em;";
+    footer.textContent = "LingoLandVerse · Flashcard";
+    container.appendChild(footer);
+
+    document.body.appendChild(container);
 
     try {
-      const canvas = await html2canvas(element, {
+      const canvas = await html2canvas(container, {
         backgroundColor: "#030712",
         useCORS: true,
-        scale: 2, // high-res
+        scale: 2,
       });
       const link = document.createElement("a");
       link.download = `${card.word.toLowerCase().replace(/\s+/g, "-")}-flashcard.jpg`;
@@ -309,6 +385,8 @@ export default function FlashcardsPage() {
         title: "Export Failed",
         description: "Could not render JPG image.",
       });
+    } finally {
+      document.body.removeChild(container);
     }
   };
 
