@@ -27,13 +27,14 @@ export function LingoPetVisual({
   level,
   energy,
   mood,
-  equippedCosmetics,
+  equippedCosmetics: equippedCosmeticsRaw,
   currentBackground,
   isPetting = false,
   isSleeping = false,
   isTalking = false,
   className,
 }: LingoPetVisualProps) {
+  const equippedCosmetics = equippedCosmeticsRaw || {};
   // Determine pet animation state
   const isTired = energy < 30;
   const isSad = mood < 30;

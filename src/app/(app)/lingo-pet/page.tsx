@@ -16,8 +16,9 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { LingoPetVisual } from '@/components/games/lingo-pet-visual';
 import { generatePetChatResponse } from '@/ai/flows/generate-pet-chat';
-import type { UserPet } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import type { UserPet } from '@/lib/types';
 
 // Mock Wake-up quiz questions
 const WAKEUP_QUESTIONS = [
@@ -311,8 +312,17 @@ export default function LingoPetPage() {
           try {
             const parsed = JSON.parse(local) as UserPet;
             const updated = applyDecay(parsed);
-            setPet(updated);
-            localStorage.setItem('lingoland_guest_pet', JSON.stringify(updated));
+            const safePet: UserPet = {
+              ...defaultPet,
+              ...updated,
+              equippedCosmetics: {
+                ...defaultPet.equippedCosmetics,
+                ...(updated.equippedCosmetics || {})
+              },
+              unlockedCosmetics: updated.unlockedCosmetics || []
+            };
+            setPet(safePet);
+            localStorage.setItem('lingoland_guest_pet', JSON.stringify(safePet));
           } catch (e) {
             setPet(defaultPet);
             localStorage.setItem('lingoland_guest_pet', JSON.stringify(defaultPet));
@@ -333,9 +343,18 @@ export default function LingoPetPage() {
       if (docSnap.exists()) {
         const data = docSnap.data() as UserPet;
         const updated = applyDecay(data);
-        setPet(updated);
-        // Save back decayed state
-        await setDoc(petRef, updated, { merge: true });
+        const safePet: UserPet = {
+          ...defaultPet,
+          ...updated,
+          equippedCosmetics: {
+            ...defaultPet.equippedCosmetics,
+            ...(updated.equippedCosmetics || {})
+          },
+          unlockedCosmetics: updated.unlockedCosmetics || []
+        };
+        setPet(safePet);
+        // Save back decayed state with merged compatibility fields
+        await setDoc(petRef, safePet, { merge: true });
       } else {
         setPet(defaultPet);
         await setDoc(petRef, defaultPet);
