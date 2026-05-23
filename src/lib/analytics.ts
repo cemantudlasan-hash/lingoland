@@ -67,7 +67,7 @@ export function getDailyMissions(): DailyMission[] {
     usedIndices.add(index);
     
     const game = games[index];
-    const reward = 5 + (Math.abs(hash * 17) % 11); // 5 to 15 coins
+    const reward = Math.abs(hash * 17) % 11; // 0 to 10 coins
     
     missions.push({
       slug: game.slug,

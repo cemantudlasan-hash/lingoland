@@ -1,0 +1,673 @@
+[
+  {
+    "file": "algebraic-abyss.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 91,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "anatomy-academy.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "arithmetic-ace.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 154,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "article-architect.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "atmospheric-ace.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "auction-action.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 178,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "bingo-boost.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 266,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "bio-hazard.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 28,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"showing_result\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 199,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "cellular-explorer-3d.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 180,
+        "text": "else setGameState('finished');"
+      },
+      {
+        "line": 194,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "charades-challenge.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 81,
+        "text": "setGameState(\"finished\");"
+      },
+      {
+        "line": 227,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "choose-your-gift.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 163,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "context-detective.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 170,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "coordinate-cosmos.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 80,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"instructions\" | \"playing\" | \"answered\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 138,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "crossword-connect.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 152,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "daily-verse.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "data-detective.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 19,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"showing_result\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 115,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "dialogue-dojo.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "element-escapade.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 127,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "emoji-enigma.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 174,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "evolution-expedition.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 49,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"finished\" | \"instructions\">(\"idle\");"
+      },
+      {
+        "line": 91,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "fraction-fortress.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 19,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"showing_result\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 98,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "fraction-fusion.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 127,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "galactic-cell-defender.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "gene-genius.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 455,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"instructions\" | \"playing\" | \"answered\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 511,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "geometry-galaxy-3d.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 179,
+        "text": "else setGameState('finished');"
+      },
+      {
+        "line": 193,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "geometry-genius.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 19,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"showing_result\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 119,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "grammar-gladiator.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 108,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "grammar-guru.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "hangman-challenge.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 86,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "idiom-illumination.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "idiom-inferno.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 27,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"showing_result\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 196,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "jeopardy-classroom.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 113,
+        "text": "setGameState(\"finished\");"
+      },
+      {
+        "line": 176,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "lexi-sphere.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 294,
+        "text": "setGameState('finished');"
+      },
+      {
+        "line": 322,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "lingo-pet-visual.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "listening-labyrinth.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 148,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "literary-device-legend.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 79,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"instructions\" | \"playing\" | \"answered\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 135,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "math-matrix.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 90,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "math-mission-situations.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "molecule-maker.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 28,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"showing_result\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 199,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "mystery-box.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 213,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "mystic-synonym-spire.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "neon-numbers-labyrinth.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "newtons-nightmare.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 19,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"showing_result\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 138,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "odd-one-out.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 163,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "phonics-flash.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 118,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "pictionary-party.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "probability-pilot.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "pronunciation-pro.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "quantum-quest.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 126,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "reading-comprehension.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "riddle-realm.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "running-dictation.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 104,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "sentence-scramble.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "solar-system-scout.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 110,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "spelling-bee.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 175,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "spin-the-wheel.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 141,
+        "text": "if (usedQuestionKeys.length >= wheelColors.length * teams.length - 1) setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "states-of-matter.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 125,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "story-chain.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 144,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "synonym-sleuth.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "synonym-sniper.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 28,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"showing_result\" | \"finished\">(\"idle\");"
+      },
+      {
+        "line": 198,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "syntax-skyline.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 44,
+        "text": "const [gameState, setGameState] = React.useState<\"idle\" | \"playing\" | \"finished\" | \"instructions\">(\"idle\");"
+      },
+      {
+        "line": 102,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "taboo-tussle.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 77,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "time-traveler.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "top-5-quiz.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "twenty-questions.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 91,
+        "text": "setGameState(\"finished\");"
+      },
+      {
+        "line": 128,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "vocab-vortex.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 122,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "vocab-voyage.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 106,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "vocabulary-match-up.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 118,
+        "text": "setGameState(\"finished\");"
+      }
+    ]
+  },
+  {
+    "file": "wheel-of-fortune.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  },
+  {
+    "file": "word-morph.tsx",
+    "hasFinishedState": true,
+    "setFinishedCalls": [
+      {
+        "line": 168,
+        "text": "setGameState('finished');"
+      }
+    ]
+  },
+  {
+    "file": "world-tour-wheel.tsx",
+    "hasFinishedState": false,
+    "setFinishedCalls": []
+  }
+]

@@ -1,0 +1,38 @@
+src/components/games/algebraic-abyss.tsx:18:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/algebraic-abyss.tsx:93:        logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/anatomy-academy.tsx:28:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/anatomy-academy.tsx:89:        logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/arithmetic-ace.tsx:26:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/arithmetic-ace.tsx:156:                logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/bio-hazard.tsx:17:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/bio-hazard.tsx:201:        logAnalyticsEvent(firestore, user?.uid || 'guest', { type: 'game_played', details: { slug: game.slug, score, difficulty } });
+src/components/games/coordinate-cosmos.tsx:15:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/coordinate-cosmos.tsx:140:          logAnalyticsEvent(firestore, user?.uid || "guest", {
+src/components/games/daily-verse.tsx:16:import { logAnalyticsEvent } from '@/lib/analytics';
+src/components/games/daily-verse.tsx:218:      logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/dialogue-dojo.tsx:28:import { logAnalyticsEvent, getDailyBonusGame } from "@/lib/analytics";
+src/components/games/dialogue-dojo.tsx:201:      logAnalyticsEvent(firestore, user.uid, {
+src/components/games/evolution-expedition.tsx:17:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/evolution-expedition.tsx:93:          logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/gene-genius.tsx:15:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/gene-genius.tsx:513:          logAnalyticsEvent(firestore, user?.uid || "guest", {
+src/components/games/grammar-gladiator.tsx:17:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/grammar-gladiator.tsx:110:        logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/grammar-guru.tsx:28:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/grammar-guru.tsx:69:        logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/idiom-inferno.tsx:16:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/idiom-inferno.tsx:198:        logAnalyticsEvent(firestore, user?.uid || 'guest', { type: 'game_played', details: { slug: game.slug, score, difficulty } });
+src/components/games/literary-device-legend.tsx:15:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/literary-device-legend.tsx:137:          logAnalyticsEvent(firestore, user?.uid || "guest", {
+src/components/games/math-matrix.tsx:17:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/math-matrix.tsx:92:        logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/molecule-maker.tsx:17:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/molecule-maker.tsx:201:        logAnalyticsEvent(firestore, user?.uid || 'guest', { type: 'game_played', details: { slug: game.slug, score, difficulty } });
+src/components/games/quantum-quest.tsx:17:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/quantum-quest.tsx:128:        logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/synonym-sniper.tsx:17:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/synonym-sniper.tsx:200:        logAnalyticsEvent(firestore, user?.uid || 'guest', { type: 'game_played', details: { slug: game.slug, score, difficulty } });
+src/components/games/syntax-skyline.tsx:17:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/syntax-skyline.tsx:104:          logAnalyticsEvent(firestore, user?.uid || 'guest', {
+src/components/games/vocab-vortex.tsx:17:import { logAnalyticsEvent } from "@/lib/analytics";
+src/components/games/vocab-vortex.tsx:124:        logAnalyticsEvent(firestore, user?.uid || 'guest', {

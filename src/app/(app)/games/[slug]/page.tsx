@@ -67,12 +67,17 @@ export default function GamePage() {
     React.useState = function<S>(initialState: S | (() => S)): [S, React.Dispatch<React.SetStateAction<S>>] {
       const [state, setState] = originalUseState(initialState);
 
-      const wrappedSetState = React.useCallback((value: any) => {
+      const wrappedSetState = (value: any) => {
         // Run original state update
         setState(value);
 
         // Resolve value if functional update
-        const resolvedValue = typeof value === 'function' ? value(state) : value;
+        let resolvedValue = value;
+        if (typeof value === 'function') {
+          try {
+            resolvedValue = value(state);
+          } catch (e) {}
+        }
 
         // Completion states
         if (
@@ -90,7 +95,7 @@ export default function GamePage() {
         if (resolvedValue === 'answered') {
           window.dispatchEvent(new CustomEvent('lingoland_game_answered_hijack'));
         }
-      }, [state, setState]);
+      };
 
       return [state, wrappedSetState];
     };
