@@ -391,7 +391,7 @@ export default function FlashcardsPage() {
           </p>
         </header>
 
-        <Tabs value={activeTab} onOpenChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-slate-950/80 border border-slate-900 rounded-2xl p-1.5 h-14 backdrop-blur-md shadow-2xl">
             <TabsTrigger
               value="review"

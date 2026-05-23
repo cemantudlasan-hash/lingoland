@@ -52,6 +52,10 @@ service cloud.firestore {
       match /memorandums/{memoId} {
         allow read, write: if isOwner(userId);
       }
+
+      match /flashcards/{flashcardId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /user_pets/{userId} {
