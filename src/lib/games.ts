@@ -693,6 +693,15 @@ export const allGames: Game[] = [
     subject: "english",
     icon: Rocket,
   },
+  {
+    title: "Spellcaster Spell-Defense",
+    slug: "spellcaster-defense",
+    description: "Unleash grammar incantations to defend the ancient wizard spire from falling spelling phantoms.",
+    level: "intermediate",
+    focus: "grammar",
+    subject: "english",
+    icon: Flame,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {

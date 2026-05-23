@@ -42,40 +42,6 @@ async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, 
   const todayUTC = `${today.getUTCFullYear()}-${today.getUTCMonth() + 1}-${today.getUTCDate()}`;
 
   if (userId === 'guest') {
-    if (typeof window !== 'undefined') {
-      const petKey = 'lingoland_guest_pet';
-      const petRaw = localStorage.getItem(petKey);
-      if (petRaw) {
-        try {
-          const pet = JSON.parse(petRaw);
-          
-          const { slug: bonusSlug, bonusAmount } = getDailyBonusGame();
-          const isDailyBonus = event?.details?.slug === bonusSlug;
-          const isBonusAvailable = isDailyBonus && pet.lastDailyBonusClaimedDate !== todayUTC;
-          const extraCoins = isBonusAvailable ? bonusAmount : 0;
-
-          if (isBonusAvailable) {
-            pet.lastDailyBonusClaimedDate = todayUTC;
-          }
-
-          pet.coins = parseFloat(((pet.coins || 0) + 10 + extraCoins).toFixed(2));
-          pet.xp = (pet.xp || 0) + 100;
-          pet.energy = Math.min(100, (pet.energy || 100) + 10);
-          pet.intelligence = Math.min(100, (pet.intelligence || 50) + 15);
-          pet.lastActive = new Date().toISOString();
-          
-          // Check level-up
-          let xpNeeded = pet.level * 500;
-          if (pet.xp >= xpNeeded) {
-            pet.xp -= xpNeeded;
-            pet.level += 1;
-          }
-          localStorage.setItem(petKey, JSON.stringify(pet));
-        } catch (e) {
-          console.error("Error updating guest pet on game play:", e);
-        }
-      }
-    }
     return;
   }
 
