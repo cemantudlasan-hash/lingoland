@@ -106,7 +106,7 @@ export default function GamesPage() {
       const [search, setSearch] = useState("");
       const [lastDailyBonusClaimedDate, setLastDailyBonusClaimedDate] = useState<string | null>(null);
 
-      const { user } = useAuth();
+      const { user, isGuest } = useAuth();
       const firestore = useFirestore();
 
       const { slug: dailyBonusSlug, bonusAmount: dailyBonusAmount } = getDailyBonusGame();
@@ -229,13 +229,14 @@ export default function GamesPage() {
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {filteredGames.map((game) => {
                               const isDailyBonus = game.slug === dailyBonusSlug;
+                              const showDailyBonus = isDailyBonus && !isGuest && !!user;
                               return (
                                     <Card
                                           key={game.title}
                                           className={cn(
                                                 "flex flex-col bg-card/80 backdrop-blur-sm border-border/20 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
-                                                isDailyBonus && lastDailyBonusClaimedDate !== todayUTC && "border-amber-500/40 bg-amber-500/[0.02] shadow-amber-500/5 ring-1 ring-amber-500/20",
-                                                isDailyBonus && lastDailyBonusClaimedDate === todayUTC && "border-slate-700/60 bg-slate-800/10"
+                                                showDailyBonus && lastDailyBonusClaimedDate !== todayUTC && "border-amber-500/40 bg-amber-500/[0.02] shadow-amber-500/5 ring-1 ring-amber-500/20",
+                                                showDailyBonus && lastDailyBonusClaimedDate === todayUTC && "border-slate-700/60 bg-slate-800/10"
                                           )}
                                     >
                                           <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -249,7 +250,7 @@ export default function GamesPage() {
                                                             </div>
                                                       </div>
                                                 </div>
-                                                {isDailyBonus && (
+                                                {showDailyBonus && (
                                                       lastDailyBonusClaimedDate === todayUTC ? (
                                                             <Badge className="bg-slate-700/80 text-slate-300 font-medium border border-slate-600 flex items-center gap-1 shrink-0">
                                                                   <Check className="h-3.5 w-3.5 text-emerald-400" />
