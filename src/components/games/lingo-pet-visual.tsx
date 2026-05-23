@@ -316,12 +316,74 @@ export function LingoPetVisual({
       earsColor = "#3730a3";
     }
 
+    // Dynamic coordinates for cosmetics based on physical evolution
+    let hatX = 100, hatY = 58;
+    let glassesX = 100, glassesY = 91;
+    let necklaceX = 100, necklaceY = 112;
+    let feetLeftX = 80, feetRightX = 120, feetY = 164;
+
+    if (isLvl100) {
+      hatY = 48;
+      glassesY = 91;
+      necklaceY = 114;
+      feetY = 164;
+    } else if (isLvl90) {
+      hatY = 46;
+      glassesY = 88;
+      necklaceY = 112;
+      feetY = 164;
+    } else if (isLvl75) {
+      hatY = 48;
+      glassesY = 88;
+      necklaceY = 112;
+      feetY = 164;
+    } else if (isLvl60) {
+      hatY = 52;
+      glassesY = 90;
+      necklaceY = 114;
+      feetY = 164;
+    } else if (isLvl45) {
+      hatY = 54;
+      glassesY = 92;
+      necklaceY = 115;
+    } else if (isLvl30) {
+      hatY = 56;
+      glassesY = 94;
+      necklaceY = 116;
+    } else if (isLvl15) {
+      hatY = 57;
+      glassesY = 92;
+    }
+
+    // Dynamic viewBox to prevent wing/tail clipping
+    let viewBox = "0 0 200 200";
+    if (isLvl100) {
+      viewBox = "-60 -60 320 320";
+    } else if (isLvl90) {
+      viewBox = "-45 -45 290 290";
+    } else if (isLvl60) {
+      viewBox = "-30 -30 260 260";
+    }
+
     return (
-      <svg viewBox="0 0 200 200" className="w-full h-full">
+      <svg viewBox={viewBox} style={{ overflow: 'visible' }} className="w-full h-full">
+        <defs>
+          <radialGradient id="owlDragonGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#d946ef" stopOpacity="0.45"/>
+            <stop offset="60%" stopColor="#4f46e5" stopOpacity="0.15"/>
+            <stop offset="100%" stopColor="#020617" stopOpacity="0"/>
+          </radialGradient>
+        </defs>
+
         {/* Shadow */}
         <ellipse cx="100" cy="170" rx="45" ry="8" fill="rgba(0,0,0,0.3)" />
 
-        {/* Body Base */}
+        {/* Ambient Dragon Aura for level 100 */}
+        {isLvl100 && (
+          <circle cx="100" cy="115" r="75" fill="url(#owlDragonGlow)" className="animate-pulse" />
+        )}
+
+        {/* Body Group */}
         <g className={cn(
           "transition-all duration-500 origin-bottom",
           isPetting && "animate-bounce",
@@ -332,30 +394,41 @@ export function LingoPetVisual({
           {/* Dragon wings behind body (lvl 100+) */}
           {isLvl100 && !equippedCosmetics.wings && (
             <g className="animate-dragon-wings">
-              <path d="M 60,115 C 20,75 5,85 -10,105 C 10,125 35,120 60,115 Z" fill="#3b0764" stroke="#d946ef" strokeWidth="1.5" />
-              <path d="M 140,115 C 180,75 195,85 210,105 C 190,125 165,120 140,115 Z" fill="#3b0764" stroke="#d946ef" strokeWidth="1.5" />
+              {/* Left massive wing */}
+              <path d="M 50,115 C -10,65 -20,115 -45,95 C -30,135 10,140 50,115 Z" fill="#2e0854" stroke="#d946ef" strokeWidth="2" />
+              {/* Right massive wing */}
+              <path d="M 150,115 C 210,65 220,115 245,95 C 230,135 190,140 150,115 Z" fill="#2e0854" stroke="#d946ef" strokeWidth="2" />
             </g>
           )}
 
           {/* Phoenix wings behind body (lvl 60+) */}
           {isLvl60 && !isLvl100 && !equippedCosmetics.wings && (
             <g className="animate-phoenix">
-              <path d="M 60,115 C 25,90 15,110 10,130 C 25,135 45,125 60,115" fill="#ea580c" stroke="#f97316" strokeWidth="1" />
-              <path d="M 140,115 C 175,90 185,110 190,130 C 175,135 155,125 140,115" fill="#ea580c" stroke="#f97316" strokeWidth="1" />
+              <path d="M 50,115 C 10,80 -10,105 -25,130 C -5,140 25,130 50,115" fill="#ea580c" stroke="#f97316" strokeWidth="1.5" />
+              <path d="M 150,115 C 190,80 210,105 225,130 C 205,140 175,130 150,115" fill="#ea580c" stroke="#f97316" strokeWidth="1.5" />
             </g>
           )}
 
           {/* Dragon tail behind body (lvl 100+) */}
           {isLvl100 && (
             <g className="animate-dragon-wings" transform="translate(100, 125)">
-              <path d="M 40,25 C 65,30 80,50 85,60 C 90,55 85,45 60,30 Z" fill="#0f172a" stroke="#d946ef" strokeWidth="1.5" />
-              <polygon points="85,60 93,58 88,66" fill="#d946ef" />
+              <path d="M 40,25 C 75,30 95,65 105,75 C 110,65 95,45 60,30 Z" fill="#0f172a" stroke="#d946ef" strokeWidth="2" />
+              <polygon points="105,75 118,70 110,83" fill="#d946ef" />
             </g>
           )}
 
-          {/* Normal Wings */}
+          {/* Phoenix flame tail (lvl 60+) */}
+          {isLvl60 && !isLvl100 && (
+            <g className="animate-fire-glow" transform="translate(100, 130)">
+              <path d="M -15,20 C -25,50 0,65 0,65 C 0,65 25,50 15,20" fill="#ea580c" opacity="0.8" />
+              <path d="M -8,20 C -15,40 0,50 0,50 C 0,50 15,40 8,20" fill="#fbbf24" />
+            </g>
+          )}
+
+          {/* Equipped Wings */}
           {renderWings(100, 125)}
 
+          {/* Default baby wings (not equipped, lvl < 60) */}
           {!equippedCosmetics.wings && !isLvl60 && !isLvl100 && (
             <>
               <path d="M 50 110 C 35 110, 30 135, 45 150 C 48 140, 52 120, 60 115" fill={wingColor} />
@@ -363,123 +436,227 @@ export function LingoPetVisual({
             </>
           )}
 
-          {/* Main Body */}
-          <circle cx="100" cy="115" r="50" fill={bodyColor} />
-          {/* Tummy */}
-          <circle cx="100" cy="125" r="35" fill={tummyColor} />
-
-          {/* Tummy chest feathers */}
-          {!isLvl45 && (
+          {/* PHYSICAL BODY EVOLUTION */}
+          {isLvl100 ? (
+            // Dragon-Owl Body
+            <path d="M 50,115 C 40,65 160,65 150,115 C 155,145 145,165 100,168 C 55,165 45,145 50,115" fill={bodyColor} stroke="#d946ef" strokeWidth="1.5" />
+          ) : isLvl90 ? (
+            // Sage Cloaked Body
+            <path d="M 50,115 C 42,65 158,65 150,115 C 160,150 145,168 100,169 C 55,168 40,150 50,115" fill={bodyColor} />
+          ) : isLvl75 ? (
+            // Storm Spiky Body
+            <path d="M 50,115 L 45,95 L 65,82 L 100,72 L 135,82 L 155,95 L 150,115 C 160,145 142,165 100,168 C 58,165 40,145 50,115" fill={bodyColor} />
+          ) : isLvl60 ? (
+            // Phoenix Flame Body
+            <path d="M 50,115 C 45,75 155,75 150,115 C 156,144 136,160 100,167 C 64,160 44,144 50,115" fill={bodyColor} />
+          ) : isLvl45 ? (
+            // Warrior Body (Stout/Polygonal shoulders)
+            <path d="M 52,118 L 48,102 L 68,90 L 132,90 L 152,102 L 148,118 C 154,142 144,165 100,167 C 56,165 46,142 52,118" fill={bodyColor} />
+          ) : isLvl30 ? (
+            // Noble Body (Head + Body separation)
             <>
-              <path d="M 90 115 L 95 120 L 100 115 L 105 120 L 110 115" stroke={isLvl30 ? "#d8b4fe" : "#c7d2fe"} strokeWidth="2.5" fill="none" />
-              <path d="M 85 128 L 92 135 L 100 128 L 108 135 L 115 128" stroke={isLvl30 ? "#d8b4fe" : "#c7d2fe"} strokeWidth="2.5" fill="none" />
+              <circle cx="100" cy="95" r="44" fill={bodyColor} />
+              <ellipse cx="100" cy="138" rx="48" ry="28" fill={bodyColor} />
+            </>
+          ) : isLvl15 ? (
+            // Fledgling taller oval body
+            <ellipse cx="100" cy="112" rx="46" ry="55" fill={bodyColor} />
+          ) : (
+            // Baby round body
+            <circle cx="100" cy="115" r="50" fill={bodyColor} />
+          )}
+
+          {/* TUMMY EVOLUTION */}
+          {isLvl100 ? (
+            // Scaly Dragon Tummy
+            <g>
+              <path d="M 70,128 Q 100,152 130,128 L 120,158 Q 100,166 80,158 Z" fill={tummyColor} stroke="#3b0764" strokeWidth="1.5" />
+              {/* Scaly details */}
+              <path d="M 90,135 Q 100,140 110,135" stroke="#3b0764" strokeWidth="1.5" fill="none" />
+              <path d="M 85,145 Q 100,152 115,145" stroke="#3b0764" strokeWidth="1.5" fill="none" />
+            </g>
+          ) : isLvl90 ? (
+            <g>
+              <ellipse cx="100" cy="138" rx="36" ry="24" fill={tummyColor} />
+              {/* Wizard runic mark */}
+              <path d="M 96,134 Q 100,126 104,134 Q 108,142 100,146 Q 92,142 96,134" stroke="#a855f7" strokeWidth="1.5" fill="none" />
+            </g>
+          ) : isLvl75 ? (
+            <g>
+              <ellipse cx="100" cy="138" rx="38" ry="24" fill={tummyColor} />
+              {/* Lightning bolt mark */}
+              <polygon points="98,126 106,134 100,136 104,146 96,136 100,134" fill="#06b6d4" />
+            </g>
+          ) : isLvl60 ? (
+            <g>
+              <ellipse cx="100" cy="138" rx="38" ry="24" fill={tummyColor} />
+              {/* Flame mark */}
+              <path d="M 97,146 C 92,136 98,126 100,124 C 102,126 108,136 103,146 Z" fill="#ea580c" />
+            </g>
+          ) : isLvl45 ? (
+            // Warrior Armor Chest Plate
+            <path d="M 78,122 Q 100,148 122,122 L 114,148 Q 100,160 86,148 Z" fill="#94a3b8" stroke="#cbd5e1" strokeWidth="2" />
+          ) : isLvl30 ? (
+            // Noble Tummy
+            <ellipse cx="100" cy="140" rx="34" ry="22" fill={tummyColor} />
+          ) : isLvl15 ? (
+            // Fledgling Tummy
+            <ellipse cx="100" cy="122" rx="34" ry="38" fill={tummyColor} />
+          ) : (
+            // Baby Tummy
+            <circle cx="100" cy="125" r="35" fill={tummyColor} />
+          )}
+
+          {/* Chest feather details for lower levels */}
+          {!isLvl45 && !isLvl60 && !isLvl75 && !isLvl90 && (
+            <>
+              <path d="M 90,118 L 95,123 L 100,118 L 105,123 L 110,118" stroke={isLvl30 ? "#c084fc" : "#c7d2fe"} strokeWidth="2.5" fill="none" />
+              <path d="M 85,128 L 92,135 L 100,128 L 108,135 L 115,128" stroke={isLvl30 ? "#c084fc" : "#c7d2fe"} strokeWidth="2.5" fill="none" />
             </>
           )}
 
-          {/* Silver chest plate armor (lvl 45+) */}
-          {isLvl45 && (
-            <path d="M 82,125 Q 100,148 118,125 L 110,138 Q 100,150 90,138 Z" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="1.5" />
-          )}
+          {/* Necklace slot */}
+          {renderNecklace(necklaceX, necklaceY)}
 
-          {/* Necklace */}
-          {renderNecklace(100, 112)}
-
-          {/* Ears/Tufts */}
-          <polygon points="55,75 50,55 75,70" fill={earsColor} />
-          <polygon points="145,75 150,55 125,70" fill={earsColor} />
-
-          {/* Head Crest Feather (lvl 15+) */}
-          {isLvl15 && !isLvl100 && (
-            <polygon points="97,68 100,48 103,68" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
-          )}
-
-          {/* Dragon Horns (lvl 100+) */}
-          {isLvl100 && (
+          {/* EARS/TUFTS EVOLUTION */}
+          {isLvl100 ? (
+            // Sweeping Dragon Crest/Ears
             <>
-              <path d="M 62,68 Q 50,45 35,52 Q 50,58 62,68" fill="#0f172a" stroke="#d946ef" strokeWidth="1.5" />
-              <path d="M 138,68 Q 150,45 165,52 Q 150,58 138,68" fill="#0f172a" stroke="#d946ef" strokeWidth="1.5" />
+              <path d="M 60,70 L 30,35 Q 50,55 70,66 Z" fill={earsColor} stroke="#d946ef" strokeWidth="1.5" />
+              <path d="M 140,70 L 170,35 Q 150,55 130,66 Z" fill={earsColor} stroke="#d946ef" strokeWidth="1.5" />
+            </>
+          ) : isLvl75 ? (
+            // Storm Lightning Ear Tufts
+            <>
+              <polygon points="56,70 34,42 66,60" fill={earsColor} stroke="#22d3ee" strokeWidth="1.5" />
+              <polygon points="144,70 166,42 134,60" fill={earsColor} stroke="#22d3ee" strokeWidth="1.5" />
+            </>
+          ) : isLvl30 ? (
+            // Noble Feathered Ears
+            <>
+              <polygon points="56,72 40,48 72,66" fill={earsColor} />
+              <polygon points="144,72 160,48 128,66" fill={earsColor} />
+            </>
+          ) : (
+            // Baby Ears
+            <>
+              <polygon points="55,75 50,55 75,70" fill={earsColor} />
+              <polygon points="145,75 150,55 125,70" fill={earsColor} />
             </>
           )}
 
-          {/* Forehead Crescent Moon / Rune (lvl 30+) */}
+          {/* HEAD CREST FEATHER (lvl 15+) */}
+          {isLvl15 && !isLvl75 && !isLvl100 && (
+            <polygon points="97,68 100,42 103,68" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
+          )}
+
+          {/* FOREHEAD CRESCENT MOON / GEM (lvl 30+) */}
           {isLvl30 && (
-            <path d="M 97,84 A 3,3 0 0,0 103,84 A 2.2,2.2 0 0,1 97,84" fill={isLvl75 ? "#22d3ee" : "#fef08a"} opacity="0.9" />
+            <path d="M 97,80 A 3,3 0 0,0 103,80 A 2.2,2.2 0 0,1 97,80" fill={isLvl75 ? "#22d3ee" : "#fef08a"} opacity="0.95" />
           )}
 
-          {/* Lightning Crown (lvl 75+) */}
-          {isLvl75 && (
+          {/* LIGHTNING CROWN (lvl 75+) */}
+          {isLvl75 && !isLvl100 && (
             <g className="animate-spark-flash">
-              <polygon points="92,44 100,24 108,44 103,44 100,34 97,44" fill="#22d3ee" stroke="#0891b2" strokeWidth="1" />
+              <polygon points="92,42 100,20 108,42 103,42 100,32 97,42" fill="#22d3ee" stroke="#0891b2" strokeWidth="1.5" />
             </g>
           )}
 
-          {/* Mystical runic ring (lvl 90+) */}
+          {/* DRAGON HEAD HORNS (lvl 100+ Dragon Owl) */}
+          {isLvl100 && (
+            <g className="animate-fire-glow">
+              {/* Left Horn */}
+              <path d="M 68,64 C 54,32 30,38 18,48 C 34,54 52,58 68,64 Z" fill="#3b0764" stroke="#d946ef" strokeWidth="1.5" />
+              {/* Right Horn */}
+              <path d="M 132,64 C 146,32 170,38 182,48 C 166,54 148,58 132,64 Z" fill="#3b0764" stroke="#d946ef" strokeWidth="1.5" />
+            </g>
+          )}
+
+          {/* MYSTICAL RUNIC RING (lvl 90+) */}
           {isLvl90 && (
-            <g className="animate-nebula-spin" opacity="0.7">
-              <circle cx="100" cy="115" r="54" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="4,6" />
+            <g className="animate-nebula-spin" opacity="0.8">
+              <circle cx="100" cy="115" r="62" fill="none" stroke="#fbbf24" strokeWidth="2" strokeDasharray="5,8" className="drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
             </g>
           )}
 
-          {/* Feet */}
-          <ellipse cx="80" cy="164" rx="10" ry="6" fill="#f59e0b" />
-          <ellipse cx="120" cy="164" rx="10" ry="6" fill="#f59e0b" />
-          {renderShoes(80, 120, 164)}
+          {/* FEET / CLAWS EVOLUTION */}
+          {isLvl100 ? (
+            // Scaly Dragon Claws
+            <>
+              <path d="M 72,160 Q 72,168 85,168 Q 90,160 85,158" fill="#d946ef" />
+              <path d="M 115,160 Q 115,168 128,168 Q 130,160 125,158" fill="#d946ef" />
+            </>
+          ) : (
+            // Normal feet
+            <>
+              <ellipse cx={feetLeftX} cy={feetY} rx="10" ry="6" fill="#f59e0b" />
+              <ellipse cx={feetRightX} cy={feetY} rx="10" ry="6" fill="#f59e0b" />
+            </>
+          )}
+          {renderShoes(feetLeftX, feetRightX, feetY)}
 
-          {/* Eyes Group */}
+          {/* EYES EVOLUTION */}
           <g className={cn("transition-all duration-300", isSleeping && "opacity-80")}>
             {/* Eye Sockets */}
-            <circle cx="78" cy="100" r="16" fill="white" />
-            <circle cx="122" cy="100" r="16" fill="white" />
+            <circle cx="76" cy="98" r="16" fill="white" />
+            <circle cx="124" cy="98" r="16" fill="white" />
 
             {isSleeping ? (
               // Sleeping eyes (lines)
               <>
-                <path d="M 68 100 Q 78 108 88 100" stroke="#1e1b4b" strokeWidth="3" fill="none" />
-                <path d="M 112 100 Q 122 108 132 100" stroke="#1e1b4b" strokeWidth="3" fill="none" />
+                <path d="M 66,98 Q 76,106 86,98" stroke="#1e1b4b" strokeWidth="3" fill="none" />
+                <path d="M 114,98 Q 124,106 134,98" stroke="#1e1b4b" strokeWidth="3" fill="none" />
               </>
             ) : isSad ? (
               // Sad / tired eyes
               <>
-                <circle cx="78" cy="102" r="8" fill="#1e1b4b" />
-                <circle cx="122" cy="102" r="8" fill="#1e1b4b" />
-                <path d="M 65 90 L 85 95" stroke="#1e1b4b" strokeWidth="3.5" strokeLinecap="round" />
-                <path d="M 135 90 L 115 95" stroke="#1e1b4b" strokeWidth="3.5" strokeLinecap="round" />
-                {/* Under eye bags */}
-                <path d="M 70 114 Q 78 119 86 114" stroke="#818cf8" strokeWidth="1.5" fill="none" />
-                <path d="M 114 114 Q 122 119 130 114" stroke="#818cf8" strokeWidth="1.5" fill="none" />
+                <circle cx="76" cy="100" r="8" fill="#1e1b4b" />
+                <circle cx="124" cy="100" r="8" fill="#1e1b4b" />
+                <path d="M 63,88 L 83,93" stroke="#1e1b4b" strokeWidth="3.5" strokeLinecap="round" />
+                <path d="M 137,88 L 117,93" stroke="#1e1b4b" strokeWidth="3.5" strokeLinecap="round" />
+                <path d="M 68,112 Q 76,117 84,112" stroke="#818cf8" strokeWidth="1.5" fill="none" />
+                <path d="M 116,112 Q 124,117 132,112" stroke="#818cf8" strokeWidth="1.5" fill="none" />
+              </>
+            ) : isLvl100 ? (
+              // Dragon glowing slit eyes
+              <>
+                <circle cx="76" cy="98" r="10" fill="#d946ef" className="animate-pulse" />
+                <circle cx="124" cy="98" r="10" fill="#d946ef" className="animate-pulse" />
+                {/* Slit Pupils */}
+                <ellipse cx="76" cy="98" rx="2" ry="7" fill="#0f172a" />
+                <ellipse cx="124" cy="98" rx="2" ry="7" fill="#0f172a" />
+                <circle cx="74" cy="95" r="2" fill="white" />
+                <circle cx="122" cy="95" r="2" fill="white" />
               </>
             ) : (
-              // Normal / Happy eyes
+              // Regular eyes
               <>
-                <circle cx="78" cy="100" r="9" fill={isLvl75 ? "#0284c7" : "#1e1b4b"} className={cn(isTalking && "animate-pulse")} />
-                <circle cx="122" cy="100" r="9" fill={isLvl75 ? "#0284c7" : "#1e1b4b"} className={cn(isTalking && "animate-pulse")} />
-                {/* Pupils */}
-                <circle cx="75" cy="97" r="3" fill="white" />
-                <circle cx="119" cy="97" r="3" fill="white" />
+                <circle cx="76" cy="98" r="8" fill={isLvl60 ? "#7c3aed" : "#1e1b4b"} />
+                <circle cx="124" cy="98" r="8" fill={isLvl60 ? "#7c3aed" : "#1e1b4b"} />
+                <circle cx="74" cy="95" r="2.5" fill="white" />
+                <circle cx="122" cy="95" r="2.5" fill="white" />
               </>
             )}
           </g>
 
           {/* Beak */}
-          <polygon points="94,107 106,107 100,121" fill="#fbbf24" />
+          <polygon points="94,105 106,105 100,119" fill="#fbbf24" />
 
-          {/* LEVEL BADGE AT BOTTOM */}
+          {/* LEVEL BADGE */}
           <g transform="translate(100, 155)">
-            <rect x="-18" y="-8" width="36" height="16" rx="6" fill="#1e1b4b" stroke="#818cf8" strokeWidth="1.5" />
-            <text x="0" y="4" textAnchor="middle" fill="#c7d2fe" fontSize="10" fontWeight="bold">Lvl {level}</text>
+            <rect x="-18" y="-8" width="36" height="16" rx="6" fill="#1e1b4b" stroke={isLvl100 ? "#d946ef" : "#818cf8"} strokeWidth="1.5" />
+            <text x="0" y="4" textAnchor="middle" fill="#ffedd5" fontSize="10" fontWeight="bold">Lvl {level}</text>
           </g>
 
-          {/* Outfits Overlay Anchors */}
-          {/* Hat slot centered around cx=100, cy=65 */}
-          {renderHat(100, 64)}
-          
-          {/* Glasses slot centered around cy=100, eye width cx=78 to 122 */}
-          {renderGlasses(100, 100)}
+          {/* Accessories Anchors */}
+          {renderHat(hatX, hatY)}
+          {renderGlasses(glassesX, glassesY)}
         </g>
       </svg>
     );
   };
 
+  // SVG Render of Mascot Dino
   // SVG Render of Mascot Dino
   const renderDino = () => {
     const isLvl15 = level >= 15;
@@ -532,10 +709,63 @@ export function LingoPetVisual({
       eyeColor = "#064e3b";
     }
 
+    // Dynamic face and accessory coordinates for Dino based on physical evolution
+    let eyesY = 74;
+    let mouthY = 85;
+    if (isLvl100) {
+      eyesY = 54;
+      mouthY = 68;
+    } else if (isLvl90) {
+      eyesY = 72;
+      mouthY = 83;
+    } else if (isLvl75) {
+      eyesY = 72;
+      mouthY = 83;
+    } else if (isLvl60) {
+      eyesY = 70;
+      mouthY = 81;
+    } else if (isLvl30) {
+      eyesY = 72;
+      mouthY = 83;
+    }
+
+    let hatX = 100;
+    let hatY = eyesY - 26;
+    let glassesX = 105;
+    let glassesY = eyesY - 9; // align glasses center with eyes
+    let necklaceX = 98;
+    let necklaceY = isLvl100 ? 95 : eyesY + 18;
+    let feetLeftX = 80;
+    let feetRightX = 112;
+    let feetY = 162;
+
+    // Dynamic viewBox to prevent wing/tail clipping
+    let viewBox = "0 0 200 200";
+    if (isLvl100) {
+      viewBox = "-60 -60 320 320";
+    } else if (isLvl90) {
+      viewBox = "-45 -45 290 290";
+    } else if (isLvl60) {
+      viewBox = "-30 -30 260 260";
+    }
+
     return (
-      <svg viewBox="0 0 200 200" className="w-full h-full">
+      <svg viewBox={viewBox} style={{ overflow: 'visible' }} className="w-full h-full">
+        <defs>
+          <radialGradient id="dinoDragonGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#ef4444" stopOpacity="0.45"/>
+            <stop offset="60%" stopColor="#ea580c" stopOpacity="0.15"/>
+            <stop offset="100%" stopColor="#0f172a" stopOpacity="0"/>
+          </radialGradient>
+        </defs>
+
         {/* Shadow */}
         <ellipse cx="95" cy="170" rx="50" ry="8" fill="rgba(0,0,0,0.3)" />
+
+        {/* Ambient Volcanic Aura for level 100 */}
+        {isLvl100 && (
+          <circle cx="100" cy="115" r="75" fill="url(#dinoDragonGlow)" className="animate-pulse" />
+        )}
 
         <g className={cn(
           "transition-all duration-500 origin-bottom",
@@ -547,39 +777,62 @@ export function LingoPetVisual({
           {/* Dragon wings behind body (lvl 100+) */}
           {isLvl100 && !equippedCosmetics.wings && (
             <g className="animate-dragon-wings">
-              <path d="M 65,110 C 25,70 5,80 -20,95 C 5,115 30,115 65,110 Z" fill="#7f1d1d" stroke="#ef4444" strokeWidth="1.5" />
-              <path d="M 125,110 C 165,70 185,80 210,95 C 185,115 160,115 125,110 Z" fill="#7f1d1d" stroke="#ef4444" strokeWidth="1.5" />
+              {/* Left Wing */}
+              <path d="M 65,110 C 15,65 -5,100 -25,90 C -15,125 25,125 65,110 Z" fill="#4c0519" stroke="#ef4444" strokeWidth="2" />
+              {/* Right Wing */}
+              <path d="M 125,110 C 175,65 195,100 215,90 C 205,125 165,125 125,110 Z" fill="#4c0519" stroke="#ef4444" strokeWidth="2" />
             </g>
           )}
 
-          {/* Wings */}
+          {/* Equipped Wings */}
           {renderWings(95, 115)}
 
-          {/* Tail */}
-          <path d="M 60 135 C 30 145, 20 120, 15 130 C 10 140, 30 160, 65 150" fill={bodyColor} />
+          {/* Tail Evolution */}
+          {isLvl100 ? (
+            // Long spiked dragon tail
+            <path d="M 60 135 C 20 150, -5, 110, -15 130 C -25 150, 10 175, 65 150" fill={bodyColor} stroke="#ef4444" strokeWidth="1.5" />
+          ) : isLvl90 ? (
+            // Cyber blade tail
+            <path d="M 60 135 C 25 140, 5 110, 0 125 C -5 138, 20 160, 65 150" fill={bodyColor} stroke="#22d3ee" strokeWidth="1" />
+          ) : isLvl75 ? (
+            // Spiky Stegosaur Tail
+            <path d="M 60 135 C 25 145, 15 115, 8 128 C 3 138, 25 165, 65 150" fill={bodyColor} />
+          ) : isLvl60 ? (
+            // Magma flame tail
+            <path d="M 60 135 C 28 142, 18 118, 12 128 C 6 138, 28 160, 65 150" fill={bodyColor} />
+          ) : isLvl45 ? (
+            // Plated armored tail
+            <path d="M 60 135 C 28 142, 18 118, 12 128 Q 6 138 65 150" fill={bodyColor} stroke="#475569" strokeWidth="1.5" />
+          ) : isLvl30 ? (
+            // Slender kid tail
+            <path d="M 60 135 C 32 142, 22 122, 16 130 C 12 138, 32 158, 65 150" fill={bodyColor} />
+          ) : (
+            // Baby tail
+            <path d="M 60 135 C 30 145, 20 120, 15 130 C 10 140, 30 160, 65 150" fill={bodyColor} />
+          )}
           
           {/* Tail fire (lvl 60+) */}
           {isLvl60 && (
-            <g transform="translate(15, 126)" className="animate-fire-glow">
-              <circle cx="0" cy="0" r="10" fill="#ef4444" opacity="0.8" />
-              <circle cx="0" cy="0" r="6" fill="#f97316" />
+            <g transform={isLvl100 ? "translate(-18, 124)" : isLvl90 ? "translate(3, 122)" : isLvl75 ? "translate(10, 125)" : "translate(15, 126)"} className="animate-fire-glow">
+              <circle cx="0" cy="0" r="12" fill="#ef4444" opacity="0.8" />
+              <circle cx="0" cy="0" r="7" fill="#f97316" />
               <circle cx="0" cy="0" r="3" fill="#fbbf24" />
             </g>
           )}
 
           {/* Tail Spikes (lvl 75+) */}
           {isLvl75 && (
-            <g transform="translate(18, 132)">
-              <polygon points="-6,-6 -14,0 -6,6 0,0" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+            <g transform={isLvl100 ? "translate(-12, 128)" : isLvl90 ? "translate(1, 126)" : "translate(10, 129)"}>
+              <polygon points="-6,-6 -16,0 -6,6 0,0" fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
             </g>
           )}
 
           {/* Back plates / Spikes (lvl 30+ has larger spikes) */}
           {isLvl30 ? (
             <>
-              <polygon points="46,88 28,78 52,76" fill={backPlatesColor} stroke={isLvl100 ? "#ef4444" : "none"} strokeWidth="1" />
-              <polygon points="54,108 36,98 60,96" fill={backPlatesColor} stroke={isLvl100 ? "#ef4444" : "none"} strokeWidth="1" />
-              <polygon points="58,124 40,114 66,112" fill={backPlatesColor} stroke={isLvl100 ? "#ef4444" : "none"} strokeWidth="1" />
+              <polygon points="46,88 24,72 52,76" fill={backPlatesColor} stroke={isLvl100 ? "#ef4444" : "none"} strokeWidth="1" />
+              <polygon points="54,108 30,92 60,96" fill={backPlatesColor} stroke={isLvl100 ? "#ef4444" : "none"} strokeWidth="1" />
+              <polygon points="58,124 34,108 66,112" fill={backPlatesColor} stroke={isLvl100 ? "#ef4444" : "none"} strokeWidth="1" />
             </>
           ) : (
             <>
@@ -589,13 +842,49 @@ export function LingoPetVisual({
             </>
           )}
 
-          {/* Main Dino Body */}
-          <path d="M 70 85 C 70 50, 130 50, 130 85 C 130 100, 120 120, 115 140 C 110 155, 120 160, 110 165 C 95 168, 75 165, 75 145 C 75 130, 70 105, 70 85" fill={bodyColor} />
-          
-          {/* Dino Belly (lvl 45+ is steel, lvl 100 is volcanic magma red) */}
-          <path d="M 85 95 C 85 80, 115 80, 115 95 C 115 110, 110 130, 105 145 C 98 152, 90 148, 88 135 C 85 120, 85 110, 85 95" fill={bellyColor} stroke={isLvl45 && !isLvl100 ? "#475569" : "none"} strokeWidth={isLvl45 ? 1.5 : 0} />
+          {/* PHYSICAL BODY/HEAD EVOLUTION */}
+          {isLvl100 ? (
+            // Volcanic Dragon Body/Head
+            <>
+              {/* Dragon Neck + Head */}
+              <path d="M 70,85 C 60,40 140,30 145,75 C 145,95 125,105 115,140 Q 110,155 120,165 C 105,168 75,165 75,145 C 75,130 70,105 70,85" fill={bodyColor} stroke="#ef4444" strokeWidth="1.5" />
+            </>
+          ) : isLvl90 ? (
+            // Cyber slender dinosaur
+            <path d="M 70 85 C 70 45, 130 45, 130 85 C 130 100, 120 120, 115 140 Q 110 155, 120 165 C 100 168, 75 165, 75 145 C 75 130, 70 105, 70 85" fill={bodyColor} />
+          ) : isLvl75 ? (
+            // Spikosaur Dino: spiky shoulder contours
+            <path d="M 64,82 C 64,40 136,40 136,82 C 136,100 125,120 118,142 Q 110,158 122,165 C 98,168 68,165 70,145 C 70,125 64,102 64,82" fill={bodyColor} />
+          ) : isLvl60 ? (
+            // Fire Magma Dino shape
+            <path d="M 65,80 C 65,40 135,40 135,80 C 135,98 124,118 118,140 Q 112,156 122,165 C 100,168 70,165 72,145 C 72,125 65,102 65,80" fill={bodyColor} />
+          ) : isLvl45 ? (
+            // Heavy Armored Dino
+            <path d="M 68 85 C 68 48, 132 48, 132 85 C 132 102, 122 122, 116 142 Q 112 156, 122 165 C 100 168, 72 165, 72 145 C 72 130, 68 105, 68 85" fill={bodyColor} />
+          ) : isLvl30 ? (
+            // Apprentice Dino: neck beginning to lengthen, posture upright
+            <path d="M 66,80 C 66,42 134,42 134,80 C 134,95 124,115 116,138 C 110,154 122,158 112,165 C 95,168 74,165 74,145 C 74,125 66,100 66,80" fill={bodyColor} />
+          ) : isLvl15 ? (
+            // Horned slightly larger Dino
+            <path d="M 69 85 C 69 49, 131 49, 131 85 C 131 100, 121 120, 115 140 C 110 155, 120 160, 110 165 C 95 168, 74 165, 74 145 C 74 130, 69 105, 69 85" fill={bodyColor} />
+          ) : (
+            // Baby Dino (Chubby, smaller head/body)
+            <path d="M 72 95 C 72 65, 128 65, 128 95 C 128 108, 118 122, 114 138 C 110 150, 118 155, 108 160 C 96 163, 76 160, 76 142 C 76 130, 72 112, 72 95" fill={bodyColor} />
+          )}
 
-          {/* Cybernetic code lines (lvl 90+) */}
+          {/* DINO BELLY EVOLUTION */}
+          {isLvl100 ? (
+            // Magma Lava Belly
+            <path d="M 85 95 C 85 80, 115 80, 115 95 C 115 110, 110 130, 105 145 C 98 152, 90 148, 88 135 C 85 120, 85 110, 85 95" fill="#f87171" stroke="#ef4444" strokeWidth="2.5" />
+          ) : isLvl45 ? (
+            // Steel breast plate
+            <path d="M 85 95 C 85 80, 115 80, 115 95 C 115 110, 110 130, 105 145 C 98 152, 90 148, 88 135 C 85 120, 85 110, 85 95" fill={bellyColor} stroke="#475569" strokeWidth="2" />
+          ) : (
+            // Regular belly
+            <path d="M 85 95 C 85 80, 115 80, 115 95 C 115 110, 110 130, 105 145 C 98 152, 90 148, 88 135 C 85 120, 85 110, 85 95" fill={bellyColor} />
+          )}
+
+          {/* Cybernetic details (lvl 90+) */}
           {isLvl90 && !isLvl100 && (
             <>
               <path d="M 88,110 L 112,110" stroke="#22d3ee" strokeWidth="1.5" strokeDasharray="3,3" className="animate-pulse" />
@@ -606,96 +895,111 @@ export function LingoPetVisual({
           {/* Volcanic magma cracks (lvl 100+) */}
           {isLvl100 && (
             <>
-              <path d="M 78,105 L 85,115 L 75,122" fill="none" stroke="#ef4444" strokeWidth="2.5" />
-              <path d="M 122,105 L 115,115 L 125,122" fill="none" stroke="#ef4444" strokeWidth="2.5" />
+              <path d="M 78,105 L 85,115 L 75,122" fill="none" stroke="#dc2626" strokeWidth="3" />
+              <path d="M 122,105 L 115,115 L 125,122" fill="none" stroke="#dc2626" strokeWidth="3" />
             </>
           )}
 
-          {/* Necklace */}
-          {renderNecklace(98, 92)}
+          {/* Necklace slot */}
+          {renderNecklace(necklaceX, necklaceY)}
 
           {/* Tiny Arms */}
-          <path d="M 72 108 Q 62 105 60 111" stroke={isLvl100 ? "#ef4444" : "#059669"} strokeWidth="5" strokeLinecap="round" fill="none" />
-          <path d="M 124 108 Q 134 105 136 111" stroke={isLvl100 ? "#ef4444" : "#059669"} strokeWidth="5" strokeLinecap="round" fill="none" />
+          <path d="M 72 108 Q 60 105 58 111" stroke={isLvl100 ? "#ef4444" : isLvl45 ? "#047857" : "#059669"} strokeWidth="5.5" strokeLinecap="round" fill="none" />
+          <path d="M 124 108 Q 136 105 138 111" stroke={isLvl100 ? "#ef4444" : isLvl45 ? "#047857" : "#059669"} strokeWidth="5.5" strokeLinecap="round" fill="none" />
 
           {/* Feet */}
           <path d="M 75 160 Q 75 168 85 168 Q 90 160 85 158" fill={isLvl100 ? "#0f172a" : "#059669"} />
           <path d="M 105 160 Q 105 168 115 168 Q 120 160 115 158" fill={isLvl100 ? "#0f172a" : "#059669"} />
-          {renderShoes(80, 112, 162)}
+          {renderShoes(feetLeftX, feetRightX, feetY)}
 
           {/* Nose Horn (lvl 15+) */}
-          {isLvl15 && !isLvl100 && (
-            <polygon points="124,70 134,68 126,76" fill="#fbbf24" stroke="#d97706" strokeWidth="0.8" />
+          {isLvl15 && !isLvl75 && !isLvl100 && (
+            <polygon points={`124,${eyesY - 4} 136,${eyesY - 8} 126,${eyesY + 2}`} fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
           )}
 
-          {/* Dragon head horns (lvl 100+) */}
-          {isLvl100 && (
+          {/* Level 75 Spikosaur Horns (Triceratops-like) */}
+          {isLvl75 && !isLvl100 && (
             <>
-              <path d="M 75,55 Q 60,35 50,45 Q 65,50 75,55" fill="#1e1b4b" stroke="#ef4444" strokeWidth="1.5" />
-              <path d="M 125,55 Q 140,35 150,45 Q 135,50 125,55" fill="#1e1b4b" stroke="#ef4444" strokeWidth="1.5" />
+              {/* Nose Horn */}
+              <polygon points={`124,${eyesY - 4} 136,${eyesY - 8} 126,${eyesY + 2}`} fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+              {/* Eyebrow Horns */}
+              <polygon points={`88,${eyesY - 10} 82,${eyesY - 24} 94,${eyesY - 14}`} fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
+              <polygon points={`122,${eyesY - 10} 128,${eyesY - 24} 116,${eyesY - 14}`} fill="#cbd5e1" stroke="#475569" strokeWidth="1" />
             </>
+          )}
+
+          {/* DRAGON HEAD HORNS (lvl 100+ Dragon) */}
+          {isLvl100 && (
+            <g className="animate-fire-glow">
+              <path d={`M 80,${eyesY - 12} Q 62,${eyesY - 37} 45,${eyesY - 27} Q 65,${eyesY - 20} 80,${eyesY - 12}`} fill="#ef4444" stroke="#7f1d1d" strokeWidth="1.5" />
+              <path d={`M 120,${eyesY - 12} Q 138,${eyesY - 37} 155,${eyesY - 27} Q 135,${eyesY - 20} 120,${eyesY - 12}`} fill="#ef4444" stroke="#7f1d1d" strokeWidth="1.5" />
+            </g>
           )}
 
           {/* Eyes */}
           {isSleeping ? (
             <>
-              <path d="M 85 75 Q 92 82 100 75" stroke={eyeColor} strokeWidth="3" fill="none" />
-              <path d="M 110 75 Q 118 82 125 75" stroke={eyeColor} strokeWidth="3" fill="none" />
+              <path d={`M 85 ${eyesY + 1} Q 92 ${eyesY + 8} 100 ${eyesY + 1}`} stroke={eyeColor} strokeWidth="3" fill="none" />
+              <path d={`M 110 ${eyesY + 1} Q 118 ${eyesY + 8} 125 ${eyesY + 1}`} stroke={eyeColor} strokeWidth="3" fill="none" />
             </>
           ) : isSad ? (
             <>
-              <ellipse cx="92" cy="74" rx="7" ry="9" fill={eyeColor} />
-              <ellipse cx="118" cy="74" rx="7" ry="9" fill={eyeColor} />
-              <path d="M 82 63 L 95 67" stroke={eyeColor} strokeWidth="3" strokeLinecap="round" />
-              <path d="M 128 63 L 115 67" stroke={eyeColor} strokeWidth="3" strokeLinecap="round" />
+              <ellipse cx="92" cy={eyesY} rx="7" ry="9" fill={eyeColor} />
+              <ellipse cx="118" cy={eyesY} rx="7" ry="9" fill={eyeColor} />
+              <path d={`M 82 ${eyesY - 11} L 95 ${eyesY - 7}`} stroke={eyeColor} strokeWidth="3" strokeLinecap="round" />
+              <path d={`M 128 ${eyesY - 11} L 115 ${eyesY - 7}`} stroke={eyeColor} strokeWidth="3" strokeLinecap="round" />
+            </>
+          ) : isLvl100 ? (
+            // Dragon slit eyes
+            <>
+              <ellipse cx="92" cy={eyesY} rx="8" ry="8" fill="#fbbf24" className="animate-pulse" />
+              <ellipse cx="118" cy={eyesY} rx="8" ry="8" fill="#fbbf24" className="animate-pulse" />
+              {/* Slit */}
+              <line x1="92" y1={eyesY - 6} x2="92" y2={eyesY + 6} stroke="#000" strokeWidth="2.5" />
+              <line x1="118" y1={eyesY - 6} x2="118" y2={eyesY + 6} stroke="#000" strokeWidth="2.5" />
             </>
           ) : (
             <>
-              <circle cx="92" cy="74" r="8" fill={eyeColor} />
-              <circle cx="118" cy="74" r="8" fill={eyeColor} />
-              <circle cx="90" cy="71" r="2.5" fill="white" />
-              <circle cx="116" cy="71" r="2.5" fill="white" />
-              {isLvl100 && (
-                <>
-                  <circle cx="92" cy="74" r="4.5" fill="#fbbf24" className="animate-pulse" />
-                  <circle cx="118" cy="74" r="4.5" fill="#fbbf24" className="animate-pulse" />
-                </>
-              )}
+              <circle cx="92" cy={eyesY} r="8" fill={eyeColor} />
+              <circle cx="118" cy={eyesY} r="8" fill={eyeColor} />
+              <circle cx="90" cy={eyesY - 3} r="2.5" fill="white" />
+              <circle cx="116" cy={eyesY - 3} r="2.5" fill="white" />
             </>
           )}
 
           {/* Cheeks */}
-          <circle cx="82" cy="80" r="4" fill="#f87171" opacity="0.6" />
-          <circle cx="126" cy="80" r="4" fill="#f87171" opacity="0.6" />
+          <circle cx="82" cy={eyesY + 6} r="4" fill="#f87171" opacity="0.6" />
+          <circle cx="126" cy={eyesY + 6} r="4" fill="#f87171" opacity="0.6" />
 
-          {/* Cute Mouth (breathing fire for lvl 100+) */}
+          {/* Cute Mouth */}
           {isSleeping ? (
-            <path d="M 102 85 Q 106 87 110 85" stroke={isLvl100 ? "#ef4444" : "#064e3b"} strokeWidth="2" fill="none" />
+            <path d={`M 102 ${eyesY + 11} Q 106 ${eyesY + 13} 110 ${eyesY + 11}`} stroke={isLvl100 ? "#ef4444" : "#064e3b"} strokeWidth="2" fill="none" />
           ) : isTalking ? (
-            <ellipse cx="106" cy="88" rx="5" ry="4" fill={isLvl100 ? "#ef4444" : "#7f1d1d"} />
+            <ellipse cx="106" cy={eyesY + 14} rx="5" ry="4" fill={isLvl100 ? "#ef4444" : "#7f1d1d"} />
           ) : (
-            <path d="M 102 85 Q 106 90 110 85" stroke={isLvl100 ? "#ef4444" : "#064e3b"} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            <path d={`M 102 ${eyesY + 11} Q 106 ${eyesY + 16} 110 ${eyesY + 11}`} stroke={isLvl100 ? "#ef4444" : "#064e3b"} strokeWidth="2.5" strokeLinecap="round" fill="none" />
           )}
 
           {/* Volcanic fire breath sparkles (lvl 100+) */}
           {isLvl100 && (
-            <circle cx="108" cy="92" r="3.5" fill="#fbbf24" className="animate-ping" />
+            <circle cx="108" cy="92" r="4.5" fill="#fbbf24" className="animate-ping" />
           )}
 
           {/* LEVEL BADGE */}
           <g transform="translate(100, 155)">
-            <rect x="-18" y="-8" width="36" height="16" rx="6" fill="#064e3b" stroke="#34d399" strokeWidth="1.5" />
+            <rect x="-18" y="-8" width="36" height="16" rx="6" fill="#064e3b" stroke={isLvl100 ? "#ef4444" : "#34d399"} strokeWidth="1.5" />
             <text x="0" y="4" textAnchor="middle" fill="#d1fae5" fontSize="10" fontWeight="bold">Lvl {level}</text>
           </g>
 
           {/* Accessories Anchors */}
-          {renderHat(100, 48)}
-          {renderGlasses(105, 74)}
+          {renderHat(hatX, hatY)}
+          {renderGlasses(glassesX, glassesY)}
         </g>
       </svg>
     );
   };
 
+  // SVG Render of Mascot Kitty
   // SVG Render of Mascot Kitty
   const renderKitty = () => {
     const isLvl15 = level >= 15;
@@ -748,10 +1052,70 @@ export function LingoPetVisual({
       feetColor = "#c2410c";
     }
 
+    // Dynamic head parameters based on milestone posture shifts
+    let headY = 92;
+    let headR = 38;
+    if (isLvl100) {
+      headY = 80;
+      headR = 32;
+    } else if (isLvl90) {
+      headY = 83;
+      headR = 33;
+    } else if (isLvl75) {
+      headY = 85;
+      headR = 34;
+    } else if (isLvl60) {
+      headY = 87;
+      headR = 35;
+    } else if (isLvl45) {
+      headY = 89;
+      headR = 36;
+    } else if (isLvl30) {
+      headY = 91;
+      headR = 37;
+    } else if (isLvl15) {
+      headY = 93;
+      headR = 38;
+    }
+
+    // Dynamic coordinates for Kitty cosmetics based on head height
+    let hatX = 100;
+    let hatY = headY - headR;
+    let glassesX = 100;
+    let glassesY = headY - 10; // align with eyes Y
+    let necklaceX = 100;
+    let necklaceY = headY + headR - 10;
+    let feetLeftX = 78;
+    let feetRightX = 122;
+    let feetY = 162;
+
+    // Dynamic viewBox to prevent wing/tail clipping
+    let viewBox = "0 0 200 200";
+    if (isLvl100) {
+      viewBox = "-60 -60 320 320";
+    } else if (isLvl90) {
+      viewBox = "-45 -45 290 290";
+    } else if (isLvl60) {
+      viewBox = "-30 -30 260 260";
+    }
+
     return (
-      <svg viewBox="0 0 200 200" className="w-full h-full">
+      <svg viewBox={viewBox} style={{ overflow: 'visible' }} className="w-full h-full">
+        <defs>
+          <radialGradient id="kittyGoddessGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#fef08a" stopOpacity="0.45"/>
+            <stop offset="60%" stopColor="#fbbf24" stopOpacity="0.15"/>
+            <stop offset="100%" stopColor="#0f172a" stopOpacity="0"/>
+          </radialGradient>
+        </defs>
+
         {/* Shadow */}
         <ellipse cx="100" cy="170" rx="45" ry="7" fill="rgba(0,0,0,0.3)" />
+
+        {/* Ambient Divine Aura for level 100 */}
+        {isLvl100 && (
+          <circle cx="100" cy="115" r="75" fill="url(#kittyGoddessGlow)" className="animate-pulse" />
+        )}
 
         <g className={cn(
           "transition-all duration-500 origin-bottom",
@@ -760,155 +1124,243 @@ export function LingoPetVisual({
           isSleeping && "translate-y-1",
           !isPetting && !isTalking && !isSleeping && "animate-breathing"
         )}>
-          {/* Wings */}
+          {/* Equipped Wings */}
           {renderWings(100, 130)}
 
           {/* Seraphim angel wings (lvl 100+) */}
           {isLvl100 && !equippedCosmetics.wings && (
             <g className="animate-archangel">
               {/* Left Golden Wing */}
-              <path d="M 60,100 C 25,60 10,70 -10,85 C 10,110 35,110 60,100" fill="#fbbf24" opacity="0.9" stroke="#f59e0b" strokeWidth="1" />
+              <path d="M 60,100 C 15,40 5,60 -25,75 C -5,115 30,115 60,100" fill="#fbbf24" opacity="0.9" stroke="#f59e0b" strokeWidth="2" />
               {/* Right Golden Wing */}
-              <path d="M 140,100 C 170,60 190,70 210,85 C 190,110 165,110 140,100" fill="#fbbf24" opacity="0.9" stroke="#f59e0b" strokeWidth="1" />
+              <path d="M 140,100 C 185,40 195,60 225,75 C 205,115 170,115 140,100" fill="#fbbf24" opacity="0.9" stroke="#f59e0b" strokeWidth="2" />
             </g>
           )}
 
           {/* Seraphim wings (lvl 45+) */}
           {isLvl45 && !isLvl100 && !equippedCosmetics.wings && (
             <g className="animate-butterfly">
-              <path d="M 60,120 C 45,115 42,130 58,135 Z" fill="#fef08a" opacity="0.8" />
-              <path d="M 140,120 C 155,115 158,130 142,135 Z" fill="#fef08a" opacity="0.8" />
+              <path d="M 60,120 C 40,110 35,130 55,135 Z" fill="#fef08a" opacity="0.85" />
+              <path d="M 140,120 C 160,110 165,130 145,135 Z" fill="#fef08a" opacity="0.85" />
             </g>
           )}
 
-          {/* Multiple Tails (lvl 90+) */}
-          {isLvl90 ? (
+          {/* Multiple Tails Evolution */}
+          {isLvl100 ? (
+            // Six majestic goddess tails fanning out
+            <g className="animate-archangel">
+              {/* Tail 1 (Left far) */}
+              <path d="M 135,140 C 165,110 170,60 145,45 C 130,55 140,95 135,140" fill="#fffbeb" opacity="0.6" stroke="#fbbf24" strokeWidth="0.8" />
+              {/* Tail 2 (Left mid) */}
+              <path d="M 138,140 C 180,120 185,75 165,60 C 150,70 155,105 138,140" fill="#fffbeb" opacity="0.75" stroke="#fbbf24" strokeWidth="0.8" />
+              {/* Tail 3 (Left close) */}
+              <path d="M 140,140 C 185,130 195,95 180,80 C 165,85 168,115 140,140" fill="#fffbeb" opacity="0.9" stroke="#fbbf24" strokeWidth="0.8" />
+              {/* Tail 4 (Right close) */}
+              <path d="M 140,140 C 190,145 200,110 188,95 C 175,95 170,120 140,140" fill="#fffbeb" opacity="0.9" stroke="#fbbf24" strokeWidth="0.8" />
+              {/* Tail 5 (Right mid) */}
+              <path d="M 138,140 C 182,155 190,125 182,110 C 170,110 162,128 138,140" fill="#fffbeb" opacity="0.75" stroke="#fbbf24" strokeWidth="0.8" />
+              {/* Tail 6 (Right far) */}
+              <path d="M 135,140 C 165,165 175,140 170,125 C 160,120 152,132 135,140" fill="#fffbeb" opacity="0.6" stroke="#fbbf24" strokeWidth="0.8" />
+            </g>
+          ) : isLvl90 ? (
+            // Triple tails (Nekomata style)
             <>
-              {/* Left tail */}
               <path d="M 140,140 C 160,135 170,105 162,95 C 155,90 150,110 143,130" fill={feetColor} opacity="0.75" />
-              {/* Right tail */}
               <path d="M 140,140 C 170,145 180,115 178,105 C 170,95 160,115 143,130" fill={feetColor} opacity="0.75" />
-              {/* Middle tail */}
+              <path d="M 140,140 C 165,140 175,110 170,100 C 165,90 155,110 143,130" fill={feetColor} />
+            </>
+          ) : isLvl75 ? (
+            // Triple tails
+            <>
+              <path d="M 140,140 C 160,135 170,105 162,95 C 155,90 150,110 143,130" fill={feetColor} opacity="0.75" />
+              <path d="M 140,140 C 170,145 180,115 178,105 C 170,95 160,115 143,130" fill={feetColor} opacity="0.75" />
+            </>
+          ) : isLvl45 ? (
+            // Double tails
+            <>
+              <path d="M 140,140 C 160,135 170,105 162,95 C 155,90 150,110 143,130" fill={feetColor} opacity="0.75" />
               <path d="M 140,140 C 165,140 175,110 170,100 C 165,90 155,110 143,130" fill={feetColor} />
             </>
           ) : (
+            // Baby tail
             <path d="M 140 140 C 165 140, 175 110, 170 100 C 165 90, 155 110, 143 130" fill={feetColor} />
           )}
 
           {/* Goddess Scarf Ribbon (lvl 100+) */}
           {isLvl100 && (
-            <path d="M 50,130 Q 100,165 150,130 Q 180,110 168,145 Q 100,175 32,145 Q 20,110 50,130" fill="none" stroke="#fbbf24" strokeWidth="2.5" opacity="0.8" className="animate-float" />
+            <path d="M 45,125 Q 100,162 155,125 Q 185,100 172,140 Q 100,172 28,140 Q 15,100 45,125" fill="none" stroke="#fbbf24" strokeWidth="2.5" opacity="0.85" className="animate-float" />
           )}
 
-          {/* Main Body */}
-          <ellipse cx="100" cy="130" rx="45" ry="35" fill={bodyColor} />
+          {/* PHYSICAL BODY EVOLUTION */}
+          {isLvl100 ? (
+            // Slender Goddess Body
+            <ellipse cx="100" cy="126" rx="42" ry="32" fill={bodyColor} stroke="#fbbf24" strokeWidth="1.5" />
+          ) : isLvl90 ? (
+            // Fluffy mystical body
+            <ellipse cx="100" cy="128" rx="43" ry="33" fill={bodyColor} />
+          ) : isLvl75 ? (
+            // Valkyrie body
+            <ellipse cx="100" cy="128" rx="43" ry="31" fill={bodyColor} />
+          ) : isLvl60 ? (
+            // Sorceress body
+            <ellipse cx="100" cy="130" rx="44" ry="32" fill={bodyColor} />
+          ) : isLvl45 ? (
+            // Slender body
+            <ellipse cx="100" cy="132" rx="44" ry="32" fill={bodyColor} />
+          ) : isLvl30 ? (
+            // Mystic body
+            <ellipse cx="100" cy="132" rx="40" ry="29" fill={bodyColor} />
+          ) : isLvl15 ? (
+            // Kid body
+            <ellipse cx="100" cy="135" rx="38" ry="28" fill={bodyColor} />
+          ) : (
+            // Kitten round body
+            <ellipse cx="100" cy="138" rx="35" ry="26" fill={bodyColor} />
+          )}
           
-          {/* Tummy/Chest patch */}
-          <ellipse cx="100" cy="138" rx="28" ry="20" fill={tummyColor} />
+          {/* Tummy patch */}
+          {isLvl100 ? (
+            <ellipse cx="100" cy="134" rx="26" ry="18" fill={tummyColor} />
+          ) : isLvl45 ? (
+            <ellipse cx="100" cy="138" rx="27" ry="18" fill={tummyColor} />
+          ) : (
+            <ellipse cx="100" cy="142" rx="24" ry="16" fill={tummyColor} />
+          )}
 
           {/* Valkyrie chest plate (lvl 75+) */}
-          {isLvl75 && (
+          {isLvl75 && !isLvl100 && (
             <path d="M 85,128 Q 100,145 115,128 L 110,136 Q 100,146 90,136 Z" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="1.2" />
           )}
 
-          {/* Necklace */}
-          {renderNecklace(100, 112)}
+          {/* Necklace slot */}
+          {renderNecklace(necklaceX, necklaceY)}
 
-          {/* Head */}
-          <circle cx="100" cy="92" r="38" fill={bodyColor} />
+          {/* PHYSICAL HEAD EVOLUTION */}
+          <circle cx="100" cy={headY} r={headR} fill={bodyColor} stroke={isLvl100 ? "#fbbf24" : "none"} strokeWidth={1} />
 
-          {/* Ears */}
-          <polygon points="68,75 58,45 85,68" fill={earsColor} />
-          <polygon points="68,75 62,52 80,68" fill="#fecaca" />
-          
-          <polygon points="132,75 142,45 115,68" fill={earsColor} />
-          <polygon points="132,75 138,52 120,68" fill="#fecaca" />
-
-          {/* Valkyrie ear wings (lvl 75+) */}
-          {isLvl75 && (
+          {/* EARS EVOLUTION */}
+          {isLvl100 ? (
+            // Goddess Feathery Ears
             <>
-              <path d="M 58,45 Q 46,35 42,45 Q 50,47 58,45" fill="#cbd5e1" stroke="#fbbf24" strokeWidth="0.8" />
-              <path d="M 142,45 Q 154,35 158,45 Q 150,47 142,45" fill="#cbd5e1" stroke="#fbbf24" strokeWidth="0.8" />
+              <polygon points={`68,${headY - 9} 50,${headY - 45} 82,${headY - 18}`} fill={earsColor} stroke="#fbbf24" strokeWidth="1" />
+              <polygon points={`68,${headY - 9} 56,${headY - 38} 78,${headY - 18}`} fill="#fff" />
+              <polygon points={`132,${headY - 9} 150,${headY - 45} 118,${headY - 18}`} fill={earsColor} stroke="#fbbf24" strokeWidth="1" />
+              <polygon points={`132,${headY - 9} 144,${headY - 38} 122,${headY - 18}`} fill="#fff" />
+            </>
+          ) : (
+            // Normal Ears
+            <>
+              <polygon points={`68,${headY - 17} 58,${headY - 47} 85,${headY - 24}`} fill={earsColor} />
+              <polygon points={`68,${headY - 17} 62,${headY - 40} 80,${headY - 24}`} fill="#fecaca" />
+              <polygon points={`132,${headY - 17} 142,${headY - 47} 115,${headY - 24}`} fill={earsColor} />
+              <polygon points={`132,${headY - 17} 138,${headY - 40} 120,${headY - 24}`} fill="#fecaca" />
             </>
           )}
 
-          {/* Goddess Halo (lvl 100+) */}
+          {/* Valkyrie ear wings (lvl 75+) */}
+          {isLvl75 && !isLvl100 && (
+            <>
+              <path d={`M 58,${headY - 47} Q 46,${headY - 57} 42,${headY - 47} Q 50,${headY - 45} 58,${headY - 47}`} fill="#cbd5e1" stroke="#fbbf24" strokeWidth="0.8" />
+              <path d={`M 142,${headY - 47} Q 154,${headY - 57} 158,${headY - 47} Q 150,${headY - 45} 142,${headY - 47}`} fill="#cbd5e1" stroke="#fbbf24" strokeWidth="0.8" />
+            </>
+          )}
+
+          {/* GODDESS HALO (lvl 100+) */}
           {isLvl100 && (
-            <g className="animate-halo" transform="translate(100, 44)">
-              <ellipse cx="0" cy="0" rx="28" ry="8" fill="none" stroke="#fbbf24" strokeWidth="3" opacity="0.95" />
-              <ellipse cx="0" cy="0" rx="28" ry="8" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5" />
+            <g className="animate-halo" transform={`translate(100, ${headY - 44})`}>
+              <ellipse cx="0" cy="0" rx="30" ry="9" fill="none" stroke="#fbbf24" strokeWidth="3" opacity="0.95" />
+              <ellipse cx="0" cy="0" rx="30" ry="9" fill="none" stroke="#fff" strokeWidth="1" opacity="0.6" />
             </g>
           )}
 
           {/* Crystal tiara (lvl 60+) */}
           {isLvl60 && !isLvl100 && (
-            <path d="M 90,66 L 88,58 L 95,61 L 100,51 L 105,61 L 112,58 L 110,66 Z" fill="#ec4899" stroke="#cbd5e1" strokeWidth="1" />
+            <path d={`M 90,${headY - 26} L 88,${headY - 34} L 95,${headY - 31} L 100,${headY - 41} L 105,${headY - 31} L 112,${headY - 34} L 110,${headY - 26} Z`} fill="#ec4899" stroke="#cbd5e1" strokeWidth="1" />
           )}
 
           {/* Ribbon neck collar (lvl 15+) */}
           {isLvl15 && !isLvl100 && (
             <g>
-              <rect x="86" y="110" width="28" height="4" fill="#f43f5e" rx="2" />
-              <circle cx="100" cy="112" r="3" fill="#fbbf24" className="animate-pulse" />
+              <rect x="86" y={headY + headR - 18} width="28" height="4" fill="#f43f5e" rx="2" />
+              <circle cx="100" cy={headY + headR - 16} r="3" fill="#fbbf24" className="animate-pulse" />
             </g>
           )}
 
           {/* Forehead Moon (lvl 30+) */}
           {isLvl30 && (
-            <path d="M 97,80 A 3,3 0 0,0 103,80 A 2.2,2.2 0 0,1 97,80" fill={isLvl90 ? "#a855f7" : "#fbbf24"} opacity="0.9" />
+            <path d={`M 97,${headY - 12} A 3,3 0 0,0 103,${headY - 12} A 2.2,2.2 0 0,1 97,${headY - 12}`} fill={isLvl90 ? "#a855f7" : "#fbbf24"} opacity="0.9" />
           )}
 
           {/* Feet */}
-          <ellipse cx="78" cy="162" rx="10" ry="7" fill={feetColor} />
-          <ellipse cx="122" cy="162" rx="10" ry="7" fill={feetColor} />
-          {renderShoes(78, 122, 162)}
+          <ellipse cx={feetLeftX} cy={feetY} rx="10" ry="7" fill={feetColor} />
+          <ellipse cx={feetRightX} cy={feetY} rx="10" ry="7" fill={feetColor} />
+          {renderShoes(feetLeftX, feetRightX, feetY)}
           
           {/* Paws front */}
-          <circle cx="88" cy="148" r="8" fill={tummyColor} />
-          <circle cx="112" cy="148" r="8" fill={tummyColor} />
+          {isLvl100 ? (
+            <>
+              <circle cx="86" cy="140" r="7" fill={tummyColor} />
+              <circle cx="114" cy="140" r="7" fill={tummyColor} />
+            </>
+          ) : (
+            <>
+              <circle cx="88" cy="148" r="8" fill={tummyColor} />
+              <circle cx="112" cy="148" r="8" fill={tummyColor} />
+            </>
+          )}
 
           {/* Eyes */}
           {isSleeping ? (
             <>
-              <path d="M 78 92 Q 86 98 94 92" stroke="#78350f" strokeWidth="2.5" fill="none" />
-              <path d="M 106 92 Q 114 98 122 92" stroke="#78350f" strokeWidth="2.5" fill="none" />
+              <path d={`M 78 ${headY} Q 86 ${headY + 6} 94 ${headY}`} stroke="#78350f" strokeWidth="2.5" fill="none" />
+              <path d={`M 106 ${headY} Q 114 ${headY + 6} 122 ${headY}`} stroke="#78350f" strokeWidth="2.5" fill="none" />
             </>
           ) : isSad ? (
             <>
-              <circle cx="85" cy="91" r="7" fill="#78350f" />
-              <circle cx="115" cy="91" r="7" fill="#78350f" />
-              <path d="M 77 82 Q 85 85 93 82" stroke="#78350f" strokeWidth="2" fill="none" />
-              <path d="M 123 82 Q 115 85 107 82" stroke="#78350f" strokeWidth="2" fill="none" />
+              <circle cx="85" cy={headY - 1} r="7" fill="#78350f" />
+              <circle cx="115" cy={headY - 1} r="7" fill="#78350f" />
+              <path d={`M 77 ${headY - 10} Q 85 ${headY - 7} 93 ${headY - 10}`} stroke="#78350f" strokeWidth="2" fill="none" />
+              <path d={`M 123 ${headY - 10} Q 115 ${headY - 7} 107 ${headY - 10}`} stroke="#78350f" strokeWidth="2" fill="none" />
+            </>
+          ) : isLvl100 ? (
+            // Goddess eyes with gold/amber glow and shine
+            <>
+              <circle cx="85" cy={headY - 7} r="9" fill="#fbbf24" className="animate-pulse" />
+              <circle cx="115" cy={headY - 7} r="9" fill="#fbbf24" className="animate-pulse" />
+              <circle cx="85" cy={headY - 7} r="5" fill="#b45309" />
+              <circle cx="115" cy={headY - 7} r="5" fill="#b45309" />
+              <circle cx="83" cy={headY - 10} r="2.2" fill="white" />
+              <circle cx="113" cy={headY - 10} r="2.2" fill="white" />
             </>
           ) : (
             <>
-              <circle cx="85" cy="91" r="8" fill={isLvl100 ? "#b45309" : isLvl60 ? "#db2777" : "#78350f"} />
-              <circle cx="115" cy="91" r="8" fill={isLvl100 ? "#b45309" : isLvl60 ? "#db2777" : "#78350f"} />
-              <circle cx="83" cy="88" r="2.5" fill="white" />
-              <circle cx="113" cy="88" r="2.5" fill="white" />
+              <circle cx="85" cy={headY - 1} r="8" fill={isLvl60 ? "#db2777" : "#78350f"} />
+              <circle cx="115" cy={headY - 1} r="8" fill={isLvl60 ? "#db2777" : "#78350f"} />
+              <circle cx="83" cy={headY - 4} r="2.5" fill="white" />
+              <circle cx="113" cy={headY - 4} r="2.5" fill="white" />
             </>
           )}
 
           {/* Nose & Mouth */}
-          <polygon points="98,98 102,98 100,101" fill="#f43f5e" />
-          <path d="M 97 103 Q 100 106 103 103" stroke="#78350f" strokeWidth="1.5" fill="none" />
+          <polygon points={`98,${headY + 6} 102,${headY + 6} 100,${headY + 9}`} fill="#f43f5e" />
+          <path d={`M 97 ${headY + 11} Q 100 ${headY + 14} 103 ${headY + 11}`} stroke="#78350f" strokeWidth="1.5" fill="none" />
 
           {/* Whiskers */}
-          <line x1="58" y1="98" x2="42" y2="96" stroke="#78350f" strokeWidth="1.5" />
-          <line x1="58" y1="104" x2="40" y2="105" stroke="#78350f" strokeWidth="1.5" />
+          <line x1="58" y1={headY + 6} x2="42" y2={headY + 4} stroke="#78350f" strokeWidth="1.5" />
+          <line x1="58" y1={headY + 12} x2="40" y2={headY + 13} stroke="#78350f" strokeWidth="1.5" />
           
-          <line x1="142" y1="98" x2="158" y2="96" stroke="#78350f" strokeWidth="1.5" />
-          <line x1="142" y1="104" x2="160" y2="105" stroke="#78350f" strokeWidth="1.5" />
+          <line x1="142" y1={headY + 6} x2="158" y2={headY + 4} stroke="#78350f" strokeWidth="1.5" />
+          <line x1="142" y1={headY + 12} x2="160" y2={headY + 13} stroke="#78350f" strokeWidth="1.5" />
 
           {/* LEVEL BADGE */}
           <g transform="translate(100, 155)">
-            <rect x="-18" y="-8" width="36" height="16" rx="6" fill="#78350f" stroke="#ea580c" strokeWidth="1.5" />
+            <rect x="-18" y="-8" width="36" height="16" rx="6" fill="#78350f" stroke={isLvl100 ? "#fbbf24" : "#ea580c"} strokeWidth="1.5" />
             <text x="0" y="4" textAnchor="middle" fill="#ffedd5" fontSize="10" fontWeight="bold">Lvl {level}</text>
           </g>
 
           {/* Accessories Anchors */}
-          {renderHat(100, 58)}
-          {renderGlasses(100, 91)}
+          {renderHat(hatX, hatY)}
+          {renderGlasses(glassesX, glassesY)}
         </g>
       </svg>
     );
