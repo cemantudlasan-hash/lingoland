@@ -41,6 +41,7 @@ import {
   Egg,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/context/auth-context";
 import { signOut } from "@/lib/auth";
 import { useRouter } from "next/navigation";
@@ -194,7 +195,13 @@ export function AppSidebar() {
       <div className="relative z-10 flex h-full flex-col p-2 gap-2">
         <SidebarHeader className="hidden md:flex bg-card/10">
           <div className="flex items-center gap-2 p-2 overflow-hidden">
-            <GraduationCap className="h-8 w-8 shrink-0 text-primary" />
+            <Image
+              src="/logo.png"
+              alt="LingoLandVerse Logo"
+              width={36}
+              height={36}
+              className="shrink-0 rounded-lg object-contain mix-blend-screen"
+            />
             <h1 className="text-xl font-bold font-headline truncate transition-opacity group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:hidden">LingoLandVerse</h1>
           </div>
         </SidebarHeader>

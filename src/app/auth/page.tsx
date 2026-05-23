@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -242,6 +243,16 @@ export default function AuthPage() {
                 >
                     <Card>
                         <CardHeader className="text-center">
+                            <div className="flex justify-center mb-2">
+                              <Image
+                                src="/logo.png"
+                                alt="LingoLandVerse Logo"
+                                width={180}
+                                height={180}
+                                className="rounded-2xl object-contain mix-blend-screen"
+                                priority
+                              />
+                            </div>
                             <CardTitle className="text-2xl font-bold tracking-tighter">Welcome to LingoLandVerse</CardTitle>
                             <CardDescription>Sign in, create an account, or continue as a guest.</CardDescription>
                             <p className="text-sm text-muted-foreground pt-2">Ideas and created by: CSC Tech Corp., Powered by Ai.</p>
