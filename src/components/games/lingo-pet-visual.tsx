@@ -738,7 +738,7 @@ export function LingoPetVisual({
     let glassesX = 105;
     let glassesY = eyesY - 9; // align glasses center with eyes
     let necklaceX = 98;
-    let necklaceY = isLvl100 ? 95 : eyesY + 18;
+    let necklaceY = isLvl100 ? 114 : eyesY + 34;
     let feetLeftX = 80;
     let feetRightX = 112;
     let feetY = 162;

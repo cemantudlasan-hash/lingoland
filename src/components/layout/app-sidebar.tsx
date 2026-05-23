@@ -58,6 +58,7 @@ const publicItems = [
   { href: "/games", label: "Classroom Games", icon: Gamepad2 },
   { href: "/classroom-tools", label: "Classroom Tools", icon: Wrench },
   { href: "/reader", label: "Reader", icon: BookOpen },
+  { href: "/flashcards", label: "Flashcards", icon: StickyNote },
   { href: "/generator", label: "Exercises", icon: BrainCircuit },
   { href: "/exam-mode", label: "Exam Mode", icon: FileQuestion },
   { href: "/attendance", label: "Attendance", icon: CalendarCheck },
