@@ -94,6 +94,7 @@ export const gameComponentMap = {
       'gene-genius': dynamic(() => import('@/components/games/gene-genius').then(mod => mod.GeneGenius)),
       'literary-device-legend': dynamic(() => import('@/components/games/literary-device-legend').then(mod => mod.LiteraryDeviceLegend)),
       'daily-verse': dynamic(() => import('@/components/games/daily-verse').then(mod => mod.DailyVerse)),
+      'cosmic-word-voyager': dynamic(() => import('@/components/games/cosmic-word-voyager').then(mod => mod.CosmicWordVoyager)),
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
 };
 

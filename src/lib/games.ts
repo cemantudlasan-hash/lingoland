@@ -684,6 +684,15 @@ export const allGames: Game[] = [
     subject: "english",
     icon: Newspaper,
   },
+  {
+    title: "Cosmic Word Voyager",
+    slug: "cosmic-word-voyager",
+    description: "Pilot your spacecraft through hypergates by solving language mysteries. Fuel the ship with vocabulary, shield your hull from errors!",
+    level: "intermediate",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Rocket,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {

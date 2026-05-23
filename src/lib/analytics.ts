@@ -37,7 +37,7 @@ export function getDailyBonusGame(): { slug: string; bonusAmount: number } {
   };
 }
 
-async function updatePetOnGamePlay(firestore: Firestore, userId: string, event?: AnalyticsEventData) {
+async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, event?: AnalyticsEventData) {
   const today = new Date();
   const todayUTC = `${today.getUTCFullYear()}-${today.getUTCMonth() + 1}-${today.getUTCDate()}`;
 
@@ -78,6 +78,8 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string, event?:
     }
     return;
   }
+
+  if (!firestore) return;
 
   // Real user: update in Firestore
   try {
@@ -146,14 +148,15 @@ async function updatePetOnGamePlay(firestore: Firestore, userId: string, event?:
   }
 }
 
-export const logAnalyticsEvent = (firestore: Firestore, userId: string | 'guest', event: AnalyticsEventData) => {
-  if (!firestore) return;
-  const analyticsCollection = collection(firestore, 'analytics');
-  addDocumentNonBlocking(analyticsCollection, {
-    userId,
-    ...event,
-    createdAt: serverTimestamp(),
-  });
+export const logAnalyticsEvent = (firestore: Firestore | null, userId: string | 'guest', event: AnalyticsEventData) => {
+  if (firestore) {
+    const analyticsCollection = collection(firestore, 'analytics');
+    addDocumentNonBlocking(analyticsCollection, {
+      userId,
+      ...event,
+      createdAt: serverTimestamp(),
+    });
+  }
 
   // Reward pet on game completion
   if (event.type === 'game_played') {

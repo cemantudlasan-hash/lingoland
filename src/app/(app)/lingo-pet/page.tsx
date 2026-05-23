@@ -6,8 +6,9 @@ import { useFirestore } from '@/firebase';
 import { doc, getDoc, setDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { 
   Sparkles, Heart, Zap, Brain, ShoppingBag, MessageSquare, 
-  HelpCircle, ChevronRight, Coins, RefreshCw, AlertCircle, Play, Info
+  HelpCircle, ChevronRight, Coins, RefreshCw, AlertCircle, Play, Info, Loader2
 } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -227,7 +228,7 @@ const SHOP_ITEMS = [
 ];
 
 export default function LingoPetPage() {
-  const { user, isGuest, isAdmin = false } = useAuth();
+  const { user, isGuest, isLoading: isAuthLoading, isAdmin = false } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
 
@@ -576,6 +577,38 @@ export default function LingoPetPage() {
       description: "Pet energy reduced to 0. It has fallen asleep.",
     });
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-10 w-10 text-indigo-500 animate-spin" />
+          <span className="text-sm text-slate-400">Loading profile...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isGuest || !user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 p-4">
+        <div className="p-6 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-lg shadow-indigo-500/5 animate-pulse">
+          <Sparkles className="h-20 w-20 text-indigo-400" />
+        </div>
+        <div className="space-y-2 max-w-md">
+          <h2 className="text-2xl md:text-3xl font-extrabold uppercase tracking-tighter bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+            Lingo-Pet Access Restricted
+          </h2>
+          <p className="text-slate-400 text-lg">
+            Guest accounts are not allowed to access the Lingo-Pet companion dashboard. Please sign in or create an account to adopt and level up your companion!
+          </p>
+        </div>
+        <Button asChild size="lg" className="h-14 px-10 text-xl font-bold rounded-2xl bg-gradient-to-r from-purple-500 via-indigo-500 to-teal-500 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/25">
+          <Link href="/auth">Sign In or Create Account</Link>
+        </Button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
