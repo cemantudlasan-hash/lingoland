@@ -722,6 +722,44 @@
   50% { r: 15; opacity: 0.6; }
 }
 
+/* Ensure SVG elements scale and rotate relative to their local bounding box */
+.animate-halo,
+.animate-fire-glow,
+.animate-aurora,
+.animate-steampunk,
+.animate-starry,
+.animate-ruby,
+.animate-crystal,
+.animate-hover-boot,
+.animate-sneaker-wing,
+.animate-phoenix,
+.animate-butterfly,
+.animate-cyber,
+.animate-archangel,
+.animate-dragon-wings,
+.animate-hypno-spin,
+.animate-spark-flash,
+.animate-void-wing,
+.animate-nebula-spin,
+.animate-float {
+  transform-box: fill-box;
+}
+
+.animate-float {
+  animation: float-anim 3s infinite ease-in-out;
+  transform-origin: center;
+}
+
+@keyframes float-anim {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+
 
 
 

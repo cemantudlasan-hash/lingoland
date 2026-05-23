@@ -411,17 +411,21 @@ export function LingoPetVisual({
 
           {/* Dragon tail behind body (lvl 100+) */}
           {isLvl100 && (
-            <g className="animate-dragon-wings" transform="translate(100, 125)">
-              <path d="M 40,25 C 75,30 95,65 105,75 C 110,65 95,45 60,30 Z" fill="#0f172a" stroke="#d946ef" strokeWidth="2" />
-              <polygon points="105,75 118,70 110,83" fill="#d946ef" />
+            <g transform="translate(100, 125)">
+              <g className="animate-dragon-wings">
+                <path d="M 40,25 C 75,30 95,65 105,75 C 110,65 95,45 60,30 Z" fill="#0f172a" stroke="#d946ef" strokeWidth="2" />
+                <polygon points="105,75 118,70 110,83" fill="#d946ef" />
+              </g>
             </g>
           )}
 
           {/* Phoenix flame tail (lvl 60+) */}
           {isLvl60 && !isLvl100 && (
-            <g className="animate-fire-glow" transform="translate(100, 130)">
-              <path d="M -15,20 C -25,50 0,65 0,65 C 0,65 25,50 15,20" fill="#ea580c" opacity="0.8" />
-              <path d="M -8,20 C -15,40 0,50 0,50 C 0,50 15,40 8,20" fill="#fbbf24" />
+            <g transform="translate(100, 130)">
+              <g className="animate-fire-glow">
+                <path d="M -15,20 C -25,50 0,65 0,65 C 0,65 25,50 15,20" fill="#ea580c" opacity="0.8" />
+                <path d="M -8,20 C -15,40 0,50 0,50 C 0,50 15,40 8,20" fill="#fbbf24" />
+              </g>
             </g>
           )}
 
@@ -813,10 +817,12 @@ export function LingoPetVisual({
           
           {/* Tail fire (lvl 60+) */}
           {isLvl60 && (
-            <g transform={isLvl100 ? "translate(-18, 124)" : isLvl90 ? "translate(3, 122)" : isLvl75 ? "translate(10, 125)" : "translate(15, 126)"} className="animate-fire-glow">
-              <circle cx="0" cy="0" r="12" fill="#ef4444" opacity="0.8" />
-              <circle cx="0" cy="0" r="7" fill="#f97316" />
-              <circle cx="0" cy="0" r="3" fill="#fbbf24" />
+            <g transform={isLvl100 ? "translate(-18, 124)" : isLvl90 ? "translate(3, 122)" : isLvl75 ? "translate(10, 125)" : "translate(15, 126)"}>
+              <g className="animate-fire-glow">
+                <circle cx="0" cy="0" r="12" fill="#ef4444" opacity="0.8" />
+                <circle cx="0" cy="0" r="7" fill="#f97316" />
+                <circle cx="0" cy="0" r="3" fill="#fbbf24" />
+              </g>
             </g>
           )}
 
@@ -1267,9 +1273,11 @@ export function LingoPetVisual({
 
           {/* GODDESS HALO (lvl 100+) */}
           {isLvl100 && (
-            <g className="animate-halo" transform={`translate(100, ${headY - 44})`}>
-              <ellipse cx="0" cy="0" rx="30" ry="9" fill="none" stroke="#fbbf24" strokeWidth="3" opacity="0.95" />
-              <ellipse cx="0" cy="0" rx="30" ry="9" fill="none" stroke="#fff" strokeWidth="1" opacity="0.6" />
+            <g transform={`translate(100, ${headY - 44})`}>
+              <g className="animate-halo">
+                <ellipse cx="0" cy="0" rx="30" ry="9" fill="none" stroke="#fbbf24" strokeWidth="3" opacity="0.95" />
+                <ellipse cx="0" cy="0" rx="30" ry="9" fill="none" stroke="#fff" strokeWidth="1" opacity="0.6" />
+              </g>
             </g>
           )}
 
@@ -1456,25 +1464,29 @@ export function LingoPetVisual({
         );
       case 'aurora_crown':
         return (
-          <g transform={`translate(${cx}, ${cy - 2})`} className="drop-shadow-[0_0_12px_rgba(168,85,247,0.85)] animate-aurora">
-            {/* Multi-point crown base and spikes */}
-            <path d="M -22 2 L -25 -16 L -12 -5 L 0 -22 L 12 -5 L 25 -16 L 22 2 Z" fill="#a855f7" stroke="#3b82f6" strokeWidth="1.5" />
-            <ellipse cx="0" cy="0" rx="14" ry="2.5" fill="#1e1b4b" opacity="0.5" />
-            {/* Crown Jewels on tips */}
-            <circle cx="0" cy="-22" r="3" fill="#ec4899" className="animate-pulse" />
-            <circle cx="-25" cy="-16" r="2.5" fill="#3b82f6" className="animate-pulse" />
-            <circle cx="25" cy="-16" r="2.5" fill="#10b981" className="animate-pulse" />
+          <g transform={`translate(${cx}, ${cy - 2})`}>
+            <g className="drop-shadow-[0_0_12px_rgba(168,85,247,0.85)] animate-aurora">
+              {/* Multi-point crown base and spikes */}
+              <path d="M -22 2 L -25 -16 L -12 -5 L 0 -22 L 12 -5 L 25 -16 L 22 2 Z" fill="#a855f7" stroke="#3b82f6" strokeWidth="1.5" />
+              <ellipse cx="0" cy="0" rx="14" ry="2.5" fill="#1e1b4b" opacity="0.5" />
+              {/* Crown Jewels on tips */}
+              <circle cx="0" cy="-22" r="3" fill="#ec4899" className="animate-pulse" />
+              <circle cx="-25" cy="-16" r="2.5" fill="#3b82f6" className="animate-pulse" />
+              <circle cx="25" cy="-16" r="2.5" fill="#10b981" className="animate-pulse" />
+            </g>
           </g>
         );
       case 'crown':
         return (
-          <g transform={`translate(${cx}, ${cy})`} className="drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)] animate-float">
-            <path d="M -22 0 L -25 -20 L -10 -8 L 0 -25 L 10 -8 L 25 -20 L 22 0 Z" fill="#fbbf24" stroke="#d97706" strokeWidth="1.5" />
-            {/* Crown Jewels */}
-            <circle cx="0" cy="-25" r="2.5" fill="#ef4444" />
-            <circle cx="-25" cy="-20" r="2" fill="#3b82f6" />
-            <circle cx="25" cy="-20" r="2" fill="#3b82f6" />
-            <ellipse cx="0" cy="-3" rx="15" ry="3" fill="#ef4444" />
+          <g transform={`translate(${cx}, ${cy})`}>
+            <g className="drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)] animate-float">
+              <path d="M -22 0 L -25 -20 L -10 -8 L 0 -25 L 10 -8 L 25 -20 L 22 0 Z" fill="#fbbf24" stroke="#d97706" strokeWidth="1.5" />
+              {/* Crown Jewels */}
+              <circle cx="0" cy="-25" r="2.5" fill="#ef4444" />
+              <circle cx="-25" cy="-20" r="2" fill="#3b82f6" />
+              <circle cx="25" cy="-20" r="2" fill="#3b82f6" />
+              <ellipse cx="0" cy="-3" rx="15" ry="3" fill="#ef4444" />
+            </g>
           </g>
         );
       case 'wizard_hat':
@@ -1890,8 +1902,10 @@ export function LingoPetVisual({
               <path d="M -11 -6 L -11 3 C -11 6, -8 7, 2 7 C 9 7, 11 5, 11 1 C 11 -2, 6 -3, 6 -6 Z" fill="#fbbf24" stroke="#d97706" strokeWidth="1.5" />
               <path d="M -11 3 L 11 3" stroke="#eab308" strokeWidth="2.5" />
               {/* Animated Jagged Lightning */}
-              <g className="animate-spark-flash" transform="translate(0, -6)">
-                <path d="M -6 0 L 0 -8 L -2 -3 L 6 -12 L 0 -4 L 2 -8 Z" fill="#fef08a" stroke="#eab308" strokeWidth="0.8" />
+              <g transform="translate(0, -6)">
+                <g className="animate-spark-flash">
+                  <path d="M -6 0 L 0 -8 L -2 -3 L 6 -12 L 0 -4 L 2 -8 Z" fill="#fef08a" stroke="#eab308" strokeWidth="0.8" />
+                </g>
               </g>
             </g>
             {/* Right Cleat */}
@@ -1900,8 +1914,10 @@ export function LingoPetVisual({
                 <path d="M -11 -6 L -11 3 C -11 6, -8 7, 2 7 C 9 7, 11 5, 11 1 C 11 -2, 6 -3, 6 -6 Z" fill="#fbbf24" stroke="#d97706" strokeWidth="1.5" />
                 <path d="M -11 3 L 11 3" stroke="#eab308" strokeWidth="2.5" />
                 {/* Animated Jagged Lightning */}
-                <g className="animate-spark-flash" transform="translate(0, -6)" style={{ animationDelay: '200ms' }}>
-                  <path d="M -6 0 L 0 -8 L -2 -3 L 6 -12 L 0 -4 L 2 -8 Z" fill="#fef08a" stroke="#eab308" strokeWidth="0.8" />
+                <g transform="translate(0, -6)">
+                  <g className="animate-spark-flash" style={{ animationDelay: '200ms' }}>
+                    <path d="M -6 0 L 0 -8 L -2 -3 L 6 -12 L 0 -4 L 2 -8 Z" fill="#fef08a" stroke="#eab308" strokeWidth="0.8" />
+                  </g>
                 </g>
               </g>
             </g>
