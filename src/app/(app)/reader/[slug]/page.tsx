@@ -157,12 +157,12 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
       });
       setIsModalOpen(false);
       setFloatingCoords(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to save flashcard:", err);
       toast({
         variant: "destructive",
         title: "Save Failed",
-        description: "Could not save card. Please try again.",
+        description: `Could not save card: ${err?.message || err}`,
       });
     } finally {
       setIsSaving(false);

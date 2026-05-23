@@ -218,12 +218,12 @@ export default function FlashcardsPage() {
       setHint("");
       setContext("");
       setActiveTab("collection");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to create card:", err);
       toast({
         variant: "destructive",
         title: "Create Failed",
-        description: "Could not save card to database.",
+        description: `Could not save card to database: ${err?.message || err}`,
       });
     } finally {
       setIsCreating(false);
