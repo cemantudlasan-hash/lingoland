@@ -119,9 +119,9 @@ export function JeopardyClassroom({ slug, onToggleFullscreen }: { slug: string; 
     const winner = availableQuestionsForLowestPoints[Math.floor(Math.random() * availableQuestionsForLowestPoints.length)];
     const scanPath = availableQuestionsForLowestPoints;
     const cycles = 2;
-    let animationSequence = [];
+    let animationSequence: { catIndex: number; qIndex: number }[] = [];
     for (let i = 0; i < cycles; i++) {
-      animationSequence.push(shuffleArray(...[...scanPath]));
+      animationSequence.push(...shuffleArray([...scanPath]));
     }
     
     const winnerIndexInScanPath = scanPath.findIndex(p => p.catIndex === winner.catIndex && p.qIndex === winner.qIndex);
