@@ -37,6 +37,47 @@ export function getDailyBonusGame(): { slug: string; bonusAmount: number } {
   };
 }
 
+export type DailyMission = {
+  slug: string;
+  title: string;
+  reward: number;
+};
+
+export function getDailyMissions(): DailyMission[] {
+  const games = allGames;
+  if (!games || games.length < 3) return [];
+  
+  const today = new Date();
+  const dateString = `${today.getUTCFullYear()}-${today.getUTCMonth() + 1}-${today.getUTCDate()}`;
+  
+  const missions: DailyMission[] = [];
+  const usedIndices = new Set<number>();
+  
+  for (let m = 0; m < 3; m++) {
+    let hash = 0;
+    const seedString = `${dateString}-mission-${m}`;
+    for (let i = 0; i < seedString.length; i++) {
+      hash = seedString.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    let index = Math.abs(hash) % games.length;
+    while (usedIndices.has(index)) {
+      index = (index + 1) % games.length;
+    }
+    usedIndices.add(index);
+    
+    const game = games[index];
+    const reward = 5 + (Math.abs(hash * 17) % 11); // 5 to 15 coins
+    
+    missions.push({
+      slug: game.slug,
+      title: game.title,
+      reward
+    });
+  }
+  return missions;
+}
+
 async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, event?: AnalyticsEventData) {
   const today = new Date();
   const todayUTC = `${today.getUTCFullYear()}-${today.getUTCMonth() + 1}-${today.getUTCDate()}`;
@@ -60,6 +101,24 @@ async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, 
       const isBonusAvailable = isDailyBonus && pet.lastDailyBonusClaimedDate !== todayUTC;
       const extraCoins = isBonusAvailable ? bonusAmount : 0;
 
+      // Handle Daily Drop Missions
+      const dailyMissions = getDailyMissions();
+      const matchedMission = dailyMissions.find(m => m.slug === event?.details?.slug);
+      
+      let completedMissions = pet.completedDailyMissions || [];
+      const isMissionsDateCurrent = pet.lastDailyMissionsDate === todayUTC;
+      if (!isMissionsDateCurrent) {
+        completedMissions = [];
+      }
+      
+      let missionReward = 0;
+      let missionCompletedText = '';
+      if (matchedMission && !completedMissions.includes(matchedMission.slug)) {
+        completedMissions.push(matchedMission.slug);
+        missionReward = matchedMission.reward;
+        missionCompletedText = matchedMission.title;
+      }
+
       let xp = (pet.xp || 0) + 100;
       let level = pet.level || 1;
       let xpNeeded = level * 500;
@@ -69,13 +128,15 @@ async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, 
       }
 
       const updateData: any = {
-        coins: parseFloat(((pet.coins || 0) + 10 + extraCoins).toFixed(2)),
+        coins: parseFloat(((pet.coins || 0) + 10 + extraCoins + missionReward).toFixed(2)),
         xp,
         level,
         energy: Math.min(100, (pet.energy || 100) + 10),
         intelligence: Math.min(100, (pet.intelligence || 50) + 15),
         lastActive: new Date().toISOString(),
         updatedAt: serverTimestamp(),
+        completedDailyMissions: completedMissions,
+        lastDailyMissionsDate: todayUTC,
       };
 
       if (isBonusAvailable) {
@@ -83,9 +144,21 @@ async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, 
       }
 
       await setDoc(petRef, updateData, { merge: true });
+
+      if (typeof window !== 'undefined' && missionReward > 0) {
+        window.dispatchEvent(new CustomEvent('lingoland_daily_mission_completed', {
+          detail: { title: missionCompletedText, reward: missionReward }
+        }));
+      }
     } else {
       // Initialize default pet for the user
       const extraCoins = isDailyBonus ? bonusAmount : 0;
+      
+      const dailyMissions = getDailyMissions();
+      const matchedMission = dailyMissions.find(m => m.slug === event?.details?.slug);
+      const completedMissions = matchedMission ? [matchedMission.slug] : [];
+      const missionReward = matchedMission ? matchedMission.reward : 0;
+
       const initData: any = {
         userId,
         petType: 'owl',
@@ -95,12 +168,14 @@ async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, 
         energy: 100,
         intelligence: 65,
         mood: 60,
-        coins: parseFloat((10 + extraCoins).toFixed(2)),
+        coins: parseFloat((10 + extraCoins + missionReward).toFixed(2)),
         unlockedCosmetics: [],
         equippedCosmetics: {},
         currentBackground: 'cozy-room',
         lastActive: new Date().toISOString(),
         updatedAt: serverTimestamp(),
+        completedDailyMissions: completedMissions,
+        lastDailyMissionsDate: todayUTC,
       };
 
       if (isDailyBonus) {
@@ -108,6 +183,12 @@ async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, 
       }
 
       await setDoc(petRef, initData);
+
+      if (typeof window !== 'undefined' && missionReward > 0) {
+        window.dispatchEvent(new CustomEvent('lingoland_daily_mission_completed', {
+          detail: { title: matchedMission?.title, reward: missionReward }
+        }));
+      }
     }
   } catch (err) {
     console.error("Error updating user pet on game play in firestore:", err);
