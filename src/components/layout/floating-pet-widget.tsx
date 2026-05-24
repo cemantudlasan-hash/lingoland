@@ -9,6 +9,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { LingoPetVisual } from '@/components/games/lingo-pet-visual';
 
+const MOTIVATIONAL_PRESETS = [
+  "Believe in yourself! You're doing amazing! 🌟",
+  "Every mistake is a step closer to learning! 🚀",
+  "Keep going! I am so proud of your progress! 💖",
+  "You're capable of incredible things! ✨",
+  "Learning is a superpower, and you've got it! 🧠",
+  "Take a deep breath. You're doing just fine! 🌿",
+  "Small steps every day lead to big results! 📈",
+  "Your hard work is paving the way to success! 🏆",
+  "Stay positive, work hard, make it happen! 💪",
+  "Mistakes are proof that you are trying! 🎨"
+];
+
 export function FloatingPetWidget() {
   const router = useRouter();
   const pathname = usePathname();
@@ -58,9 +71,15 @@ export function FloatingPetWidget() {
     const unsubscribe = onSnapshot(widgetDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
-          setMessages(data.messages);
+        let fetchedMessages = data.messages && Array.isArray(data.messages) && data.messages.length > 0
+          ? data.messages
+          : ["Hello, how's your day? 🌟", "Visit me, you can feed me! 🍪"];
+        
+        if (data.useMotivational) {
+          fetchedMessages = [...fetchedMessages, ...MOTIVATIONAL_PRESETS];
         }
+        
+        setMessages(fetchedMessages);
       }
     }, (error) => {
       console.error("Error listening to floating pet widget custom messages:", error);
@@ -123,11 +142,18 @@ export function FloatingPetWidget() {
     loadWidgetPet();
   }, [user, isGuest, firestore, pathname]);
 
-  // Alternate dialogue text
+  // Alternate dialogue text randomly
   React.useEffect(() => {
     if (!isOpen || messages.length === 0) return;
     const interval = setInterval(() => {
-      setCurrentTextIdx(prev => (prev + 1) % messages.length);
+      if (messages.length <= 1) return;
+      setCurrentTextIdx(prev => {
+        let nextIdx = Math.floor(Math.random() * messages.length);
+        while (nextIdx === prev && messages.length > 1) {
+          nextIdx = Math.floor(Math.random() * messages.length);
+        }
+        return nextIdx;
+      });
     }, 4500);
     return () => clearInterval(interval);
   }, [isOpen, messages.length]);

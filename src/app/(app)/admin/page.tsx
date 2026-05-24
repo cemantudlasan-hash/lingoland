@@ -30,6 +30,7 @@ export default function AdminPage() {
 
     const [widgetMsg1, setWidgetMsg1] = useState("");
     const [widgetMsg2, setWidgetMsg2] = useState("");
+    const [useMotivational, setUseMotivational] = useState(false);
     const [isSavingWidget, setIsSavingWidget] = useState(false);
     
     const announcementRef = useMemoFirebase(() => {
@@ -84,6 +85,7 @@ export default function AdminPage() {
                     setWidgetMsg1(data.messages[0] || "");
                     setWidgetMsg2(data.messages[1] || "");
                 }
+                setUseMotivational(data.useMotivational || false);
             }
         },
         (error: FirestoreError) => {
@@ -120,7 +122,8 @@ export default function AdminPage() {
             messages: [
                 widgetMsg1.trim() || "Hello, how's your day?",
                 widgetMsg2.trim() || "Visit me, you can feed me. :)"
-            ] 
+            ],
+            useMotivational
         };
 
         setDocumentNonBlocking(widgetMessagesRef, dataToSave, { merge: true });
@@ -215,6 +218,33 @@ export default function AdminPage() {
                                 placeholder="Visit me, you can feed me. :)"
                             />
                         </div>
+                        <div className="flex items-center space-x-2 pt-2 pb-2 border-t border-slate-800/10">
+                            <Switch
+                                id="widget-use-motivational"
+                                checked={useMotivational}
+                                onCheckedChange={setUseMotivational}
+                            />
+                            <Label htmlFor="widget-use-motivational" className="font-semibold cursor-pointer">
+                                Include Motivational Preset Phrases
+                            </Label>
+                        </div>
+                        {useMotivational && (
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-1.5 text-xs text-slate-600 max-h-40 overflow-y-auto">
+                                <p className="font-bold text-slate-800 mb-1">Preview of Motivational Phrases (Good Words Only):</p>
+                                <ul className="list-disc pl-4 space-y-1">
+                                    <li>"Believe in yourself! You're doing amazing! 🌟"</li>
+                                    <li>"Every mistake is a step closer to learning! 🚀"</li>
+                                    <li>"Keep going! I am so proud of your progress! 💖"</li>
+                                    <li>"You're capable of incredible things! ✨"</li>
+                                    <li>"Learning is a superpower, and you've got it! 🧠"</li>
+                                    <li>"Take a deep breath. You're doing just fine! 🌿"</li>
+                                    <li>"Small steps every day lead to big results! 📈"</li>
+                                    <li>"Your hard work is paving the way to success! 🏆"</li>
+                                    <li>"Stay positive, work hard, make it happen! 💪"</li>
+                                    <li>"Mistakes are proof that you are trying! 🎨"</li>
+                                </ul>
+                            </div>
+                        )}
                          <Button onClick={handleSaveWidget} disabled={isSavingWidget}>
                             {isSavingWidget && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save Companion Texts
