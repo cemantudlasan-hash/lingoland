@@ -68,15 +68,9 @@ import { useAuth } from '@/context/auth-context';
 import { useFirestore } from '@/firebase';
 import Link from 'next/link';
 import { 
-  collection, 
   doc, 
   onSnapshot, 
-  addDoc, 
-  setDoc, 
-  deleteDoc, 
-  serverTimestamp, 
-  query, 
-  orderBy 
+  setDoc
 } from 'firebase/firestore';
 
 const formSchema = z.object({
@@ -93,7 +87,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface DbFolder {
   id: string;
   name: string;
-  createdAt: any;
+  createdAt: string;
 }
 
 interface DbPresentation {
@@ -114,8 +108,8 @@ interface DbPresentation {
     fullScreenTitleClassName: string;
   };
   align?: 'left' | 'center';
-  createdAt: any;
-  updatedAt: any;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const themes = [
@@ -172,7 +166,7 @@ export function PresentationForm() {
   const [visibleWordCounts, setVisibleWordCounts] = React.useState<{ [key: number]: number }>({});
   const allWordsOnSlide = React.useRef<{ [key: number]: string[] }>({});
 
-  // DB Library states
+  // DB Library states (using pre-approved root user document arrays)
   const [dbFolders, setDbFolders] = React.useState<DbFolder[]>([]);
   const [dbPresentations, setDbPresentations] = React.useState<DbPresentation[]>([]);
   const [expandedFolders, setExpandedFolders] = React.useState<string[]>([]);
@@ -199,25 +193,23 @@ export function PresentationForm() {
     },
   });
 
-  // Load Library from Firestore
+  // Load Library from Firestore Root User Document in real-time
   React.useEffect(() => {
     if (!user || isGuest || !firestore) return;
 
-    const foldersQuery = query(collection(firestore, `users/${user.uid}/presentation_folders`), orderBy('createdAt', 'desc'));
-    const unsubFolders = onSnapshot(foldersQuery, (snap) => {
-      const folders: DbFolder[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as DbFolder));
-      setDbFolders(folders);
-    });
-
-    const presentationsQuery = query(collection(firestore, `users/${user.uid}/presentations`), orderBy('updatedAt', 'desc'));
-    const unsubPresentations = onSnapshot(presentationsQuery, (snap) => {
-      const presentations: DbPresentation[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as DbPresentation));
-      setDbPresentations(presentations);
+    const userDocRef = doc(firestore, `users/${user.uid}`);
+    const unsub = onSnapshot(userDocRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        const presentations = data.savedPresentations || [];
+        const folders = data.savedPresentationFolders || [];
+        setDbPresentations(presentations);
+        setDbFolders(folders);
+      }
     });
 
     return () => {
-      unsubFolders();
-      unsubPresentations();
+      unsub();
     };
   }, [user, isGuest, firestore]);
 
@@ -238,12 +230,12 @@ export function PresentationForm() {
 
     setIsEditMode(false);
     toast({
-      title: "Loaded Presentation outline",
+      title: "Loaded Outline",
       description: `Loaded outline "${pres.title}" from library.`
     });
   };
 
-  // Save changes to Firestore
+  // Save changes to Firestore User Document
   const handleSaveToDb = async () => {
     if (!user || isGuest || !firestore || !presentation) return;
     setIsSavingDb(true);
@@ -252,20 +244,26 @@ export function PresentationForm() {
       const slidesData = isEditMode ? editableSlides : presentation.slides;
       const titleData = isEditMode ? editableTitle : presentation.title;
 
-      const dataPayload = {
-        title: titleData,
-        slides: slidesData,
-        theme,
-        fontFamily,
-        fontSize,
-        align,
-        updatedAt: new Date().toISOString()
-      };
+      let updatedList = [...dbPresentations];
+      let docId = activeDbId;
 
       if (activeDbId) {
         // Update existing presentation
-        const docRef = doc(firestore, `users/${user.uid}/presentations`, activeDbId);
-        await setDoc(docRef, dataPayload, { merge: true });
+        updatedList = updatedList.map(p => {
+          if (p.id === activeDbId) {
+            return {
+              ...p,
+              title: titleData,
+              slides: slidesData,
+              theme,
+              fontFamily,
+              fontSize,
+              align,
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return p;
+        });
         
         // Update current presentation state
         setPresentation({
@@ -277,18 +275,33 @@ export function PresentationForm() {
           description: `Successfully updated "${titleData}" in your Library.`
         });
       } else {
-        // Create new presentation
-        const newDocRef = await addDoc(collection(firestore, `users/${user.uid}/presentations`), {
-          ...dataPayload,
+        // Create new presentation with a client-side generated UUID
+        const newId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+        const newPres: DbPresentation = {
+          id: newId,
+          title: titleData,
+          slides: slidesData,
           folderId: null,
-          createdAt: new Date().toISOString()
-        });
-        setActiveDbId(newDocRef.id);
+          theme,
+          fontFamily,
+          fontSize,
+          align,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        updatedList.push(newPres);
+        docId = newId;
+        setActiveDbId(newId);
+        
         toast({
           title: "Saved to Library 📁",
           description: `Saved "${titleData}" to your presentation outlines collection.`
         });
       }
+
+      // Write array directly to user doc
+      const userDocRef = doc(firestore, `users/${user.uid}`);
+      await setDoc(userDocRef, { savedPresentations: updatedList }, { merge: true });
       setIsEditMode(false);
     } catch (err) {
       console.error(err);
@@ -305,10 +318,17 @@ export function PresentationForm() {
   const handleCreateFolder = async () => {
     if (!folderName.trim() || !user || isGuest || !firestore) return;
     try {
-      await addDoc(collection(firestore, `users/${user.uid}/presentation_folders`), {
+      const newId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+      const newFolder: DbFolder = {
+        id: newId,
         name: folderName.trim(),
         createdAt: new Date().toISOString()
-      });
+      };
+      const updatedFolders = [...dbFolders, newFolder];
+      
+      const userDocRef = doc(firestore, `users/${user.uid}`);
+      await setDoc(userDocRef, { savedPresentationFolders: updatedFolders }, { merge: true });
+
       setFolderName("");
       setShowFolderInput(false);
       toast({
@@ -317,6 +337,11 @@ export function PresentationForm() {
       });
     } catch (e) {
       console.error(e);
+      toast({
+        variant: "destructive",
+        title: "Folder Error",
+        description: "Failed to create new folder."
+      });
     }
   };
 
@@ -325,17 +350,19 @@ export function PresentationForm() {
     if (!confirm(`Are you sure you want to delete folder "${folderName}"? Sorted outlines will not be deleted but will move back to root unsorted outlines.`)) return;
 
     try {
+      const updatedFolders = dbFolders.filter(f => f.id !== folderId);
+      
       // Unlink presentations inside this folder
-      const updates = dbPresentations
-        .filter(p => p.folderId === folderId)
-        .map(async (p) => {
-          const docRef = doc(firestore, `users/${user.uid}/presentations`, p.id);
-          await setDoc(docRef, { folderId: null }, { merge: true });
-        });
-      await Promise.all(updates);
+      const updatedPresentations = dbPresentations.map(p => 
+        p.folderId === folderId ? { ...p, folderId: null } : p
+      );
 
-      // Delete folder doc
-      await deleteDoc(doc(firestore, `users/${user.uid}/presentation_folders`, folderId));
+      const userDocRef = doc(firestore, `users/${user.uid}`);
+      await setDoc(userDocRef, { 
+        savedPresentationFolders: updatedFolders,
+        savedPresentations: updatedPresentations
+      }, { merge: true });
+
       toast({
         title: "Folder Removed",
         description: `Successfully removed "${folderName}". Outlines moved to Unsorted.`
@@ -351,9 +378,9 @@ export function PresentationForm() {
     if (!newName || !newName.trim() || newName === oldName) return;
 
     try {
-      await setDoc(doc(firestore, `users/${user.uid}/presentation_folders`, folderId), {
-        name: newName.trim()
-      }, { merge: true });
+      const updatedFolders = dbFolders.map(f => f.id === folderId ? { ...f, name: newName.trim() } : f);
+      const userDocRef = doc(firestore, `users/${user.uid}`);
+      await setDoc(userDocRef, { savedPresentationFolders: updatedFolders }, { merge: true });
       toast({
         title: "Folder Renamed",
         description: "Successfully updated folder name."
@@ -369,7 +396,10 @@ export function PresentationForm() {
     if (!confirm(`Are you sure you want to delete presentation outline "${title}"?`)) return;
 
     try {
-      await deleteDoc(doc(firestore, `users/${user.uid}/presentations`, presId));
+      const updatedPresentations = dbPresentations.filter(p => p.id !== presId);
+      const userDocRef = doc(firestore, `users/${user.uid}`);
+      await setDoc(userDocRef, { savedPresentations: updatedPresentations }, { merge: true });
+
       if (activeDbId === presId) {
         setPresentation(null);
         setActiveDbId(null);
@@ -390,11 +420,13 @@ export function PresentationForm() {
     if (!newTitle || !newTitle.trim() || newTitle === oldTitle) return;
 
     try {
-      await setDoc(doc(firestore, `users/${user.uid}/presentations`, presId), {
-        title: newTitle.trim(),
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      const updatedPresentations = dbPresentations.map(p => 
+        p.id === presId ? { ...p, title: newTitle.trim(), updatedAt: new Date().toISOString() } : p
+      );
       
+      const userDocRef = doc(firestore, `users/${user.uid}`);
+      await setDoc(userDocRef, { savedPresentations: updatedPresentations }, { merge: true });
+
       if (activeDbId === presId) {
         setPresentation(prev => prev ? { ...prev, title: newTitle.trim() } : null);
         setEditableTitle(newTitle.trim());
@@ -411,10 +443,13 @@ export function PresentationForm() {
   const handleMovePresentation = async (presId: string, folderId: string | null) => {
     if (!user || isGuest || !firestore) return;
     try {
-      await setDoc(doc(firestore, `users/${user.uid}/presentations`, presId), {
-        folderId,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      const updatedPresentations = dbPresentations.map(p => 
+        p.id === presId ? { ...p, folderId, updatedAt: new Date().toISOString() } : p
+      );
+      
+      const userDocRef = doc(firestore, `users/${user.uid}`);
+      await setDoc(userDocRef, { savedPresentations: updatedPresentations }, { merge: true });
+
       setMovingPresId(null);
       toast({
         title: "Outline Moved",
@@ -677,7 +712,7 @@ export function PresentationForm() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* 1. Left Library Sidebar Manager */}
-      <div className="lg:col-span-1 space-y-4 select-none">
+      <div className="lg:col-span-1 space-y-4 select-none animate-in fade-in slide-in-from-left duration-500">
         <Card className="border border-slate-800 bg-slate-900/60 backdrop-blur-md text-white rounded-3xl overflow-hidden shadow-2xl p-4">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -845,7 +880,7 @@ export function PresentationForm() {
       </div>
 
       {/* 2. Right Main Editor & Preview workspace */}
-      <div className="lg:col-span-3 space-y-6">
+      <div className="lg:col-span-3 space-y-6 animate-in fade-in slide-in-from-right duration-500">
         {isLoading && (
           <div className="flex items-center justify-center rounded-lg border border-slate-800 bg-slate-950/60 p-12 text-white">
             <Loader2 className="mr-2 h-8 w-8 animate-spin text-purple-500" />
@@ -856,7 +891,7 @@ export function PresentationForm() {
         )}
 
         {presentation ? (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-in zoom-in-95 duration-500">
             {/* Outline configuration card */}
             <Card className="border border-slate-800 bg-slate-900/60 backdrop-blur-md text-white rounded-3xl overflow-hidden shadow-2xl">
               <CardHeader className="pb-4">
@@ -866,7 +901,7 @@ export function PresentationForm() {
                       <Input 
                         value={editableTitle} 
                         onChange={(e) => setEditableTitle(e.target.value)}
-                        className="text-2xl font-black bg-slate-950 border-slate-800 text-white rounded-xl tracking-tight"
+                        className="text-2xl font-black bg-slate-950 border-slate-800 text-white rounded-xl tracking-tight animate-pulse"
                       />
                     ) : (
                       <CardTitle className="text-2xl font-black text-slate-100 flex items-center gap-2 truncate">
@@ -1013,7 +1048,7 @@ export function PresentationForm() {
                     <CarouselItem key={index} className="h-full">
                       <div 
                         className={cn(
-                          "w-full h-full flex",
+                          "w-full h-full flex transition-all duration-500",
                           theme, fontFamily
                         )}
                         onClick={(isFullscreen || isEditMode) ? undefined : handleRevealNextWord}
@@ -1023,7 +1058,7 @@ export function PresentationForm() {
                           !isFullscreen && "flex flex-col justify-center p-8 md:p-12",
                           isFullscreen && "py-24 px-8 md:px-16 lg:px-24"
                         )}>
-                          <div className={cn("max-w-4xl w-full mx-auto", align === 'center' ? 'text-center' : 'text-left')}>
+                          <div className={cn("max-w-4xl w-full mx-auto animate-in fade-in duration-700", align === 'center' ? 'text-center' : 'text-left')}>
                             {/* Slide Title field */}
                             {isEditMode ? (
                               <div className="space-y-1 mb-4 text-left">
@@ -1035,11 +1070,11 @@ export function PresentationForm() {
                                     updated[index].title = e.target.value;
                                     setEditableSlides(updated);
                                   }}
-                                  className="bg-slate-950/80 border-slate-800 text-white font-bold h-9"
+                                  className="bg-slate-950/80 border-slate-800 text-white font-bold h-9 animate-pulse"
                                 />
                               </div>
                             ) : (
-                              <h2 className={cn("font-bold",
+                              <h2 className={cn("font-bold transition-all duration-300",
                                 !isFullscreen ? `mb-6 ${fontSize.titleClassName}` : `mb-8 lg:mb-16 ${fontSize.fullScreenTitleClassName}`
                               )}>
                                 {slide.title}
@@ -1059,7 +1094,7 @@ export function PresentationForm() {
                                         updated[index].content[ptIdx] = e.target.value;
                                         setEditableSlides(updated);
                                       }}
-                                      className="bg-slate-950/80 border-slate-800 text-white text-xs h-9"
+                                      className="bg-slate-950/80 border-slate-800 text-white text-xs h-9 animate-pulse"
                                     />
                                     <Button 
                                       size="icon" 
@@ -1089,7 +1124,7 @@ export function PresentationForm() {
                                 </Button>
                               </div>
                             ) : (
-                              <ul className={cn("list-disc pl-8 mx-auto",
+                              <ul className={cn("pl-8 mx-auto transition-all duration-300",
                                 align === 'center' ? 'list-none pl-0' : 'list-disc pl-8',
                                 !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-6 lg:space-y-8 ${fontSize.fullScreenClassName}`
                               )}>
