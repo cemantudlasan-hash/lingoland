@@ -28,6 +28,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/context/auth-context";
 import { VisitorCounter } from "@/components/layout/VisitorCounter";
 import { HolidayCountdown } from "@/components/layout/HolidayCountdown";
+import { BeautifulCalendar } from "@/components/layout/BeautifulCalendar";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -234,12 +235,15 @@ export default function AuthPage() {
     
     return (
         <>
-            <div className="flex min-h-screen items-center justify-center relative p-4 gap-8 flex-col lg:flex-row">
-                <div className="relative z-10 w-full max-w-md order-1 lg:order-none mt-8 lg:mt-0">
+            <div className="flex min-h-screen items-center justify-center relative p-4 gap-6 flex-col lg:flex-row max-w-7xl w-full mx-auto">
+                <div className="relative z-10 w-full max-w-md order-1 lg:order-none">
                     <HolidayCountdown />
                 </div>
+                <div className="relative z-10 w-full max-w-md order-2 lg:order-none">
+                    <BeautifulCalendar />
+                </div>
                 <div
-                    className="relative z-10 w-full max-w-md order-2 lg:order-none"
+                    className="relative z-10 w-full max-w-md order-3 lg:order-none"
                 >
                     <Card>
                         <CardHeader className="text-center">

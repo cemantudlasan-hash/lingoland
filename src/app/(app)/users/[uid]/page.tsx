@@ -16,7 +16,7 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useAuth } from "@/context/auth-context";
-import { collection, query, where, orderBy, doc, serverTimestamp, setDoc, getDoc } from "firebase/firestore";
+import { collection, query, where, orderBy, doc, serverTimestamp, setDoc, getDoc, onSnapshot } from "firebase/firestore";
 import placeholderData from "@/app/lib/placeholder-images.json";
 import { formatDistanceToNow } from 'date-fns';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -122,51 +122,50 @@ export default function PublicProfilePage() {
     // Fetch Lingo-Pet data for the profile owner
     useEffect(() => {
         if (!uid || !firestore) return;
-        const fetchPetData = async () => {
-            try {
-                const petRef = doc(firestore, 'user_pets', uid);
-                const petSnap = await getDoc(petRef);
-                if (petSnap.exists()) {
-                    const d = petSnap.data();
-                    setPetData({
-                        petType: d.petType || 'owl',
-                        level: d.level || 1,
-                        equippedCosmetics: d.equippedCosmetics || {},
-                    });
-                } else if (profile?.email === "cemantudlasan2@gmail.com") {
-                    // Admin's fallback premium exclusive pet
-                    setPetData({
-                        petType: 'owl',
-                        level: 100,
-                        equippedCosmetics: {
-                            hat: 'aurora_crown',
-                            glasses: 'laser_visor',
-                            necklace: 'phoenix_amulet',
-                            shoes: 'hover_boots',
-                            wings: 'phoenix_wings',
-                        },
-                    });
-                }
-            } catch (e) {
-                // silently ignore if not accessible
-                if (profile?.email === "cemantudlasan2@gmail.com") {
-                    setPetData({
-                        petType: 'owl',
-                        level: 100,
-                        equippedCosmetics: {
-                            hat: 'aurora_crown',
-                            glasses: 'laser_visor',
-                            necklace: 'phoenix_amulet',
-                            shoes: 'hover_boots',
-                            wings: 'phoenix_wings',
-                        },
-                    });
-                }
+        
+        const petRef = doc(firestore, 'user_pets', uid);
+        const unsubscribe = onSnapshot(petRef, (petSnap) => {
+            if (petSnap.exists()) {
+                const d = petSnap.data();
+                setPetData({
+                    petType: d.petType || 'owl',
+                    level: d.level || 1,
+                    equippedCosmetics: d.equippedCosmetics || {},
+                });
+            } else if (profile?.email === "cemantudlasan2@gmail.com") {
+                // Admin's fallback premium exclusive pet
+                setPetData({
+                    petType: 'owl',
+                    level: 100,
+                    equippedCosmetics: {
+                        hat: 'aurora_crown',
+                        glasses: 'laser_visor',
+                        necklace: 'phoenix_amulet',
+                        shoes: 'hover_boots',
+                        wings: 'phoenix_wings',
+                    },
+                });
+            } else {
+                setPetData(null);
             }
-        };
-        if (profile) {
-            fetchPetData();
-        }
+        }, (error) => {
+            console.error("Error listening to pet data:", error);
+            if (profile?.email === "cemantudlasan2@gmail.com") {
+                setPetData({
+                    petType: 'owl',
+                    level: 100,
+                    equippedCosmetics: {
+                        hat: 'aurora_crown',
+                        glasses: 'laser_visor',
+                        necklace: 'phoenix_amulet',
+                        shoes: 'hover_boots',
+                        wings: 'phoenix_wings',
+                    },
+                });
+            }
+        });
+
+        return () => unsubscribe();
     }, [uid, firestore, profile]);
 
     const handleAddComment = async () => {

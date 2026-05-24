@@ -151,7 +151,7 @@ const ExportAttendanceModal = ({ onClose, students, firestore, user }: { onClose
     );
 };
 
-export const StudentList = ({ setSelectedStudent, selectedStudent }: { setSelectedStudent: (student: any) => void, selectedStudent: any }) => {
+export const StudentList = ({ setSelectedStudent, selectedStudent, students, isLoading }: { setSelectedStudent: (student: any) => void, selectedStudent: any, students: any[] | undefined, isLoading: boolean }) => {
     const { user } = useAuth();
     const firestore = useFirestore();
     const [showAddStudentModal, setShowAddStudentModal] = useState(false);
@@ -175,13 +175,6 @@ export const StudentList = ({ setSelectedStudent, selectedStudent }: { setSelect
     const [isDeletingAllInGrade, setIsDeletingAllInGrade] = useState(false);
 
     const [showExportModal, setShowExportModal] = useState(false);
-
-    const studentsCollectionRef = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-        return collection(firestore, `users/${user.uid}/students`);
-    }, [firestore, user]);
-
-    const { data: students, isLoading } = useCollection(studentsCollectionRef);
 
     const uniqueGradeLevels = useMemo(() => {
         if (!students) return ['All Grades'];
