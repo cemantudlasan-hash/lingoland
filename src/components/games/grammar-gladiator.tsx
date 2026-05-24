@@ -165,7 +165,7 @@ export function GrammarGladiator({ slug, onToggleFullscreen }: { slug: string; o
   return (
     <Card className={cn(
       "w-full transition-all duration-500 flex flex-col relative border-none shadow-2xl overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-stone-900" : "max-w-4xl mx-auto h-[700px] bg-stone-900"
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-stone-900" : "max-w-4xl mx-auto h-[600px] sm:h-[700px] bg-stone-900"
     )}>
       {/* Colosseum Background */}
       <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
@@ -228,11 +228,11 @@ export function GrammarGladiator({ slug, onToggleFullscreen }: { slug: string; o
                 Select your combat difficulty to begin.
               </p>
               
-              <div className="flex flex-col gap-4 mt-8 w-full max-w-sm mx-auto">
-                 <Button onClick={() => startGame("easy")} className="h-16 text-xl font-bold bg-stone-800 hover:bg-stone-700 text-green-400 border-2 border-green-900/50 hover:border-green-500 uppercase tracking-widest rounded-xl transition-all font-serif shadow-lg">Easy (15s)</Button>
-                 <Button onClick={() => startGame("intermediate")} className="h-16 text-xl font-bold bg-stone-800 hover:bg-stone-700 text-yellow-400 border-2 border-yellow-900/50 hover:border-yellow-500 uppercase tracking-widest rounded-xl transition-all font-serif shadow-lg">Intermediate (10s)</Button>
-                 <Button onClick={() => startGame("pro")} className="h-16 text-xl font-bold bg-stone-800 hover:bg-stone-700 text-red-500 border-2 border-red-900/50 hover:border-red-500 uppercase tracking-widest rounded-xl transition-all font-serif shadow-lg">Pro (6s)</Button>
-                 <Button variant="ghost" asChild className="mt-4 text-stone-500 hover:text-stone-300 uppercase tracking-widest font-serif">
+              <div className="flex flex-col gap-3 sm:gap-4 mt-6 sm:mt-8 w-full max-w-sm mx-auto">
+                 <Button onClick={() => startGame("easy")} className="h-12 sm:h-16 text-sm sm:text-xl font-bold bg-stone-800 hover:bg-stone-700 text-green-400 border-2 border-green-900/50 hover:border-green-500 uppercase tracking-wide sm:tracking-widest rounded-xl transition-all font-serif shadow-lg">Easy (15s)</Button>
+                 <Button onClick={() => startGame("intermediate")} className="h-12 sm:h-16 text-sm sm:text-xl font-bold bg-stone-800 hover:bg-stone-700 text-yellow-400 border-2 border-yellow-900/50 hover:border-yellow-500 uppercase tracking-wide sm:tracking-widest rounded-xl transition-all font-serif shadow-lg">Intermediate (10s)</Button>
+                 <Button onClick={() => startGame("pro")} className="h-12 sm:h-16 text-sm sm:text-xl font-bold bg-stone-800 hover:bg-stone-700 text-red-500 border-2 border-red-900/50 hover:border-red-500 uppercase tracking-wide sm:tracking-widest rounded-xl transition-all font-serif shadow-lg">Pro (6s)</Button>
+                 <Button variant="ghost" asChild className="mt-2 sm:mt-4 text-stone-500 hover:text-stone-300 uppercase tracking-widest font-serif text-xs sm:text-sm">
                     <Link href="/games">Back to Games</Link>
                  </Button>
               </div>
@@ -245,18 +245,18 @@ export function GrammarGladiator({ slug, onToggleFullscreen }: { slug: string; o
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
-              className="bg-stone-800/80 backdrop-blur-xl border-2 border-orange-900/30 p-12 rounded-2xl max-w-2xl w-full text-center shadow-2xl"
+              className="bg-stone-800/80 backdrop-blur-xl border-2 border-orange-900/30 p-6 sm:p-12 rounded-xl sm:rounded-2xl max-w-2xl w-full text-center shadow-2xl"
             >
-              <h3 className="text-3xl font-black text-stone-200 uppercase mb-8 flex items-center justify-center gap-3 font-serif">
+              <h3 className="text-2xl sm:text-3xl font-black text-stone-200 uppercase mb-6 sm:mb-8 flex items-center justify-center gap-3 font-serif">
                 <Swords className="text-orange-500" /> Pre-Battle Briefing
               </h3>
-              <div className="space-y-6 text-xl text-stone-400 font-medium">
+              <div className="space-y-4 sm:space-y-6 text-base sm:text-xl text-stone-400 font-medium">
                 <p>1. You will face a sentence with missing or broken armor (grammar).</p>
                 <p>2. Select the correct patch before the combat timer expires.</p>
                 <p>3. Faster strikes earn more glory.</p>
-                <p className="text-sm text-orange-400 uppercase mt-4">Selected Difficulty: {difficulty}</p>
+                <p className="text-xs sm:text-sm text-orange-400 uppercase mt-2 sm:mt-4">Selected Difficulty: {difficulty}</p>
               </div>
-              <Button onClick={startNextRound} className="w-full mt-12 h-16 text-xl font-black bg-stone-200 text-stone-900 hover:bg-white uppercase tracking-widest rounded-xl font-serif">
+              <Button onClick={startNextRound} className="w-full mt-6 sm:mt-12 h-12 sm:h-16 text-sm sm:text-xl font-black bg-stone-200 text-stone-900 hover:bg-white uppercase tracking-wide sm:tracking-widest rounded-xl font-serif">
                 To the Colosseum
               </Button>
             </motion.div>

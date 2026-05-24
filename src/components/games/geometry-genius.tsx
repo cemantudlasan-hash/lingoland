@@ -153,7 +153,7 @@ export function GeometryGenius({ slug, onToggleFullscreen }: { slug: string; onT
   return (
     <Card className={cn(
       "w-full transition-all duration-500 bg-[#1e293b] flex flex-col relative border-none overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[700px]"
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[600px] sm:h-[700px]"
     )}>
       <div className="absolute inset-0 z-0 opacity-10">
          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -193,18 +193,18 @@ export function GeometryGenius({ slug, onToggleFullscreen }: { slug: string; onT
       <CardContent className="flex-grow flex flex-col z-10 relative p-6 items-center justify-center">
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
-                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:1.1}} className="text-center bg-slate-900/60 p-12 rounded-[40px] backdrop-blur-sm border border-slate-700 w-full max-w-2xl">
-                    <div className="relative w-32 h-32 mx-auto mb-8">
+                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:1.1}} className="text-center bg-slate-900/60 p-6 sm:p-12 rounded-3xl sm:rounded-[40px] backdrop-blur-sm border border-slate-700 w-full max-w-2xl">
+                    <div className="relative w-20 h-20 sm:w-32 sm:h-32 mx-auto mb-4 sm:mb-8">
                        <Triangle className="absolute inset-0 w-full h-full text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)] animate-pulse" />
-                       <Circle className="absolute inset-2 w-28 h-28 text-pink-500/80 drop-shadow-[0_0_15px_rgba(236,72,153,0.5)]" />
+                       <Circle className="absolute inset-2 w-16 h-16 sm:w-28 sm:h-28 text-pink-500/80 drop-shadow-[0_0_15px_rgba(236,72,153,0.5)]" />
                     </div>
-                    <h2 className="text-5xl font-black text-white uppercase mb-4 tracking-wider">Unlock Ruins</h2>
-                    <p className="text-slate-400 mb-10 mx-auto lowercase">Select archaeological survey difficulty.</p>
-                    <div className="flex flex-col gap-4">
-                        <Button onClick={() => startGame("easy")} className="h-16 px-12 text-xl font-black bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-cyan-400 rounded-xl transition-all uppercase tracking-widest">Field Survey (Easy)</Button>
-                        <Button onClick={() => startGame("intermediate")} className="h-16 px-12 text-xl font-black bg-slate-900 border-2 border-indigo-500/30 hover:border-indigo-400 text-indigo-400 rounded-xl transition-all uppercase tracking-widest">Excavation (Intermediate)</Button>
-                        <Button onClick={() => startGame("pro")} className="h-16 px-12 text-xl font-black bg-slate-900 border-2 border-orange-500/30 hover:border-orange-400 text-orange-400 rounded-xl transition-all uppercase tracking-widest">Forbidden Theory (Pro)</Button>
-                        <Button variant="ghost" asChild className="mt-4 text-slate-500 hover:text-slate-300 uppercase tracking-widest">
+                    <h2 className="text-3xl sm:text-5xl font-black text-white uppercase mb-2 sm:mb-4 tracking-wider">Unlock Ruins</h2>
+                    <p className="text-slate-400 mb-6 sm:mb-10 mx-auto lowercase text-xs sm:text-base">Select archaeological survey difficulty.</p>
+                    <div className="flex flex-col gap-3 sm:gap-4">
+                        <Button onClick={() => startGame("easy")} className="h-12 sm:h-16 px-4 sm:px-12 text-sm sm:text-xl font-black bg-slate-900 border-2 border-cyan-500/30 hover:border-cyan-400 text-cyan-400 rounded-xl transition-all uppercase tracking-wide sm:tracking-widest">Field Survey (Easy)</Button>
+                        <Button onClick={() => startGame("intermediate")} className="h-12 sm:h-16 px-4 sm:px-12 text-sm sm:text-xl font-black bg-slate-900 border-2 border-indigo-500/30 hover:border-indigo-400 text-indigo-400 rounded-xl transition-all uppercase tracking-wide sm:tracking-widest">Excavation (Intermediate)</Button>
+                        <Button onClick={() => startGame("pro")} className="h-12 sm:h-16 px-4 sm:px-12 text-sm sm:text-xl font-black bg-slate-900 border-2 border-orange-500/30 hover:border-orange-400 text-orange-400 rounded-xl transition-all uppercase tracking-wide sm:tracking-widest">Forbidden Theory (Pro)</Button>
+                        <Button variant="ghost" asChild className="mt-2 sm:mt-4 text-slate-500 hover:text-slate-300 uppercase tracking-widest text-xs sm:text-sm">
                            <Link href="/games">Back to Archeology Camp</Link>
                         </Button>
                     </div>
@@ -243,34 +243,34 @@ export function GeometryGenius({ slug, onToggleFullscreen }: { slug: string; onT
             )}
 
             {gameState === "showing_result" && (
-                <motion.div initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.8, opacity:0}} className="bg-slate-900/95 p-16 rounded-[40px] text-center border border-slate-700 shadow-2xl relative overflow-hidden backdrop-blur-xl w-full max-w-2xl">
+                <motion.div initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.8, opacity:0}} className="bg-slate-900/95 p-6 sm:p-16 rounded-3xl sm:rounded-[40px] text-center border border-slate-700 shadow-2xl relative overflow-hidden backdrop-blur-xl w-full max-w-2xl">
                     {resultStatus === "correct" && (
                         <>
-                           <Hexagon className="w-24 h-24 text-cyan-400 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]" />
-                           <h2 className="text-4xl font-black text-cyan-400 uppercase tracking-widest">Artifact Discovered!</h2>
-                           <p className="text-3xl text-white mt-4">+{score} UNITS</p>
+                           <Hexagon className="w-16 h-16 sm:w-24 sm:h-24 text-cyan-400 mx-auto mb-4 sm:mb-6 drop-shadow-[0_0_20px_rgba(34,211,238,0.4)]" />
+                           <h2 className="text-2xl sm:text-4xl font-black text-cyan-400 uppercase tracking-wide sm:tracking-widest">Artifact Discovered!</h2>
+                           <p className="text-2xl sm:text-3xl text-white mt-2 sm:mt-4">+{score} UNITS</p>
                         </>
                     )}
                     {resultStatus === "incorrect" && (
                         <>
-                           <Triangle className="w-24 h-24 text-pink-500 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(236,72,153,0.4)] rotate-180" />
-                           <h2 className="text-4xl font-black text-pink-500 uppercase tracking-widest">Survey Failed!</h2>
-                           <p className="text-xl text-slate-300 mt-4">True Value: <span className="text-cyan-400 font-bold ml-2 bg-black/40 px-4 py-1 rounded-lg">{currentProblem?.a}</span></p>
+                           <Triangle className="w-16 h-16 sm:w-24 sm:h-24 text-pink-500 mx-auto mb-4 sm:mb-6 drop-shadow-[0_0_20px_rgba(236,72,153,0.4)] rotate-180" />
+                           <h2 className="text-2xl sm:text-4xl font-black text-pink-500 uppercase tracking-wide sm:tracking-widest">Survey Failed!</h2>
+                           <p className="text-lg sm:text-xl text-slate-300 mt-2 sm:mt-4">True Value: <span className="text-cyan-400 font-bold ml-2 bg-black/40 px-4 py-1 rounded-lg">{currentProblem?.a}</span></p>
                         </>
                     )}
                     {resultStatus === "timeout" && (
                         <>
-                           <Circle className="w-24 h-24 text-orange-500 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)]" />
-                           <h2 className="text-4xl font-black text-orange-500 uppercase tracking-widest">Time Ran Out!</h2>
-                           <p className="text-xl text-slate-300 mt-4">True Value: <span className="text-cyan-400 font-bold ml-2 bg-black/40 px-4 py-1 rounded-lg">{currentProblem?.a}</span></p>
+                           <Circle className="w-16 h-16 sm:w-24 sm:h-24 text-orange-500 mx-auto mb-4 sm:mb-6 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)]" />
+                           <h2 className="text-2xl sm:text-4xl font-black text-orange-500 uppercase tracking-wide sm:tracking-widest">Time Ran Out!</h2>
+                           <p className="text-lg sm:text-xl text-slate-300 mt-2 sm:mt-4">True Value: <span className="text-cyan-400 font-bold ml-2 bg-black/40 px-4 py-1 rounded-lg">{currentProblem?.a}</span></p>
                         </>
                     )}
 
-                    <div className="flex flex-col items-center gap-4 mt-10">
-                        <Button onClick={nextRound} className="h-16 px-12 text-2xl font-black bg-cyan-600 text-white hover:bg-cyan-500 rounded-xl shadow-2xl transition-all hover:scale-105 uppercase tracking-widest">
+                    <div className="flex flex-col items-center gap-3 sm:gap-4 mt-6 sm:mt-10">
+                        <Button onClick={nextRound} className="h-12 sm:h-16 px-6 sm:px-12 text-lg sm:text-2xl font-black bg-cyan-600 text-white hover:bg-cyan-500 rounded-xl shadow-2xl transition-all hover:scale-105 uppercase tracking-wide sm:tracking-widest">
                             {round >= 10 ? "Close Dig" : "Next Artifact"}
                         </Button>
-                        <Button variant="ghost" onClick={() => setGameState("idle")} className="text-slate-500 hover:text-slate-300 uppercase tracking-widest">
+                        <Button variant="ghost" onClick={() => setGameState("idle")} className="text-slate-500 hover:text-slate-300 uppercase tracking-widest text-xs sm:text-sm">
                             Reset Survey Tools
                         </Button>
                     </div>
