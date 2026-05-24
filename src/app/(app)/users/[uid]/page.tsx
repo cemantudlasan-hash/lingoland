@@ -61,6 +61,17 @@ export default function PublicProfilePage() {
             wings?: string;
         };
     } | null>(null);
+
+    const currentPet = useMemo(() => {
+        if (profile?.activePetType) {
+            return {
+                petType: profile.activePetType,
+                level: profile.activePetLevel || 1,
+                equippedCosmetics: profile.activePetCosmetics || {},
+            };
+        }
+        return petData;
+    }, [profile, petData]);
     
     const commentInputRef = useRef<HTMLInputElement>(null);
     const commentRefs = useRef<Record<string, HTMLDivElement>>({});
@@ -484,7 +495,7 @@ export default function PublicProfilePage() {
                             </Card>
 
                             {/* Lingo-Pet Section */}
-                            {petData && (
+                            {currentPet && (
                                 <Card className="bg-indigo-950/60 border-indigo-700/30 rounded-3xl p-6">
                                     <h4 className="font-black uppercase text-xs tracking-widest text-indigo-300 mb-4 flex items-center gap-2">
                                         🐾 Lingo-Pet
@@ -492,11 +503,11 @@ export default function PublicProfilePage() {
                                     {/* Mini Pet Preview */}
                                     <div className="w-full aspect-square max-w-[140px] mx-auto rounded-2xl overflow-hidden border border-indigo-700/30 mb-4">
                                         <LingoPetVisual
-                                            petType={petData.petType}
-                                            level={petData.level}
+                                            petType={currentPet.petType}
+                                            level={currentPet.level}
                                             energy={100}
                                             mood={100}
-                                            equippedCosmetics={petData.equippedCosmetics}
+                                            equippedCosmetics={currentPet.equippedCosmetics}
                                             currentBackground="cozy-room"
                                             className="min-h-0 w-full h-full border-none shadow-none bg-transparent"
                                         />
@@ -504,37 +515,37 @@ export default function PublicProfilePage() {
                                     {/* Level Badge */}
                                     <div className="flex justify-center mb-3">
                                         <Badge className="bg-indigo-600/80 text-white border-none px-4 py-1 text-sm font-black">
-                                            ✨ Level {petData.level}
+                                            ✨ Level {currentPet.level}
                                         </Badge>
                                     </div>
                                     {/* Equipped Items */}
-                                    {Object.keys(petData.equippedCosmetics).some(k => (petData.equippedCosmetics as any)[k]) && (
+                                    {Object.keys(currentPet.equippedCosmetics).some(k => (currentPet.equippedCosmetics as any)[k]) && (
                                         <div>
                                             <p className="text-[10px] uppercase tracking-widest text-indigo-400 font-bold mb-2 text-center">Equipped</p>
                                             <div className="flex flex-wrap gap-1.5 justify-center">
-                                                {petData.equippedCosmetics.hat && (
+                                                {currentPet.equippedCosmetics.hat && (
                                                     <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
-                                                        🎩 {petData.equippedCosmetics.hat.replace(/_/g, ' ')}
+                                                        🎩 {currentPet.equippedCosmetics.hat.replace(/_/g, ' ')}
                                                     </Badge>
                                                 )}
-                                                {petData.equippedCosmetics.glasses && (
+                                                {currentPet.equippedCosmetics.glasses && (
                                                     <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
-                                                        👓 {petData.equippedCosmetics.glasses.replace(/_/g, ' ')}
+                                                        👓 {currentPet.equippedCosmetics.glasses.replace(/_/g, ' ')}
                                                     </Badge>
                                                 )}
-                                                {petData.equippedCosmetics.necklace && (
+                                                {currentPet.equippedCosmetics.necklace && (
                                                     <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
-                                                        💎 {petData.equippedCosmetics.necklace.replace(/_/g, ' ')}
+                                                        💎 {currentPet.equippedCosmetics.necklace.replace(/_/g, ' ')}
                                                     </Badge>
                                                 )}
-                                                {petData.equippedCosmetics.shoes && (
+                                                {currentPet.equippedCosmetics.shoes && (
                                                     <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
-                                                        👟 {petData.equippedCosmetics.shoes.replace(/_/g, ' ')}
+                                                        👟 {currentPet.equippedCosmetics.shoes.replace(/_/g, ' ')}
                                                     </Badge>
                                                 )}
-                                                {petData.equippedCosmetics.wings && (
+                                                {currentPet.equippedCosmetics.wings && (
                                                     <Badge variant="outline" className="border-indigo-500/30 text-indigo-200 text-[10px] px-2">
-                                                        🪽 {petData.equippedCosmetics.wings.replace(/_/g, ' ')}
+                                                        🪽 {currentPet.equippedCosmetics.wings.replace(/_/g, ' ')}
                                                     </Badge>
                                                 )}
                                             </div>

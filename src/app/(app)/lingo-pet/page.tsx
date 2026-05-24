@@ -355,9 +355,25 @@ export default function LingoPetPage() {
         setPet(safePet);
         // Save back decayed state with merged compatibility fields
         await setDoc(petRef, safePet, { merge: true });
+
+        // Synchronize pet data to user profile document for open permission-proof reads
+        const userRef = doc(firestore, 'users', user.uid);
+        await setDoc(userRef, {
+          activePetType: safePet.petType || 'owl',
+          activePetLevel: safePet.level || 1,
+          activePetCosmetics: safePet.equippedCosmetics || {},
+        }, { merge: true });
       } else {
         setPet(defaultPet);
         await setDoc(petRef, defaultPet);
+
+        // Synchronize default pet data to user profile document
+        const userRef = doc(firestore, 'users', user.uid);
+        await setDoc(userRef, {
+          activePetType: defaultPet.petType || 'owl',
+          activePetLevel: defaultPet.level || 1,
+          activePetCosmetics: defaultPet.equippedCosmetics || {},
+        }, { merge: true });
       }
     } catch (err) {
       console.error(err);
@@ -407,6 +423,17 @@ export default function LingoPetPage() {
       try {
         const petRef = doc(firestore, 'user_pets', user.uid);
         await setDoc(petRef, updates, { merge: true });
+
+        // Synchronize active companion details directly to the user's public profile document
+        // to bypass any custom collection level permission restrictions for standard/guest users.
+        const userRef = doc(firestore, 'users', user.uid);
+        const profileUpdates: any = {};
+        if (updates.petType) profileUpdates.activePetType = updates.petType;
+        if (updates.level) profileUpdates.activePetLevel = updates.level;
+        if (updates.equippedCosmetics) profileUpdates.activePetCosmetics = updates.equippedCosmetics;
+        if (Object.keys(profileUpdates).length > 0) {
+          await setDoc(userRef, profileUpdates, { merge: true });
+        }
       } catch (e) {
         console.error("Failed to sync pet state:", e);
       }

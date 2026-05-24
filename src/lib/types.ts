@@ -37,6 +37,16 @@ export type UserProfile = {
     coverPhotoHint?: string;
     coverPhotoUrl?: string;
     dailyPost?: string;
+    activePetType?: 'owl' | 'dino' | 'kitty';
+    activePetLevel?: number;
+    activePetCosmetics?: {
+        hat?: string;
+        glasses?: string;
+        necklace?: string;
+        shoes?: string;
+        wings?: string;
+        clothes?: string;
+    };
 };
 
 export interface UserPet {
