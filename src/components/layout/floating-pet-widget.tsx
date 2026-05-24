@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useFirestore } from '@/firebase';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { LingoPetVisual } from '@/components/games/lingo-pet-visual';
@@ -133,6 +133,14 @@ export function FloatingPetWidget() {
           if (data.petType) setPetType(data.petType);
           if (data.level) setPetLevel(data.level);
           if (data.equippedCosmetics) setEquippedCosmetics(data.equippedCosmetics);
+
+          // Self-healing double-write: Sync pet state to user profile doc for public read
+          const userRef = doc(firestore, 'users', user.uid);
+          await setDoc(userRef, {
+            activePetType: data.petType || 'owl',
+            activePetLevel: data.level || 1,
+            activePetCosmetics: data.equippedCosmetics || {},
+          }, { merge: true });
         }
       } catch (e) {
         console.error("Error loading floating pet widget data:", e);

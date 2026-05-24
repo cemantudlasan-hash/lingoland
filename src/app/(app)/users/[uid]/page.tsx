@@ -145,16 +145,19 @@ export default function PublicProfilePage() {
                 });
             } else if (profile?.email === "cemantudlasan2@gmail.com") {
                 // Admin's fallback premium exclusive pet
-                setPetData({
-                    petType: 'owl',
-                    level: 100,
-                    equippedCosmetics: {
-                        hat: 'aurora_crown',
-                        glasses: 'laser_visor',
-                        necklace: 'phoenix_amulet',
-                        shoes: 'hover_boots',
-                        wings: 'phoenix_wings',
-                    },
+                setPetData((prev) => {
+                    if (prev) return prev;
+                    return {
+                        petType: 'owl',
+                        level: 100,
+                        equippedCosmetics: {
+                            hat: 'aurora_crown',
+                            glasses: 'laser_visor',
+                            necklace: 'phoenix_amulet',
+                            shoes: 'hover_boots',
+                            wings: 'phoenix_wings',
+                        },
+                    };
                 });
             } else {
                 setPetData(null);
@@ -162,16 +165,19 @@ export default function PublicProfilePage() {
         }, (error) => {
             console.error("Error listening to pet data:", error);
             if (profile?.email === "cemantudlasan2@gmail.com") {
-                setPetData({
-                    petType: 'owl',
-                    level: 100,
-                    equippedCosmetics: {
-                        hat: 'aurora_crown',
-                        glasses: 'laser_visor',
-                        necklace: 'phoenix_amulet',
-                        shoes: 'hover_boots',
-                        wings: 'phoenix_wings',
-                    },
+                setPetData((prev) => {
+                    if (prev) return prev;
+                    return {
+                        petType: 'owl',
+                        level: 100,
+                        equippedCosmetics: {
+                            hat: 'aurora_crown',
+                            glasses: 'laser_visor',
+                            necklace: 'phoenix_amulet',
+                            shoes: 'hover_boots',
+                            wings: 'phoenix_wings',
+                        },
+                    };
                 });
             }
         });
