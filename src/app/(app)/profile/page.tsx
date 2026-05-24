@@ -20,6 +20,7 @@ import Image from "next/image";
 import placeholderData from "@/app/lib/placeholder-images.json";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "Display name must be at least 2 characters."),
