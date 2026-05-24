@@ -44,48 +44,50 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Close selection tooltip when clicking elsewhere
+  // Unified document-level selectionchange listener for desktop and mobile selection
   useEffect(() => {
-    const handleDocumentClick = () => {
-      setTimeout(() => {
-        const selection = window.getSelection();
-        if (!selection || selection.toString().trim() === "") {
-          setFloatingCoords(null);
+    const handleSelectionChange = () => {
+      if (!user || isGuest) return;
+
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        setFloatingCoords(null);
+        return;
+      }
+
+      const text = selection.toString().trim();
+      if (text.length > 0 && text.length < 100 && text.split(/\s+/).length <= 5) {
+        try {
+          const range = selection.getRangeAt(0);
+          
+          // Ensure the selection is within our article container
+          const container = document.getElementById("article-content-container");
+          if (container && container.contains(range.commonAncestorContainer)) {
+            const rect = range.getBoundingClientRect();
+            setSelectedWord(text);
+
+            const parentNode = range.startContainer.parentNode;
+            const fullText = parentNode ? parentNode.textContent || "" : "";
+            setContextSentence(fullText.slice(0, 300));
+
+            setFloatingCoords({
+              x: rect.left + rect.width / 2,
+              y: rect.top - 12,
+            });
+            return;
+          }
+        } catch (e) {
+          // silently handle edge selection errors
         }
-      }, 80);
-    };
-    document.addEventListener("mousedown", handleDocumentClick);
-    return () => document.removeEventListener("mousedown", handleDocumentClick);
-  }, []);
-
-  const handleTextSelection = () => {
-    // Only registered logged-in users can use flashcard creation
-    if (!user || isGuest) {
-      return;
-    }
-
-    const selection = window.getSelection();
-    if (!selection) return;
-
-    const text = selection.toString().trim();
-    if (text.length > 0 && text.length < 100 && text.split(/\s+/).length <= 5) {
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-
-      setSelectedWord(text);
-
-      const parentNode = range.startContainer.parentNode;
-      const fullText = parentNode ? parentNode.textContent || "" : "";
-      setContextSentence(fullText.slice(0, 300));
-
-      setFloatingCoords({
-        x: rect.left + rect.width / 2,
-        y: rect.top - 12,
-      });
-    } else {
+      }
       setFloatingCoords(null);
-    }
-  };
+    };
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, [user, isGuest]);
 
   useEffect(() => {
     if (isModalOpen && selectedWord) {
@@ -234,9 +236,8 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
           
           {/* Prose Content */}
           <div 
+            id="article-content-container"
             className="bg-slate-950/30 border border-slate-900/80 rounded-2xl p-6 md:p-8 cursor-text"
-            onMouseUp={handleTextSelection}
-            onTouchEnd={handleTextSelection}
           >
             <div className="text-slate-200 text-base md:text-lg leading-relaxed whitespace-pre-line font-medium antialiased space-y-4 selection:bg-indigo-500/30 selection:text-white">
               {article.content}

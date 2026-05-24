@@ -500,10 +500,10 @@ export default function LoungePage() {
                                 <p className="font-bold text-sm text-gray-400 mb-1">{suggestion.authorName}</p>
                                 <div className="flex items-center gap-2">
                                     <div className={cn(isCurrentUser && "order-2")}>
-                                        <div className={cn("text-white rounded-lg inline-block", isStickerOnly ? 'bg-transparent' : 'p-4', !isStickerOnly && messageColor)}>
+                                        <div className={cn("text-white rounded-lg inline-block max-w-[72vw] sm:max-w-md md:max-w-lg lg:max-w-2xl break-words min-w-0", isStickerOnly ? 'bg-transparent' : 'p-4', !isStickerOnly && messageColor)}>
                                             {suggestion.replyToId && (
-                                            <div className="border-l-2 border-white/50 pl-2 text-xs mb-2 opacity-80 cursor-pointer" onClick={() => scrollToMessage(suggestion.replyToId!)}>
-                                                <p className="font-bold">Replying to {suggestion.replyToAuthor}</p>
+                                            <div className="border-l-2 border-white/50 pl-2 text-xs mb-2 opacity-80 cursor-pointer min-w-0 w-full" onClick={() => scrollToMessage(suggestion.replyToId!)}>
+                                                <p className="font-bold truncate">Replying to {suggestion.replyToAuthor}</p>
                                                 <p className="truncate italic">"{suggestion.replyToText}"</p>
                                             </div>
                                         )}
@@ -593,7 +593,7 @@ export default function LoungePage() {
                 )}
               </div>
             )}
-            <CardContent className="flex-1 overflow-y-auto p-6">
+            <CardContent className="flex-1 overflow-y-auto p-3 sm:p-6">
               {renderContent()}
             </CardContent>
             {user && !isGuest && userProfile && (
@@ -640,7 +640,7 @@ export default function LoungePage() {
                       }
                     }}
                     rows={1}
-                    className="flex-1 bg-muted/80 text-foreground border-border/50 focus-visible:ring-1 focus-visible:ring-primary"
+                    className="flex-1 bg-muted/80 text-foreground border-border/50 focus-visible:ring-1 focus-visible:ring-primary min-h-[40px] max-h-32 py-2 resize-none"
                   />
                   <Popover>
                     <PopoverTrigger asChild>

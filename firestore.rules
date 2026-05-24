@@ -59,7 +59,8 @@ service cloud.firestore {
     }
 
     match /user_pets/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read: if request.auth != null;
+      allow write: if isOwner(userId) || isAdmin();
     }
     
     match /blockedUsers/{userId} {
