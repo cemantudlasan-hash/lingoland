@@ -472,8 +472,7 @@ export default function LoungePage() {
                 const isStickerOnly = suggestion.stickerUrl && !suggestion.text;
                 
                 // Determine if we should show the public profile link
-                const isAdminAccount = authorProfile?.email === "cemantudlasan2@gmail.com";
-                const canViewProfile = authorProfile && !isAdminAccount;
+                const canViewProfile = !!authorProfile;
 
                 return (
                     <div

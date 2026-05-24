@@ -71,6 +71,7 @@ export default function FlashcardsPage() {
   const [example, setExample] = useState("");
   const [hint, setHint] = useState("");
   const [context, setContext] = useState("");
+  const [emoji, setEmoji] = useState("");
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -159,6 +160,8 @@ export default function FlashcardsPage() {
         setTranslation(res.card.translation);
         setExample(res.card.exampleSentence);
         setHint(res.card.hint);
+        // @ts-ignore
+        if (res.card.emoji) setEmoji(res.card.emoji);
         toast({
           title: "AI Analysis Complete",
           description: `Auto-filled details for "${word}"`,
@@ -197,6 +200,7 @@ export default function FlashcardsPage() {
         exampleSentence: example.trim(),
         hint: hint.trim(),
         context: context.trim(),
+        emoji: emoji.trim(),
         createdAt: new Date().toISOString(),
         nextReviewDate: new Date().toISOString(),
         intervalDays: 1,
@@ -217,6 +221,7 @@ export default function FlashcardsPage() {
       setExample("");
       setHint("");
       setContext("");
+      setEmoji("");
       setActiveTab("collection");
     } catch (err: any) {
       console.error("Failed to create card:", err);
@@ -311,12 +316,26 @@ export default function FlashcardsPage() {
     });
     container.appendChild(dateRow);
 
-    // Word
+    // Word and Emoji Row
+    const wordRow = document.createElement("div");
+    wordRow.style.cssText = "display:flex;align-items:center;gap:12px;margin:0 0 12px 0;";
+
+    // @ts-ignore
+    if (card.emoji) {
+      const emojiEl = document.createElement("span");
+      emojiEl.style.cssText = "font-size:36px;user-select:none;";
+      // @ts-ignore
+      emojiEl.textContent = card.emoji;
+      wordRow.appendChild(emojiEl);
+    }
+
     const wordEl = document.createElement("h3");
     wordEl.style.cssText =
-      "font-size:22px;font-weight:900;color:#ffffff;margin:0 0 10px 0;letter-spacing:0.02em;";
+      "font-size:30px;font-weight:900;color:#f59e0b;margin:0;letter-spacing:0.02em;text-transform:capitalize;";
     wordEl.textContent = card.word;
-    container.appendChild(wordEl);
+    wordRow.appendChild(wordEl);
+
+    container.appendChild(wordRow);
 
     // Definition
     const defEl = document.createElement("p");
@@ -541,8 +560,12 @@ export default function FlashcardsPage() {
                         <div className="text-xs font-bold text-indigo-400 tracking-widest uppercase flex items-center gap-1 select-none">
                           <Layers className="h-3.5 w-3.5" /> Box {dueCards[reviewIndex].box}
                         </div>
-                        <h2 className="text-3xl font-black text-white text-center leading-tight tracking-wide px-2 select-text">
-                          {dueCards[reviewIndex].word}
+                        <h2 className="text-4xl font-black leading-tight tracking-wide px-2 select-text flex flex-col items-center gap-3">
+                          {/* @ts-ignore */}
+                          {dueCards[reviewIndex].emoji && <span className="text-5xl select-none animate-bounce">{dueCards[reviewIndex].emoji}</span>}
+                          <span className="bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent capitalize text-center">
+                            {dueCards[reviewIndex].word}
+                          </span>
                         </h2>
                         <div className="text-xs font-bold text-slate-500 animate-pulse select-none">
                           Click card to flip
@@ -629,26 +652,37 @@ export default function FlashcardsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Left Column inputs */}
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold text-slate-400 flex justify-between items-center">
-                        <span>Word or Phrase</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={handleAIFill}
-                          disabled={isLoadingAI || !word.trim()}
-                          className="h-7 text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/5 px-2.5 rounded-lg flex items-center gap-1 border border-indigo-500/10"
-                        >
-                          {isLoadingAI ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                          AI Auto-fill
-                        </Button>
-                      </Label>
-                      <Input
-                        placeholder="e.g. ephemeral"
-                        value={word}
-                        onChange={(e) => setWord(e.target.value)}
-                        className="bg-slate-950 border-slate-850 text-white rounded-xl h-11"
-                      />
+                    <div className="grid grid-cols-4 gap-3">
+                      <div className="col-span-3 space-y-2">
+                        <Label className="text-xs font-bold text-slate-400 flex justify-between items-center">
+                          <span>Word or Phrase</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={handleAIFill}
+                            disabled={isLoadingAI || !word.trim()}
+                            className="h-7 text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/5 px-2.5 rounded-lg flex items-center gap-1 border border-indigo-500/10"
+                          >
+                            {isLoadingAI ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                            AI Auto-fill
+                          </Button>
+                        </Label>
+                        <Input
+                          placeholder="e.g. ephemeral"
+                          value={word}
+                          onChange={(e) => setWord(e.target.value)}
+                          className="bg-slate-950 border-slate-850 text-white rounded-xl h-11"
+                        />
+                      </div>
+                      <div className="col-span-1 space-y-2">
+                        <Label className="text-xs font-bold text-slate-400">Emoji</Label>
+                        <Input
+                          placeholder="✨"
+                          value={emoji}
+                          onChange={(e) => setEmoji(e.target.value)}
+                          className="bg-slate-950 border-slate-850 text-white rounded-xl h-11 text-center text-lg"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -765,7 +799,11 @@ export default function FlashcardsPage() {
                       </div>
 
                       <div className="my-4 space-y-3">
-                        <h3 className="text-xl font-black text-white tracking-wide truncate">{card.word}</h3>
+                        <h3 className="text-2xl font-black text-white tracking-wide truncate flex items-center gap-2">
+                          {/* @ts-ignore */}
+                          {card.emoji && <span className="text-2xl shrink-0 select-none">{card.emoji}</span>}
+                          <span className="bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent capitalize">{card.word}</span>
+                        </h3>
                         <p className="text-slate-350 text-xs font-semibold leading-relaxed line-clamp-2">
                           {card.definition}
                         </p>

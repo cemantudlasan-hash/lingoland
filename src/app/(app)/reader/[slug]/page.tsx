@@ -42,6 +42,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
   const [translation, setTranslation] = useState("");
   const [example, setExample] = useState("");
   const [hint, setHint] = useState("");
+  const [emoji, setEmoji] = useState("");
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -98,6 +99,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
       setTranslation("");
       setExample("");
       setHint("");
+      setEmoji("");
 
       const fetchAIContent = async () => {
         setIsLoadingAI(true);
@@ -111,6 +113,8 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
             setTranslation(res.card.translation);
             setExample(res.card.exampleSentence);
             setHint(res.card.hint);
+            // @ts-ignore
+            if (res.card.emoji) setEmoji(res.card.emoji);
           }
         } catch (err) {
           console.error("AI Flashcard helper failed:", err);
@@ -148,6 +152,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
         exampleSentence: example,
         hint,
         context: contextSentence,
+        emoji: emoji.trim(),
         createdAt: new Date().toISOString(),
         nextReviewDate: new Date().toISOString(),
         intervalDays: 1,
@@ -282,13 +287,24 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
 
           {/* Form */}
           <div className="space-y-4 py-3">
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-slate-400">Word or Phrase</Label>
-              <Input
-                value={selectedWord}
-                onChange={(e) => setSelectedWord(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-white"
-              />
+            <div className="grid grid-cols-4 gap-2">
+              <div className="col-span-3 space-y-1">
+                <Label className="text-xs font-bold text-slate-400">Word or Phrase</Label>
+                <Input
+                  value={selectedWord}
+                  onChange={(e) => setSelectedWord(e.target.value)}
+                  className="bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+              <div className="col-span-1 space-y-1">
+                <Label className="text-xs font-bold text-slate-400">Emoji</Label>
+                <Input
+                  placeholder="✨"
+                  value={emoji}
+                  onChange={(e) => setEmoji(e.target.value)}
+                  className="bg-slate-950 border-slate-800 text-white text-center text-lg"
+                />
+              </div>
             </div>
             
             <div className="space-y-1 relative">

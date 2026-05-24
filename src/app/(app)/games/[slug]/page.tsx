@@ -9,9 +9,10 @@ import { gameComponentMap } from "../page";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore } from "@/firebase";
-import { logAnalyticsEvent, getDailyMissions } from "@/lib/analytics";
+import { logAnalyticsEvent, getDailyMissions, getDailyBonusGame } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, HelpCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 const NATIVELY_TRACKED_GAMES = new Set([
   'algebraic-abyss', 'anatomy-academy', 'arithmetic-ace', 'bio-hazard', 
@@ -42,6 +43,7 @@ export default function GamePage() {
   const [totalDuration, setTotalDuration] = React.useState<number>(60);
   const [timerActive, setTimerActive] = React.useState(false);
   const [timerCompleted, setTimerCompleted] = React.useState(false);
+  const [isDailyGame, setIsDailyGame] = React.useState(false);
 
   const handleFullScreen = () => {
     const elem = gameContainerRef.current;
@@ -68,6 +70,14 @@ export default function GamePage() {
   React.useEffect(() => {
     if (!game || NATIVELY_TRACKED_GAMES.has(game.slug)) return;
 
+    // Verify if this is an active daily mission or daily bonus game
+    const dailyMissions = getDailyMissions();
+    const { slug: dailyBonusSlug } = getDailyBonusGame();
+    const isDaily = dailyMissions.some(m => m.slug === game.slug) || dailyBonusSlug === game.slug;
+    setIsDailyGame(isDaily);
+
+    if (!isDaily) return;
+
     // Check if there is already a saved total duration for this game session
     const savedTotal = localStorage.getItem(`lingoland_game_timer_total_${game.slug}`);
     let duration = 60;
@@ -77,7 +87,6 @@ export default function GamePage() {
     } else {
       // Generate randomized duration around 1-3 minutes (60s to 180s)
       // "the higher the coins the higher the timer"
-      const dailyMissions = getDailyMissions();
       const matchedMission = dailyMissions.find(m => m.slug === game.slug);
       const coins = matchedMission ? matchedMission.reward : 5; // Default to 5 coins if no daily mission
 
@@ -239,9 +248,9 @@ export default function GamePage() {
     if (!game) return;
 
     const handleCompletedEvent = () => {
-      // For endless/classroom games, we only allow completion once the timer is done!
+      // For endless/classroom games, we only allow completion once the timer is done if it is a daily game!
       if (!NATIVELY_TRACKED_GAMES.has(game.slug)) {
-        if (timerCompleted) {
+        if (!isDailyGame || timerCompleted) {
           handleCompleted();
         }
       } else {
@@ -264,7 +273,7 @@ export default function GamePage() {
           type: 'game_played',
           details: { slug: game.slug, title: game.title, mode: 'endless' }
         });
-
+ 
         toast({
           title: "Endless Milestone Reached! 🚀",
           description: "Answered 10 questions! Earned 10 Lingo-Coins!",
@@ -292,7 +301,7 @@ export default function GamePage() {
       window.removeEventListener('lingoland_game_answered_hijack', handleAnswered);
       window.removeEventListener('lingoland_daily_mission_completed', handleDailyMission);
     };
-  }, [game, firestore, user, handleCompleted, startTimerOnInteraction, timerCompleted, toast]);
+  }, [game, firestore, user, handleCompleted, startTimerOnInteraction, timerCompleted, isDailyGame, toast]);
 
   if (!game) {
     return <div>Game not found</div>;
@@ -318,8 +327,13 @@ export default function GamePage() {
       </div>
 
       {/* Modern Floating Timer Status & Claim Widget */}
-      {!NATIVELY_TRACKED_GAMES.has(game.slug) && !rewarded && (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-auto">
+      {!NATIVELY_TRACKED_GAMES.has(game.slug) && isDailyGame && !rewarded && (
+        <motion.div 
+          drag
+          dragMomentum={false}
+          dragElastic={0.05}
+          className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-auto cursor-move select-none touch-none"
+        >
           {/* Active Timer Box */}
           {!timerCompleted && (
             <div className="flex flex-col gap-1.5 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white p-3.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.6)] w-64 transition-all duration-300">
@@ -342,7 +356,7 @@ export default function GamePage() {
               
               <p className="text-[9px] text-slate-500 font-bold leading-tight mt-1.5">
                 {timerActive 
-                  ? "Mission in progress! Exit safely at any time (progress will pause)." 
+                  ? "Mission in progress! Drag me anywhere or exit safely (progress pauses)." 
                   : "Click inside the game or press Start to begin the mission timer!"}
               </p>
             </div>
@@ -358,7 +372,7 @@ export default function GamePage() {
               <span>Claim Mission Coins & Finish</span>
             </button>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   );

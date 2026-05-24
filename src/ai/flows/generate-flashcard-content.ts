@@ -18,6 +18,7 @@ const FlashcardContentSchema = z.object({
   translation: z.string().describe('A brief translation or simple explanation of the word in Thai, or a simple English synonym if it cannot be translated.'),
   exampleSentence: z.string().describe('An example sentence showing the word used in a natural context (different from the highlighted context, but matching its grammatical usage).'),
   hint: z.string().describe('A short mnemonic or memory aid to help the student learn and recall this word.'),
+  emoji: z.string().describe('A single representative emoji that visually captures the meaning of this word or phrase. E.g. "happy" -> "😊", "tree" -> "🌳", "science" -> "🔬".'),
 });
 
 const GenerateFlashcardOutputSchema = z.object({
@@ -43,6 +44,7 @@ Provide:
 2. A brief translation or simple explanation of the word in Thai.
 3. A brand new example sentence demonstrating its usage.
 4. A memorable, creative mnemonic hint or memory aid.
+5. A single representative emoji that visually represents the word or phrase.
 `,
 });
 
