@@ -146,7 +146,7 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
   return (
     <Card className={cn(
       "w-full transition-all duration-500 flex flex-col overflow-y-auto relative border-none shadow-2xl",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-black" : "max-w-4xl mx-auto h-[700px] bg-slate-950"
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-black" : "max-w-4xl mx-auto h-[600px] sm:h-[700px] bg-slate-950"
     )}>
       {/* Background Starfield Effect */}
       <div className="absolute inset-0 z-0 opacity-30">
@@ -245,26 +245,26 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 p-12 rounded-[40px] max-w-2xl w-full"
+              className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 sm:p-12 rounded-3xl sm:rounded-[40px] max-w-2xl w-full"
             >
-              <h3 className="text-3xl font-black text-white uppercase mb-8 flex items-center gap-3">
+              <h3 className="text-2xl sm:text-3xl font-black text-white uppercase mb-6 sm:mb-8 flex items-center gap-3">
                 <Sparkles className="text-yellow-400" /> Mission Brief
               </h3>
-              <div className="space-y-6 text-xl text-blue-100/80">
-                <p className="flex gap-4">
-                  <span className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">1</span>
+              <div className="space-y-4 sm:space-y-6 text-base sm:text-xl text-blue-100/80">
+                <p className="flex gap-3 sm:gap-4">
+                  <span className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-blue-600 flex items-center justify-center text-xs sm:text-sm font-bold text-white shrink-0">1</span>
                   <span>Equations will emerge from the abyss. Identify the value of <span className="text-blue-400 font-bold">x</span>.</span>
                 </p>
-                <p className="flex gap-4">
-                  <span className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">2</span>
+                <p className="flex gap-3 sm:gap-4">
+                  <span className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-blue-600 flex items-center justify-center text-xs sm:text-sm font-bold text-white shrink-0">2</span>
                   <span>Each second lost reduces your potential score. Be swift.</span>
                 </p>
-                <p className="flex gap-4">
-                  <span className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">3</span>
+                <p className="flex gap-3 sm:gap-4">
+                  <span className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-blue-600 flex items-center justify-center text-xs sm:text-sm font-bold text-white shrink-0">3</span>
                   <span>Correct streaks build combos for massive multipliers.</span>
                 </p>
               </div>
-              <Button onClick={startNextRound} className="w-full mt-12 h-16 text-xl font-black bg-white text-black hover:bg-blue-400 hover:text-white transition-colors uppercase tracking-widest rounded-2xl">
+              <Button onClick={startNextRound} className="w-full mt-8 sm:mt-12 h-12 sm:h-16 text-sm sm:text-xl font-black bg-white text-black hover:bg-blue-400 hover:text-white transition-colors uppercase tracking-wide sm:tracking-widest rounded-xl sm:rounded-2xl">
                 Ready for Insertion
               </Button>
             </motion.div>
@@ -277,7 +277,7 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
                   initial={{ opacity: 0, scale: 0, z: -1000 }}
                   animate={{ opacity: 1, scale: 1, z: 0 }}
                   transition={{ type: "spring", damping: 15, stiffness: 100 }}
-                  className="mb-12"
+                  className="mb-8 sm:mb-12"
                >
                   <div className="relative group">
                     <motion.div 
@@ -285,13 +285,13 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
                         transition={{ duration: 2, repeat: Infinity }}
                         className="absolute inset-0 bg-blue-500/20 blur-3xl"
                     />
-                    <div className="text-8xl md:text-9xl font-black text-white tracking-widest tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                    <div className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-white tracking-normal sm:tracking-widest tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] text-center break-all px-4">
                         {currentProblem.equation}
                     </div>
                   </div>
                </motion.div>
 
-               <div className="grid grid-cols-2 gap-4 w-full max-w-2xl px-4">
+               <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-2xl px-4">
                   {currentProblem.options.map((opt, i) => (
                     <motion.div
                         key={opt}
@@ -301,7 +301,7 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
                     >
                         <Button
                             onClick={() => handleAnswer(opt)}
-                            className="w-full h-24 text-4xl font-black bg-white/5 hover:bg-white/20 text-white border-2 border-white/10 hover:border-blue-400 rounded-3xl transition-all group overflow-hidden relative"
+                            className="w-full h-16 sm:h-24 text-2xl sm:text-4xl font-black bg-white/5 hover:bg-white/20 text-white border-2 border-white/10 hover:border-blue-400 rounded-2xl sm:rounded-3xl transition-all group overflow-hidden relative"
                         >
                             <span className="relative z-10">{opt}</span>
                             <motion.div 
@@ -312,9 +312,9 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
                   ))}
                </div>
 
-               <div className="absolute bottom-8 left-0 right-0 px-12">
+               <div className="w-full max-w-2xl px-4 mt-6 sm:mt-8">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-white/40 text-xs font-black uppercase tracking-widest">Time Synchronicity</span>
+                    <span className="text-white/40 text-[10px] sm:text-xs font-black uppercase tracking-widest">Time Synchronicity</span>
                     <span className="text-blue-400 font-black tabular-nums">{timeLeft.toFixed(1)}s</span>
                   </div>
                   <Progress value={(timeLeft / TIMER_LIMIT) * 100} className="h-1 bg-white/10">
