@@ -133,13 +133,41 @@ export default function PublicProfilePage() {
                         level: d.level || 1,
                         equippedCosmetics: d.equippedCosmetics || {},
                     });
+                } else if (profile?.email === "cemantudlasan2@gmail.com") {
+                    // Admin's fallback premium exclusive pet
+                    setPetData({
+                        petType: 'owl',
+                        level: 100,
+                        equippedCosmetics: {
+                            hat: 'aurora_crown',
+                            glasses: 'laser_visor',
+                            necklace: 'phoenix_amulet',
+                            shoes: 'hover_boots',
+                            wings: 'phoenix_wings',
+                        },
+                    });
                 }
             } catch (e) {
                 // silently ignore if not accessible
+                if (profile?.email === "cemantudlasan2@gmail.com") {
+                    setPetData({
+                        petType: 'owl',
+                        level: 100,
+                        equippedCosmetics: {
+                            hat: 'aurora_crown',
+                            glasses: 'laser_visor',
+                            necklace: 'phoenix_amulet',
+                            shoes: 'hover_boots',
+                            wings: 'phoenix_wings',
+                        },
+                    });
+                }
             }
         };
-        fetchPetData();
-    }, [uid, firestore]);
+        if (profile) {
+            fetchPetData();
+        }
+    }, [uid, firestore, profile]);
 
     const handleAddComment = async () => {
         if (!commentText.trim() || !currentUser || !profile || !firestore) return;
