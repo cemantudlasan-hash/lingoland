@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, Edit2, Trash2, GraduationCap, Calculator } from "lucide-react";
 import { StudentDialog } from "./student-dialog";
+import { BulkStudentDialog } from "./bulk-student-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -198,6 +199,7 @@ export function StudentsTable() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedClass, setSelectedClass] = React.useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isBulkDialogOpen, setIsBulkDialogOpen] = React.useState(false);
   const [editingStudent, setEditingStudent] = React.useState<Student | null>(null);
   
   const { user } = useAuth();
@@ -436,6 +438,9 @@ export function StudentsTable() {
             <Button onClick={() => { setEditingStudent(null); setIsDialogOpen(true); }}>
               <Plus className="mr-2 h-4 w-4" /> Add Student
             </Button>
+            <Button variant="outline" onClick={() => setIsBulkDialogOpen(true)} className="border-primary/20 hover:bg-primary/5">
+              <Plus className="mr-2 h-4 w-4 text-primary" /> Bulk Add Students
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -482,6 +487,11 @@ export function StudentsTable() {
         isOpen={isDialogOpen} 
         onOpenChange={setIsDialogOpen} 
         student={editingStudent} 
+        existingGroups={studentGroups}
+      />
+      <BulkStudentDialog 
+        isOpen={isBulkDialogOpen} 
+        onOpenChange={setIsBulkDialogOpen} 
         existingGroups={studentGroups}
       />
     </Card>

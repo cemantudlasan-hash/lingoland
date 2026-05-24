@@ -39,7 +39,7 @@ export function DonationPopup() {
       };
 
       // 1. Check AI counter trigger
-      if (count >= 3 && count <= 5) {
+      if (count >= 1 && count <= 3) {
         sessionStorage.setItem('donation_popup_shown', 'true');
         sessionStorage.setItem('ai_popup_shown', 'true');
         exitFullscreenAndShow();

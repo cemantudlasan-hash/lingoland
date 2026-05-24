@@ -216,7 +216,7 @@ export const logAnalyticsEvent = (firestore: Firestore | null, userId: string | 
       try {
         const target = sessionStorage.getItem('lingoland_donation_games_target');
         if (!target) {
-          const randomTarget = Math.floor(Math.random() * 4) + 2; // 2, 3, 4, 5
+          const randomTarget = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3 games
           sessionStorage.setItem('lingoland_donation_games_target', randomTarget.toString());
         }
         const currentCountStr = sessionStorage.getItem('lingoland_classroom_games_played') || '0';

@@ -844,7 +844,7 @@ export default function LingoPetPage() {
             </div>
             <Progress value={(pet.xp / (pet.level * 500)) * 100} className="bg-slate-950 h-2" />
             <p className="text-[10px] text-slate-500 leading-normal mt-1">
-              🏆 Earn **100 XP** and **10 Coins** automatically every time you complete a vocabulary, reading, or science quiz game on LingoLand!
+              🏆 Earn **100 XP** automatically every time you complete a vocabulary, reading, or science quiz game on LingoLand!
             </p>
           </Card>
 
