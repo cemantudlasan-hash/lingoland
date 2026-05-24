@@ -200,7 +200,7 @@ export function AppSidebar() {
               alt="LingoLandVerse Logo"
               width={36}
               height={36}
-              className="shrink-0 rounded-lg object-contain mix-blend-screen"
+              className="shrink-0 object-contain"
             />
             <h1 className="text-xl font-bold font-headline truncate transition-opacity group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:hidden">LingoLandVerse</h1>
           </div>

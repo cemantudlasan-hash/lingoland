@@ -16,6 +16,7 @@ import { useAuth } from "@/context/auth-context";
 import { signOut } from "@/lib/auth";
 import { User as UserIcon, Coffee, Megaphone, Bell, Trash2, GraduationCap, PanelLeft } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "../ui/badge";
 import { useFirestore, useMemoFirebase, useCollection } from "@/firebase";
 import { doc, onSnapshot, type FirestoreError, collection, query, writeBatch, orderBy, getDocs, setDoc } from "firebase/firestore";
@@ -409,7 +410,13 @@ export function AppHeader() {
             </Button>
             <div className="h-6 w-px bg-border/50 hidden md:block mx-1"></div>
             <div className="items-center gap-2 p-2 hidden md:flex">
-                <GraduationCap className="h-8 w-8 text-primary" />
+                <Image
+                  src="/logo.png"
+                  alt="LingoLandVerse Logo"
+                  width={32}
+                  height={32}
+                  className="shrink-0 object-contain"
+                />
                 <h1 className="text-xl font-bold font-headline">LingoLandVerse</h1>
             </div>
         </div>

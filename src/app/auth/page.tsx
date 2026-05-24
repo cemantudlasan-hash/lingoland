@@ -249,7 +249,7 @@ export default function AuthPage() {
                                 alt="LingoLandVerse Logo"
                                 width={180}
                                 height={180}
-                                className="rounded-2xl object-contain mix-blend-screen"
+                                className="object-contain"
                                 priority
                               />
                             </div>
