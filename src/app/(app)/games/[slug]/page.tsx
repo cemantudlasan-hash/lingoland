@@ -11,6 +11,7 @@ import { useAuth } from "@/context/auth-context";
 import { useFirestore } from "@/firebase";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
+import { Sparkles } from "lucide-react";
 
 const NATIVELY_TRACKED_GAMES = new Set([
   'algebraic-abyss', 'anatomy-academy', 'arithmetic-ace', 'bio-hazard', 
@@ -34,6 +35,7 @@ export default function GamePage() {
 
   const answeredCountRef = React.useRef(0);
   const rewardedRef = React.useRef(false);
+  const [rewarded, setRewarded] = React.useState(false);
 
   const handleFullScreen = () => {
     const elem = gameContainerRef.current;
@@ -106,24 +108,48 @@ export default function GamePage() {
     };
   }, [game]);
 
+  // Unified completion logic
+  const handleCompleted = React.useCallback(() => {
+    if (!game || rewardedRef.current) return;
+    rewardedRef.current = true;
+    setRewarded(true);
+
+    // Trigger analytics coin reward
+    logAnalyticsEvent(firestore, user?.uid || 'guest', {
+      type: 'game_played',
+      details: { slug: game.slug, title: game.title }
+    });
+
+    toast({
+      title: "Game Completed! 🎉",
+      description: "You've successfully completed the game and earned 10 Lingo-Coins!",
+    });
+  }, [game, firestore, user, toast]);
+
+  // Passive play duration reward timer for endless/classroom games (e.g. 60 seconds)
+  React.useEffect(() => {
+    if (!game || NATIVELY_TRACKED_GAMES.has(game.slug)) return;
+
+    const timer = setTimeout(() => {
+      if (rewardedRef.current) return;
+      
+      handleCompleted();
+      
+      toast({
+        title: "Session Milestone Reached! ⏱️",
+        description: "You've played long enough to claim your 10 Lingo-Coins!",
+      });
+    }, 60000); // 60 seconds of active play
+
+    return () => clearTimeout(timer);
+  }, [game, handleCompleted, toast]);
+
   // Set up listeners for the custom completion event
   React.useEffect(() => {
     if (!game) return;
 
-    const handleCompleted = () => {
-      if (rewardedRef.current) return;
-      rewardedRef.current = true;
-
-      // Trigger analytics coin reward
-      logAnalyticsEvent(firestore, user?.uid || 'guest', {
-        type: 'game_played',
-        details: { slug: game.slug, title: game.title }
-      });
-
-      toast({
-        title: "Game Completed! 🎉",
-        description: "You've successfully completed the game and earned 10 Lingo-Coins!",
-      });
+    const handleCompletedEvent = () => {
+      handleCompleted();
     };
 
     const handleAnswered = () => {
@@ -153,16 +179,16 @@ export default function GamePage() {
       });
     };
 
-    window.addEventListener('lingoland_game_completed_hijack', handleCompleted);
+    window.addEventListener('lingoland_game_completed_hijack', handleCompletedEvent);
     window.addEventListener('lingoland_game_answered_hijack', handleAnswered);
     window.addEventListener('lingoland_daily_mission_completed', handleDailyMission);
 
     return () => {
-      window.removeEventListener('lingoland_game_completed_hijack', handleCompleted);
+      window.removeEventListener('lingoland_game_completed_hijack', handleCompletedEvent);
       window.removeEventListener('lingoland_game_answered_hijack', handleAnswered);
       window.removeEventListener('lingoland_daily_mission_completed', handleDailyMission);
     };
-  }, [game, firestore, user]);
+  }, [game, firestore, user, handleCompleted, toast]);
 
   if (!game) {
     return <div>Game not found</div>;
@@ -184,6 +210,17 @@ export default function GamePage() {
           <GameComponent slug={game.slug} onToggleFullscreen={handleFullScreen} />
         </React.Suspense>
       </div>
+
+      {/* Floating Finish Game Button for Endless/Classroom games */}
+      {!NATIVELY_TRACKED_GAMES.has(game.slug) && !rewarded && (
+        <button
+          onClick={handleCompleted}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm py-3 px-5 rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.5)] transition-all duration-300 hover:scale-105 active:scale-95 animate-pulse border border-amber-300/30"
+        >
+          <Sparkles className="h-4 w-4 text-slate-950" />
+          <span>Claim Mission Coins & Finish</span>
+        </button>
+      )}
     </div>
   );
 }
