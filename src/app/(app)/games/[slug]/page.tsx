@@ -9,9 +9,9 @@ import { gameComponentMap } from "../page";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore } from "@/firebase";
-import { logAnalyticsEvent } from "@/lib/analytics";
+import { logAnalyticsEvent, getDailyMissions } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles } from "lucide-react";
+import { Sparkles, HelpCircle } from "lucide-react";
 
 const NATIVELY_TRACKED_GAMES = new Set([
   'algebraic-abyss', 'anatomy-academy', 'arithmetic-ace', 'bio-hazard', 
@@ -37,6 +37,12 @@ export default function GamePage() {
   const rewardedRef = React.useRef(false);
   const [rewarded, setRewarded] = React.useState(false);
 
+  // New Mission Timer States
+  const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
+  const [totalDuration, setTotalDuration] = React.useState<number>(60);
+  const [timerActive, setTimerActive] = React.useState(false);
+  const [timerCompleted, setTimerCompleted] = React.useState(false);
+
   const handleFullScreen = () => {
     const elem = gameContainerRef.current;
     if (!elem) return;
@@ -58,6 +64,106 @@ export default function GamePage() {
     return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
   }, []);
 
+  // Initialize and load saved timer from localStorage
+  React.useEffect(() => {
+    if (!game || NATIVELY_TRACKED_GAMES.has(game.slug)) return;
+
+    // Check if there is already a saved total duration for this game session
+    const savedTotal = localStorage.getItem(`lingoland_game_timer_total_${game.slug}`);
+    let duration = 60;
+
+    if (savedTotal) {
+      duration = parseInt(savedTotal, 10);
+    } else {
+      // Generate randomized duration around 1-3 minutes (60s to 180s)
+      // "the higher the coins the higher the timer"
+      const dailyMissions = getDailyMissions();
+      const matchedMission = dailyMissions.find(m => m.slug === game.slug);
+      const coins = matchedMission ? matchedMission.reward : 5; // Default to 5 coins if no daily mission
+
+      if (coins >= 8) {
+        // High reward: random between 140s and 180s (approx 2.3 - 3.0 mins)
+        duration = Math.floor(Math.random() * 41) + 140;
+      } else if (coins >= 4) {
+        // Medium reward: random between 95s and 135s (approx 1.6 - 2.25 mins)
+        duration = Math.floor(Math.random() * 41) + 95;
+      } else {
+        // Low reward: random between 60s and 90s (approx 1.0 - 1.5 mins)
+        duration = Math.floor(Math.random() * 31) + 60;
+      }
+
+      localStorage.setItem(`lingoland_game_timer_total_${game.slug}`, duration.toString());
+    }
+
+    setTotalDuration(duration);
+
+    // Retrieve previous remaining time for this specific game
+    const savedLeft = localStorage.getItem(`lingoland_game_timer_left_${game.slug}`);
+    if (savedLeft) {
+      const parsedLeft = parseInt(savedLeft, 10);
+      if (parsedLeft > 0) {
+        setTimeLeft(parsedLeft);
+        return;
+      }
+    }
+
+    setTimeLeft(duration);
+  }, [game]);
+
+  // Handle countdown interval and save remaining seconds dynamically
+  React.useEffect(() => {
+    if (!timerActive || timeLeft === null || timeLeft <= 0 || rewarded || !game) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          clearInterval(interval);
+          setTimerActive(false);
+          setTimerCompleted(true);
+          localStorage.removeItem(`lingoland_game_timer_left_${game.slug}`);
+          localStorage.removeItem(`lingoland_game_timer_total_${game.slug}`);
+          return 0;
+        }
+
+        const nextValue = prev - 1;
+        localStorage.setItem(`lingoland_game_timer_left_${game.slug}`, nextValue.toString());
+        return nextValue;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timerActive, timeLeft, rewarded, game]);
+
+  // Pause the timer when user unmounts or leaves the game
+  React.useEffect(() => {
+    return () => {
+      setTimerActive(false);
+    };
+  }, []);
+
+  // Trigger timer when user interacts with the game
+  const startTimerOnInteraction = React.useCallback(() => {
+    if (!timerActive && !timerCompleted && !rewarded && timeLeft !== null && timeLeft > 0) {
+      setTimerActive(true);
+    }
+  }, [timerActive, timerCompleted, rewarded, timeLeft]);
+
+  // Bind capture-phase listeners globally to ensure ANY user interaction starts the timer
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    window.addEventListener('mousedown', startTimerOnInteraction, true);
+    window.addEventListener('touchstart', startTimerOnInteraction, true);
+    window.addEventListener('keydown', startTimerOnInteraction, true);
+
+    return () => {
+      window.removeEventListener('mousedown', startTimerOnInteraction, true);
+      window.removeEventListener('touchstart', startTimerOnInteraction, true);
+      window.removeEventListener('keydown', startTimerOnInteraction, true);
+    };
+  }, [startTimerOnInteraction]);
+
   // Centralized State Interceptor Hijacking
   React.useEffect(() => {
     if (!game || NATIVELY_TRACKED_GAMES.has(game.slug)) return;
@@ -70,10 +176,8 @@ export default function GamePage() {
       const [state, setState] = originalUseState(initialState);
 
       const wrappedSetState = (value: any) => {
-        // Run original state update
         setState(value);
 
-        // Resolve value if functional update
         let resolvedValue = value;
         if (typeof value === 'function') {
           try {
@@ -81,7 +185,7 @@ export default function GamePage() {
           } catch (e) {}
         }
 
-        // Completion states
+        // Completion states for non-endless games
         if (
           resolvedValue === 'finished' || 
           resolvedValue === 'all_spun' || 
@@ -93,9 +197,9 @@ export default function GamePage() {
           }));
         }
 
-        // Question answered in endless modes
-        if (resolvedValue === 'answered') {
-          window.dispatchEvent(new CustomEvent('lingoland_game_answered_hijack'));
+        // Question answered in endless modes or general state update indicates playing
+        if (resolvedValue === 'answered' || resolvedValue === 'playing' || resolvedValue === 'quiz' || resolvedValue === 'start') {
+          window.dispatchEvent(new CustomEvent('lingoland_game_started_hijack'));
         }
       };
 
@@ -113,6 +217,10 @@ export default function GamePage() {
     if (!game || rewardedRef.current) return;
     rewardedRef.current = true;
     setRewarded(true);
+    setTimerCompleted(true);
+    setTimerActive(false);
+    localStorage.removeItem(`lingoland_game_timer_left_${game.slug}`);
+    localStorage.removeItem(`lingoland_game_timer_total_${game.slug}`);
 
     // Trigger analytics coin reward
     logAnalyticsEvent(firestore, user?.uid || 'guest', {
@@ -126,33 +234,27 @@ export default function GamePage() {
     });
   }, [game, firestore, user, toast]);
 
-  // Passive play duration reward timer for endless/classroom games (e.g. 60 seconds)
-  React.useEffect(() => {
-    if (!game || NATIVELY_TRACKED_GAMES.has(game.slug)) return;
-
-    const timer = setTimeout(() => {
-      if (rewardedRef.current) return;
-      
-      handleCompleted();
-      
-      toast({
-        title: "Session Milestone Reached! ⏱️",
-        description: "You've played long enough to claim your 10 Lingo-Coins!",
-      });
-    }, 60000); // 60 seconds of active play
-
-    return () => clearTimeout(timer);
-  }, [game, handleCompleted, toast]);
-
-  // Set up listeners for the custom completion event
+  // Set up listeners for the custom completion events
   React.useEffect(() => {
     if (!game) return;
 
     const handleCompletedEvent = () => {
-      handleCompleted();
+      // For endless/classroom games, we only allow completion once the timer is done!
+      if (!NATIVELY_TRACKED_GAMES.has(game.slug)) {
+        if (timerCompleted) {
+          handleCompleted();
+        }
+      } else {
+        handleCompleted();
+      }
+    };
+
+    const handleStartedEvent = () => {
+      startTimerOnInteraction();
     };
 
     const handleAnswered = () => {
+      startTimerOnInteraction();
       answeredCountRef.current += 1;
       // Every 10 answers, trigger a minor coin drop!
       if (answeredCountRef.current >= 10) {
@@ -180,15 +282,17 @@ export default function GamePage() {
     };
 
     window.addEventListener('lingoland_game_completed_hijack', handleCompletedEvent);
+    window.addEventListener('lingoland_game_started_hijack', handleStartedEvent);
     window.addEventListener('lingoland_game_answered_hijack', handleAnswered);
     window.addEventListener('lingoland_daily_mission_completed', handleDailyMission);
 
     return () => {
       window.removeEventListener('lingoland_game_completed_hijack', handleCompletedEvent);
+      window.removeEventListener('lingoland_game_started_hijack', handleStartedEvent);
       window.removeEventListener('lingoland_game_answered_hijack', handleAnswered);
       window.removeEventListener('lingoland_daily_mission_completed', handleDailyMission);
     };
-  }, [game, firestore, user, handleCompleted, toast]);
+  }, [game, firestore, user, handleCompleted, startTimerOnInteraction, timerCompleted, toast]);
 
   if (!game) {
     return <div>Game not found</div>;
@@ -204,6 +308,8 @@ export default function GamePage() {
         isFullscreen && "bg-background w-screen h-screen overflow-hidden"
       )}
       data-fullscreen-container={isFullscreen}
+      onMouseDown={startTimerOnInteraction}
+      onTouchStart={startTimerOnInteraction}
     >
       <div className={cn("w-full transition-all duration-500", isFullscreen ? "h-full overflow-y-auto" : "p-0")}>
         <React.Suspense fallback={<LoadingPlaceholder />}>
@@ -211,15 +317,48 @@ export default function GamePage() {
         </React.Suspense>
       </div>
 
-      {/* Floating Finish Game Button for Endless/Classroom games */}
+      {/* Modern Floating Timer Status & Claim Widget */}
       {!NATIVELY_TRACKED_GAMES.has(game.slug) && !rewarded && (
-        <button
-          onClick={handleCompleted}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm py-3 px-5 rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.5)] transition-all duration-300 hover:scale-105 active:scale-95 animate-pulse border border-amber-300/30"
-        >
-          <Sparkles className="h-4 w-4 text-slate-950" />
-          <span>Claim Mission Coins & Finish</span>
-        </button>
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-auto">
+          {/* Active Timer Box */}
+          {!timerCompleted && (
+            <div className="flex flex-col gap-1.5 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white p-3.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.6)] w-64 transition-all duration-300">
+              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className={cn("h-3.5 w-3.5 text-amber-500", timerActive && "animate-spin")} />
+                  {timerActive ? "Mission Active" : "Mission Paused"}
+                </span>
+                <span className="text-amber-400 text-xs font-black">
+                  {timeLeft !== null ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}` : "0:00"}
+                </span>
+              </div>
+              
+              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mt-1.5">
+                <div 
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 h-full transition-all duration-500"
+                  style={{ width: `${timeLeft !== null ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0}%` }}
+                />
+              </div>
+              
+              <p className="text-[9px] text-slate-500 font-bold leading-tight mt-1.5">
+                {timerActive 
+                  ? "Mission in progress! Exit safely at any time (progress will pause)." 
+                  : "Click inside the game or press Start to begin the mission timer!"}
+              </p>
+            </div>
+          )}
+
+          {/* Claim Button - Appears only when timer is completed */}
+          {timerCompleted && (
+            <button
+              onClick={handleCompleted}
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm py-3 px-5 rounded-2xl shadow-[0_0_25px_rgba(245,158,11,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 animate-bounce border border-amber-300/30"
+            >
+              <Sparkles className="h-4 w-4 text-slate-950" />
+              <span>Claim Mission Coins & Finish</span>
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
