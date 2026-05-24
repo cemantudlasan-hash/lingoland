@@ -4,7 +4,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 interface LingoPetVisualProps {
-  petType: 'owl' | 'dino' | 'kitty';
+  petType: 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly';
   level: number;
   energy: number;
   mood: number;
@@ -1374,6 +1374,343 @@ export function LingoPetVisual({
     );
   };
 
+  const renderPhoenix = () => {
+    // Accessory coordinates
+    let hatX = 100, hatY = 56;
+    let glassesX = 100, glassesY = 82;
+    let necklaceX = 100, necklaceY = 114;
+    let feetLeftX = 85, feetRightX = 115, feetY = 160;
+
+    return (
+      <svg viewBox="0 0 200 200" className="w-full h-full">
+        <defs>
+          <linearGradient id="phxFlame" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#fca5a5" />
+            <stop offset="30%" stopColor="#ef4444" />
+            <stop offset="100%" stopColor="#b91c1c" />
+          </linearGradient>
+          <linearGradient id="phxGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fef08a" />
+            <stop offset="50%" stopColor="#fbbf24" />
+            <stop offset="100%" stopColor="#d97706" />
+          </linearGradient>
+          <radialGradient id="phxBody" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stopColor="#fbbf24" />
+            <stop offset="60%" stopColor="#ea580c" />
+            <stop offset="100%" stopColor="#9a3412" />
+          </radialGradient>
+        </defs>
+
+        <g className={cn(isPetting && "animate-bounce", isTalking && "animate-pulse", "animate-float")}>
+          {/* Wings at the back */}
+          {equippedCosmetics.wings ? renderWings(100, 110) : (
+            <g>
+              {/* Left Wing (Fiery Flapping) */}
+              <g className="animate-phoenix" style={{ transformOrigin: '70px 105px' }}>
+                <path d="M 70 105 C 40 85, 20 90, 10 115 C 20 125, 45 125, 70 115 Z" fill="url(#phxFlame)" filter="drop-shadow(0 0 4px #f97316)" />
+                <path d="M 68 110 C 45 98, 30 102, 20 120 C 30 125, 50 122, 68 115 Z" fill="url(#phxGold)" />
+              </g>
+              {/* Right Wing (Fiery Flapping) */}
+              <g className="animate-phoenix" style={{ transformOrigin: '130px 105px', transform: 'scale(-1, 1) translate(-200px, 0)' }}>
+                <path d="M 70 105 C 40 85, 20 90, 10 115 C 20 125, 45 125, 70 115 Z" fill="url(#phxFlame)" filter="drop-shadow(0 0 4px #f97316)" />
+                <path d="M 68 110 C 45 98, 30 102, 20 120 C 30 125, 50 122, 68 115 Z" fill="url(#phxGold)" />
+              </g>
+            </g>
+          )}
+
+          {/* Long Flowing Tail Feathers */}
+          <g>
+            <path d="M 100 135 C 90 160, 80 175, 80 190 C 85 185, 95 165, 100 145 Z" fill="url(#phxFlame)" />
+            <path d="M 100 135 C 110 160, 120 175, 120 190 C 115 185, 105 165, 100 145 Z" fill="url(#phxFlame)" />
+            <path d="M 100 135 C 100 165, 100 185, 100 198 C 102 185, 102 165, 100 145 Z" fill="url(#phxGold)" />
+            {/* Tail sparks */}
+            <circle cx="80" cy="188" r="2.5" fill="#fca5a5" className="animate-pulse" />
+            <circle cx="120" cy="188" r="2.5" fill="#fca5a5" className="animate-pulse" />
+            <circle cx="100" cy="196" r="3" fill="#fff" className="animate-pulse" />
+          </g>
+
+          {/* Talons / Feet */}
+          <ellipse cx={feetLeftX} cy={feetY} rx="7" ry="4" fill="#fbbf24" />
+          <ellipse cx={feetRightX} cy={feetY} rx="7" ry="4" fill="#fbbf24" />
+          {renderShoes(feetLeftX, feetRightX, feetY)}
+
+          {/* Body */}
+          <ellipse cx="100" cy="115" rx="25" ry="32" fill="url(#phxBody)" />
+
+          {/* Necklace anchor */}
+          {renderNecklace(necklaceX, necklaceY)}
+
+          {/* Head & Feathery Crest */}
+          <g>
+            {/* Crest plume */}
+            <path d="M 100 60 C 95 40, 75 30, 70 30 C 80 40, 95 50, 100 65 Z" fill="url(#phxFlame)" filter="drop-shadow(0 0 2px #ef4444)" />
+            <path d="M 100 60 C 105 40, 125 30, 130 30 C 120 40, 105 50, 100 65 Z" fill="url(#phxFlame)" filter="drop-shadow(0 0 2px #ef4444)" />
+            {/* Head circle */}
+            <circle cx="100" cy="80" r="20" fill="url(#phxBody)" />
+          </g>
+
+          {/* Beak */}
+          <polygon points="95,82 105,82 100,94" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
+
+          {/* Eyes (Glowing Celestial Eyes) */}
+          {isSleeping ? (
+            <>
+              <path d="M 86 78 Q 91 82 96 78" stroke="#78350f" strokeWidth="2.5" fill="none" />
+              <path d="M 104 78 Q 109 82 114 78" stroke="#78350f" strokeWidth="2.5" fill="none" />
+            </>
+          ) : isSad ? (
+            <>
+              <circle cx="90" cy="78" r="4.5" fill="#7f1d1d" />
+              <circle cx="110" cy="78" r="4.5" fill="#7f1d1d" />
+              <path d="M 85 73 Q 90 75 95 73" stroke="#fca5a5" strokeWidth="1.5" fill="none" />
+              <path d="M 115 73 Q 110 75 105 73" stroke="#fca5a5" strokeWidth="1.5" fill="none" />
+            </>
+          ) : (
+            <>
+              {/* Intense gold/red glowing eyes */}
+              <circle cx="90" cy="78" r="5" fill="#fca5a5" className="animate-pulse" />
+              <circle cx="110" cy="78" r="5" fill="#fca5a5" className="animate-pulse" />
+              <circle cx="90" cy="78" r="2.5" fill="#b91c1c" />
+              <circle cx="110" cy="78" r="2.5" fill="#b91c1c" />
+              <circle cx="89" cy="76" r="1" fill="#fff" />
+              <circle cx="109" cy="76" r="1" fill="#fff" />
+            </>
+          )}
+
+          {/* LEVEL BADGE */}
+          <g transform="translate(100, 142)">
+            <rect x="-18" y="-7" width="36" height="14" rx="5" fill="#7f1d1d" stroke="#fbbf24" strokeWidth="1" />
+            <text x="0" y="3" textAnchor="middle" fill="#fef08a" fontSize="9" fontWeight="extrabold">Lvl {level}</text>
+          </g>
+
+          {/* Accessories */}
+          {renderHat(hatX, hatY)}
+          {renderGlasses(glassesX, glassesY)}
+        </g>
+
+        {/* Floating Sparks (Ember Rise Effect) */}
+        <g pointerEvents="none">
+          <circle cx="75" cy="130" r="1.5" fill="#fbbf24" className="animate-phoenix-ember" style={{ animationDelay: '0s' }} />
+          <circle cx="125" cy="110" r="2" fill="#ef4444" className="animate-phoenix-ember" style={{ animationDelay: '0.4s' }} />
+          <circle cx="90" cy="150" r="1" fill="#fbbf24" className="animate-phoenix-ember" style={{ animationDelay: '0.8s' }} />
+          <circle cx="110" cy="140" r="2.5" fill="#f59e0b" className="animate-phoenix-ember" style={{ animationDelay: '1.2s' }} />
+        </g>
+      </svg>
+    );
+  };
+
+  const renderMorphling = () => {
+    // Accessory coordinates
+    let hatX = 100, hatY = 56;
+    let glassesX = 100, glassesY = 82;
+    let necklaceX = 100, necklaceY = 118;
+    let feetLeftX = 82, feetRightX = 118, feetY = 162;
+
+    return (
+      <svg viewBox="0 0 200 200" className="w-full h-full">
+        <defs>
+          <linearGradient id="wtrGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.8" />
+            <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0.95" />
+          </linearGradient>
+          <radialGradient id="wtrCore" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#a5f3fc" />
+            <stop offset="40%" stopColor="#22d3ee" />
+            <stop offset="100%" stopColor="#0369a1" />
+          </radialGradient>
+        </defs>
+
+        <g className={cn(isPetting && "animate-bounce", isTalking && "animate-pulse", "animate-water-flow")}>
+          {/* Wings */}
+          {equippedCosmetics.wings && renderWings(100, 114)}
+
+          {/* Fluid Swirling Base / Legs */}
+          <g>
+            <path d="M 80 150 C 70 170, 85 185, 100 185 C 115 185, 130 170, 120 150 C 110 160, 90 160, 80 150 Z" fill="url(#wtrGrad)" opacity="0.9" filter="drop-shadow(0 0 6px #06b6d4)" />
+            <ellipse cx="100" cy="180" rx="15" ry="6" fill="#0891b2" opacity="0.5" />
+          </g>
+
+          {/* Talons / Feet (for shoes compatibility, floating soft feet) */}
+          <ellipse cx={feetLeftX} cy={feetY} rx="6" ry="4" fill="#22d3ee" opacity="0.6" />
+          <ellipse cx={feetRightX} cy={feetY} rx="6" ry="4" fill="#22d3ee" opacity="0.6" />
+          {renderShoes(feetLeftX, feetRightX, feetY)}
+
+          {/* Body - Liquid swirled column */}
+          <path d="M 75 110 C 65 130, 70 160, 100 165 C 130 160, 135 130, 125 110 C 115 125, 85 125, 75 110 Z" fill="url(#wtrGrad)" />
+
+          {/* Floating water arms */}
+          <path d="M 78 120 C 55 125, 45 110, 48 100 C 52 110, 68 115, 78 120 Z" fill="url(#wtrGrad)" />
+          <path d="M 122 120 C 145 125, 155 110, 152 100 C 148 110, 132 115, 122 120 Z" fill="url(#wtrGrad)" />
+
+          {/* Necklace anchor */}
+          {renderNecklace(necklaceX, necklaceY)}
+
+          {/* Head - liquid mass */}
+          <path d="M 80 80 C 70 65, 85 50, 100 50 C 115 50, 130 65, 120 80 C 110 88, 90 88, 80 80 Z" fill="url(#wtrCore)" filter="drop-shadow(0 0 4px #22d3ee)" />
+
+          {/* Face Elements */}
+          {isSleeping ? (
+            <>
+              <path d="M 87 75 Q 92 78 97 75" stroke="#0284c7" strokeWidth="2.5" fill="none" />
+              <path d="M 103 75 Q 108 78 113 75" stroke="#0284c7" strokeWidth="2.5" fill="none" />
+            </>
+          ) : isSad ? (
+            <>
+              <circle cx="91" cy="74" r="3.5" fill="#0369a1" />
+              <circle cx="109" cy="74" r="3.5" fill="#0369a1" />
+              <path d="M 86 70 Q 91 72 96 70" stroke="#a5f3fc" strokeWidth="1.5" fill="none" />
+              <path d="M 114 70 Q 109 72 104 70" stroke="#a5f3fc" strokeWidth="1.5" fill="none" />
+            </>
+          ) : (
+            <>
+              {/* Dota 2 Morphling Glowing Eyes (Slits) */}
+              <path d="M 86 72 Q 91 69 96 74" stroke="#e0f7fa" strokeWidth="3" strokeLinecap="round" fill="none" filter="drop-shadow(0 0 3px #67e8f9)" />
+              <path d="M 114 72 Q 109 69 104 74" stroke="#e0f7fa" strokeWidth="3" strokeLinecap="round" fill="none" filter="drop-shadow(0 0 3px #67e8f9)" />
+            </>
+          )}
+
+          {/* LEVEL BADGE */}
+          <g transform="translate(100, 142)">
+            <rect x="-18" y="-7" width="36" height="14" rx="5" fill="#0369a1" stroke="#22d3ee" strokeWidth="1" />
+            <text x="0" y="3" textAnchor="middle" fill="#e0f7fa" fontSize="9" fontWeight="extrabold">Lvl {level}</text>
+          </g>
+
+          {/* Accessories */}
+          {renderHat(hatX, hatY)}
+          {renderGlasses(glassesX, glassesY)}
+        </g>
+
+        {/* Water Bubbles rising up */}
+        <g pointerEvents="none">
+          <circle cx="65" cy="140" r="2.5" fill="#67e8f9" opacity="0.6" className="animate-phoenix-ember" style={{ animationDelay: '0.2s' }} />
+          <circle cx="135" cy="120" r="1.8" fill="#bae6fd" opacity="0.5" className="animate-phoenix-ember" style={{ animationDelay: '0.8s' }} />
+          <circle cx="85" cy="150" r="3.2" fill="#22d3ee" opacity="0.4" className="animate-phoenix-ember" style={{ animationDelay: '0s' }} />
+          <circle cx="115" cy="135" r="2.1" fill="#38bdf8" opacity="0.7" className="animate-phoenix-ember" style={{ animationDelay: '1.4s' }} />
+        </g>
+      </svg>
+    );
+  };
+
+  const renderGodly = () => {
+    // Accessory coordinates
+    let hatX = 100, hatY = 50;
+    let glassesX = 100, glassesY = 76;
+    let necklaceX = 100, necklaceY = 110;
+    let feetLeftX = 80, feetRightX = 120, feetY = 156;
+
+    return (
+      <svg viewBox="0 0 200 200" className="w-full h-full">
+        <defs>
+          <linearGradient id="godSun" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fef08a" />
+            <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#b45309" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="godBody" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="35%" stopColor="#fef3c7" />
+            <stop offset="70%" stopColor="#fcd34d" />
+            <stop offset="100%" stopColor="#b45309" />
+          </linearGradient>
+          <filter id="godGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="6" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+
+        {/* Slow rotating celestial sun disc backdrop */}
+        <g transform="translate(100, 100)" className="animate-hypno-spin" style={{ animationDuration: '45s' }}>
+          <circle cx="0" cy="0" r="62" fill="none" stroke="url(#godSun)" strokeWidth="1.5" strokeDasharray="3 6" />
+          <circle cx="0" cy="0" r="50" fill="none" stroke="url(#godSun)" strokeWidth="2.5" />
+          {/* Spoke lines */}
+          {[...Array(12)].map((_, i) => (
+            <line
+              key={i}
+              x1="0"
+              y1="-60"
+              x2="0"
+              y2="-48"
+              stroke="url(#godSun)"
+              strokeWidth="1.2"
+              transform={`rotate(${i * 30})`}
+            />
+          ))}
+        </g>
+
+        <g className={cn(isPetting && "animate-bounce", isTalking && "animate-pulse", "animate-float")}>
+          {/* Angelic wings if equipped */}
+          {equippedCosmetics.wings && renderWings(100, 105)}
+
+          {/* Floating Halo above head (pulsates) */}
+          <ellipse cx="100" cy="38" rx="22" ry="6" fill="none" stroke="#fbbf24" strokeWidth="2.5" className="animate-halo" filter="drop-shadow(0 0 6px #f59e0b)" />
+
+          {/* Meditating Legs (Lotus posture) */}
+          <g>
+            <path d="M 60 145 C 50 160, 80 165, 100 165 C 120 165, 150 160, 140 145 C 125 155, 75 155, 60 145 Z" fill="url(#godBody)" filter="url(#godGlow)" />
+            {/* Meditating knees */}
+            <circle cx="58" cy="148" r="8" fill="url(#godBody)" />
+            <circle cx="142" cy="148" r="8" fill="url(#godBody)" />
+          </g>
+
+          {/* Feet (for shoes compatibility, aligned with knees) */}
+          <ellipse cx={feetLeftX} cy={feetY} rx="5" ry="3" fill="#fcd34d" />
+          <ellipse cx={feetRightX} cy={feetY} rx="5" ry="3" fill="#fcd34d" />
+          {renderShoes(feetLeftX, feetRightX, feetY)}
+
+          {/* Deity Body and shoulders */}
+          <ellipse cx="100" cy="110" rx="20" ry="28" fill="url(#godBody)" filter="url(#godGlow)" />
+          {/* Hands holding spheres */}
+          <circle cx="76" cy="115" r="5" fill="#fff" />
+          <circle cx="124" cy="115" r="5" fill="#fff" />
+
+          {/* Necklace anchor */}
+          {renderNecklace(necklaceX, necklaceY)}
+
+          {/* Deity Head */}
+          <circle cx="100" cy="74" r="16" fill="url(#godBody)" filter="url(#godGlow)" />
+
+          {/* Eyes (Pure Radiant Light Eyes) */}
+          {isSleeping ? (
+            <>
+              <path d="M 89 72 Q 93 75 97 72" stroke="#d97706" strokeWidth="2.5" fill="none" />
+              <path d="M 103 72 Q 107 75 111 72" stroke="#d97706" strokeWidth="2.5" fill="none" />
+            </>
+          ) : isSad ? (
+            <>
+              <circle cx="93" cy="72" r="3" fill="#b45309" />
+              <circle cx="107" cy="72" r="3" fill="#b45309" />
+            </>
+          ) : (
+            <>
+              <circle cx="93" cy="72" r="4.2" fill="#fff" filter="drop-shadow(0 0 4px #fbbf24)" />
+              <circle cx="107" cy="72" r="4.2" fill="#fff" filter="drop-shadow(0 0 4px #fbbf24)" />
+              <circle cx="93" cy="72" r="1.5" fill="#fbbf24" />
+              <circle cx="107" cy="72" r="1.5" fill="#fbbf24" />
+            </>
+          )}
+
+          {/* LEVEL BADGE */}
+          <g transform="translate(100, 140)">
+            <rect x="-18" y="-7" width="36" height="14" rx="5" fill="#b45309" stroke="#fff" strokeWidth="1" />
+            <text x="0" y="3" textAnchor="middle" fill="#ffffff" fontSize="9" fontWeight="extrabold">Lvl {level}</text>
+          </g>
+
+          {/* Accessories */}
+          {renderHat(hatX, hatY)}
+          {renderGlasses(glassesX, glassesY)}
+        </g>
+
+        {/* Orbiting Golden Energy Spheres (Pulsate and float) */}
+        <g pointerEvents="none">
+          <circle cx="40" cy="85" r="5" fill="#fff" filter="drop-shadow(0 0 5px #fbbf24)" className="animate-float" />
+          <circle cx="160" cy="115" r="4.5" fill="#fff" filter="drop-shadow(0 0 5px #f59e0b)" className="animate-float" style={{ animationDelay: '1s' }} />
+          <circle cx="100" cy="182" r="3.8" fill="#fff" filter="drop-shadow(0 0 4px #fbbf24)" className="animate-float" style={{ animationDelay: '0.5s' }} />
+        </g>
+      </svg>
+    );
+  };
+
   // Cosmetic Renderer: Hat
   const renderHat = (cx: number, cy: number) => {
     const hat = equippedCosmetics.hat;
@@ -1992,6 +2329,12 @@ export function LingoPetVisual({
         return renderDino();
       case 'kitty':
         return renderKitty();
+      case 'phoenix':
+        return renderPhoenix();
+      case 'morphling':
+        return renderMorphling();
+      case 'godly':
+        return renderGodly();
       case 'owl':
       default:
         return renderOwl();

@@ -29,7 +29,7 @@ export function FloatingPetWidget() {
   const firestore = useFirestore();
 
   const [isOpen, setIsOpen] = React.useState(false);
-  const [petType, setPetType] = React.useState<'owl' | 'dino' | 'kitty'>('owl');
+  const [petType, setPetType] = React.useState<'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly'>('owl');
   const [petLevel, setPetLevel] = React.useState(1);
   const [equippedCosmetics, setEquippedCosmetics] = React.useState<{
     hat?: string;

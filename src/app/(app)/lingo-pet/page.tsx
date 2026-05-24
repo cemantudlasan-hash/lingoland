@@ -6,7 +6,7 @@ import { useFirestore } from '@/firebase';
 import { doc, getDoc, setDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { 
   Sparkles, Heart, Zap, Brain, ShoppingBag, MessageSquare, 
-  HelpCircle, ChevronRight, Coins, RefreshCw, AlertCircle, Play, Info, Loader2
+  HelpCircle, ChevronRight, Coins, RefreshCw, AlertCircle, Play, Info, Loader2, Lock
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -469,11 +469,18 @@ export default function LingoPetPage() {
   };
 
   // Select Pet Species
-  const handleSelectPetType = (type: 'owl' | 'dino' | 'kitty') => {
+  const handleSelectPetType = (type: 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly') => {
     if (!pet) return;
-    const names = { owl: 'Lingo', dino: 'Pip', kitty: 'Mimi' };
+    const names = { 
+      owl: 'Lingo', 
+      dino: 'Pip', 
+      kitty: 'Mimi',
+      phoenix: 'Ignis',
+      morphling: 'Morphy',
+      godly: 'Aether'
+    };
     updatePetState({ petType: type, petName: names[type] });
-    setChatMessage(`I've evolved into an ${type}! Meet ${names[type]}!`);
+    setChatMessage(`I've evolved into a beautiful ${type}! Meet ${names[type]}!`);
   };
 
   // Lingo-Shop Logic
@@ -1036,27 +1043,42 @@ export default function LingoPetPage() {
                   <h4 className="font-extrabold text-sm text-slate-300 uppercase tracking-wide">Evolution Morphing</h4>
                   <p className="text-xs text-slate-400 mt-1">Select the species of your language companion. Morphs carry over levels and outfits.</p>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {[
-                    { id: 'owl', name: 'Lingo the Owl', icon: '🦉', desc: 'Wise & Scholar' },
-                    { id: 'dino', name: 'Pip the Dino', icon: '🦖', desc: 'Energetic & Bubbly' },
-                    { id: 'kitty', name: 'Mimi the Kitty', icon: '🐱', desc: 'Sweet & Playful' },
-                  ].map(species => (
-                    <button
-                      key={species.id}
-                      disabled={isSleeping}
-                      onClick={() => handleSelectPetType(species.id as any)}
-                      className={`p-4 rounded-xl border flex flex-col items-center text-center gap-1.5 transition-all ${
-                        pet.petType === species.id 
-                          ? "bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-md"
-                          : "bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
-                      }`}
-                    >
-                      <span className="text-3xl">{species.icon}</span>
-                      <span className="text-xs font-bold">{species.name}</span>
-                      <span className="text-[9px] opacity-70">{species.desc}</span>
-                    </button>
-                  ))}
+                    { id: 'owl', name: 'Lingo the Owl', icon: '🦉', desc: 'Wise & Scholar', level: 0 },
+                    { id: 'dino', name: 'Pip the Dino', icon: '🦖', desc: 'Energetic & Bubbly', level: 0 },
+                    { id: 'kitty', name: 'Mimi the Kitty', icon: '🐱', desc: 'Sweet & Playful', level: 0 },
+                    { id: 'phoenix', name: 'Ignis the Phoenix', icon: '🔥', desc: 'Celestial Flame', level: 30 },
+                    { id: 'morphling', name: 'Morphy the Morphling', icon: '💧', desc: 'Dota Fluid Water', level: 60 },
+                    { id: 'godly', name: 'Aether the Godly', icon: '✨', desc: 'Divine & Radiant', level: 100 },
+                  ].map(species => {
+                    const isLocked = pet.level < species.level && !isAdmin;
+                    return (
+                      <button
+                        key={species.id}
+                        disabled={isSleeping || isLocked}
+                        onClick={() => handleSelectPetType(species.id as any)}
+                        className={`p-3 rounded-xl border flex flex-col items-center text-center gap-1.5 transition-all relative ${
+                          pet.petType === species.id 
+                            ? "bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-md"
+                            : isLocked
+                            ? "bg-slate-950/20 border-slate-900/20 text-slate-500 cursor-not-allowed opacity-50"
+                            : "bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                        }`}
+                      >
+                        <span className="text-3xl">{species.icon}</span>
+                        <span className="text-xs font-bold whitespace-nowrap">{species.name.split(' ')[0]}</span>
+                        <span className="text-[8px] opacity-70">
+                          {isLocked ? `Req Lvl ${species.level}` : species.desc}
+                        </span>
+                        {isLocked && (
+                          <div className="absolute top-1 right-1 bg-slate-950/80 p-0.5 rounded border border-slate-800">
+                            <Lock className="h-2.5 w-2.5 text-slate-500" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}

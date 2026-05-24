@@ -51,7 +51,7 @@ export default function PublicProfilePage() {
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [replyingTo, setReplyingTo] = useState<DailyPostComment | null>(null);
     const [petData, setPetData] = useState<{
-        petType: 'owl' | 'dino' | 'kitty';
+        petType: 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly';
         level: number;
         equippedCosmetics: {
             hat?: string;

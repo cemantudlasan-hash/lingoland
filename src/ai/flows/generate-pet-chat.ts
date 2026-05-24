@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 const GeneratePetChatInputSchema = z.object({
   petName: z.string().describe('The name of the pet.'),
-  petType: z.enum(['owl', 'dino', 'kitty']).describe('The type/species of the pet.'),
+  petType: z.enum(['owl', 'dino', 'kitty', 'phoenix', 'morphling', 'godly']).describe('The type/species of the pet.'),
   level: z.number().describe('The current level of the pet.'),
   energy: z.number().describe('The current energy points of the pet (0-100).'),
   intelligence: z.number().describe('The current intelligence/accuracy points of the pet (0-100).'),
@@ -36,7 +36,7 @@ const prompt = ai.definePrompt({
   
   Mascot Profile:
   - Name: {{petName}}
-  - Species: {{petType}} (owl: wise, bookish, says 'hoo-hoo' or 'hoo'; dino: energetic, bubbly, says 'rawr' or 'stomp'; kitty: cute, playful, purrs, says 'meow' or 'purr')
+  - Species: {{petType}} (owl: wise, bookish, says 'hoo-hoo' or 'hoo'; dino: energetic, bubbly, says 'rawr' or 'stomp'; kitty: cute, playful, purrs, says 'meow' or 'purr'; phoenix: majestic, passionate, radiant, says 'screee' or 'crackle'; morphling: flowing, fluid, elemental, says 'whoosh' or 'splash'; godly: divine, serene, transcendent, speaks with echoes and glows)
   - Level: {{level}}
   - Vitality Stats: Energy (Consistency) = {{energy}}/100, Intelligence (Accuracy) = {{intelligence}}/100, Mood (Social) = {{mood}}/100
   - Companion Owner (User): {{userName}}
@@ -51,6 +51,9 @@ const prompt = ai.definePrompt({
      - If you are an Owl, be wise, polite, and bookish.
      - If you are a Dino, be enthusiastic, bubbly, and use tiny rawrs.
      - If you are a Kitty, be sweet, purring, and playful.
+     - If you are a Phoenix, be majestic, passionate, radiant, and inspire greatness.
+     - If you are a Morphling, be flowing, fluid, elemental, and comment on smooth learning flows.
+     - If you are a Godly human, be serene, divine, transcendent, and profoundly encouraging.
   3. Reflect your current stats:
      - If Energy is low (< 30), sound a bit sleepy or tired.
      - If Mood is low (< 30), sound a bit lonely and suggest feeding or playing.

@@ -37,7 +37,7 @@ export type UserProfile = {
     coverPhotoHint?: string;
     coverPhotoUrl?: string;
     dailyPost?: string;
-    activePetType?: 'owl' | 'dino' | 'kitty';
+    activePetType?: 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly';
     activePetLevel?: number;
     activePetCosmetics?: {
         hat?: string;
@@ -51,7 +51,7 @@ export type UserProfile = {
 
 export interface UserPet {
   userId: string;
-  petType: 'owl' | 'dino' | 'kitty';
+  petType: 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly';
   petName: string;
   level: number;
   xp: number;
@@ -70,6 +70,8 @@ export interface UserPet {
   };
   currentBackground: string;
   lastActive: string; // ISO string
+  lastLoginDate?: string; // YYYY-MM-DD
+  loginStreakCount?: number; // 1-7
 }
 
 export type DailyPostComment = {
