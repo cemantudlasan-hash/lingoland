@@ -9,6 +9,7 @@ import { gameComponentMap } from "../page";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore } from "@/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { logAnalyticsEvent, getDailyMissions, getDailyBonusGame } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, HelpCircle } from "lucide-react";
@@ -237,10 +238,76 @@ export default function GamePage() {
       details: { slug: game.slug, title: game.title }
     });
 
-    toast({
-      title: "Game Completed! 🎉",
-      description: "You've successfully completed the game and earned 10 Lingo-Coins!",
-    });
+    const dailyMissions = getDailyMissions();
+    const { slug: dailyBonusSlug, bonusAmount } = getDailyBonusGame();
+    const matchedMission = dailyMissions.find(m => m.slug === game.slug);
+    const isDailyBonus = dailyBonusSlug === game.slug;
+
+    const checkAndToast = async () => {
+      let isMissionClaimed = false;
+      let isBonusClaimed = false;
+
+      if (user && firestore) {
+        try {
+          const today = new Date();
+          const todayUTC = `${today.getUTCFullYear()}-${today.getUTCMonth() + 1}-${today.getUTCDate()}`;
+          const petSnap = await getDoc(doc(firestore, 'user_pets', user.uid));
+          if (petSnap.exists()) {
+            const pet = petSnap.data();
+            const completedMissions = pet.completedDailyMissions || [];
+            const isMissionsDateCurrent = pet.lastDailyMissionsDate === todayUTC;
+            
+            if (matchedMission && isMissionsDateCurrent && completedMissions.includes(matchedMission.slug)) {
+              isMissionClaimed = true;
+            }
+            if (isDailyBonus && pet.lastDailyBonusClaimedDate === todayUTC) {
+              isBonusClaimed = true;
+            }
+          }
+        } catch (e) {
+          console.error("Error reading pet data for toast:", e);
+        }
+      }
+
+      let toastTitle = "Game Completed! 🎉";
+      let toastDesc = "You've successfully completed the game!";
+
+      if (matchedMission && isDailyBonus) {
+        if (isMissionClaimed && isBonusClaimed) {
+          toastTitle = "Game Completed! 🎮";
+          toastDesc = "You've completed today's daily mission and bonus game (rewards already claimed)!";
+        } else {
+          toastTitle = "Double Reward! 🌟🎉";
+          toastDesc = `Completed today's Daily Mission and Daily Coin game! Earned ${matchedMission.reward + bonusAmount} coins!`;
+        }
+      } else if (matchedMission) {
+        if (isMissionClaimed) {
+          toastTitle = "Game Completed! 🎮";
+          toastDesc = "You've completed today's daily mission (reward already claimed)!";
+        } else {
+          toastTitle = "Daily Mission Cleared! 🚀";
+          toastDesc = `Completed the Daily Mission and earned ${matchedMission.reward} Lingo-Coins!`;
+        }
+      } else if (isDailyBonus) {
+        if (isBonusClaimed) {
+          toastTitle = "Game Completed! 🎮";
+          toastDesc = "You've completed today's daily bonus game (reward already claimed)!";
+        } else {
+          toastTitle = "Daily Bonus Claimed! 🪙";
+          toastDesc = `Completed today's Daily Coin game and earned ${bonusAmount} Lingo-Coins!`;
+        }
+      } else {
+        toastTitle = "Game Completed! 🎮";
+        toastDesc = "You've successfully completed the game! Keep playing to level up your pet!";
+      }
+
+      toast({
+        title: toastTitle,
+        description: toastDesc,
+      });
+    };
+
+    checkAndToast();
   }, [game, firestore, user, toast]);
 
   // Set up listeners for the custom completion events
@@ -265,18 +332,18 @@ export default function GamePage() {
     const handleAnswered = () => {
       startTimerOnInteraction();
       answeredCountRef.current += 1;
-      // Every 10 answers, trigger a minor coin drop!
+      // Every 10 answers, trigger a minor milestone (no coin drop)!
       if (answeredCountRef.current >= 10) {
         answeredCountRef.current = 0;
         
         logAnalyticsEvent(firestore, user?.uid || 'guest', {
           type: 'game_played',
-          details: { slug: game.slug, title: game.title, mode: 'endless' }
+          details: { slug: game.slug, title: game.title, mode: 'endless', isMilestone: true }
         });
  
         toast({
           title: "Endless Milestone Reached! 🚀",
-          description: "Answered 10 questions! Earned 10 Lingo-Coins!",
+          description: "Answered 10 questions! Keep up the great work!",
         });
       }
     };

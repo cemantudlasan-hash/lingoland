@@ -86,6 +86,10 @@ async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, 
     return;
   }
 
+  if (event?.details?.isMilestone) {
+    return;
+  }
+
   if (!firestore) return;
 
   // Real user: update in Firestore
@@ -128,7 +132,7 @@ async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, 
       }
 
       const updateData: any = {
-        coins: parseFloat(((pet.coins || 0) + 10 + extraCoins + missionReward).toFixed(2)),
+        coins: parseFloat(((pet.coins || 0) + extraCoins + missionReward).toFixed(2)),
         xp,
         level,
         energy: Math.min(100, (pet.energy || 100) + 10),
@@ -168,7 +172,7 @@ async function updatePetOnGamePlay(firestore: Firestore | null, userId: string, 
         energy: 100,
         intelligence: 65,
         mood: 60,
-        coins: parseFloat((10 + extraCoins + missionReward).toFixed(2)),
+        coins: parseFloat((extraCoins + missionReward).toFixed(2)),
         unlockedCosmetics: [],
         equippedCosmetics: {},
         currentBackground: 'cozy-room',
