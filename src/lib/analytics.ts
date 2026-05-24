@@ -28,8 +28,8 @@ export function getDailyBonusGame(): { slug: string; bonusAmount: number } {
   const index = Math.abs(hash) % games.length;
   const game = games[index];
   
-  // Deterministic bonus amount between 0.50 and 2.00 (two decimal places)
-  const bonusAmount = 0.5 + (Math.abs(hash * 31) % 151) / 100;
+  // Deterministic bonus amount between 1.00 and 6.00 (two decimal places)
+  const bonusAmount = 1.0 + (Math.abs(hash * 31) % 501) / 100;
   
   return {
     slug: game.slug,
@@ -67,7 +67,7 @@ export function getDailyMissions(): DailyMission[] {
     usedIndices.add(index);
     
     const game = games[index];
-    const reward = Math.abs(hash * 17) % 11; // 0 to 10 coins
+    const reward = 1 + (Math.abs(hash * 17) % 10); // 1 to 10 coins
     
     missions.push({
       slug: game.slug,

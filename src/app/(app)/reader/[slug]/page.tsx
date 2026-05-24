@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { getArticleBySlug } from "@/lib/articles";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -34,7 +35,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
 
   const [selectedWord, setSelectedWord] = useState("");
   const [contextSentence, setContextSentence] = useState("");
-  const [floatingCoords, setFloatingCoords] = useState<{ x: number; y: number } | null>(null);
+  const [floatingCoords, setFloatingCoords] = useState<{ x: number; y: number; isBelow: boolean } | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [definition, setDefinition] = useState("");
@@ -70,9 +71,11 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
             const fullText = parentNode ? parentNode.textContent || "" : "";
             setContextSentence(fullText.slice(0, 300));
 
+            const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768;
             setFloatingCoords({
               x: rect.left + rect.width / 2,
-              y: rect.top - 12,
+              y: isTouch ? rect.bottom + 12 : rect.top - 12,
+              isBelow: isTouch,
             });
             return;
           }
@@ -249,7 +252,10 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
       {/* Floating Sparkles create card tooltip */}
       {floatingCoords && (
         <div
-          className="fixed z-50 transform -translate-x-1/2 -translate-y-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold text-xs py-2 px-3.5 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.5)] flex items-center gap-2 hover:from-purple-500 hover:to-indigo-500 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer select-none border border-indigo-400/20"
+          className={cn(
+            "fixed z-50 transform -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold text-xs py-2 px-3.5 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.5)] flex items-center gap-2 hover:from-purple-500 hover:to-indigo-500 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer select-none border border-indigo-400/20",
+            floatingCoords.isBelow ? "translate-y-0" : "-translate-y-full"
+          )}
           style={{
             left: `${floatingCoords.x}px`,
             top: `${floatingCoords.y}px`,
