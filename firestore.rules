@@ -56,6 +56,14 @@ service cloud.firestore {
       match /flashcards/{flashcardId} {
         allow read, write: if isOwner(userId);
       }
+
+      match /presentations/{presentationId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /presentation_folders/{folderId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /user_pets/{userId} {
