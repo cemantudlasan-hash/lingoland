@@ -51,7 +51,17 @@ const generateEslExercisePrompt = ai.definePrompt({
   name: 'generateEslExercisePrompt',
   input: {schema: GenerateEslExerciseInputSchema},
   output: {schema: GenerateEslExerciseOutputSchema},
-  prompt: `You are an experienced ESL teacher. Generate a {{exerciseLength}}-length ESL exercise on the topic of {{topic}} for {{difficultyLevel}} level students.`,
+  prompt: `You are an experienced ESL teacher. Generate a {{exerciseLength}}-length ESL exercise on the topic of "{{topic}}" for {{difficultyLevel}} level students.
+
+CRITICAL: You must output the exercise in standard, semantic HTML format within the JSON "exercise" string.
+- Do NOT use markdown.
+- Use <h2> for the main exercise title (e.g., "My Daily Routine - Beginner ESL Exercise").
+- Use <h3> for the parts/sections (e.g., "Part 1: Reading Passage", "Part 2: Comprehension Questions", "Part 3: Vocabulary Practice").
+- Use <p> for paragraphs, reading text, or instructions.
+- Use <ol> or <ul> and <li> for list items, questions, or exercise choices.
+- Use <b> or <strong> for key words, bolded terms, or blank guides.
+- For fill-in-the-blank items, use "_______" (multiple underscores) to represent the blanks.
+- Ensure all HTML tags are correctly opened and closed. Do not include markdown code block wrappers (like \`\`\`html) inside the string.`,
 });
 
 const generateEslExerciseFlow = ai.defineFlow(
