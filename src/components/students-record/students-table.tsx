@@ -359,6 +359,16 @@ export function StudentsTable() {
     });
   }, [students]);
 
+  // Helper to extract the numeric part of seat numbers for natural sorting (e.g. "Seat 2" comes before "Seat 10")
+  const getNumericSeatValue = (seatStr: string): number => {
+    if (!seatStr) return Infinity; // Put empty seat numbers at the very end
+    const match = seatStr.match(/\d+/);
+    if (match) {
+      return parseInt(match[0], 10);
+    }
+    return 999999; // Fallback value for seats without numbers
+  };
+
   const filteredGroups = studentGroups.filter(g => {
     const searchLow = searchQuery.toLowerCase();
     const tableIdLow = (g.tableId || "").toLowerCase();
@@ -373,12 +383,20 @@ export function StudentsTable() {
     
     return matchesSearch && matchesClass;
   }).sort((a, b) => {
-     const numA = parseInt(a.tableId, 10);
-     const numB = parseInt(b.tableId, 10);
-     if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
-         return numA - numB;
-     }
-     return a.tableId.localeCompare(b.tableId);
+    // First sort by class session to group classes together if viewing all classes
+    if (selectedClass === "all" && a.classSession !== b.classSession) {
+      return a.classSession.localeCompare(b.classSession);
+    }
+    
+    // Then sort numerically by seat number
+    const seatA = getNumericSeatValue(a.seatNo);
+    const seatB = getNumericSeatValue(b.seatNo);
+    if (seatA !== seatB) {
+      return seatA - seatB;
+    }
+    
+    // Fallback to alphabetical seatNo text or tableId
+    return (a.seatNo || "").localeCompare(b.seatNo || "") || a.tableId.localeCompare(b.tableId);
   });
 
   const handleAddRecord = (group: StudentGroup) => {
