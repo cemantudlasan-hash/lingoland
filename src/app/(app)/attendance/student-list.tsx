@@ -85,7 +85,7 @@ const AddClassModal = ({ onClose, onAddClass, existingStudents }: { onClose: () 
     );
 };
 
-const ExportAttendanceModal = ({ onClose, students, firestore, user }: { onClose: () => void; students: any[]; firestore: any; user: any }) => {
+const ExportAttendanceModal = ({ onClose, students, firestore, user, gradeFilter }: { onClose: () => void; students: any[]; firestore: any; user: any; gradeFilter?: string }) => {
     const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
     const [endDate, setEndDate] = useState<Date | undefined>(new Date());
     const [isExporting, setIsExporting] = useState(false);
@@ -278,7 +278,11 @@ const ExportAttendanceModal = ({ onClose, students, firestore, user }: { onClose
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Attendance Sheet");
 
-            XLSX.writeFile(wb, "attendance_register.xlsx");
+            const fileName = gradeFilter && gradeFilter !== 'All Grades'
+                ? `attendance_register_Grade_${gradeFilter.replace(/\s+/g, '_')}.xlsx`
+                : "attendance_register.xlsx";
+
+            XLSX.writeFile(wb, fileName);
             onClose();
         } catch (error) {
             console.error("Export error:", error);
@@ -724,9 +728,10 @@ export const StudentList = ({ setSelectedStudent, selectedStudent, students, isL
             {showExportModal && students && (
                 <ExportAttendanceModal
                     onClose={() => setShowExportModal(false)}
-                    students={students}
+                    students={selectedGradeFilter === 'All Grades' ? students : filteredStudents}
                     firestore={firestore}
                     user={user}
+                    gradeFilter={selectedGradeFilter}
                 />
             )}
 

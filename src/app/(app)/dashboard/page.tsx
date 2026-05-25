@@ -4,7 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Trophy, Zap, BookCheck, RotateCw, BarChart, Users, Gamepad2, Loader2, Trash2 } from "lucide-react";
+import { Trophy, Zap, BookCheck, RotateCw, BarChart, Users, Gamepad2, Loader2, Trash2, ArrowRight, BookOpen, Sparkles } from "lucide-react";
 import { DashboardChart } from "@/components/dashboard-chart";
 import { useAuth } from "@/context/auth-context";
 import dynamic from 'next/dynamic';
@@ -163,162 +163,237 @@ function DashboardPageComponent() {
 
   if (isAdmin) {
     return (
-       <div className="space-y-6">
-        <Card>
-            <CardHeader className="bg-gradient-to-r from-purple-500 to-indigo-600 text-primary-foreground rounded-lg">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="space-y-2">
-                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Admin Analytics Dashboard</h1>
-                        <p className="text-primary-foreground/80">Overview of all user activity on the platform.</p>
-                    </div>
-                     <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Reset Records
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete all analytics records.
-                                This includes game plays, article reads, and exercise generation data for all users.
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel disabled={isResetting}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleResetAnalytics} disabled={isResetting} className="bg-destructive hover:bg-destructive/90">
-                                {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Confirm Reset
-                            </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
-            </CardHeader>
-        </Card>
-        {isDataLoading && <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>}
+      <div className="space-y-6 animate-in fade-in duration-500">
+        {/* Bento Grid Header */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Welcome Admin Box */}
+          <div className="glass-card p-6 md:col-span-2 rounded-3xl flex flex-col justify-between relative overflow-hidden group shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-600/10 opacity-50 pointer-events-none" />
+            <div className="space-y-2 relative z-10">
+              <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">System Overview</span>
+              <h1 className="text-3xl font-black tracking-tight text-white">Admin Analytics Dashboard</h1>
+              <p className="text-zinc-400 text-sm max-w-lg">
+                Real-time metrics and interactions monitor. Track engagement, games played, and generated content across the platform.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-4 text-xs text-zinc-500 font-bold">
+              <span className="h-2 w-2 rounded-full bg-green-500 animate-ping" />
+              Live Server Engine Running
+            </div>
+          </div>
+
+          {/* Controls Bento Box */}
+          <div className="glass-card p-6 rounded-3xl flex flex-col justify-between border border-red-500/20 shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-red-500/5 opacity-30 pointer-events-none" />
+            <div className="space-y-2 relative z-10">
+              <span className="text-[10px] uppercase font-black tracking-widest text-rose-400">Developer Actions</span>
+              <h3 className="text-lg font-bold text-white">Database Controls</h3>
+              <p className="text-xs text-zinc-400">
+                Purge log entries and reset global system metrics across all active users.
+              </p>
+            </div>
+            <div className="mt-4 relative z-10">
+              <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full bg-red-600/80 hover:bg-red-655 text-white font-extrabold h-10 rounded-xl shadow-lg shadow-red-600/10">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Reset System Records
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="glass-card border border-white/10 rounded-2xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-white font-black">Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-zinc-400 text-sm">
+                      This action cannot be undone. This will permanently delete all global analytics logs, resets XP scores, and removes reading history.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isResetting} className="border border-zinc-800 bg-zinc-900 text-white hover:bg-zinc-800 font-bold rounded-xl">Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleResetAnalytics} disabled={isResetting} className="bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl">
+                      {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Confirm Global Purge
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        </div>
+
+        {isDataLoading && <div className="flex justify-center p-8"><Loader2 className="animate-spin text-indigo-400" /></div>}
+
         {stats && (
-            <>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Card className={cn(cardClasses, "dark:bg-card dark:text-card-foreground")}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Events Logged</CardTitle>
-                            <BarChart className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">+{stats.totalEvents}</div>
-                            <p className="text-xs text-muted-foreground">All user interactions</p>
-                        </CardContent>
-                    </Card>
-                    <Card className={cn(cardClasses, "dark:bg-card dark:text-card-foreground")}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Most Played Game</CardTitle>
-                            <Gamepad2 className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold truncate">{stats.mostPlayedGame}</div>
-                            <p className="text-xs text-muted-foreground">Across all users</p>
-                        </CardContent>
-                    </Card>
-                    <Card className={cn(cardClasses, "dark:bg-card dark:text-card-foreground")}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Most Read Article</CardTitle>
-                            <BookCheck className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold truncate">{stats.mostReadArticle}</div>
-                            <p className="text-xs text-muted-foreground">From the Reader section</p>
-                        </CardContent>
-                    </Card>
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+            {/* Bento Stat Card 1 */}
+            <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Total Interactions</span>
+                  <h4 className="text-3xl font-black text-white mt-1">+{stats.totalEvents}</h4>
                 </div>
-                 <Card>
-                    <CardHeader className="bg-gradient-to-b from-white to-slate-50 text-black">
-                        <CardTitle>Global Weekly Activity</CardTitle>
-                        <CardDescription>Total games played and exercises generated across the platform.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <DashboardChart data={stats.weeklyChartData} />
-                    </CardContent>
-                </Card>
-            </>
+                <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                  <BarChart className="h-5 w-5 text-indigo-400" />
+                </div>
+              </div>
+              <p className="text-xs text-zinc-500 font-medium mt-4">Across all active classrooms and guests.</p>
+            </div>
+
+            {/* Bento Stat Card 2 */}
+            <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Most Popular Game</span>
+                  <h4 className="text-lg font-black text-white truncate max-w-[200px] mt-1" title={stats.mostPlayedGame}>{stats.mostPlayedGame}</h4>
+                </div>
+                <div className="p-2.5 bg-green-500/10 rounded-xl border border-green-500/20">
+                  <Gamepad2 className="h-5 w-5 text-green-400" />
+                </div>
+              </div>
+              <p className="text-xs text-zinc-500 font-medium mt-4">Highest engagement game in LingoLand.</p>
+            </div>
+
+            {/* Bento Stat Card 3 */}
+            <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Highest Read Article</span>
+                  <h4 className="text-lg font-black text-white truncate max-w-[200px] mt-1" title={stats.mostReadArticle}>{stats.mostReadArticle}</h4>
+                </div>
+                <div className="p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                  <BookCheck className="h-5 w-5 text-purple-400" />
+                </div>
+              </div>
+              <p className="text-xs text-zinc-500 font-medium mt-4">Top read resource in Reader hub.</p>
+            </div>
+
+            {/* Large Activity Chart Bento Box */}
+            <div className="glass-card p-6 rounded-3xl md:col-span-3 border border-white/5 shadow-2xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+              <div className="mb-6">
+                <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Weekly Performance</span>
+                <h3 className="text-xl font-black text-white">Global Activity Register</h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Games played and smart exercises generated.</p>
+              </div>
+              <div className="w-full h-80 bg-zinc-950/20 p-2 rounded-2xl border border-zinc-900/60">
+                <DashboardChart data={stats.weeklyChartData} />
+              </div>
+            </div>
+          </div>
         )}
-       </div>
-    )
+      </div>
+    );
   }
 
   // Default dashboard for regular users
   return (
-    <div className="space-y-6">
-        <Card className="bg-white text-black">
-            <CardContent className="pt-6">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="space-y-2">
-                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Welcome back, {userProfile?.displayName || "friend"}!</h1>
-                        <p className="text-muted-foreground">Here's a live snapshot of your progress. Keep up the great work!</p>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-      {isDataLoading && <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>}
-      {stats && (
-        <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card className={cn(cardClasses, "dark:bg-card dark:text-card-foreground")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                    Vocabulary Level
-                    </CardTitle>
-                    <Zap className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{stats.level}</div>
-                    <p className="text-xs text-muted-foreground">
-                    Total XP: {stats.totalEvents}
-                    </p>
-                    <Progress value={stats.level === 'Beginner' ? 33 : stats.level === 'Intermediate' ? 66 : 100} className="mt-2" />
-                </CardContent>
-                </Card>
-                <Card className={cn(cardClasses, "dark:bg-card dark:text-card-foreground")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                    Games Completed
-                    </CardTitle>
-                    <Trophy className="h-4 w-4 text-gray-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">+{stats.quizzesPassed}</div>
-                    <p className="text-xs text-gray-500">
-                    Real-time mission count
-                    </p>
-                </CardContent>
-                </Card>
-                <Card className={cn(cardClasses, "dark:bg-card dark:text-card-foreground")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Articles Read</CardTitle>
-                    <BookCheck className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">+{stats.articlesRead}</div>
-                    <p className="text-xs text-muted-foreground">
-                    Your reading history
-                    </p>
-                </CardContent>
-                </Card>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Bento Grid Header */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Welcome Card Box */}
+        <div className="glass-card p-6 md:col-span-2 rounded-3xl flex flex-col justify-between relative overflow-hidden group shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-600/10 opacity-50 pointer-events-none" />
+          <div className="space-y-2 relative z-10">
+            <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Welcome Back</span>
+            <h1 className="text-3xl font-black tracking-tight text-white">
+              Hi, {userProfile?.displayName || "Learner"}!
+            </h1>
+            <p className="text-zinc-400 text-sm max-w-md">
+              Here is a live snapshot of your learning path. Keep up the excellent work and master your next subject!
+            </p>
+          </div>
+          <div className="mt-4 relative z-10 flex items-center gap-2 text-xs text-indigo-300 font-bold">
+            <Sparkles className="h-4 w-4 animate-pulse text-amber-405" />
+            AI Study Buddy Online
+          </div>
+        </div>
+
+        {/* Daily Progress & Vocabulary Level Box */}
+        {stats && (
+          <div className="glass-card p-6 rounded-3xl flex flex-col justify-between shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent pointer-events-none" />
+            <div className="space-y-1 relative z-10">
+              <div className="flex justify-between items-start">
+                <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Daily Progress</span>
+                <Zap className="h-4 w-4 text-indigo-400 animate-pulse" />
+              </div>
+              <h3 className="text-xl font-bold text-white mt-1">Vocab Level: {stats.level}</h3>
+              <p className="text-xs text-zinc-500 font-semibold">Total Score: {stats.totalEvents} XP</p>
             </div>
-            <Card>
-                <CardHeader className="bg-gradient-to-b from-white to-slate-50 text-black">
-                <CardTitle>Your Weekly Progress</CardTitle>
-                <CardDescription>
-                    Track your engagement and learning over the last week.
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <DashboardChart data={stats.weeklyChartData} />
-                </CardContent>
-            </Card>
-        </>
+            <div className="mt-4 relative z-10 space-y-1.5">
+              <div className="flex justify-between text-[10px] text-zinc-500 font-bold">
+                <span>XP Progress</span>
+                <span>{stats.level === 'Beginner' ? '33%' : stats.level === 'Intermediate' ? '66%' : '100%'}</span>
+              </div>
+              <Progress value={stats.level === 'Beginner' ? 33 : stats.level === 'Intermediate' ? 66 : 100} className="h-2 bg-zinc-950/60" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {isDataLoading && <div className="flex justify-center p-8"><Loader2 className="animate-spin text-indigo-400" /></div>}
+
+      {stats && (
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+          {/* Bento Stat Card 1 - Games Completed */}
+          <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Recommended Lessons Completed</span>
+                <h4 className="text-3xl font-black text-white mt-1">+{stats.quizzesPassed}</h4>
+              </div>
+              <div className="p-2.5 bg-green-500/10 rounded-xl border border-green-500/20">
+                <Trophy className="h-5 w-5 text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-500 font-medium mt-4">Real-time educational mission count.</p>
+          </div>
+
+          {/* Bento Stat Card 2 - New Words & Articles Read */}
+          <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">New Words & Reads</span>
+                <h4 className="text-3xl font-black text-white mt-1">+{stats.articlesRead}</h4>
+              </div>
+              <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                <BookCheck className="h-5 w-5 text-indigo-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-500 font-medium mt-4">Your reading and vocab history.</p>
+          </div>
+
+          {/* Bento Card 3 - Recommended Lesson Quick Link */}
+          <div className="glass-card p-6 rounded-3xl flex flex-col justify-between border border-indigo-500/20 hover:-translate-y-1 transition-all duration-300 shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-indigo-500/5 opacity-40 pointer-events-none" />
+            <div className="space-y-1 relative z-10">
+              <div className="flex justify-between items-start">
+                <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Recommended Lesson</span>
+                <BookOpen className="h-4 w-4 text-indigo-400" />
+              </div>
+              <h4 className="text-base font-bold text-white mt-1">Vocab Voyage</h4>
+              <p className="text-[10px] text-zinc-400 italic">Advanced Vocabulary & Context</p>
+            </div>
+            <div className="mt-4 relative z-10">
+              <Button onClick={() => router.push("/games")} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:opacity-90 font-extrabold h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10 transition-all hover:scale-[1.02] text-xs">
+                Play Lesson Now
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Weekly Progress Chart Bento Box */}
+          <div className="glass-card p-6 rounded-3xl md:col-span-3 border border-white/5 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+            <div className="mb-6">
+              <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Analytics Tracker</span>
+              <h3 className="text-xl font-black text-white">Your Weekly Progress</h3>
+              <p className="text-xs text-zinc-400 mt-0.5">Track your interaction and learning metrics over the past 7 days.</p>
+            </div>
+            <div className="w-full h-80 bg-zinc-950/20 p-2 rounded-2xl border border-zinc-900/60">
+              <DashboardChart data={stats.weeklyChartData} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
