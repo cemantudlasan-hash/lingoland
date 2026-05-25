@@ -21,7 +21,8 @@ const NATIVELY_TRACKED_GAMES = new Set([
   'gene-genius', 'grammar-gladiator', 'grammar-guru', 'idiom-inferno', 
   'literary-device-legend', 'math-matrix', 'molecule-maker', 'quantum-quest', 
   'synonym-sniper', 'syntax-skyline', 'vocab-vortex', 'cosmic-word-voyager', 
-  'spellcaster-defense'
+  'spellcaster-defense', 'exploration-quest-3d', 'living-puzzles-3d', 
+  'character-conversations-3d'
 ]);
 
 export default function GamePage() {

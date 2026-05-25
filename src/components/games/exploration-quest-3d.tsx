@@ -4,6 +4,7 @@ import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RotateCw, RotateCcw, Search, Coins, Sparkles, Maximize, Minimize, Volume2, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { cn } from '@/lib/utils';
 
 interface QuestItem {
   id: string;
@@ -109,6 +110,7 @@ const KITCHEN_OBJECTS: QuestItem[] = [
 ];
 
 export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [rotation, setRotation] = React.useState(0);
   const [selectedItem, setSelectedItem] = React.useState<QuestItem | null>(null);
   const [targetItems, setTargetItems] = React.useState<string[]>([]);
@@ -116,6 +118,12 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
   const [gameState, setGameState] = React.useState<'idle' | 'playing' | 'finished'>('idle');
   const [score, setScore] = React.useState(0);
   const [speakActive, setSpeakActive] = React.useState(false);
+
+  React.useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
 
   // Initialize targets
   React.useEffect(() => {
@@ -165,7 +173,12 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
   const currentTargetItem = KITCHEN_OBJECTS.find(i => i.id === currentTargetId);
 
   return (
-    <div className="flex flex-col items-center bg-slate-950 text-white rounded-3xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden min-h-[550px]">
+    <div className={cn(
+      "w-full transition-all duration-500 flex flex-col items-center bg-slate-950 text-white relative overflow-hidden",
+      isFullscreen 
+        ? "min-h-screen rounded-none border-none p-8 max-w-none justify-center" 
+        : "max-w-4xl mx-auto rounded-3xl p-6 border border-slate-800 shadow-2xl min-h-[600px]"
+    )}>
       {/* Premium background gradient elements */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-purple-600/5 rounded-full blur-3xl pointer-events-none" />
@@ -185,7 +198,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
         <div className="flex items-center gap-2">
           {onToggleFullscreen && (
             <button onClick={onToggleFullscreen} className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 border border-slate-800/50 transition-colors">
-              <Maximize className="h-4.5 w-4.5" />
+              {isFullscreen ? <Minimize className="h-4.5 w-4.5" /> : <Maximize className="h-4.5 w-4.5" />}
             </button>
           )}
         </div>
