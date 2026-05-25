@@ -100,7 +100,13 @@ interface PlacedItem extends QuestItem {
 
 export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const [rotation, setRotation] = React.useState(0);
+  const [rotation, setRotation] = React.useState(0); // Orbit Yaw
+  const [pitch, setPitch] = React.useState(-12); // Orbit Pitch
+  const [isDragging, setIsDragging] = React.useState(false);
+  const dragStart = React.useRef({ x: 0, y: 0 });
+  const startRotation = React.useRef({ yaw: 0, pitch: -12 });
+  const hasDragged = React.useRef(false);
+
   const [selectedItem, setSelectedItem] = React.useState<QuestItem | null>(null);
   const [targetItems, setTargetItems] = React.useState<string[]>([]);
   const [roomItems, setRoomItems] = React.useState<PlacedItem[]>([]);
@@ -127,7 +133,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
         ...item,
         rotateY: Math.floor(Math.random() * 4) * 90,
         translateX: Math.floor(Math.random() * 500) - 250,
-        translateY: Math.floor(Math.random() * 400) - 200,
+        translateY: Math.floor(Math.random() * 180) - 50, // Confined translateY to prevent top-clipping
         translateZ: Math.floor(Math.random() * 500) - 250,
       };
     });
@@ -150,6 +156,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
   };
 
   const handleSelectItem = (item: QuestItem) => {
+    if (hasDragged.current) return; // Prevent selection click if user was dragging/rotating
     setSelectedItem(item);
     
     // Play simple synthetic sound
@@ -173,6 +180,38 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
           detail: { state: 'finished' }
         }));
       }
+    }
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    setIsDragging(true);
+    hasDragged.current = false;
+    dragStart.current = { x: e.clientX, y: e.clientY };
+    startRotation.current = { yaw: rotation, pitch: pitch };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      hasDragged.current = true;
+    }
+    
+    const newYaw = startRotation.current.yaw + dx * 0.45;
+    const newPitch = startRotation.current.pitch - dy * 0.35;
+    
+    setRotation(newYaw);
+    setPitch(Math.max(-40, Math.min(10, newPitch)));
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isDragging) {
+      setIsDragging(false);
+      e.currentTarget.releasePointerCapture(e.pointerId);
     }
   };
 
@@ -291,17 +330,17 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
               <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20 pointer-events-none">
                 <button 
                   onClick={handleRotateLeft}
-                  className="pointer-events-auto p-2 bg-slate-900/90 border border-slate-800 hover:text-indigo-400 rounded-xl hover:scale-105 active:scale-95 transition-all"
+                  className="pointer-events-auto p-2 bg-slate-900/90 border border-slate-800 hover:text-indigo-400 rounded-xl hover:scale-105 active:scale-95 transition-all text-slate-400"
                   title="Rotate Left"
                 >
                   <RotateCcw className="h-4 w-4" />
                 </button>
-                <span className="text-sm mt-1 uppercase font-black tracking-widest text-slate-500 bg-slate-950 border border-slate-900 px-3 py-1.5 rounded-full">
-                  Orbit Yaw: {rotation}°
+                <span className="text-[10px] sm:text-xs mt-1 uppercase font-black tracking-widest text-slate-400 bg-slate-950/95 border border-slate-900 px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-lg select-none">
+                  ORBIT: YAW {Math.round(rotation)}° • PITCH {Math.round(pitch)}°
                 </span>
                 <button 
                   onClick={handleRotateRight}
-                  className="pointer-events-auto p-2 bg-slate-900/90 border border-slate-800 hover:text-indigo-400 rounded-xl hover:scale-105 active:scale-95 transition-all"
+                  className="pointer-events-auto p-2 bg-slate-900/90 border border-slate-800 hover:text-indigo-400 rounded-xl hover:scale-105 active:scale-95 transition-all text-slate-400"
                   title="Rotate Right"
                 >
                   <RotateCw className="h-4 w-4" />
@@ -309,58 +348,72 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
               </div>
 
               {/* 3D Scene Viewport */}
-              <div className="w-full max-w-[700px] h-[550px] min-h-[500px] flex items-center justify-center [perspective:1200px] overflow-hidden select-none mt-4 scale-[0.55] sm:scale-[0.7] md:scale-100 origin-center">
+              <div 
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                className={cn(
+                  "w-full h-[280px] sm:h-[380px] md:h-[500px] relative flex items-center justify-center overflow-hidden select-none mt-6 bg-slate-950/40 rounded-3xl border border-slate-900/80 transition-all duration-300 touch-none",
+                  isDragging ? "cursor-grabbing" : "cursor-grab"
+                )}
+              >
+                {/* 3D Scaled Scene Wrapper */}
                 <div 
-                  className="w-full h-full relative [transform-style:preserve-3d] transition-transform duration-700 ease-out"
-                  style={{ transform: `rotateX(-12deg) rotateY(${rotation}deg)` }}
+                  className="absolute w-[800px] h-[500px] flex items-center justify-center [perspective:1200px] origin-center scale-[0.45] xs:scale-[0.55] sm:scale-[0.72] md:scale-100 transition-all duration-300 pointer-events-none"
                 >
-                  {/* The Room Walls / floor (rendered in mock CSS 3D coordinates) */}
-                  
-                  {/* FLOOR */}
                   <div 
-                    className="absolute w-[800px] h-[800px] bg-slate-900 border border-slate-800/40 opacity-70 [transform:rotateX(90deg)_translateZ(-300px)]"
-                    style={{
-                      backgroundImage: 'radial-gradient(circle, rgba(99,102,241,0.15) 1.5px, transparent 1.5px)',
-                      backgroundSize: '20px 20px',
-                    }}
-                  />
+                    className="w-full h-full relative [transform-style:preserve-3d] transition-transform duration-500 ease-out pointer-events-auto"
+                    style={{ transform: `rotateX(${pitch}deg) rotateY(${rotation}deg)` }}
+                  >
+                    {/* The Room Walls / floor (rendered in mock CSS 3D coordinates) */}
+                    
+                    {/* FLOOR */}
+                    <div 
+                      className="absolute w-[800px] h-[800px] bg-slate-900 border border-slate-800/40 opacity-70 [transform:rotateX(90deg)_translateZ(-300px)]"
+                      style={{
+                        backgroundImage: 'radial-gradient(circle, rgba(99,102,241,0.15) 1.5px, transparent 1.5px)',
+                        backgroundSize: '20px 20px',
+                      }}
+                    />
 
-                  {/* BACK WALL */}
-                  <div className="absolute w-[800px] h-[600px] bg-slate-950/60 border border-indigo-500/10 [transform:translateZ(-250px)_translateX(-50px)_translateY(-20px)] flex items-center justify-center">
-                    {/* Back wall panel line */}
-                    <div className="w-full h-[1px] bg-slate-800/20" />
-                  </div>
+                    {/* BACK WALL */}
+                    <div className="absolute w-[800px] h-[600px] bg-slate-950/60 border border-indigo-500/10 [transform:translateZ(-250px)_translateX(-50px)_translateY(-20px)] flex items-center justify-center">
+                      {/* Back wall panel line */}
+                      <div className="w-full h-[1px] bg-slate-800/20" />
+                    </div>
 
-                  {/* LEFT WALL */}
-                  <div className="absolute w-[800px] h-[600px] bg-slate-950/80 border border-indigo-500/10 [transform:rotateY(90deg)_translateZ(-400px)_translateY(-20px)]" />
+                    {/* LEFT WALL */}
+                    <div className="absolute w-[800px] h-[600px] bg-slate-950/80 border border-indigo-500/10 [transform:rotateY(90deg)_translateZ(-400px)_translateY(-20px)]" />
 
-                  {/* RIGHT WALL */}
-                  <div className="absolute w-[300px] h-[260px] bg-slate-950/80 border border-indigo-500/10 [transform:rotateY(-90deg)_translateZ(-200px)_translateY(-20px)_translateX(-50px)]" />
+                    {/* RIGHT WALL */}
+                    <div className="absolute w-[300px] h-[260px] bg-slate-950/80 border border-indigo-500/10 [transform:rotateY(-90deg)_translateZ(-200px)_translateY(-20px)_translateX(-50px)]" />
 
-                  {/* The 3D placed Interactive objects */}
-                  {roomItems.map(obj => {
-                    const isFound = foundItems.includes(obj.id);
-                    const isTarget = targetItems.includes(obj.id);
-                    const isCurrentlySeeking = currentTargetId === obj.id;
-                    const itemBorderColor = obj.color.split(' ').find(c => c.startsWith('border-')) || 'border-slate-800';
+                    {/* The 3D placed Interactive objects */}
+                    {roomItems.map(obj => {
+                      const isFound = foundItems.includes(obj.id);
+                      const isTarget = targetItems.includes(obj.id);
+                      const isCurrentlySeeking = currentTargetId === obj.id;
+                      const itemBorderColor = obj.color.split(' ').find(c => c.startsWith('border-')) || 'border-slate-800';
 
-                    return (
-                      <div
-                        key={obj.id}
-                        onClick={() => handleSelectItem(obj)}
-                        className={cn(
-                          "absolute cursor-pointer [transform-style:preserve-3d] transition-all duration-300 flex items-center justify-center border-2 rounded-2xl group",
-                          isFound
-                            ? "bg-emerald-500/20 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)] text-emerald-300 font-extrabold"
-                            : cn("bg-slate-900/95 hover:scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] text-slate-300", itemBorderColor)
-                        )}
-                        style={{
-                          width: obj.width,
-                          height: obj.height,
-                          // Billboard Counter-Rotation: cancels out parent rotateY(${rotation}deg) and rotateX(-12deg)
-                          transform: `translateX(${obj.translateX}px) translateY(${obj.translateY}px) translateZ(${obj.translateZ}px) rotateY(${-rotation}deg) rotateX(12deg)`,
-                        }}
-                      >
+                      return (
+                        <div
+                          key={obj.id}
+                          onClick={() => handleSelectItem(obj)}
+                          className={cn(
+                            "absolute cursor-pointer [transform-style:preserve-3d] transition-all duration-300 flex items-center justify-center border-2 rounded-2xl group",
+                            isFound
+                              ? "bg-emerald-500/20 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)] text-emerald-300 font-extrabold"
+                              : cn("bg-slate-900/95 hover:scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] text-slate-300", itemBorderColor)
+                          )}
+                          style={{
+                            width: obj.width,
+                            height: obj.height,
+                            // Billboard Counter-Rotation: cancels out parent rotateY(${rotation}deg) and rotateX(${pitch}deg)
+                            transform: `translateX(${obj.translateX}px) translateY(${obj.translateY}px) translateZ(${obj.translateZ}px) rotateY(${-rotation}deg) rotateX(${-pitch}deg)`,
+                          }}
+                        >
                         {/* 3D Box faces representation */}
                         <div className="flex flex-col items-center justify-center gap-1.5 p-2">
                           <span className={cn("text-5xl transition-transform", !isFound && "group-hover:scale-125 duration-200")}>
@@ -376,6 +429,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                       </div>
                     );
                   })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -403,8 +457,8 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
 
                       <p className="text-xs text-slate-400 leading-relaxed border-t border-slate-900/60 pt-3">{selectedItem.description}</p>
                       
-                      <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-center text-[10px] text-slate-500 font-bold leading-normal">
-                        Click the speaker icon to play pronunciation. Space / Arrow Keys rotate room.
+                      <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-center text-[10px] text-slate-400 font-bold leading-normal">
+                        Click the speaker icon to hear pronunciation. Drag or swipe inside the room to rotate and look around!
                       </div>
                     </motion.div>
                   ) : (
