@@ -37,7 +37,17 @@ const KITCHEN_OBJECTS: QuestItem[] = [
   { id: 'plant', name: 'Plant', emoji: '🪴', description: 'A living organism such as a flower or shrub.', phonetics: '/plænt/', rotateY: 0, translateX: 200, translateY: 180, translateZ: -100, width: '90px', height: '130px', color: 'from-green-500 to-emerald-700 border-green-400' },
   { id: 'broom', name: 'Broom', emoji: '🧹', description: 'Used for sweeping floors.', phonetics: '/bruːm/', rotateY: 0, translateX: -180, translateY: 100, translateZ: 150, width: '60px', height: '180px', color: 'from-yellow-600 to-amber-800 border-yellow-500' },
   { id: 'trash', name: 'Trash Can', emoji: '🗑️', description: 'A container for waste.', phonetics: '/træʃ/', rotateY: 0, translateX: 150, translateY: 150, translateZ: 150, width: '90px', height: '110px', color: 'from-zinc-400 to-zinc-600 border-zinc-300' },
-  { id: 'mug', name: 'Mug', emoji: '☕', description: 'A large cup, typically used for hot drinks.', phonetics: '/mʌɡ/', rotateY: 0, translateX: -30, translateY: 80, translateZ: -150, width: '60px', height: '60px', color: 'from-red-400 to-red-600 border-red-300' }
+  { id: 'mug', name: 'Mug', emoji: '☕', description: 'A large cup, typically used for hot drinks.', phonetics: '/mʌɡ/', rotateY: 0, translateX: -30, translateY: 80, translateZ: -150, width: '60px', height: '60px', color: 'from-red-400 to-red-600 border-red-300' },
+  { id: 'apple', name: 'Apple', emoji: '🍎', description: 'A round fruit with red or green skin.', phonetics: '/ˈæpəl/', rotateY: 0, translateX: -50, translateY: 120, translateZ: -50, width: '50px', height: '50px', color: 'from-red-500 to-red-700 border-red-400' },
+  { id: 'book', name: 'Book', emoji: '📖', description: 'Written or printed work consisting of pages.', phonetics: '/bʊk/', rotateY: 0, translateX: 80, translateY: 120, translateZ: -50, width: '70px', height: '70px', color: 'from-blue-400 to-blue-600 border-blue-300' },
+  { id: 'lamp', name: 'Lamp', emoji: '💡', description: 'A device for giving light.', phonetics: '/læmp/', rotateY: 0, translateX: 120, translateY: -50, translateZ: 100, width: '60px', height: '90px', color: 'from-yellow-300 to-yellow-500 border-yellow-300' },
+  { id: 'laptop', name: 'Laptop', emoji: '💻', description: 'A portable computer.', phonetics: '/ˈlæptɒp/', rotateY: -90, translateX: 220, translateY: 50, translateZ: -80, width: '100px', height: '80px', color: 'from-slate-400 to-slate-600 border-slate-400' },
+  { id: 'keys', name: 'Keys', emoji: '🔑', description: 'A small piece of shaped metal to open a lock.', phonetics: '/kiːz/', rotateY: 0, translateX: 0, translateY: 130, translateZ: 150, width: '50px', height: '50px', color: 'from-yellow-500 to-amber-600 border-amber-400' },
+  { id: 'wallet', name: 'Wallet', emoji: '👛', description: 'A pocket-sized, flat, folding holder for money.', phonetics: '/ˈwɒlɪt/', rotateY: 0, translateX: -120, translateY: 130, translateZ: 80, width: '60px', height: '50px', color: 'from-orange-800 to-brown-900 border-orange-700' },
+  { id: 'shoes', name: 'Shoes', emoji: '👞', description: 'Coverings for the feet.', phonetics: '/ʃuːz/', rotateY: 0, translateX: 50, translateY: 220, translateZ: 100, width: '80px', height: '60px', color: 'from-orange-900 to-stone-900 border-orange-800' },
+  { id: 'coat', name: 'Coat', emoji: '🧥', description: 'An outer garment worn outdoors.', phonetics: '/koʊt/', rotateY: 90, translateX: -230, translateY: -20, translateZ: 120, width: '80px', height: '140px', color: 'from-stone-500 to-stone-700 border-stone-400' },
+  { id: 'hat', name: 'Hat', emoji: '🧢', description: 'A shaped covering for the head.', phonetics: '/hæt/', rotateY: -90, translateX: 230, translateY: -20, translateZ: 50, width: '70px', height: '60px', color: 'from-blue-600 to-blue-800 border-blue-500' },
+  { id: 'umbrella', name: 'Umbrella', emoji: '🌂', description: 'A portable circular canopy protecting from rain.', phonetics: '/ʌmˈbrɛlə/', rotateY: 0, translateX: -150, translateY: 40, translateZ: 200, width: '50px', height: '160px', color: 'from-purple-600 to-purple-800 border-purple-500' }
 ];
 
 export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
@@ -230,7 +240,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
               </div>
 
               {/* 3D Scene Viewport */}
-              <div className="w-full max-w-[700px] h-[550px] min-h-[500px] flex items-center justify-center [perspective:1200px] overflow-hidden select-none mt-4">
+              <div className="w-full max-w-[700px] h-[550px] min-h-[500px] flex items-center justify-center [perspective:1200px] overflow-hidden select-none mt-4 scale-[0.55] sm:scale-[0.7] md:scale-100 origin-center">
                 <div 
                   className="w-full h-full relative [transform-style:preserve-3d] transition-transform duration-700 ease-out"
                   style={{ transform: `rotateX(-12deg) rotateY(${rotation}deg)` }}
@@ -273,9 +283,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                           "absolute cursor-pointer [transform-style:preserve-3d] transition-all duration-300 flex items-center justify-center border-2 rounded-2xl group",
                           isFound
                             ? "bg-emerald-500/20 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)] text-emerald-300 font-extrabold"
-                            : isCurrentlySeeking
-                            ? "bg-indigo-500/30 border-indigo-400 animate-pulse shadow-[0_0_20px_rgba(99,102,241,0.6)] text-indigo-300 font-extrabold scale-110"
-                            : cn("bg-slate-900/95 hover:scale-108 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] text-slate-300", itemBorderColor)
+                            : cn("bg-slate-900/95 hover:scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] text-slate-300", itemBorderColor)
                         )}
                         style={{
                           width: obj.width,
@@ -291,7 +299,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                           </span>
                           <span className={cn(
                             "text-[10px] font-black uppercase text-center truncate w-full px-1",
-                            isFound ? "text-emerald-400" : isCurrentlySeeking ? "text-indigo-300 animate-pulse" : "text-slate-200"
+                            isFound ? "text-emerald-400" : "text-slate-200"
                           )}>
                             {obj.name}
                           </span>

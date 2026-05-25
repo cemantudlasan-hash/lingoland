@@ -30,7 +30,27 @@ const PUZZLES: PuzzleObject[] = [
   { id: 'crown', name: 'Crown', emoji: '👑', letters: ['C', 'R', 'O', 'W', 'N'], animationType: 'rocket-launch', description: 'A circular ornamental headdress worn by a monarch.', color: 'from-yellow-300 to-amber-500' },
   { id: 'heart', name: 'Heart', emoji: '❤️', letters: ['H', 'E', 'A', 'R', 'T'], animationType: 'car-drive', description: 'A hollow muscular organ that pumps blood.', color: 'from-red-500 to-pink-600' },
   { id: 'star', name: 'Star', emoji: '⭐', letters: ['S', 'T', 'A', 'R'], animationType: 'rocket-launch', description: 'A luminous point in the night sky.', color: 'from-yellow-200 to-yellow-400' },
-  { id: 'moon', name: 'Moon', emoji: '🌙', letters: ['M', 'O', 'O', 'N'], animationType: 'car-drive', description: 'The natural satellite of the earth.', color: 'from-blue-200 to-indigo-300' }
+  { id: 'moon', name: 'Moon', emoji: '🌙', letters: ['M', 'O', 'O', 'N'], animationType: 'car-drive', description: 'The natural satellite of the earth.', color: 'from-blue-200 to-indigo-300' },
+  { id: 'plane', name: 'Plane', emoji: '✈️', letters: ['P', 'L', 'A', 'N', 'E'], animationType: 'rocket-launch', description: 'A powered flying vehicle.', color: 'from-sky-400 to-blue-600' },
+  { id: 'train', name: 'Train', emoji: '🚂', letters: ['T', 'R', 'A', 'I', 'N'], animationType: 'car-drive', description: 'A series of connected railway carriages.', color: 'from-stone-600 to-stone-800' },
+  { id: 'phone', name: 'Phone', emoji: '📱', letters: ['P', 'H', 'O', 'N', 'E'], animationType: 'car-drive', description: 'A device for communication.', color: 'from-slate-700 to-black' },
+  { id: 'chair', name: 'Chair', emoji: '🪑', letters: ['C', 'H', 'A', 'I', 'R'], animationType: 'car-drive', description: 'A separate seat for one person.', color: 'from-amber-700 to-amber-900' },
+  { id: 'table', name: 'Table', emoji: '🪚', letters: ['T', 'A', 'B', 'L', 'E'], animationType: 'car-drive', description: 'A piece of furniture with a flat top.', color: 'from-yellow-700 to-amber-800' },
+  { id: 'shirt', name: 'Shirt', emoji: '👕', letters: ['S', 'H', 'I', 'R', 'T'], animationType: 'car-drive', description: 'A garment for the upper body.', color: 'from-blue-400 to-indigo-500' },
+  { id: 'shoes', name: 'Shoes', emoji: '👞', letters: ['S', 'H', 'O', 'E', 'S'], animationType: 'car-drive', description: 'Coverings for the feet.', color: 'from-orange-900 to-stone-900' },
+  { id: 'cloud', name: 'Cloud', emoji: '☁️', letters: ['C', 'L', 'O', 'U', 'D'], animationType: 'rocket-launch', description: 'A visible mass of condensed watery vapour.', color: 'from-slate-200 to-slate-400' },
+  { id: 'earth', name: 'Earth', emoji: '🌍', letters: ['E', 'A', 'R', 'T', 'H'], animationType: 'car-drive', description: 'The planet on which we live.', color: 'from-emerald-400 to-blue-600' },
+  { id: 'water', name: 'Water', emoji: '💧', letters: ['W', 'A', 'T', 'E', 'R'], animationType: 'car-drive', description: 'A transparent, tasteless liquid.', color: 'from-cyan-300 to-blue-500' },
+  { id: 'fire', name: 'Fire', emoji: '🔥', letters: ['F', 'I', 'R', 'E'], animationType: 'rocket-launch', description: 'Combustion or burning.', color: 'from-orange-500 to-red-600' },
+  { id: 'music', name: 'Music', emoji: '🎵', letters: ['M', 'U', 'S', 'I', 'C'], animationType: 'car-drive', description: 'Vocal or instrumental sounds.', color: 'from-purple-400 to-pink-500' },
+  { id: 'book', name: 'Book', emoji: '📖', letters: ['B', 'O', 'O', 'K'], animationType: 'car-drive', description: 'Pages bound together.', color: 'from-blue-300 to-indigo-500' },
+  { id: 'pen', name: 'Pen', emoji: '🖊️', letters: ['P', 'E', 'N'], animationType: 'car-drive', description: 'An instrument for writing or drawing.', color: 'from-blue-700 to-blue-900' },
+  { id: 'dog', name: 'Dog', emoji: '🐶', letters: ['D', 'O', 'G'], animationType: 'car-drive', description: 'A domesticated carnivorous mammal.', color: 'from-yellow-600 to-amber-700' },
+  { id: 'cat', name: 'Cat', emoji: '🐱', letters: ['C', 'A', 'T'], animationType: 'car-drive', description: 'A small domesticated carnivorous mammal.', color: 'from-orange-300 to-orange-500' },
+  { id: 'bird', name: 'Bird', emoji: '🐦', letters: ['B', 'I', 'R', 'D'], animationType: 'rocket-launch', description: 'A feathered, winged, bipedal animal.', color: 'from-sky-300 to-blue-500' },
+  { id: 'fish', name: 'Fish', emoji: '🐟', letters: ['F', 'I', 'S', 'H'], animationType: 'car-drive', description: 'A limbless cold-blooded vertebrate.', color: 'from-cyan-400 to-blue-500' },
+  { id: 'bear', name: 'Bear', emoji: '🐻', letters: ['B', 'E', 'A', 'R'], animationType: 'car-drive', description: 'A large, heavy mammal.', color: 'from-amber-800 to-brown-900' },
+  { id: 'frog', name: 'Frog', emoji: '🐸', letters: ['F', 'R', 'O', 'G'], animationType: 'car-drive', description: 'A tailless amphibian.', color: 'from-lime-500 to-green-600' }
 ];
 
 export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
@@ -209,7 +229,7 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
                 <div className="space-y-4">
                   <div>
                     <span className="text-[9px] uppercase font-black tracking-widest text-cyan-400">Object Guide</span>
-                    <h3 className="text-lg font-black text-white mt-1">{activePuzzle.name}</h3>
+                    <h3 className="text-lg font-black text-white mt-1">???</h3>
                     <p className="text-xs text-slate-400 italic">"{activePuzzle.description}"</p>
                   </div>
 

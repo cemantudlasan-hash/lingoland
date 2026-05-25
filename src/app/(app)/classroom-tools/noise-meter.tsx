@@ -22,7 +22,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Audio parameters
-const FFT_SIZE = 512;
+const FFT_SIZE = 2048;
 const MAX_STREAK_MILESTONE = 60; // Celebration every 60 seconds
 
 export function NoiseMeter() {
@@ -343,7 +343,7 @@ export function NoiseMeter() {
       for (let i = 0; i < bufferLength; i++) {
         const v = dataArray[i] / 128.0;
         const amplitude = (v - 1.0) * 1.5; // expand amplitude slightly
-        const y = (height / 2) + amplitude * (height / 2) * Math.sin(i * 0.05);
+        const y = (height / 2) + amplitude * (height / 2);
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
         x += sliceWidth;
@@ -358,7 +358,7 @@ export function NoiseMeter() {
       for (let i = 0; i < bufferLength; i++) {
         const v = dataArray[i] / 128.0;
         const amplitude = (v - 1.0) * 1.2;
-        const y = (height / 2) + amplitude * (height / 2) * Math.cos(i * 0.03 + Date.now() * 0.005);
+        const y = (height / 2) + amplitude * (height / 2.5);
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
         x += sliceWidth;
@@ -375,7 +375,7 @@ export function NoiseMeter() {
       for (let i = 0; i < bufferLength; i++) {
         const v = dataArray[i] / 128.0;
         const amplitude = (v - 1.0) * 1.8;
-        const y = (height / 2) + amplitude * (height / 2) * Math.sin(i * 0.04 + Date.now() * 0.008);
+        const y = (height / 2) + amplitude * (height / 1.8);
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
         x += sliceWidth;
