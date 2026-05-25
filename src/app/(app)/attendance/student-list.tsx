@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Edit, Trash2, UserPlus } from 'lucide-react';
+import * as XLSX from 'xlsx';
 // import { AddClassModal } from './add-class-modal';
 // import { ExportAttendanceModal } from './export-attendance-modal';
 
@@ -96,30 +97,195 @@ const ExportAttendanceModal = ({ onClose, students, firestore, user }: { onClose
         }
         setIsExporting(true);
 
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Student Name,Student ID,Date,Status\n";
+        try {
+            // Helper to get weekdays between startDate and endDate
+            const getWeekdaysInRange = (start: Date, end: Date) => {
+                const dates: Date[] = [];
+                let current = new Date(start);
+                current.setHours(0,0,0,0);
+                const last = new Date(end);
+                last.setHours(23,59,59,999);
 
-        for (const student of students) {
-            const attendanceQuery = query(collection(firestore, `users/${user.uid}/students/${student.id}/attendance`));
-            const attendanceSnapshot = await getDocs(attendanceQuery);
-            attendanceSnapshot.forEach(doc => {
-                const date = doc.id;
-                const docDate = new Date(date);
-                if (docDate >= startDate && docDate <= endDate) {
-                    const status = doc.data().status;
-                    csvContent += `"${student.fullName}","${student.studentId}","${date}","${status}"\n`;
+                while (current <= last) {
+                    const dayOfWeek = current.getDay();
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip Sunday (0) and Saturday (6)
+                        dates.push(new Date(current));
+                    }
+                    current.setDate(current.getDate() + 1);
                 }
-            });
-        }
+                return dates;
+            };
 
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "attendance_export.csv");
-        document.body.appendChild(link);
-        link.click();
-        setIsExporting(false);
-        onClose();
+            const weekdays = getWeekdaysInRange(startDate, endDate);
+            
+            if (weekdays.length === 0) {
+                alert('No weekdays found in the selected range.');
+                setIsExporting(false);
+                return;
+            }
+
+            // Fetch attendance data for all students in parallel
+            const attendanceMap = new Map<string, Map<string, string>>(); // studentId -> dateString -> status
+            
+            await Promise.all(students.map(async (student) => {
+                const studentAttendance = new Map<string, string>();
+                const attendanceQuery = query(collection(firestore, `users/${user.uid}/students/${student.id}/attendance`));
+                const attendanceSnapshot = await getDocs(attendanceQuery);
+                attendanceSnapshot.forEach(doc => {
+                    const dateStr = doc.id; // e.g. "2026-05-25"
+                    const status = doc.data().status; // present, absent, leave, holiday
+                    studentAttendance.set(dateStr, status);
+                });
+                attendanceMap.set(student.id, studentAttendance);
+            }));
+
+            // Construct Excel Data rows
+            const weekRow: string[] = ["", "", "", "WEEK"];
+            const monthRow: string[] = ["", "", "", "MONTH"];
+            const dayRow: string[] = ["", "", "", "DAY"];
+            const dateRow: string[] = ["", "", "", "DATE"];
+            const headerRow: string[] = ["NO.", "ID.", "NAME", ""];
+
+            // Format date string to YYYY-MM-DD
+            const formatDateStr = (date: Date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            // Month names map
+            const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+            const dayNames = ["S", "M", "T", "W", "TH", "F", "S"];
+
+            weekdays.forEach((date, i) => {
+                // WEEK: Group every 5 weekdays into a week number
+                const weekNum = Math.floor(i / 5) + 1;
+                weekRow.push(i % 5 === 0 ? String(weekNum) : "");
+
+                // MONTH: Show month name
+                const monthName = monthNames[date.getMonth()];
+                monthRow.push(monthName);
+
+                // DAY
+                dayRow.push(dayNames[date.getDay()]);
+
+                // DATE
+                dateRow.push(String(date.getDate()));
+
+                // Header row is empty for attendance columns
+                headerRow.push("");
+            });
+
+            const wsData: any[][] = [
+                weekRow,
+                monthRow,
+                dayRow,
+                dateRow,
+                headerRow
+            ];
+
+            // Add student rows
+            students.forEach((student, index) => {
+                const studentRow: string[] = [
+                    String(index + 1),
+                    student.studentId || "",
+                    student.fullName || "",
+                    ""
+                ];
+
+                const studentAttendance = attendanceMap.get(student.id);
+
+                weekdays.forEach((date) => {
+                    const dateStr = formatDateStr(date);
+                    const status = studentAttendance?.get(dateStr);
+                    
+                    if (status === "present") {
+                        studentRow.push("/");
+                    } else if (status === "absent") {
+                        studentRow.push("A");
+                    } else if (status === "leave") {
+                        studentRow.push("L");
+                    } else if (status === "holiday") {
+                        studentRow.push("H");
+                    } else {
+                        studentRow.push(""); // empty
+                    }
+                });
+
+                wsData.push(studentRow);
+            });
+
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // Add merges
+            const merges: XLSX.Range[] = [];
+
+            // Merging WEEK headers:
+            const totalWeeks = Math.ceil(weekdays.length / 5);
+            for (let w = 0; w < totalWeeks; w++) {
+                const startCol = 4 + w * 5;
+                const endCol = Math.min(4 + w * 5 + 4, 4 + weekdays.length - 1);
+                if (startCol < endCol) {
+                    merges.push({
+                        s: { r: 0, c: startCol },
+                        e: { r: 0, c: endCol }
+                    });
+                }
+            }
+
+            // Merging MONTH headers:
+            let monthStartCol = 4;
+            let currentMonth = weekdays[0].getMonth();
+            for (let i = 1; i < weekdays.length; i++) {
+                if (weekdays[i].getMonth() !== currentMonth) {
+                    const endCol = 4 + i - 1;
+                    if (monthStartCol < endCol) {
+                        merges.push({
+                            s: { r: 1, c: monthStartCol },
+                            e: { r: 1, c: endCol }
+                        });
+                    }
+                    monthStartCol = 4 + i;
+                    currentMonth = weekdays[i].getMonth();
+                }
+            }
+            // Merge last month
+            const lastCol = 4 + weekdays.length - 1;
+            if (monthStartCol < lastCol) {
+                merges.push({
+                    s: { r: 1, c: monthStartCol },
+                    e: { r: 1, c: lastCol }
+                });
+            }
+
+            ws['!merges'] = merges;
+
+            // Set column widths
+            const colWidths = [
+                { wch: 6 },  // NO.
+                { wch: 12 }, // ID.
+                { wch: 25 }, // NAME
+                { wch: 10 }  // WEEK/MONTH Labels
+            ];
+            weekdays.forEach(() => {
+                colWidths.push({ wch: 4 }); // 4 character width for day columns
+            });
+            ws['!cols'] = colWidths;
+
+            // Create workbook and write file
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Attendance Sheet");
+
+            XLSX.writeFile(wb, "attendance_register.xlsx");
+            onClose();
+        } catch (error) {
+            console.error("Export error:", error);
+            alert("An error occurred during Excel export: " + (error as Error).message);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
 
@@ -143,7 +309,7 @@ const ExportAttendanceModal = ({ onClose, students, firestore, user }: { onClose
                 <div className="flex justify-end space-x-2 mt-6">
                     <Button variant="outline" onClick={onClose}>Cancel</Button>
                     <Button onClick={handleExport} disabled={isExporting} className="bg-green-600 hover:bg-green-700">
-                        {isExporting ? 'Exporting...' : 'Export to CSV'}
+                        {isExporting ? 'Exporting...' : 'Export to Excel'}
                     </Button>
                 </div>
             </div>
