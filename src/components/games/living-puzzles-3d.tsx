@@ -16,24 +16,21 @@ interface PuzzleObject {
 }
 
 const PUZZLES: PuzzleObject[] = [
-  {
-    id: 'car',
-    name: 'Car',
-    emoji: '🚗',
-    letters: ['C', 'A', 'R'],
-    animationType: 'car-drive',
-    description: 'A road vehicle with four wheels, powered by an engine.',
-    color: 'from-red-500 to-rose-700',
-  },
-  {
-    id: 'rocket',
-    name: 'Rocket',
-    emoji: '🚀',
-    letters: ['R', 'O', 'C', 'K', 'E', 'T'],
-    animationType: 'rocket-launch',
-    description: 'A powerful spacecraft used to travel into outer space.',
-    color: 'from-cyan-500 to-blue-700',
-  }
+  { id: 'car', name: 'Car', emoji: '🚗', letters: ['C', 'A', 'R'], animationType: 'car-drive', description: 'A road vehicle with four wheels.', color: 'from-red-500 to-rose-700' },
+  { id: 'rocket', name: 'Rocket', emoji: '🚀', letters: ['R', 'O', 'C', 'K', 'E', 'T'], animationType: 'rocket-launch', description: 'A powerful spacecraft.', color: 'from-cyan-500 to-blue-700' },
+  { id: 'apple', name: 'Apple', emoji: '🍎', letters: ['A', 'P', 'P', 'L', 'E'], animationType: 'car-drive', description: 'A sweet, crunchy fruit.', color: 'from-red-400 to-red-600' },
+  { id: 'tree', name: 'Tree', emoji: '🌳', letters: ['T', 'R', 'E', 'E'], animationType: 'rocket-launch', description: 'A tall plant with a wooden trunk.', color: 'from-green-500 to-emerald-700' },
+  { id: 'house', name: 'House', emoji: '🏠', letters: ['H', 'O', 'U', 'S', 'E'], animationType: 'car-drive', description: 'A building for human habitation.', color: 'from-amber-500 to-orange-700' },
+  { id: 'boat', name: 'Boat', emoji: '⛵', letters: ['B', 'O', 'A', 'T'], animationType: 'car-drive', description: 'A small vessel for travelling on water.', color: 'from-blue-400 to-blue-600' },
+  { id: 'pizza', name: 'Pizza', emoji: '🍕', letters: ['P', 'I', 'Z', 'Z', 'A'], animationType: 'rocket-launch', description: 'A savory dish of Italian origin.', color: 'from-yellow-400 to-orange-500' },
+  { id: 'ghost', name: 'Ghost', emoji: '👻', letters: ['G', 'H', 'O', 'S', 'T'], animationType: 'rocket-launch', description: 'An apparition of a dead person.', color: 'from-slate-200 to-slate-400' },
+  { id: 'alien', name: 'Alien', emoji: '👽', letters: ['A', 'L', 'I', 'E', 'N'], animationType: 'car-drive', description: 'A being from another planet.', color: 'from-lime-400 to-green-600' },
+  { id: 'clock', name: 'Clock', emoji: '⏰', letters: ['C', 'L', 'O', 'C', 'K'], animationType: 'rocket-launch', description: 'Measures time.', color: 'from-rose-400 to-pink-600' },
+  { id: 'sword', name: 'Sword', emoji: '🗡️', letters: ['S', 'W', 'O', 'R', 'D'], animationType: 'car-drive', description: 'A weapon with a long metal blade.', color: 'from-zinc-400 to-zinc-600' },
+  { id: 'crown', name: 'Crown', emoji: '👑', letters: ['C', 'R', 'O', 'W', 'N'], animationType: 'rocket-launch', description: 'A circular ornamental headdress worn by a monarch.', color: 'from-yellow-300 to-amber-500' },
+  { id: 'heart', name: 'Heart', emoji: '❤️', letters: ['H', 'E', 'A', 'R', 'T'], animationType: 'car-drive', description: 'A hollow muscular organ that pumps blood.', color: 'from-red-500 to-pink-600' },
+  { id: 'star', name: 'Star', emoji: '⭐', letters: ['S', 'T', 'A', 'R'], animationType: 'rocket-launch', description: 'A luminous point in the night sky.', color: 'from-yellow-200 to-yellow-400' },
+  { id: 'moon', name: 'Moon', emoji: '🌙', letters: ['M', 'O', 'O', 'N'], animationType: 'car-drive', description: 'The natural satellite of the earth.', color: 'from-blue-200 to-indigo-300' }
 ];
 
 export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
@@ -42,7 +39,7 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
   const [assembledLetters, setAssembledLetters] = React.useState<string[]>([]);
   const [gameState, setGameState] = React.useState<'idle' | 'playing' | 'animating' | 'completed'>('idle');
   const [speakActive, setSpeakActive] = React.useState(false);
-  const [score, setScore] = React.useState(0);
+  
 
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -50,12 +47,20 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  const activePuzzle = PUZZLES[currentPuzzleIdx];
+  
+  const [activePuzzles, setActivePuzzles] = React.useState<PuzzleObject[]>([]);
+  
+  React.useEffect(() => {
+    setActivePuzzles([...PUZZLES].sort(() => 0.5 - Math.random()).slice(0, 5));
+  }, []);
+  
+  const activePuzzle = activePuzzles[currentPuzzleIdx] || PUZZLES[0];
+
 
   const handleStart = () => {
     setGameState('playing');
     setAssembledLetters([]);
-    setScore(0);
+    
   };
 
   const handleLetterClick = (letter: string) => {
@@ -67,7 +72,7 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
     if (letter === expectedLetter) {
       const updated = [...assembledLetters, letter];
       setAssembledLetters(updated);
-      setScore(prev => prev + 15);
+      
 
       // Play phonetic sound
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -101,12 +106,12 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
       }
     } else {
       // Mistake penalty
-      setScore(prev => Math.max(0, prev - 5));
+      
     }
   };
 
   const handleNextPuzzle = () => {
-    if (currentPuzzleIdx < PUZZLES.length - 1) {
+    if (currentPuzzleIdx < activePuzzles.length - 1) {
       setCurrentPuzzleIdx(prev => prev + 1);
       setAssembledLetters([]);
       setGameState('playing');
@@ -116,10 +121,11 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
   };
 
   const handleRestart = () => {
+    setActivePuzzles([...PUZZLES].sort(() => 0.5 - Math.random()).slice(0, 5));
     setCurrentPuzzleIdx(0);
     setAssembledLetters([]);
     setGameState('playing');
-    setScore(0);
+    
   };
 
   // Get scrambled letters for selection
@@ -207,10 +213,7 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
                     <p className="text-xs text-slate-400 italic">"{activePuzzle.description}"</p>
                   </div>
 
-                  <div className="border-t border-slate-900/60 pt-3 flex gap-2 items-center">
-                    <Coins className="h-4 w-4 text-amber-400 fill-amber-400" />
-                    <span className="text-xs font-bold text-amber-300">+{score} Lingo-Coins</span>
-                  </div>
+                  
                 </div>
 
                 <div className="border-t border-slate-900/60 pt-3 text-[10px] text-slate-500 leading-normal font-bold">
@@ -225,7 +228,7 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
             <div className="md:col-span-2 bg-slate-950/60 border border-slate-900 rounded-3xl p-6 flex flex-col items-center justify-between min-h-[380px] relative overflow-hidden">
               {/* Progress indicator */}
               <div className="text-[10px] uppercase font-black tracking-widest text-slate-500 bg-slate-950 border border-slate-900 px-3 py-1 rounded-full z-20">
-                Puzzle {currentPuzzleIdx + 1} of {PUZZLES.length}
+                Puzzle {currentPuzzleIdx + 1} of {activePuzzles.length}
               </div>
 
               {/* The 3D workbench viewport */}
@@ -365,13 +368,7 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
               </p>
             </div>
 
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-6 py-4 flex items-center justify-center gap-3">
-              <Coins className="h-6 w-6 text-amber-400 animate-pulse" />
-              <div className="text-left">
-                <span className="text-[9px] uppercase font-black tracking-widest text-slate-400">Coins Claimed</span>
-                <span className="text-xl font-black text-amber-300 block leading-tight">+{score} Lingo-Coins</span>
-              </div>
-            </div>
+            
 
             <div className="flex gap-4">
               <button

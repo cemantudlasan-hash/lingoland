@@ -170,6 +170,7 @@ export function NoiseMeter() {
       }
 
       setIsListening(true);
+      isListeningRef.current = true; // Synchronous update to prevent visualizer early return
       setIsAlertActive(false);
       setAboveThresholdDuration(0);
       consecutiveAboveThresholdRef.current = 0;
@@ -232,6 +233,7 @@ export function NoiseMeter() {
     }
     analyserRef.current = null;
     setIsListening(false);
+    isListeningRef.current = false; // Synchronous update to completely stop the animation loop
     setVolume(0);
     volumeRef.current = 0;
     setIsAlertActive(false);

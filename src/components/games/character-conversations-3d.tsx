@@ -17,36 +17,21 @@ interface DialogueNode {
 }
 
 const DIALOGUE_NODES: DialogueNode[] = [
-  {
-    id: 1,
-    characterText: "Hello there! Welcome to LingoLand Academy! 🌟 I'm Professor Lexi. How do you do?",
-    expression: 'waving',
-    options: [
-      { text: "How do you do? I'm excited to learn!", isCorrect: true, feedback: "Perfect! 'How do you do?' is a polite, traditional reply to match my greeting." },
-      { text: "I do good, and you?", isCorrect: false, feedback: "Not quite. While common, 'I do good' is grammatically informal. 'How do you do?' is the standard response here." },
-      { text: "What's up, dude?", isCorrect: false, feedback: "A bit too informal for greeting a teacher or professor in a classroom context!" }
-    ]
-  },
-  {
-    id: 2,
-    characterText: "Excellent! Let's practice phonics. Which word has the short /æ/ vowel sound as in 'apple'?",
-    expression: 'thinking',
-    options: [
-      { text: "Car 🚗", isCorrect: false, feedback: "Close, but 'Car' has the long /ɑː/ sound." },
-      { text: "Cat 🐱", isCorrect: true, feedback: "Spot on! 'Cat' matches the short /æ/ sound perfectly!" },
-      { text: "Cake 🍰", isCorrect: false, feedback: "Incorrect. 'Cake' features the long /eɪ/ sound." }
-    ]
-  },
-  {
-    id: 3,
-    characterText: "Wonderful! If you want to politely interrupt someone to ask a question, what should you say?",
-    expression: 'talking',
-    options: [
-      { text: "Hey! Listen to me!", isCorrect: false, feedback: "Too aggressive and impolite." },
-      { text: "Excuse me, may I ask a quick question?", isCorrect: true, feedback: "Outstanding! This is the most polite and natural way to interrupt someone." },
-      { text: "Move aside, please.", isCorrect: false, feedback: "Impolite and socially awkward." }
-    ]
-  }
+  { id: 1, characterText: "Hello there! Welcome to LingoLand Academy! 🌟 I'm Professor Lexi. How do you do?", expression: 'waving', options: [ { text: "How do you do? I'm excited to learn!", isCorrect: true, feedback: "Perfect! 'How do you do?' is a polite, traditional reply to match my greeting." }, { text: "I do good, and you?", isCorrect: false, feedback: "Not quite. While common, 'I do good' is grammatically informal." }, { text: "What's up, dude?", isCorrect: false, feedback: "A bit too informal for greeting a teacher!" } ] },
+  { id: 2, characterText: "Let's practice phonics. Which word has the short /æ/ vowel sound as in 'apple'?", expression: 'thinking', options: [ { text: "Car 🚗", isCorrect: false, feedback: "Close, but 'Car' has the long /ɑː/ sound." }, { text: "Cat 🐱", isCorrect: true, feedback: "Spot on! 'Cat' matches the short /æ/ sound perfectly!" }, { text: "Cake 🍰", isCorrect: false, feedback: "Incorrect. 'Cake' features the long /eɪ/ sound." } ] },
+  { id: 3, characterText: "If you want to politely interrupt someone to ask a question, what should you say?", expression: 'talking', options: [ { text: "Hey! Listen to me!", isCorrect: false, feedback: "Too aggressive and impolite." }, { text: "Excuse me, may I ask a quick question?", isCorrect: true, feedback: "Outstanding! This is the most polite and natural way to interrupt someone." }, { text: "Move aside, please.", isCorrect: false, feedback: "Impolite and socially awkward." } ] },
+  { id: 4, characterText: "Which of these words is a synonym for 'Huge'?", expression: 'thinking', options: [ { text: "Tiny", isCorrect: false, feedback: "Tiny means very small, the opposite of huge." }, { text: "Gigantic", isCorrect: true, feedback: "Yes! Gigantic is a great synonym for huge." }, { text: "Average", isCorrect: false, feedback: "Average means normal size." } ] },
+  { id: 5, characterText: "How would you politely decline an invitation to a party?", expression: 'sad', options: [ { text: "I can't go. Too busy.", isCorrect: false, feedback: "A bit too blunt and impolite." }, { text: "Thank you for the invitation, but I won't be able to make it.", isCorrect: true, feedback: "Excellent! Very polite and considerate." }, { text: "No way!", isCorrect: false, feedback: "Too informal and rude." } ] },
+  { id: 6, characterText: "What is the past tense of the verb 'to go'?", expression: 'thinking', options: [ { text: "Goed", isCorrect: false, feedback: "Goed is not a word. 'Go' is an irregular verb." }, { text: "Went", isCorrect: true, feedback: "Correct! 'Went' is the past tense of 'to go'." }, { text: "Gone", isCorrect: false, feedback: "'Gone' is the past participle, not the simple past." } ] },
+  { id: 7, characterText: "Which sentence uses correct punctuation?", expression: 'talking', options: [ { text: "I love apples, oranges and bananas.", isCorrect: true, feedback: "Correct! The commas are used properly." }, { text: "I love apples oranges and bananas.", isCorrect: false, feedback: "Missing commas to separate items in a list." }, { text: "I, love apples, oranges and bananas.", isCorrect: false, feedback: "The first comma is unnecessary." } ] },
+  { id: 8, characterText: "What does the idiom 'break a leg' mean?", expression: 'happy', options: [ { text: "To fracture a bone.", isCorrect: false, feedback: "That's the literal meaning, not the idiomatic one." }, { text: "Good luck!", isCorrect: true, feedback: "Correct! It's a theatrical way to wish someone good luck." }, { text: "To stop walking.", isCorrect: false, feedback: "Incorrect." } ] },
+  { id: 9, characterText: "Identify the adjective in this sentence: 'The swift fox jumped.'", expression: 'thinking', options: [ { text: "Fox", isCorrect: false, feedback: "Fox is a noun." }, { text: "Jumped", isCorrect: false, feedback: "Jumped is a verb." }, { text: "Swift", isCorrect: true, feedback: "Yes! Swift describes the noun 'fox'." } ] },
+  { id: 10, characterText: "How do you politely ask someone to repeat what they said?", expression: 'talking', options: [ { text: "What did you say?", isCorrect: false, feedback: "A bit abrupt." }, { text: "Could you please repeat that?", isCorrect: true, feedback: "Perfect! Very polite and clear." }, { text: "Huh?", isCorrect: false, feedback: "Too informal." } ] },
+  { id: 11, characterText: "Which word is an antonym for 'Brave'?", expression: 'thinking', options: [ { text: "Fearless", isCorrect: false, feedback: "Fearless is a synonym for brave." }, { text: "Cowardly", isCorrect: true, feedback: "Correct! Cowardly is the opposite of brave." }, { text: "Strong", isCorrect: false, feedback: "Strong is not an antonym for brave." } ] },
+  { id: 12, characterText: "Choose the correct spelling.", expression: 'happy', options: [ { text: "Accommodate", isCorrect: true, feedback: "Yes! Two c's and two m's." }, { text: "Acommodate", isCorrect: false, feedback: "Missing a 'c'." }, { text: "Accomodate", isCorrect: false, feedback: "Missing an 'm'." } ] },
+  { id: 13, characterText: "What does the prefix 'un-' mean in words like 'unhappy'?", expression: 'thinking', options: [ { text: "Not", isCorrect: true, feedback: "Correct! 'Un-' means 'not'." }, { text: "Again", isCorrect: false, feedback: "'Re-' means 'again'." }, { text: "Before", isCorrect: false, feedback: "'Pre-' means 'before'." } ] },
+  { id: 14, characterText: "Select the correct plural of 'Child'.", expression: 'talking', options: [ { text: "Childs", isCorrect: false, feedback: "Incorrect." }, { text: "Children", isCorrect: true, feedback: "Correct! Child has an irregular plural." }, { text: "Childrens", isCorrect: false, feedback: "Children is already plural, no 's' needed." } ] },
+  { id: 15, characterText: "Which word has the long /i:/ sound as in 'see'?", expression: 'happy', options: [ { text: "Sit", isCorrect: false, feedback: "Sit has the short /ɪ/ sound." }, { text: "Seat", isCorrect: true, feedback: "Correct! Seat has the long /i:/ sound." }, { text: "Set", isCorrect: false, feedback: "Set has the short /e/ sound." } ] }
 ];
 
 export function CharacterConversations3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
@@ -54,7 +39,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
   const [currentNodeIdx, setCurrentNodeIdx] = React.useState(0);
   const [gameState, setGameState] = React.useState<'idle' | 'playing' | 'feedback' | 'completed'>('idle');
   const [selectedOptionIdx, setSelectedOptionIdx] = React.useState<number | null>(null);
-  const [score, setScore] = React.useState(0);
+  
   const [speakActive, setSpeakActive] = React.useState(false);
 
   React.useEffect(() => {
@@ -63,17 +48,27 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  const activeNode = DIALOGUE_NODES[currentNodeIdx];
+  
+  const [activeNodes, setActiveNodes] = React.useState<DialogueNode[]>([]);
+  
+  React.useEffect(() => {
+    setActiveNodes([...DIALOGUE_NODES].sort(() => 0.5 - Math.random()).slice(0, 5));
+  }, []);
+  
+  const activeNode = activeNodes[currentNodeIdx] || DIALOGUE_NODES[0];
 
+
+  
   const handleStart = () => {
     setGameState('playing');
     setCurrentNodeIdx(0);
     setSelectedOptionIdx(null);
-    setScore(0);
     
-    // Play greeting
-    speakText(DIALOGUE_NODES[0].characterText);
+    const newNodes = [...DIALOGUE_NODES].sort(() => 0.5 - Math.random()).slice(0, 5);
+    setActiveNodes(newNodes);
+    setTimeout(() => speakText(newNodes[0].characterText), 100);
   };
+
 
   const speakText = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -93,19 +88,19 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
 
     const opt = activeNode.options[idx];
     if (opt.isCorrect) {
-      setScore(prev => prev + 30);
+      
     }
 
     speakText(opt.feedback);
   };
 
   const handleNext = () => {
-    if (currentNodeIdx < DIALOGUE_NODES.length - 1) {
+    if (currentNodeIdx < activeNodes.length - 1) {
       const nextIdx = currentNodeIdx + 1;
       setCurrentNodeIdx(nextIdx);
       setSelectedOptionIdx(null);
       setGameState('playing');
-      speakText(DIALOGUE_NODES[nextIdx].characterText);
+      speakText(activeNodes[nextIdx].characterText);
     } else {
       setGameState('completed');
       // Trigger coins drop
@@ -196,10 +191,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
             <div className="md:col-span-5 flex flex-col items-center justify-center bg-slate-950/60 border border-slate-900 rounded-3xl p-6 relative overflow-hidden min-h-[300px]">
               
               {/* Score HUD */}
-              <div className="absolute top-4 left-4 flex gap-1.5 items-center text-xs text-amber-300 font-bold bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full z-20">
-                <Coins className="h-4 w-4 text-amber-400 fill-amber-400" />
-                <span>Score: {score} XP</span>
-              </div>
+              
 
               {/* Vector 3D Character Layout Stage */}
               <div className="w-[180px] h-[200px] flex items-center justify-center relative select-none [perspective:800px] mt-6">
@@ -359,7 +351,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
                           onClick={handleNext}
                           className="w-full py-3.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 hover:scale-102 active:scale-98"
                         >
-                          <span>{currentNodeIdx < DIALOGUE_NODES.length - 1 ? "Next Dialogue" : "Finish Conversation"}</span>
+                          <span>{currentNodeIdx < activeNodes.length - 1 ? "Next Dialogue" : "Finish Conversation"}</span>
                           <ArrowRight className="h-4 w-4" />
                         </button>
                       </motion.div>
@@ -391,13 +383,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
               </p>
             </div>
 
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-6 py-4 flex items-center justify-center gap-3">
-              <Coins className="h-6 w-6 text-amber-400 animate-pulse" />
-              <div className="text-left">
-                <span className="text-[9px] uppercase font-black tracking-widest text-slate-400">Lingo-Coins claimed</span>
-                <span className="text-xl font-black text-amber-300 block leading-tight">+{score} Lingo-Coins</span>
-              </div>
-            </div>
+            
 
             <button
               onClick={handleStart}

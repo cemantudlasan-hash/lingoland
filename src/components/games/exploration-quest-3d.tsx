@@ -23,90 +23,21 @@ interface QuestItem {
 }
 
 const KITCHEN_OBJECTS: QuestItem[] = [
-  {
-    id: 'fridge',
-    name: 'Refrigerator',
-    emoji: ' fridge',
-    description: 'A large appliance used to keep food cold and fresh.',
-    phonetics: '/rɪˈfrɪdʒəreɪtər/',
-    rotateY: 0,
-    translateX: -110,
-    translateY: -30,
-    translateZ: -120,
-    width: '70px',
-    height: '130px',
-    color: 'from-blue-600 to-indigo-800 border-blue-400',
-  },
-  {
-    id: 'toaster',
-    name: 'Toaster',
-    emoji: '🍞 toaster',
-    description: 'An electrical appliance used to brown sliced bread.',
-    phonetics: '/ˈtoʊstər/',
-    rotateY: 0,
-    translateX: 60,
-    translateY: 40,
-    translateZ: -120,
-    width: '40px',
-    height: '35px',
-    color: 'from-amber-500 to-orange-600 border-amber-400',
-  },
-  {
-    id: 'clock',
-    name: 'Clock',
-    emoji: '⏰ clock',
-    description: 'An instrument used to measure and display time.',
-    phonetics: '/klɑːk/',
-    rotateY: -90,
-    translateX: 140, // wall position
-    translateY: -80,
-    translateZ: 0,
-    width: '50px',
-    height: '50px',
-    color: 'from-rose-500 to-pink-600 border-pink-400',
-  },
-  {
-    id: 'cabinet',
-    name: 'Cabinet',
-    emoji: '🗄️ cabinet',
-    description: 'A cupboard with shelves or drawers for storing items.',
-    phonetics: '/ˈkæbɪnət/',
-    rotateY: 0,
-    translateX: 0,
-    translateY: -90,
-    translateZ: -120,
-    width: '100px',
-    height: '50px',
-    color: 'from-purple-500 to-violet-750 border-purple-400',
-  },
-  {
-    id: 'sink',
-    name: 'Sink',
-    emoji: '🚰 sink',
-    description: 'A basin used for washing hands and dishes.',
-    phonetics: '/sɪŋk/',
-    rotateY: 90,
-    translateX: -140, // wall position
-    translateY: 50,
-    translateZ: 0,
-    width: '60px',
-    height: '60px',
-    color: 'from-teal-500 to-cyan-600 border-teal-400',
-  },
-  {
-    id: 'window',
-    name: 'Window',
-    emoji: '🪟 window',
-    description: 'An opening in a wall to let in light and air.',
-    phonetics: '/ˈwɪndoʊ/',
-    rotateY: 0,
-    translateX: 100,
-    translateY: -50,
-    translateZ: -120,
-    width: '80px',
-    height: '90px',
-    color: 'from-sky-400 to-indigo-600 border-sky-300',
-  }
+  { id: 'fridge', name: 'Refrigerator', emoji: '❄️', description: 'A large appliance used to keep food cold.', phonetics: '/rɪˈfrɪdʒəreɪtər/', rotateY: 0, translateX: -200, translateY: -80, translateZ: -200, width: '130px', height: '200px', color: 'from-blue-600 to-indigo-800 border-blue-400' },
+  { id: 'toaster', name: 'Toaster', emoji: '🍞', description: 'An electrical appliance used to brown bread.', phonetics: '/ˈtoʊstər/', rotateY: 0, translateX: 100, translateY: 50, translateZ: -200, width: '90px', height: '90px', color: 'from-amber-500 to-orange-600 border-amber-400' },
+  { id: 'clock', name: 'Clock', emoji: '⏰', description: 'Used to measure and display time.', phonetics: '/klɑːk/', rotateY: -90, translateX: 250, translateY: -150, translateZ: 0, width: '100px', height: '100px', color: 'from-rose-500 to-pink-600 border-pink-400' },
+  { id: 'cabinet', name: 'Cabinet', emoji: '🗄️', description: 'A cupboard with shelves for storing items.', phonetics: '/ˈkæbɪnət/', rotateY: 0, translateX: 0, translateY: -120, translateZ: -220, width: '150px', height: '100px', color: 'from-purple-500 to-violet-750 border-purple-400' },
+  { id: 'sink', name: 'Sink', emoji: '🚰', description: 'A basin used for washing hands and dishes.', phonetics: '/sɪŋk/', rotateY: 90, translateX: -250, translateY: 50, translateZ: 0, width: '120px', height: '120px', color: 'from-teal-500 to-cyan-600 border-teal-400' },
+  { id: 'window', name: 'Window', emoji: '🪟', description: 'An opening in a wall to let in light and air.', phonetics: '/ˈwɪndoʊ/', rotateY: 0, translateX: 180, translateY: -100, translateZ: -220, width: '130px', height: '140px', color: 'from-sky-400 to-indigo-600 border-sky-300' },
+  { id: 'microwave', name: 'Microwave', emoji: '📻', description: 'Oven that cooks food very quickly.', phonetics: '/ˈmaɪkrəweɪv/', rotateY: 0, translateX: -80, translateY: 30, translateZ: -200, width: '110px', height: '80px', color: 'from-slate-500 to-slate-700 border-slate-400' },
+  { id: 'blender', name: 'Blender', emoji: '🥤', description: 'Used to mix or puree food and liquids.', phonetics: '/ˈblɛndər/', rotateY: 90, translateX: -200, translateY: 120, translateZ: 80, width: '70px', height: '110px', color: 'from-fuchsia-500 to-pink-600 border-fuchsia-400' },
+  { id: 'pan', name: 'Frying Pan', emoji: '🍳', description: 'A flat-bottomed pan used for frying.', phonetics: '/pæn/', rotateY: -90, translateX: 180, translateY: 80, translateZ: 100, width: '90px', height: '60px', color: 'from-zinc-700 to-zinc-900 border-zinc-500' },
+  { id: 'plate', name: 'Plate', emoji: '🍽️', description: 'A flat dish from which food is eaten.', phonetics: '/pleɪt/', rotateY: 0, translateX: 30, translateY: 150, translateZ: -100, width: '100px', height: '60px', color: 'from-white to-slate-200 border-slate-300' },
+  { id: 'chair', name: 'Chair', emoji: '🪑', description: 'A separate seat for one person.', phonetics: '/tʃɛər/', rotateY: 0, translateX: -100, translateY: 180, translateZ: 50, width: '100px', height: '150px', color: 'from-amber-700 to-amber-900 border-amber-600' },
+  { id: 'plant', name: 'Plant', emoji: '🪴', description: 'A living organism such as a flower or shrub.', phonetics: '/plænt/', rotateY: 0, translateX: 200, translateY: 180, translateZ: -100, width: '90px', height: '130px', color: 'from-green-500 to-emerald-700 border-green-400' },
+  { id: 'broom', name: 'Broom', emoji: '🧹', description: 'Used for sweeping floors.', phonetics: '/bruːm/', rotateY: 0, translateX: -180, translateY: 100, translateZ: 150, width: '60px', height: '180px', color: 'from-yellow-600 to-amber-800 border-yellow-500' },
+  { id: 'trash', name: 'Trash Can', emoji: '🗑️', description: 'A container for waste.', phonetics: '/træʃ/', rotateY: 0, translateX: 150, translateY: 150, translateZ: 150, width: '90px', height: '110px', color: 'from-zinc-400 to-zinc-600 border-zinc-300' },
+  { id: 'mug', name: 'Mug', emoji: '☕', description: 'A large cup, typically used for hot drinks.', phonetics: '/mʌɡ/', rotateY: 0, translateX: -30, translateY: 80, translateZ: -150, width: '60px', height: '60px', color: 'from-red-400 to-red-600 border-red-300' }
 ];
 
 export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
@@ -116,7 +47,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
   const [targetItems, setTargetItems] = React.useState<string[]>([]);
   const [foundItems, setFoundItems] = React.useState<string[]>([]);
   const [gameState, setGameState] = React.useState<'idle' | 'playing' | 'finished'>('idle');
-  const [score, setScore] = React.useState(0);
+  
   const [speakActive, setSpeakActive] = React.useState(false);
 
   React.useEffect(() => {
@@ -135,7 +66,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
   const handleStartGame = () => {
     setGameState('playing');
     setFoundItems([]);
-    setScore(0);
+    
     setSelectedItem(null);
   };
 
@@ -154,7 +85,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
     if (gameState === 'playing' && targetItems.includes(item.id) && !foundItems.includes(item.id)) {
       const nextFound = [...foundItems, item.id];
       setFoundItems(nextFound);
-      setScore(prev => prev + 25);
+      
 
       if (nextFound.length === targetItems.length) {
         setGameState('finished');
@@ -191,7 +122,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
           </div>
           <div>
             <h2 className="text-xl font-black uppercase tracking-tight bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">3D Exploration & Questing</h2>
-            <p className="text-xs text-slate-400">Interact with the 3D room to discover vocabulary and complete quests!</p>
+            <p className="text-sm text-slate-400">Interact with the 3D room to discover vocabulary and complete quests!</p>
           </div>
         </div>
 
@@ -245,7 +176,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
             <div className="md:col-span-1 flex flex-col gap-4">
               <div className="bg-slate-950/60 border border-slate-900 rounded-2xl p-4 flex flex-col justify-between h-full">
                 <div>
-                  <span className="text-[9px] uppercase font-black tracking-widest text-indigo-400">Current Objective</span>
+                  <span className="text-[11px] uppercase font-black tracking-widest text-indigo-400">Current Objective</span>
                   {currentTargetItem ? (
                     <div className="mt-2 space-y-2">
                       <h4 className="text-lg font-black text-white flex items-center gap-1.5 animate-pulse">
@@ -270,10 +201,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                     />
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs text-amber-300 font-bold bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl mt-3">
-                    <Coins className="h-4 w-4 text-amber-400 fill-amber-400" />
-                    <span>+{score} Lingo-Coins</span>
-                  </div>
+                  
                 </div>
               </div>
             </div>
@@ -289,7 +217,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                 >
                   <RotateCcw className="h-4 w-4" />
                 </button>
-                <span className="text-[10px] uppercase font-black tracking-widest text-slate-500 bg-slate-950 border border-slate-900 px-3 py-1.5 rounded-full">
+                <span className="text-sm mt-1 uppercase font-black tracking-widest text-slate-500 bg-slate-950 border border-slate-900 px-3 py-1.5 rounded-full">
                   Orbit Yaw: {rotation}°
                 </span>
                 <button 
@@ -302,7 +230,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
               </div>
 
               {/* 3D Scene Viewport */}
-              <div className="w-[300px] h-[300px] flex items-center justify-center [perspective:800px] overflow-hidden select-none mt-4">
+              <div className="w-full max-w-[700px] h-[550px] min-h-[500px] flex items-center justify-center [perspective:1200px] overflow-hidden select-none mt-4">
                 <div 
                   className="w-full h-full relative [transform-style:preserve-3d] transition-transform duration-700 ease-out"
                   style={{ transform: `rotateX(-12deg) rotateY(${rotation}deg)` }}
@@ -311,30 +239,31 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                   
                   {/* FLOOR */}
                   <div 
-                    className="absolute w-[350px] h-[350px] bg-slate-900 border border-slate-800/40 opacity-70 [transform:rotateX(90deg)_translateZ(-150px)_translateX(-25px)]"
+                    className="absolute w-[600px] h-[600px] bg-slate-900 border border-slate-800/40 opacity-70 [transform:rotateX(90deg)_translateZ(-250px)_translateX(-50px)]"
                     style={{
-                      backgroundImage: 'radial-gradient(circle, rgba(99,102,241,0.06) 1px, transparent 1px)',
+                      backgroundImage: 'radial-gradient(circle, rgba(99,102,241,0.15) 1.5px, transparent 1.5px)',
                       backgroundSize: '20px 20px',
                     }}
                   />
 
                   {/* BACK WALL */}
-                  <div className="absolute w-[350px] h-[250px] bg-slate-950/80 border border-slate-800/20 [transform:translateZ(-150px)_translateX(-25px)_translateY(-20px)] flex items-center justify-center">
+                  <div className="absolute w-[600px] h-[460px] bg-slate-950/60 border border-indigo-500/10 [transform:translateZ(-250px)_translateX(-50px)_translateY(-20px)] flex items-center justify-center">
                     {/* Back wall panel line */}
                     <div className="w-full h-[1px] bg-slate-800/20" />
                   </div>
 
                   {/* LEFT WALL */}
-                  <div className="absolute w-[300px] h-[250px] bg-slate-950/90 border border-slate-800/20 [transform:rotateY(90deg)_translateZ(-175px)_translateY(-20px)_translateX(25px)]" />
+                  <div className="absolute w-[500px] h-[460px] bg-slate-950/80 border border-indigo-500/10 [transform:rotateY(90deg)_translateZ(-300px)_translateY(-20px)_translateX(50px)]" />
 
                   {/* RIGHT WALL */}
-                  <div className="absolute w-[300px] h-[250px] bg-slate-950/90 border border-slate-800/20 [transform:rotateY(-90deg)_translateZ(-125px)_translateY(-20px)_translateX(-25px)]" />
+                  <div className="absolute w-[300px] h-[260px] bg-slate-950/80 border border-indigo-500/10 [transform:rotateY(-90deg)_translateZ(-200px)_translateY(-20px)_translateX(-50px)]" />
 
                   {/* The 3D placed Interactive objects */}
                   {KITCHEN_OBJECTS.map(obj => {
                     const isFound = foundItems.includes(obj.id);
                     const isTarget = targetItems.includes(obj.id);
                     const isCurrentlySeeking = currentTargetId === obj.id;
+                    const itemBorderColor = obj.color.split(' ').find(c => c.startsWith('border-')) || 'border-slate-800';
 
                     return (
                       <div
@@ -343,25 +272,26 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                         className={cn(
                           "absolute cursor-pointer [transform-style:preserve-3d] transition-all duration-300 flex items-center justify-center border-2 rounded-2xl group",
                           isFound
-                            ? "bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                            ? "bg-emerald-500/20 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.4)] text-emerald-300 font-extrabold"
                             : isCurrentlySeeking
-                            ? "bg-indigo-500/20 border-indigo-500 animate-pulse shadow-[0_0_20px_rgba(99,102,241,0.5)] scale-105"
-                            : "bg-slate-900/60 border-slate-800 hover:border-slate-500 hover:scale-105 hover:bg-slate-800/80"
+                            ? "bg-indigo-500/30 border-indigo-400 animate-pulse shadow-[0_0_20px_rgba(99,102,241,0.6)] text-indigo-300 font-extrabold scale-110"
+                            : cn("bg-slate-900/95 hover:scale-108 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)] text-slate-300", itemBorderColor)
                         )}
                         style={{
                           width: obj.width,
                           height: obj.height,
-                          transform: `translateX(${obj.translateX}px) translateY(${obj.translateY}px) translateZ(${obj.translateZ}px) rotateY(${obj.rotateY}deg)`,
+                          // Billboard Counter-Rotation: cancels out parent rotateY(${rotation}deg) and rotateX(-12deg)
+                          transform: `translateX(${obj.translateX}px) translateY(${obj.translateY}px) translateZ(${obj.translateZ}px) rotateY(${-rotation}deg) rotateX(12deg)`,
                         }}
                       >
                         {/* 3D Box faces representation */}
-                        <div className="flex flex-col items-center justify-center gap-1.5 p-1">
-                          <span className={cn("text-xl transition-transform", !isFound && "group-hover:scale-125 duration-200")}>
+                        <div className="flex flex-col items-center justify-center gap-1.5 p-2">
+                          <span className={cn("text-5xl transition-transform", !isFound && "group-hover:scale-125 duration-200")}>
                             {obj.emoji}
                           </span>
                           <span className={cn(
-                            "text-[8px] font-black uppercase text-center truncate w-full px-1",
-                            isFound ? "text-emerald-400" : isCurrentlySeeking ? "text-indigo-300 animate-pulse" : "text-slate-400"
+                            "text-[10px] font-black uppercase text-center truncate w-full px-1",
+                            isFound ? "text-emerald-400" : isCurrentlySeeking ? "text-indigo-300 animate-pulse" : "text-slate-200"
                           )}>
                             {obj.name}
                           </span>
@@ -386,7 +316,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                       className="space-y-4"
                     >
                       <div>
-                        <span className="text-[9px] uppercase font-black tracking-widest text-zinc-500">Explorer Logs</span>
+                        <span className="text-[11px] uppercase font-black tracking-widest text-zinc-500">Explorer Logs</span>
                         <h4 className="text-lg font-black text-white mt-1 flex items-center gap-1.5">
                           {selectedItem.name}
                           <Volume2 className={cn("h-4 w-4 text-indigo-400 cursor-pointer", speakActive && "animate-bounce")} />
@@ -433,13 +363,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
               </p>
             </div>
 
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl px-6 py-4 flex items-center justify-center gap-3">
-              <Coins className="h-6 w-6 text-amber-400 animate-pulse" />
-              <div className="text-left">
-                <span className="text-[9px] uppercase font-black tracking-widest text-slate-400">Total Coins Earned</span>
-                <span className="text-xl font-black text-amber-300 block leading-tight">+{score} Lingo-Coins</span>
-              </div>
-            </div>
+            
 
             <button
               onClick={handleStartGame}
