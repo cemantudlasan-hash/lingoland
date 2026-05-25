@@ -21,8 +21,8 @@ const chartConfig = {
 
 export function DashboardChart({ data }: { data: any[] }) {
   return (
-    <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-      <BarChart accessibilityLayer data={data}>
+    <ChartContainer config={chartConfig} className="h-full w-full aspect-auto">
+      <BarChart accessibilityLayer data={data} margin={{ top: 16, right: 16, left: 16, bottom: 24 }}>
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="day"
@@ -31,7 +31,12 @@ export function DashboardChart({ data }: { data: any[] }) {
           axisLine={false}
           tickFormatter={(value) => value.slice(0, 3)}
         />
-        <YAxis />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          tickFormatter={(value) => `${value}`}
+        />
         <ChartTooltip content={<ChartTooltipContent />} />
         <Bar dataKey="exercises" fill="var(--color-exercises)" radius={4} />
         <Bar dataKey="games" fill="var(--color-games)" radius={4} />
