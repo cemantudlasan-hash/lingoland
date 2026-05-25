@@ -141,6 +141,73 @@ const fontSizes = [
     { name: 'Extra Large', className: 'text-2xl', titleClassName: 'text-5xl', fullScreenClassName: 'text-[3.8vw] leading-relaxed', fullScreenTitleClassName: 'text-[6.5vw] leading-tight' },
 ];
 
+const EMOJI_MAP: { [key: string]: string } = {
+  // Activities / Verbs
+  "hiking": "🥾", "hike": "🥾", "walking": "🚶", "walk": "🚶",
+  "cycling": "🚴", "cycle": "🚴", "biking": "🚴", "bike": "🚲",
+  "picnicking": "🧺", "picnic": "🧺", "playing": "🎮", "play": "🎮",
+  "sports": "⚽", "sport": "⚽", "running": "🏃", "run": "🏃",
+  "swimming": "🏊", "swim": "🏊", "camping": "⛺", "camp": "⛺",
+  "climbing": "🧗", "climb": "🧗", "fishing": "🎣", "fish": "🐟",
+  "reading": "📖", "read": "📖", "writing": "✍️", "write": "✍️",
+  "learning": "🎓", "learn": "🎓", "teaching": "🏫", "teach": "🏫",
+  "traveling": "✈️", "travel": "✈️", "cooking": "🍳", "cook": "🍳",
+  "eating": "🍽️", "eat": "🍽️", "drinking": "🥤", "drink": "🥤",
+  "singing": "🎤", "sing": "🎤", "dancing": "💃", "dance": "💃",
+  // Nature / Places
+  "nature": "🌲", "outdoors": "⛰️", "outdoor": "⛰️",
+  "park": "🏞️", "parks": "🏞️", "forest": "🌳", "forests": "🌳",
+  "beach": "🏖️", "beaches": "🏖️", "garden": "🏡", "gardens": "🏡",
+  "mountain": "🏔️", "mountains": "🏔️", "river": "🏞️", "rivers": "🏞️",
+  "lake": "🌊", "lakes": "🌊", "sea": "🌊", "ocean": "🌊",
+  "sky": "🌌", "sun": "☀️", "moon": "🌙", "stars": "✨",
+  "flower": "🌸", "flowers": "🌸", "tree": "🌲", "trees": "🌲",
+  "rain": "🌧️", "snow": "❄️", "wind": "💨", "cloud": "☁️",
+  // Common Objects (overlapping with our 80-item game dataset!)
+  "refrigerator": "❄️", "fridge": "❄️", "toaster": "🍞", "clock": "⏰",
+  "cabinet": "🗄️", "sink": "🚰", "window": "🪟", "microwave": "📻",
+  "blender": "🥤", "pan": "🍳", "plate": "🍽️", "chair": "🪑",
+  "plant": "🪴", "broom": "🧹", "trash": "🗑️", "mug": "☕",
+  "apple": "🍎", "book": "📖", "lamp": "💡", "laptop": "💻",
+  "keys": "🔑", "wallet": "👛", "shoes": "👞", "coat": "🧥",
+  "hat": "🧢", "umbrella": "🌂", "backpack": "🎒", "glasses": "👓",
+  "watch": "⌚", "camera": "📷", "headphones": "🎧", "teddy": "🧸",
+  "guitar": "🎸", "soccer": "⚽", "basketball": "🏀", "tennis": "🎾",
+  "pizza": "🍕", "burger": "🍔", "donut": "🍩", "icecream": "🍦",
+  "cake": "🍰", "car": "🚗", "train": "🚂", "plane": "✈️",
+  "boat": "⛵", "rocket": "🚀", "scissors": "✂️", "pencil": "✏️",
+  "ruler": "📏", "globe": "🌍", "telescope": "🔭", "microscope": "🔬",
+  "magnet": "🧲", "battery": "🔋", "bulb": "💡", "key": "🗝️",
+  "lock": "🔒", "tools": "🛠️", "hammer": "🔨", "wrench": "🔧",
+  "gear": "⚙️", "gem": "💎", "coin": "🪙", "money": "💵",
+  "creditcard": "💳", "envelope": "✉️", "package": "📦", "gift": "🎁",
+  "balloon": "🎈", "ribbon": "🎀", "trophy": "🏆", "medal": "🏅"
+};
+
+const getEmojiFallback = (text: string): string | null => {
+  if (!text) return null;
+  const clean = text.toLowerCase().trim();
+  // Direct match
+  if (EMOJI_MAP[clean]) return EMOJI_MAP[clean];
+  
+  // Try singularizing/removing plurals
+  if (clean.endsWith('s') && EMOJI_MAP[clean.slice(0, -1)]) return EMOJI_MAP[clean.slice(0, -1)];
+  if (clean.endsWith('ing')) {
+    const root = clean.slice(0, -3);
+    if (EMOJI_MAP[root]) return EMOJI_MAP[root];
+    if (EMOJI_MAP[root + 'e']) return EMOJI_MAP[root + 'e']; // e.g. cycling -> cycle
+  }
+  
+  // Word by word matching
+  const words = clean.split(/\s+/);
+  for (const w of words) {
+    if (EMOJI_MAP[w]) return EMOJI_MAP[w];
+    if (w.endsWith('s') && EMOJI_MAP[w.slice(0, -1)]) return EMOJI_MAP[w.slice(0, -1)];
+  }
+  
+  return null;
+};
+
 export function PresentationForm() {
   // Authentication & DB
   const { user, isGuest, isLoading: isAuthLoading } = useAuth();
@@ -162,6 +229,7 @@ export function PresentationForm() {
   const [searchImage, setSearchImage] = React.useState<string | null>(null);
   const [isLoadingImage, setIsLoadingImage] = React.useState(false);
   const [showImageModal, setShowImageModal] = React.useState(false);
+  const [imageSearchError, setImageSearchError] = React.useState<string | null>(null);
 
   // Styling outlines states
   const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -559,6 +627,7 @@ export function PresentationForm() {
   const handleShowImage = async (text: string) => {
     setIsLoadingImage(true);
     setSearchImage(null);
+    setImageSearchError(null);
     setShowImageModal(true);
     
     try {
@@ -567,21 +636,11 @@ export function PresentationForm() {
       if (data.success && data.imageUrl) {
         setSearchImage(data.imageUrl);
       } else {
-        toast({
-          variant: "destructive",
-          title: "No Image Found",
-          description: `Could not find an image for "${text}".`
-        });
-        setShowImageModal(false);
+        setImageSearchError(`Could not find a photo matching "${text}" in the libraries.`);
       }
     } catch (e) {
       console.error(e);
-      toast({
-        variant: "destructive",
-        title: "Search Failed",
-        description: "Failed to perform image search."
-      });
-      setShowImageModal(false);
+      setImageSearchError("Server connection failed. Could not retrieve photo.");
     }
     setIsLoadingImage(false);
   };
@@ -1268,11 +1327,11 @@ export function PresentationForm() {
                       </button>
                     </div>
 
-                    <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800">
+                    <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800 p-4">
                       {isLoadingImage ? (
                         <div className="flex flex-col items-center gap-3">
                           <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">Searching Unsplash...</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">Searching Libraries...</p>
                         </div>
                       ) : searchImage ? (
                         <img 
@@ -1280,15 +1339,42 @@ export function PresentationForm() {
                           alt={selectionText} 
                           className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
                         />
+                      ) : imageSearchError ? (
+                        (() => {
+                          const fallbackEmoji = getEmojiFallback(selectionText);
+                          return (
+                            <div className="flex flex-col items-center justify-center text-center p-4 space-y-4 w-full">
+                              {fallbackEmoji ? (
+                                <>
+                                  <span className="text-7xl filter drop-shadow-[0_10px_20px_rgba(168,85,247,0.5)] animate-bounce select-none">
+                                    {fallbackEmoji}
+                                  </span>
+                                  <div className="space-y-1">
+                                    <p className="text-[11px] text-purple-300 font-extrabold uppercase tracking-widest">Emoji Fallback Loaded</p>
+                                    <p className="text-[10px] text-slate-400 leading-normal font-medium">{imageSearchError}</p>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-5xl select-none">⚠️</span>
+                                  <div className="space-y-1">
+                                    <p className="text-[11px] text-rose-400 font-extrabold uppercase tracking-widest">No Visual Found</p>
+                                    <p className="text-[10px] text-slate-400 leading-normal font-medium">{imageSearchError} No matching emoji fallback available.</p>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })()
                       ) : (
-                        <p className="text-xs text-slate-500 italic">No image found</p>
+                        <p className="text-xs text-slate-500 italic">Ready to search</p>
                       )}
                     </div>
 
                     <div className="space-y-1">
                       <p className="text-sm font-extrabold text-white">"{selectionText}"</p>
                       <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider leading-normal">
-                        Dynamically fetched from Unsplash search library
+                        {searchImage ? "Dynamically fetched from Unsplash or Wikipedia" : "LingoLand Visual Search Engine"}
                       </p>
                     </div>
                   </div>

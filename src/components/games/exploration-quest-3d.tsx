@@ -146,6 +146,39 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
     initGame();
   }, []);
 
+  React.useEffect(() => {
+    if (!isDragging) return;
+
+    const handleGlobalPointerMove = (e: PointerEvent) => {
+      const dx = e.clientX - dragStart.current.x;
+      const dy = e.clientY - dragStart.current.y;
+      
+      if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
+        hasDragged.current = true;
+      }
+      
+      const newYaw = startRotation.current.yaw + dx * 0.45;
+      const newPitch = startRotation.current.pitch - dy * 0.35;
+      
+      setRotation(newYaw);
+      setPitch(Math.max(-40, Math.min(10, newPitch)));
+    };
+
+    const handleGlobalPointerUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('pointermove', handleGlobalPointerMove);
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    window.addEventListener('pointercancel', handleGlobalPointerUp);
+    
+    return () => {
+      window.removeEventListener('pointermove', handleGlobalPointerMove);
+      window.removeEventListener('pointerup', handleGlobalPointerUp);
+      window.removeEventListener('pointercancel', handleGlobalPointerUp);
+    };
+  }, [isDragging]);
+
 
   const handleStartGame = () => {
     initGame();
@@ -190,30 +223,6 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
     hasDragged.current = false;
     dragStart.current = { x: e.clientX, y: e.clientY };
     startRotation.current = { yaw: rotation, pitch: pitch };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
-    
-    if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
-      hasDragged.current = true;
-    }
-    
-    const newYaw = startRotation.current.yaw + dx * 0.45;
-    const newPitch = startRotation.current.pitch - dy * 0.35;
-    
-    setRotation(newYaw);
-    setPitch(Math.max(-40, Math.min(10, newPitch)));
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isDragging) {
-      setIsDragging(false);
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
   };
 
   const handleRotateLeft = () => setRotation(r => r - 45);
@@ -351,10 +360,6 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
               {/* 3D Scene Viewport */}
               <div 
                 onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerLeave={handlePointerUp}
-                onPointerCancel={handlePointerUp}
                 className={cn(
                   "w-full h-[280px] sm:h-[380px] md:h-[500px] relative flex items-center justify-center overflow-hidden select-none mt-6 bg-slate-950/40 rounded-3xl border border-slate-900/80 transition-all duration-300 touch-none",
                   isDragging ? "cursor-grabbing" : "cursor-grab"
