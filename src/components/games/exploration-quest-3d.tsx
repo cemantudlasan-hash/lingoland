@@ -125,7 +125,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
   // Initialize targets and room
   const initGame = () => {
     const shuffled = [...ALL_OBJECTS].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 20); // 20 items total in the room
+    const selected = shuffled.slice(0, 15); // 15 items total in the room (reduced from 20)
     const targets = selected.slice(0, 10).map(item => item.id);
     
     const placed = selected.map(item => {
@@ -168,7 +168,8 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
       window.speechSynthesis.speak(utterance);
     }
 
-    if (gameState === 'playing' && targetItems.includes(item.id) && !foundItems.includes(item.id)) {
+    const currentTargetId = targetItems.find(id => !foundItems.includes(id));
+    if (gameState === 'playing' && item.id === currentTargetId) {
       const nextFound = [...foundItems, item.id];
       setFoundItems(nextFound);
       
@@ -197,7 +198,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
     const dx = e.clientX - dragStart.current.x;
     const dy = e.clientY - dragStart.current.y;
     
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+    if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
       hasDragged.current = true;
     }
     

@@ -155,6 +155,14 @@ export function PresentationForm() {
   const [count, setCount] = React.useState(0);
   const presentationContainerRef = React.useRef<HTMLDivElement>(null);
 
+  // Visual search states
+  const [selectionText, setSelectionText] = React.useState("");
+  const [selectionCoords, setSelectionCoords] = React.useState<{ x: number; y: number } | null>(null);
+  const [showPill, setShowPill] = React.useState(false);
+  const [searchImage, setSearchImage] = React.useState<string | null>(null);
+  const [isLoadingImage, setIsLoadingImage] = React.useState(false);
+  const [showImageModal, setShowImageModal] = React.useState(false);
+
   // Styling outlines states
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [theme, setTheme] = React.useState(themes[1].className);
@@ -509,6 +517,74 @@ export function PresentationForm() {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  React.useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      if (!selection) return;
+      const text = selection.toString().trim();
+      
+      // Limit selection search between 1 and 4 words
+      if (text.length > 1 && text.length < 50 && text.split(/\s+/).length <= 4) {
+        const container = presentationContainerRef.current;
+        if (container) {
+          try {
+            const range = selection.getRangeAt(0);
+            if (container.contains(range.commonAncestorContainer)) {
+              const rect = range.getBoundingClientRect();
+              const containerRect = container.getBoundingClientRect();
+              
+              setSelectionCoords({
+                x: rect.left - containerRect.left + rect.width / 2,
+                y: rect.bottom - containerRect.top + 8, // 8px offset below
+              });
+              setSelectionText(text);
+              setShowPill(true);
+              return;
+            }
+          } catch (e) {
+            // Ignore Range errors
+          }
+        }
+      }
+      setShowPill(false);
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [presentation]);
+
+  const handleShowImage = async (text: string) => {
+    setIsLoadingImage(true);
+    setSearchImage(null);
+    setShowImageModal(true);
+    
+    try {
+      const response = await fetch(`/api/image-search?query=${encodeURIComponent(text)}`);
+      const data = await response.json();
+      if (data.success && data.imageUrl) {
+        setSearchImage(data.imageUrl);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "No Image Found",
+          description: `Could not find an image for "${text}".`
+        });
+        setShowImageModal(false);
+      }
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: "destructive",
+        title: "Search Failed",
+        description: "Failed to perform image search."
+      });
+      setShowImageModal(false);
+    }
+    setIsLoadingImage(false);
+  };
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -1146,6 +1222,78 @@ export function PresentationForm() {
                   !isFullscreen ? "right-4 top-1/2 -translate-y-1/2 bg-slate-950 border border-slate-800 text-white hover:bg-slate-900" : "right-4 bottom-4 bg-black/20 text-white hover:bg-black/40"
                 )} />
               </Carousel>
+
+              {/* Highlighted text visual search option button */}
+              {showPill && (
+                <div 
+                  className={cn(
+                    "absolute z-30 transition-all duration-200 select-none animate-in fade-in zoom-in-95",
+                    "fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-auto"
+                  )}
+                  style={typeof window !== 'undefined' && window.innerWidth >= 768 && selectionCoords ? {
+                    left: `${selectionCoords.x}px`,
+                    top: `${selectionCoords.y}px`,
+                    transform: 'translateX(-50%)',
+                  } : undefined}
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShowImage(selectionText);
+                    }}
+                    className="px-4 py-2 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full shadow-[0_4px_20px_rgba(99,102,241,0.4)] border border-purple-400/30 flex items-center gap-1.5 backdrop-blur-md transition-all active:scale-95"
+                  >
+                    <Search className="h-3 w-3 animate-pulse" /> Show Image for "{selectionText}"
+                  </button>
+                </div>
+              )}
+
+              {/* Floating glassmorphic image search modal */}
+              {showImageModal && (
+                <div 
+                  className="absolute inset-0 z-40 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300 select-none"
+                  onClick={() => setShowImageModal(false)}
+                >
+                  <div 
+                    className="relative max-w-sm w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-[0_20px_50px_rgba(99,102,241,0.3)] animate-in zoom-in-95 duration-300 text-center space-y-4 backdrop-blur-md"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-center pb-2 border-b border-slate-850">
+                      <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest">Visual Search</h4>
+                      <button 
+                        onClick={() => setShowImageModal(false)}
+                        className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800">
+                      {isLoadingImage ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">Searching Unsplash...</p>
+                        </div>
+                      ) : searchImage ? (
+                        <img 
+                          src={searchImage} 
+                          alt={selectionText} 
+                          className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
+                        />
+                      ) : (
+                        <p className="text-xs text-slate-500 italic">No image found</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm font-extrabold text-white">"{selectionText}"</p>
+                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider leading-normal">
+                        Dynamically fetched from Unsplash search library
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className={cn('py-2 text-center text-sm text-muted-foreground font-bold', isFullscreen && 'hidden')}>
