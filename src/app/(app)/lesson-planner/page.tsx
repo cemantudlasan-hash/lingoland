@@ -93,6 +93,9 @@ export default function LessonPlannerPage() {
     try {
       const result = await generateLessonPlan(values);
       setLessonPlan(result);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('ai_usage_increment'));
+      }
     } catch (error: any) {
       console.error(error);
       toast({

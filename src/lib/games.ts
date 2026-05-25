@@ -702,6 +702,33 @@ export const allGames: Game[] = [
     subject: "english",
     icon: Flame,
   },
+  {
+    title: "3D Exploration & Questing",
+    slug: "exploration-quest-3d",
+    description: "Explore beautifully rendered 3D environments (like a kitchen or city) and interact with objects to learn their names.",
+    level: "intermediate",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Globe,
+  },
+  {
+    title: "Animated \"Living\" Puzzles",
+    slug: "living-puzzles-3d",
+    description: "Assemble interactive 3D word puzzles and watch them come to life with living animations once completed.",
+    level: "beginner",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Puzzle,
+  },
+  {
+    title: "Interactive Character Conversations",
+    slug: "character-conversations-3d",
+    description: "Engage in social conversations with fully animated 3D characters to learn pronunciation and gestures.",
+    level: "intermediate",
+    focus: "conversation",
+    subject: "english",
+    icon: Smile,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {

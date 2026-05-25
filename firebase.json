@@ -1,9 +1,11 @@
 {
   "firestore": {
-    "rules": "firestore.rules"
+    "rules": "firestore.rules",
+    "database": "(default)"
   },
   "apphosting": {
     "backendId": "lingoland",
-    "rootDir": "/"
+    "rootDir": "/",
+    "alwaysDeployFromSource": true
   }
 }

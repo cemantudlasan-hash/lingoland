@@ -18,24 +18,9 @@ export function DonationPopup() {
       const hasShown = sessionStorage.getItem('donation_popup_shown') === 'true' || sessionStorage.getItem('ai_popup_shown') === 'true';
       if (hasShown) return;
 
-      // Helper to safely exit fullscreen before opening the modal
+      // Helper to show the popup directly without exiting fullscreen
       const exitFullscreenAndShow = () => {
-        if (typeof document !== 'undefined' && document.fullscreenElement) {
-          document.exitFullscreen()
-            .then(() => {
-              // Add a small delay to allow browser layout to settle down
-              setTimeout(() => {
-                setIsOpen(true);
-              }, 150);
-            })
-            .catch((err) => {
-              console.error("Error exiting fullscreen for donation popup:", err);
-              // Fallback: open it anyway if exiting fails
-              setIsOpen(true);
-            });
-        } else {
-          setIsOpen(true);
-        }
+        setIsOpen(true);
       };
 
       // 1. Check AI counter trigger

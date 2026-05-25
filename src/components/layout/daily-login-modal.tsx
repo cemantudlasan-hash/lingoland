@@ -21,6 +21,9 @@ export function DailyLoginModal() {
     if (isLoading) return;
 
     const checkDailyLogin = async () => {
+      if (isGuest || !user) {
+        return; // Skip daily login rewards on guest account
+      }
       const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);

@@ -96,6 +96,9 @@ export const gameComponentMap = {
       'daily-verse': dynamic(() => import('@/components/games/daily-verse').then(mod => mod.DailyVerse)),
       'cosmic-word-voyager': dynamic(() => import('@/components/games/cosmic-word-voyager').then(mod => mod.CosmicWordVoyager)),
       'spellcaster-defense': dynamic(() => import('@/components/games/spellcaster-defense').then(mod => mod.SpellcasterDefense)),
+      'exploration-quest-3d': dynamic(() => import('@/components/games/exploration-quest-3d').then(mod => mod.ExplorationQuest3D)),
+      'living-puzzles-3d': dynamic(() => import('@/components/games/living-puzzles-3d').then(mod => mod.LivingPuzzles3D)),
+      'character-conversations-3d': dynamic(() => import('@/components/games/character-conversations-3d').then(mod => mod.CharacterConversations3D)),
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
 };
 
