@@ -48,7 +48,9 @@ import {
   Plus,
   Globe,
   Eye,
-  EyeOff
+  EyeOff,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -251,6 +253,13 @@ export function PresentationForm() {
   // Presentation Cover & Reveal states
   const [coveredTexts, setCoveredTexts] = React.useState<{ [slideIndex: number]: string[] }>({});
   const [revealedTexts, setRevealedTexts] = React.useState<{ [slideIndex: number]: string[] }>({});
+
+  // Zoom and pan states for searchImage
+  const [zoomScale, setZoomScale] = React.useState(1);
+  const [transformOrigin, setTransformOrigin] = React.useState("center center");
+
+  // Collapsible Presentation Tips Guide state
+  const [showTips, setShowTips] = React.useState(false);
 
   const toggleRevealText = (slideIdx: number, text: string) => {
     const lowerText = text.toLowerCase();
@@ -704,6 +713,8 @@ export function PresentationForm() {
   };
 
   const handleShowImage = async (text: string) => {
+    setZoomScale(1);
+    setTransformOrigin("center center");
     if (showSplitSearch) {
       setSplitQuery(text);
       handleSearchSplit(text, activeSplitSource);
@@ -725,7 +736,6 @@ export function PresentationForm() {
         setSearchImageEngine(data.engine || null);
       } else {
         setImageSearchError(`Could not find a photo matching "${text}" in the libraries.`);
-        // In fullscreen mode, if no single image found and no emoji fallback, load picker
         if (isFullscreen) {
           const fallbackEmoji = getEmojiFallback(text);
           if (!fallbackEmoji) {
@@ -736,7 +746,6 @@ export function PresentationForm() {
     } catch (e) {
       console.error(e);
       setImageSearchError("Server connection failed. Could not retrieve photo.");
-      // Still try picker in fullscreen if connection failed
       if (isFullscreen) {
         const fallbackEmoji = getEmojiFallback(text);
         if (!fallbackEmoji) {
@@ -1560,15 +1569,69 @@ export function PresentationForm() {
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">Searching Libraries...</p>
                           </div>
                         ) : searchImage ? (
-                          <img 
-                            src={searchImage} 
-                            alt={selectionText} 
-                            className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
-                            onError={() => {
-                              setSearchImage(null);
-                              setImageSearchError(`The image for "${selectionText}" failed to load from the remote library.`);
-                            }}
-                          />
+                           <div 
+                             className="w-full h-full overflow-hidden relative cursor-zoom-in rounded-xl"
+                             onMouseMove={(e) => {
+                               if (zoomScale <= 1) return;
+                               const rect = e.currentTarget.getBoundingClientRect();
+                               const x = ((e.clientX - rect.left) / rect.width) * 100;
+                               const y = ((e.clientY - rect.top) / rect.height) * 100;
+                               setTransformOrigin(`${x}% ${y}%`);
+                             }}
+                             onMouseLeave={() => {
+                               setTransformOrigin("center center");
+                             }}
+                           >
+                             <img 
+                               src={searchImage} 
+                               alt={selectionText} 
+                               className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500 transition-transform duration-200 ease-out"
+                               style={{ 
+                                 transform: `scale(${zoomScale})`, 
+                                 transformOrigin: transformOrigin 
+                               }}
+                               onError={() => {
+                                 setSearchImage(null);
+                                 setImageSearchError(`The image for "${selectionText}" failed to load from the remote library.`);
+                               }}
+                             />
+                             
+                             {/* Floating Zoom Controls Overlay */}
+                             <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-lg">
+                               <Button
+                                 size="icon"
+                                 variant="ghost"
+                                 onClick={(e) => { e.stopPropagation(); setZoomScale(prev => Math.max(0.5, prev - 0.25)); }}
+                                 className="h-7 w-7 text-white hover:bg-white/20 hover:text-white rounded-lg"
+                                 title="Zoom Out"
+                               >
+                                 <ZoomOut className="h-4 w-4" />
+                               </Button>
+                               <span className="text-[10px] text-white font-mono font-bold flex items-center px-1">
+                                 {Math.round(zoomScale * 100)}%
+                               </span>
+                               <Button
+                                 size="icon"
+                                 variant="ghost"
+                                 onClick={(e) => { e.stopPropagation(); setZoomScale(prev => Math.min(3, prev + 0.25)); }}
+                                 className="h-7 w-7 text-white hover:bg-white/20 hover:text-white rounded-lg"
+                                 title="Zoom In"
+                               >
+                                 <ZoomIn className="h-4 w-4" />
+                               </Button>
+                               {zoomScale !== 1 && (
+                                 <Button
+                                   size="icon"
+                                   variant="ghost"
+                                   onClick={(e) => { e.stopPropagation(); setZoomScale(1); setTransformOrigin("center center"); }}
+                                   className="h-7 w-7 text-purple-400 hover:bg-white/20 hover:text-purple-300 rounded-lg"
+                                   title="Reset Zoom"
+                                 >
+                                   <Maximize className="h-3.5 w-3.5" />
+                                 </Button>
+                               )}
+                             </div>
+                           </div>
                         ) : imageSearchError ? (
                           (() => {
                             const fallbackEmoji = getEmojiFallback(selectionText);
@@ -1912,6 +1975,72 @@ export function PresentationForm() {
                 <p className="font-bold">Click inside slides or press Spacebar to dynamically reveal content text</p>
               </div>
             )}
+
+            {/* Collapsible Slide Features Quick Tips Guide */}
+            <div className={cn("mt-4 animate-in fade-in slide-in-from-bottom duration-500 select-none", isFullscreen && "hidden")}>
+              <div 
+                onClick={() => setShowTips(!showTips)}
+                className="flex items-center justify-between p-4 bg-slate-900/40 border border-slate-800 rounded-2xl hover:bg-slate-900/60 transition-all cursor-pointer shadow-md"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-purple-400">💡</span>
+                  <span className="text-xs font-bold text-slate-200 tracking-wide">LingoLand Slide Features & Interactive Shortcuts Guide</span>
+                </div>
+                <span className="text-xs font-bold text-purple-400 hover:text-purple-300">
+                  {showTips ? "Hide Quick Guide" : "Expand Quick Guide"}
+                </span>
+              </div>
+              
+              {showTips && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 p-5 bg-slate-900/60 border border-slate-800 rounded-3xl animate-in slide-in-from-top-3 duration-300 backdrop-blur-md">
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <span>🔍</span> Dynamic Visual Search
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Highlight any word or short phrase (1–4 words) on a slide to show the floating search pill. Fetch images from **Unsplash**, **Google**, **Pinterest**, or **Bing** in real-time.
+                    </p>
+                    
+                    <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
+                      <span>🫣</span> Classroom Cover & Reveal (Hide text)
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Highlight text on a slide and select **"Cover Text"** to wrap it in a blurred glass pill. Click the blurred text during your presentation to reveal it, and click it again to cover it!
+                    </p>
+
+                    <h4 className="text-xs font-black text-cyan-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
+                      <span>⚙️</span> Slide Controls & Clear Covers
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Click the **"Clear Covers"** button in the slide controls toolbar (or absolute fullscreen menu) to instantly clear and reset all covered blocks on the active slide.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <span>⏳</span> Dynamic Word-by-Word Reveal
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Click anywhere inside slides or press the **Spacebar / Arrow Right** to reveal slide bullet points one word at a time, keeping learners focused on your active explanation.
+                    </p>
+
+                    <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
+                      <span>📁</span> Folders & Library Manager
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Save generated outlines, edit titles or bullet points directly, and organize slides into folders in the real-time library manager on the left panel.
+                    </p>
+
+                    <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
+                      <span>📥</span> Offline PowerPoint HTML Exports
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Download highly optimized offline-ready HTML slides to open directly in web browsers or import/open as fully functional web slides inside Microsoft PowerPoint.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           /* 4. Presentation Maker Generator Input Form */
