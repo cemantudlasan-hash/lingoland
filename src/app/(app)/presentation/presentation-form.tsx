@@ -123,6 +123,11 @@ const themes = [
     { name: 'Solar Flare Gold', className: 'bg-neutral-950 text-amber-100 border border-amber-500/20 rounded-2xl shadow-[0_8px_30px_rgba(245,158,11,0.1)]' },
     { name: 'Aurora Teal', className: 'bg-gradient-to-br from-zinc-950 via-slate-900 to-teal-950 text-white border border-teal-500/20 rounded-2xl shadow-[0_8px_30px_rgba(20,184,166,0.1)]' },
     { name: 'Cyber Neon', className: 'bg-black text-cyan-400 border-2 border-pink-500 rounded-2xl font-mono shadow-[0_0_15px_rgba(244,63,94,0.3)]' },
+    { name: 'Royal Amethyst & Gold', className: 'bg-gradient-to-br from-violet-950 via-purple-900 to-amber-950 text-amber-100 border border-amber-500/30 rounded-2xl shadow-[0_8px_30px_rgba(217,119,6,0.15)]' },
+    { name: 'Deep Emerald Forest', className: 'bg-gradient-to-br from-emerald-950 via-teal-950 to-zinc-900 text-emerald-100 border border-emerald-500/20 rounded-2xl shadow-[0_8px_30px_rgba(16,185,129,0.15)]' },
+    { name: 'Sakura Blossom Glassmorphic', className: 'bg-gradient-to-br from-rose-950 via-pink-950 to-slate-900 text-rose-100 border border-pink-500/20 rounded-2xl shadow-[0_8px_30px_rgba(244,63,94,0.15)]' },
+    { name: 'Cosmic Nebula Dream', className: 'bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-900 text-purple-100 border border-purple-500/20 rounded-2xl shadow-[0_8px_30px_rgba(139,92,246,0.2)]' },
+    { name: 'Volcano Obsidian', className: 'bg-gradient-to-br from-stone-950 via-neutral-900 to-orange-950 text-orange-100 border border-orange-500/30 rounded-2xl shadow-[0_8px_30px_rgba(249,115,22,0.15)]' },
     { name: 'Classic Editorial Serif', className: 'bg-[#fdfbf7] text-stone-900 border border-stone-200 rounded-2xl shadow-sm' },
     { name: 'Dark Charcoal', className: 'bg-gray-800 text-white rounded-2xl' },
     { name: 'Sepia Nostalgia', className: 'bg-amber-100 text-stone-800 rounded-2xl' },
@@ -367,6 +372,10 @@ export function PresentationForm() {
     if (pres.align) setAlign(pres.align);
 
     setIsEditMode(false);
+
+    // Setup word animation visible counts for loaded slides
+    setupWordAnimation(pres.slides);
+
     toast({
       title: "Loaded Outline",
       description: `Loaded outline "${pres.title}" from library.`
@@ -804,17 +813,11 @@ export function PresentationForm() {
 
     const onSelect = () => {
       setCurrent(api.selectedScrollSnap() + 1);
-      if (presentation) {
-        setupWordAnimation(presentation.slides);
-      }
     };
     
     const onReInit = () => {
         setCount(api.scrollSnapList().length);
         setCurrent(api.selectedScrollSnap() + 1);
-        if (presentation) {
-            setupWordAnimation(presentation.slides);
-        }
     };
     
     onReInit();
@@ -826,7 +829,7 @@ export function PresentationForm() {
       api.off("select", onSelect);
       api.off("reInit", onReInit);
     };
-  }, [api, presentation, setupWordAnimation]);
+  }, [api, presentation]);
 
   // AI Submit Form Outlines
   const onSubmit = async (values: FormValues) => {
@@ -1410,7 +1413,7 @@ export function PresentationForm() {
                             !isFullscreen && "flex flex-col justify-center p-8 md:p-12",
                             isFullscreen && "py-24 px-8 md:px-16 lg:px-24"
                           )}>
-                            <div className={cn("max-w-4xl w-full mx-auto animate-in fade-in duration-700", align === 'center' ? 'text-center' : 'text-left')}>
+                            <div className={cn("w-full animate-in fade-in duration-700", !isFullscreen ? "max-w-4xl mx-auto" : "max-w-[85vw] mx-auto", align === 'center' ? 'text-center' : 'text-left')}>
                               {/* Slide Title field */}
                               {isEditMode ? (
                                 <div className="space-y-1 mb-4 text-left">
@@ -1476,8 +1479,8 @@ export function PresentationForm() {
                                   </Button>
                                 </div>
                               ) : (
-                                <ul className={cn("pl-8 mx-auto transition-all duration-300",
-                                  align === 'center' ? 'list-none pl-0' : 'list-disc pl-8',
+                                <ul className={cn("transition-all duration-300",
+                                  align === 'center' ? 'list-none pl-0 mx-auto' : 'list-disc pl-8',
                                   !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-6 lg:space-y-8 ${fontSize.fullScreenClassName}`
                                 )}>
                                   {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
