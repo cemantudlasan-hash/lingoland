@@ -155,7 +155,7 @@ const EMOJI_MAP: { [key: string]: string } = {
   "eating": "🍽️", "eat": "🍽️", "drinking": "🥤", "drink": "🥤",
   "singing": "🎤", "sing": "🎤", "dancing": "💃", "dance": "💃",
   // Nature / Places
-  "nature": "🌲", "outdoors": "⛰️", "outdoor": "⛰️",
+  "nature": "🌲", "outdoors": "⛰️", "outdoor": "⛰️", "outside": "🏞️",
   "park": "🏞️", "parks": "🏞️", "forest": "🌳", "forests": "🌳",
   "beach": "🏖️", "beaches": "🏖️", "garden": "🏡", "gardens": "🏡",
   "mountain": "🏔️", "mountains": "🏔️", "river": "🏞️", "rivers": "🏞️",
@@ -204,8 +204,9 @@ const getEmojiFallback = (text: string): string | null => {
     if (EMOJI_MAP[w]) return EMOJI_MAP[w];
     if (w.endsWith('s') && EMOJI_MAP[w.slice(0, -1)]) return EMOJI_MAP[w.slice(0, -1)];
   }
-  
-  return null;
+
+  const fallbackEmojis = ['🖼️', '🔎', '✨', '🌈', '📌'];
+  return fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)];
 };
 
 export function PresentationForm() {
@@ -227,9 +228,14 @@ export function PresentationForm() {
   const [selectionCoords, setSelectionCoords] = React.useState<{ x: number; y: number } | null>(null);
   const [showPill, setShowPill] = React.useState(false);
   const [searchImage, setSearchImage] = React.useState<string | null>(null);
+  const [searchImageEngine, setSearchImageEngine] = React.useState<string | null>(null);
   const [isLoadingImage, setIsLoadingImage] = React.useState(false);
   const [showImageModal, setShowImageModal] = React.useState(false);
   const [imageSearchError, setImageSearchError] = React.useState<string | null>(null);
+  // Image picker states (fullscreen mode)
+  const [pickerImages, setPickerImages] = React.useState<Array<{ url: string; thumb?: string; engine: string; title: string }>>([]);
+  const [selectedPickerImage, setSelectedPickerImage] = React.useState<string | null>(null);
+  const [isLoadingPicker, setIsLoadingPicker] = React.useState(false);
 
   // Styling outlines states
   const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -627,7 +633,10 @@ export function PresentationForm() {
   const handleShowImage = async (text: string) => {
     setIsLoadingImage(true);
     setSearchImage(null);
+    setSearchImageEngine(null);
     setImageSearchError(null);
+    setPickerImages([]);
+    setSelectedPickerImage(null);
     setShowImageModal(true);
     
     try {
@@ -635,14 +644,50 @@ export function PresentationForm() {
       const data = await response.json();
       if (data.success && data.imageUrl) {
         setSearchImage(data.imageUrl);
+        setSearchImageEngine(data.engine || null);
       } else {
         setImageSearchError(`Could not find a photo matching "${text}" in the libraries.`);
+        // In fullscreen mode, if no single image found and no emoji fallback, load picker
+        if (isFullscreen) {
+          const fallbackEmoji = getEmojiFallback(text);
+          if (!fallbackEmoji) {
+            await loadImagePickerForFullscreen(text);
+          }
+        }
       }
     } catch (e) {
       console.error(e);
       setImageSearchError("Server connection failed. Could not retrieve photo.");
+      // Still try picker in fullscreen if connection failed
+      if (isFullscreen) {
+        const fallbackEmoji = getEmojiFallback(text);
+        if (!fallbackEmoji) {
+          await loadImagePickerForFullscreen(text);
+        }
+      }
     }
     setIsLoadingImage(false);
+  };
+
+  const loadImagePickerForFullscreen = async (text: string) => {
+    setIsLoadingPicker(true);
+    try {
+      const response = await fetch(`/api/image-picker?query=${encodeURIComponent(text)}`);
+      const data = await response.json();
+      if (data.success && data.images && data.images.length > 0) {
+        setPickerImages(data.images);
+      }
+    } catch (error) {
+      console.error('Failed to load image picker:', error);
+    }
+    setIsLoadingPicker(false);
+  };
+
+  const handlePickerImageSelect = (imageUrl: string) => {
+    setSearchImage(imageUrl);
+    setSearchImageEngine('user-selected');
+    setPickerImages([]);
+    setSelectedPickerImage(null);
   };
 
   React.useEffect(() => {
@@ -1314,11 +1359,16 @@ export function PresentationForm() {
                   onClick={() => setShowImageModal(false)}
                 >
                   <div 
-                    className="relative max-w-sm w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-[0_20px_50px_rgba(99,102,241,0.3)] animate-in zoom-in-95 duration-300 text-center space-y-4 backdrop-blur-md"
+                    className={cn(
+                      "relative bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-[0_20px_50px_rgba(99,102,241,0.3)] animate-in zoom-in-95 duration-300 text-center space-y-4 backdrop-blur-md",
+                      isFullscreen && pickerImages.length > 0 ? "w-full max-w-3xl max-h-[80vh]" : "w-full max-w-sm"
+                    )}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex justify-between items-center pb-2 border-b border-slate-850">
-                      <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest">Visual Search</h4>
+                      <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest">
+                        {isFullscreen && pickerImages.length > 0 ? "Image Picker" : "Visual Search"}
+                      </h4>
                       <button 
                         onClick={() => setShowImageModal(false)}
                         className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
@@ -1327,8 +1377,11 @@ export function PresentationForm() {
                       </button>
                     </div>
 
-                    <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800 p-4">
-                      {isLoadingImage ? (
+                    <div className={cn(
+                      "relative rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800 p-4",
+                      isFullscreen && pickerImages.length > 0 ? "min-h-[400px] w-full" : "aspect-square w-full"
+                    )}>
+                      {isLoadingImage || isLoadingPicker ? (
                         <div className="flex flex-col items-center gap-3">
                           <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">Searching Libraries...</p>
@@ -1342,6 +1395,37 @@ export function PresentationForm() {
                       ) : imageSearchError ? (
                         (() => {
                           const fallbackEmoji = getEmojiFallback(selectionText);
+                          // Show image picker in fullscreen mode when no emoji fallback and picker has images
+                          if (isFullscreen && !fallbackEmoji && pickerImages.length > 0) {
+                            return (
+                              <div className="flex flex-col items-center justify-center gap-3 w-full h-full">
+                                {isLoadingPicker ? (
+                                  <>
+                                    <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Loading Images...</p>
+                                  </>
+                                ) : (
+                                  <div className="grid grid-cols-2 gap-2 w-full h-full overflow-y-auto">
+                                    {pickerImages.map((img, idx) => (
+                                      <button
+                                        key={idx}
+                                        onClick={() => handlePickerImageSelect(img.url)}
+                                        className="relative aspect-square rounded-lg overflow-hidden border border-slate-700 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all group"
+                                      >
+                                        <img 
+                                          src={img.thumb || img.url} 
+                                          alt={img.title}
+                                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                        />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                          <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Select</span>
+                                        </div>
+                                      </button>
+                                    ))}\n                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
                           return (
                             <div className="flex flex-col items-center justify-center text-center p-4 space-y-4 w-full">
                               {fallbackEmoji ? (
@@ -1359,7 +1443,11 @@ export function PresentationForm() {
                                   <span className="text-5xl select-none">⚠️</span>
                                   <div className="space-y-1">
                                     <p className="text-[11px] text-rose-400 font-extrabold uppercase tracking-widest">No Visual Found</p>
-                                    <p className="text-[10px] text-slate-400 leading-normal font-medium">{imageSearchError} No matching emoji fallback available.</p>
+                                    {isFullscreen && !pickerImages.length ? (
+                                      <p className="text-[10px] text-slate-400 leading-normal font-medium">Searching for images...</p>
+                                    ) : (
+                                      <p className="text-[10px] text-slate-400 leading-normal font-medium">{imageSearchError} No matching emoji fallback available.</p>
+                                    )}
                                   </div>
                                 </>
                               )}
@@ -1374,7 +1462,17 @@ export function PresentationForm() {
                     <div className="space-y-1">
                       <p className="text-sm font-extrabold text-white">"{selectionText}"</p>
                       <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider leading-normal">
-                        {searchImage ? "Dynamically fetched from Unsplash or Wikipedia" : "LingoLand Visual Search Engine"}
+                        {searchImage
+                          ? searchImageEngine === 'user-selected'
+                            ? 'User selected from picker'
+                            : searchImageEngine === 'placeholder'
+                              ? 'Generated fallback image'
+                              : searchImageEngine === 'unsplash-featured'
+                                ? 'Unsplash featured fallback image'
+                                : 'Dynamically fetched from Unsplash or Wikipedia'
+                          : pickerImages.length > 0
+                            ? 'Select an image from Unsplash'
+                            : 'LingoLand Visual Search Engine'}
                       </p>
                     </div>
                   </div>
