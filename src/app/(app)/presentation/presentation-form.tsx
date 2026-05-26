@@ -244,6 +244,7 @@ export function PresentationForm() {
   const [splitImages, setSplitImages] = React.useState<Array<{ url: string; thumb?: string; engine: string; title: string }>>([]);
   const [isLoadingSplit, setIsLoadingSplit] = React.useState(false);
   const [activeSplitTab, setActiveSplitTab] = React.useState("IMAGES");
+  const [activeSplitSource, setActiveSplitSource] = React.useState<string>("unsplash");
 
   // Styling outlines states
   const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -638,11 +639,11 @@ export function PresentationForm() {
     };
   }, [presentation]);
 
-  const handleSearchSplit = async (queryText: string) => {
+  const handleSearchSplit = async (queryText: string, engineSource: string = activeSplitSource) => {
     if (!queryText) return;
     setIsLoadingSplit(true);
     try {
-      const response = await fetch(`/api/image-picker?query=${encodeURIComponent(queryText)}&count=12`);
+      const response = await fetch(`/api/image-picker?query=${encodeURIComponent(queryText)}&source=${engineSource}&count=12`);
       const data = await response.json();
       if (data.success && data.images) {
         setSplitImages(data.images);
@@ -656,10 +657,18 @@ export function PresentationForm() {
     setIsLoadingSplit(false);
   };
 
+  const handleEngineChange = async (newEngine: string) => {
+    setActiveSplitSource(newEngine);
+    const query = splitQuery || selectionText;
+    if (query) {
+      await handleSearchSplit(query, newEngine);
+    }
+  };
+
   const handleShowImage = async (text: string) => {
     if (showSplitSearch) {
       setSplitQuery(text);
-      handleSearchSplit(text);
+      handleSearchSplit(text, activeSplitSource);
       return;
     }
     setIsLoadingImage(true);
@@ -1525,7 +1534,7 @@ export function PresentationForm() {
                                 setShowImageModal(false);
                                 setShowSplitSearch(true);
                                 setSplitQuery(selectionText);
-                                handleSearchSplit(selectionText);
+                                handleSearchSplit(selectionText, activeSplitSource);
                               }}
                               className="w-full bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10 text-xs"
                             >
@@ -1534,7 +1543,13 @@ export function PresentationForm() {
                             </Button>
                             <div className="flex gap-2">
                               <Button 
-                                onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(selectionText)}`, '_blank')}
+                                onClick={() => {
+                                  setShowImageModal(false);
+                                  setShowSplitSearch(true);
+                                  setActiveSplitSource('google');
+                                  setSplitQuery(selectionText);
+                                  handleSearchSplit(selectionText, 'google');
+                                }}
                                 variant="outline"
                                 className="flex-1 h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 rounded-xl flex items-center justify-center gap-1"
                               >
@@ -1542,7 +1557,13 @@ export function PresentationForm() {
                                 Google
                               </Button>
                               <Button 
-                                onClick={() => window.open(`https://www.pinterest.com/search/pins/?q=${encodeURIComponent(selectionText)}`, '_blank')}
+                                onClick={() => {
+                                  setShowImageModal(false);
+                                  setShowSplitSearch(true);
+                                  setActiveSplitSource('pinterest');
+                                  setSplitQuery(selectionText);
+                                  handleSearchSplit(selectionText, 'pinterest');
+                                }}
                                 variant="outline"
                                 className="flex-1 h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 rounded-xl flex items-center justify-center gap-1"
                               >
@@ -1588,7 +1609,7 @@ export function PresentationForm() {
                       placeholder="Search web images..." 
                       value={splitQuery}
                       onChange={(e) => setSplitQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearchSplit(splitQuery)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearchSplit(splitQuery, activeSplitSource)}
                       className="h-10 pl-9 pr-9 text-xs bg-slate-950 border-slate-850 text-white rounded-xl placeholder-slate-500 focus:outline-none focus:border-purple-500"
                     />
                     {splitQuery && (
@@ -1680,17 +1701,36 @@ export function PresentationForm() {
                     )}
                   </div>
 
-                  {/* External Search Redirection Links */}
+                  {/* Visual Search Engine Source Selector */}
                   <div className="pt-3 border-t border-slate-850 mt-4 space-y-2">
                     <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest text-center">
-                      Launch External Site Search
+                      Choose Search Engine Source
                     </p>
-                    <div className="flex gap-1.5 justify-center">
+                    <div className="grid grid-cols-2 gap-1.5 justify-center">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(splitQuery || selectionText)}`, '_blank')}
-                        className="h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white flex items-center gap-1 flex-1 py-1 px-2"
+                        onClick={() => handleEngineChange('unsplash')}
+                        className={cn(
+                          "h-8 text-[10px] font-bold border-slate-800 flex items-center gap-1 py-1 px-2 transition-all rounded-xl",
+                          activeSplitSource === 'unsplash' 
+                            ? "bg-purple-950 border-purple-500 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.3)]" 
+                            : "bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
+                        )}
+                      >
+                        <Search className="h-3 w-3 text-purple-400" />
+                        Unsplash
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEngineChange('google')}
+                        className={cn(
+                          "h-8 text-[10px] font-bold border-slate-800 flex items-center gap-1 py-1 px-2 transition-all rounded-xl",
+                          activeSplitSource === 'google' 
+                            ? "bg-purple-950 border-purple-500 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.3)]" 
+                            : "bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
+                        )}
                       >
                         <Globe className="h-3 w-3 text-blue-400" />
                         Google
@@ -1698,8 +1738,13 @@ export function PresentationForm() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(`https://www.pinterest.com/search/pins/?q=${encodeURIComponent(splitQuery || selectionText)}`, '_blank')}
-                        className="h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white flex items-center gap-1 flex-1 py-1 px-2"
+                        onClick={() => handleEngineChange('pinterest')}
+                        className={cn(
+                          "h-8 text-[10px] font-bold border-slate-800 flex items-center gap-1 py-1 px-2 transition-all rounded-xl",
+                          activeSplitSource === 'pinterest' 
+                            ? "bg-purple-950 border-purple-500 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.3)]" 
+                            : "bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
+                        )}
                       >
                         <span className="text-[10px] text-red-500 font-extrabold">P</span>
                         Pinterest
@@ -1707,8 +1752,13 @@ export function PresentationForm() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(`https://www.bing.com/images/search?q=${encodeURIComponent(splitQuery || selectionText)}`, '_blank')}
-                        className="h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white flex items-center gap-1 flex-1 py-1 px-2"
+                        onClick={() => handleEngineChange('bing')}
+                        className={cn(
+                          "h-8 text-[10px] font-bold border-slate-800 flex items-center gap-1 py-1 px-2 transition-all rounded-xl",
+                          activeSplitSource === 'bing' 
+                            ? "bg-purple-950 border-purple-500 text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.3)]" 
+                            : "bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
+                        )}
                       >
                         <Search className="h-3 w-3 text-cyan-400" />
                         Bing
