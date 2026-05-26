@@ -2204,6 +2204,88 @@ export function PresentationForm() {
                   </div>
                 </div>
               )}
+
+              {showVideoLightbox && activeVideoUrl && (
+                <div 
+                  className="absolute inset-0 z-55 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none animate-in fade-in duration-300"
+                  onClick={() => {
+                    setShowVideoLightbox(false);
+                    setActiveVideoUrl(null);
+                    setActiveVideoTitle(null);
+                  }}
+                >
+                  <div 
+                    className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-[0_25px_60px_rgba(99,102,241,0.25)] animate-in zoom-in-95 duration-300 text-center space-y-4"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                      <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest truncate max-w-[80%]">
+                        {activeVideoTitle || "Educational Video Preview"}
+                      </h4>
+                      <button 
+                        onClick={() => {
+                          setShowVideoLightbox(false);
+                          setActiveVideoUrl(null);
+                          setActiveVideoTitle(null);
+                        }}
+                        className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+
+                    <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-slate-850 shadow-inner">
+                      {activeVideoUrl.includes('youtube.com/embed') ? (
+                        <iframe 
+                          src={`${activeVideoUrl}?autoplay=1`} 
+                          title={activeVideoTitle || "Video Player"}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 gap-3">
+                          <Video className="h-10 w-10 text-slate-600 animate-pulse" />
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">External Video Link Available</p>
+                          <a 
+                            href={activeVideoUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-purple-650 hover:bg-purple-500 text-white text-xs font-black uppercase rounded-xl transition-all shadow-md"
+                          >
+                            Open Video in New Tab
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3 justify-end pt-2 border-t border-slate-850">
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          setShowVideoLightbox(false);
+                          setActiveVideoUrl(null);
+                          setActiveVideoTitle(null);
+                        }}
+                        className="h-9 px-4 text-xs font-bold border-slate-800 bg-slate-950 text-slate-350 hover:bg-slate-900 rounded-xl"
+                      >
+                        Close Preview
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (activeVideoTitle && activeVideoUrl) {
+                            handleInsertTextToSlide(`Video Reference: [${activeVideoTitle}](${activeVideoUrl.replace('embed/', 'watch?v=')})`);
+                            setShowVideoLightbox(false);
+                          }
+                        }}
+                        className="h-9 px-4 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl shadow-md"
+                      >
+                        Insert Video Reference Link
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className={cn('py-2 text-center text-sm text-muted-foreground font-bold', isFullscreen && 'hidden')}>
@@ -2349,88 +2431,6 @@ export function PresentationForm() {
               </Form>
             </CardContent>
           </Card>
-        )}
-        {/* Educational Video Lightbox Pop-up Preview Player */}
-        {showVideoLightbox && activeVideoUrl && (
-          <div 
-            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none animate-in fade-in duration-300"
-            onClick={() => {
-              setShowVideoLightbox(false);
-              setActiveVideoUrl(null);
-              setActiveVideoTitle(null);
-            }}
-          >
-            <div 
-              className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-[0_25px_60px_rgba(99,102,241,0.25)] animate-in zoom-in-95 duration-300 text-center space-y-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-                <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest truncate max-w-[80%]">
-                  {activeVideoTitle || "Educational Video Preview"}
-                </h4>
-                <button 
-                  onClick={() => {
-                    setShowVideoLightbox(false);
-                    setActiveVideoUrl(null);
-                    setActiveVideoTitle(null);
-                  }}
-                  className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-slate-850 shadow-inner">
-                {activeVideoUrl.includes('youtube.com/embed') ? (
-                  <iframe 
-                    src={`${activeVideoUrl}?autoplay=1`} 
-                    title={activeVideoTitle || "Video Player"}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 gap-3">
-                    <Video className="h-10 w-10 text-slate-600 animate-pulse" />
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">External Video Link Available</p>
-                    <a 
-                      href={activeVideoUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 bg-purple-650 hover:bg-purple-500 text-white text-xs font-black uppercase rounded-xl transition-all shadow-md"
-                    >
-                      Open Video in New Tab
-                    </a>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3 justify-end pt-2 border-t border-slate-850">
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setShowVideoLightbox(false);
-                    setActiveVideoUrl(null);
-                    setActiveVideoTitle(null);
-                  }}
-                  className="h-9 px-4 text-xs font-bold border-slate-850 bg-slate-950 text-slate-350 hover:bg-slate-900 rounded-xl"
-                >
-                  Close Preview
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (activeVideoTitle && activeVideoUrl) {
-                      handleInsertTextToSlide(`Video Reference: [${activeVideoTitle}](${activeVideoUrl.replace('embed/', 'watch?v=')})`);
-                      setShowVideoLightbox(false);
-                    }
-                  }}
-                  className="h-9 px-4 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl shadow-md"
-                >
-                  Insert Video Reference Link
-                </Button>
-              </div>
-            </div>
-          </div>
         )}
       </div>
     </div>

@@ -96,6 +96,7 @@ function ProfilePageComponent() {
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [quizScore, setQuizScore] = useState(0);
+  const [quizTimeLeft, setQuizTimeLeft] = useState(60);
   const [challengePassed, setChallengePassed] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('lingoland_badge_l3') === 'true';
@@ -137,13 +138,68 @@ function ProfilePageComponent() {
       ],
       correct: 1,
       explanation: "Unified split-screen search aggregates multi-tab resources (images, definitions, videos) in real-time, allowing presenters to research and expand slide outlines instantly without leaving the workspace."
+    },
+    {
+      question: "In the context of spaced repetition systems (SRS), which scheduling algorithm represents the optimal mathematical model for calculating cognitive decay intervals?",
+      options: [
+        "First-In-First-Out (FIFO) queue ordering",
+        "SuperMemo-2 (SM-2) or modern FSRS (Free Spaced Repetition Scheduler) half-life regression models",
+        "Linear time-to-live cache-invalidation algorithms",
+        "Randomized seed interval generation"
+      ],
+      correct: 1,
+      explanation: "Modern cognitive science relies on SM-2 or FSRS algorithms, which model memory stability and retrievability based on the exponential decay curve of human memory half-life."
+    },
+    {
+      question: "Which pedagogical methodology emphasizes the immediate, active application of vocabulary within complex multi-agent or collaborative simulations?",
+      options: [
+        "Passive Grammar-Translation Method",
+        "Task-Based Language Teaching (TBLT) in immersive digital sandboxes",
+        "Strict Audio-Lingual structural drilling",
+        "Behavioral text copy-transcription training"
+      ],
+      correct: 1,
+      explanation: "TBLT places learners in immersive, meaningful communicative contexts where language is used to accomplish practical, collaborative goals, driving organic neuro-retention."
+    },
+    {
+      question: "When deploying cryptographic badge verification on professional profiles, which architecture offers the most secure and tamper-proof verification of credential validity?",
+      options: [
+        "Storing simple plaintext verification strings in local browser caches",
+        "Querying static HTML meta tag keywords on the profile homepage",
+        "HMAC-SHA256 signature validation against issuing authority public keys or blockchain ledger records",
+        "Relying purely on user-provided self-attestation text blocks"
+      ],
+      correct: 2,
+      explanation: "Using cryptographic digital signatures (like HMAC-SHA256 or decentralised block anchors) ensures credentials cannot be falsified, allowing professional networks to verify badge integrity instantly."
     }
   ];
+
+  // Timer countdown hook for Level 3 assessment challenge
+  useEffect(() => {
+    if (!quizOpen) return;
+    const interval = setInterval(() => {
+      setQuizTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setQuizOpen(false);
+          toast({
+            variant: "destructive",
+            title: "Time Expired! ⏱️",
+            description: "The 60-second time limit has passed. The Level 3 challenge has reset. Please try again!"
+          });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [quizOpen, toast]);
 
   const handleStartChallenge = () => {
     setCurrentQuizIdx(0);
     setSelectedAnswer(null);
     setQuizScore(0);
+    setQuizTimeLeft(60);
     setQuizOpen(true);
   };
 
@@ -687,12 +743,81 @@ function ProfilePageComponent() {
             className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 select-none animate-in fade-in duration-300"
             onClick={() => setActiveCert(null)}
           >
+            {/* Custom Print Stylesheet injected dynamically */}
+            <style dangerouslySetInnerHTML={{ __html: `
+              @media print {
+                /* Hide everything by default */
+                body * {
+                  visibility: hidden !important;
+                }
+                
+                /* Reveal only the certificate card container and its content */
+                .print-cert-modal, .print-cert-modal * {
+                  visibility: visible !important;
+                }
+                
+                /* Format the certificate card for a high-quality paper printout */
+                .print-cert-modal {
+                  position: absolute !important;
+                  left: 50% !important;
+                  top: 50% !important;
+                  transform: translate(-50%, -50%) !important;
+                  width: 90% !important;
+                  max-width: 800px !important;
+                  height: auto !important;
+                  margin: 0 !important;
+                  padding: 4rem !important;
+                  border: 6px double #d97706 !important; /* Elegant double Gold border */
+                  border-radius: 16px !important;
+                  background: #fdfbf7 !important; /* High-quality Cream paper back */
+                  color: #1c1917 !important; /* Dark stone text */
+                  box-shadow: none !important;
+                  overflow: visible !important;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+                
+                /* Gold border matching standard credential frame */
+                .print-border {
+                  border: 3px double #d97706 !important;
+                  border-radius: 12px !important;
+                  inset: 12px !important;
+                }
+                
+                /* Cream badge container with gold text */
+                .print-badge {
+                  background: #f5f5f4 !important;
+                  border: 1px solid #e7e5e4 !important;
+                  color: #d97706 !important;
+                }
+                
+                .print-cert-modal h2 {
+                  color: #1c1917 !important;
+                }
+                
+                /* Name text - clean print format rather than web gradient clip */
+                .print-cert-modal h3 {
+                  color: #4f46e5 !important;
+                  background: none !important;
+                  -webkit-text-fill-color: initial !important;
+                }
+                
+                .print-cert-modal p, .print-cert-modal span {
+                  color: #44403c !important;
+                }
+                
+                /* Hide window controls/buttons */
+                .no-print {
+                  display: none !important;
+                }
+              }
+            `}} />
             <div 
-              className="relative w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-3xl p-8 shadow-[0_25px_70px_rgba(99,102,241,0.2)] text-zinc-150 animate-in zoom-in-95 duration-300 text-center space-y-6 overflow-y-auto max-h-[90vh]"
+              className="relative w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-3xl p-8 shadow-[0_25px_70px_rgba(99,102,241,0.2)] text-zinc-150 animate-in zoom-in-95 duration-300 text-center space-y-6 overflow-y-auto max-h-[90vh] print-cert-modal"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="absolute inset-4 rounded-2xl border-2 border-double border-zinc-800/80 pointer-events-none z-0" />
-              <div className="absolute -top-10 -left-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute inset-4 rounded-2xl border-2 border-double border-zinc-800/80 pointer-events-none z-0 print-border" />
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
               <div className="relative z-10 space-y-6">
                 <div className="space-y-2">
@@ -719,11 +844,11 @@ function ProfilePageComponent() {
                   <p className="text-[11px] text-zinc-400 max-w-md mx-auto leading-relaxed">
                     has successfully achieved and demonstrated mastery in the educational challenges for the partner certified credential of
                   </p>
-                  <div className="py-2.5 px-4 bg-zinc-900/60 rounded-2xl border border-zinc-850 inline-block">
+                  <div className="py-2.5 px-4 bg-zinc-900/60 rounded-2xl border border-zinc-850 inline-block print-badge">
                     <span className="text-sm font-black uppercase tracking-wider text-amber-500">
                       {activeCert.title}
                     </span>
-                    <span className="text-[10px] text-zinc-400 font-bold ml-2 font-mono">({activeCert.badge})</span>
+                    <span className="text-[10px] text-zinc-450 font-bold ml-2 font-mono">({activeCert.badge})</span>
                   </div>
                 </div>
 
@@ -738,7 +863,7 @@ function ProfilePageComponent() {
                   </div>
                 </div>
 
-                <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+                <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center no-print">
                   <Button 
                     variant="outline"
                     onClick={() => window.print()}
@@ -771,7 +896,7 @@ function ProfilePageComponent() {
             <div className="relative w-full max-w-md bg-zinc-950 border border-zinc-850 rounded-3xl p-6 shadow-[0_25px_60px_rgba(99,102,241,0.25)] space-y-5 animate-in zoom-in-95 duration-300">
               <div className="flex justify-between items-center pb-2 border-b border-zinc-900">
                 <div className="flex items-center gap-1.5">
-                  <Award className="h-5 w-5 text-amber-500" />
+                  <Award className="h-5 w-5 text-amber-500 animate-pulse" />
                   <h4 className="text-xs font-black text-white uppercase tracking-widest">
                     Level 3 Certification Challenge
                   </h4>
@@ -782,6 +907,24 @@ function ProfilePageComponent() {
                 >
                   <X className="h-4 w-4" />
                 </button>
+              </div>
+
+              {/* Timer Progress Indicator */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center text-[10px] font-bold text-zinc-400">
+                  <span className="uppercase tracking-wider">Assessment Timer</span>
+                  <span className={`font-mono font-black ${quizTimeLeft <= 15 ? "text-rose-500 animate-pulse" : "text-amber-500"}`}>
+                    {quizTimeLeft}s Remaining
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-850 shadow-inner">
+                  <div 
+                    className={`h-full transition-all duration-1000 ${
+                      quizTimeLeft <= 15 ? "bg-rose-600" : quizTimeLeft <= 30 ? "bg-amber-500" : "bg-emerald-500"
+                    }`}
+                    style={{ width: `${(quizTimeLeft / 60) * 100}%` }}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/5 px-3 py-1.5 rounded-xl border border-indigo-500/10">

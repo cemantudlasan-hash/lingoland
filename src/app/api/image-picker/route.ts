@@ -124,53 +124,104 @@ const fetchBingWebSearch = async (query: string, count: number = 5) => {
 
 const fetchYouTubeVideos = async (query: string, count: number = 6) => {
   try {
-    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-    const response = await fetch(searchUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9',
+    const response = await fetch(
+      `https://www.bing.com/videos/search?q=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        }
       }
-    });
+    );
     if (!response.ok) return getMockVideos(query, count);
     const html = await response.text();
     
-    const jsonMatch = html.match(/var ytInitialData = ({.*?});/);
+    const parts = html.split('class="mc_vtvc');
     const videos = [];
     
-    if (jsonMatch) {
-      try {
-        const data = JSON.parse(jsonMatch[1]);
-        const contents = data.contents?.twoColumnSearchResultRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents;
-        
-        if (contents && Array.isArray(contents)) {
-          for (const item of contents) {
-            if (videos.length >= count) break;
-            
-            const video = item.videoRenderer;
-            if (!video) continue;
-            
-            const videoId = video.videoId;
-            const title = video.title?.runs?.[0]?.text || video.title?.simpleText || '';
-            const duration = video.lengthText?.simpleText || '00:00';
-            const channelName = video.ownerText?.runs?.[0]?.text || video.shortBylineText?.runs?.[0]?.text || 'Educational Source';
-            const views = video.viewCountText?.simpleText || 'unknown views';
-            
-            if (videoId && title) {
-              videos.push({
-                title,
-                duration,
-                channel: channelName,
-                url: `https://www.youtube.com/watch?v=${videoId}`,
-                thumb: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-                embedUrl: `https://www.youtube.com/embed/${videoId}`,
-                views
-              });
+    for (let i = 1; i < parts.length && videos.length < count; i++) {
+      const part = parts[i];
+      const hrefMatch = part.match(/href="([^"]+)"/);
+      if (!hrefMatch) continue;
+      let url = hrefMatch[1];
+      if (url.startsWith('/')) {
+        url = `https://www.bing.com${url}`;
+      }
+      
+      const thumbMatch = part.match(/src="([^"]+)"/) || part.match(/data-src="([^"]+)"/);
+      if (!thumbMatch) continue;
+      const thumb = thumbMatch[1];
+      
+      const titleMatch = part.match(/title="([^"]+)"/) || part.match(/aria-label="([^"]+)"/) || part.match(/<div class="mc_vtvc_title"[^>]*>([\s\S]*?)<\/div>/);
+      let title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : `${query} Video`;
+      title = decodeHtmlEntities(title);
+      
+      const durationMatch = part.match(/class="mc_vtvc_tdur">([^<]+)</) || part.match(/class="duration">([^<]+)</);
+      const duration = durationMatch ? durationMatch[1].trim() : '3:45';
+      
+      const channelMatch = part.match(/class="mc_vtvc_pub">([^<]+)</) || part.match(/class="publisher">([^<]+)</) || part.match(/class="mc_vtvc_meta_row">([\s\S]*?)<\/div>/);
+      let channel = channelMatch ? channelMatch[1].replace(/<[^>]*>/g, '').trim() : 'Educational Source';
+      channel = decodeHtmlEntities(channel);
+      
+      let youtubeId = '';
+      
+      // 1. Try to find a YouTube Video ID inside the url first if it's already a YouTube link
+      if (url.includes('youtube.com/watch?v=')) {
+        const id = url.split('v=')[1]?.split('&')[0];
+        if (id) youtubeId = id;
+      } else if (url.includes('youtu.be/')) {
+        const id = url.split('youtu.be/')[1]?.split('?')[0];
+        if (id) youtubeId = id;
+      } else {
+        // 2. Parse any data-metadata or vurl fields inside the HTML segment (part)
+        const vurlMatch = part.match(/vurl&quot;:&quot;([^&"]+)/i) || 
+                          part.match(/vurl":"([^"]+)"/i) ||
+                          part.match(/&quot;vurl&quot;:&quot;([^&"]+)/i);
+        if (vurlMatch) {
+          const decodedVurl = decodeHtmlEntities(vurlMatch[1]);
+          const ytMatch = decodedVurl.match(/v=([a-zA-Z0-9_-]{11})/) || 
+                          decodedVurl.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/) ||
+                          decodedVurl.match(/embed\/([a-zA-Z0-9_-]{11})/);
+          if (ytMatch) {
+            youtubeId = ytMatch[1];
+          } else {
+            // Check if decodedVurl is a direct youtube link itself
+            if (decodedVurl.includes('youtube.com') || decodedVurl.includes('youtu.be')) {
+              url = decodedVurl;
             }
           }
         }
-      } catch (e) {
-        console.error("Failed to parse ytInitialData:", e);
+        
+        // 3. Fallback regex search for any youtube link or ID inside the part html
+        if (!youtubeId) {
+          const ytMatch = part.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/i) ||
+                          part.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i) ||
+                          part.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/i);
+          if (ytMatch) {
+            youtubeId = ytMatch[1];
+          }
+        }
       }
+
+      let embedUrl = url;
+      if (youtubeId) {
+        url = `https://www.youtube.com/watch?v=${youtubeId}`;
+        embedUrl = `https://www.youtube.com/embed/${youtubeId}`;
+      } else {
+        // Safe query-specific fallback searching the EXACT video title on YouTube instead of general query
+        const searchTerms = encodeURIComponent(title);
+        embedUrl = `https://www.youtube.com/embed?listType=search&list=${searchTerms}`;
+      }
+      
+      videos.push({
+        title,
+        duration,
+        channel: channel || 'Video Resource',
+        url,
+        thumb,
+        embedUrl,
+        views: 'Verified'
+      });
     }
     
     if (videos.length === 0) {
@@ -178,7 +229,7 @@ const fetchYouTubeVideos = async (query: string, count: number = 6) => {
     }
     return videos;
   } catch (error) {
-    console.error("YouTube scraping failed:", error);
+    console.error("YouTube scraping fallback failed:", error);
     return getMockVideos(query, count);
   }
 };
