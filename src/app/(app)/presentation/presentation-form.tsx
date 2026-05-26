@@ -50,7 +50,8 @@ import {
   Eye,
   EyeOff,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Video
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -251,9 +252,16 @@ export function PresentationForm() {
   const [showSplitSearch, setShowSplitSearch] = React.useState(false);
   const [splitQuery, setSplitQuery] = React.useState("");
   const [splitImages, setSplitImages] = React.useState<Array<{ url: string; thumb?: string; engine: string; title: string }>>([]);
+  const [splitWebResults, setSplitWebResults] = React.useState<Array<{ title: string; snippet: string; url: string }>>([]);
+  const [splitVideos, setSplitVideos] = React.useState<Array<{ title: string; duration: string; channel: string; url: string; thumb: string; embedUrl?: string; views?: string }>>([]);
   const [isLoadingSplit, setIsLoadingSplit] = React.useState(false);
   const [activeSplitTab, setActiveSplitTab] = React.useState("IMAGES");
   const [activeSplitSource, setActiveSplitSource] = React.useState<string>("unsplash");
+
+  // Video Lightbox Player states
+  const [showVideoLightbox, setShowVideoLightbox] = React.useState(false);
+  const [activeVideoUrl, setActiveVideoUrl] = React.useState<string | null>(null);
+  const [activeVideoTitle, setActiveVideoTitle] = React.useState<string | null>(null);
 
   // Presentation Cover & Reveal states
   const [coveredTexts, setCoveredTexts] = React.useState<{ [slideIndex: number]: string[] }>({});
@@ -695,19 +703,67 @@ export function PresentationForm() {
     };
   }, [presentation]);
 
-  const handleSearchSplit = async (queryText: string, engineSource: string = activeSplitSource) => {
+  const handleInsertTextToSlide = (textToInsert: string) => {
+    const activeIdx = api?.selectedScrollSnap() || 0;
+    
+    if (isEditMode) {
+      setEditableSlides(prev => {
+        const updated = [...prev];
+        if (updated[activeIdx]) {
+          updated[activeIdx] = {
+            ...updated[activeIdx],
+            content: [...updated[activeIdx].content, textToInsert]
+          };
+        }
+        return updated;
+      });
+    }
+    
+    setPresentation(prev => {
+      if (!prev) return null;
+      const updatedSlides = [...prev.slides];
+      if (updatedSlides[activeIdx]) {
+        updatedSlides[activeIdx] = {
+          ...updatedSlides[activeIdx],
+          content: [...updatedSlides[activeIdx].content, textToInsert]
+        };
+      }
+      return { ...prev, slides: updatedSlides };
+    });
+    
+    toast({
+      title: "Content Added to Slide! 📝",
+      description: `Appended reference info directly to Slide ${activeIdx + 1}.`
+    });
+  };
+
+  const handleSearchSplit = async (queryText: string, engineSource: string = activeSplitSource, targetTab: string = activeSplitTab) => {
     if (!queryText) return;
     setIsLoadingSplit(true);
     try {
-      const response = await fetch(`/api/image-picker?query=${encodeURIComponent(queryText)}&source=${engineSource}&count=12`);
+      const response = await fetch(`/api/image-picker?query=${encodeURIComponent(queryText)}&source=${engineSource}&tab=${targetTab}&count=12`);
       const data = await response.json();
-      if (data.success && data.images) {
-        setSplitImages(data.images);
+      if (data.success) {
+        if (targetTab === 'SEARCH') {
+          setSplitWebResults(data.webResults || []);
+        } else if (targetTab === 'VIDEOS') {
+          setSplitVideos(data.videos || []);
+        } else if (targetTab === 'ALL') {
+          setSplitImages(data.images || []);
+          setSplitWebResults(data.webResults || []);
+          setSplitVideos(data.videos || []);
+        } else {
+          setSplitImages(data.images || []);
+        }
       } else {
+        setSplitWebResults([]);
+        setSplitVideos([]);
         setSplitImages([]);
       }
     } catch (err) {
       console.error("Split search failed:", err);
+      setSplitWebResults([]);
+      setSplitVideos([]);
       setSplitImages([]);
     }
     setIsLoadingSplit(false);
@@ -717,9 +773,15 @@ export function PresentationForm() {
     setActiveSplitSource(newEngine);
     const query = splitQuery || selectionText;
     if (query) {
-      await handleSearchSplit(query, newEngine);
+      await handleSearchSplit(query, newEngine, activeSplitTab);
     }
   };
+
+  React.useEffect(() => {
+    if (showSplitSearch && splitQuery) {
+      handleSearchSplit(splitQuery, activeSplitSource, activeSplitTab);
+    }
+  }, [activeSplitTab]);
 
   const handleShowImage = async (text: string) => {
     setZoomScale(1);
@@ -1836,21 +1898,7 @@ export function PresentationForm() {
 
                   {/* Scrollable grid container */}
                   <div className="flex-1 overflow-y-auto mt-4 pr-1 space-y-3">
-                    {activeSplitTab !== 'IMAGES' ? (
-                      <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 h-full text-slate-500">
-                        <FileCode className="h-8 w-8 text-slate-600" />
-                        <p className="text-[10px] font-bold uppercase tracking-wider">Redirected to Images</p>
-                        <p className="text-[9px] leading-normal font-medium max-w-[200px]">Search results for "{activeSplitTab}" are currently channeled to IMAGES for direct slide usage.</p>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          onClick={() => setActiveSplitTab('IMAGES')}
-                          className="text-[10px] text-purple-400 hover:text-white mt-1 font-bold"
-                        >
-                          Switch to Images
-                        </Button>
-                      </div>
-                    ) : isLoadingSplit ? (
+                    {isLoadingSplit ? (
                       <div className="grid grid-cols-2 gap-2">
                         {Array.from({ length: 6 }).map((_, idx) => (
                           <div key={idx} className="relative aspect-[3/4] w-full rounded-xl bg-slate-950 border border-slate-850 animate-pulse flex items-center justify-center">
@@ -1858,37 +1906,226 @@ export function PresentationForm() {
                           </div>
                         ))}
                       </div>
-                    ) : splitImages.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        {splitImages.map((img, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => {
-                              setSearchImage(img.url);
-                              setSearchImageEngine('user-selected');
-                              setShowImageModal(true);
-                            }}
-                            className="relative aspect-[3/4] w-full rounded-xl overflow-hidden border border-slate-850 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all group bg-slate-950"
-                          >
-                            <img 
-                              src={img.thumb || img.url} 
-                              alt={img.title} 
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                            />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-center justify-center p-2 text-center">
-                              <span className="text-[9px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider">Select</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 h-full text-slate-500">
-                        <span className="text-3xl">🔍</span>
-                        <p className="text-xs font-bold text-slate-400">No images found</p>
-                        {splitQuery ? (
-                          <p className="text-[10px] leading-normal font-medium">No results for "{splitQuery}" in the web libraries.</p>
-                        ) : (
+                    ) : activeSplitTab === 'IMAGES' ? (
+                      splitImages.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {splitImages.map((img, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                setSearchImage(img.url);
+                                setSearchImageEngine('user-selected');
+                                setShowImageModal(true);
+                              }}
+                              className="relative aspect-[3/4] w-full rounded-xl overflow-hidden border border-slate-850 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all group bg-slate-950"
+                            >
+                              <img 
+                                src={img.thumb || img.url} 
+                                alt={img.title} 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-center justify-center p-2 text-center">
+                                <span className="text-[9px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider">Select</span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 h-full text-slate-500">
+                          <span className="text-3xl">🔍</span>
+                          <p className="text-xs font-bold text-slate-400">No images found</p>
                           <p className="text-[10px] leading-normal font-medium">Type a word in the box above to search external photo libraries.</p>
+                        </div>
+                      )
+                    ) : activeSplitTab === 'SEARCH' ? (
+                      splitWebResults.length > 0 ? (
+                        <div className="space-y-3">
+                          {splitWebResults.map((result, idx) => (
+                            <div key={idx} className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-850 hover:border-purple-500/50 hover:bg-slate-950 transition-all space-y-2 shadow-sm text-left">
+                              <a 
+                                href={result.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-xs font-black text-purple-450 hover:text-purple-350 hover:underline line-clamp-1 block"
+                              >
+                                {result.title}
+                              </a>
+                              <p className="text-[10px] text-slate-350 leading-relaxed font-medium line-clamp-3">
+                                {result.snippet}
+                              </p>
+                              <div className="flex items-center justify-between pt-1 border-t border-slate-900/60">
+                                <span className="text-[9px] text-slate-500 font-mono truncate max-w-[120px]">
+                                  {result.url.replace('https://', '').replace('www.', '')}
+                                </span>
+                                <div className="flex gap-1.5 shrink-0">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => navigator.clipboard.writeText(result.snippet).then(() => toast({ title: "Copied! 📋", description: "Snippet copied to clipboard." }))}
+                                    className="h-6 px-2 text-[9px] font-bold border-slate-800 bg-slate-900 text-slate-300 hover:text-white rounded-lg"
+                                  >
+                                    Copy
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleInsertTextToSlide(result.snippet)}
+                                    className="h-6 px-2 text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg"
+                                  >
+                                    Insert Snippet
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 h-full text-slate-500">
+                          <span className="text-3xl">🌐</span>
+                          <p className="text-xs font-bold text-slate-400">No search results found</p>
+                        </div>
+                      )
+                    ) : activeSplitTab === 'VIDEOS' ? (
+                      splitVideos.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-3">
+                          {splitVideos.map((video, idx) => (
+                            <div key={idx} className="p-3 rounded-2xl bg-slate-950/80 border border-slate-850 space-y-2.5 shadow-sm text-left hover:border-slate-800 transition-all">
+                              <div 
+                                onClick={() => {
+                                  setActiveVideoUrl(video.embedUrl || video.url);
+                                  setActiveVideoTitle(video.title);
+                                  setShowVideoLightbox(true);
+                                }}
+                                className="relative aspect-video w-full rounded-xl overflow-hidden cursor-pointer group border border-slate-850 bg-black flex items-center justify-center"
+                              >
+                                <img 
+                                  src={video.thumb} 
+                                  alt={video.title} 
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90"
+                                />
+                                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                                  <div className="h-9 w-9 rounded-full bg-purple-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                    <span className="text-[10px] pl-0.5">▶</span>
+                                  </div>
+                                </div>
+                                <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/85 text-[9px] text-white font-mono font-bold tracking-tight">
+                                  {video.duration}
+                                </span>
+                              </div>
+                              <div className="space-y-1">
+                                <h4 className="text-[11px] font-black text-slate-200 line-clamp-1 leading-normal">
+                                  {video.title}
+                                </h4>
+                                <div className="flex justify-between items-center text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+                                  <span>{video.channel}</span>
+                                  <span>{video.views}</span>
+                                </div>
+                              </div>
+                              <div className="flex gap-2 pt-1 border-t border-slate-900/60 justify-end">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setActiveVideoUrl(video.embedUrl || video.url);
+                                    setActiveVideoTitle(video.title);
+                                    setShowVideoLightbox(true);
+                                  }}
+                                  className="h-6.5 text-[9px] font-bold border-slate-800 bg-slate-900 text-slate-350 hover:bg-slate-800 hover:text-white rounded-lg flex-1"
+                                >
+                                  Watch Preview
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleInsertTextToSlide(`Video Reference: [${video.title}](${video.url})`)}
+                                  className="h-6.5 text-[9px] font-black uppercase tracking-widest bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg flex-1"
+                                >
+                                  Insert Link
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 h-full text-slate-500">
+                          <span className="text-3xl">🎥</span>
+                          <p className="text-xs font-bold text-slate-400">No videos found</p>
+                        </div>
+                      )
+                    ) : (
+                      <div className="space-y-4 text-left">
+                        {splitImages.length > 0 && (
+                          <div className="space-y-1.5">
+                            <h4 className="text-[9px] font-black uppercase tracking-widest text-purple-400">Related Images</h4>
+                            <div className="flex gap-2 overflow-x-auto pb-1.5 pr-1 select-none scrollbar-none snap-x">
+                              {splitImages.slice(0, 4).map((img, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => {
+                                    setSearchImage(img.url);
+                                    setSearchImageEngine('user-selected');
+                                    setShowImageModal(true);
+                                  }}
+                                  className="relative aspect-square w-24 rounded-lg overflow-hidden border border-slate-850 shrink-0 hover:border-purple-500 transition-all group snap-start bg-slate-950 animate-in fade-in duration-300"
+                                >
+                                  <img src={img.thumb || img.url} alt={img.title} className="w-full h-full object-cover" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {splitWebResults.length > 0 && (
+                          <div className="space-y-2 animate-in fade-in duration-500">
+                            <h4 className="text-[9px] font-black uppercase tracking-widest text-purple-400">Web Summaries</h4>
+                            <div className="space-y-2">
+                              {splitWebResults.slice(0, 2).map((res, idx) => (
+                                <div key={idx} className="p-3 rounded-xl bg-slate-950/80 border border-slate-850 space-y-1 text-left">
+                                  <p className="text-[10px] font-black text-indigo-400 truncate">{res.title}</p>
+                                  <p className="text-[9px] text-slate-400 line-clamp-2 leading-relaxed">{res.snippet}</p>
+                                  <div className="flex justify-end pt-1">
+                                    <button 
+                                      onClick={() => handleInsertTextToSlide(res.snippet)}
+                                      className="text-[9px] font-black text-purple-400 hover:text-purple-300 uppercase tracking-widest"
+                                    >
+                                      + Insert Snippet
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {splitVideos.length > 0 && (
+                          <div className="space-y-2 animate-in fade-in duration-700">
+                            <h4 className="text-[9px] font-black uppercase tracking-widest text-purple-400">Video Tutorials</h4>
+                            <div className="space-y-2">
+                              {splitVideos.slice(0, 2).map((vid, idx) => (
+                                <div key={idx} className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-850 flex gap-2 items-center text-left">
+                                  <div 
+                                    onClick={() => {
+                                      setActiveVideoUrl(vid.embedUrl || vid.url);
+                                      setActiveVideoTitle(vid.title);
+                                      setShowVideoLightbox(true);
+                                    }}
+                                    className="relative h-12 w-20 rounded-lg overflow-hidden shrink-0 cursor-pointer border border-slate-850 bg-black flex items-center justify-center"
+                                  >
+                                    <img src={vid.thumb} className="w-full h-full object-cover opacity-80" />
+                                    <span className="absolute bottom-0.5 right-0.5 bg-black/90 text-[8px] text-white px-0.5 rounded font-mono">{vid.duration}</span>
+                                  </div>
+                                  <div className="min-w-0 flex-1 space-y-0.5">
+                                    <p className="text-[9px] font-bold text-slate-200 truncate leading-snug">{vid.title}</p>
+                                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">{vid.channel}</p>
+                                    <button 
+                                      onClick={() => handleInsertTextToSlide(`Video Link: [${vid.title}](${vid.url})`)}
+                                      className="text-[8px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest block"
+                                    >
+                                      + Insert Link
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}
@@ -2112,6 +2349,88 @@ export function PresentationForm() {
               </Form>
             </CardContent>
           </Card>
+        )}
+        {/* Educational Video Lightbox Pop-up Preview Player */}
+        {showVideoLightbox && activeVideoUrl && (
+          <div 
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none animate-in fade-in duration-300"
+            onClick={() => {
+              setShowVideoLightbox(false);
+              setActiveVideoUrl(null);
+              setActiveVideoTitle(null);
+            }}
+          >
+            <div 
+              className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-[0_25px_60px_rgba(99,102,241,0.25)] animate-in zoom-in-95 duration-300 text-center space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+                <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest truncate max-w-[80%]">
+                  {activeVideoTitle || "Educational Video Preview"}
+                </h4>
+                <button 
+                  onClick={() => {
+                    setShowVideoLightbox(false);
+                    setActiveVideoUrl(null);
+                    setActiveVideoTitle(null);
+                  }}
+                  className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-slate-850 shadow-inner">
+                {activeVideoUrl.includes('youtube.com/embed') ? (
+                  <iframe 
+                    src={`${activeVideoUrl}?autoplay=1`} 
+                    title={activeVideoTitle || "Video Player"}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 gap-3">
+                    <Video className="h-10 w-10 text-slate-600 animate-pulse" />
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">External Video Link Available</p>
+                    <a 
+                      href={activeVideoUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-purple-650 hover:bg-purple-500 text-white text-xs font-black uppercase rounded-xl transition-all shadow-md"
+                    >
+                      Open Video in New Tab
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-end pt-2 border-t border-slate-850">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setShowVideoLightbox(false);
+                    setActiveVideoUrl(null);
+                    setActiveVideoTitle(null);
+                  }}
+                  className="h-9 px-4 text-xs font-bold border-slate-850 bg-slate-950 text-slate-350 hover:bg-slate-900 rounded-xl"
+                >
+                  Close Preview
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (activeVideoTitle && activeVideoUrl) {
+                      handleInsertTextToSlide(`Video Reference: [${activeVideoTitle}](${activeVideoUrl.replace('embed/', 'watch?v=')})`);
+                      setShowVideoLightbox(false);
+                    }
+                  }}
+                  className="h-9 px-4 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl shadow-md"
+                >
+                  Insert Video Reference Link
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -29,6 +29,7 @@ import { useAuth } from "@/context/auth-context";
 import { VisitorCounter } from "@/components/layout/VisitorCounter";
 import { HolidayCountdown } from "@/components/layout/HolidayCountdown";
 import { BeautifulCalendar } from "@/components/layout/BeautifulCalendar";
+import { BeautifulWeather } from "@/components/layout/BeautifulWeather";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -420,8 +421,9 @@ export default function AuthPage() {
     return (
         <>
             <div className="flex min-h-screen items-center justify-center relative p-4 gap-6 flex-col lg:flex-row max-w-7xl w-full mx-auto">
-                <div className="relative z-10 w-full max-w-md order-1 lg:order-none">
+                <div className="relative z-10 w-full max-w-md order-1 lg:order-none space-y-6">
                     <HolidayCountdown />
+                    <BeautifulWeather />
                 </div>
                 <div className="relative z-10 w-full max-w-md order-2 lg:order-none">
                     <BeautifulCalendar />
