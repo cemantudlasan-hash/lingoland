@@ -1391,6 +1391,10 @@ export function PresentationForm() {
                           src={searchImage} 
                           alt={selectionText} 
                           className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
+                          onError={() => {
+                            setSearchImage(null);
+                            setImageSearchError(`The image for "${selectionText}" failed to load from the remote library.`);
+                          }}
                         />
                       ) : imageSearchError ? (
                         (() => {

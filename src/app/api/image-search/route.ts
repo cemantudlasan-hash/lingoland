@@ -75,8 +75,8 @@ const tryWikipediaSearchImage = async (query: string) => {
 };
 
 const tryUnsplashFeatured = (query: string) => ({
-  imageUrl: `https://source.unsplash.com/featured/600x600/?${encodeURIComponent(query)}`,
-  engine: 'unsplash-featured',
+  imageUrl: formatPlaceholderUrl(query),
+  engine: 'placeholder',
 });
 
 export async function GET(request: Request) {
@@ -108,7 +108,7 @@ export async function GET(request: Request) {
     console.error('Wikipedia search image fetch failed:', error);
   }
 
-  // Engine 4: Unsplash featured direct image / fallback resource
+  // Fallback: Return a clean placehold.co SVG placeholder card
   try {
     return NextResponse.json({ success: true, ...tryUnsplashFeatured(query) });
   } catch {
