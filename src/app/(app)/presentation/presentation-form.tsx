@@ -45,7 +45,8 @@ import {
   X,
   FileCode,
   FolderSymlink,
-  Plus
+  Plus,
+  Globe
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -1518,7 +1519,7 @@ export function PresentationForm() {
 
                         {/* Premium Split Search button inside Modal */}
                         {(searchImageEngine === 'placeholder' || imageSearchError || !searchImage) && (
-                          <div className="pt-2.5 border-t border-slate-850 mt-2">
+                          <div className="pt-2.5 border-t border-slate-850 mt-2 space-y-1.5">
                             <Button 
                               onClick={() => {
                                 setShowImageModal(false);
@@ -1531,6 +1532,24 @@ export function PresentationForm() {
                               <Search className="h-3.5 w-3.5 animate-pulse" />
                               Search External Web Library (Split Screen)
                             </Button>
+                            <div className="flex gap-2">
+                              <Button 
+                                onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(selectionText)}`, '_blank')}
+                                variant="outline"
+                                className="flex-1 h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 rounded-xl flex items-center justify-center gap-1"
+                              >
+                                <Globe className="h-3 w-3 text-blue-400" />
+                                Google
+                              </Button>
+                              <Button 
+                                onClick={() => window.open(`https://www.pinterest.com/search/pins/?q=${encodeURIComponent(selectionText)}`, '_blank')}
+                                variant="outline"
+                                className="flex-1 h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 rounded-xl flex items-center justify-center gap-1"
+                              >
+                                <span className="text-[10px] text-red-500 font-extrabold">P</span>
+                                Pinterest
+                              </Button>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1659,6 +1678,42 @@ export function PresentationForm() {
                         )}
                       </div>
                     )}
+                  </div>
+
+                  {/* External Search Redirection Links */}
+                  <div className="pt-3 border-t border-slate-850 mt-4 space-y-2">
+                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest text-center">
+                      Launch External Site Search
+                    </p>
+                    <div className="flex gap-1.5 justify-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(splitQuery || selectionText)}`, '_blank')}
+                        className="h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white flex items-center gap-1 flex-1 py-1 px-2"
+                      >
+                        <Globe className="h-3 w-3 text-blue-400" />
+                        Google
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(`https://www.pinterest.com/search/pins/?q=${encodeURIComponent(splitQuery || selectionText)}`, '_blank')}
+                        className="h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white flex items-center gap-1 flex-1 py-1 px-2"
+                      >
+                        <span className="text-[10px] text-red-500 font-extrabold">P</span>
+                        Pinterest
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(`https://www.bing.com/images/search?q=${encodeURIComponent(splitQuery || selectionText)}`, '_blank')}
+                        className="h-8 text-[10px] font-bold border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white flex items-center gap-1 flex-1 py-1 px-2"
+                      >
+                        <Search className="h-3 w-3 text-cyan-400" />
+                        Bing
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Footer */}
