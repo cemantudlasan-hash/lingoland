@@ -237,6 +237,13 @@ export function PresentationForm() {
   const [selectedPickerImage, setSelectedPickerImage] = React.useState<string | null>(null);
   const [isLoadingPicker, setIsLoadingPicker] = React.useState(false);
 
+  // Split-screen Visual Search sidebar states
+  const [showSplitSearch, setShowSplitSearch] = React.useState(false);
+  const [splitQuery, setSplitQuery] = React.useState("");
+  const [splitImages, setSplitImages] = React.useState<Array<{ url: string; thumb?: string; engine: string; title: string }>>([]);
+  const [isLoadingSplit, setIsLoadingSplit] = React.useState(false);
+  const [activeSplitTab, setActiveSplitTab] = React.useState("IMAGES");
+
   // Styling outlines states
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [theme, setTheme] = React.useState(themes[1].className);
@@ -630,7 +637,30 @@ export function PresentationForm() {
     };
   }, [presentation]);
 
+  const handleSearchSplit = async (queryText: string) => {
+    if (!queryText) return;
+    setIsLoadingSplit(true);
+    try {
+      const response = await fetch(`/api/image-picker?query=${encodeURIComponent(queryText)}&count=12`);
+      const data = await response.json();
+      if (data.success && data.images) {
+        setSplitImages(data.images);
+      } else {
+        setSplitImages([]);
+      }
+    } catch (err) {
+      console.error("Split search failed:", err);
+      setSplitImages([]);
+    }
+    setIsLoadingSplit(false);
+  };
+
   const handleShowImage = async (text: string) => {
+    if (showSplitSearch) {
+      setSplitQuery(text);
+      handleSearchSplit(text);
+      return;
+    }
     setIsLoadingImage(true);
     setSearchImage(null);
     setSearchImageEngine(null);
@@ -1188,7 +1218,7 @@ export function PresentationForm() {
                   <Button 
                     onClick={handleSaveToDb} 
                     disabled={isSavingDb} 
-                    className="h-9 px-4 text-xs font-extrabold rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg"
+                    className="h-9 px-4 text-xs font-extrabold rounded-lg bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg"
                   >
                     {isSavingDb ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
                     {activeDbId ? "Save Outline Changes" : "Save to Outline Library"}
@@ -1196,289 +1226,446 @@ export function PresentationForm() {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* 3. Sliding Carousel Render */}
             <div
               ref={presentationContainerRef}
               className={cn(
-                  'relative h-[480px] w-full mt-4 select-text', 
-                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 rounded-none'
+                  'relative h-[480px] w-full mt-4 select-text overflow-hidden bg-slate-950 rounded-3xl border border-slate-800', 
+                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 rounded-none bg-slate-950',
+                  showSplitSearch && 'flex flex-row'
               )}
-              onClick={(isFullscreen || isEditMode) ? undefined : handleRevealNextWord}
+              onClick={(isFullscreen || isEditMode || showSplitSearch) ? undefined : handleRevealNextWord}
             >
-              {isFullscreen && (
-                <>
-                  <Button
-                    onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
-                    variant="secondary"
-                    className="absolute top-4 right-4 z-20 h-auto p-2 gap-1.5 bg-black/20 text-white/80 hover:bg-black/30 hover:text-white"
-                  >
-                    <Minimize className="h-4 w-4" />
-                    <span className="text-xs">Exit</span>
-                  </Button>
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/30 text-white/80 px-3 py-1 text-sm font-mono">
-                    {current} / {count}
-                  </div>
-                </>
-              )}
-              
-              <Carousel setApi={setApi} className="w-full h-full">
-                <CarouselContent className="h-full">
-                  {(isEditMode ? editableSlides : presentation.slides).map((slide, index) => (
-                    <CarouselItem key={index} className="h-full">
-                      <div 
-                        className={cn(
-                          "w-full h-full flex transition-all duration-500",
-                          theme, fontFamily
-                        )}
-                        onClick={(isFullscreen || isEditMode) ? undefined : handleRevealNextWord}
-                      >
-                        <div className={cn(
-                          "w-full overflow-y-auto",
-                          !isFullscreen && "flex flex-col justify-center p-8 md:p-12",
-                          isFullscreen && "py-24 px-8 md:px-16 lg:px-24"
-                        )}>
-                          <div className={cn("max-w-4xl w-full mx-auto animate-in fade-in duration-700", align === 'center' ? 'text-center' : 'text-left')}>
-                            {/* Slide Title field */}
-                            {isEditMode ? (
-                              <div className="space-y-1 mb-4 text-left">
-                                <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Slide Title</Label>
-                                <Input 
-                                  value={slide.title} 
-                                  onChange={(e) => {
-                                    const updated = [...editableSlides];
-                                    updated[index].title = e.target.value;
-                                    setEditableSlides(updated);
-                                  }}
-                                  className="bg-slate-950/80 border-slate-800 text-white font-bold h-9 animate-pulse"
-                                />
-                              </div>
-                            ) : (
-                              <h2 className={cn("font-bold transition-all duration-300",
-                                !isFullscreen ? `mb-6 ${fontSize.titleClassName}` : `mb-8 lg:mb-16 ${fontSize.fullScreenTitleClassName}`
-                              )}>
-                                {slide.title}
-                              </h2>
-                            )}
+              {/* Left Side: Slide Carousel & Overlays */}
+              <div className={cn(
+                "h-full flex flex-col justify-between relative",
+                showSplitSearch ? "flex-1 overflow-hidden" : "w-full"
+              )}>
+                {isFullscreen && (
+                  <>
+                    <Button
+                      onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
+                      variant="secondary"
+                      className="absolute top-4 right-4 z-20 h-auto p-2 gap-1.5 bg-black/20 text-white/80 hover:bg-black/30 hover:text-white"
+                    >
+                      <Minimize className="h-4 w-4" />
+                      <span className="text-xs">Exit</span>
+                    </Button>
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/30 text-white/80 px-3 py-1 text-sm font-mono">
+                      {current} / {count}
+                    </div>
+                  </>
+                )}
+                
+                <Carousel setApi={setApi} className="w-full h-full">
+                  <CarouselContent className="h-full">
+                    {(isEditMode ? editableSlides : presentation.slides).map((slide, index) => (
+                      <CarouselItem key={index} className="h-full">
+                        <div 
+                          className={cn(
+                            "w-full h-full flex transition-all duration-500",
+                            theme, fontFamily
+                          )}
+                          onClick={(isFullscreen || isEditMode) ? undefined : handleRevealNextWord}
+                        >
+                          <div className={cn(
+                            "w-full overflow-y-auto",
+                            !isFullscreen && "flex flex-col justify-center p-8 md:p-12",
+                            isFullscreen && "py-24 px-8 md:px-16 lg:px-24"
+                          )}>
+                            <div className={cn("max-w-4xl w-full mx-auto animate-in fade-in duration-700", align === 'center' ? 'text-center' : 'text-left')}>
+                              {/* Slide Title field */}
+                              {isEditMode ? (
+                                <div className="space-y-1 mb-4 text-left">
+                                  <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Slide Title</Label>
+                                  <Input 
+                                    value={slide.title} 
+                                    onChange={(e) => {
+                                      const updated = [...editableSlides];
+                                      updated[index].title = e.target.value;
+                                      setEditableSlides(updated);
+                                    }}
+                                    className="bg-slate-950/80 border-slate-800 text-white font-bold h-9 animate-pulse"
+                                  />
+                                </div>
+                              ) : (
+                                <h2 className={cn("font-bold transition-all duration-300",
+                                  !isFullscreen ? `mb-6 ${fontSize.titleClassName}` : `mb-8 lg:mb-16 ${fontSize.fullScreenTitleClassName}`
+                                )}>
+                                  {slide.title}
+                                </h2>
+                              )}
 
-                            {/* Slide Bullet points */}
-                            {isEditMode ? (
-                              <div className="space-y-3 mt-4 text-left">
-                                <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Bullet Outline points</Label>
-                                {slide.content.map((point, ptIdx) => (
-                                  <div key={ptIdx} className="flex gap-1.5 items-start">
-                                    <Input 
-                                      value={point}
-                                      onChange={(e) => {
-                                        const updated = [...editableSlides];
-                                        updated[index].content[ptIdx] = e.target.value;
-                                        setEditableSlides(updated);
-                                      }}
-                                      className="bg-slate-950/80 border-slate-800 text-white text-xs h-9 animate-pulse"
-                                    />
-                                    <Button 
-                                      size="icon" 
-                                      variant="ghost" 
-                                      onClick={() => {
-                                        const updated = [...editableSlides];
-                                        updated[index].content.splice(ptIdx, 1);
-                                        setEditableSlides(updated);
-                                      }}
-                                      className="h-9 w-9 text-slate-500 hover:text-red-400 shrink-0"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ))}
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  onClick={() => {
-                                    const updated = [...editableSlides];
-                                    updated[index].content.push("New slide point outline statement.");
-                                    setEditableSlides(updated);
-                                  }}
-                                  className="h-8 text-xs font-bold text-slate-400 hover:text-white"
-                                >
-                                  <Plus className="mr-1.5 h-3.5 w-3.5" /> Add slide point
-                                </Button>
-                              </div>
-                            ) : (
-                              <ul className={cn("pl-8 mx-auto transition-all duration-300",
-                                align === 'center' ? 'list-none pl-0' : 'list-disc pl-8',
-                                !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-6 lg:space-y-8 ${fontSize.fullScreenClassName}`
-                              )}>
-                                {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0)}
-                              </ul>
-                            )}
+                              {/* Slide Bullet points */}
+                              {isEditMode ? (
+                                <div className="space-y-3 mt-4 text-left">
+                                  <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Bullet Outline points</Label>
+                                  {slide.content.map((point, ptIdx) => (
+                                    <div key={ptIdx} className="flex gap-1.5 items-start">
+                                      <Input 
+                                        value={point}
+                                        onChange={(e) => {
+                                          const updated = [...editableSlides];
+                                          updated[index].content[ptIdx] = e.target.value;
+                                          setEditableSlides(updated);
+                                        }}
+                                        className="bg-slate-950/80 border-slate-800 text-white text-xs h-9 animate-pulse"
+                                      />
+                                      <Button 
+                                        size="icon" 
+                                        variant="ghost" 
+                                        onClick={() => {
+                                          const updated = [...editableSlides];
+                                          updated[index].content.splice(ptIdx, 1);
+                                          setEditableSlides(updated);
+                                        }}
+                                        className="h-9 w-9 text-slate-500 hover:text-red-400 shrink-0"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    onClick={() => {
+                                      const updated = [...editableSlides];
+                                      updated[index].content.push("New slide point outline statement.");
+                                      setEditableSlides(updated);
+                                    }}
+                                    className="h-8 text-xs font-bold text-slate-400 hover:text-white"
+                                  >
+                                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Add slide point
+                                  </Button>
+                                </div>
+                              ) : (
+                                <ul className={cn("pl-8 mx-auto transition-all duration-300",
+                                  align === 'center' ? 'list-none pl-0' : 'list-disc pl-8',
+                                  !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-6 lg:space-y-8 ${fontSize.fullScreenClassName}`
+                                )}>
+                                  {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0)}
+                                </ul>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className={cn(
-                  "absolute z-10",
-                  !isFullscreen ? "left-4 top-1/2 -translate-y-1/2 bg-slate-950 border border-slate-800 text-white hover:bg-slate-900" : "left-4 bottom-4 bg-black/20 text-white hover:bg-black/40"
-                )} />
-                <CarouselNext className={cn(
-                  "absolute z-10",
-                  !isFullscreen ? "right-4 top-1/2 -translate-y-1/2 bg-slate-950 border border-slate-800 text-white hover:bg-slate-900" : "right-4 bottom-4 bg-black/20 text-white hover:bg-black/40"
-                )} />
-              </Carousel>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className={cn(
+                    "absolute z-10",
+                    !isFullscreen ? "left-4 top-1/2 -translate-y-1/2 bg-slate-950 border border-slate-800 text-white hover:bg-slate-900" : "left-4 bottom-4 bg-black/20 text-white hover:bg-black/40"
+                  )} />
+                  <CarouselNext className={cn(
+                    "absolute z-10",
+                    !isFullscreen ? "right-4 top-1/2 -translate-y-1/2 bg-slate-950 border border-slate-800 text-white hover:bg-slate-900" : "right-4 bottom-4 bg-black/20 text-white hover:bg-black/40"
+                  )} />
+                </Carousel>
 
-              {/* Highlighted text visual search option button */}
-              {showPill && (
-                <div 
-                  className={cn(
-                    "absolute z-30 transition-all duration-200 select-none animate-in fade-in zoom-in-95",
-                    "fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-auto"
-                  )}
-                  style={typeof window !== 'undefined' && window.innerWidth >= 768 && selectionCoords ? {
-                    left: `${selectionCoords.x}px`,
-                    top: `${selectionCoords.y}px`,
-                    transform: 'translateX(-50%)',
-                  } : undefined}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleShowImage(selectionText);
-                    }}
-                    className="px-4 py-2 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full shadow-[0_4px_20px_rgba(99,102,241,0.4)] border border-purple-400/30 flex items-center gap-1.5 backdrop-blur-md transition-all active:scale-95"
-                  >
-                    <Search className="h-3 w-3 animate-pulse" /> Show Image for "{selectionText}"
-                  </button>
-                </div>
-              )}
-
-              {/* Floating glassmorphic image search modal */}
-              {showImageModal && (
-                <div 
-                  className="absolute inset-0 z-40 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300 select-none"
-                  onClick={() => setShowImageModal(false)}
-                >
+                {/* Highlighted text visual search option button */}
+                {showPill && (
                   <div 
                     className={cn(
-                      "relative bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-[0_20px_50px_rgba(99,102,241,0.3)] animate-in zoom-in-95 duration-300 text-center space-y-4 backdrop-blur-md",
-                      isFullscreen && pickerImages.length > 0 ? "w-full max-w-3xl max-h-[80vh]" : "w-full max-w-sm"
+                      "absolute z-30 transition-all duration-200 select-none animate-in fade-in zoom-in-95",
+                      "fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-auto"
                     )}
-                    onClick={(e) => e.stopPropagation()}
+                    style={typeof window !== 'undefined' && window.innerWidth >= 768 && selectionCoords ? {
+                      left: `${selectionCoords.x}px`,
+                      top: `${selectionCoords.y}px`,
+                      transform: 'translateX(-50%)',
+                    } : undefined}
                   >
-                    <div className="flex justify-between items-center pb-2 border-b border-slate-850">
-                      <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest">
-                        {isFullscreen && pickerImages.length > 0 ? "Image Picker" : "Visual Search"}
-                      </h4>
-                      <button 
-                        onClick={() => setShowImageModal(false)}
-                        className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowImage(selectionText);
+                      }}
+                      className="px-4 py-2 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full shadow-[0_4px_20px_rgba(99,102,241,0.4)] border border-purple-400/30 flex items-center gap-1.5 backdrop-blur-md transition-all active:scale-95"
+                    >
+                      <Search className="h-3 w-3 animate-pulse" /> Show Image for "{selectionText}"
+                    </button>
+                  </div>
+                )}
 
-                    <div className={cn(
-                      "relative rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800 p-4",
-                      isFullscreen && pickerImages.length > 0 ? "min-h-[400px] w-full" : "aspect-square w-full"
-                    )}>
-                      {isLoadingImage || isLoadingPicker ? (
-                        <div className="flex flex-col items-center gap-3">
-                          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">Searching Libraries...</p>
-                        </div>
-                      ) : searchImage ? (
-                        <img 
-                          src={searchImage} 
-                          alt={selectionText} 
-                          className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
-                          onError={() => {
-                            setSearchImage(null);
-                            setImageSearchError(`The image for "${selectionText}" failed to load from the remote library.`);
-                          }}
-                        />
-                      ) : imageSearchError ? (
-                        (() => {
-                          const fallbackEmoji = getEmojiFallback(selectionText);
-                          // Show image picker in fullscreen mode when no emoji fallback and picker has images
-                          if (isFullscreen && !fallbackEmoji && pickerImages.length > 0) {
+                {/* Floating glassmorphic image search modal */}
+                {showImageModal && (
+                  <div 
+                    className="absolute inset-0 z-40 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300 select-none"
+                    onClick={() => setShowImageModal(false)}
+                  >
+                    <div 
+                      className={cn(
+                        "relative bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-[0_20px_50px_rgba(99,102,241,0.3)] animate-in zoom-in-95 duration-300 text-center space-y-4 backdrop-blur-md",
+                        isFullscreen && pickerImages.length > 0 ? "w-full max-w-3xl max-h-[80vh]" : "w-full max-w-sm"
+                      )}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex justify-between items-center pb-2 border-b border-slate-850">
+                        <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest">
+                          {isFullscreen && pickerImages.length > 0 ? "Image Picker" : "Visual Search"}
+                        </h4>
+                        <button 
+                          onClick={() => setShowImageModal(false)}
+                          className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      <div className={cn(
+                        "relative rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800 p-4",
+                        isFullscreen && pickerImages.length > 0 ? "min-h-[400px] w-full" : "aspect-square w-full"
+                      )}>
+                        {isLoadingImage || isLoadingPicker ? (
+                          <div className="flex flex-col items-center gap-3">
+                            <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">Searching Libraries...</p>
+                          </div>
+                        ) : searchImage ? (
+                          <img 
+                            src={searchImage} 
+                            alt={selectionText} 
+                            className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
+                            onError={() => {
+                              setSearchImage(null);
+                              setImageSearchError(`The image for "${selectionText}" failed to load from the remote library.`);
+                            }}
+                          />
+                        ) : imageSearchError ? (
+                          (() => {
+                            const fallbackEmoji = getEmojiFallback(selectionText);
+                            // Show image picker in fullscreen mode when no emoji fallback and picker has images
+                            if (isFullscreen && !fallbackEmoji && pickerImages.length > 0) {
+                              return (
+                                <div className="flex flex-col items-center justify-center gap-3 w-full h-full">
+                                  {isLoadingPicker ? (
+                                    <>
+                                      <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Loading Images...</p>
+                                    </>
+                                  ) : (
+                                    <div className="grid grid-cols-2 gap-2 w-full h-full overflow-y-auto">
+                                      {pickerImages.map((img, idx) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => handlePickerImageSelect(img.url)}
+                                          className="relative aspect-square rounded-lg overflow-hidden border border-slate-700 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all group"
+                                        >
+                                          <img 
+                                            src={img.thumb || img.url} 
+                                            alt={img.title}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                          />
+                                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                            <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Select</span>
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            }
                             return (
-                              <div className="flex flex-col items-center justify-center gap-3 w-full h-full">
-                                {isLoadingPicker ? (
+                              <div className="flex flex-col items-center justify-center text-center p-4 space-y-4 w-full">
+                                {fallbackEmoji ? (
                                   <>
-                                    <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Loading Images...</p>
+                                    <span className="text-7xl filter drop-shadow-[0_10px_20px_rgba(168,85,247,0.5)] animate-bounce select-none">
+                                      {fallbackEmoji}
+                                    </span>
+                                    <div className="space-y-1">
+                                      <p className="text-[11px] text-purple-300 font-extrabold uppercase tracking-widest">Emoji Fallback Loaded</p>
+                                      <p className="text-[10px] text-slate-400 leading-normal font-medium">{imageSearchError}</p>
+                                    </div>
                                   </>
                                 ) : (
-                                  <div className="grid grid-cols-2 gap-2 w-full h-full overflow-y-auto">
-                                    {pickerImages.map((img, idx) => (
-                                      <button
-                                        key={idx}
-                                        onClick={() => handlePickerImageSelect(img.url)}
-                                        className="relative aspect-square rounded-lg overflow-hidden border border-slate-700 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all group"
-                                      >
-                                        <img 
-                                          src={img.thumb || img.url} 
-                                          alt={img.title}
-                                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                        />
-                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                          <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Select</span>
-                                        </div>
-                                      </button>
-                                    ))}\n                                  </div>
+                                  <>
+                                    <span className="text-5xl select-none">⚠️</span>
+                                    <div className="space-y-1">
+                                      <p className="text-[11px] text-rose-400 font-extrabold uppercase tracking-widest">No Visual Found</p>
+                                      {isFullscreen && !pickerImages.length ? (
+                                        <p className="text-[10px] text-slate-400 leading-normal font-medium">Searching for images...</p>
+                                      ) : (
+                                        <p className="text-[10px] text-slate-400 leading-normal font-medium">{imageSearchError} No matching emoji fallback available.</p>
+                                      )}
+                                    </div>
+                                  </>
                                 )}
                               </div>
                             );
-                          }
-                          return (
-                            <div className="flex flex-col items-center justify-center text-center p-4 space-y-4 w-full">
-                              {fallbackEmoji ? (
-                                <>
-                                  <span className="text-7xl filter drop-shadow-[0_10px_20px_rgba(168,85,247,0.5)] animate-bounce select-none">
-                                    {fallbackEmoji}
-                                  </span>
-                                  <div className="space-y-1">
-                                    <p className="text-[11px] text-purple-300 font-extrabold uppercase tracking-widest">Emoji Fallback Loaded</p>
-                                    <p className="text-[10px] text-slate-400 leading-normal font-medium">{imageSearchError}</p>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="text-5xl select-none">⚠️</span>
-                                  <div className="space-y-1">
-                                    <p className="text-[11px] text-rose-400 font-extrabold uppercase tracking-widest">No Visual Found</p>
-                                    {isFullscreen && !pickerImages.length ? (
-                                      <p className="text-[10px] text-slate-400 leading-normal font-medium">Searching for images...</p>
-                                    ) : (
-                                      <p className="text-[10px] text-slate-400 leading-normal font-medium">{imageSearchError} No matching emoji fallback available.</p>
-                                    )}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          );
-                        })()
-                      ) : (
-                        <p className="text-xs text-slate-500 italic">Ready to search</p>
-                      )}
-                    </div>
+                          })()
+                        ) : (
+                          <p className="text-xs text-slate-500 italic">Ready to search</p>
+                        )}
+                      </div>
 
-                    <div className="space-y-1">
-                      <p className="text-sm font-extrabold text-white">"{selectionText}"</p>
-                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider leading-normal">
-                        {searchImage
-                          ? searchImageEngine === 'user-selected'
-                            ? 'User selected from picker'
-                            : searchImageEngine === 'placeholder'
-                              ? 'Generated fallback image'
-                              : searchImageEngine === 'unsplash-featured'
-                                ? 'Unsplash featured fallback image'
-                                : 'Dynamically fetched from Unsplash or Wikipedia'
-                          : pickerImages.length > 0
-                            ? 'Select an image from Unsplash'
-                            : 'LingoLand Visual Search Engine'}
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm font-extrabold text-white">"{selectionText}"</p>
+                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider leading-normal">
+                          {searchImage
+                            ? searchImageEngine === 'user-selected'
+                              ? 'User selected from picker'
+                              : searchImageEngine === 'placeholder'
+                                ? 'Generated fallback image'
+                                : searchImageEngine === 'unsplash-featured'
+                                  ? 'Unsplash featured fallback image'
+                                  : 'Dynamically fetched from Unsplash or Wikipedia'
+                            : pickerImages.length > 0
+                              ? 'Select an image from Unsplash'
+                              : 'LingoLand Visual Search Engine'}
+                        </p>
+
+                        {/* Premium Split Search button inside Modal */}
+                        {(searchImageEngine === 'placeholder' || imageSearchError || !searchImage) && (
+                          <div className="pt-2.5 border-t border-slate-850 mt-2">
+                            <Button 
+                              onClick={() => {
+                                setShowImageModal(false);
+                                setShowSplitSearch(true);
+                                setSplitQuery(selectionText);
+                                handleSearchSplit(selectionText);
+                              }}
+                              className="w-full bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10 text-xs"
+                            >
+                              <Search className="h-3.5 w-3.5 animate-pulse" />
+                              Search External Web Library (Split Screen)
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Side: Split Screen Visual Search Sidebar */}
+              {showSplitSearch && (
+                <div 
+                  className="w-80 md:w-96 h-full border-l border-slate-800 bg-slate-900/95 p-5 flex flex-col shrink-0 select-none z-40 text-left animate-in slide-in-from-right duration-300"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Header */}
+                  <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+                    <div className="flex items-center gap-1.5">
+                      <Search className="h-4.5 w-4.5 text-purple-400 animate-pulse" />
+                      <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest">
+                        Visual Search
+                      </h3>
+                    </div>
+                    <button 
+                      onClick={() => setShowSplitSearch(false)}
+                      className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
+                      title="Close Split Search"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Search Input Box */}
+                  <div className="relative mt-4">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                    <Input 
+                      placeholder="Search web images..." 
+                      value={splitQuery}
+                      onChange={(e) => setSplitQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearchSplit(splitQuery)}
+                      className="h-10 pl-9 pr-9 text-xs bg-slate-950 border-slate-850 text-white rounded-xl placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                    />
+                    {splitQuery && (
+                      <button 
+                        onClick={() => {
+                          setSplitQuery("");
+                          setSplitImages([]);
+                        }}
+                        className="absolute right-3 top-3.5 text-slate-500 hover:text-white"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Edge-like Filters Tab Bar */}
+                  <div className="flex gap-2.5 border-b border-slate-850 mt-4 pb-2 overflow-x-auto text-[10px] font-black tracking-wider uppercase text-slate-400 select-none">
+                    {['ALL', 'SEARCH', 'IMAGES', 'VIDEOS'].map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveSplitTab(tab)}
+                        className={cn(
+                          "pb-1 border-b-2 px-1 transition-all",
+                          activeSplitTab === tab ? "border-purple-500 text-purple-400 font-extrabold" : "border-transparent text-slate-500 hover:text-slate-300"
+                        )}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Scrollable grid container */}
+                  <div className="flex-1 overflow-y-auto mt-4 pr-1 space-y-3">
+                    {activeSplitTab !== 'IMAGES' ? (
+                      <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 h-full text-slate-500">
+                        <FileCode className="h-8 w-8 text-slate-600" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider">Redirected to Images</p>
+                        <p className="text-[9px] leading-normal font-medium max-w-[200px]">Search results for "{activeSplitTab}" are currently channeled to IMAGES for direct slide usage.</p>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => setActiveSplitTab('IMAGES')}
+                          className="text-[10px] text-purple-400 hover:text-white mt-1 font-bold"
+                        >
+                          Switch to Images
+                        </Button>
+                      </div>
+                    ) : isLoadingSplit ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {Array.from({ length: 6 }).map((_, idx) => (
+                          <div key={idx} className="relative aspect-[3/4] w-full rounded-xl bg-slate-950 border border-slate-850 animate-pulse flex items-center justify-center">
+                            <Loader2 className="h-5 w-5 animate-spin text-slate-800" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : splitImages.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {splitImages.map((img, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => {
+                              setSearchImage(img.url);
+                              setSearchImageEngine('user-selected');
+                              setShowImageModal(true);
+                            }}
+                            className="relative aspect-[3/4] w-full rounded-xl overflow-hidden border border-slate-850 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all group bg-slate-950"
+                          >
+                            <img 
+                              src={img.thumb || img.url} 
+                              alt={img.title} 
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-center justify-center p-2 text-center">
+                              <span className="text-[9px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider">Select</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 h-full text-slate-500">
+                        <span className="text-3xl">🔍</span>
+                        <p className="text-xs font-bold text-slate-400">No images found</p>
+                        {splitQuery ? (
+                          <p className="text-[10px] leading-normal font-medium">No results for "{splitQuery}" in the web libraries.</p>
+                        ) : (
+                          <p className="text-[10px] leading-normal font-medium">Type a word in the box above to search external photo libraries.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="pt-3 border-t border-slate-850 mt-4 text-center">
+                    <p className="text-[8px] text-slate-500 font-extrabold uppercase tracking-widest">
+                      LingoLand Visual Search Engine
+                    </p>
                   </div>
                 </div>
               )}
