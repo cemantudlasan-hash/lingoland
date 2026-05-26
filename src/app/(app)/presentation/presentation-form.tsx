@@ -46,7 +46,9 @@ import {
   FileCode,
   FolderSymlink,
   Plus,
-  Globe
+  Globe,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -245,6 +247,42 @@ export function PresentationForm() {
   const [isLoadingSplit, setIsLoadingSplit] = React.useState(false);
   const [activeSplitTab, setActiveSplitTab] = React.useState("IMAGES");
   const [activeSplitSource, setActiveSplitSource] = React.useState<string>("unsplash");
+
+  // Presentation Cover & Reveal states
+  const [coveredTexts, setCoveredTexts] = React.useState<{ [slideIndex: number]: string[] }>({});
+  const [revealedTexts, setRevealedTexts] = React.useState<{ [slideIndex: number]: string[] }>({});
+
+  const toggleRevealText = (slideIdx: number, text: string) => {
+    const lowerText = text.toLowerCase();
+    setRevealedTexts(prev => {
+      const list = prev[slideIdx] || [];
+      if (list.includes(lowerText)) {
+        return { ...prev, [slideIdx]: list.filter(t => t !== lowerText) };
+      } else {
+        return { ...prev, [slideIdx]: [...list, lowerText] };
+      }
+    });
+  };
+
+  const handleCoverText = (text: string) => {
+    const slideIdx = api?.selectedScrollSnap() || 0;
+    const lowerText = text.toLowerCase();
+    
+    setCoveredTexts(prev => {
+      const list = prev[slideIdx] || [];
+      if (!list.includes(lowerText)) {
+        return { ...prev, [slideIdx]: [...list, lowerText] };
+      }
+      return prev;
+    });
+    
+    setShowPill(false);
+    
+    toast({
+      title: "Cover Effect Applied 🫣",
+      description: `"${text}" is now covered on Slide ${slideIdx + 1}. Click to reveal!`
+    });
+  };
 
   // Styling outlines states
   const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -882,8 +920,49 @@ export function PresentationForm() {
     form.reset();
   };
 
+  // Cover and reveal word utility
+  const renderTextWithCoverAndReveal = (text: string, slideIdx: number) => {
+    const slideCovered = coveredTexts[slideIdx] || [];
+    if (slideCovered.length === 0) return text;
+
+    const sortedCovered = [...slideCovered].sort((a, b) => b.length - a.length);
+    const escapeRegex = (s: string) => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regexParts = sortedCovered.map(c => `(${escapeRegex(c)})`);
+    const regex = new RegExp(regexParts.join('|'), 'gi');
+
+    const parts = text.split(regex);
+    
+    return parts.map((part, idx) => {
+      if (!part) return null;
+      
+      const isMatched = sortedCovered.some(c => c.toLowerCase() === part.toLowerCase());
+      if (isMatched) {
+        const isRevealed = (revealedTexts[slideIdx] || []).includes(part.toLowerCase());
+        return (
+          <span
+            key={idx}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleRevealText(slideIdx, part.toLowerCase());
+            }}
+            className={cn(
+              "mx-1 cursor-pointer transition-all duration-300 font-bold px-1.5 py-0.5 rounded-lg border inline-flex items-center",
+              isRevealed
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)] animate-in fade-in duration-300"
+                : "bg-purple-950/80 text-transparent select-none border-purple-500/40 backdrop-blur-md shadow-inner filter blur-[3.5px] hover:blur-none hover:bg-purple-900/80 hover:border-purple-400/50"
+            )}
+            title={isRevealed ? "Click to Cover" : "Click to Reveal"}
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   // Slide content render helper
-  const renderAnimatedContent = (content: string[], visibleCount: number) => {
+  const renderAnimatedContent = (content: string[], visibleCount: number, slideIdx: number) => {
     let wordCounter = 0;
     return content
       .map((point, pointIndex) => {
@@ -896,7 +975,12 @@ export function PresentationForm() {
           }
         }
         if (visibleWords.length > 0) {
-          return <li key={pointIndex}>{visibleWords.join(' ')}</li>;
+          const joinedText = visibleWords.join(' ');
+          return (
+            <li key={pointIndex}>
+              {renderTextWithCoverAndReveal(joinedText, slideIdx)}
+            </li>
+          );
         }
         return null;
       })
@@ -1141,6 +1225,22 @@ export function PresentationForm() {
                       <Download className="mr-1.5 h-3.5 w-3.5" />
                       Download HTML
                     </Button>
+                    <Button 
+                      onClick={() => {
+                        const idx = api?.selectedScrollSnap() || 0;
+                        setCoveredTexts(prev => ({ ...prev, [idx]: [] }));
+                        setRevealedTexts(prev => ({ ...prev, [idx]: [] }));
+                        toast({
+                          title: "Covers Cleared 👁️",
+                          description: `All covered words on Slide ${idx + 1} have been reset.`
+                        });
+                      }}
+                      variant="outline" 
+                      className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
+                    >
+                      <Eye className="mr-1.5 h-3.5 w-3.5 text-purple-400" />
+                      Clear Covers
+                    </Button>
                     <Button onClick={handleFullScreen} variant="outline" className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white">
                       <Maximize className="mr-1.5 h-3.5 w-3.5" />
                       Fullscreen
@@ -1255,6 +1355,23 @@ export function PresentationForm() {
                 {isFullscreen && (
                   <>
                     <Button
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        const idx = api?.selectedScrollSnap() || 0;
+                        setCoveredTexts(prev => ({ ...prev, [idx]: [] }));
+                        setRevealedTexts(prev => ({ ...prev, [idx]: [] }));
+                        toast({
+                          title: "Covers Cleared 👁️",
+                          description: `All covered words on Slide ${idx + 1} have been reset.`
+                        });
+                      }}
+                      variant="secondary"
+                      className="absolute top-4 right-24 z-20 h-auto p-2 gap-1.5 bg-black/20 text-white/80 hover:bg-black/30 hover:text-white"
+                    >
+                      <Eye className="h-4 w-4 text-purple-400" />
+                      <span className="text-xs">Clear Covers</span>
+                    </Button>
+                    <Button
                       onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
                       variant="secondary"
                       className="absolute top-4 right-4 z-20 h-auto p-2 gap-1.5 bg-black/20 text-white/80 hover:bg-black/30 hover:text-white"
@@ -1354,7 +1471,7 @@ export function PresentationForm() {
                                   align === 'center' ? 'list-none pl-0' : 'list-disc pl-8',
                                   !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-6 lg:space-y-8 ${fontSize.fullScreenClassName}`
                                 )}>
-                                  {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0)}
+                                  {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
                                 </ul>
                               )}
                             </div>
@@ -1377,7 +1494,7 @@ export function PresentationForm() {
                 {showPill && (
                   <div 
                     className={cn(
-                      "absolute z-30 transition-all duration-200 select-none animate-in fade-in zoom-in-95",
+                      "absolute z-30 transition-all duration-200 select-none animate-in fade-in zoom-in-95 flex items-center gap-1 bg-slate-900/90 border border-slate-700/80 p-1.5 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.3)] backdrop-blur-md",
                       "fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-auto"
                     )}
                     style={typeof window !== 'undefined' && window.innerWidth >= 768 && selectionCoords ? {
@@ -1385,15 +1502,25 @@ export function PresentationForm() {
                       top: `${selectionCoords.y}px`,
                       transform: 'translateX(-50%)',
                     } : undefined}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleShowImage(selectionText);
                       }}
-                      className="px-4 py-2 text-xs font-black uppercase tracking-widest bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full shadow-[0_4px_20px_rgba(99,102,241,0.4)] border border-purple-400/30 flex items-center gap-1.5 backdrop-blur-md transition-all active:scale-95"
+                      className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full flex items-center gap-1 transition-all active:scale-95 shrink-0"
                     >
-                      <Search className="h-3 w-3 animate-pulse" /> Show Image for "{selectionText}"
+                      <Search className="h-3 w-3" /> Show Image
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCoverText(selectionText);
+                      }}
+                      className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-slate-800 hover:bg-slate-750 text-slate-200 rounded-full flex items-center gap-1 transition-all active:scale-95 shrink-0 border border-slate-700"
+                    >
+                      <EyeOff className="h-3 w-3 text-purple-400" /> Cover Text
                     </button>
                   </div>
                 )}
