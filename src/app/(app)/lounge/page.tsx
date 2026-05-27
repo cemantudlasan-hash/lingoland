@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { collection, query, orderBy, onSnapshot, serverTimestamp, type FirestoreError, doc, writeBatch, setDoc, addDoc, deleteDoc, getDocs } from "firebase/firestore";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore, useMemoFirebase } from "@/firebase";
@@ -74,6 +75,7 @@ export default function LoungePage() {
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [localPinnedIds, setLocalPinnedIds] = useState<string[]>([]);
   const [showPinned, setShowPinned] = useState(true);
+  const [showPinnedDrawer, setShowPinnedDrawer] = useState(false);
   const [newSuggestion, setNewSuggestion] = useState("");
   const [editingSuggestion, setEditingSuggestion] = useState<Suggestion | null>(null);
   const [replyingTo, setReplyingTo] = useState<Suggestion | null>(null);
@@ -561,37 +563,128 @@ export default function LoungePage() {
     <div className="relative w-full h-full p-0 bg-transparent">
       <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col h-full">
         <Card className="w-full h-full flex flex-col overflow-hidden">
-          <CardHeader className="text-white bg-gradient-to-r from-purple-500 to-indigo-600 text-center flex-shrink-0">
+          <CardHeader className="text-white bg-gradient-to-r from-purple-500 to-indigo-600 text-center flex-shrink-0 relative">
             <CardTitle className="flex items-center justify-center gap-2 text-3xl">
               <MessageCircle />
               Community Lounge
             </CardTitle>
             <CardDescription className="text-gray-300 text-center">Share your suggestions, comments, and ideas with the community.</CardDescription>
-          </CardHeader>
-          <div className="flex-1 flex flex-col min-h-0">
             {pinnedSuggestions.length > 0 && !isGuest && (
-              <div className="px-6 py-2 border-b-2 border-primary/10 flex-shrink-0 z-10 bg-card/80 backdrop-blur-sm">
-                <div className="flex justify-between items-center cursor-pointer" onClick={() => setShowPinned(!showPinned)}>
-                  <h4 className="text-sm font-bold text-muted-foreground flex items-center gap-2"><Pin className="h-4 w-4 text-amber-500" /> Pinned Messages ({pinnedSuggestions.length})</h4>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground">
-                    {showPinned ? <ChevronUp className="h-4 w-4"/> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {showPinned && (
-                  <div className="flex gap-4 overflow-x-auto pb-2 pt-2">
-                    {pinnedSuggestions.map(suggestion => (
-                      <div key={suggestion.id} className="p-3 rounded-lg bg-muted/50 border border-amber-400/50 w-64 flex-shrink-0 cursor-pointer hover:bg-muted" onClick={() => scrollToMessage(suggestion.id)}>
-                        <p className="text-sm font-bold truncate">{suggestion.authorName}</p>
-                        <p className="text-sm text-muted-foreground truncate">{suggestion.text || "Sticker"}</p>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 float-right" onClick={(e) => { e.stopPropagation(); handlePinToggle(suggestion); }}>
-                          <PinOff className="h-3 w-3 text-amber-500"/>
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Button 
+                onClick={() => setShowPinnedDrawer(true)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-full px-4 py-2 font-black uppercase text-xs tracking-wider flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+              >
+                <Pin className="h-4.5 w-4.5 text-amber-400 animate-pulse" />
+                <span>Pins ({pinnedSuggestions.length})</span>
+              </Button>
             )}
+          </CardHeader>
+          <div className="flex-1 flex flex-col min-h-0 relative">
+            {/* Slide-out Pinned Messages Sidebar Drawer */}
+            <AnimatePresence>
+              {showPinnedDrawer && (
+                <>
+                  {/* Glassmorphic Backdrop overlay */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setShowPinnedDrawer(false)}
+                    className="absolute inset-0 bg-black/45 backdrop-blur-[2px] z-20"
+                  />
+                  
+                  {/* Glassmorphic Sidebar Drawer Panel */}
+                  <motion.div 
+                    initial={{ x: "100%", opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: "100%", opacity: 0 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="absolute right-0 top-0 bottom-0 w-80 sm:w-96 bg-zinc-950/95 border-l border-zinc-800/80 z-30 shadow-2xl flex flex-col backdrop-blur-md"
+                  >
+                    {/* Drawer Header */}
+                    <div className="p-4 border-b border-zinc-850 flex justify-between items-center bg-zinc-900/60 shrink-0">
+                      <div className="flex items-center gap-2">
+                        <Pin className="h-4.5 w-4.5 text-amber-400" />
+                        <h4 className="text-sm font-black text-slate-100 uppercase tracking-widest">
+                          Pinned Messages ({pinnedSuggestions.length})
+                        </h4>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-slate-400 hover:text-white rounded-xl"
+                        onClick={() => setShowPinnedDrawer(false)}
+                      >
+                        <X className="h-4.5 w-4.5" />
+                      </Button>
+                    </div>
+
+                    {/* Drawer Scrollable Content */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3.5 select-none">
+                      {pinnedSuggestions.map((suggestion) => {
+                        const authorProfile = allUsers.find(u => u.uid === suggestion.authorId);
+                        const isCurrentUser = user?.uid === suggestion.authorId;
+                        const isStickerOnly = suggestion.stickerUrl && !suggestion.text;
+
+                        return (
+                          <div 
+                            key={suggestion.id}
+                            className="p-3.5 rounded-2xl bg-zinc-900/40 border border-zinc-850 hover:border-amber-400/30 transition-all space-y-3 relative group text-left"
+                          >
+                            {/* Author info */}
+                            <div className="flex items-center gap-2.5">
+                              <Avatar className="h-8 w-8 border border-zinc-800">
+                                <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${authorProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} />
+                                <AvatarFallback className="text-[10px]">{getInitials(suggestion.authorName)}</AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-black text-slate-200 truncate leading-none">{suggestion.authorName}</p>
+                                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-1 tracking-wider">
+                                  {suggestion.createdAt ? formatDistanceToNow(new Date(suggestion.createdAt), { addSuffix: true }) : 'just now'}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Message text / sticker */}
+                            <div className="text-xs text-slate-300 break-words leading-relaxed pl-1">
+                              {suggestion.text && <p className="whitespace-pre-line">{renderMessageText(suggestion.text)}</p>}
+                              {suggestion.stickerUrl && (
+                                <div className="mt-2.5 max-w-[100px] aspect-square rounded-xl overflow-hidden bg-zinc-950 p-1 flex items-center justify-center">
+                                  <Image unoptimized src={suggestion.stickerUrl} alt="sticker" width={80} height={80} className="object-contain" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Actions block */}
+                            <div className="flex gap-2 justify-end pt-2 border-t border-zinc-900/60">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  scrollToMessage(suggestion.id);
+                                  setShowPinnedDrawer(false);
+                                }}
+                                className="h-7 text-[10px] font-bold border-zinc-850 bg-zinc-950 text-slate-350 hover:bg-zinc-800 hover:text-white rounded-lg flex-1"
+                              >
+                                View in Chat
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handlePinToggle(suggestion)}
+                                className="h-7 text-[10px] font-extrabold uppercase tracking-wider text-rose-450 hover:bg-rose-500/10 hover:text-rose-350 rounded-lg flex-1"
+                              >
+                                Unpin
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
             <CardContent className="flex-1 overflow-y-auto p-3 sm:p-6">
               {renderContent()}
             </CardContent>

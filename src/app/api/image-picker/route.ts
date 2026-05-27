@@ -124,6 +124,63 @@ const fetchBingWebSearch = async (query: string, count: number = 5) => {
 
 const fetchYouTubeVideos = async (query: string, count: number = 6) => {
   try {
+    // 1. Try Direct YouTube Search Scrape first
+    const ytResponse = await fetch(
+      `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        }
+      }
+    );
+    
+    if (ytResponse.ok) {
+      const html = await ytResponse.text();
+      const match = html.match(/var ytInitialData = ({[\s\S]*?});<\/script>/) ||
+                    html.match(/window\["ytInitialData"\] = ({[\s\S]*?});<\/script>/) ||
+                    html.match(/ytInitialData\s*=\s*({[\s\S]*?});/);
+      if (match) {
+        const data = JSON.parse(match[1]);
+        const contents = data.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents;
+        if (contents) {
+          const itemSection = contents.find((c: any) => c.itemSectionRenderer);
+          const videoItems = itemSection?.itemSectionRenderer?.contents || [];
+          const videos: any[] = [];
+          
+          for (const item of videoItems) {
+            if (item.videoRenderer && videos.length < count) {
+              const vr = item.videoRenderer;
+              const videoId = vr.videoId;
+              const title = vr.title?.runs?.[0]?.text || `${query} Video`;
+              const duration = vr.lengthText?.simpleText || 'Unknown';
+              const channel = vr.ownerText?.runs?.[0]?.text || vr.shortBylineText?.runs?.[0]?.text || 'YouTube Channel';
+              const views = vr.viewCountText?.simpleText || '0 views';
+              const thumb = vr.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+              
+              videos.push({
+                title,
+                duration,
+                channel,
+                url: `https://www.youtube.com/watch?v=${videoId}`,
+                thumb,
+                embedUrl: `https://www.youtube.com/embed/${videoId}`,
+                views
+              });
+            }
+          }
+          if (videos.length > 0) {
+            return videos;
+          }
+        }
+      }
+    }
+  } catch (ytError) {
+    console.error("Direct YouTube scraping failed, trying Bing fallback:", ytError);
+  }
+
+  // 2. Fallback to Bing Videos Scraping
+  try {
     const response = await fetch(
       `https://www.bing.com/videos/search?q=${encodeURIComponent(query)}`,
       {

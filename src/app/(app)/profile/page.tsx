@@ -740,32 +740,44 @@ function ProfilePageComponent() {
         {/* Certificate Lightbox Viewer Popup */}
         {activeCert && (
           <div 
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 select-none animate-in fade-in duration-300"
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 select-none animate-in fade-in duration-300 print-cert-overlay"
             onClick={() => setActiveCert(null)}
           >
             {/* Custom Print Stylesheet injected dynamically */}
             <style dangerouslySetInnerHTML={{ __html: `
               @media print {
-                /* Hide everything by default */
-                body * {
+                /* Hide everything under body by default */
+                body > * {
                   visibility: hidden !important;
                 }
                 
-                /* Reveal only the certificate card container and its content */
-                .print-cert-modal, .print-cert-modal * {
+                /* Reveal only the certificate overlay and its contents */
+                .print-cert-overlay, .print-cert-overlay * {
                   visibility: visible !important;
+                }
+                
+                /* Reset overlay styling to isolate on a clean page during printing */
+                .print-cert-overlay {
+                  position: absolute !important;
+                  left: 0 !important;
+                  top: 0 !important;
+                  width: 100% !important;
+                  height: 100% !important;
+                  background: #ffffff !important;
+                  backdrop-filter: none !important;
+                  display: flex !important;
+                  align-items: center !important;
+                  justify-content: center !important;
+                  z-index: 99999 !important;
                 }
                 
                 /* Format the certificate card for a high-quality paper printout */
                 .print-cert-modal {
-                  position: absolute !important;
-                  left: 50% !important;
-                  top: 50% !important;
-                  transform: translate(-50%, -50%) !important;
+                  position: relative !important;
                   width: 90% !important;
                   max-width: 800px !important;
                   height: auto !important;
-                  margin: 0 !important;
+                  margin: auto !important;
                   padding: 4rem !important;
                   border: 6px double #d97706 !important; /* Elegant double Gold border */
                   border-radius: 16px !important;
@@ -773,6 +785,9 @@ function ProfilePageComponent() {
                   color: #1c1917 !important; /* Dark stone text */
                   box-shadow: none !important;
                   overflow: visible !important;
+                  transform: none !important;
+                  left: auto !important;
+                  top: auto !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                 }
