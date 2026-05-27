@@ -551,7 +551,6 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
                   {board.map((row, rowIndex) =>
                     row.map((cell, colIndex) => {
                       const isFree = cell.word === "FREE";
-                      const isCorrectAnswer = cell.word.toLowerCase() === definitions[currentDefinitionIndex].word.toLowerCase();
                       
                       return (
                         <Button
@@ -560,8 +559,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
                           className={cn(
                             "h-20 sm:h-24 w-full text-[10px] sm:text-xs md:text-sm font-black uppercase text-center break-words whitespace-normal shadow-lg transition-all rounded-2xl p-2",
                             isFree && "bg-gradient-to-br from-indigo-500 to-indigo-650 text-white border-none cursor-default shadow-indigo-500/10",
-                            cell.marked && !isFree && "bg-gradient-to-br from-emerald-500 to-emerald-650 border-none text-white scale-[0.96] cursor-default shadow-emerald-500/10",
-                            !cell.marked && showAnswer && isCorrectAnswer && "border-indigo-500/40 bg-indigo-500/5 text-indigo-200 animate-pulse border-2"
+                            cell.marked && !isFree && "bg-gradient-to-br from-emerald-500 to-emerald-650 border-none text-white scale-[0.96] cursor-default shadow-emerald-500/10"
                           )}
                           onClick={() => !isFree && markCell(rowIndex, colIndex)}
                           disabled={cell.marked}
