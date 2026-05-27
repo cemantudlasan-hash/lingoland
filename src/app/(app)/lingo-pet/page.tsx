@@ -687,7 +687,7 @@ export default function LingoPetPage() {
   const isSleeping = pet.energy === 0;
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col gap-6 p-2 md:p-6 text-slate-100 relative">
+    <div className="w-full max-w-full px-4 md:px-8 mx-auto flex flex-col gap-6 p-2 md:p-6 text-slate-100 relative">
       
       {/* Top Floating Coins Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">

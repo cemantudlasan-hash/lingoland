@@ -307,7 +307,7 @@ export default function ExamModePage() {
   return (
     <div 
       ref={containerRef} 
-      className={cn("max-w-6xl mx-auto space-y-8 w-full px-4 relative", isFullscreen && "bg-slate-950 p-8 w-screen h-screen overflow-y-auto")}
+      className={cn("max-w-full w-full px-4 md:px-8 space-y-8 relative", isFullscreen && "bg-slate-950 p-8 w-screen h-screen overflow-y-auto")}
       data-fullscreen-container={isFullscreen}
     >
       {/* Decorative background glow spheres */}
