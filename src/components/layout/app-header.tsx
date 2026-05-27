@@ -19,7 +19,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "../ui/badge";
 import { useFirestore, useMemoFirebase, useCollection } from "@/firebase";
-import { doc, onSnapshot, type FirestoreError, collection, query, writeBatch, orderBy, getDocs, setDoc } from "firebase/firestore";
+import { doc, onSnapshot, type FirestoreError, collection, query, writeBatch, orderBy, getDocs, setDoc, serverTimestamp } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { errorEmitter } from "@/firebase/error-emitter";
