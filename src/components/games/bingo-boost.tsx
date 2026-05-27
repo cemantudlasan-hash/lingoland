@@ -12,7 +12,7 @@ import {
 } from "../ui/card";
 import { Button } from "../ui/button";
 import { generateVocabExercise } from "@/ai/flows/generate-vocab-exercise";
-import { Loader2, Sparkles, Check, Repeat, Volume2, Star, Printer, Maximize, Minimize, Trophy } from "lucide-react";
+import { Loader2, Sparkles, Check, Repeat, Volume2, Star, Printer, Maximize, Minimize, Trophy, ArrowRight, BookOpen, Layers } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -33,6 +33,7 @@ type BingoCell = {
 const BINGO_SIZE = 5;
 const CLASSROOM_CARD_COUNT = 30;
 const CLASSROOM_WORD_POOL_SIZE = 50;
+const GAMEPLAY_WORD_POOL_SIZE = 50;
 
 // Fisher-Yates shuffle
 const shuffleArray = <T,>(array: T[]): T[] => {
@@ -50,7 +51,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
   const [board, setBoard] = React.useState<BingoCell[][]>([]);
   const [definitions, setDefinitions] = React.useState<WordDefinitionPair[]>([]);
   const [currentDefinitionIndex, setCurrentDefinitionIndex] = React.useState(0);
-  const [usedWords, setUsedWords] = React.useState<string[]>([]);
+  const [reviewList, setReviewList] = React.useState<WordDefinitionPair[]>([]);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [bingoLines, setBingoLines] = React.useState(0);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -70,18 +71,24 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
     setDifficulty(level);
     setGameState("loading");
     setBingoLines(0);
+    setReviewList([]);
     try {
-      const neededWords = BINGO_SIZE * BINGO_SIZE - 1; // -1 for free space
+      // Generate a rich vocabulary pool of 50 words
       const result = await generateVocabExercise({
         difficulty: level,
-        count: neededWords,
-        usedWords: usedWords,
+        count: GAMEPLAY_WORD_POOL_SIZE,
+        usedWords: [],
       });
 
-      const newWords = result.pairs.map(p => p.word);
-      setUsedWords(prev => [...prev, ...newWords]);
+      const allPairs = result.pairs;
+      if (!allPairs || allPairs.length < 24) {
+        throw new Error("Insufficient vocab words returned by AI");
+      }
 
-      const shuffledWords = shuffleArray(result.pairs.map(p => p.word));
+      // Populate 5x5 board with 24 random selections from this 50-word pool
+      const boardPairs = shuffleArray(allPairs).slice(0, 24);
+      const boardWords = boardPairs.map(p => p.word);
+
       const newBoard: BingoCell[][] = [];
       for (let i = 0; i < BINGO_SIZE; i++) {
         const row: BingoCell[] = [];
@@ -90,14 +97,16 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
           if (i === 2 && j === 2) {
             row.push({ word: "FREE", marked: true });
           } else {
-            const wordIndex = index > 12 ? index -1 : index;
-            row.push({ word: shuffledWords[wordIndex], marked: false });
+            const wordIndex = index > 12 ? index - 1 : index;
+            row.push({ word: boardWords[wordIndex], marked: false });
           }
         }
         newBoard.push(row);
       }
       setBoard(newBoard);
-      setDefinitions(shuffleArray(result.pairs));
+
+      // Shuffling the 50 definitions to call them randomely one by one
+      setDefinitions(shuffleArray(allPairs));
       setCurrentDefinitionIndex(0);
       setGameState("playing");
     } catch (error) {
@@ -233,7 +242,6 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
     }
   };
 
-
   const speakDefinition = async (text: string) => {
     if (isSpeaking) return;
     setIsSpeaking(true);
@@ -246,12 +254,14 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
       toast({ variant: "destructive", title: "Audio Error", description: "Could not play audio." });
       setIsSpeaking(false);
     }
-  }
+  };
 
   const markCell = (row: number, col: number) => {
     const cell = board[row][col];
-    if (cell.word !== definitions[currentDefinitionIndex].word) {
-      toast({ variant: "destructive", title: "Oops!", description: "That's not the right word." });
+    
+    // Validate matching the correct answer
+    if (cell.word.toLowerCase() !== definitions[currentDefinitionIndex].word.toLowerCase()) {
+      toast({ variant: "destructive", title: "Oops!", description: "That is not the correct word for the active question." });
       return;
     }
 
@@ -259,12 +269,11 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
     newBoard[row][col].marked = true;
     setBoard(newBoard);
     checkBingo(newBoard);
-    
-    if (currentDefinitionIndex < definitions.length - 1) {
-        setCurrentDefinitionIndex(prev => prev + 1);
-    } else {
-        setGameState("finished");
-    }
+    toast({
+      title: "Cell Marked!",
+      description: `"${cell.word}" marked on your board.`,
+      className: "bg-emerald-500 text-white border-none",
+    });
   };
 
   const checkBingo = (currentBoard: BingoCell[][]) => {
@@ -281,159 +290,350 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
     if (currentBoard.every((row, i) => row[i].marked)) lines++;
     if (currentBoard.every((row, i) => row[BINGO_SIZE - 1 - i].marked)) lines++;
     
-    if(lines > bingoLines) {
-        toast({ title: "BINGO!", description: `You've completed ${lines} line(s)!`, className: "bg-green-500 text-white" });
+    if (lines > bingoLines) {
+        toast({ title: "BINGO!", description: `Completed ${lines} line(s)! Click "BINGO!" below to declare victory!`, className: "bg-amber-500 text-slate-950 font-bold" });
     }
     setBingoLines(lines);
+  };
+
+  const handleNextWord = () => {
+    // Add current word to the review list
+    const currentPair = definitions[currentDefinitionIndex];
+    if (!reviewList.some(item => item.word.toLowerCase() === currentPair.word.toLowerCase())) {
+      setReviewList(prev => [currentPair, ...prev]);
+    }
+
+    if (currentDefinitionIndex < definitions.length - 1) {
+      setCurrentDefinitionIndex(prev => prev + 1);
+    } else {
+      toast({
+        title: "Drawn All Words",
+        description: "You have successfully finished drawing all words from the vocab bank.",
+      });
+    }
   };
   
   const resetGame = () => {
     setGameState("idle");
     setDifficulty(null);
-    setUsedWords([]);
-  }
+    setReviewList([]);
+  };
 
   const Icon = game.icon;
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full transition-all duration-500 flex flex-col relative overflow-hidden",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-2xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            ? "min-h-screen rounded-none border-none max-w-none bg-slate-950 justify-center p-8" 
+            : "max-w-5xl mx-auto bg-slate-900/40 backdrop-blur-md border border-slate-800 shadow-2xl rounded-3xl"
       )}>
-      <CardHeader className="text-center relative">
+      
+      {/* Decorative glows */}
+      <div className="absolute top-0 left-[20%] w-72 h-72 rounded-full blur-[120px] bg-purple-500/10 pointer-events-none -z-10" />
+      <div className="absolute bottom-0 right-[20%] w-72 h-72 rounded-full blur-[120px] bg-indigo-500/10 pointer-events-none -z-10" />
+
+      <CardHeader className="text-center relative border-b border-slate-850/60 pb-6">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+          className="absolute top-4 right-4 h-auto p-2 gap-1.5 text-slate-450 hover:text-white hover:bg-slate-800 rounded-xl z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
         </Button>
         {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
+            <div className="flex justify-center mb-2">
+                <Icon className="w-14 h-14 text-indigo-400 animate-pulse" />
             </div>
         )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+        <CardTitle className={cn("font-black tracking-tight text-white uppercase", isFullscreen ? "text-5xl" : "text-3xl")}>{game.title}</CardTitle>
+        <CardDescription className={cn("text-slate-400 text-sm mt-1", isFullscreen && "text-lg")}>{game.description}</CardDescription>
         {difficulty && (
             <div className="flex justify-center pt-2">
-                <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{difficulty.toUpperCase()}</Badge>
+                <Badge variant="outline" className={cn("bg-indigo-500/10 border-indigo-500/20 text-indigo-300 font-extrabold uppercase", isFullscreen && "text-base px-6 py-1")}>{difficulty}</Badge>
             </div>
         )}
       </CardHeader>
+
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[24rem] p-6"
+          "space-y-6 text-center flex flex-col items-center justify-center flex-grow p-6 md:p-8",
+          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[26rem]"
       )}>
         {gameState === "idle" && (
-            <div className="flex flex-col items-center gap-4">
-                <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Ready for a game of vocabulary bingo?</p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                        <Sparkles className={cn("mr-2", isFullscreen ? "h-10 w-10" : "h-5 w-5")} /> Start Solo Game
+            <div className="flex flex-col items-center gap-6 max-w-md py-6">
+                <p className={cn("text-slate-300 font-medium leading-relaxed", isFullscreen ? "text-2xl" : "text-base")}>
+                  Ready for a premium game of interactive vocabulary Bingo? Re-engineered with modern review sheets, dynamic word banks, and custom reward states.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                    <Button onClick={() => setGameState('instructions')} className={cn("bg-gradient-to-r from-purple-500 to-indigo-650 hover:from-purple-400 hover:to-indigo-550 text-white font-black shadow-xl rounded-xl h-12 px-6", isFullscreen && "h-16 px-12 text-xl rounded-2xl")}>
+                        <Sparkles className="mr-2 h-5 w-5" /> Start Solo Game
                     </Button>
-                     <Button onClick={() => setGameState('selecting_print_difficulty')} size={isFullscreen ? "lg" : "default"} variant="secondary" className={cn("font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                        <Printer className={cn("mr-2", isFullscreen ? "h-10 w-10" : "h-5 w-5")} /> Print Card Set
+                     <Button onClick={() => setGameState('selecting_print_difficulty')} variant="outline" className={cn("border-slate-800 text-slate-300 hover:bg-slate-850 hover:text-white font-black rounded-xl h-12 px-6", isFullscreen && "h-16 px-12 text-xl rounded-2xl")}>
+                        <Printer className="mr-2 h-5 w-5" /> Print Card Set
                     </Button>
                 </div>
             </div>
         )}
+
          {gameState === "instructions" && (
              <div className={cn(
-                 "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20 shadow-inner",
-                 isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-lg"
+                 "flex flex-col items-center justify-center gap-6 text-center bg-slate-950/40 backdrop-blur-sm rounded-3xl mx-auto border border-slate-850 p-6 md:p-8 max-w-xl shadow-lg"
              )}>
-                <h3 className={cn("font-black uppercase tracking-widest text-center mb-4", isFullscreen ? "text-4xl" : "text-xl")}>How to Play</h3>
-                <div className={cn("text-left space-y-4", isFullscreen ? "text-2xl" : "text-base")}>
-                    <p>1. The AI will give you a bingo card with vocabulary words.</p>
-                    <p>2. Listen to the definition provided by the AI.</p>
-                    <p>3. Find the matching word on your bingo card and click it to mark it off.</p>
-                    <p>4. The first to get five words in a row (horizontally, vertically, or diagonally) wins!</p>
+                <h3 className="font-black uppercase tracking-widest text-white text-xl">How to Play</h3>
+                <div className="text-left space-y-4 text-slate-300 text-sm leading-relaxed">
+                    <p className="flex items-start gap-2.5">
+                      <span className="h-5 w-5 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
+                      <span>The AI generates a customized 50-word bank and places 24 random cells on your board.</span>
+                    </p>
+                    <p className="flex items-start gap-2.5">
+                      <span className="h-5 w-5 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
+                      <span>Observe the definition at the top. The correct word answer is highlighted underneath.</span>
+                    </p>
+                    <p className="flex items-start gap-2.5">
+                      <span className="h-5 w-5 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
+                      <span>Locate that exact word on your board and click to mark it green.</span>
+                    </p>
+                    <p className="flex items-start gap-2.5">
+                      <span className="h-5 w-5 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">4</span>
+                      <span>Click <strong>"Next Word"</strong> to draw the next question. Completed words will slide into your study Word Bank.</span>
+                    </p>
+                    <p className="flex items-start gap-2.5">
+                      <span className="h-5 w-5 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">5</span>
+                      <span>Get a line (row, column, diagonal), then hit the massive <strong>"BINGO!"</strong> button to win!</span>
+                    </p>
                 </div>
-                <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className={cn("mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl shadow-xl")}>Initialize</Button>
+                <Button onClick={() => setGameState('selecting_difficulty')} className="w-full bg-gradient-to-r from-purple-500 to-indigo-650 hover:opacity-90 font-black h-12 rounded-xl mt-4">
+                  Proceed to Setup
+                </Button>
             </div>
         )}
+
          {gameState === "selecting_difficulty" && (
-             <div className="flex flex-col items-center gap-8">
-                <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-sm")}>Choose Challenge Level</p>
+             <div className="flex flex-col items-center gap-6 py-6">
+                <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Choose Challenge Level</p>
                 <div className="flex flex-wrap gap-4 justify-center">
                     {["beginner", "intermediate", "advanced"].map(level => (
-                        <Button key={level} onClick={() => handleStartGame(level as SkillLevel)} size={isFullscreen ? "lg" : "default"} variant="outline" className={cn("font-black uppercase", isFullscreen && "h-20 px-12 text-2xl rounded-3xl border-4")}>{level}</Button>
+                        <Button 
+                          key={level} 
+                          onClick={() => handleStartGame(level as SkillLevel)} 
+                          variant="outline" 
+                          className="font-black uppercase border-slate-800 text-slate-350 hover:bg-slate-850 hover:text-white rounded-xl h-12 px-6"
+                        >
+                          {level}
+                        </Button>
                     ))}
                 </div>
             </div>
         )}
+
         {gameState === "selecting_print_difficulty" && (
-             <div className="flex flex-col items-center gap-8">
-                <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-sm")}>Set for Classroom Print</p>
+             <div className="flex flex-col items-center gap-6 py-6">
+                <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Set for Classroom Print</p>
                 <div className="flex flex-wrap gap-4 justify-center">
                     {["beginner", "intermediate", "advanced"].map(level => (
-                        <Button key={level} onClick={() => handlePrintCards(level as SkillLevel)} size={isFullscreen ? "lg" : "default"} variant="outline" className={cn("font-black uppercase", isFullscreen && "h-20 px-12 text-2xl rounded-3xl border-4")}>{level}</Button>
+                        <Button 
+                          key={level} 
+                          onClick={() => handlePrintCards(level as SkillLevel)} 
+                          variant="outline" 
+                          className="font-black uppercase border-slate-800 text-slate-350 hover:bg-slate-850 hover:text-white rounded-xl h-12 px-6"
+                        >
+                          {level}
+                        </Button>
                     ))}
                 </div>
             </div>
         )}
+
         { (gameState === "loading" || gameState === "generating_cards") && 
-            <div className="flex flex-col items-center justify-center gap-6">
-                <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-24 w-24" : "h-12 w-12")} />
-                <p className={cn("text-muted-foreground animate-pulse", isFullscreen ? "text-3xl" : "text-lg")}>{gameState === 'loading' ? "Synchronizing bingo data..." : "Compiling classroom cards..."}</p>
+            <div className="flex flex-col items-center justify-center gap-4 py-8">
+                <Loader2 className="animate-spin text-indigo-400 h-12 w-12" />
+                <p className="text-slate-400 text-sm font-medium animate-pulse">{gameState === 'loading' ? "Synchronizing vocabulary data..." : "Compiling classroom cards..."}</p>
             </div>
         }
+
         {gameState === "playing" && board.length > 0 && (
-          <div className="flex flex-col items-center gap-8 w-full max-w-5xl">
-             <div className={cn("p-8 rounded-[2rem] bg-muted/20 backdrop-blur-sm w-full text-center border-4 border-primary/20 shadow-inner", isFullscreen && "p-12")}>
-                <p className={cn("font-black uppercase tracking-[0.3em] text-muted-foreground mb-4", isFullscreen ? "text-2xl" : "text-xs")}>IDENTIFY THE TARGET:</p>
-                <p className={cn("font-bold italic text-white leading-tight", isFullscreen ? "text-[4vw]" : "text-2xl")}>{definitions[currentDefinitionIndex].definition}</p>
-                 <Button size="lg" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].definition)} disabled={isSpeaking} className={cn("mt-6", isFullscreen && "h-16 w-16")}>
-                    <Volume2 className={cn(isFullscreen ? "h-12 w-12" : "h-6 w-6")} />
-                </Button>
-            </div>
-            <div className={cn("grid gap-3", isFullscreen ? "gap-6" : "")} style={{ gridTemplateColumns: `repeat(${BINGO_SIZE}, 1fr)` }}>
-              {board.map((row, rowIndex) =>
-                row.map((cell, colIndex) => (
-                  <Button
-                    key={`${rowIndex}-${colIndex}`}
-                    variant={cell.marked ? "default" : "outline"}
-                    className={cn(
-                      "transition-all duration-300 font-black uppercase text-center break-words whitespace-normal shadow-lg",
-                      isFullscreen ? "h-32 w-32 text-xl rounded-2xl border-4" : "h-16 w-16 md:h-20 md:w-20 text-[10px] md:text-xs",
-                      cell.word === "FREE" && "bg-primary text-white border-primary",
-                      cell.marked && cell.word !== "FREE" && "bg-amber-400 border-amber-500 text-white scale-95 opacity-80"
-                    )}
-                    onClick={() => cell.word !== "FREE" && markCell(rowIndex, colIndex)}
-                    disabled={cell.marked}
-                  >
-                    {cell.word}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full text-left items-start">
+            
+            {/* Left Column: Board and Active drawn Question (8 cols) */}
+            <div className="lg:col-span-8 space-y-6 flex flex-col items-center">
+              
+              {/* Question / Correct Answer Call Card */}
+              <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm w-full text-center shadow-lg relative">
+                <div className="flex items-center justify-center gap-1.5 text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">
+                  <BookOpen className="h-4 w-4" />
+                  <span>Drawn question {currentDefinitionIndex + 1} / {definitions.length}</span>
+                </div>
+                <h4 className="font-extrabold text-white text-lg md:text-xl leading-relaxed italic px-4 min-h-[50px] flex items-center justify-center">
+                  "{definitions[currentDefinitionIndex].definition}"
+                </h4>
+                
+                <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
+                  <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].definition)} disabled={isSpeaking} className="h-9 w-9 rounded-full bg-slate-850 hover:bg-slate-800 text-indigo-300">
+                    <Volume2 className="h-4.5 w-4.5" />
                   </Button>
-                ))
-              )}
+                  
+                  {/* Dynamic Correct Answer Indicator (Requested highlight) */}
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-1.5 rounded-xl flex items-center gap-2">
+                    <span className="text-[10px] uppercase font-black tracking-widest text-emerald-450">Correct Word:</span>
+                    <span className="text-sm font-black text-emerald-350 uppercase">{definitions[currentDefinitionIndex].word}</span>
+                  </div>
+                </div>
+
+                <div className="mt-5 pt-4 border-t border-slate-850/60 flex items-center justify-between gap-4">
+                  <div className="text-[10px] text-slate-550 font-bold max-w-[200px] text-left leading-normal">
+                    📌 Find "{definitions[currentDefinitionIndex].word}" on your grid, mark it, and click draw to proceed.
+                  </div>
+                  
+                  {/* Draw Next word button */}
+                  <Button 
+                    onClick={handleNextWord} 
+                    className="h-10 px-4 bg-gradient-to-r from-indigo-650 to-indigo-850 hover:opacity-90 font-bold rounded-xl text-xs flex items-center gap-1.5 text-white"
+                  >
+                    <span>Next Word</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Bingo 5x5 Grid */}
+              <div className="p-4 rounded-3xl bg-slate-950/40 border border-slate-850/80 shadow-inner flex justify-center items-center w-full max-w-[480px]">
+                <div className="grid gap-2 md:gap-3 w-full" style={{ gridTemplateColumns: `repeat(${BINGO_SIZE}, 1fr)` }}>
+                  {board.map((row, rowIndex) =>
+                    row.map((cell, colIndex) => {
+                      const isFree = cell.word === "FREE";
+                      const isCorrectAnswer = cell.word.toLowerCase() === definitions[currentDefinitionIndex].word.toLowerCase();
+                      
+                      return (
+                        <Button
+                          key={`${rowIndex}-${colIndex}`}
+                          variant={cell.marked ? "default" : "outline"}
+                          className={cn(
+                            "h-14 w-full text-[9px] sm:text-xs font-black uppercase text-center break-all whitespace-normal shadow-md transition-all rounded-xl",
+                            isFree && "bg-gradient-to-br from-indigo-500 to-indigo-650 text-white border-none cursor-default shadow-indigo-500/10",
+                            cell.marked && !isFree && "bg-gradient-to-br from-emerald-500 to-emerald-650 border-none text-white scale-[0.96] cursor-default shadow-emerald-500/10",
+                            !cell.marked && isCorrectAnswer && "border-indigo-500/50 bg-indigo-500/5 text-indigo-200 animate-pulse border-2"
+                          )}
+                          onClick={() => !isFree && markCell(rowIndex, colIndex)}
+                          disabled={cell.marked}
+                        >
+                          {cell.word}
+                        </Button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Glowing Manual BINGO Trigger (Requested BINGO button) */}
+              <div className="w-full flex justify-center pt-2">
+                <Button 
+                  onClick={() => setGameState("finished")} 
+                  className={cn(
+                    "w-full max-w-[320px] h-12 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2",
+                    bingoLines > 0 
+                      ? "bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 text-slate-950 shadow-amber-500/30 animate-bounce border border-amber-300"
+                      : "bg-slate-800 text-slate-500 border border-slate-750 cursor-not-allowed hover:bg-slate-800 hover:text-slate-500"
+                  )}
+                  disabled={bingoLines === 0}
+                >
+                  <Trophy className="h-4.5 w-4.5" />
+                  <span>Declare BINGO! ({bingoLines} lines)</span>
+                </Button>
+              </div>
+
             </div>
+
+            {/* Right Column: Review Word Bank panel (4 cols) */}
+            <div className="lg:col-span-4 rounded-2xl bg-slate-900/60 border border-slate-800 p-5 backdrop-blur-sm space-y-4 h-full min-h-[300px] flex flex-col">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-850">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-indigo-400" />
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-350">Review Word Bank</span>
+                </div>
+                <Badge variant="outline" className="text-[10px] text-indigo-300 bg-indigo-500/5 border-indigo-500/10">Called: {reviewList.length}</Badge>
+              </div>
+
+              <div className="flex-grow overflow-y-auto max-h-[360px] pr-1 space-y-2.5">
+                {reviewList.length > 0 ? (
+                  reviewList.map((item, idx) => (
+                    <div key={idx} className="p-3 bg-slate-950/40 border border-slate-850 rounded-xl space-y-1 hover:border-slate-800 transition-all">
+                      <p className="text-xs font-black uppercase text-emerald-450 tracking-wider flex items-center gap-1.5">
+                        <Check className="h-3.5 w-3.5" />
+                        <span>{item.word}</span>
+                      </p>
+                      <p className="text-[10px] text-slate-400 leading-normal italic">
+                        "{item.definition}"
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="h-[200px] flex flex-col items-center justify-center text-center text-slate-500 p-4 border border-dashed border-slate-850 rounded-2xl">
+                    <BookOpen className="h-8 w-8 text-slate-650 mb-2" />
+                    <p className="text-xs font-bold uppercase tracking-wider">Empty bank</p>
+                    <p className="text-[10px] text-slate-550 leading-normal max-w-[150px] mt-1">Finished vocab items appear here for study.</p>
+                  </div>
+                )}
+              </div>
+              <div className="text-[9px] text-slate-500 font-bold leading-normal pt-2 border-t border-slate-850">
+                📖 Review drawn terms to identify skipped or missed definitions.
+              </div>
+            </div>
+
           </div>
         )}
+
         {gameState === "finished" && (
-             <div className="flex flex-col items-center gap-8 animate-in zoom-in duration-500">
-                <Trophy className={cn("text-amber-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]", isFullscreen ? "h-48 w-48" : "h-24 w-24")} />
-                <div className="space-y-2">
-                    <h3 className={cn("font-black uppercase tracking-tighter text-white", isFullscreen ? "text-7xl" : "text-4xl")}>Victory!</h3>
-                    <p className={cn("font-black text-primary uppercase", isFullscreen ? "text-4xl" : "text-xl")}>Lines Completed: {bingoLines}</p>
+             <div className="flex flex-col items-center gap-8 animate-in zoom-in duration-500 py-6 max-w-md">
+                <div className="relative">
+                  <div className="absolute -inset-4 rounded-full bg-amber-500/10 blur-xl animate-pulse" />
+                  <Trophy className="h-32 w-32 text-amber-400 drop-shadow-[0_0_25px_rgba(251,191,36,0.65)] relative animate-bounce" style={{ animationDuration: '3s' }} />
                 </div>
-                <Button onClick={() => handleStartGame(difficulty!)} size="lg" className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                    <Repeat className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
-                    Play Again
-                </Button>
+                
+                <div className="space-y-2.5 text-center">
+                    <h3 className="font-black uppercase tracking-tighter text-white text-3xl sm:text-4xl leading-tight">Congratulations! <br />you got it BINGO!</h3>
+                    <p className="text-sm font-black text-indigo-400 uppercase tracking-widest">Completed lines count: {bingoLines}</p>
+                </div>
+
+                <div className="flex flex-col gap-3 w-full pt-4">
+                  {/* Retry Game button */}
+                  <Button 
+                    onClick={() => handleStartGame(difficulty!)} 
+                    className="w-full h-12 bg-gradient-to-r from-purple-500 to-indigo-650 hover:from-purple-400 hover:to-indigo-550 text-white font-black shadow-lg rounded-xl flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Repeat className="h-4.5 w-4.5" />
+                    <span>Retry Game</span>
+                  </Button>
+
+                  {/* Back to difficulty selector */}
+                  <Button 
+                    onClick={() => setGameState('selecting_difficulty')} 
+                    variant="secondary" 
+                    className="w-full h-12 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-750 font-bold rounded-xl text-sm"
+                  >
+                    Back to Difficulty
+                  </Button>
+
+                  {/* Back to games lobby */}
+                  <Button 
+                    asChild 
+                    variant="outline" 
+                    className="w-full h-12 border-slate-800 text-slate-350 hover:bg-slate-850 hover:text-white font-bold rounded-xl text-sm"
+                  >
+                    <Link href="/games">Back to Classroom Games</Link>
+                  </Button>
+                </div>
             </div>
         )}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+
+      <CardFooter className={cn("flex justify-between items-center gap-4 pt-6 border-t border-slate-850/60 pb-6 p-6 md:p-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
+        <Button variant="outline" asChild className="h-10 border-slate-850 text-slate-400 hover:bg-slate-850 hover:text-white rounded-xl">
           <Link href="/games">Back to Games</Link>
         </Button>
         {gameState !== "idle" && (
-            <Button variant="secondary" onClick={resetGame} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>Abort Session</Button>
+            <Button variant="secondary" onClick={resetGame} className="h-10 bg-slate-850 text-slate-300 hover:bg-slate-800 rounded-xl">Abort Session</Button>
         )}
       </CardFooter>
     </Card>

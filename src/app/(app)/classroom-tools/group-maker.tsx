@@ -27,26 +27,15 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 };
 
 export function GroupMaker() {
-  const { user } = useAuth();
-  const firestore = useFirestore();
-
-  const studentsCollectionRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return collection(firestore, `users/${user.uid}/students`);
-  }, [firestore, user]);
-
-  const { data: students, isLoading } = useCollection<Student>(studentsCollectionRef);
-  
   const [nameList, setNameList] = React.useState<string[]>([]);
   const [manualNames, setManualNames] = React.useState('');
   const [numberOfGroups, setNumberOfGroups] = React.useState(2);
   const [generatedGroups, setGeneratedGroups] = React.useState<string[][]>([]);
 
   React.useEffect(() => {
-      const studentNames = students?.map(s => s.fullName) || [];
       const manualNamesList = manualNames.split('\n').filter(name => name.trim() !== '');
-      setNameList([...new Set([...studentNames, ...manualNamesList])]);
-  }, [students, manualNames]);
+      setNameList([...new Set(manualNamesList)]);
+  }, [manualNames]);
 
   const handleGenerateGroups = () => {
     if (nameList.length === 0 || numberOfGroups <= 0) return;

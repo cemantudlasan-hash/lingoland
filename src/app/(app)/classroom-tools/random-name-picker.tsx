@@ -15,16 +15,6 @@ type Student = {
 };
 
 export function RandomNamePicker() {
-  const { user } = useAuth();
-  const firestore = useFirestore();
-
-  const studentsCollectionRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return collection(firestore, `users/${user.uid}/students`);
-  }, [firestore, user]);
-
-  const { data: students, isLoading } = useCollection<Student>(studentsCollectionRef);
-  
   const [manualNames, setManualNames] = React.useState('');
   const [allNames, setAllNames] = React.useState<string[]>([]);
   const [availableNames, setAvailableNames] = React.useState<string[]>([]);
@@ -32,12 +22,11 @@ export function RandomNamePicker() {
   const [isSpinning, setIsSpinning] = React.useState(false);
 
   React.useEffect(() => {
-      const studentNames = students?.map(s => s.fullName) || [];
       const manualNamesList = manualNames.split('\n').filter(name => name.trim() !== '');
-      const combined = [...new Set([...studentNames, ...manualNamesList])].sort();
+      const combined = [...new Set(manualNamesList)].sort();
       setAllNames(combined);
       setAvailableNames(combined);
-  }, [students, manualNames]);
+  }, [manualNames]);
 
 
   const handlePickName = () => {
@@ -109,12 +98,12 @@ export function RandomNamePicker() {
       <div className="w-full max-w-md space-y-4">
         <div>
             <h3 className="font-bold">Student List ({availableNames.length} available / {allNames.length} total)</h3>
-            <p className="text-xs text-muted-foreground">Loaded from your student roster and manual entries.</p>
+            <p className="text-xs text-muted-foreground">Add student names to get started.</p>
         </div>
         <Textarea 
             value={manualNames}
             onChange={(e) => setManualNames(e.target.value)}
-            placeholder="Or add names manually, one per line..."
+            placeholder="Enter student names, one per line..."
             rows={5}
         />
       </div>
