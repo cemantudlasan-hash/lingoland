@@ -802,26 +802,26 @@ export default function LoungePage() {
             <CardContent ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-6">
               {renderContent()}
             </CardContent>
-            {/* Scroll Up & Scroll Down Floating Buttons */}
+            {/* Scroll Up & Scroll Down Floating Buttons — positioned above the input footer */}
             {showScrollButtons && (
-              <div className="absolute right-6 bottom-6 z-10 flex flex-col gap-2 select-none animate-in fade-in duration-300">
+              <div className="absolute right-3 bottom-24 z-10 flex flex-col gap-1.5 select-none animate-in fade-in duration-300">
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => chatContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="h-10 w-10 rounded-full bg-zinc-900/80 backdrop-blur-md border-zinc-800 text-slate-350 hover:text-white shadow-lg hover:shadow-xl transition-all"
+                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-zinc-900/80 backdrop-blur-md border-zinc-800 text-slate-350 hover:text-white shadow-lg hover:shadow-xl transition-all"
                   title="Scroll to Top"
                 >
-                  <ChevronUp className="h-5 w-5" />
+                  <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' })}
-                  className="h-10 w-10 rounded-full bg-zinc-900/80 backdrop-blur-md border-zinc-800 text-slate-350 hover:text-white shadow-lg hover:shadow-xl transition-all"
+                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-zinc-900/80 backdrop-blur-md border-zinc-800 text-slate-350 hover:text-white shadow-lg hover:shadow-xl transition-all"
                   title="Scroll to Bottom"
                 >
-                  <ChevronDown className="h-5 w-5" />
+                  <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </div>
             )}

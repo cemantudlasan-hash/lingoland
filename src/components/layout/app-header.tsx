@@ -392,11 +392,14 @@ export function AppHeader() {
         </div>
       )}
       {!isAdmin && (
-        <div className="w-full bg-yellow-400 text-black py-1 text-sm font-bold text-center">
-            <Button variant="link" className="text-black p-0 h-auto font-bold" onClick={handleCoffeeClick}>
-                <Coffee className="h-5 w-5 flex-shrink-0 mr-2"/>
-                <span>Enjoying this site/app? Consider supporting its maintenance. Buy me a coffee! Feel free to donate starts at 1$.</span>
-            </Button>
+        <div className="w-full bg-yellow-400 text-black py-1 text-xs sm:text-sm font-bold overflow-hidden">
+            <button
+              className="flex items-center gap-2 w-full px-3 whitespace-nowrap overflow-hidden text-black font-bold text-left"
+              onClick={handleCoffeeClick}
+            >
+                <Coffee className="h-4 w-4 flex-shrink-0"/>
+                <span className="truncate">Enjoying this site/app? Consider supporting its maintenance. Buy me a coffee! Donate starts at $1.</span>
+            </button>
         </div>
       )}
       <div className="relative z-10 flex h-16 w-full items-center justify-between px-4 sm:px-6 bg-card/10 backdrop-blur-sm">
