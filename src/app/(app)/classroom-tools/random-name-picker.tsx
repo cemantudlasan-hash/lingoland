@@ -52,6 +52,9 @@ export function RandomNamePicker() {
 
   const handleRemoveName = () => {
       if (!selectedName) return;
+      const lines = manualNames.split('\n');
+      const updatedLines = lines.filter(line => line.trim() !== selectedName.trim());
+      setManualNames(updatedLines.join('\n'));
       setAvailableNames(prev => prev.filter(name => name !== selectedName));
       setSelectedName(null);
   }

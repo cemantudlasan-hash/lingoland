@@ -52,6 +52,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
   const [definitions, setDefinitions] = React.useState<WordDefinitionPair[]>([]);
   const [currentDefinitionIndex, setCurrentDefinitionIndex] = React.useState(0);
   const [reviewList, setReviewList] = React.useState<WordDefinitionPair[]>([]);
+  const [showAnswer, setShowAnswer] = React.useState(false);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [bingoLines, setBingoLines] = React.useState(0);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -105,9 +106,10 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
       }
       setBoard(newBoard);
 
-      // Shuffling the 50 definitions to call them randomely one by one
-      setDefinitions(shuffleArray(allPairs));
+      // Shuffling exactly the 24 board word pairs to be drawn one by one
+      setDefinitions(shuffleArray(boardPairs));
       setCurrentDefinitionIndex(0);
+      setShowAnswer(false);
       setGameState("playing");
     } catch (error) {
       console.error("Failed to start game:", error);
@@ -305,6 +307,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
 
     if (currentDefinitionIndex < definitions.length - 1) {
       setCurrentDefinitionIndex(prev => prev + 1);
+      setShowAnswer(false);
     } else {
       toast({
         title: "Drawn All Words",
@@ -470,20 +473,38 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
                 </h4>
                 
                 <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
-                  <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].definition)} disabled={isSpeaking} className="h-9 w-9 rounded-full bg-slate-850 hover:bg-slate-800 text-indigo-300">
+                  <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].definition)} disabled={isSpeaking} className="h-9 w-9 rounded-full bg-slate-850 hover:bg-slate-800 text-indigo-300" title="Speak Definition">
                     <Volume2 className="h-4.5 w-4.5" />
                   </Button>
                   
-                  {/* Dynamic Correct Answer Indicator (Requested highlight) */}
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-1.5 rounded-xl flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-emerald-450">Correct Word:</span>
-                    <span className="text-sm font-black text-emerald-350 uppercase">{definitions[currentDefinitionIndex].word}</span>
-                  </div>
+                  {/* Dynamic Correct Answer Indicator (Hides by default, reveals on toggle) */}
+                  {showAnswer ? (
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-1.5 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
+                      <span className="text-[10px] uppercase font-black tracking-widest text-emerald-450">Correct Word:</span>
+                      <span className="text-sm font-black text-emerald-350 uppercase">{definitions[currentDefinitionIndex].word}</span>
+                      <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].word)} disabled={isSpeaking} className="h-6 w-6 rounded-full hover:bg-emerald-500/20 text-emerald-400 p-0 ml-1" title="Speak Word">
+                        <Volume2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      onClick={() => setShowAnswer(true)} 
+                      className="bg-indigo-650 hover:bg-indigo-600 text-white font-extrabold h-9 px-4 rounded-xl text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span>Reveal Answer</span>
+                    </Button>
+                  )}
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-slate-850/60 flex items-center justify-between gap-4">
                   <div className="text-[10px] text-slate-550 font-bold max-w-[200px] text-left leading-normal">
-                    📌 Find "{definitions[currentDefinitionIndex].word}" on your grid, mark it, and click draw to proceed.
+                    {showAnswer ? (
+                      <span className="text-emerald-400">📌 Find "{definitions[currentDefinitionIndex].word}" on your grid, mark it, and click draw to proceed.</span>
+                    ) : (
+                      <span>💡 Students guess the target word first. Teacher click Reveal to verify.</span>
+                    )}
                   </div>
                   
                   {/* Draw Next word button */}
@@ -513,7 +534,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
                             "h-14 w-full text-[9px] sm:text-xs font-black uppercase text-center break-all whitespace-normal shadow-md transition-all rounded-xl",
                             isFree && "bg-gradient-to-br from-indigo-500 to-indigo-650 text-white border-none cursor-default shadow-indigo-500/10",
                             cell.marked && !isFree && "bg-gradient-to-br from-emerald-500 to-emerald-650 border-none text-white scale-[0.96] cursor-default shadow-emerald-500/10",
-                            !cell.marked && isCorrectAnswer && "border-indigo-500/50 bg-indigo-500/5 text-indigo-200 animate-pulse border-2"
+                            !cell.marked && showAnswer && isCorrectAnswer && "border-indigo-500/40 bg-indigo-500/5 text-indigo-200 animate-pulse border-2"
                           )}
                           onClick={() => !isFree && markCell(rowIndex, colIndex)}
                           disabled={cell.marked}
