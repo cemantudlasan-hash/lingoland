@@ -152,7 +152,7 @@ export default function AttendancePage() {
     }
 
     return (
-        <div className="space-y-6 max-w-7xl mx-auto p-1 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="space-y-6 w-full p-1 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* Top Bulk Actions Panel */}
             <motion.div
                 initial={{ opacity: 0, y: -10 }}

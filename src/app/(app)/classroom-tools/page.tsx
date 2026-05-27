@@ -70,7 +70,7 @@ export default function ClassroomToolsPage() {
     <div 
         ref={containerRef}
         className={cn(
-          "relative max-w-6xl mx-auto transition-all duration-500", 
+          "relative w-full transition-all duration-500", 
           isFullscreen && "bg-background p-6 w-screen h-screen flex flex-col items-center justify-start overflow-y-auto"
         )}
         data-fullscreen-container={isFullscreen}

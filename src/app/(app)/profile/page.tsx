@@ -74,7 +74,7 @@ const itemVariants = {
 
 function ProfileSkeleton() {
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-pulse">
+        <div className="w-full space-y-8 animate-pulse">
             <Skeleton className="h-64 sm:h-80 w-full rounded-3xl bg-zinc-900/50" />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <Skeleton className="h-96 w-full rounded-3xl bg-zinc-900/50 lg:col-span-1" />
@@ -419,7 +419,7 @@ function ProfilePageComponent() {
 
   if (authLoading || isProfileLoading) {
     return (
-        <div className="py-12 min-h-screen flex items-center justify-center bg-zinc-950/50">
+        <div className="py-6 w-full bg-zinc-950/50">
             <ProfileSkeleton />
         </div>
     );
@@ -433,9 +433,9 @@ function ProfilePageComponent() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="py-12 relative z-10 min-h-screen flex items-center justify-center bg-zinc-950/30"
+        className="py-4 relative z-10 min-h-screen w-full bg-zinc-950/30"
     >
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="w-full space-y-6">
             
             {/* Cover Backdrop Card */}
             <Card className="bg-zinc-950/80 backdrop-blur-2xl border border-zinc-800/50 shadow-2xl text-zinc-100 overflow-hidden relative rounded-3xl">

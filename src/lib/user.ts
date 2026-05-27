@@ -1,9 +1,9 @@
 
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, writeBatch, collectionGroup } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs, writeBatch, collectionGroup } from "firebase/firestore";
 import { initializeFirebase } from "@/firebase";
 import type { UserProfile, UserPet } from "./types";
 import type { User } from "firebase/auth";
-import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+
 
 // Function to create a user profile document in Firestore
 export async function createUserProfile(user: User) {
@@ -74,24 +74,31 @@ export async function updateUserProfile(uid: string, data: Partial<Omit<UserProf
     }
     
     const currentUserProfile = await getUserProfile(uid);
-    if(currentUserProfile && currentUserProfile.displayName !== data.displayName) {
-        const batch = writeBatch(firestore);
+    if (currentUserProfile && currentUserProfile.displayName !== data.displayName) {
+        // Sync name across lounge messages and comments in a best-effort batch.
+        // Wrapped in try/catch so a sync failure does NOT block the main profile save.
+        try {
+            const batch = writeBatch(firestore);
 
-        // 1. Sync name in lounge messages (suggestions)
-        const loungeQuery = query(collection(firestore, 'suggestions'), where('authorId', '==', uid));
-        const loungeDocs = await getDocs(loungeQuery);
-        loungeDocs.forEach(doc => {
-            batch.update(doc.ref, { authorName: data.displayName });
-        });
+            // 1. Sync name in lounge messages (suggestions)
+            const loungeQuery = query(collection(firestore, 'suggestions'), where('authorId', '==', uid));
+            const loungeDocs = await getDocs(loungeQuery);
+            loungeDocs.forEach(doc => {
+                batch.update(doc.ref, { authorName: data.displayName });
+            });
 
-        // 2. Sync name in all dailyPostComments using a collection group query
-        const commentsQuery = query(collectionGroup(firestore, 'dailyPostComments'), where('authorId', '==', uid));
-        const commentsDocs = await getDocs(commentsQuery);
-        commentsDocs.forEach(doc => {
-            batch.update(doc.ref, { authorName: data.displayName });
-        });
+            // 2. Sync name in own dailyPostComments subcollection only (avoids cross-user permission issues)
+            const ownCommentsRef = collection(firestore, 'users', uid, 'dailyPostComments');
+            const ownCommentsDocs = await getDocs(ownCommentsRef);
+            ownCommentsDocs.forEach(doc => {
+                batch.update(doc.ref, { authorName: data.displayName });
+            });
 
-        await batch.commit();
+            await batch.commit();
+        } catch (syncError) {
+            // Sync failed — log but do not throw; we still want the profile save to succeed.
+            console.warn("[updateUserProfile] Display name sync failed (non-critical):", syncError);
+        }
     }
   }
 
@@ -109,7 +116,8 @@ export async function updateUserProfile(uid: string, data: Partial<Omit<UserProf
       }
   }
 
-  setDocumentNonBlocking(userRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+  // Use a proper awaited write so permission errors surface to the caller (and show in the UI toast).
+  await setDoc(userRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 // Function to get user pet details
