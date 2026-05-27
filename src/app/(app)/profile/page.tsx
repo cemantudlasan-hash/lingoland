@@ -746,29 +746,39 @@ function ProfilePageComponent() {
             {/* Custom Print Stylesheet injected dynamically */}
             <style dangerouslySetInnerHTML={{ __html: `
               @media print {
-                /* Hide everything under body by default */
-                body > * {
+                /* Hide all elements on the page first */
+                body * {
                   visibility: hidden !important;
                 }
                 
-                /* Reveal only the certificate overlay and its contents */
+                /* Reset Next.js and Tailwind root layouts to prevent clipping/blank pages */
+                html, body, .h-screen, main, #__next, div {
+                  height: auto !important;
+                  min-height: 0 !important;
+                  overflow: visible !important;
+                  position: static !important;
+                  background: #ffffff !important;
+                }
+                
+                /* Make only the certificate modal visible */
                 .print-cert-overlay, .print-cert-overlay * {
                   visibility: visible !important;
                 }
                 
-                /* Reset overlay styling to isolate on a clean page during printing */
+                /* Isolate overlay at the top left of the printed page */
                 .print-cert-overlay {
                   position: absolute !important;
                   left: 0 !important;
                   top: 0 !important;
                   width: 100% !important;
-                  height: 100% !important;
+                  height: auto !important;
+                  min-height: 100% !important;
                   background: #ffffff !important;
                   backdrop-filter: none !important;
                   display: flex !important;
                   align-items: center !important;
                   justify-content: center !important;
-                  z-index: 99999 !important;
+                  z-index: 999999 !important;
                 }
                 
                 /* Format the certificate card for a high-quality paper printout */
