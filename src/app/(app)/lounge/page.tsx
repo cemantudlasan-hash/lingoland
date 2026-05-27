@@ -9,7 +9,7 @@ import { useFirestore, useMemoFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Send, Edit, Trash2, MessageCircle, Sticker, Pin, PinOff, UserPlus, Reply, X, ChevronDown, ChevronUp, ShieldBan } from "lucide-react";
+import { Loader2, Send, Edit, Trash2, MessageCircle, Sticker, Pin, PinOff, UserPlus, Reply, X, ChevronDown, ChevronUp, ShieldBan, Smile } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import type { Suggestion, UserProfile } from "@/lib/types";
@@ -35,12 +35,13 @@ import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocki
 
 
 const stickerStyles = [
-    "adventurer", "adventurer-neutral", "avataaars", "big-ears", "big-smile", 
-    "bottts", "croodles", "fun-emoji", "icons", "identicon", "initials", 
-    "lorelei", "micah", "miniavs", "open-peeps", "personas", "pixel-art", 
-    "shapes", "thumbs", "notionists", "glass-animals", "rings",
-    "lorelei-neutral", "pixel-art-neutral", "avataaars-neutral", "bottts-neutral",
-    "croodles-neutral"
+    "adventurer", "adventurer-neutral", "avataaars", "avataaars-neutral", 
+    "big-ears", "big-smile", "bottts", "bottts-neutral", "croodles", "croodles-neutral", 
+    "fun-emoji", "fun-emoji-neutral", "icons", "icons-neutral", "identicon", "initials", 
+    "lorelei", "lorelei-neutral", "micah", "micah-neutral", "miniavs", "miniavs-neutral", 
+    "open-peeps", "open-peeps-neutral", "personas", "personas-neutral", "pixel-art", "pixel-art-neutral", 
+    "shapes", "shapes-neutral", "thumbs", "thumbs-neutral", "notionists", "notionists-neutral",
+    "glass-animals", "glass-animals-neutral", "rings", "rings-neutral"
 ];
 
 const forbiddenKeywords = ['porn', 'hentai', 'gambling', 'casino', 'betting', 'xxx'];
@@ -89,6 +90,7 @@ export default function LoungePage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const suggestionsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -167,6 +169,7 @@ export default function LoungePage() {
               replyToAuthor: data.replyToAuthor,
               replyToText: data.replyToText,
               mentions: data.mentions || [],
+              reactions: data.reactions || {},
             };
         });
         setSuggestions(suggestionsData);
@@ -358,6 +361,37 @@ export default function LoungePage() {
       });
   };
 
+  const handleReact = async (suggestion: Suggestion, emoji: string) => {
+      if (!user || isGuest || !firestore) {
+          if (isGuest) {
+              toast({ variant: 'destructive', title: "Feature Disabled", description: "Guests cannot react to messages."});
+          }
+          return;
+      }
+      try {
+          const suggestionRef = doc(firestore, "suggestions", suggestion.id);
+          const currentReactions = { ...(suggestion.reactions || {}) };
+          const userList = currentReactions[emoji] ? [...currentReactions[emoji]] : [];
+          
+          let updatedUserList: string[];
+          if (userList.includes(user.uid)) {
+              updatedUserList = userList.filter(id => id !== user.uid);
+          } else {
+              updatedUserList = [...userList, user.uid];
+          }
+          
+          if (updatedUserList.length === 0) {
+              delete currentReactions[emoji];
+          } else {
+              currentReactions[emoji] = updatedUserList;
+          }
+          
+          setDocumentNonBlocking(suggestionRef, { reactions: currentReactions }, { merge: true });
+      } catch (e) {
+          console.error("Failed to add reaction:", e);
+      }
+  };
+
     const handleBlockUser = async () => {
         if (!blockingUser || !firestore || !isAdmin) return;
         
@@ -512,14 +546,63 @@ export default function LoungePage() {
                                             {suggestion.text && <p className="text-base whitespace-pre-line break-words">{renderMessageText(suggestion.text)}</p>}
                                             {suggestion.stickerUrl && <Image unoptimized src={suggestion.stickerUrl} alt="sticker" width={128} height={128} className="rounded-md bg-transparent" />}
                                         </div>
+                                        {/* Reactions List rendering */}
+                                        {suggestion.reactions && Object.keys(suggestion.reactions).length > 0 && (
+                                          <div className={cn("flex flex-wrap gap-1 mt-1.5 select-none", isCurrentUser ? "justify-end" : "justify-start")}>
+                                            {Object.entries(suggestion.reactions).map(([emoji, users]) => {
+                                              if (!users || users.length === 0) return null;
+                                              const hasReacted = users.includes(user?.uid || '');
+                                              return (
+                                                <button
+                                                  key={emoji}
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleReact(suggestion, emoji);
+                                                  }}
+                                                  className={cn(
+                                                    "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-all border",
+                                                    hasReacted
+                                                      ? "bg-indigo-650/30 border-indigo-500/50 text-indigo-200 font-bold shadow-[0_0_10px_rgba(99,102,241,0.2)]"
+                                                      : "bg-zinc-900/60 border-zinc-805 text-zinc-400 hover:border-zinc-700"
+                                                  )}
+                                                  title={users.length === 1 ? "1 reaction" : `${users.length} reactions`}
+                                                >
+                                                  <span>{emoji}</span>
+                                                  <span className="text-[10px] font-extrabold">{users.length}</span>
+                                                </button>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
                                     </div>
                                     {user && !isGuest && (
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center self-center">
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400" onClick={() => handlePinToggle(suggestion)}><Pin className={cn("h-3 w-3", localPinnedIds.includes(suggestion.id) && "fill-amber-400 text-amber-400")}/></Button>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400" onClick={() => handleReply(suggestion)}><Reply className="h-3 w-3"/></Button>
-                                            {(isCurrentUser || isAdmin) && suggestion.text && <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400" onClick={() => handleEdit(suggestion)}><Edit className="h-3 w-3"/></Button>}
-                                            {(isCurrentUser || isAdmin) && <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400" onClick={() => setDeletingSuggestionId(suggestion.id)}><Trash2 className="h-3 w-3 text-destructive"/></Button>}
-                                            {isAdmin && !isCurrentUser && <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500" onClick={() => setBlockingUser({ userId: suggestion.authorId, userName: suggestion.authorName})}><ShieldBan className="h-4 w-4"/></Button>}
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center self-center gap-0.5">
+                                            <Popover>
+                                              <PopoverTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400" title="Add Reaction">
+                                                  <Smile className="h-3.5 w-3.5" />
+                                                </Button>
+                                              </PopoverTrigger>
+                                              <PopoverContent className="w-auto p-1.5 rounded-full bg-slate-900 border border-slate-800 flex gap-1.5 shadow-2xl select-none z-30">
+                                                {["👍", "❤️", "🔥", "😂", "🎉", "😮", "😢"].map((emoji) => (
+                                                  <button
+                                                    key={emoji}
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      handleReact(suggestion, emoji);
+                                                    }}
+                                                    className="h-7 w-7 text-sm flex items-center justify-center rounded-full hover:bg-white/10 active:scale-90 transition-all animate-in zoom-in-50 duration-200"
+                                                  >
+                                                    {emoji}
+                                                  </button>
+                                                ))}
+                                              </PopoverContent>
+                                            </Popover>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400" onClick={() => handlePinToggle(suggestion)} title="Pin Message"><Pin className={cn("h-3 w-3", localPinnedIds.includes(suggestion.id) && "fill-amber-400 text-amber-400")}/></Button>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400" onClick={() => handleReply(suggestion)} title="Reply"><Reply className="h-3 w-3"/></Button>
+                                            {(isCurrentUser || isAdmin) && suggestion.text && <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400" onClick={() => handleEdit(suggestion)} title="Edit"><Edit className="h-3 w-3"/></Button>}
+                                            {(isCurrentUser || isAdmin) && <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400" onClick={() => setDeletingSuggestionId(suggestion.id)} title="Delete"><Trash2 className="h-3 w-3 text-destructive"/></Button>}
+                                            {isAdmin && !isCurrentUser && <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500" onClick={() => setBlockingUser({ userId: suggestion.authorId, userName: suggestion.authorName})} title="Block User"><ShieldBan className="h-4 w-4"/></Button>}
                                         </div>
                                     )}
                                 </div>
@@ -685,9 +768,32 @@ export default function LoungePage() {
                 </>
               )}
             </AnimatePresence>
-            <CardContent className="flex-1 overflow-y-auto p-3 sm:p-6">
+            <CardContent ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 sm:p-6">
               {renderContent()}
             </CardContent>
+            {/* Scroll Up & Scroll Down Floating Buttons */}
+            {suggestions.length > 5 && (
+              <div className="absolute right-6 bottom-6 z-10 flex flex-col gap-2 select-none animate-in fade-in duration-300">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => chatContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="h-10 w-10 rounded-full bg-zinc-900/80 backdrop-blur-md border-zinc-800 text-slate-350 hover:text-white shadow-lg hover:shadow-xl transition-all"
+                  title="Scroll to Top"
+                >
+                  <ChevronUp className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' })}
+                  className="h-10 w-10 rounded-full bg-zinc-900/80 backdrop-blur-md border-zinc-800 text-slate-350 hover:text-white shadow-lg hover:shadow-xl transition-all"
+                  title="Scroll to Bottom"
+                >
+                  <ChevronDown className="h-5 w-5" />
+                </Button>
+              </div>
+            )}
             {user && !isGuest && userProfile && (
               <CardFooter className="pt-4 border-t-2 border-border/20 flex flex-col items-start gap-2 flex-shrink-0">
                 {mentionState.show && (

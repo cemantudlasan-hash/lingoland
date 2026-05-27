@@ -97,6 +97,7 @@ export type Suggestion = {
     replyToAuthor?: string;
     replyToText?: string;
     mentions?: string[];
+    reactions?: Record<string, string[]>;
 };
 
 export type Job = {
