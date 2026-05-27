@@ -148,14 +148,10 @@ export function BeautifulCalendar() {
   // Track which "YYYY_CC" combos have been fetched to avoid repeat requests
   const fetchedKeys = useRef<Set<string>>(new Set());
 
-  // Detect user locale + timezone (client-side only)
-  const userLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
-  const userTimezone = typeof Intl !== 'undefined'
-    ? Intl.DateTimeFormat().resolvedOptions().timeZone
-    : 'UTC';
-
-  // Resolve country code from timezone
-  const countryCode = useMemo(() => TIMEZONE_TO_COUNTRY[userTimezone] ?? null, [userTimezone]);
+  // Detect user locale + timezone dynamically to support VPN & local timezone settings
+  const [userLocale, setUserLocale] = useState('en-US');
+  const [userTimezone, setUserTimezone] = useState('UTC');
+  const [countryCode, setCountryCode] = useState<string | null>(null);
 
   // Country display info
   const countryInfo = useMemo(() =>
@@ -163,12 +159,40 @@ export function BeautifulCalendar() {
     [countryCode]
   );
 
+  // Initialize client-side environment & IP detection on mount
+  useEffect(() => {
+    // 1. Detect browser locale & timezone
+    const browserLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+    const browserTimezone = typeof Intl !== 'undefined'
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone
+      : 'Asia/Bangkok';
+    const browserCountry = TIMEZONE_TO_COUNTRY[browserTimezone] ?? 'TH';
+
+    setUserLocale(browserLocale);
+    setUserTimezone(browserTimezone);
+    setCountryCode(browserCountry);
+
+    // 2. Perform IP-based geo-location to detect physical location (supports VPNs)
+    const detectLocation = async () => {
+      try {
+        const res = await fetch('https://freeipapi.com/api/json', { signal: AbortSignal.timeout(2000) });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.countryCode && data.timeZone) {
+            setCountryCode(prev => prev !== data.countryCode ? data.countryCode : prev);
+            setUserTimezone(prev => prev !== data.timeZone ? data.timeZone : prev);
+          }
+        }
+      } catch (err) {
+        console.warn('IP geolocation failed, using browser timezone:', err);
+      }
+    };
+    detectLocation();
+  }, []);
+
   // ─── Fetch holidays from Nager.Date public API ────────────────────────────
   const fetchHolidays = useCallback(async (year: number) => {
-    if (!countryCode) {
-      setUsingFallback(true);
-      return;
-    }
+    if (!countryCode) return;
     const key = `${year}_${countryCode}`;
     if (fetchedKeys.current.has(key)) return;
     fetchedKeys.current.add(key);
