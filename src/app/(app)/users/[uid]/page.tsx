@@ -291,7 +291,7 @@ export default function PublicProfilePage() {
     const currentFrameClass = AVATAR_FRAMES.find(f => f.id === profile.avatarFrame)?.class || 'frame-none';
 
     return (
-        <div className="max-w-4xl mx-auto pb-12 animate-in fade-in duration-700">
+        <div className="w-full pb-12 animate-in fade-in duration-700">
             <Button onClick={() => router.back()} variant="ghost" className="mb-6 hover:bg-primary/10">
                 <ArrowLeft className="mr-2 h-4 w-4" /> Back
             </Button>

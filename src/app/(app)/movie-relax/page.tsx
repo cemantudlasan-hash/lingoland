@@ -83,7 +83,7 @@ export default function MovieRelaxPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
+    <div className="w-full space-y-8 animate-in fade-in duration-700">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="space-y-1 text-center md:text-left">

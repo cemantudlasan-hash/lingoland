@@ -127,7 +127,7 @@ function JobsPageComponent() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto p-4 md:p-6 min-h-screen">
+    <div className="flex flex-col gap-6 w-full min-h-screen">
       {/* modern dashboard header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

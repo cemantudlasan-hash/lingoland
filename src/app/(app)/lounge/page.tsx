@@ -675,7 +675,7 @@ export default function LoungePage() {
       <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[6s] z-0" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[8s] z-0" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col h-full">
+      <div className="relative z-10 w-full flex flex-col h-full">
         <Card className="w-full h-full flex flex-col overflow-hidden bg-slate-900/40 border border-slate-850 backdrop-blur-lg rounded-3xl shadow-[0_30px_80px_rgba(99,102,241,0.15)]">
           <CardHeader className="text-white bg-slate-950/45 border-b border-slate-800/80 backdrop-blur-md text-center flex-shrink-0 relative py-6">
             <CardTitle className="flex items-center justify-center gap-2 text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-300 to-indigo-500">

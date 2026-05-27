@@ -145,7 +145,7 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="container mx-auto py-8 space-y-6">
+        <div className="w-full py-8 space-y-6">
             <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
             <div className="grid gap-6 md:grid-cols-2">
                 <Card>
