@@ -126,7 +126,27 @@ function ProfilePageComponent() {
         useCORS: true,
         backgroundColor: "#09090b",
         logging: false,
-        ignoreElements: (el) => el.classList.contains("no-print")
+        ignoreElements: (el) => el.classList.contains("no-print"),
+        onclone: (clonedDoc) => {
+          const clonedModal = clonedDoc.querySelector(".print-cert-modal") as HTMLElement;
+          if (clonedModal) {
+            clonedModal.style.maxHeight = "none";
+            clonedModal.style.overflow = "visible";
+            clonedModal.style.width = "720px";
+            clonedModal.style.padding = "48px 40px";
+            clonedModal.style.borderRadius = "24px";
+            
+            // Clean up name element gradient text clip in clone
+            const nameEl = clonedModal.querySelector("h3") as HTMLElement;
+            if (nameEl) {
+              nameEl.style.background = "none";
+              nameEl.style.webkitBackgroundClip = "unset";
+              nameEl.style.webkitTextFillColor = "white";
+              nameEl.style.color = "white";
+              nameEl.style.fontSize = "28px";
+            }
+          }
+        }
       });
 
       const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
@@ -913,7 +933,7 @@ function ProfilePageComponent() {
                   <p className="text-[11px] text-zinc-450 italic">
                     This verified credential is proud to declare that
                   </p>
-                  <h3 className="text-2xl font-black tracking-tight text-white capitalize bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent py-1">
+                  <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white capitalize drop-shadow-[0_2px_10px_rgba(168,85,247,0.25)] py-1">
                     {watch("displayName") || "LingoLand Explorer"}
                   </h3>
                   <p className="text-[11px] text-zinc-400 max-w-md mx-auto leading-relaxed">
@@ -927,14 +947,14 @@ function ProfilePageComponent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 pt-6 border-t border-zinc-900 text-left max-w-md mx-auto">
+                <div className="flex justify-between items-center pt-6 border-t border-zinc-900/60 max-w-xl mx-auto w-full text-left gap-8">
                   <div className="space-y-1">
                     <p className="text-[9px] text-zinc-550 font-extrabold uppercase tracking-wider">Credential ID</p>
                     <p className="text-[10px] text-zinc-300 font-mono font-bold">{activeCert.id}</p>
                   </div>
                   <div className="space-y-1 text-right">
                     <p className="text-[9px] text-zinc-550 font-extrabold uppercase tracking-wider">Issuing Body</p>
-                    <p className="text-[10px] text-indigo-400 font-bold truncate">{activeCert.partner}</p>
+                    <p className="text-[10px] text-indigo-400 font-bold">{activeCert.partner}</p>
                   </div>
                 </div>
 

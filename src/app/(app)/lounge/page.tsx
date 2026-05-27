@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, query, orderBy, onSnapshot, serverTimestamp, type FirestoreError, doc, writeBatch, setDoc, addDoc, deleteDoc, getDocs } from "firebase/firestore";
 import { useAuth } from "@/context/auth-context";
@@ -86,6 +86,25 @@ export default function LoungePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mentionState, setMentionState] = useState<{ show: boolean; query: string }>({ show: false, query: '' });
   const { toast } = useToast();
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
+
+  const checkScrollable = useCallback(() => {
+    const el = chatContainerRef.current;
+    if (el) {
+      const isScrollable = el.scrollHeight > el.clientHeight + 20;
+      setShowScrollButtons(isScrollable);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkScrollable();
+    const timer = setTimeout(checkScrollable, 200);
+    window.addEventListener("resize", checkScrollable);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", checkScrollable);
+    };
+  }, [suggestions, checkScrollable]);
   
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement>>({});
@@ -501,19 +520,26 @@ export default function LoungePage() {
 
     return (
         <div className="space-y-6">
+            <AnimatePresence initial={false}>
             {suggestions.map((suggestion, index) => {
                 const authorProfile = allUsers.find(u => u.uid === suggestion.authorId);
                 const isCurrentUser = user?.uid === suggestion.authorId;
-                const messageColor = isCurrentUser ? 'bg-blue-500' : 'bg-pink-500';
+                const bubbleStyle = isCurrentUser 
+                  ? 'bg-gradient-to-br from-purple-650 via-indigo-600 to-indigo-750 border border-indigo-500/20 text-white rounded-2xl rounded-tr-none shadow-lg shadow-indigo-950/20 hover:from-purple-550 hover:to-indigo-650 transition-all duration-300' 
+                  : 'bg-slate-950/60 border border-slate-800 text-zinc-150 rounded-2xl rounded-tl-none shadow-md shadow-black/10 hover:border-slate-700/60 transition-all duration-300';
                 const isStickerOnly = suggestion.stickerUrl && !suggestion.text;
                 
                 // Determine if we should show the public profile link
                 const canViewProfile = !!authorProfile;
 
                 return (
-                    <div
+                    <motion.div
                         key={suggestion.id}
                         ref={(el) => { if (el) messageRefs.current[suggestion.id] = el; }}
+                        initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
                         className={cn("flex items-start gap-4 group", isCurrentUser ? "justify-end" : "justify-start")}
                     >
                          <div className={cn("flex items-start gap-4", isCurrentUser && "flex-row-reverse")}>
@@ -535,7 +561,7 @@ export default function LoungePage() {
                                 <p className="font-bold text-sm text-gray-400 mb-1">{suggestion.authorName}</p>
                                 <div className="flex items-center gap-2">
                                     <div className={cn(isCurrentUser && "order-2")}>
-                                        <div className={cn("text-white rounded-lg inline-block max-w-[72vw] sm:max-w-md md:max-w-lg lg:max-w-2xl break-words min-w-0", isStickerOnly ? 'bg-transparent' : 'p-4', !isStickerOnly && messageColor)}>
+                                        <div className={cn("inline-block max-w-[72vw] sm:max-w-md md:max-w-lg lg:max-w-2xl break-words min-w-0 text-white", isStickerOnly ? 'bg-transparent p-0' : 'p-3.5', !isStickerOnly && bubbleStyle)}>
                                             {suggestion.replyToId && (
                                             <div className="border-l-2 border-white/50 pl-2 text-xs mb-2 opacity-80 cursor-pointer min-w-0 w-full" onClick={() => scrollToMessage(suggestion.replyToId!)}>
                                                 <p className="font-bold truncate">Replying to {suggestion.replyToAuthor}</p>
@@ -611,9 +637,10 @@ export default function LoungePage() {
                                 </p>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 )
             })}
+            </AnimatePresence>
             <div ref={bottomRef} />
         </div>
     )
@@ -643,15 +670,19 @@ export default function LoungePage() {
 
 
   return (
-    <div className="relative w-full h-full p-0 bg-transparent">
+    <div className="relative w-full h-full p-0 bg-transparent overflow-hidden">
+      {/* Ambient pulsating background light bubbles */}
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[6s] z-0" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none animate-pulse duration-[8s] z-0" />
+
       <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col h-full">
-        <Card className="w-full h-full flex flex-col overflow-hidden">
-          <CardHeader className="text-white bg-gradient-to-r from-purple-500 to-indigo-600 text-center flex-shrink-0 relative">
-            <CardTitle className="flex items-center justify-center gap-2 text-3xl">
-              <MessageCircle />
+        <Card className="w-full h-full flex flex-col overflow-hidden bg-slate-900/40 border border-slate-850 backdrop-blur-lg rounded-3xl shadow-[0_30px_80px_rgba(99,102,241,0.15)]">
+          <CardHeader className="text-white bg-slate-950/45 border-b border-slate-800/80 backdrop-blur-md text-center flex-shrink-0 relative py-6">
+            <CardTitle className="flex items-center justify-center gap-2 text-3xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-300 to-indigo-500">
+              <MessageCircle className="text-purple-400" />
               Community Lounge
             </CardTitle>
-            <CardDescription className="text-gray-300 text-center">Share your suggestions, comments, and ideas with the community.</CardDescription>
+            <CardDescription className="text-slate-400 text-center font-medium mt-1">Share suggestions, interact with emojis, and shape the future of LingoLand.</CardDescription>
             {pinnedSuggestions.length > 0 && !isGuest && (
               <Button 
                 onClick={() => setShowPinnedDrawer(true)}
@@ -772,7 +803,7 @@ export default function LoungePage() {
               {renderContent()}
             </CardContent>
             {/* Scroll Up & Scroll Down Floating Buttons */}
-            {suggestions.length > 5 && (
+            {showScrollButtons && (
               <div className="absolute right-6 bottom-6 z-10 flex flex-col gap-2 select-none animate-in fade-in duration-300">
                 <Button
                   variant="outline"
@@ -795,34 +826,35 @@ export default function LoungePage() {
               </div>
             )}
             {user && !isGuest && userProfile && (
-              <CardFooter className="pt-4 border-t-2 border-border/20 flex flex-col items-start gap-2 flex-shrink-0">
+              <CardFooter className="pt-4 border-t border-slate-800/80 flex flex-col items-start gap-2 flex-shrink-0 bg-slate-950/20 backdrop-blur-md">
                 {mentionState.show && (
-                  <div className="bg-muted p-2 rounded-lg w-full max-h-32 overflow-y-auto">
+                  <div className="bg-slate-950/60 border border-slate-850 p-2 rounded-2xl w-full max-h-32 overflow-y-auto backdrop-blur-md">
                     {mentionableUsers.length > 0 ? (
                       mentionableUsers.map(p => (
-                        <div key={p.uid} onClick={() => handleMentionSelect(p.displayName!)} className="p-2 hover:bg-primary/10 rounded cursor-pointer flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
+                        <div key={p.uid} onClick={() => handleMentionSelect(p.displayName!)} className="p-2 hover:bg-indigo-500/10 text-slate-200 hover:text-white rounded-xl cursor-pointer flex items-center gap-2 transition-all">
+                          <Avatar className="h-6 w-6 border border-slate-800">
                             <AvatarImage src={p.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${p.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${p.displayName}`} alt={p.displayName!} />
                             <AvatarFallback>{getInitials(p.displayName)}</AvatarFallback>
                           </Avatar>
-                          <span>{p.displayName}</span>
+                          <span className="font-bold text-xs">{p.displayName}</span>
                         </div>
                       ))
                     ) : (
-                      <p className="p-2 text-sm text-muted-foreground">No users found matching "{mentionState.query}"</p>
+                      <p className="p-2 text-xs text-slate-500 font-bold uppercase tracking-wider">No users found matching "{mentionState.query}"</p>
                     )}
                   </div>
                 )}
                 {replyingTo && (
-                  <div className="text-sm text-muted-foreground bg-muted p-2 rounded-md w-full flex justify-between items-center">
-                    <div>
-                      Replying to <span className="font-bold">{replyingTo.authorName}</span>: <em className="truncate">"{replyingTo.text?.substring(0, 30)}..."</em>
+                  <div className="text-xs text-indigo-300 bg-indigo-950/30 border border-indigo-900/40 p-2.5 rounded-xl w-full flex justify-between items-center backdrop-blur-sm">
+                    <div className="flex items-center gap-1">
+                      <Reply className="h-3.5 w-3.5 text-indigo-400" />
+                      <span>Replying to <strong className="text-white font-bold">{replyingTo.authorName}</strong>: <em className="opacity-80">"{replyingTo.text?.substring(0, 30)}..."</em></span>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setReplyingTo(null)}><X className="h-4 w-4"/></Button>
+                    <Button variant="ghost" size="icon" className="h-5 w-5 text-slate-400 hover:text-white rounded-lg" onClick={() => setReplyingTo(null)}><X className="h-3 w-3"/></Button>
                   </div>
                 )}
                 <div className="flex w-full items-center gap-2">
-                  <Avatar>
+                  <Avatar className="border border-slate-800">
                     <AvatarImage src={userProfile.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${userProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${userProfile.displayName}`} alt={userProfile.displayName || ''} />
                     <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
                   </Avatar>
@@ -838,18 +870,18 @@ export default function LoungePage() {
                       }
                     }}
                     rows={1}
-                    className="flex-1 bg-muted/80 text-foreground border-border/50 focus-visible:ring-1 focus-visible:ring-primary min-h-[40px] max-h-32 py-2 resize-none"
+                    className="flex-1 bg-slate-950/50 text-slate-100 border-slate-800/80 focus-visible:ring-1 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500/40 min-h-[40px] max-h-32 py-2 resize-none rounded-2xl placeholder:text-slate-500 font-medium"
                   />
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0">
-                        <Sticker/>
+                      <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0 text-slate-400 hover:text-white hover:bg-slate-800/80">
+                        <Sticker className="h-5 w-5" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-80 h-96">
+                    <PopoverContent className="w-80 h-96 bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl">
                       <div className="grid grid-cols-4 gap-4 overflow-y-auto h-full">
                         {stickerStyles.map((style) => (
-                          <Button key={style} variant="ghost" className="h-16 w-16" onClick={() => handleSendSticker(style)}>
+                          <Button key={style} variant="ghost" className="h-16 w-16 hover:bg-slate-800/50 rounded-xl" onClick={() => handleSendSticker(style)}>
                             <Image 
                               unoptimized
                               src={`https://api.dicebear.com/8.x/${style}/svg?seed=${user?.uid || 'guest'}&flip=true&radius=10&backgroundType=gradientLinear,solid&backgroundColor=transparent`}
@@ -862,8 +894,8 @@ export default function LoungePage() {
                       </div>
                     </PopoverContent>
                   </Popover>
-                  <Button onClick={handlePostSuggestion} disabled={isSubmitting || !newSuggestion.trim()} size="icon" className="rounded-full flex-shrink-0">
-                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Send />}
+                  <Button onClick={handlePostSuggestion} disabled={isSubmitting || !newSuggestion.trim()} size="icon" className="rounded-full flex-shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-650/20 active:scale-95 transition-all">
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Send className="h-4.5 w-4.5" />}
                   </Button>
                   {editingSuggestion && (
                     <Button variant="ghost" onClick={() => { setEditingSuggestion(null); setNewSuggestion(""); }}>Cancel</Button>
