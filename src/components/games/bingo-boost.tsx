@@ -352,7 +352,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
         "w-full transition-all duration-500 flex flex-col relative overflow-hidden",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-slate-950 justify-center p-8" 
-            : "max-w-5xl mx-auto bg-slate-900/40 backdrop-blur-md border border-slate-800 shadow-2xl rounded-3xl"
+            : "max-w-6xl mx-auto bg-slate-900/40 backdrop-blur-md border border-slate-800 shadow-2xl rounded-3xl"
       )}>
       
       {/* Decorative glows */}
@@ -480,108 +480,151 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
         }
 
         {gameState === "playing" && board.length > 0 && (
-          <div className="flex flex-col items-center gap-8 w-full max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full items-start">
             
-            {/* Centered Question / Correct Answer Call Card */}
-            <div className="p-8 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-sm w-full text-center shadow-lg relative">
-              <div className="flex items-center justify-center gap-1.5 text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">
-                <BookOpen className="h-4 w-4" />
-                <span>Drawn question {currentDefinitionIndex + 1} / {definitions.length}</span>
-              </div>
-              <h4 className="font-extrabold text-white text-xl md:text-2xl leading-relaxed italic px-4 min-h-[60px] flex items-center justify-center">
-                "{definitions[currentDefinitionIndex].definition}"
-              </h4>
+            {/* Left/Center Column: Bingo board and gameplay (8 cols) */}
+            <div className="lg:col-span-8 flex flex-col items-center gap-8 w-full">
               
-              <div className="flex items-center justify-center gap-3 mt-5 flex-wrap">
-                <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].definition)} disabled={isSpeaking} className="h-10 w-10 rounded-full bg-slate-850 hover:bg-slate-800 text-indigo-300" title="Speak Definition">
-                  <Volume2 className="h-5 w-5" />
-                </Button>
-                
-                {/* Dynamic Correct Answer Indicator (Hides by default, reveals on toggle) */}
-                {showAnswer ? (
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 px-6 py-2 rounded-2xl flex items-center gap-2 animate-in fade-in zoom-in-95">
-                    <span className="text-xs uppercase font-black tracking-widest text-emerald-450">Correct Word:</span>
-                    <span className="text-lg font-black text-emerald-350 uppercase">{definitions[currentDefinitionIndex].word}</span>
-                    <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].word)} disabled={isSpeaking} className="h-7 w-7 rounded-full hover:bg-emerald-500/20 text-emerald-400 p-0 ml-1.5" title="Speak Word">
-                      <Volume2 className="h-4 w-4" />
-                    </Button>
+              {/* Centered Question / Correct Answer Call Card - Enlarged & Longer */}
+              <div className="p-10 md:p-12 rounded-[2rem] bg-slate-900/60 border border-slate-800 backdrop-blur-sm w-full text-center shadow-lg relative min-h-[280px] flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-center gap-1.5 text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-4">
+                    <BookOpen className="h-4 w-4" />
+                    <span>Drawn question {currentDefinitionIndex + 1} / {definitions.length}</span>
                   </div>
-                ) : (
-                  <Button 
-                    size="lg" 
-                    onClick={() => setShowAnswer(true)} 
-                    className="bg-indigo-650 hover:bg-indigo-600 text-white font-black h-11 px-6 rounded-2xl text-sm flex items-center gap-1.5 shadow-lg active:scale-95 transition-all"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>Reveal Answer</span>
-                  </Button>
-                )}
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-850/60 flex items-center justify-between gap-4">
-                <div className="text-[11px] text-slate-500 font-bold max-w-sm text-left leading-normal">
-                  {showAnswer ? (
-                    <span className="text-emerald-400 font-extrabold">📌 Find "{definitions[currentDefinitionIndex].word}" on your grid, mark it, and click draw to proceed.</span>
-                  ) : (
-                    <span>💡 Students guess the target word first. Teacher click Reveal to verify.</span>
-                  )}
+                  <h4 className="font-extrabold text-white text-2xl md:text-3xl lg:text-4xl leading-relaxed italic px-4 min-h-[100px] flex items-center justify-center">
+                    "{definitions[currentDefinitionIndex].definition}"
+                  </h4>
                 </div>
                 
-                {/* Draw Next word button */}
+                <div className="flex flex-col items-center gap-4 mt-6">
+                  <div className="flex items-center justify-center gap-3 flex-wrap">
+                    <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].definition)} disabled={isSpeaking} className="h-12 w-12 rounded-full bg-slate-850 hover:bg-slate-800 text-indigo-300" title="Speak Definition">
+                      <Volume2 className="h-6 w-6" />
+                    </Button>
+                    
+                    {/* Dynamic Correct Answer Indicator (Hides by default, reveals on toggle) */}
+                    {showAnswer ? (
+                      <div className="bg-emerald-500/10 border border-emerald-500/20 px-8 py-3 rounded-2xl flex items-center gap-3 animate-in fade-in zoom-in-95 shadow-md">
+                        <span className="text-xs uppercase font-black tracking-widest text-emerald-450">Correct Word:</span>
+                        <span className="text-xl md:text-2xl font-black text-emerald-350 uppercase tracking-wide">{definitions[currentDefinitionIndex].word}</span>
+                        <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].word)} disabled={isSpeaking} className="h-8 w-8 rounded-full hover:bg-emerald-500/20 text-emerald-400 p-0 ml-1.5" title="Speak Word">
+                          <Volume2 className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button 
+                        size="lg" 
+                        onClick={() => setShowAnswer(true)} 
+                        className="bg-indigo-650 hover:bg-indigo-600 text-white font-black h-13 px-8 rounded-2xl text-base flex items-center gap-2 shadow-lg active:scale-95 transition-all"
+                      >
+                        <Sparkles className="h-5 w-5" />
+                        <span>Reveal Answer</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="w-full pt-4 border-t border-slate-850/60 flex items-center justify-between gap-4">
+                    <div className="text-xs text-slate-500 font-bold max-w-sm text-left leading-normal">
+                      {showAnswer ? (
+                        <span className="text-emerald-450 font-extrabold">📌 Find "{definitions[currentDefinitionIndex].word}" on your grid, mark it, and click draw to proceed.</span>
+                      ) : (
+                        <span>💡 Students guess the target word first. Teacher click Reveal to verify.</span>
+                      )}
+                    </div>
+                    
+                    {/* Draw Next word button */}
+                    <Button 
+                      onClick={handleNextWord} 
+                      className="h-12 px-6 bg-gradient-to-r from-indigo-650 to-indigo-850 hover:opacity-90 font-black rounded-xl text-sm flex items-center gap-2 text-white shadow-lg active:scale-95"
+                    >
+                      <span>Next Word</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resized Widescreen 5x5 Grid */}
+              <div className="p-6 rounded-[2.5rem] bg-slate-950/40 border border-slate-850/80 shadow-inner flex justify-center items-center w-full max-w-[620px]">
+                <div className="grid gap-3 w-full" style={{ gridTemplateColumns: `repeat(${BINGO_SIZE}, 1fr)` }}>
+                  {board.map((row, rowIndex) =>
+                    row.map((cell, colIndex) => {
+                      const isFree = cell.word === "FREE";
+                      const isCorrectAnswer = cell.word.toLowerCase() === definitions[currentDefinitionIndex].word.toLowerCase();
+                      
+                      return (
+                        <Button
+                          key={`${rowIndex}-${colIndex}`}
+                          variant={cell.marked ? "default" : "outline"}
+                          className={cn(
+                            "h-20 sm:h-24 w-full text-[10px] sm:text-xs md:text-sm font-black uppercase text-center break-words whitespace-normal shadow-lg transition-all rounded-2xl p-2",
+                            isFree && "bg-gradient-to-br from-indigo-500 to-indigo-650 text-white border-none cursor-default shadow-indigo-500/10",
+                            cell.marked && !isFree && "bg-gradient-to-br from-emerald-500 to-emerald-650 border-none text-white scale-[0.96] cursor-default shadow-emerald-500/10",
+                            !cell.marked && showAnswer && isCorrectAnswer && "border-indigo-500/40 bg-indigo-500/5 text-indigo-200 animate-pulse border-2"
+                          )}
+                          onClick={() => !isFree && markCell(rowIndex, colIndex)}
+                          disabled={cell.marked}
+                        >
+                          {cell.word}
+                        </Button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Glowing Manual BINGO Trigger (Requested BINGO button - ALWAYS clickable!) */}
+              <div className="w-full flex justify-center pt-2">
                 <Button 
-                  onClick={handleNextWord} 
-                  className="h-11 px-5 bg-gradient-to-r from-indigo-650 to-indigo-850 hover:opacity-90 font-black rounded-xl text-xs flex items-center gap-1.5 text-white"
+                  onClick={() => setGameState("finished")} 
+                  className={cn(
+                    "w-full max-w-[360px] h-14 text-sm font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 border cursor-pointer hover:brightness-110",
+                    "bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 text-slate-950 border-amber-300",
+                    (bingoLines > 0 || reviewList.length >= 5) ? "animate-bounce shadow-amber-500/30" : "shadow-lg shadow-amber-500/10"
+                  )}
                 >
-                  <span>Next Word</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <Trophy className="h-5 w-5" />
+                  <span>Declare BINGO! ({bingoLines} lines)</span>
                 </Button>
               </div>
+
             </div>
 
-            {/* Resized Widescreen 5x5 Grid */}
-            <div className="p-6 rounded-[2.5rem] bg-slate-950/40 border border-slate-850/80 shadow-inner flex justify-center items-center w-full max-w-[620px]">
-              <div className="grid gap-3 w-full" style={{ gridTemplateColumns: `repeat(${BINGO_SIZE}, 1fr)` }}>
-                {board.map((row, rowIndex) =>
-                  row.map((cell, colIndex) => {
-                    const isFree = cell.word === "FREE";
-                    const isCorrectAnswer = cell.word.toLowerCase() === definitions[currentDefinitionIndex].word.toLowerCase();
-                    
-                    return (
-                      <Button
-                        key={`${rowIndex}-${colIndex}`}
-                        variant={cell.marked ? "default" : "outline"}
-                        className={cn(
-                          "h-20 sm:h-24 w-full text-[10px] sm:text-xs md:text-sm font-black uppercase text-center break-words whitespace-normal shadow-lg transition-all rounded-2xl p-2",
-                          isFree && "bg-gradient-to-br from-indigo-500 to-indigo-650 text-white border-none cursor-default shadow-indigo-500/10",
-                          cell.marked && !isFree && "bg-gradient-to-br from-emerald-500 to-emerald-650 border-none text-white scale-[0.96] cursor-default shadow-emerald-500/10",
-                          !cell.marked && showAnswer && isCorrectAnswer && "border-indigo-500/40 bg-indigo-500/5 text-indigo-200 animate-pulse border-2"
-                        )}
-                        onClick={() => !isFree && markCell(rowIndex, colIndex)}
-                        disabled={cell.marked}
-                      >
-                        {cell.word}
-                      </Button>
-                    );
-                  })
+            {/* Right Column: Review Word Bank panel (4 cols) - Restored! */}
+            <div className="lg:col-span-4 rounded-3xl bg-slate-900/60 border border-slate-800 p-6 backdrop-blur-sm space-y-4 h-full min-h-[400px] flex flex-col shadow-lg">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-850">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-indigo-400" />
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-350">Review Word Bank</span>
+                </div>
+                <Badge variant="outline" className="text-[10px] text-indigo-300 bg-indigo-500/5 border-indigo-500/10">Called: {reviewList.length}</Badge>
+              </div>
+
+              <div className="flex-grow overflow-y-auto max-h-[450px] pr-1 space-y-2.5">
+                {reviewList.length > 0 ? (
+                  reviewList.map((item, idx) => (
+                    <div key={idx} className="p-3.5 bg-slate-950/40 border border-slate-850 rounded-xl space-y-1 hover:border-slate-800 transition-all">
+                      <p className="text-xs font-black uppercase text-emerald-450 tracking-wider flex items-center gap-1.5">
+                        <Check className="h-3.5 w-3.5" />
+                        <span>{item.word}</span>
+                      </p>
+                      <p className="text-[10px] text-slate-400 leading-normal italic">
+                        "{item.definition}"
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="h-[250px] flex flex-col items-center justify-center text-center text-slate-500 p-4 border border-dashed border-slate-850 rounded-2xl">
+                    <BookOpen className="h-8 w-8 text-slate-650 mb-2" />
+                    <p className="text-xs font-bold uppercase tracking-wider">Empty bank</p>
+                    <p className="text-[10px] text-slate-550 leading-normal max-w-[150px] mt-1">Finished vocab items appear here for study.</p>
+                  </div>
                 )}
               </div>
-            </div>
-
-            {/* Glowing Manual BINGO Trigger (Requested BINGO button) */}
-            <div className="w-full flex justify-center pt-2">
-              <Button 
-                onClick={() => setGameState("finished")} 
-                className={cn(
-                  "w-full max-w-[360px] h-14 text-sm font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2",
-                  bingoLines > 0 
-                    ? "bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 text-slate-950 shadow-amber-500/30 animate-bounce border border-amber-300"
-                    : "bg-slate-800 text-slate-500 border border-slate-750 cursor-not-allowed hover:bg-slate-800 hover:text-slate-500"
-                )}
-                disabled={bingoLines === 0}
-              >
-                <Trophy className="h-5 w-5" />
-                <span>Declare BINGO! ({bingoLines} lines)</span>
-              </Button>
+              <div className="text-[9px] text-slate-500 font-bold leading-normal pt-2 border-t border-slate-850">
+                📖 Review drawn terms to identify skipped or missed definitions.
+              </div>
             </div>
 
           </div>
