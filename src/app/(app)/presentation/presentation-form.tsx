@@ -1608,7 +1608,7 @@ export function PresentationForm() {
                     <div 
                       className={cn(
                         "relative bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-[0_20px_50px_rgba(99,102,241,0.3)] animate-in zoom-in-95 duration-300 text-center space-y-4 backdrop-blur-md",
-                        isFullscreen && pickerImages.length > 0 ? "w-full max-w-3xl max-h-[80vh]" : "w-full max-w-sm"
+                        isFullscreen ? "w-full max-w-4xl max-h-[85vh] flex flex-col justify-between" : "w-full max-w-sm"
                       )}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -1626,7 +1626,7 @@ export function PresentationForm() {
 
                       <div className={cn(
                         "relative rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800 p-4",
-                        isFullscreen && pickerImages.length > 0 ? "min-h-[400px] w-full" : "aspect-square w-full"
+                        isFullscreen ? "min-h-[500px] w-full flex-1" : "aspect-square w-full"
                       )}>
                         {isLoadingImage || isLoadingPicker ? (
                           <div className="flex flex-col items-center gap-3">

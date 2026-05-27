@@ -12,9 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, RefreshCw, Save, Sparkles, PencilLine, ShieldCheck, Camera, Award, CheckCircle2, XCircle, ExternalLink, Lock, Check, Trophy, X, Printer, Linkedin } from "lucide-react";
+import { Loader2, RefreshCw, Save, Sparkles, PencilLine, ShieldCheck, Camera, Award, CheckCircle2, XCircle, ExternalLink, Lock, Check, Trophy, X, Printer, Linkedin, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import dynamic from 'next/dynamic';
+import html2canvas from "html2canvas";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import placeholderData from "@/app/lib/placeholder-images.json";
@@ -104,6 +105,55 @@ function ProfilePageComponent() {
     return false;
   });
   const [activeCert, setActiveCert] = useState<{ title: string; badge: string; id: string; partner: string } | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadCertificate = async () => {
+    if (!activeCert) return;
+    setIsDownloading(true);
+    try {
+      const element = document.querySelector(".print-cert-modal") as HTMLElement;
+      if (!element) {
+        toast({
+          title: "Download Error",
+          description: "Could not find the certificate template in the page.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#09090b",
+        logging: false,
+        ignoreElements: (el) => el.classList.contains("no-print")
+      });
+
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      const fileName = `lingoland_certificate_${activeCert.title.toLowerCase().replace(/\s+/g, "_")}.jpg`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Certificate Downloaded! 🎉",
+        description: `Successfully saved ${fileName} to your device.`,
+      });
+    } catch (error) {
+      console.error("Certificate download error:", error);
+      toast({
+        title: "Download Failed",
+        description: "An error occurred while generating the certificate image.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
 
   const CHALLENGE_QUESTIONS = [
     {
@@ -891,11 +941,18 @@ function ProfilePageComponent() {
                 <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center no-print">
                   <Button 
                     variant="outline"
-                    onClick={() => window.print()}
+                    onClick={handleDownloadCertificate}
+                    disabled={isDownloading}
                     className="h-10 text-xs font-bold border-zinc-800 bg-zinc-900 text-zinc-350 hover:bg-zinc-800 hover:text-white rounded-xl flex items-center gap-1.5"
                   >
-                    <Printer className="h-4 w-4" /> Print Certificate
+                    {isDownloading ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                    ) : (
+                      <Download className="h-4 w-4 text-amber-500" />
+                    )}
+                    {isDownloading ? "Downloading..." : "Download Certificate"}
                   </Button>
+
                   
                   <Button
                     onClick={() => {

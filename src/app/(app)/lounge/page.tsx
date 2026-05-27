@@ -37,11 +37,11 @@ import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocki
 const stickerStyles = [
     "adventurer", "adventurer-neutral", "avataaars", "avataaars-neutral", 
     "big-ears", "big-smile", "bottts", "bottts-neutral", "croodles", "croodles-neutral", 
-    "fun-emoji", "fun-emoji-neutral", "icons", "icons-neutral", "identicon", "initials", 
-    "lorelei", "lorelei-neutral", "micah", "micah-neutral", "miniavs", "miniavs-neutral", 
-    "open-peeps", "open-peeps-neutral", "personas", "personas-neutral", "pixel-art", "pixel-art-neutral", 
-    "shapes", "shapes-neutral", "thumbs", "thumbs-neutral", "notionists", "notionists-neutral",
-    "glass-animals", "glass-animals-neutral", "rings", "rings-neutral"
+    "fun-emoji", "icons", "identicon", "initials", 
+    "lorelei", "lorelei-neutral", "micah", "miniavs", 
+    "open-peeps", "personas", "pixel-art", "pixel-art-neutral", 
+    "shapes", "thumbs", "notionists", "notionists-neutral",
+    "glass", "rings"
 ];
 
 const forbiddenKeywords = ['porn', 'hentai', 'gambling', 'casino', 'betting', 'xxx'];
