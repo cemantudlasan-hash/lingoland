@@ -525,8 +525,8 @@ export default function LoungePage() {
                 const authorProfile = allUsers.find(u => u.uid === suggestion.authorId);
                 const isCurrentUser = user?.uid === suggestion.authorId;
                 const bubbleStyle = isCurrentUser 
-                  ? 'bg-gradient-to-br from-purple-650 via-indigo-600 to-indigo-750 border border-indigo-500/20 text-white rounded-2xl rounded-tr-none shadow-lg shadow-indigo-950/20 hover:from-purple-550 hover:to-indigo-650 transition-all duration-300' 
-                  : 'bg-slate-950/60 border border-slate-800 text-zinc-150 rounded-2xl rounded-tl-none shadow-md shadow-black/10 hover:border-slate-700/60 transition-all duration-300';
+                  ? 'bg-gradient-to-br from-indigo-500 to-indigo-650 border border-indigo-400/30 text-white rounded-2xl rounded-tr-none shadow-lg shadow-indigo-500/20 hover:from-indigo-455 hover:to-indigo-600 transition-all duration-300' 
+                  : 'bg-slate-800/90 border border-slate-700/60 text-slate-100 rounded-2xl rounded-tl-none shadow-md shadow-black/20 hover:border-slate-600/50 transition-all duration-300';
                 const isStickerOnly = suggestion.stickerUrl && !suggestion.text;
                 
                 // Determine if we should show the public profile link
