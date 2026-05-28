@@ -22,7 +22,7 @@ export function AuthLoadingScreen({ action }: AuthLoadingScreenProps) {
             
             <div className="relative z-10 flex flex-col items-center justify-center p-6">
                 {/* Outer Ring Glow */}
-                <div className="absolute w-[220px] h-[220px] rounded-full bg-indigo-500/10 dark:bg-indigo-500/5 blur-2xl animate-pulse" />
+                <div className="absolute md:w-[320px] md:h-[320px] w-[250px] h-[250px] rounded-full bg-indigo-500/10 dark:bg-indigo-500/5 blur-3xl animate-pulse" />
 
                 {/* Animated Logo Container */}
                 <motion.div
@@ -38,7 +38,7 @@ export function AuthLoadingScreen({ action }: AuthLoadingScreenProps) {
                         damping: 15,
                         duration: 0.8 
                     }}
-                    className="relative w-48 h-48 mb-8 select-none"
+                    className="relative md:w-72 md:h-72 w-56 h-56 mb-8 select-none"
                 >
                     {/* Glowing Accent Shadow behind the Logo */}
                     <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 opacity-20 blur-xl scale-95" />
