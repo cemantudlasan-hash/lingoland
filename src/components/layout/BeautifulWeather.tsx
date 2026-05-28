@@ -25,50 +25,76 @@ export function BeautifulWeather() {
     detectLocationAndFetchWeather();
   }, []);
 
-  const detectLocationAndFetchWeather = () => {
+  const detectLocationAndFetchWeather = (isManual: any = false) => {
     setLoading(true);
     setError(null);
 
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            // Reverse geocode to get city name keylessly from OpenStreetMap Nominatim
-            let city = 'Your Area';
-            let country = 'Earth';
-            let countryCode = '🌐';
-            
-            try {
-              const geoResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {
-                headers: {
-                  'User-Agent': 'LingoLandVerse-Weather-App'
-                }
-              });
-              if (geoResponse.ok) {
-                const geoData = await geoResponse.json();
-                city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.suburb || 'Local Area';
-                country = geoData.address?.country || 'Earth';
-                countryCode = geoData.address?.country_code?.toUpperCase() || '🌐';
-              }
-            } catch (e) {
-              console.warn("OSM reverse geocoding failed, falling back to coordinates");
-            }
+    const isManualTrigger = isManual === true || (isManual && typeof isManual === 'object' && 'preventDefault' in isManual);
+    const locationAllowed = typeof window !== 'undefined' ? localStorage.getItem('lingoland_location_allowed') : null;
 
-            await fetchWeatherDetails(latitude, longitude, city, country, countryCode);
-          } catch (err) {
-            console.error(err);
+    const callGeolocation = () => {
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('lingoland_location_allowed', 'true');
+            }
+            const { latitude, longitude } = position.coords;
+            try {
+              // Reverse geocode to get city name keylessly from OpenStreetMap Nominatim
+              let city = 'Your Area';
+              let country = 'Earth';
+              let countryCode = '🌐';
+              
+              try {
+                const geoResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {
+                  headers: {
+                    'User-Agent': 'LingoLandVerse-Weather-App'
+                  }
+                });
+                if (geoResponse.ok) {
+                  const geoData = await geoResponse.json();
+                  city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.suburb || 'Local Area';
+                  country = geoData.address?.country || 'Earth';
+                  countryCode = geoData.address?.country_code?.toUpperCase() || '🌐';
+                }
+              } catch (e) {
+                console.warn("OSM reverse geocoding failed, falling back to coordinates");
+              }
+
+              await fetchWeatherDetails(latitude, longitude, city, country, countryCode);
+            } catch (err) {
+              console.error(err);
+              fetchWeatherViaIP();
+            }
+          },
+          (geoError) => {
+            console.warn("Geolocation permission denied or timed out. Falling back to IP-based lookup.", geoError);
+            if (typeof window !== 'undefined') {
+              // Store 'false' if they denied permission so we never prompt again automatically
+              if (geoError.code === geoError.PERMISSION_DENIED) {
+                localStorage.setItem('lingoland_location_allowed', 'false');
+              }
+            }
             fetchWeatherViaIP();
-          }
-        },
-        (geoError) => {
-          console.warn("Geolocation permission denied or timed out. Falling back to IP-based lookup.", geoError);
-          fetchWeatherViaIP();
-        },
-        { timeout: 8000 }
-      );
+          },
+          { timeout: 8000 }
+        );
+      } else {
+        fetchWeatherViaIP();
+      }
+    };
+
+    if (isManualTrigger) {
+      callGeolocation();
     } else {
-      fetchWeatherViaIP();
+      if (locationAllowed === 'false') {
+        // Direct silent fallback to IP-based lookup
+        fetchWeatherViaIP();
+      } else {
+        // 'true' or null (first time) -> call geolocation
+        callGeolocation();
+      }
     }
   };
 
