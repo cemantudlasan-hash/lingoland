@@ -8,13 +8,15 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Edit3, Save, LayoutDashboard, Palette, Sparkles, StickyNote, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const STORAGE_KEY = 'lingoland_morning_dashboard_data';
+import { useAuth } from '@/context/auth-context';
 
 export function MorningDashboard() {
+  const { user, isGuest } = useAuth();
+  
   const [time, setTime] = React.useState(new Date());
   const [isEditing, setIsEditing] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
+  const [prevKey, setPrevKey] = React.useState<string | null>(null);
   
   const [data, setData] = React.useState({
     title: 'Welcome to Class!',
@@ -24,27 +26,49 @@ export function MorningDashboard() {
     theme: 'bg-blueprint text-white',
   });
 
-  // Load from localStorage on mount
+  // Determine dynamic storage key scoped to the logged-in user or guest
+  const storageKey = React.useMemo(() => {
+    const uid = isGuest ? 'guest' : user?.uid || 'default';
+    return `lingoland_morning_dashboard_data_${uid}`;
+  }, [user?.uid, isGuest]);
+
+  // Load from localStorage whenever the storage key changes
   React.useEffect(() => {
-    setIsMounted(true);
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    if (savedData) {
-      try {
-        setData(JSON.parse(savedData));
-      } catch (e) {
-        console.error("Failed to parse saved dashboard data", e);
+    if (storageKey !== prevKey) {
+      setPrevKey(storageKey);
+      const savedData = localStorage.getItem(storageKey);
+      if (savedData) {
+        try {
+          setData(JSON.parse(savedData));
+        } catch (e) {
+          console.error("Failed to parse saved dashboard data", e);
+        }
+      } else {
+        // Fallback to default state if no saved data exists for this user/guest
+        setData({
+          title: 'Welcome to Class!',
+          bellRinger: 'What is the most interesting thing you learned this week?',
+          materials: '- Notebook\n- Blue or Black Pen\n- Textbook page 12',
+          reminders: '- Homework due Friday\n- Parent signatures needed\n- Library books back tomorrow',
+          theme: 'bg-blueprint text-white',
+        });
       }
     }
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  }, [storageKey, prevKey]);
 
   // Save to localStorage whenever data changes
   React.useEffect(() => {
-    if (isMounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (isMounted && prevKey) {
+      localStorage.setItem(prevKey, JSON.stringify(data));
     }
-  }, [data, isMounted]);
+  }, [data, isMounted, prevKey]);
+
+  // Initialize timer and mount status
+  React.useEffect(() => {
+    setIsMounted(true);
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const themes = [
     { name: 'Blueprint', value: 'bg-blueprint text-white' },
