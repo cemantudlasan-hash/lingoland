@@ -20,7 +20,7 @@ export default function AdBlock({
   const [adInitialized, setAdInitialized] = useState(false);
   const initializedRef = useRef(false);
 
-  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+  const publisherId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-9029482278295441';
   const isPlaceholder = !publisherId || publisherId === 'ca-pub-XXXXXXXXXXXXXXXX' || process.env.NODE_ENV === 'development';
 
   useEffect(() => {

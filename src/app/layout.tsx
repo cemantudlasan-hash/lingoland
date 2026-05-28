@@ -41,18 +41,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+  const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-9029482278295441';
   const isLiveAdSense = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX';
 
   return (
     <html lang="en" suppressHydrationWarning className={`${ptSans.variable} ${roboto.variable} ${lato.variable} ${montserrat.variable}`}>
       <head>
         {isLiveAdSense && (
-          <Script
+          <script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
             crossOrigin="anonymous"
-            strategy="afterInteractive"
           />
         )}
       </head>
