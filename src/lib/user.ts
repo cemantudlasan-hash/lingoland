@@ -17,16 +17,21 @@ export async function createUserProfile(user: User) {
   let newName = displayName;
   let isUnique = false;
   let attempts = 0;
-  while (!isUnique && attempts < 10) {
-      const q = query(usersRef, where("displayName", "==", newName));
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) {
-          isUnique = true;
-          displayName = newName;
-      } else {
-          newName = `${displayName}${Math.floor(Math.random() * 100)}`;
+  try {
+      while (!isUnique && attempts < 10) {
+          const q = query(usersRef, where("displayName", "==", newName));
+          const querySnapshot = await getDocs(q);
+          if (querySnapshot.empty) {
+              isUnique = true;
+              displayName = newName;
+          } else {
+              newName = `${displayName}${Math.floor(Math.random() * 100)}`;
+          }
+          attempts++;
       }
-      attempts++;
+  } catch (e) {
+      console.warn("Uniqueness check query failed (falling back to dynamic suffix):", e);
+      displayName = `${displayName}_${Math.floor(Math.random() * 1000)}`;
   }
 
 
@@ -64,13 +69,20 @@ export async function updateUserProfile(uid: string, data: Partial<Omit<UserProf
 
   // If displayName is being updated, check for uniqueness and sync with posts/comments
   if (data.displayName) {
-    const usersRef = collection(firestore, "users");
-    const q = query(usersRef, where("displayName", "==", data.displayName));
-    const querySnapshot = await getDocs(q);
+    try {
+        const usersRef = collection(firestore, "users");
+        const q = query(usersRef, where("displayName", "==", data.displayName));
+        const querySnapshot = await getDocs(q);
 
-    // Check if the name is taken by another user
-    if (!querySnapshot.empty && querySnapshot.docs.some(doc => doc.id !== uid)) {
-        throw new Error("Display name is already taken. Please choose another one.");
+        // Check if the name is taken by another user
+        if (!querySnapshot.empty && querySnapshot.docs.some(doc => doc.id !== uid)) {
+            throw new Error("Display name is already taken. Please choose another one.");
+        }
+    } catch (e: any) {
+        if (e.message?.includes("already taken")) {
+            throw e;
+        }
+        console.warn("Could not verify display name uniqueness due to listing/permission constraints:", e);
     }
     
     const currentUserProfile = await getUserProfile(uid);

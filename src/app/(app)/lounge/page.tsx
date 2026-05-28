@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { collection, query, orderBy, onSnapshot, serverTimestamp, type FirestoreError, doc, writeBatch, setDoc, addDoc, deleteDoc, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, serverTimestamp, type FirestoreError, doc, writeBatch, setDoc, addDoc, deleteDoc, getDocs, getDoc } from "firebase/firestore";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore, useMemoFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,8 @@ export default function LoungePage() {
 
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
+  const [profilesCache, setProfilesCache] = useState<Record<string, UserProfile>>({});
+  const loadingUids = useRef<Set<string>>(new Set());
   const [localPinnedIds, setLocalPinnedIds] = useState<string[]>([]);
   const [showPinned, setShowPinned] = useState(true);
   const [showPinnedDrawer, setShowPinnedDrawer] = useState(false);
@@ -208,6 +210,63 @@ export default function LoungePage() {
         unsubscribeSuggestions();
     };
   }, [isAuthLoading, user, isGuest, firestore, suggestionsQuery]);
+
+  // Synchronize the current user's profile info into the cache
+  useEffect(() => {
+    if (userProfile && userProfile.uid) {
+      setProfilesCache(prev => {
+        const cached = prev[userProfile.uid];
+        if (cached && cached.displayName === userProfile.displayName && cached.avatarSeed === userProfile.avatarSeed) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [userProfile.uid]: userProfile
+        };
+      });
+    }
+  }, [userProfile]);
+
+  // Load missing profiles on-demand dynamically by UID
+  useEffect(() => {
+    if (!firestore || suggestions.length === 0) return;
+
+    const uidsToFetch = Array.from(new Set(suggestions.map(s => s.authorId)))
+      .filter(uid => uid && !profilesCache[uid] && !loadingUids.current.has(uid));
+
+    if (uidsToFetch.length === 0) return;
+
+    uidsToFetch.forEach(uid => loadingUids.current.add(uid));
+
+    const fetchProfiles = async () => {
+      const results = await Promise.all(
+        uidsToFetch.map(async (uid) => {
+          try {
+            const userDocRef = doc(firestore, 'users', uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+              return { uid, profile: { uid, ...userDocSnap.data() } as UserProfile };
+            }
+          } catch (e) {
+            console.error(`Failed to fetch user profile for ${uid}:`, e);
+          }
+          return { uid, profile: null };
+        })
+      );
+
+      setProfilesCache(prev => {
+        const next = { ...prev };
+        results.forEach(({ uid, profile }) => {
+          if (profile) {
+            next[uid] = profile;
+          }
+        });
+        return next;
+      });
+    };
+
+    fetchProfiles();
+  }, [firestore, suggestions, profilesCache]);
 
 
   useEffect(() => {
@@ -522,7 +581,7 @@ export default function LoungePage() {
         <div className="space-y-6">
             <AnimatePresence initial={false}>
             {suggestions.map((suggestion, index) => {
-                const authorProfile = allUsers.find(u => u.uid === suggestion.authorId);
+                const authorProfile = profilesCache[suggestion.authorId] || allUsers.find(u => u.uid === suggestion.authorId);
                 const isCurrentUser = user?.uid === suggestion.authorId;
                 const bubbleStyle = isCurrentUser 
                   ? 'bg-gradient-to-br from-indigo-500 to-indigo-650 border border-indigo-400/30 text-white rounded-2xl rounded-tr-none shadow-lg shadow-indigo-500/20 hover:from-indigo-455 hover:to-indigo-600 transition-all duration-300' 
@@ -547,18 +606,18 @@ export default function LoungePage() {
                                 <Link href={`/users/${suggestion.authorId}`} className="transition-transform hover:scale-110 active:scale-95">
                                     <Avatar className="h-12 w-12 border-2 border-primary/20 flex-shrink-0">
                                         <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${authorProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
-                                        <AvatarFallback>{getInitials(suggestion.authorName)}</AvatarFallback>
+                                        <AvatarFallback>{getInitials(authorProfile?.displayName || suggestion.authorName)}</AvatarFallback>
                                     </Avatar>
                                 </Link>
                             ) : (
                                 <Avatar className="h-12 w-12 border-2 border-background flex-shrink-0">
                                     <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${authorProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
-                                    <AvatarFallback>{getInitials(suggestion.authorName)}</AvatarFallback>
+                                    <AvatarFallback>{getInitials(authorProfile?.displayName || suggestion.authorName)}</AvatarFallback>
                                 </Avatar>
                             )}
 
                             <div className={cn("flex flex-col", isCurrentUser ? "items-end" : "items-start")}>
-                                <p className="font-bold text-sm text-gray-400 mb-1">{suggestion.authorName}</p>
+                                <p className="font-bold text-sm text-gray-400 mb-1">{authorProfile?.displayName || suggestion.authorName}</p>
                                 <div className="flex items-center gap-2">
                                     <div className={cn(isCurrentUser && "order-2")}>
                                         <div className={cn("inline-block max-w-[72vw] sm:max-w-md md:max-w-lg lg:max-w-2xl break-words min-w-0 text-white", isStickerOnly ? 'bg-transparent p-0' : 'p-3.5', !isStickerOnly && bubbleStyle)}>
@@ -736,7 +795,7 @@ export default function LoungePage() {
                     {/* Drawer Scrollable Content */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-3.5 select-none">
                       {pinnedSuggestions.map((suggestion) => {
-                        const authorProfile = allUsers.find(u => u.uid === suggestion.authorId);
+                        const authorProfile = profilesCache[suggestion.authorId] || allUsers.find(u => u.uid === suggestion.authorId);
                         const isCurrentUser = user?.uid === suggestion.authorId;
                         const isStickerOnly = suggestion.stickerUrl && !suggestion.text;
 
@@ -749,10 +808,10 @@ export default function LoungePage() {
                             <div className="flex items-center gap-2.5">
                               <Avatar className="h-8 w-8 border border-zinc-800">
                                 <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${authorProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} />
-                                <AvatarFallback className="text-[10px]">{getInitials(suggestion.authorName)}</AvatarFallback>
+                                <AvatarFallback className="text-[10px]">{getInitials(authorProfile?.displayName || suggestion.authorName)}</AvatarFallback>
                               </Avatar>
                               <div className="min-w-0 flex-1">
-                                <p className="text-xs font-black text-slate-200 truncate leading-none">{suggestion.authorName}</p>
+                                <p className="text-xs font-black text-slate-200 truncate leading-none">{authorProfile?.displayName || suggestion.authorName}</p>
                                 <p className="text-[9px] text-zinc-500 font-bold uppercase mt-1 tracking-wider">
                                   {suggestion.createdAt ? formatDistanceToNow(new Date(suggestion.createdAt), { addSuffix: true }) : 'just now'}
                                 </p>

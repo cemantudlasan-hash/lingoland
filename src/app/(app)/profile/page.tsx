@@ -86,7 +86,7 @@ function ProfileSkeleton() {
 
 function ProfilePageComponent() {
   const { user, isLoading: authLoading } = useRequireAuth();
-  const { refreshUserProfile } = useAuth();
+  const { refreshUserProfile, isAdmin } = useAuth();
   const { toast } = useToast();
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -104,6 +104,7 @@ function ProfilePageComponent() {
     }
     return false;
   });
+  const isL3Unlocked = challengePassed || isAdmin;
   const [activeCert, setActiveCert] = useState<{ title: string; badge: string; id: string; partner: string } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -165,10 +166,11 @@ function ProfilePageComponent() {
     } catch (error) {
       console.error("Certificate download error:", error);
       toast({
-        title: "Download Failed",
-        description: "An error occurred while generating the certificate image.",
-        variant: "destructive"
+        title: "Download Fallback Enabled 🖨️",
+        description: "Standard generation failed. Opening print-ready view...",
       });
+      // Gracefully fall back to standard print action
+      window.print();
     } finally {
       setIsDownloading(false);
     }
@@ -627,17 +629,17 @@ function ProfilePageComponent() {
                             <div className="flex flex-col gap-2.5 p-3 rounded-2xl bg-zinc-900/20 border border-zinc-900/80">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-3">
-                                    <div className={`h-9 w-9 rounded-full flex items-center justify-center shadow-inner transition-colors ${challengePassed ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : 'bg-zinc-950 border border-zinc-850 text-zinc-650'}`}>
-                                      {challengePassed ? <Trophy className="h-5 w-5 animate-bounce-slow" /> : <Lock className="h-4.5 w-4.5" />}
+                                    <div className={`h-9 w-9 rounded-full flex items-center justify-center shadow-inner transition-colors ${isL3Unlocked ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : 'bg-zinc-950 border border-zinc-850 text-zinc-650'}`}>
+                                      {isL3Unlocked ? <Trophy className="h-5 w-5 animate-bounce-slow" /> : <Lock className="h-4.5 w-4.5" />}
                                     </div>
                                     <div className="text-left">
                                       <p className="text-xs font-black text-white leading-none">L3: Advanced AI Synthesizer</p>
-                                      <p className={`text-[9px] font-bold tracking-wider uppercase mt-1 ${challengePassed ? 'text-amber-500' : 'text-zinc-500'}`}>
-                                        {challengePassed ? 'Mastered Certificate' : 'High-Level Challenge'}
+                                      <p className={`text-[9px] font-bold tracking-wider uppercase mt-1 ${isL3Unlocked ? 'text-amber-500' : 'text-zinc-500'}`}>
+                                        {isL3Unlocked ? 'Mastered Certificate' : 'High-Level Challenge'}
                                       </p>
                                     </div>
                                   </div>
-                                  {challengePassed ? (
+                                  {isL3Unlocked ? (
                                     <Button 
                                       size="sm"
                                       onClick={() => setActiveCert({
@@ -660,7 +662,7 @@ function ProfilePageComponent() {
                                     </Button>
                                   )}
                                 </div>
-                                {!challengePassed && (
+                                {!isL3Unlocked && (
                                   <p className="text-[9px] text-zinc-550 italic leading-normal text-left font-medium border-t border-zinc-900/60 pt-2">
                                     🎓 Pass the digital literacy assessment to unlock your Level 3 certificate & add to LinkedIn.
                                   </p>
