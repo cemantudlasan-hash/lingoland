@@ -245,7 +245,10 @@ export function AppHeader() {
     } else {
       await signOut();
     }
-    window.location.href = '/auth';
+    // Allow the logout animation to play completely for 2.5s before redirecting
+    setTimeout(() => {
+      window.location.href = '/auth';
+    }, 2500);
   };
   
   const handleSupportClick = () => {

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import * as React from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,8 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { Loader2, Mail, KeyRound } from 'lucide-react';
-import { errorEmitter } from '@/firebase/error-emitter';
+import { Loader2, Mail, KeyRound, HelpCircle } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 export default function SupportPage() {
   const { user, userProfile } = useAuth();
@@ -65,13 +66,84 @@ export default function SupportPage() {
         <p className="text-muted-foreground text-lg">We're here to help. Select an option below to get assistance.</p>
       </div>
 
-      <Tabs defaultValue="concerns" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-8 max-w-md mx-auto md:mx-0">
-          <TabsTrigger value="concerns">General Concerns</TabsTrigger>
-          <TabsTrigger value="password">Password Recovery</TabsTrigger>
+      <Tabs defaultValue="faqs" className="w-full">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-0 bg-transparent sm:bg-muted mb-8 max-w-2xl mx-auto md:mx-0 p-1 rounded-lg">
+          <TabsTrigger value="faqs" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground py-2 text-sm font-semibold">FAQs</TabsTrigger>
+          <TabsTrigger value="concerns" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground py-2 text-sm font-semibold">General Concerns</TabsTrigger>
+          <TabsTrigger value="password" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground py-2 text-sm font-semibold">Password Recovery</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="concerns">
+        <TabsContent value="faqs" className="space-y-6 animate-in fade-in-50 duration-300">
+          <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
+            <CardHeader className="bg-primary/5 border-b border-border/50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-primary">
+                <HelpCircle className="h-5 w-5" /> Frequently Asked Questions
+              </CardTitle>
+              <CardDescription>
+                Find quick answers to common questions about LingoLandVerse tools, games, and accounts.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1" className="border-border/50">
+                  <AccordionTrigger className="text-left font-semibold hover:text-primary transition-colors py-4">
+                    What is LingoLandVerse?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    LingoLandVerse is an interactive educational and ESL (English as a Second Language) platform filled with games, tools, resources, and digital worksheets designed to make language teaching and learning fun, engaging, and dynamic.
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-2" className="border-border/50">
+                  <AccordionTrigger className="text-left font-semibold hover:text-primary transition-colors py-4">
+                    How do I play classroom games?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    Head over to the <strong>Classroom Games</strong> tab in the sidebar menu! There, you will find our library of highly interactive, AI-enhanced educational games (such as Context Detective, Spelling Bee, Vocabulary Match, and Vocabulary Voyage) that can be projected on a screen or board for students.
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-3" className="border-border/50">
+                  <AccordionTrigger className="text-left font-semibold hover:text-primary transition-colors py-4">
+                    Is my data safe when using Classroom Tools?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    Absolutely. We secure and partition student records, attendance charts, and morning dashboards by account UID so that your classroom logs, attendance details, and personalized dashboards are entirely private and protected from cross-account data leaks.
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-4" className="border-border/50">
+                  <AccordionTrigger className="text-left font-semibold hover:text-primary transition-colors py-4">
+                    How does the Lingo-Pet companion work?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    Lingo-Pet is an interactive virtual companion that lives in your workspace! As you work, practice exercises, or play games, your Lingo-Pet grows and offers encouraging motivational reminders to help build healthy learning habits.
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-5" className="border-border/50">
+                  <AccordionTrigger className="text-left font-semibold hover:text-primary transition-colors py-4">
+                    How do I connect Google AdSense to serve ads?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    If you are the admin, you can set the AdSense Publisher ID in your local environment configuration under the key <code>NEXT_PUBLIC_ADSENSE_CLIENT_ID</code>. The system automatically loads optimized ad scripts and renders responsive preview blocks.
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-6" className="border-border/50">
+                  <AccordionTrigger className="text-left font-semibold hover:text-primary transition-colors py-4">
+                    I'm having trouble resetting my password. What should I do?
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    Go to the <strong>Password Recovery</strong> tab on this Support page and click <strong>Send Reset Email</strong>. A secure password reset link will be sent to your registered email immediately. If the email doesn't show up, check your spam or junk folders.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="concerns" className="animate-in fade-in-50 duration-300">
           <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
             <CardHeader className="bg-primary/5 border-b border-border/50 rounded-t-lg">
               <CardTitle className="flex items-center gap-2 text-primary"><Mail className="h-5 w-5"/> Contact Support</CardTitle>
@@ -110,7 +182,7 @@ export default function SupportPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="password">
+        <TabsContent value="password" className="animate-in fade-in-50 duration-300">
           <Card className="border-border/50 shadow-sm bg-card/50 backdrop-blur-sm max-w-2xl">
             <CardHeader className="bg-primary/5 border-b border-border/50 rounded-t-lg">
               <CardTitle className="flex items-center gap-2 text-primary"><KeyRound className="h-5 w-5"/> Reset Your Password</CardTitle>
