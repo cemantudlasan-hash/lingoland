@@ -5,6 +5,7 @@ import { AuthProviderWrapper } from '@/context/auth-provider-wrapper';
 import { PT_Sans, Roboto, Lato, Montserrat } from 'next/font/google';
 import { FirebaseClientProvider } from '@/firebase';
 import PlexusBackground from '@/components/layout/PlexusBackground';
+import Script from 'next/script';
 
 const ptSans = PT_Sans({ 
     subsets: ['latin'], 
@@ -40,8 +41,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+  const isLiveAdSense = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX';
+
   return (
     <html lang="en" suppressHydrationWarning className={`${ptSans.variable} ${roboto.variable} ${lato.variable} ${montserrat.variable}`}>
+      <head>
+        {isLiveAdSense && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
+      </head>
       <body suppressHydrationWarning>
         <PlexusBackground />
         <div id="root">
