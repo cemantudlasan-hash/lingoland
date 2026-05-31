@@ -39,6 +39,7 @@ import {
   ClipboardList,
   StickyNote,
   Egg,
+  Store,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -57,6 +58,8 @@ import type { InternalQuery } from "@/firebase/firestore/use-collection";
 const publicItems = [
   { href: "/lingo-pet", label: "Lingo-Pet", icon: Egg },
   { href: "/games", label: "Classroom Games", icon: Gamepad2 },
+  { href: "/marketplace", label: "Tutor Marketplace", icon: Store },
+  { href: "/storytelling", label: "AI Storytelling", icon: BookOpen },
   { href: "/classroom-tools", label: "Classroom Tools", icon: Wrench },
   { href: "/reader", label: "Reader", icon: BookOpen },
   { href: "/flashcards", label: "Flashcards", icon: StickyNote },

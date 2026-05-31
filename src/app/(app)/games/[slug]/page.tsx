@@ -22,7 +22,7 @@ const NATIVELY_TRACKED_GAMES = new Set([
   'literary-device-legend', 'math-matrix', 'molecule-maker', 'quantum-quest', 
   'synonym-sniper', 'syntax-skyline', 'vocab-vortex', 'cosmic-word-voyager', 
   'spellcaster-defense', 'exploration-quest-3d', 'living-puzzles-3d', 
-  'character-conversations-3d'
+  'character-conversations-3d', 'ai-storyteller-adventure'
 ]);
 
 export default function GamePage() {
@@ -375,7 +375,7 @@ export default function GamePage() {
     return <div>Game not found</div>;
   }
   
-  const GameComponent = gameComponentMap[game.slug as keyof typeof gameComponentMap] || dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder), { ssr: false });
+  const GameComponent = gameComponentMap[game.slug as keyof typeof gameComponentMap] || dynamic<any>(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder), { ssr: false });
 
   return (
     <div

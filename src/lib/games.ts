@@ -23,6 +23,7 @@ import {
   Gift,
   Link,
   BookOpenCheck,
+  Compass,
   Flashlight,
   Construction,
   LayoutGrid,
@@ -728,6 +729,15 @@ export const allGames: Game[] = [
     focus: "conversation",
     subject: "english",
     icon: Smile,
+  },
+  {
+    title: "AI Choose-Your-Own",
+    slug: "ai-storyteller-adventure",
+    description: "Navigate a continuous procedural story by unlocking action branches with grammar and spelling challenges.",
+    level: "intermediate",
+    focus: "grammar",
+    subject: "english",
+    icon: Compass,
   },
 ];
 
