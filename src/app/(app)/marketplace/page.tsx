@@ -517,8 +517,8 @@ export default function MarketplacePage() {
   const handleExitChat = () => {
     setActiveChatTutor(null);
     setChatMessages([]);
-    if (typeof window !== 'undefined') {
-      window.speechSynthesis.cancel();
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
     }
     setIsSpeakingMsgIndex(null);
   };
@@ -557,9 +557,9 @@ export default function MarketplacePage() {
 
   // Read aloud message (TTS)
   const handleToggleSpeak = (text: string, index: number) => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
-    window.speechSynthesis.cancel();
+    try { window.speechSynthesis.cancel(); } catch (e) { return; }
 
     if (isSpeakingMsgIndex === index) {
       setIsSpeakingMsgIndex(null);
@@ -571,13 +571,17 @@ export default function MarketplacePage() {
       .replace(/[*#_`~]/g, '') // remove markdown symbols
       .replace(/\[Action:[^\]]+\]/g, ''); // strip narrative codes
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.rate = 0.95;
-    utterance.onend = () => setIsSpeakingMsgIndex(null);
-    utterance.onerror = () => setIsSpeakingMsgIndex(null);
-
-    setIsSpeakingMsgIndex(index);
-    window.speechSynthesis.speak(utterance);
+    try {
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 0.95;
+      utterance.onend = () => setIsSpeakingMsgIndex(null);
+      utterance.onerror = () => setIsSpeakingMsgIndex(null);
+      setIsSpeakingMsgIndex(index);
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
+      setIsSpeakingMsgIndex(null);
+    }
   };
 
   // Filter tutors based on search / category

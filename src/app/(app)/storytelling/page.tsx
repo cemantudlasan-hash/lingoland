@@ -390,21 +390,22 @@ export default function StorytellingPage() {
     if (musicEnabled) synthRef.current?.setVolume(musicVolume);
   }, [musicVolume]);
 
+  // Safe speech synthesis helper — guards against FB/IG in-app browsers that lack the API
+  const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window;
+
   // Initialize and clean up TTS
   useEffect(() => {
     return () => {
-      if (typeof window !== 'undefined') {
-        window.speechSynthesis.cancel();
-      }
+      if (canSpeak) window.speechSynthesis.cancel();
     };
   }, []);
 
   // Text-to-speech speaker — proper toggle: clicking while speaking stops it
   const handleSpeak = (text: string, forceToggle = false) => {
-    if (typeof window === 'undefined') return;
+    if (!canSpeak) return; // Not supported in this browser/WebView
 
     // Always cancel any ongoing speech first
-    window.speechSynthesis.cancel();
+    try { window.speechSynthesis.cancel(); } catch (e) { return; }
     currentUtteranceRef.current = null;
 
     // If already speaking, just stop (toggle off)
@@ -416,23 +417,26 @@ export default function StorytellingPage() {
     // If TTS is disabled and not a manual force-toggle, do nothing
     if (!ttsEnabled && !forceToggle) return;
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.92;
-    utterance.volume = ttsVolume;
-    utterance.onend = () => { setIsSpeaking(false); currentUtteranceRef.current = null; };
-    utterance.onerror = () => { setIsSpeaking(false); currentUtteranceRef.current = null; };
-
-    currentUtteranceRef.current = utterance;
-    setIsSpeaking(true);
-    window.speechSynthesis.speak(utterance);
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.92;
+      utterance.volume = ttsVolume;
+      utterance.onend = () => { setIsSpeaking(false); currentUtteranceRef.current = null; };
+      utterance.onerror = () => { setIsSpeaking(false); currentUtteranceRef.current = null; };
+      currentUtteranceRef.current = utterance;
+      setIsSpeaking(true);
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis failed:', e);
+      setIsSpeaking(false);
+    }
   };
 
   // Update volume of current utterance live (re-speak is needed for Web Speech API)
   const handleTtsVolumeChange = (vol: number) => {
     setTtsVolume(vol);
-    // If actively speaking, cancel and re-speak at new volume
-    if (isSpeaking && activeStory) {
-      window.speechSynthesis.cancel();
+    if (isSpeaking && activeStory && canSpeak) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
       setIsSpeaking(false);
       setTimeout(() => handleSpeak(activeStory.narrativeBlocks[blockIndex], true), 80);
     }
@@ -514,7 +518,7 @@ export default function StorytellingPage() {
     if (!activeStory) return;
     
     if (isSpeaking) {
-      if (typeof window !== 'undefined') window.speechSynthesis.cancel();
+      if (canSpeak) try { window.speechSynthesis.cancel(); } catch (e) {}
       setIsSpeaking(false);
     }
     
