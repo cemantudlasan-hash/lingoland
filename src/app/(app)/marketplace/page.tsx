@@ -174,7 +174,7 @@ const presetTutors: Tutor[] = [
 
 export default function MarketplacePage() {
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { user, isGuest, isLoading, isAdmin, setAuthAction } = useAuth();
   
   // Tabs: 'browse' | 'peer-listings' | 'peer-create' | 'create'
   const [activeTab, setActiveTab] = useState<'browse' | 'peer-listings' | 'peer-create' | 'create'>('browse');
@@ -255,14 +255,18 @@ export default function MarketplacePage() {
       const storedPeer = localStorage.getItem('lingoland_peer_listings');
       if (storedPeer) {
         try {
-          setPeerListings(JSON.parse(storedPeer));
+          const parsed = JSON.parse(storedPeer) as PeerListing[];
+          // Clean out preset listings immediately
+          const cleaned = parsed.filter(p => p.id !== 'peer-1' && p.id !== 'peer-2' && p.id !== 'peer-3');
+          setPeerListings(cleaned);
+          localStorage.setItem('lingoland_peer_listings', JSON.stringify(cleaned));
         } catch (e) {
           console.error("Failed to parse peer listings", e);
-          setPeerListings(presetPeerListings);
+          setPeerListings([]);
         }
       } else {
-        localStorage.setItem('lingoland_peer_listings', JSON.stringify(presetPeerListings));
-        setPeerListings(presetPeerListings);
+        localStorage.setItem('lingoland_peer_listings', JSON.stringify([]));
+        setPeerListings([]);
       }
     }
   }, []);
@@ -526,6 +530,42 @@ export default function MarketplacePage() {
     const matchesType = peerTypeFilter === 'all' || listing.type === peerTypeFilter;
     return matchesSearch && matchesType;
   });
+
+  if (isLoading) {
+    return (
+      <div className="relative min-h-[92vh] w-full flex items-center justify-center text-white bg-slate-950/20 rounded-3xl border border-slate-900">
+        <ConstellationCanvas />
+        <Loader2 className="w-12 h-12 text-indigo-500 animate-spin animate-duration-1000" />
+      </div>
+    );
+  }
+
+  if (!user || isGuest) {
+    return (
+      <div className="relative min-h-[92vh] w-full p-6 text-white overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900 flex items-center justify-center">
+        <ConstellationCanvas />
+        <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-xl mx-auto w-full text-center space-y-6 select-none relative z-10">
+          <div className="w-16 h-16 mx-auto rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 select-none">
+            <ShieldCheck className="h-8 w-8 animate-pulse" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-black text-slate-100 uppercase tracking-widest">Registered Account Required</h3>
+            <p className="text-slate-400 text-xs leading-relaxed max-w-sm mx-auto">
+              The Peer & AI Tutor Marketplace is exclusively available to authenticated student and educator accounts. Guest accounts cannot access this portal.
+            </p>
+          </div>
+          <div className="flex gap-3 justify-center select-none">
+            <Button 
+              onClick={() => setAuthAction?.("login")} 
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs h-11 px-8 rounded-xl shadow-md shadow-indigo-650/20 transition-all hover:scale-[1.02]"
+            >
+              Log In / Register
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   if (activeChatTutor) {
     return (
