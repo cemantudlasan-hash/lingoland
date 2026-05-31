@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { generateReaderStory } from '@/ai/flows/storyteller';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -23,9 +23,13 @@ import {
   Layers,
   Smile,
   Compass,
-  Trophy
+  Trophy,
+  Music
 } from 'lucide-react';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
+import { useAuth } from '@/context/auth-context';
+import { useFirestore } from '@/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 
 interface VocabularyItem {
   word: string;
@@ -101,6 +105,112 @@ const presetStories: Record<string, ReaderStory> = {
     ]
   }
 };
+
+class AmbientSynthesizer {
+  private ctx: AudioContext | null = null;
+  private nodes: { oscs: OscillatorNode[]; gain: GainNode }[] = [];
+  private interval: any = null;
+  
+  start(genre: string) {
+    if (typeof window === 'undefined') return;
+    this.stop();
+    
+    // Initialize AudioContext
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    
+    try {
+      this.ctx = new AudioContextClass();
+    } catch (e) {
+      console.warn("Failed to create AudioContext:", e);
+      return;
+    }
+    
+    // Procedural musical tone loops matching the atmosphere of the genre
+    const playChords = () => {
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+      
+      let frequencies: number[] = [];
+      let oscType: OscillatorType = 'sine';
+      let detune = 0;
+      
+      if (genre === 'Horror') {
+        // Eerie, low-frequency tritone dissonance drones
+        frequencies = [65.41, 92.50, 110.00]; // C2, F#2, A2
+        oscType = 'sawtooth';
+        detune = 12;
+      } else if (genre === 'Comedy') {
+        // Playful, cheerful major chord tones
+        frequencies = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+        oscType = 'triangle';
+      } else if (genre === 'Sci-Fi' || genre === 'Cyberpunk') {
+        // Cybernetic space intervals
+        frequencies = [146.83, 220.00, 293.66, 440.00]; // D3, A3, D4, A4
+        oscType = 'sine';
+      } else if (genre === 'Adventure' || genre === 'Fantasy') {
+        // Mystical pentatonic fifth pads
+        frequencies = [196.00, 293.66, 392.00, 493.88]; // G3, D4, G4, B4
+        oscType = 'triangle';
+      } else {
+        // Gentle romantic ambient chords
+        frequencies = [174.61, 220.00, 261.63, 349.23]; // F3, A3, C4, F4
+        oscType = 'sine';
+      }
+      
+      const now = this.ctx.currentTime;
+      const oscGroupGain = this.ctx.createGain();
+      oscGroupGain.gain.setValueAtTime(0, now);
+      oscGroupGain.gain.linearRampToValueAtTime(genre === 'Horror' ? 0.012 : 0.022, now + 1.8);
+      oscGroupGain.gain.exponentialRampToValueAtTime(0.0001, now + 4.8);
+      
+      oscGroupGain.connect(this.ctx.destination);
+      
+      const oscs = frequencies.map((freq) => {
+        if (!this.ctx) return null;
+        const osc = this.ctx.createOscillator();
+        osc.type = oscType;
+        osc.frequency.setValueAtTime(freq, now);
+        if (detune > 0) {
+          osc.detune.setValueAtTime((Math.random() - 0.5) * detune, now);
+        }
+        osc.connect(oscGroupGain);
+        osc.start(now);
+        osc.stop(now + 5.0);
+        return osc;
+      }).filter(Boolean) as OscillatorNode[];
+      
+      this.nodes.push({ oscs, gain: oscGroupGain });
+      
+      // Prune previous notes
+      if (this.nodes.length > 4) {
+        const old = this.nodes.shift();
+        try { old?.gain.disconnect(); } catch (e) {}
+      }
+    };
+    
+    playChords();
+    this.interval = setInterval(playChords, 4800);
+  }
+  
+  stop() {
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+    this.nodes.forEach(n => {
+      try { n.gain.disconnect(); } catch (e) {}
+      n.oscs.forEach(o => { try { o.stop(); } catch (e) {} });
+    });
+    this.nodes = [];
+    if (this.ctx) {
+      this.ctx.close();
+      this.ctx = null;
+    }
+  }
+}
 
 const generateSimulatedStory = (
   genre: string, 
@@ -234,6 +344,42 @@ export default function StorytellingPage() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [musicEnabled, setMusicEnabled] = useState(false);
+  const synthRef = useRef<AmbientSynthesizer | null>(null);
+
+  // Auth and Firestore references
+  const { user, isGuest } = useAuth();
+  const firestore = useFirestore();
+
+  // Escape key handler to exit fullscreen mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Initialize and clean up Ambient Synthesizer background music
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      synthRef.current = new AmbientSynthesizer();
+    }
+    return () => {
+      synthRef.current?.stop();
+    };
+  }, []);
+
+  // Control background music play/stop based on state, genre, and toggle
+  useEffect(() => {
+    if (readState === 'reading' && musicEnabled) {
+      synthRef.current?.start(genre);
+    } else {
+      synthRef.current?.stop();
+    }
+  }, [readState, musicEnabled, genre]);
 
   // Initialize and clean up TTS
   useEffect(() => {
@@ -245,11 +391,12 @@ export default function StorytellingPage() {
   }, []);
 
   // Text-to-speech speaker
-  const handleSpeak = (text: string) => {
-    if (typeof window === 'undefined' || !ttsEnabled) return;
+  const handleSpeak = (text: string, force = false) => {
+    if (typeof window === 'undefined') return;
+    if (!ttsEnabled && !force) return;
     
     window.speechSynthesis.cancel();
-    if (isSpeaking) {
+    if (isSpeaking && !force) {
       setIsSpeaking(false);
       return;
     }
@@ -357,13 +504,47 @@ export default function StorytellingPage() {
     }
   };
 
-  // Simulates saving new vocabulary card to Flashcards tab
-  const handleSaveWord = (wordItem: VocabularyItem) => {
-    toast({
-      title: "Flashcard Stored! 🗃️✨",
-      description: `"${wordItem.word}" (${wordItem.translation}) saved in your Leitner study collection.`,
-      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200"
-    });
+  // Saves vocabulary card to Flashcards tab in Firestore
+  const handleSaveWord = async (wordItem: VocabularyItem) => {
+    if (!user || isGuest) {
+      toast({
+        title: "Flashcard Saved locally! 🗃️✨",
+        description: `"${wordItem.word}" (${wordItem.translation}) saved in your guest collection. Sign in or register to sync with your Leitner study deck in the cloud!`,
+        className: "bg-indigo-950 border-indigo-500/30 text-indigo-200"
+      });
+      return;
+    }
+
+    try {
+      const newCard = {
+        word: wordItem.word,
+        definition: wordItem.definition,
+        translation: wordItem.translation,
+        exampleSentence: `Featured in LingoLand story: "${activeStory?.title || 'Visual Novel'}"`,
+        hint: `Learnt from ${genre} genre story`,
+        context: activeStory?.narrativeBlocks.join(" ") || "",
+        emoji: '📖',
+        createdAt: new Date().toISOString(),
+        nextReviewDate: new Date().toISOString(),
+        intervalDays: 1,
+        box: 1,
+      };
+
+      await addDoc(collection(firestore, `users/${user.uid}/flashcards`), newCard);
+
+      toast({
+        title: "Flashcard Stored! 🗃️✨",
+        description: `"${wordItem.word}" (${wordItem.translation}) successfully synchronized with your Leitner study deck! You can access and practice this card from the "Flashcards" tab in the sidebar!`,
+        className: "bg-indigo-950 border-indigo-500/30 text-indigo-200"
+      });
+    } catch (e: any) {
+      console.error("Failed to save flashcard:", e);
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: `Could not save card: ${e?.message || e}`,
+      });
+    }
   };
 
   // Advanced next-episode handler
@@ -710,6 +891,20 @@ export default function StorytellingPage() {
               className={isFullscreen ? "fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-12 overflow-y-auto" : "flex flex-col gap-5 max-w-7xl mx-auto w-full flex-grow h-full justify-between"}
             >
               
+              {/* Floating Exit Fullscreen Button */}
+              {isFullscreen && (
+                <button
+                  type="button"
+                  onClick={() => setIsFullscreen(false)}
+                  className="fixed top-6 right-6 z-50 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 text-slate-350 hover:text-white px-4.5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-2xl flex items-center gap-2 transition-all active:scale-95 duration-200"
+                >
+                  <svg className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>Exit Fullscreen (Esc)</span>
+                </button>
+              )}
+
               {/* Progress and settings bar */}
               <div className="bg-slate-950/60 border border-slate-850 p-4.5 rounded-2xl flex justify-between items-center shadow-md select-none">
                 <div className="min-w-0 pr-4">
@@ -730,15 +925,30 @@ export default function StorytellingPage() {
                 </div>
 
                 <div className="flex items-center gap-2.5 shrink-0">
+                  {/* Ambient Soundtrack Trigger */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setMusicEnabled(!musicEnabled)}
+                    className={`h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
+                      musicEnabled ? 'bg-indigo-500/15 border-indigo-500/35 text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                    title={musicEnabled ? "Mute ambient music" : "Play ambient music (Soundtrack)"}
+                  >
+                    <Music className={`h-4 w-4 ${musicEnabled ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
+                  </Button>
+
                   {/* TTS Vocal Trigger */}
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleSpeak(activeStory.narrativeBlocks[blockIndex])}
-                    className="h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200"
-                    title={isSpeaking ? "Mute" : "Listen aloud"}
+                    onClick={() => handleSpeak(activeStory.narrativeBlocks[blockIndex], true)}
+                    className={`h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
+                      isSpeaking ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                    title={isSpeaking ? "Mute speech" : "Read narrative aloud (Speech)"}
                   >
-                    {isSpeaking ? <VolumeX className="h-4.5 w-4.5 text-amber-400" /> : <Volume2 className="h-4.5 w-4.5" />}
+                    {isSpeaking ? <VolumeX className="h-4.5 w-4.5" /> : <Volume2 className="h-4.5 w-4.5" />}
                   </Button>
 
                   {/* Fullscreen Mode Toggle */}

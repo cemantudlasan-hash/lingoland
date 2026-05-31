@@ -187,6 +187,7 @@ export default function MarketplacePage() {
   const [peerSearchQuery, setPeerSearchQuery] = useState('');
   const [peerTypeFilter, setPeerTypeFilter] = useState<'all' | 'student' | 'teacher'>('all');
   const [activePeerListing, setActivePeerListing] = useState<PeerListing | null>(null);
+  const [showApprovalPopup, setShowApprovalPopup] = useState(false);
 
   // Peer Listings form states
   const [peerType, setPeerType] = useState<'student' | 'teacher'>('teacher');
@@ -348,18 +349,16 @@ export default function MarketplacePage() {
       socialMedia: peerSocialMedia.trim(),
       availableTime: peerType === 'teacher' ? peerAvailableTime.trim() : undefined,
       hourlyPay: peerType === 'teacher' ? peerHourlyPay.trim() : undefined,
-      createdAt: new Date().toISOString().split('T')[0]
+      createdAt: new Date().toISOString().split('T')[0],
+      status: 'pending' // new postings default to pending!
     };
 
     const updatedList = [newListing, ...peerListings];
     setPeerListings(updatedList);
     localStorage.setItem('lingoland_peer_listings', JSON.stringify(updatedList));
 
-    toast({
-      title: "Listing Published Successfully! 🚀🎉",
-      description: `Your ${peerType} tutoring profile is now active on the listings board!`,
-      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
-    });
+    // Show beautiful verification pending popup
+    setShowApprovalPopup(true);
 
     // Reset Form
     setPeerName('');
@@ -374,6 +373,43 @@ export default function MarketplacePage() {
     setPeerAvailableTime('');
     setPeerHourlyPay('');
     setActiveTab('peer-listings');
+  };
+
+  // Admin Peer Listing Moderation Handlers
+  const handleApprovePeerListing = (id: string) => {
+    if (!isAdmin) return;
+    const updated = peerListings.map(p => p.id === id ? { ...p, status: 'approved' as const } : p);
+    setPeerListings(updated);
+    localStorage.setItem('lingoland_peer_listings', JSON.stringify(updated));
+    toast({
+      title: "Listing Approved! 🛡️✨",
+      description: "This posting is now active and visible to all students in LingoLand.",
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
+  };
+
+  const handleRejectPeerListing = (id: string) => {
+    if (!isAdmin) return;
+    const updated = peerListings.map(p => p.id === id ? { ...p, status: 'rejected' as const } : p);
+    setPeerListings(updated);
+    localStorage.setItem('lingoland_peer_listings', JSON.stringify(updated));
+    toast({
+      title: "Listing Rejected ❌",
+      description: "The posting status has been updated to rejected.",
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
+  };
+
+  const handleDeletePeerListing = (id: string) => {
+    if (!isAdmin) return;
+    const updated = peerListings.filter(p => p.id !== id);
+    setPeerListings(updated);
+    localStorage.setItem('lingoland_peer_listings', JSON.stringify(updated));
+    toast({
+      title: "Listing Deleted 🗑️",
+      description: "The peer listing has been permanently removed.",
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
   };
 
   // Admin Delete Tutor Handler
@@ -528,7 +564,12 @@ export default function MarketplacePage() {
       (listing.info && listing.info.toLowerCase().includes(peerSearchQuery.toLowerCase()));
     
     const matchesType = peerTypeFilter === 'all' || listing.type === peerTypeFilter;
-    return matchesSearch && matchesType;
+    
+    // Normal users ONLY see approved listings!
+    // Admin sees ALL listings (pending, approved, rejected) to moderate/approve them!
+    const matchesApproval = isAdmin || listing.status === 'approved';
+    
+    return matchesSearch && matchesType && matchesApproval;
   });
 
   if (isLoading) {
@@ -1019,6 +1060,17 @@ export default function MarketplacePage() {
                                 }`}>
                                   {listing.type === 'teacher' ? '👩‍🏫 Teacher' : '🙋‍♂️ Student'}
                                 </Badge>
+                                {isAdmin && (
+                                  <Badge className={`border-none text-[9px] font-black uppercase py-0.5 px-2 ${
+                                    listing.status === 'approved' 
+                                      ? 'bg-emerald-600/20 text-emerald-400' 
+                                      : listing.status === 'rejected'
+                                      ? 'bg-rose-600/20 text-rose-400'
+                                      : 'bg-amber-600/20 text-amber-400 animate-pulse'
+                                  }`}>
+                                    🛡️ {listing.status || 'pending'}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1034,30 +1086,63 @@ export default function MarketplacePage() {
                           </p>
                         </CardContent>
 
-                        <CardFooter className="p-5 pt-3 border-t border-slate-850 bg-slate-950/15 flex items-center justify-between gap-4 select-none">
-                          <div className="flex-1 min-w-0 text-slate-500 text-[10px] font-extrabold truncate">
-                            {listing.type === 'teacher' ? (
-                              <span className="text-emerald-455 font-bold flex items-center gap-1">
-                                <DollarSign className="h-3 w-3" /> {listing.hourlyPay || 'Rate Varies'}
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1">
-                                <Users className="h-3 w-3" /> Seeking Tutor
-                              </span>
-                            )}
+                        <CardFooter className="p-5 pt-3 border-t border-slate-850 bg-slate-950/15 flex flex-col gap-3 select-none">
+                          <div className="flex items-center justify-between w-full gap-4">
+                            <div className="flex-1 min-w-0 text-slate-500 text-[10px] font-extrabold truncate">
+                              {listing.type === 'teacher' ? (
+                                <span className="text-emerald-455 font-bold flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3" /> {listing.hourlyPay || 'Rate Varies'}
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" /> Seeking Tutor
+                                </span>
+                              )}
+                            </div>
+                            
+                            <Button
+                              onClick={() => setActivePeerListing(listing)}
+                              className={`h-8 px-4 text-xs font-black uppercase rounded-xl text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5 shrink-0 ${
+                                listing.type === 'teacher' 
+                                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 shadow-md shadow-emerald-600/10' 
+                                  : 'bg-gradient-to-r from-purple-500 to-indigo-600 shadow-md shadow-indigo-600/10'
+                              }`}
+                            >
+                              <Phone className="h-3.5 w-3.5 fill-current" />
+                              <span>Connect & View</span>
+                            </Button>
                           </div>
-                          
-                          <Button
-                            onClick={() => setActivePeerListing(listing)}
-                            className={`h-8 px-4 text-xs font-black uppercase rounded-xl text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5 shrink-0 ${
-                              listing.type === 'teacher' 
-                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 shadow-md shadow-emerald-600/10' 
-                                : 'bg-gradient-to-r from-purple-500 to-indigo-600 shadow-md shadow-indigo-600/10'
-                            }`}
-                          >
-                            <Phone className="h-3.5 w-3.5 fill-current" />
-                            <span>Connect & View</span>
-                          </Button>
+
+                          {isAdmin && (
+                            <div className="flex items-center justify-end gap-1.5 w-full pt-2.5 border-t border-slate-850/60">
+                              <span className="text-[9px] font-black uppercase text-slate-500 mr-auto">Moderate:</span>
+                              {listing.status !== 'approved' && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleApprovePeerListing(listing.id)}
+                                  className="h-7 px-2.5 bg-emerald-650/80 hover:bg-emerald-600 text-white font-extrabold text-[9px] uppercase rounded-lg border border-emerald-500/20"
+                                >
+                                  Approve
+                                </Button>
+                              )}
+                              {listing.status !== 'rejected' && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleRejectPeerListing(listing.id)}
+                                  className="h-7 px-2.5 bg-rose-650/80 hover:bg-rose-600 text-white font-extrabold text-[9px] uppercase rounded-lg border border-rose-500/20"
+                                >
+                                  Reject
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                onClick={() => handleDeletePeerListing(listing.id)}
+                                className="h-7 px-2.5 bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-slate-200 font-extrabold text-[9px] uppercase rounded-lg border border-slate-750"
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          )}
                         </CardFooter>
                       </Card>
                     ))}
@@ -1689,6 +1774,37 @@ export default function MarketplacePage() {
                   Close Profile
                 </Button>
               </div>
+            </Card>
+          </div>
+        )}
+
+        {/* POSTING SUBMITTED / PENDING APPROVAL POPUP */}
+        {showApprovalPopup && (
+          <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <Card className="bg-slate-900 border border-slate-850/80 rounded-3xl shadow-2xl p-6 sm:p-8 max-w-md w-full text-center space-y-6 select-none z-10 relative">
+              <div className="w-16 h-16 mx-auto rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-yellow-455">
+                <Clock className="h-8 w-8 animate-pulse" />
+              </div>
+              <div className="space-y-2">
+                <Badge className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 font-black tracking-widest uppercase px-3 py-0.5">
+                  Pending Verification
+                </Badge>
+                <h3 className="text-xl font-black text-slate-100 uppercase tracking-widest leading-none">Post Received!</h3>
+                <p className="text-slate-350 text-xs font-semibold leading-relaxed text-center">
+                  Please wait until, the admin approves your posting. Thank you for your patience! You can come back and check sooner or later.
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  setShowApprovalPopup(false);
+                  setTimeout(() => {
+                    window.dispatchEvent(new Event('lingoland_trigger_donation_popup'));
+                  }, 400);
+                }}
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-wider h-11 rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-1.5"
+              >
+                Got it, Thank You!
+              </Button>
             </Card>
           </div>
         )}

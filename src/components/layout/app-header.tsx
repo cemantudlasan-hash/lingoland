@@ -397,11 +397,13 @@ export function AppHeader() {
       {!isAdmin && (
         <div className="w-full bg-yellow-400 text-black py-1 text-xs sm:text-sm font-bold overflow-hidden">
             <button
-              className="flex items-center gap-2 w-full px-3 whitespace-nowrap overflow-hidden text-black font-bold text-left"
+              className="w-full px-3 overflow-hidden text-black font-bold text-left"
               onClick={handleCoffeeClick}
             >
+              <div className="marquee flex items-center gap-4">
                 <Coffee className="h-4 w-4 flex-shrink-0"/>
-                <span className="truncate">Enjoying this site/app? Consider supporting its maintenance. Buy me a coffee! Donate starts at $1.</span>
+                <span className="flex-shrink-0">Enjoying this site/app? Consider supporting its maintenance. Buy me a coffee! Donate starts at $1.</span>
+              </div>
             </button>
         </div>
       )}

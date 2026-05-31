@@ -49,14 +49,20 @@ export function DonationPopup() {
     // Run check initially
     checkTriggers();
 
-    // Listen to custom window event
+    // Listen to custom window events
     const handleGamePlayed = () => {
       checkTriggers();
     };
 
+    const handleTriggerPopup = () => {
+      setIsOpen(true);
+    };
+
     window.addEventListener('lingoland_game_played', handleGamePlayed as EventListener);
+    window.addEventListener('lingoland_trigger_donation_popup', handleTriggerPopup as EventListener);
     return () => {
       window.removeEventListener('lingoland_game_played', handleGamePlayed as EventListener);
+      window.removeEventListener('lingoland_trigger_donation_popup', handleTriggerPopup as EventListener);
     };
   }, [count, isAdmin]);
 
