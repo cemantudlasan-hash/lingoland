@@ -319,14 +319,14 @@ export default function StorytellingPage() {
   const themeConfig = getGenreTheme();
 
   return (
-    <div className="relative min-h-[85vh] w-full p-2 sm:p-4 text-white overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900">
+    <div className="relative min-h-[92vh] w-full p-2 sm:p-4 text-white overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900">
       <ConstellationCanvas />
       
       {/* Background ambient highlights */}
       <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 w-full flex flex-col h-full min-h-[70vh]">
+      <div className="relative z-10 w-full flex flex-col h-full min-h-[85vh]">
         
         <AnimatePresence mode="wait">
           
@@ -337,7 +337,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="space-y-6 max-w-5xl mx-auto w-full"
+              className="space-y-6 max-w-7xl mx-auto w-full"
             >
               <div className="text-center space-y-2 select-none">
                 <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1 px-3">
@@ -585,7 +585,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className={isFullscreen ? "fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-12 overflow-y-auto" : "flex flex-col gap-5 max-w-6xl mx-auto w-full"}
+              className={isFullscreen ? "fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-12 overflow-y-auto" : "flex flex-col gap-5 max-w-7xl mx-auto w-full flex-grow h-full justify-between"}
             >
               
               {/* Progress and settings bar */}
@@ -665,7 +665,7 @@ export default function StorytellingPage() {
               {/* THE ACTIVE CHATBOX BALLOON READER */}
               <div
                 onClick={handleNextBlock}
-                className={`bg-gradient-to-b ${themeConfig.bg} border-2 backdrop-blur-xl rounded-3xl shadow-2xl text-center cursor-pointer flex flex-col justify-center items-center relative transition-all duration-500 hover:brightness-105 active:scale-[0.99] group ${isFullscreen ? 'flex-grow my-4 p-10 sm:p-20 min-h-[48vh]' : 'min-h-[30vh] sm:min-h-[36vh] p-8 sm:p-14'}`}
+                className={`bg-gradient-to-b ${themeConfig.bg} border-2 backdrop-blur-xl rounded-3xl shadow-2xl text-center cursor-pointer flex flex-col justify-center items-center relative transition-all duration-500 hover:brightness-105 active:scale-[0.99] group ${isFullscreen ? 'flex-grow my-4 p-10 sm:p-20 min-h-[48vh]' : 'flex-grow min-h-[50vh] sm:min-h-[55vh] my-2 p-8 sm:p-14'}`}
               >
                 
                 {/* Visual novel talk box prompt */}
@@ -681,7 +681,7 @@ export default function StorytellingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
                     transition={{ duration: 0.35, ease: "easeOut" }}
-                    className={`font-bold leading-relaxed max-w-4xl mx-auto select-text text-justify sm:text-center ${themeConfig.text} ${isFullscreen ? 'text-2xl sm:text-4xl' : 'text-xl sm:text-2xl'}`}
+                    className={`font-bold leading-relaxed max-w-5xl mx-auto select-text text-justify sm:text-center ${themeConfig.text} ${isFullscreen ? 'text-2xl sm:text-4xl' : 'text-2xl sm:text-3xl'}`}
                   >
                     {activeStory.narrativeBlocks[blockIndex]}
                   </motion.p>
@@ -705,7 +705,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-5xl mx-auto w-full space-y-6 text-center select-none"
+              className="max-w-7xl mx-auto w-full space-y-6 text-center select-none"
             >
               <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6">
                 

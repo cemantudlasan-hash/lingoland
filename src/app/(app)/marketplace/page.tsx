@@ -28,7 +28,15 @@ import {
   ShieldCheck, 
   Code,
   Pencil,
-  Trash2
+  Trash2,
+  Phone,
+  Mail,
+  MessageCircle,
+  Clock,
+  DollarSign,
+  Info,
+  Globe,
+  Users
 } from 'lucide-react';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
 import { useAuth } from '@/context/auth-context';
@@ -46,6 +54,72 @@ interface Tutor {
   author: string;
   isPreset: boolean;
 }
+
+export interface PeerListing {
+  id: string;
+  type: 'student' | 'teacher';
+  name: string;
+  nationality: string;
+  avatarEmoji: string;
+  description: string;
+  info?: string;
+  contactNumber: string;
+  email?: string;
+  whatsapp?: string;
+  socialMedia?: string;
+  createdAt: string;
+  availableTime?: string;
+  hourlyPay?: string;
+}
+
+const presetPeerListings: PeerListing[] = [
+  {
+    id: 'peer-1',
+    type: 'teacher',
+    name: 'Anya Ivanova',
+    nationality: 'Ukraine 🇺🇦',
+    avatarEmoji: '👩‍🏫',
+    description: 'Experienced ESL instructor focusing on conversational fluency and business English.',
+    info: 'I have 5+ years of classroom teaching experience. I focus on making learning active, engaging, and enjoyable. Available for 1-on-1 tutoring sessions.',
+    availableTime: 'Weekday Evenings (6:00 PM - 10:00 PM ICT)',
+    hourlyPay: '$18 / hour',
+    contactNumber: '+66 81 234 5678',
+    email: 'anya.esl@example.com',
+    whatsapp: '+66812345678',
+    socialMedia: '@anya_teach_english',
+    createdAt: '2026-05-31'
+  },
+  {
+    id: 'peer-2',
+    type: 'student',
+    name: 'Somchai Jaidee',
+    nationality: 'Thailand 🇹🇭',
+    avatarEmoji: '🙋‍♂️',
+    description: 'Looking for a native speaker to practice daily conversational speaking and prepare for IELTS interview.',
+    info: 'Pre-intermediate level. Need help particularly with pronunciation, expanding vocabulary, and natural idioms. Happy to pay or do language exchange!',
+    contactNumber: '+66 89 765 4321',
+    email: 'somchai.j@example.com',
+    whatsapp: '+66897654321',
+    socialMedia: 'line: somchai_jd',
+    createdAt: '2026-05-31'
+  },
+  {
+    id: 'peer-3',
+    type: 'teacher',
+    name: 'Jonathan Miller',
+    nationality: 'United Kingdom 🇬🇧',
+    avatarEmoji: '👨‍🏫',
+    description: 'Native English tutor specializing in IELTS/TOEFL exam prep, academic writing, and essay styling.',
+    info: 'I hold a CELTA qualification and have helped over 100 students score 7.5+ on their IELTS writing and speaking components. Custom curricula provided!',
+    availableTime: 'Saturdays and Sundays (9:00 AM - 5:00 PM GMT+7)',
+    hourlyPay: '$25 / hour',
+    contactNumber: '+44 7911 123456',
+    email: 'jonathan.prep@example.com',
+    whatsapp: '+447911123456',
+    socialMedia: 'linkedin.com/in/jonathan-miller-esl',
+    createdAt: '2026-05-31'
+  }
+];
 
 const presetTutors: Tutor[] = [
   {
@@ -102,12 +176,32 @@ export default function MarketplacePage() {
   const { toast } = useToast();
   const { isAdmin } = useAuth();
   
-  // Tabs: 'browse' | 'create'
-  const [activeTab, setActiveTab] = useState<'browse' | 'create'>('browse');
+  // Tabs: 'browse' | 'peer-listings' | 'peer-create' | 'create'
+  const [activeTab, setActiveTab] = useState<'browse' | 'peer-listings' | 'peer-create' | 'create'>('browse');
   
   // Custom created tutors list (syncs to localStorage)
   const [tutors, setTutors] = useState<Tutor[]>(presetTutors);
   
+  // Peer listings state, search, and filters
+  const [peerListings, setPeerListings] = useState<PeerListing[]>([]);
+  const [peerSearchQuery, setPeerSearchQuery] = useState('');
+  const [peerTypeFilter, setPeerTypeFilter] = useState<'all' | 'student' | 'teacher'>('all');
+  const [activePeerListing, setActivePeerListing] = useState<PeerListing | null>(null);
+
+  // Peer Listings form states
+  const [peerType, setPeerType] = useState<'student' | 'teacher'>('teacher');
+  const [peerName, setPeerName] = useState('');
+  const [peerNationality, setPeerNationality] = useState('');
+  const [peerAvatarEmoji, setPeerAvatarEmoji] = useState('👩‍🏫');
+  const [peerDescription, setPeerDescription] = useState('');
+  const [peerInfo, setPeerInfo] = useState('');
+  const [peerContactNumber, setPeerContactNumber] = useState('');
+  const [peerEmail, setPeerEmail] = useState('');
+  const [peerWhatsapp, setPeerWhatsapp] = useState('');
+  const [peerSocialMedia, setPeerSocialMedia] = useState('');
+  const [peerAvailableTime, setPeerAvailableTime] = useState('');
+  const [peerHourlyPay, setPeerHourlyPay] = useState('');
+
   // Search / filtering states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -133,7 +227,7 @@ export default function MarketplacePage() {
   
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Sync custom tutors, overrides, and deletions from localStorage on load
+  // Sync custom tutors, overrides, deletions, and peer listings from localStorage on load
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('lingoland_custom_tutors');
@@ -155,6 +249,20 @@ export default function MarketplacePage() {
         }
       } else {
         setTutors(initialTutors);
+      }
+
+      // Sync Peer Listings
+      const storedPeer = localStorage.getItem('lingoland_peer_listings');
+      if (storedPeer) {
+        try {
+          setPeerListings(JSON.parse(storedPeer));
+        } catch (e) {
+          console.error("Failed to parse peer listings", e);
+          setPeerListings(presetPeerListings);
+        }
+      } else {
+        localStorage.setItem('lingoland_peer_listings', JSON.stringify(presetPeerListings));
+        setPeerListings(presetPeerListings);
       }
     }
   }, []);
@@ -208,6 +316,60 @@ export default function MarketplacePage() {
     setTutorPrompt('');
     setTutorAuthor('');
     setActiveTab('browse');
+  };
+
+  // Handle Peer Listing Creation Submission
+  const handleCreatePeerListing = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!peerName.trim() || !peerNationality.trim() || !peerDescription.trim() || !peerContactNumber.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please complete your Name, Nationality, Description, and Contact Number.",
+      });
+      return;
+    }
+
+    const newListing: PeerListing = {
+      id: `peer-${Date.now()}`,
+      type: peerType,
+      name: peerName.trim(),
+      nationality: peerNationality.trim(),
+      avatarEmoji: peerAvatarEmoji.trim() || (peerType === 'student' ? '🙋‍♂️' : '👩‍🏫'),
+      description: peerDescription.trim(),
+      info: peerInfo.trim(),
+      contactNumber: peerContactNumber.trim(),
+      email: peerEmail.trim(),
+      whatsapp: peerWhatsapp.trim(),
+      socialMedia: peerSocialMedia.trim(),
+      availableTime: peerType === 'teacher' ? peerAvailableTime.trim() : undefined,
+      hourlyPay: peerType === 'teacher' ? peerHourlyPay.trim() : undefined,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    const updatedList = [newListing, ...peerListings];
+    setPeerListings(updatedList);
+    localStorage.setItem('lingoland_peer_listings', JSON.stringify(updatedList));
+
+    toast({
+      title: "Listing Published Successfully! 🚀🎉",
+      description: `Your ${peerType} tutoring profile is now active on the listings board!`,
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
+
+    // Reset Form
+    setPeerName('');
+    setPeerNationality('');
+    setPeerAvatarEmoji(peerType === 'student' ? '🙋‍♂️' : '👩‍🏫');
+    setPeerDescription('');
+    setPeerInfo('');
+    setPeerContactNumber('');
+    setPeerEmail('');
+    setPeerWhatsapp('');
+    setPeerSocialMedia('');
+    setPeerAvailableTime('');
+    setPeerHourlyPay('');
+    setActiveTab('peer-listings');
   };
 
   // Admin Delete Tutor Handler
@@ -351,6 +513,18 @@ export default function MarketplacePage() {
                           t.author.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || t.category === selectedCategory;
     return matchesSearch && matchesCategory;
+  });
+
+  // Filter peer listings based on search / type
+  const filteredPeerListings = peerListings.filter(listing => {
+    const matchesSearch = 
+      listing.name.toLowerCase().includes(peerSearchQuery.toLowerCase()) || 
+      listing.nationality.toLowerCase().includes(peerSearchQuery.toLowerCase()) ||
+      listing.description.toLowerCase().includes(peerSearchQuery.toLowerCase()) ||
+      (listing.info && listing.info.toLowerCase().includes(peerSearchQuery.toLowerCase()));
+    
+    const matchesType = peerTypeFilter === 'all' || listing.type === peerTypeFilter;
+    return matchesSearch && matchesType;
   });
 
   if (activeChatTutor) {
@@ -514,14 +688,14 @@ export default function MarketplacePage() {
   }
 
   return (
-    <div className="relative min-h-[85vh] w-full p-2 sm:p-4 text-white overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900">
+    <div className="relative min-h-[92vh] w-full p-2 sm:p-4 text-white overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900">
       <ConstellationCanvas />
       
       {/* Ambient background glow highlights */}
       <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 w-full flex flex-col h-full min-h-[70vh]">
+      <div className="relative z-10 w-full flex flex-col h-full min-h-[85vh]">
         <AnimatePresence mode="wait">
           <motion.div
             key="marketplace"
@@ -543,31 +717,54 @@ export default function MarketplacePage() {
               </div>
               
               {/* Visual state selector tabs */}
-              <div className="bg-slate-950/80 border border-slate-850 p-1.5 rounded-2xl flex items-center shadow-lg backdrop-blur-md">
+              <div className="bg-slate-950/80 border border-slate-850 p-1.5 rounded-2xl flex flex-wrap items-center shadow-lg backdrop-blur-md gap-1 select-none">
                 <button
                   onClick={() => setActiveTab('browse')}
-                  className={`px-5 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 ${
+                  className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 ${
                     activeTab === 'browse'
                       ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
-                      : 'text-slate-550 hover:text-slate-350'
+                      : 'text-slate-500 hover:text-slate-300'
                   }`}
                 >
-                  Browse Tutors
+                  AI Tutors
                 </button>
+                
+                <button
+                  onClick={() => setActiveTab('peer-listings')}
+                  className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 ${
+                    activeTab === 'peer-listings'
+                      ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
+                      : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  Real Peer Tutoring
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('peer-create')}
+                  className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1 ${
+                    activeTab === 'peer-create'
+                      ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
+                      : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Post Peer Listing
+                </button>
+
                 {isAdmin && (
                   <button
                     onClick={() => setActiveTab('create')}
-                    className={`px-5 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 ${
+                    className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 ${
                       activeTab === 'create'
                         ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
-                        : 'text-slate-555 hover:text-slate-350'
+                        : 'text-slate-500 hover:text-slate-300'
                     }`}
                   >
-                    <Plus className="h-3.5 w-3.5" />
-                    Create a Tutor
+                    <Code className="h-3.5 w-3.5" />
+                    AI Tutor Architect
                   </button>
                 )}
-
               </div>
             </div>
 
@@ -697,6 +894,337 @@ export default function MarketplacePage() {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* PEER TUTORING LISTINGS TAB */}
+            {activeTab === 'peer-listings' && (
+              <div className="space-y-6 flex-grow">
+                {/* Search & Filter Bar */}
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  <div className="relative max-w-sm flex-1">
+                    <Search className="absolute left-3.5 top-3 h-4.5 w-4.5 text-slate-500" />
+                    <Input
+                      placeholder="Search peer profiles (name, origin, bio)..."
+                      value={peerSearchQuery}
+                      onChange={(e) => setPeerSearchQuery(e.target.value)}
+                      className="bg-slate-950/60 border-slate-850 pl-10 h-10.5 rounded-xl text-slate-200"
+                    />
+                  </div>
+                  
+                  {/* Filter by Type Selector */}
+                  <div className="flex gap-2 select-none">
+                    <button
+                      onClick={() => setPeerTypeFilter('all')}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-300 border ${
+                        peerTypeFilter === 'all'
+                          ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400 font-extrabold shadow-[0_0_10px_rgba(99,102,241,0.2)]'
+                          : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                      }`}
+                    >
+                      All Listings
+                    </button>
+                    <button
+                      onClick={() => setPeerTypeFilter('teacher')}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-300 border flex items-center gap-1 ${
+                        peerTypeFilter === 'teacher'
+                          ? 'bg-emerald-500/10 border-emerald-500 text-emerald-455 font-extrabold shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                          : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                      }`}
+                    >
+                      <Users className="h-3.5 w-3.5" />
+                      Teachers
+                    </button>
+                    <button
+                      onClick={() => setPeerTypeFilter('student')}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-300 border flex items-center gap-1 ${
+                        peerTypeFilter === 'student'
+                          ? 'bg-purple-500/10 border-purple-500 text-purple-400 font-extrabold shadow-[0_0_10px_rgba(168,85,247,0.2)]'
+                          : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                      }`}
+                    >
+                      <User className="h-3.5 w-3.5" />
+                      Students
+                    </button>
+                  </div>
+                </div>
+
+                {/* Peer Cards Grid */}
+                {filteredPeerListings.length === 0 ? (
+                  <div className="text-center py-20 bg-slate-900/10 border border-slate-900 rounded-3xl">
+                    <Users className="h-10 w-10 text-slate-700 mx-auto mb-3" />
+                    <h4 className="font-extrabold text-slate-400 text-lg">No Active Peer Listings</h4>
+                    <p className="text-xs text-slate-550 max-w-xs mx-auto mt-1 leading-relaxed">
+                      No student or teacher postings match your search filters. Be the first to post a peer tutoring request!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 relative animate-none">
+                    {filteredPeerListings.map((listing) => (
+                      <Card 
+                        key={listing.id}
+                        className="bg-slate-900/40 border-slate-850/80 hover:border-indigo-500/30 backdrop-blur-xl rounded-2xl flex flex-col justify-between overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5"
+                      >
+                        <CardHeader className="flex flex-row items-start justify-between gap-4 p-5 pb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-4xl bg-slate-950/50 p-2.5 rounded-xl border border-slate-850 shadow-inner select-none">
+                              {listing.avatarEmoji}
+                            </span>
+                            <div className="min-w-0">
+                              <CardTitle className="text-slate-100 font-black text-lg truncate">{listing.name}</CardTitle>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1 select-none">
+                                <Badge className={`border-none text-[9px] font-black uppercase py-0.5 px-2 ${
+                                  listing.type === 'teacher' 
+                                    ? 'bg-emerald-500/15 text-emerald-400' 
+                                    : 'bg-purple-500/15 text-purple-400'
+                                }`}>
+                                  {listing.type === 'teacher' ? '👩‍🏫 Teacher' : '🙋‍♂️ Student'}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-1 text-slate-400 bg-slate-950/40 px-2 py-0.5 rounded border border-slate-850 text-[10px] font-extrabold shrink-0 select-none">
+                            <span>{listing.nationality}</span>
+                          </div>
+                        </CardHeader>
+
+                        <CardContent className="px-5 py-2 flex-grow">
+                          <p className="text-slate-400 text-xs font-semibold leading-relaxed line-clamp-4 text-justify select-text">
+                            {listing.description}
+                          </p>
+                        </CardContent>
+
+                        <CardFooter className="p-5 pt-3 border-t border-slate-850 bg-slate-950/15 flex items-center justify-between gap-4 select-none">
+                          <div className="flex-1 min-w-0 text-slate-500 text-[10px] font-extrabold truncate">
+                            {listing.type === 'teacher' ? (
+                              <span className="text-emerald-455 font-bold flex items-center gap-1">
+                                <DollarSign className="h-3 w-3" /> {listing.hourlyPay || 'Rate Varies'}
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1">
+                                <Users className="h-3 w-3" /> Seeking Tutor
+                              </span>
+                            )}
+                          </div>
+                          
+                          <Button
+                            onClick={() => setActivePeerListing(listing)}
+                            className={`h-8 px-4 text-xs font-black uppercase rounded-xl text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5 shrink-0 ${
+                              listing.type === 'teacher' 
+                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 shadow-md shadow-emerald-600/10' 
+                                : 'bg-gradient-to-r from-purple-500 to-indigo-600 shadow-md shadow-indigo-600/10'
+                            }`}
+                          >
+                            <Phone className="h-3.5 w-3.5 fill-current" />
+                            <span>Connect & View</span>
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* POST A PEER LISTING TAB */}
+            {activeTab === 'peer-create' && (
+              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 max-w-4xl mx-auto w-full">
+                <CardHeader className="p-0 pb-6 border-b border-slate-850/80 flex flex-row items-center gap-3 select-none">
+                  <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                    <Plus className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-slate-100 font-black text-xl uppercase tracking-wider">Post Peer Listing</CardTitle>
+                    <p className="text-xs text-slate-400 font-semibold mt-0.5">Advertise your availability as a Teacher, or seek direct study help as a Student!</p>
+                  </div>
+                </CardHeader>
+                
+                <form onSubmit={handleCreatePeerListing} className="space-y-5 pt-6">
+                  {/* Listing Type Radio Buttons */}
+                  <div className="space-y-2 select-none">
+                    <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">1. What is your role?</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPeerType('teacher');
+                          setPeerAvatarEmoji('👩‍🏫');
+                        }}
+                        className={`py-3 px-4 rounded-xl border text-sm font-bold uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
+                          peerType === 'teacher'
+                            ? 'bg-emerald-500/10 border-emerald-500 text-emerald-455 font-extrabold'
+                            : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                        }`}
+                      >
+                        <Users className="h-4 w-4" />
+                        I am a Teacher / Tutor
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPeerType('student');
+                          setPeerAvatarEmoji('🙋‍♂️');
+                        }}
+                        className={`py-3 px-4 rounded-xl border text-sm font-bold uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
+                          peerType === 'student'
+                            ? 'bg-purple-500/10 border-purple-500 text-purple-400 font-extrabold'
+                            : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                        }`}
+                      >
+                        <User className="h-4 w-4" />
+                        I am a Student seeking help
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Profile Metadata */}
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    {/* Name */}
+                    <div className="sm:col-span-2 space-y-1.5">
+                      <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Full Name</Label>
+                      <Input
+                        placeholder="e.g. Anya Ivanova"
+                        value={peerName}
+                        onChange={(e) => setPeerName(e.target.value)}
+                        className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                      />
+                    </div>
+                    
+                    {/* Nationality */}
+                    <div className="sm:col-span-1 space-y-1.5">
+                      <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Nationality / Country</Label>
+                      <Input
+                        placeholder="e.g. Ukraine 🇺🇦"
+                        value={peerNationality}
+                        onChange={(e) => setPeerNationality(e.target.value)}
+                        className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                      />
+                    </div>
+
+                    {/* Avatar Emoji */}
+                    <div className="sm:col-span-1 space-y-1.5">
+                      <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Avatar Emoji</Label>
+                      <Input
+                        placeholder="👩‍🏫"
+                        maxLength={2}
+                        value={peerAvatarEmoji}
+                        onChange={(e) => setPeerAvatarEmoji(e.target.value)}
+                        className="bg-slate-950 border-slate-850 rounded-xl h-11 text-center text-lg text-slate-200 font-sans"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Personal Bio Description</Label>
+                    <Textarea
+                      placeholder={peerType === 'teacher' 
+                        ? "E.g. ESL instructor with 5 years of experience focusing on pronunciation, fluency, and business interview prep..." 
+                        : "E.g. Seeking a conversational tutor to practice weekly reading and enhance Thai-English translation skills..."}
+                      value={peerDescription}
+                      onChange={(e) => setPeerDescription(e.target.value)}
+                      rows={2}
+                      className="bg-slate-950 border-slate-850 rounded-xl resize-none text-slate-200"
+                    />
+                  </div>
+
+                  {/* Tutoring Goals & Methodology Info */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Additional Details & Teaching Goals (Optional)</Label>
+                    <Textarea
+                      placeholder="Share your structured lesson formats, study goals, preferred topics, or background information..."
+                      value={peerInfo}
+                      onChange={(e) => setPeerInfo(e.target.value)}
+                      rows={3}
+                      className="bg-slate-950 border-slate-850 rounded-xl resize-none text-slate-200"
+                    />
+                  </div>
+
+                  {/* Teacher specific inputs (Hourly Pay & Availability) */}
+                  {peerType === 'teacher' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-black uppercase text-emerald-455 tracking-wider">Hourly Pay Rate</Label>
+                        <Input
+                          placeholder="e.g. $20 / hour"
+                          value={peerHourlyPay}
+                          onChange={(e) => setPeerHourlyPay(e.target.value)}
+                          className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                        />
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-black uppercase text-emerald-455 tracking-wider">Time Availability</Label>
+                        <Input
+                          placeholder="e.g. Weekdays (6 PM - 10 PM)"
+                          value={peerAvailableTime}
+                          onChange={(e) => setPeerAvailableTime(e.target.value)}
+                          className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Contact Info (Number & Optionals) */}
+                  <div className="space-y-3.5 pt-4 border-t border-slate-850/80">
+                    <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">Reach & Connect Channels</Label>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Phone Contact */}
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wide">Phone Contact Number</Label>
+                        <Input
+                          placeholder="e.g. +66 81 234 5678"
+                          value={peerContactNumber}
+                          onChange={(e) => setPeerContactNumber(e.target.value)}
+                          className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                        />
+                      </div>
+
+                      {/* WhatsApp */}
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wide">WhatsApp Number (Optional)</Label>
+                        <Input
+                          placeholder="e.g. +66812345678"
+                          value={peerWhatsapp}
+                          onChange={(e) => setPeerWhatsapp(e.target.value)}
+                          className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                        />
+                      </div>
+
+                      {/* Email */}
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wide">Email Address (Optional)</Label>
+                        <Input
+                          placeholder="e.g. tutor.anya@example.com"
+                          value={peerEmail}
+                          onChange={(e) => setPeerEmail(e.target.value)}
+                          className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                        />
+                      </div>
+
+                      {/* Social Media */}
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wide">Social Handle / Link (Optional)</Label>
+                        <Input
+                          placeholder="e.g. line: @anya_teach or linkedin link"
+                          value={peerSocialMedia}
+                          onChange={(e) => setPeerSocialMedia(e.target.value)}
+                          className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-wider h-11.5 rounded-xl transition-all duration-300 shadow-md shadow-indigo-600/20 flex items-center justify-center gap-1.5"
+                  >
+                    <Plus className="h-4.5 w-4.5" />
+                    Publish Listing Profile
+                  </Button>
+                </form>
+              </Card>
             )}
 
              {/* CREATE TUTOR FORM TAB */}
@@ -954,6 +1482,173 @@ export default function MarketplacePage() {
                   </Button>
                 </div>
               </form>
+            </Card>
+          </div>
+        )}
+
+        {/* CONNECT PEER DETAILS MODAL */}
+        {activePeerListing && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <Card className="bg-slate-900 border-slate-850/80 rounded-3xl shadow-2xl p-6 sm:p-8 max-w-2xl w-full my-8 relative">
+              <button
+                onClick={() => setActivePeerListing(null)}
+                className="absolute top-4 right-4 p-2 bg-slate-950 border border-slate-850 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors font-extrabold text-xs"
+              >
+                ✕
+              </button>
+              
+              <CardHeader className="p-0 pb-6 border-b border-slate-850 flex flex-row items-center gap-4 select-none">
+                <span className="text-5xl bg-slate-950/50 p-3 rounded-2xl border border-slate-850 shadow-inner select-none">
+                  {activePeerListing.avatarEmoji}
+                </span>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CardTitle className="text-slate-100 font-black text-2xl tracking-wide">{activePeerListing.name}</CardTitle>
+                    <Badge className={`border-none text-[10px] font-black uppercase py-0.5 px-2.5 ${
+                      activePeerListing.type === 'teacher' 
+                        ? 'bg-emerald-500/15 text-emerald-400' 
+                        : 'bg-purple-500/15 text-purple-400'
+                    }`}>
+                      {activePeerListing.type === 'teacher' ? '👩‍🏫 Teacher' : '🙋‍♂️ Student'}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-slate-450 mt-1 font-semibold flex items-center gap-1.5">
+                    <span>Origin:</span>
+                    <span className="text-slate-250 font-bold">{activePeerListing.nationality}</span>
+                  </p>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="p-0 py-6 space-y-6">
+                {/* Available details for Teachers */}
+                {activePeerListing.type === 'teacher' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950/40 border border-slate-850/60 p-4 rounded-2xl">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1 select-none">
+                        <Clock className="h-3 w-3 text-indigo-400" />
+                        Availability
+                      </span>
+                      <p className="text-slate-200 text-xs font-bold">{activePeerListing.availableTime || 'Flexible / Contact for details'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1 select-none">
+                        <DollarSign className="h-3 w-3 text-emerald-400" />
+                        Hourly Pay Rate
+                      </span>
+                      <p className="text-emerald-400 text-sm font-extrabold">{activePeerListing.hourlyPay || 'Negotiable'}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* About Description */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 select-none">Personal Description</span>
+                  <p className="text-slate-300 text-xs leading-relaxed font-semibold text-justify select-text bg-slate-950/20 p-3 rounded-xl border border-slate-900/50">
+                    {activePeerListing.description}
+                  </p>
+                </div>
+
+                {/* More Background Info (if available) */}
+                {activePeerListing.info && (
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1 select-none">
+                      <Info className="h-3 w-3 text-indigo-400" />
+                      Tutoring Goals & Methodology
+                    </span>
+                    <p className="text-slate-355 text-xs leading-relaxed font-medium text-justify select-text">
+                      {activePeerListing.info}
+                    </p>
+                  </div>
+                )}
+
+                {/* Contact Channels Grid */}
+                <div className="space-y-3.5 pt-4 border-t border-slate-850/80">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 select-none">Reach Out & Connect Channels</span>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Dial Phone Button */}
+                    <a
+                      href={`tel:${activePeerListing.contactNumber}`}
+                      className="flex items-center justify-between p-3.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-2xl group transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 select-none">
+                          <Phone className="h-4.5 w-4.5" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider select-none">Phone Contact</p>
+                          <p className="text-xs text-slate-200 font-extrabold truncate max-w-[150px] select-text">{activePeerListing.contactNumber}</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-black uppercase text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity select-none">Call Now</span>
+                    </a>
+
+                    {/* WhatsApp direct link */}
+                    {activePeerListing.whatsapp && (
+                      <a
+                        href={`https://wa.me/${activePeerListing.whatsapp.replace(/[+\s-]/g, '')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-between p-3.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-2xl group transition-all duration-300"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 select-none">
+                            <MessageCircle className="h-4.5 w-4.5" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider select-none">WhatsApp Chat</p>
+                            <p className="text-xs text-slate-200 font-extrabold truncate max-w-[150px] select-text">{activePeerListing.whatsapp}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-black uppercase text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity select-none">Chat</span>
+                      </a>
+                    )}
+
+                    {/* Email connection */}
+                    {activePeerListing.email && (
+                      <a
+                        href={`mailto:${activePeerListing.email}`}
+                        className="flex items-center justify-between p-3.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 rounded-2xl group transition-all duration-300"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0 select-none">
+                            <Mail className="h-4.5 w-4.5" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider select-none">Email Address</p>
+                            <p className="text-xs text-slate-200 font-extrabold truncate max-w-[150px] select-text">{activePeerListing.email}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-black uppercase text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity select-none">Send Mail</span>
+                      </a>
+                    )}
+
+                    {/* Social handles */}
+                    {activePeerListing.socialMedia && (
+                      <div className="flex items-center justify-between p-3.5 bg-slate-950 border border-slate-850 rounded-2xl transition-all duration-300">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0 select-none">
+                            <Globe className="h-4.5 w-4.5" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider select-none">Social Handle</p>
+                            <p className="text-xs text-slate-200 font-extrabold truncate max-w-[150px] select-text">{activePeerListing.socialMedia}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+              
+              <div className="pt-4 border-t border-slate-850 flex justify-end select-none">
+                <Button
+                  onClick={() => setActivePeerListing(null)}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black uppercase text-xs h-11 px-8 rounded-xl"
+                >
+                  Close Profile
+                </Button>
+              </div>
             </Card>
           </div>
         )}
