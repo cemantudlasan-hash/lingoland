@@ -57,6 +57,7 @@ interface Tutor {
 
 export interface PeerListing {
   id: string;
+  ownerId?: string;  // uid of the user who created this listing
   type: 'student' | 'teacher';
   name: string;
   nationality: string;
@@ -70,6 +71,7 @@ export interface PeerListing {
   createdAt: string;
   availableTime?: string;
   hourlyPay?: string;
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 const presetPeerListings: PeerListing[] = [
@@ -188,6 +190,8 @@ export default function MarketplacePage() {
   const [peerTypeFilter, setPeerTypeFilter] = useState<'all' | 'student' | 'teacher'>('all');
   const [activePeerListing, setActivePeerListing] = useState<PeerListing | null>(null);
   const [showApprovalPopup, setShowApprovalPopup] = useState(false);
+  const [editingPeerListing, setEditingPeerListing] = useState<PeerListing | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null); // holds listing id to delete
 
   // Peer Listings form states
   const [peerType, setPeerType] = useState<'student' | 'teacher'>('teacher');
@@ -337,6 +341,7 @@ export default function MarketplacePage() {
 
     const newListing: PeerListing = {
       id: `peer-${Date.now()}`,
+      ownerId: user?.uid,  // stamp the creator's uid
       type: peerType,
       name: peerName.trim(),
       nationality: peerNationality.trim(),
@@ -401,14 +406,43 @@ export default function MarketplacePage() {
   };
 
   const handleDeletePeerListing = (id: string) => {
-    if (!isAdmin) return;
+    // Allow admin OR the listing owner to delete
+    const listing = peerListings.find(p => p.id === id);
+    const isOwner = listing?.ownerId === user?.uid;
+    if (!isAdmin && !isOwner) return;
     const updated = peerListings.filter(p => p.id !== id);
     setPeerListings(updated);
     localStorage.setItem('lingoland_peer_listings', JSON.stringify(updated));
+    setShowDeleteConfirm(null);
     toast({
       title: "Listing Deleted 🗑️",
       description: "The peer listing has been permanently removed.",
       className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
+  };
+
+  // Owner edit/update handler for peer listings
+  const handleUpdatePeerListing = (updated: PeerListing) => {
+    const isOwner = updated.ownerId === user?.uid;
+    if (!isAdmin && !isOwner) {
+      toast({ variant: 'destructive', title: 'Unauthorized', description: 'You can only edit your own listings.' });
+      return;
+    }
+    // Preserve status & ownerId; owner edits reset status to pending for re-approval
+    const withStatus: PeerListing = {
+      ...updated,
+      status: isAdmin ? updated.status : 'pending',
+    };
+    const updatedList = peerListings.map(p => p.id === withStatus.id ? withStatus : p);
+    setPeerListings(updatedList);
+    localStorage.setItem('lingoland_peer_listings', JSON.stringify(updatedList));
+    setEditingPeerListing(null);
+    toast({
+      title: isAdmin ? 'Listing Updated ✅' : 'Update Submitted! 🕐',
+      description: isAdmin
+        ? 'Peer listing has been updated successfully.'
+        : 'Your changes are under review. The admin will re-approve your updated listing shortly.',
+      className: 'bg-indigo-950 border-indigo-500/30 text-indigo-200',
     });
   };
 
@@ -1113,6 +1147,30 @@ export default function MarketplacePage() {
                             </Button>
                           </div>
 
+                          {/* Owner Controls — only visible to the listing creator (approved listings only) */}
+                          {!isAdmin && listing.ownerId === user?.uid && listing.status === 'approved' && (
+                            <div className="flex items-center justify-end gap-1.5 w-full pt-2.5 border-t border-slate-850/60">
+                              <span className="text-[9px] font-black uppercase text-indigo-400/70 mr-auto flex items-center gap-1">
+                                <ShieldCheck className="h-3 w-3" /> Your Listing
+                              </span>
+                              <Button
+                                size="sm"
+                                onClick={() => setEditingPeerListing({ ...listing })}
+                                className="h-7 px-2.5 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 font-extrabold text-[9px] uppercase rounded-lg border border-indigo-500/20 flex items-center gap-1"
+                              >
+                                <Pencil className="h-3 w-3" /> Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => setShowDeleteConfirm(listing.id)}
+                                className="h-7 px-2.5 bg-rose-600/20 hover:bg-rose-600/40 text-rose-400 font-extrabold text-[9px] uppercase rounded-lg border border-rose-500/20 flex items-center gap-1"
+                              >
+                                <Trash2 className="h-3 w-3" /> Delete
+                              </Button>
+                            </div>
+                          )}
+
+                          {/* Admin Moderation Controls */}
                           {isAdmin && (
                             <div className="flex items-center justify-end gap-1.5 w-full pt-2.5 border-t border-slate-850/60">
                               <span className="text-[9px] font-black uppercase text-slate-500 mr-auto">Moderate:</span>
@@ -1607,6 +1665,157 @@ export default function MarketplacePage() {
                   </Button>
                 </div>
               </form>
+            </Card>
+          </div>
+        )}
+
+        {/* EDIT PEER LISTING MODAL (Owner-Only) */}
+        {editingPeerListing && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <Card className="bg-slate-900 border-slate-850/80 rounded-3xl shadow-2xl p-6 sm:p-8 max-w-2xl w-full my-8 relative">
+              <button
+                onClick={() => setEditingPeerListing(null)}
+                className="absolute top-4 right-4 p-2 bg-slate-950 border border-slate-850 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors font-extrabold text-xs"
+              >
+                ✕
+              </button>
+              <CardHeader className="p-0 pb-6 border-b border-slate-850 flex flex-row items-center gap-3 select-none">
+                <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                  <Pencil className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-slate-100 font-black text-xl uppercase tracking-wider">Edit Your Listing</CardTitle>
+                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Update your profile details. Changes will be re-reviewed by admin before going live.</p>
+                </div>
+              </CardHeader>
+
+              <form
+                onSubmit={(e) => { e.preventDefault(); handleUpdatePeerListing(editingPeerListing); }}
+                className="space-y-4 pt-6"
+              >
+                {/* Role toggle */}
+                <div className="grid grid-cols-2 gap-3 select-none">
+                  <button type="button"
+                    onClick={() => setEditingPeerListing({ ...editingPeerListing, type: 'teacher', avatarEmoji: '👩‍🏫' })}
+                    className={`py-2.5 px-4 rounded-xl border text-xs font-bold uppercase transition-all flex items-center justify-center gap-2 ${
+                      editingPeerListing.type === 'teacher'
+                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
+                        : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                    }`}
+                  >
+                    <Users className="h-3.5 w-3.5" /> Teacher / Tutor
+                  </button>
+                  <button type="button"
+                    onClick={() => setEditingPeerListing({ ...editingPeerListing, type: 'student', avatarEmoji: '🙋‍♂️' })}
+                    className={`py-2.5 px-4 rounded-xl border text-xs font-bold uppercase transition-all flex items-center justify-center gap-2 ${
+                      editingPeerListing.type === 'student'
+                        ? 'bg-purple-500/10 border-purple-500 text-purple-400'
+                        : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                    }`}
+                  >
+                    <User className="h-3.5 w-3.5" /> Student
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Full Name</Label>
+                    <Input value={editingPeerListing.name} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, name: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200" />
+                  </div>
+                  <div className="sm:col-span-1 space-y-1.5">
+                    <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Nationality</Label>
+                    <Input value={editingPeerListing.nationality} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, nationality: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200" />
+                  </div>
+                  <div className="sm:col-span-1 space-y-1.5">
+                    <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Avatar</Label>
+                    <Input maxLength={2} value={editingPeerListing.avatarEmoji} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, avatarEmoji: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl h-11 text-center text-lg text-slate-200" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Personal Bio Description</Label>
+                  <Textarea rows={2} value={editingPeerListing.description} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, description: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl resize-none text-slate-200" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase text-indigo-455 tracking-wider">Additional Details (Optional)</Label>
+                  <Textarea rows={2} value={editingPeerListing.info || ''} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, info: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl resize-none text-slate-200" />
+                </div>
+
+                {editingPeerListing.type === 'teacher' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-black uppercase text-emerald-455 tracking-wider">Hourly Pay Rate</Label>
+                      <Input value={editingPeerListing.hourlyPay || ''} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, hourlyPay: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-black uppercase text-emerald-455 tracking-wider">Availability</Label>
+                      <Input value={editingPeerListing.availableTime || ''} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, availableTime: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200" />
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-850/80">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wide">Phone Contact</Label>
+                    <Input value={editingPeerListing.contactNumber} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, contactNumber: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wide">WhatsApp (Optional)</Label>
+                    <Input value={editingPeerListing.whatsapp || ''} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, whatsapp: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wide">Email (Optional)</Label>
+                    <Input value={editingPeerListing.email || ''} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, email: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-wide">Social Handle (Optional)</Label>
+                    <Input value={editingPeerListing.socialMedia || ''} onChange={(e) => setEditingPeerListing({ ...editingPeerListing, socialMedia: e.target.value })} className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200" />
+                  </div>
+                </div>
+
+                <div className="pt-4 flex gap-3 select-none">
+                  <Button type="button" variant="outline" onClick={() => setEditingPeerListing(null)}
+                    className="bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-400 font-extrabold uppercase text-xs h-11 px-5 rounded-xl"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit"
+                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black uppercase text-xs tracking-wider h-11 rounded-xl shadow-md shadow-indigo-500/10 flex items-center justify-center gap-1.5"
+                  >
+                    <Pencil className="h-4 w-4" /> Save & Submit for Review
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </div>
+        )}
+
+        {/* DELETE CONFIRMATION DIALOG (Owner) */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <Card className="bg-slate-900 border-rose-500/20 rounded-3xl shadow-2xl p-6 sm:p-8 max-w-sm w-full text-center space-y-5 select-none">
+              <div className="w-14 h-14 mx-auto rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                <Trash2 className="h-7 w-7" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-lg font-black text-slate-100 uppercase tracking-widest">Delete Listing?</h3>
+                <p className="text-slate-400 text-xs leading-relaxed">
+                  This will permanently remove your peer listing from the marketplace. This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setShowDeleteConfirm(null)}
+                  className="flex-1 bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-400 font-extrabold uppercase text-xs h-10 rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={() => handleDeletePeerListing(showDeleteConfirm)}
+                  className="flex-1 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-black uppercase text-xs h-10 rounded-xl shadow-md shadow-rose-600/20"
+                >
+                  Yes, Delete
+                </Button>
+              </div>
             </Card>
           </div>
         )}
