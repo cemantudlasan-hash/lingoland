@@ -122,7 +122,8 @@ export default function StorytellingPage() {
   // Reading tracking
   const [blockIndex, setBlockIndex] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Initialize and clean up TTS
   useEffect(() => {
@@ -336,7 +337,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="space-y-6 max-w-3xl mx-auto w-full"
+              className="space-y-6 max-w-5xl mx-auto w-full"
             >
               <div className="text-center space-y-2 select-none">
                 <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1 px-3">
@@ -584,7 +585,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col gap-5 max-w-4xl mx-auto w-full"
+              className={isFullscreen ? "fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-12 overflow-y-auto" : "flex flex-col gap-5 max-w-6xl mx-auto w-full"}
             >
               
               {/* Progress and settings bar */}
@@ -606,7 +607,7 @@ export default function StorytellingPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center gap-2.5 shrink-0">
                   {/* TTS Vocal Trigger */}
                   <Button
                     variant="ghost"
@@ -618,9 +619,31 @@ export default function StorytellingPage() {
                     {isSpeaking ? <VolumeX className="h-4.5 w-4.5 text-amber-400" /> : <Volume2 className="h-4.5 w-4.5" />}
                   </Button>
 
+                  {/* Fullscreen Mode Toggle */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    className="h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200"
+                    title={isFullscreen ? "Minimize Screen" : "Maximize Fullscreen"}
+                  >
+                    {isFullscreen ? (
+                      <svg className="h-4.5 w-4.5 text-indigo-455" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    ) : (
+                      <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                      </svg>
+                    )}
+                  </Button>
+
                   <button
-                    onClick={() => setReadState('config')}
-                    className="text-xs font-black uppercase text-slate-500 hover:text-slate-350 transition-colors p-1"
+                    onClick={() => {
+                      setIsFullscreen(false);
+                      setReadState('config');
+                    }}
+                    className="text-xs font-black uppercase text-slate-500 hover:text-slate-350 transition-colors p-2"
                   >
                     Cancel
                   </button>
@@ -642,7 +665,7 @@ export default function StorytellingPage() {
               {/* THE ACTIVE CHATBOX BALLOON READER */}
               <div
                 onClick={handleNextBlock}
-                className={`bg-gradient-to-b ${themeConfig.bg} border-2 backdrop-blur-xl rounded-3xl shadow-2xl p-8 sm:p-14 text-center cursor-pointer min-h-[30vh] sm:min-h-[36vh] flex flex-col justify-center items-center relative transition-all duration-500 hover:brightness-105 active:scale-[0.99] group`}
+                className={`bg-gradient-to-b ${themeConfig.bg} border-2 backdrop-blur-xl rounded-3xl shadow-2xl text-center cursor-pointer flex flex-col justify-center items-center relative transition-all duration-500 hover:brightness-105 active:scale-[0.99] group ${isFullscreen ? 'flex-grow my-4 p-10 sm:p-20 min-h-[48vh]' : 'min-h-[30vh] sm:min-h-[36vh] p-8 sm:p-14'}`}
               >
                 
                 {/* Visual novel talk box prompt */}
@@ -658,7 +681,7 @@ export default function StorytellingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
                     transition={{ duration: 0.35, ease: "easeOut" }}
-                    className={`text-xl sm:text-2xl font-bold leading-relaxed max-w-2xl mx-auto select-text text-justify sm:text-center ${themeConfig.text}`}
+                    className={`font-bold leading-relaxed max-w-4xl mx-auto select-text text-justify sm:text-center ${themeConfig.text} ${isFullscreen ? 'text-2xl sm:text-4xl' : 'text-xl sm:text-2xl'}`}
                   >
                     {activeStory.narrativeBlocks[blockIndex]}
                   </motion.p>
@@ -674,6 +697,7 @@ export default function StorytellingPage() {
             </motion.div>
           )}
 
+
           {/* CAMPAIGN CLEARED / VOCAB REVIEW BOARD */}
           {readState === 'completed' && activeStory && (
             <motion.div
@@ -681,7 +705,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-3xl mx-auto w-full space-y-6 text-center select-none"
+              className="max-w-5xl mx-auto w-full space-y-6 text-center select-none"
             >
               <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6">
                 
@@ -730,13 +754,25 @@ export default function StorytellingPage() {
                   ))}
                 </div>
 
-                <div className="pt-6 border-t border-slate-850 flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="pt-6 border-t border-slate-850 flex flex-wrap gap-3 justify-center">
+                  <Button
+                    onClick={() => {
+                      setSource('ai');
+                      setCustomTheme('');
+                      setReadState('config');
+                    }}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black uppercase text-xs h-11 px-6 rounded-xl flex items-center gap-1.5 shadow-md shadow-amber-500/10"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Generate New AI Story</span>
+                  </Button>
+
                   <Button
                     onClick={() => setReadState('config')}
                     variant="outline"
                     className="bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-455 font-black uppercase text-xs h-11 px-6 rounded-xl"
                   >
-                    Change Genre
+                    Change Genre / Preset
                   </Button>
                   
                   {length === 'long' && (

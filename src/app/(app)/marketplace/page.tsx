@@ -26,9 +26,13 @@ import {
   VolumeX, 
   User, 
   ShieldCheck, 
-  Code
+  Code,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
+import { useAuth } from '@/context/auth-context';
+
 
 interface Tutor {
   id: string;
@@ -96,6 +100,7 @@ const presetTutors: Tutor[] = [
 
 export default function MarketplacePage() {
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   
   // Tabs: 'browse' | 'create'
   const [activeTab, setActiveTab] = useState<'browse' | 'create'>('browse');
@@ -115,6 +120,9 @@ export default function MarketplacePage() {
   const [tutorPrompt, setTutorPrompt] = useState('');
   const [tutorAuthor, setTutorAuthor] = useState('');
   
+  // Edit Tutor states
+  const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
+  
   // Chat Room state
   const [activeChatTutor, setActiveChatTutor] = useState<Tutor | null>(null);
   const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'model'; text: string }>>([]);
@@ -125,20 +133,32 @@ export default function MarketplacePage() {
   
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Sync custom tutors from localStorage on load
+  // Sync custom tutors, overrides, and deletions from localStorage on load
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('lingoland_custom_tutors');
+      const deletedPresets = JSON.parse(localStorage.getItem('lingoland_deleted_presets') || '[]');
+      const overrides = JSON.parse(localStorage.getItem('lingoland_preset_overrides') || '[]') as Tutor[];
+      
+      let initialTutors = presetTutors.map(t => {
+        const override = overrides.find(o => o.id === t.id);
+        return override ? { ...t, ...override } : t;
+      }).filter(t => !deletedPresets.includes(t.id));
+      
       if (stored) {
         try {
           const parsed = JSON.parse(stored) as Tutor[];
-          setTutors([...presetTutors, ...parsed]);
+          setTutors([...initialTutors, ...parsed]);
         } catch (e) {
           console.error("Failed to parse custom tutors", e);
+          setTutors(initialTutors);
         }
+      } else {
+        setTutors(initialTutors);
       }
     }
   }, []);
+
 
   // Scroll to bottom on new chat messages
   useEffect(() => {
@@ -189,6 +209,62 @@ export default function MarketplacePage() {
     setTutorAuthor('');
     setActiveTab('browse');
   };
+
+  // Admin Delete Tutor Handler
+  const handleDeleteTutor = (tutorId: string) => {
+    if (!isAdmin) {
+      toast({ variant: 'destructive', title: 'Unauthorized', description: 'Admin privileges required.' });
+      return;
+    }
+
+    const updatedList = tutors.filter(t => t.id !== tutorId);
+    setTutors(updatedList);
+    
+    if (tutorId.startsWith('custom-')) {
+      const customOnly = updatedList.filter(t => !t.isPreset);
+      localStorage.setItem('lingoland_custom_tutors', JSON.stringify(customOnly));
+    } else {
+      const deletedPresets = JSON.parse(localStorage.getItem('lingoland_deleted_presets') || '[]');
+      if (!deletedPresets.includes(tutorId)) {
+        deletedPresets.push(tutorId);
+      }
+      localStorage.setItem('lingoland_deleted_presets', JSON.stringify(deletedPresets));
+    }
+
+    toast({
+      title: "AI Module Decommissioned 🗑️",
+      description: "Tutor successfully removed from the marketplace catalog.",
+    });
+  };
+
+  // Admin Edit/Update Tutor Handler
+  const handleUpdateTutor = (updatedTutor: Tutor) => {
+    if (!isAdmin) {
+      toast({ variant: 'destructive', title: 'Unauthorized', description: 'Admin privileges required.' });
+      return;
+    }
+
+    const updatedList = tutors.map(t => t.id === updatedTutor.id ? updatedTutor : t);
+    setTutors(updatedList);
+
+    if (updatedTutor.id.startsWith('custom-')) {
+      const customOnly = updatedList.filter(t => !t.isPreset);
+      localStorage.setItem('lingoland_custom_tutors', JSON.stringify(customOnly));
+    } else {
+      const overrides = JSON.parse(localStorage.getItem('lingoland_preset_overrides') || '[]') as Tutor[];
+      const filteredOverrides = overrides.filter(o => o.id !== updatedTutor.id);
+      filteredOverrides.push(updatedTutor);
+      localStorage.setItem('lingoland_preset_overrides', JSON.stringify(filteredOverrides));
+    }
+
+    setEditingTutor(null);
+    toast({
+      title: "AI Module Reconfigured! 🔧✨",
+      description: `"${updatedTutor.name}" parameters successfully synchronized.`,
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
+  };
+
 
   // Start chat room with tutor
   const handleStartChat = (tutor: Tutor) => {
@@ -478,17 +554,20 @@ export default function MarketplacePage() {
                 >
                   Browse Tutors
                 </button>
-                <button
-                  onClick={() => setActiveTab('create')}
-                  className={`px-5 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 ${
-                    activeTab === 'create'
-                      ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
-                      : 'text-slate-555 hover:text-slate-350'
-                  }`}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Create a Tutor
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => setActiveTab('create')}
+                    className={`px-5 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 ${
+                      activeTab === 'create'
+                        ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
+                        : 'text-slate-555 hover:text-slate-350'
+                    }`}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Create a Tutor
+                  </button>
+                )}
+
               </div>
             </div>
 
@@ -535,7 +614,7 @@ export default function MarketplacePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2 relative">
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 relative">
                     {filteredTutors.map((t) => (
                       <Card 
                         key={t.id}
@@ -578,16 +657,40 @@ export default function MarketplacePage() {
                               <Download className="h-3 w-3 shrink-0" />
                               <span>{t.downloads.toLocaleString()} downloads</span>
                             </span>
-                            <span className="truncate max-w-[100px]">By {t.author}</span>
+                            <span className="truncate max-w-[90px]">By {t.author}</span>
                           </div>
                           
-                          <Button
-                            onClick={() => handleStartChat(t)}
-                            className="h-8 px-4 text-xs font-black uppercase rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5 shrink-0"
-                          >
-                            <MessageSquare className="h-3.5 w-3.5 fill-current" />
-                            <span>Activate & Chat</span>
-                          </Button>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {isAdmin && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setEditingTutor(t)}
+                                  className="h-8 w-8 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-indigo-400 p-0 flex items-center justify-center shrink-0"
+                                  title="Edit Tutor"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteTutor(t.id)}
+                                  className="h-8 w-8 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-850 hover:text-rose-455 p-0 flex items-center justify-center shrink-0"
+                                  title="Delete Tutor"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </>
+                            )}
+                            <Button
+                              onClick={() => handleStartChat(t)}
+                              className="h-8 px-4 text-xs font-black uppercase rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5 shrink-0"
+                            >
+                              <MessageSquare className="h-3.5 w-3.5 fill-current" />
+                              <span>Activate & Chat</span>
+                            </Button>
+                          </div>
                         </CardFooter>
                       </Card>
                     ))}
@@ -596,9 +699,28 @@ export default function MarketplacePage() {
               </div>
             )}
 
-            {/* CREATE TUTOR FORM TAB */}
-            {activeTab === 'create' && (
-              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 max-w-2xl mx-auto w-full">
+             {/* CREATE TUTOR FORM TAB */}
+            {/* CREATE TUTOR FORM TAB - NON-ADMIN ACCESS DENIED */}
+            {activeTab === 'create' && !isAdmin && (
+              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-xl mx-auto w-full text-center space-y-6 select-none my-10">
+                <div className="w-16 h-16 mx-auto rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                  <ShieldCheck className="h-8 w-8" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-slate-100 uppercase tracking-widest">Admin Credentials Required</h3>
+                  <p className="text-slate-400 text-xs leading-relaxed max-w-sm mx-auto">
+                    The AI Tutor Architect suite is an administrator-exclusive tool. Log in with an admin account to create, verify, and publish custom tutor mainframes to the marketplace.
+                  </p>
+                </div>
+                <Button onClick={() => setActiveTab('browse')} className="bg-slate-950 border border-slate-880 text-slate-400 font-extrabold uppercase text-xs h-10 px-6 rounded-xl">
+                  Return to Marketplace
+                </Button>
+              </Card>
+            )}
+
+            {/* CREATE TUTOR FORM TAB - ADMIN WORKSPACE */}
+            {activeTab === 'create' && isAdmin && (
+              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 max-w-4xl mx-auto w-full">
                 <CardHeader className="p-0 pb-6 border-b border-slate-850/80 flex flex-row items-center gap-3 select-none">
                   <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
                     <Code className="h-6 w-6" />
@@ -645,7 +767,7 @@ export default function MarketplacePage() {
                         className="w-full bg-slate-950 border border-slate-850 rounded-xl h-11 px-3.5 text-xs text-slate-400 font-bold focus:border-indigo-500 focus:outline-none"
                       >
                         {['Grammar', 'Vocabulary', 'Phonics', 'Writing', 'Business English'].map(c => (
-                          <option key={c} value={c} className="bg-slate-950 text-slate-300 font-bold">{c}</option>
+                          <option key={c} value={c} className="bg-slate-950 text-slate-350 font-bold">{c}</option>
                         ))}
                       </select>
                     </div>
@@ -702,10 +824,142 @@ export default function MarketplacePage() {
                 </form>
               </Card>
             )}
+
           </motion.div>
         </AnimatePresence>
+
+        {/* EDIT TUTOR ARCHITECT FORM MODAL (Admin-Only) */}
+        {editingTutor && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <Card className="bg-slate-900 border-slate-850/80 rounded-3xl shadow-2xl p-6 sm:p-8 max-w-2xl w-full my-8 relative">
+              <button
+                onClick={() => setEditingTutor(null)}
+                className="absolute top-4 right-4 p-2 bg-slate-950 border border-slate-850 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors font-extrabold text-xs"
+              >
+                ✕
+              </button>
+              <CardHeader className="p-0 pb-6 border-b border-slate-850 flex flex-row items-center gap-3 select-none">
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-455">
+                  <Pencil className="h-6 w-6" />
+                </div>
+                <div>
+                  <CardTitle className="text-slate-100 font-black text-xl uppercase tracking-wider">Configure Tutor Module</CardTitle>
+                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Admin Panel: Fine-tune prompts and marketplace configurations.</p>
+                </div>
+              </CardHeader>
+              
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleUpdateTutor(editingTutor);
+                }} 
+                className="space-y-4 pt-6"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  {/* Name */}
+                  <div className="sm:col-span-3 space-y-1.5">
+                    <Label className="text-xs font-black uppercase text-amber-455 tracking-wider">Tutor Name</Label>
+                    <Input
+                      placeholder="Name..."
+                      value={editingTutor.name}
+                      onChange={(e) => setEditingTutor({ ...editingTutor, name: e.target.value })}
+                      className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                    />
+                  </div>
+                  
+                  {/* Emoji */}
+                  <div className="sm:col-span-1 space-y-1.5">
+                    <Label className="text-xs font-black uppercase text-amber-455 tracking-wider">Avatar Emoji</Label>
+                    <Input
+                      placeholder="🎓"
+                      maxLength={2}
+                      value={editingTutor.emoji}
+                      onChange={(e) => setEditingTutor({ ...editingTutor, emoji: e.target.value })}
+                      className="bg-slate-950 border-slate-850 rounded-xl h-11 text-center text-lg text-slate-200 font-sans"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Category */}
+                  <div className="space-y-1.5 select-none">
+                    <Label className="text-xs font-black uppercase text-amber-455 tracking-wider">Subject Category</Label>
+                    <select
+                      value={editingTutor.category}
+                      onChange={(e) => setEditingTutor({ ...editingTutor, category: e.target.value as Tutor['category'] })}
+                      className="w-full bg-slate-950 border border-slate-850 rounded-xl h-11 px-3.5 text-xs text-slate-400 font-bold focus:border-indigo-500 focus:outline-none"
+                    >
+                      {['Grammar', 'Vocabulary', 'Phonics', 'Writing', 'Business English'].map(c => (
+                        <option key={c} value={c} className="bg-slate-950 text-slate-350 font-bold">{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Author */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-black uppercase text-amber-455 tracking-wider">Creator Name</Label>
+                    <Input
+                      placeholder="Author..."
+                      value={editingTutor.author}
+                      onChange={(e) => setEditingTutor({ ...editingTutor, author: e.target.value })}
+                      className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase text-amber-455 tracking-wider">Marketplace Description</Label>
+                  <Textarea
+                    placeholder="Description..."
+                    value={editingTutor.description}
+                    onChange={(e) => setEditingTutor({ ...editingTutor, description: e.target.value })}
+                    rows={2}
+                    className="bg-slate-950 border-slate-850 rounded-xl resize-none text-slate-200"
+                  />
+                </div>
+
+                {/* System prompt */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-black uppercase text-amber-455 tracking-wider flex justify-between items-center">
+                    <span>System Prompt & Instructions</span>
+                    <span className="text-[10px] text-amber-400 lowercase font-bold flex items-center gap-1 select-none">
+                      <Sparkles className="h-3 w-3 animate-pulse" />
+                      injected into Gemini neural mainframe
+                    </span>
+                  </Label>
+                  <Textarea
+                    placeholder="Instructions..."
+                    value={editingTutor.prompt}
+                    onChange={(e) => setEditingTutor({ ...editingTutor, prompt: e.target.value })}
+                    rows={5}
+                    className="bg-slate-950 border-slate-850 rounded-xl resize-none text-slate-200"
+                  />
+                </div>
+
+                <div className="pt-4 flex gap-3 select-none">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditingTutor(null)}
+                    className="bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-400 font-extrabold uppercase text-xs h-11 px-5 rounded-xl"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black uppercase text-xs tracking-wider h-11 rounded-xl shadow-md shadow-amber-500/10 flex items-center justify-center gap-1.5"
+                  >
+                    <span>Save System Changes</span>
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
-
 }
+
+

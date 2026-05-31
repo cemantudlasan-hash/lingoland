@@ -71,7 +71,8 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
   
   // Sound controls (Text to Speech)
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+
 
   // Initialize TTS
   useEffect(() => {
@@ -247,14 +248,15 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
   };
 
   return (
-    <div className="relative min-h-[75vh] w-full flex flex-col items-center justify-center p-2 sm:p-4 text-white overflow-hidden select-none bg-slate-950/20 rounded-3xl border border-slate-900">
+    <div className="relative min-h-[92vh] w-full flex flex-col items-center justify-start p-3 sm:p-6 text-white overflow-hidden select-none bg-slate-950/10 rounded-3xl border border-slate-900/60">
       <ConstellationCanvas />
       
       {/* Background radial highlights */}
       <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-4xl flex flex-col gap-6">
+      <div className="relative z-10 w-full max-w-7xl flex flex-col gap-6">
+
         
         <AnimatePresence mode="wait">
           
