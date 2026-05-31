@@ -24,7 +24,10 @@ import {
   Smile,
   Compass,
   Trophy,
-  Music
+  Music,
+  Volume1,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
 import { useAuth } from '@/context/auth-context';
@@ -108,55 +111,56 @@ const presetStories: Record<string, ReaderStory> = {
 
 class AmbientSynthesizer {
   private ctx: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
   private nodes: { oscs: OscillatorNode[]; gain: GainNode }[] = [];
   private interval: any = null;
+  private _volume: number = 0.5;
+  private _genre: string = '';
   
-  start(genre: string) {
+  start(genre: string, volume = 0.5) {
     if (typeof window === 'undefined') return;
+    this._genre = genre;
+    this._volume = volume;
     this.stop();
     
-    // Initialize AudioContext
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     
     try {
       this.ctx = new AudioContextClass();
     } catch (e) {
-      console.warn("Failed to create AudioContext:", e);
+      console.warn('Failed to create AudioContext:', e);
       return;
     }
+
+    // Master volume node
+    this.masterGain = this.ctx.createGain();
+    this.masterGain.gain.setValueAtTime(this._volume, this.ctx.currentTime);
+    this.masterGain.connect(this.ctx.destination);
     
-    // Procedural musical tone loops matching the atmosphere of the genre
     const playChords = () => {
-      if (!this.ctx) return;
-      if (this.ctx.state === 'suspended') {
-        this.ctx.resume();
-      }
+      if (!this.ctx || !this.masterGain) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
       
       let frequencies: number[] = [];
       let oscType: OscillatorType = 'sine';
       let detune = 0;
       
       if (genre === 'Horror') {
-        // Eerie, low-frequency tritone dissonance drones
-        frequencies = [65.41, 92.50, 110.00]; // C2, F#2, A2
+        frequencies = [65.41, 92.50, 110.00];
         oscType = 'sawtooth';
         detune = 12;
       } else if (genre === 'Comedy') {
-        // Playful, cheerful major chord tones
-        frequencies = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+        frequencies = [261.63, 329.63, 392.00, 523.25];
         oscType = 'triangle';
       } else if (genre === 'Sci-Fi' || genre === 'Cyberpunk') {
-        // Cybernetic space intervals
-        frequencies = [146.83, 220.00, 293.66, 440.00]; // D3, A3, D4, A4
+        frequencies = [146.83, 220.00, 293.66, 440.00];
         oscType = 'sine';
       } else if (genre === 'Adventure' || genre === 'Fantasy') {
-        // Mystical pentatonic fifth pads
-        frequencies = [196.00, 293.66, 392.00, 493.88]; // G3, D4, G4, B4
+        frequencies = [196.00, 293.66, 392.00, 493.88];
         oscType = 'triangle';
       } else {
-        // Gentle romantic ambient chords
-        frequencies = [174.61, 220.00, 261.63, 349.23]; // F3, A3, C4, F4
+        frequencies = [174.61, 220.00, 261.63, 349.23];
         oscType = 'sine';
       }
       
@@ -165,17 +169,14 @@ class AmbientSynthesizer {
       oscGroupGain.gain.setValueAtTime(0, now);
       oscGroupGain.gain.linearRampToValueAtTime(genre === 'Horror' ? 0.012 : 0.022, now + 1.8);
       oscGroupGain.gain.exponentialRampToValueAtTime(0.0001, now + 4.8);
-      
-      oscGroupGain.connect(this.ctx.destination);
+      oscGroupGain.connect(this.masterGain);
       
       const oscs = frequencies.map((freq) => {
         if (!this.ctx) return null;
         const osc = this.ctx.createOscillator();
         osc.type = oscType;
         osc.frequency.setValueAtTime(freq, now);
-        if (detune > 0) {
-          osc.detune.setValueAtTime((Math.random() - 0.5) * detune, now);
-        }
+        if (detune > 0) osc.detune.setValueAtTime((Math.random() - 0.5) * detune, now);
         osc.connect(oscGroupGain);
         osc.start(now);
         osc.stop(now + 5.0);
@@ -183,8 +184,6 @@ class AmbientSynthesizer {
       }).filter(Boolean) as OscillatorNode[];
       
       this.nodes.push({ oscs, gain: oscGroupGain });
-      
-      // Prune previous notes
       if (this.nodes.length > 4) {
         const old = this.nodes.shift();
         try { old?.gain.disconnect(); } catch (e) {}
@@ -194,21 +193,23 @@ class AmbientSynthesizer {
     playChords();
     this.interval = setInterval(playChords, 4800);
   }
+
+  setVolume(vol: number) {
+    this._volume = Math.max(0, Math.min(1, vol));
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setTargetAtTime(this._volume, this.ctx.currentTime, 0.05);
+    }
+  }
   
   stop() {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
-    }
+    if (this.interval) { clearInterval(this.interval); this.interval = null; }
     this.nodes.forEach(n => {
       try { n.gain.disconnect(); } catch (e) {}
       n.oscs.forEach(o => { try { o.stop(); } catch (e) {} });
     });
     this.nodes = [];
-    if (this.ctx) {
-      this.ctx.close();
-      this.ctx = null;
-    }
+    if (this.masterGain) { try { this.masterGain.disconnect(); } catch(e) {} this.masterGain = null; }
+    if (this.ctx) { this.ctx.close(); this.ctx = null; }
   }
 }
 
@@ -345,7 +346,10 @@ export default function StorytellingPage() {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [musicEnabled, setMusicEnabled] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(0.5);   // 0.0 – 1.0
+  const [ttsVolume, setTtsVolume] = useState(0.8);       // 0.0 – 1.0
   const synthRef = useRef<AmbientSynthesizer | null>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   // Auth and Firestore references
   const { user, isGuest } = useAuth();
@@ -372,14 +376,19 @@ export default function StorytellingPage() {
     };
   }, []);
 
-  // Control background music play/stop based on state, genre, and toggle
+  // Control background music play/stop based on state, genre, toggle, and volume
   useEffect(() => {
     if (readState === 'reading' && musicEnabled) {
-      synthRef.current?.start(genre);
+      synthRef.current?.start(genre, musicVolume);
     } else {
       synthRef.current?.stop();
     }
   }, [readState, musicEnabled, genre]);
+
+  // Live-update music volume without restarting
+  useEffect(() => {
+    if (musicEnabled) synthRef.current?.setVolume(musicVolume);
+  }, [musicVolume]);
 
   // Initialize and clean up TTS
   useEffect(() => {
@@ -390,24 +399,43 @@ export default function StorytellingPage() {
     };
   }, []);
 
-  // Text-to-speech speaker
-  const handleSpeak = (text: string, force = false) => {
+  // Text-to-speech speaker — proper toggle: clicking while speaking stops it
+  const handleSpeak = (text: string, forceToggle = false) => {
     if (typeof window === 'undefined') return;
-    if (!ttsEnabled && !force) return;
-    
+
+    // Always cancel any ongoing speech first
     window.speechSynthesis.cancel();
-    if (isSpeaking && !force) {
+    currentUtteranceRef.current = null;
+
+    // If already speaking, just stop (toggle off)
+    if (isSpeaking) {
       setIsSpeaking(false);
       return;
     }
-    
+
+    // If TTS is disabled and not a manual force-toggle, do nothing
+    if (!ttsEnabled && !forceToggle) return;
+
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    
+    utterance.rate = 0.92;
+    utterance.volume = ttsVolume;
+    utterance.onend = () => { setIsSpeaking(false); currentUtteranceRef.current = null; };
+    utterance.onerror = () => { setIsSpeaking(false); currentUtteranceRef.current = null; };
+
+    currentUtteranceRef.current = utterance;
     setIsSpeaking(true);
     window.speechSynthesis.speak(utterance);
+  };
+
+  // Update volume of current utterance live (re-speak is needed for Web Speech API)
+  const handleTtsVolumeChange = (vol: number) => {
+    setTtsVolume(vol);
+    // If actively speaking, cancel and re-speak at new volume
+    if (isSpeaking && activeStory) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setTimeout(() => handleSpeak(activeStory.narrativeBlocks[blockIndex], true), 80);
+    }
   };
 
   // Launch Story Reader Session
@@ -891,18 +919,74 @@ export default function StorytellingPage() {
               className={isFullscreen ? "fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-12 overflow-y-auto" : "flex flex-col gap-5 max-w-7xl mx-auto w-full flex-grow h-full justify-between"}
             >
               
-              {/* Floating Exit Fullscreen Button */}
+              {/* Floating Exit Fullscreen Button + Audio Controls Panel */}
               {isFullscreen && (
-                <button
-                  type="button"
-                  onClick={() => setIsFullscreen(false)}
-                  className="fixed top-6 right-6 z-50 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 text-slate-350 hover:text-white px-4.5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-2xl flex items-center gap-2 transition-all active:scale-95 duration-200"
-                >
-                  <svg className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <span>Exit Fullscreen (Esc)</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsFullscreen(false)}
+                    className="fixed top-6 right-6 z-50 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 text-slate-350 hover:text-white px-4.5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-2xl flex items-center gap-2 transition-all active:scale-95 duration-200"
+                  >
+                    <svg className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>Exit Fullscreen (Esc)</span>
+                  </button>
+
+                  {/* Floating Audio Control Panel — bottom-left in fullscreen */}
+                  <div className="fixed bottom-6 left-6 z-50 bg-slate-900/90 border border-slate-800/80 backdrop-blur-xl rounded-2xl shadow-2xl p-4 flex flex-col gap-3 min-w-[220px] select-none">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">🎚️ Audio Controls</p>
+
+                    {/* Music row */}
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        onClick={() => setMusicEnabled(!musicEnabled)}
+                        className={`h-7 w-7 rounded-lg border flex items-center justify-center shrink-0 transition-all ${
+                          musicEnabled ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-400' : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                        }`}
+                        title={musicEnabled ? 'Mute music' : 'Unmute music'}
+                      >
+                        {musicEnabled ? <Music className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                      </button>
+                      <div className="flex-1 flex flex-col gap-0.5">
+                        <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider">Music</span>
+                        <input
+                          type="range"
+                          min="0" max="1" step="0.05"
+                          value={musicVolume}
+                          onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
+                          disabled={!musicEnabled}
+                          className="w-full h-1.5 accent-indigo-500 cursor-pointer disabled:opacity-30"
+                        />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-500 w-7 text-right">{Math.round(musicVolume * 100)}</span>
+                    </div>
+
+                    {/* AI Voice row */}
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        onClick={() => handleSpeak(activeStory.narrativeBlocks[blockIndex], true)}
+                        className={`h-7 w-7 rounded-lg border flex items-center justify-center shrink-0 transition-all ${
+                          isSpeaking ? 'bg-amber-500/20 border-amber-500/40 text-amber-400' : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                        }`}
+                        title={isSpeaking ? 'Stop AI voice' : 'Play AI voice'}
+                      >
+                        {isSpeaking ? <Mic className="h-3.5 w-3.5" /> : <MicOff className="h-3.5 w-3.5" />}
+                      </button>
+                      <div className="flex-1 flex flex-col gap-0.5">
+                        <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider">AI Voice</span>
+                        <input
+                          type="range"
+                          min="0" max="1" step="0.05"
+                          value={ttsVolume}
+                          onChange={(e) => handleTtsVolumeChange(parseFloat(e.target.value))}
+                          className="w-full h-1.5 accent-amber-500 cursor-pointer"
+                        />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-500 w-7 text-right">{Math.round(ttsVolume * 100)}</span>
+                    </div>
+                  </div>
+                </>
               )}
 
               {/* Progress and settings bar */}
@@ -933,12 +1017,12 @@ export default function StorytellingPage() {
                     className={`h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
                       musicEnabled ? 'bg-indigo-500/15 border-indigo-500/35 text-indigo-400' : 'text-slate-400 hover:text-slate-200'
                     }`}
-                    title={musicEnabled ? "Mute ambient music" : "Play ambient music (Soundtrack)"}
+                    title={musicEnabled ? 'Mute ambient music' : 'Play ambient music'}
                   >
                     <Music className={`h-4 w-4 ${musicEnabled ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
                   </Button>
 
-                  {/* TTS Vocal Trigger */}
+                  {/* TTS Vocal Toggle — properly stops when clicked while speaking */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -946,7 +1030,7 @@ export default function StorytellingPage() {
                     className={`h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
                       isSpeaking ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'text-slate-400 hover:text-slate-200'
                     }`}
-                    title={isSpeaking ? "Mute speech" : "Read narrative aloud (Speech)"}
+                    title={isSpeaking ? 'Stop AI voice' : 'Read aloud with AI voice'}
                   >
                     {isSpeaking ? <VolumeX className="h-4.5 w-4.5" /> : <Volume2 className="h-4.5 w-4.5" />}
                   </Button>
@@ -957,7 +1041,7 @@ export default function StorytellingPage() {
                     size="icon"
                     onClick={() => setIsFullscreen(!isFullscreen)}
                     className="h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200"
-                    title={isFullscreen ? "Minimize Screen" : "Maximize Fullscreen"}
+                    title={isFullscreen ? 'Minimize Screen' : 'Maximize Fullscreen'}
                   >
                     {isFullscreen ? (
                       <svg className="h-4.5 w-4.5 text-indigo-455" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -971,10 +1055,7 @@ export default function StorytellingPage() {
                   </Button>
 
                   <button
-                    onClick={() => {
-                      setIsFullscreen(false);
-                      setReadState('config');
-                    }}
+                    onClick={() => { setIsFullscreen(false); setReadState('config'); }}
                     className="text-xs font-black uppercase text-slate-500 hover:text-slate-350 transition-colors p-2"
                   >
                     Cancel
