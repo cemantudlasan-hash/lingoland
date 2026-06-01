@@ -533,7 +533,7 @@ export default function RoleplayWorkspacePage() {
     const target = rooms.find(r => r.id === passwordGateRoomId);
     if (!target) return;
 
-    if (roomPasswordInput === target.password) {
+    if (roomPasswordInput.trim() === (target.password || "").trim()) {
       setActiveRoomId(target.id);
       setPasswordGateRoomId(null);
       setRoomPasswordInput("");
@@ -663,7 +663,7 @@ export default function RoleplayWorkspacePage() {
 
           const updatedRooms = rooms.map(r => {
             if (r.id === currentRoom.id) {
-              return { ...r, messages: [...r.messages, newVoiceMessage] };
+              return { ...r, messages: [...(r.messages || []), newVoiceMessage] };
             }
             return r;
           });
@@ -711,7 +711,7 @@ export default function RoleplayWorkspacePage() {
 
       const updatedRooms = rooms.map(r => {
         if (r.id === currentRoom.id) {
-          return { ...r, messages: [...r.messages, newVoiceMessage] };
+          return { ...r, messages: [...(r.messages || []), newVoiceMessage] };
         }
         return r;
       });
@@ -887,7 +887,7 @@ export default function RoleplayWorkspacePage() {
     setCurrentPlayingSeqIndex(index);
 
     const nextMsgId = sequencedMessageIds[index];
-    const msg = currentRoom?.messages.find(m => m.id === nextMsgId);
+    const msg = (currentRoom?.messages || []).find(m => m.id === nextMsgId);
     if (!msg) {
       handlePlaySequence(index + 1);
       return;
@@ -967,7 +967,7 @@ export default function RoleplayWorkspacePage() {
 
     const updatedRooms = rooms.map(r => {
       if (r.id === currentRoom.id) {
-        return { ...r, messages: [...r.messages, newMessage] };
+        return { ...r, messages: [...(r.messages || []), newMessage] };
       }
       return r;
     });
@@ -994,7 +994,7 @@ export default function RoleplayWorkspacePage() {
 
     const updatedRooms = rooms.map(r => {
       if (r.id === currentRoom.id) {
-        return { ...r, notes: [...r.notes, newNote] };
+        return { ...r, notes: [...(r.notes || []), newNote] };
       }
       return r;
     });
@@ -1015,7 +1015,7 @@ export default function RoleplayWorkspacePage() {
 
     const updatedRooms = rooms.map(r => {
       if (r.id === currentRoom.id) {
-        return { ...r, notes: r.notes.filter(n => n.id !== noteId) };
+        return { ...r, notes: (r.notes || []).filter(n => n.id !== noteId) };
       }
       return r;
     });
@@ -1338,9 +1338,9 @@ export default function RoleplayWorkspacePage() {
                         ← Exit room
                       </Button>
                       <h3 className="text-base font-extrabold text-slate-100 flex items-center gap-1.5 mr-2">
-                        {currentRoom.name}
+                        {currentRoom?.name || "Untitled Room"}
                       </h3>
-                      {currentRoom.isPrivate && (
+                      {currentRoom?.isPrivate && (
                         <Badge className="bg-amber-950 border-amber-850 text-amber-400 text-[8px] uppercase tracking-widest font-black mr-2">
                           Private Link Only
                         </Badge>
@@ -1352,10 +1352,10 @@ export default function RoleplayWorkspacePage() {
                             const baseUrl = window.location.origin + window.location.pathname;
                             const params = new URLSearchParams();
                             params.set("roomInvite", currentRoom.id);
-                            params.set("roomName", currentRoom.name);
-                            params.set("roomScenario", currentRoom.scenario);
-                            params.set("roomTimer", currentRoom.timerMinutes.toString());
-                            params.set("roomDue", currentRoom.dueDate);
+                            params.set("roomName", currentRoom.name || "");
+                            params.set("roomScenario", currentRoom.scenario || "");
+                            params.set("roomTimer", (currentRoom.timerMinutes || 15).toString());
+                            params.set("roomDue", currentRoom.dueDate || "");
                             if (currentRoom.password) {
                               params.set("roomPass", currentRoom.password);
                             }
@@ -1364,12 +1364,27 @@ export default function RoleplayWorkspacePage() {
                             }
                             
                             const inviteUrl = baseUrl + "?" + params.toString();
-                            navigator.clipboard.writeText(inviteUrl);
-                            toast({
-                              title: "Invite Link Copied! 🔗✨",
-                              description: "Send this link to your roleplay partner to let them join this room.",
-                              className: "bg-slate-900 border-purple-500/30 text-purple-200"
-                            });
+                            try {
+                              navigator.clipboard.writeText(inviteUrl).then(() => {
+                                toast({
+                                  title: "Invite Link Copied! 🔗✨",
+                                  description: "Send this link to your roleplay partner to let them join this room.",
+                                  className: "bg-slate-900 border-purple-500/30 text-purple-200"
+                                });
+                              }).catch(() => {
+                                toast({
+                                  title: "Copy Link Manually",
+                                  description: inviteUrl,
+                                  className: "bg-slate-900 border-amber-500/30 text-amber-300"
+                                });
+                              });
+                            } catch {
+                              toast({
+                                title: "Copy Link Manually",
+                                description: inviteUrl,
+                                className: "bg-slate-900 border-amber-500/30 text-amber-300"
+                              });
+                            }
                           }
                         }}
                         className="h-7 px-3 bg-purple-650/20 border border-purple-500/30 hover:bg-purple-600/30 text-purple-300 text-[9px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1"
@@ -1381,11 +1396,11 @@ export default function RoleplayWorkspacePage() {
                     <div className="p-3 bg-slate-950/70 border border-slate-850 rounded-xl">
                       <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest block mb-1">Scenario Active Prompt</span>
                       <p className="text-slate-300 text-xs font-semibold leading-relaxed">
-                        {currentRoom.scenario}
+                        {currentRoom?.scenario || ""}
                       </p>
                       {/* Presets Description fallback helper */}
                       {scenarioPresets.map(s => {
-                        if (s.title === currentRoom.scenario) {
+                        if (currentRoom?.scenario && s.title === currentRoom.scenario) {
                           return (
                             <p key={s.id} className="text-slate-400 text-[10px] italic leading-normal mt-1 border-t border-slate-850/60 pt-1.5">
                               {s.desc}
@@ -1405,7 +1420,7 @@ export default function RoleplayWorkspacePage() {
                     {timeLeft === null ? (
                       <div className="flex flex-col items-center gap-2">
                         <span className="text-lg font-black text-slate-500 font-mono">
-                          {currentRoom.timerMinutes}:00
+                          {currentRoom?.timerMinutes || 15}:00
                         </span>
                         <Button size="sm" onClick={handleStartTimer} className="h-6 px-3 bg-purple-600/10 border border-purple-500/30 text-purple-400 text-[9px] font-black uppercase tracking-wider rounded-lg">
                           Start Timer
