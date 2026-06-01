@@ -239,6 +239,7 @@ export function PresentationForm() {
   const [selectionCoords, setSelectionCoords] = React.useState<{ x: number; y: number } | null>(null);
   const [showPill, setShowPill] = React.useState(false);
   const [searchImage, setSearchImage] = React.useState<string | null>(null);
+  const [searchImageThumbnail, setSearchImageThumbnail] = React.useState<string | null>(null);
   const [searchImageEngine, setSearchImageEngine] = React.useState<string | null>(null);
   const [isLoadingImage, setIsLoadingImage] = React.useState(false);
   const [showImageModal, setShowImageModal] = React.useState(false);
@@ -800,6 +801,7 @@ export function PresentationForm() {
     }
     setIsLoadingImage(true);
     setSearchImage(null);
+    setSearchImageThumbnail(null);
     setSearchImageEngine(null);
     setImageSearchError(null);
     setPickerImages([]);
@@ -811,6 +813,7 @@ export function PresentationForm() {
       const data = await response.json();
       if (data.success && data.imageUrl) {
         setSearchImage(data.imageUrl);
+        setSearchImageThumbnail(data.thumbUrl || data.imageUrl);
         setSearchImageEngine(data.engine || null);
       } else {
         setImageSearchError(`Could not find a photo matching "${text}" in the libraries.`);
@@ -848,8 +851,9 @@ export function PresentationForm() {
     setIsLoadingPicker(false);
   };
 
-  const handlePickerImageSelect = (imageUrl: string) => {
+  const handlePickerImageSelect = (imageUrl: string, thumbUrl?: string) => {
     setSearchImage(imageUrl);
+    setSearchImageThumbnail(thumbUrl || imageUrl);
     setSearchImageEngine('user-selected');
     setPickerImages([]);
     setSelectedPickerImage(null);
@@ -1663,8 +1667,12 @@ export function PresentationForm() {
                                  transformOrigin: transformOrigin 
                                }}
                                onError={() => {
-                                 setSearchImage(null);
-                                 setImageSearchError(`The image for "${selectionText}" failed to load from the remote library.`);
+                                 if (searchImageThumbnail && searchImage !== searchImageThumbnail) {
+                                   setSearchImage(searchImageThumbnail);
+                                 } else {
+                                   setSearchImage(null);
+                                   setImageSearchError(`The image for "${selectionText}" failed to load from the remote library.`);
+                                 }
                                }}
                              />
                              
@@ -1721,7 +1729,7 @@ export function PresentationForm() {
                                       {pickerImages.map((img, idx) => (
                                         <button
                                           key={idx}
-                                          onClick={() => handlePickerImageSelect(img.url)}
+                                          onClick={() => handlePickerImageSelect(img.url, img.thumb)}
                                           className="relative aspect-square rounded-lg overflow-hidden border border-slate-700 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all group"
                                         >
                                           <img 
@@ -2021,6 +2029,7 @@ export function PresentationForm() {
                               key={idx}
                               onClick={() => {
                                 setSearchImage(img.url);
+                                setSearchImageThumbnail(img.thumb || img.url);
                                 setSearchImageEngine('user-selected');
                                 setShowImageModal(true);
                               }}
@@ -2182,6 +2191,7 @@ export function PresentationForm() {
                                   key={idx}
                                   onClick={() => {
                                     setSearchImage(img.url);
+                                    setSearchImageThumbnail(img.thumb || img.url);
                                     setSearchImageEngine('user-selected');
                                     setShowImageModal(true);
                                   }}

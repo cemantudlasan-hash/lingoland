@@ -401,22 +401,32 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
     if (!response.ok) return [];
     const html = await response.text();
 
+    // Pre-extract all sequential gstatic thumbnail URLs to pair with high-res original images
+    const gstaticRegex = /(https:\/\/encrypted-tbn\d+\.gstatic\.com\/images\?q=tbn:[^"\s&]+)/gi;
+    const gstaticUrls: string[] = [];
+    let gstMatch;
+    while ((gstMatch = gstaticRegex.exec(html)) !== null) {
+      gstaticUrls.push(gstMatch[1]);
+    }
+
     const images: any[] = [];
     const seenUrls = new Set<string>();
 
     // 1. Try modern Google Images AF_initDataCallback format: e.g. ["https://url", h, w]
     const arrayRegex = /\["(https?:\/\/[^"]+?\.(?:jpg|jpeg|png|gif|webp|svg))",\s*(\d+),\s*(\d+)\]/gi;
     let match;
+    let idx = 0;
     while ((match = arrayRegex.exec(html)) !== null) {
       const imageUrl = match[1];
       if (imageUrl && !seenUrls.has(imageUrl) && !imageUrl.includes('gstatic.com')) {
         seenUrls.add(imageUrl);
         images.push({
           url: imageUrl,
-          thumb: imageUrl,
+          thumb: gstaticUrls[idx] || imageUrl, // Pair with sequential gstatic thumbnail!
           engine: 'google',
           title: `${query} image`,
         });
+        idx++;
         if (images.length >= count) break;
       }
     }
@@ -431,21 +441,20 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
             seenUrls.add(decodedUrl);
             images.push({
               url: decodedUrl,
-              thumb: decodedUrl,
+              thumb: gstaticUrls[idx] || decodedUrl,
               engine: 'google',
               title: `${query} image`,
             });
+            idx++;
             if (images.length >= count) break;
           }
         } catch (e) {}
       }
     }
 
-    // 3. Fallback to gstatic thumbnails
+    // 3. Fallback to gstatic thumbnails directly
     if (images.length === 0) {
-      const gstaticRegex = /(https:\/\/encrypted-tbn\d+\.gstatic\.com\/images\?q=tbn:[^"\s&]+)/g;
-      while ((match = gstaticRegex.exec(html)) !== null) {
-        const thumbUrl = match[1];
+      gstaticUrls.forEach((thumbUrl) => {
         if (thumbUrl && !seenUrls.has(thumbUrl)) {
           seenUrls.add(thumbUrl);
           images.push({
@@ -454,12 +463,11 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
             engine: 'google',
             title: `${query} thumbnail`,
           });
-          if (images.length >= count) break;
         }
-      }
+      });
     }
 
-    return images;
+    return images.slice(0, count);
   } catch (err) {
     console.error("Google image picker fetch failed:", err);
     return [];

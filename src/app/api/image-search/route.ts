@@ -40,22 +40,32 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
     if (!response.ok) return null;
     const html = await response.text();
 
+    // Pre-extract all sequential gstatic thumbnail URLs to pair with high-res original images
+    const gstaticRegex = /(https:\/\/encrypted-tbn\d+\.gstatic\.com\/images\?q=tbn:[^"\s&]+)/gi;
+    const gstaticUrls: string[] = [];
+    let gstMatch;
+    while ((gstMatch = gstaticRegex.exec(html)) !== null) {
+      gstaticUrls.push(gstMatch[1]);
+    }
+
     const images: any[] = [];
     const seenUrls = new Set<string>();
 
     // 1. Try modern Google Images AF_initDataCallback format: e.g. ["https://url", h, w]
     const arrayRegex = /\["(https?:\/\/[^"]+?\.(?:jpg|jpeg|png|gif|webp|svg))",\s*(\d+),\s*(\d+)\]/gi;
     let match;
+    let idx = 0;
     while ((match = arrayRegex.exec(html)) !== null) {
       const imageUrl = match[1];
       if (imageUrl && !seenUrls.has(imageUrl) && !imageUrl.includes('gstatic.com')) {
         seenUrls.add(imageUrl);
         images.push({
           url: imageUrl,
-          thumb: imageUrl,
+          thumb: gstaticUrls[idx] || imageUrl, // Pair with sequential gstatic thumbnail!
           engine: 'google',
           title: `${query} image`,
         });
+        idx++;
         if (images.length >= count) break;
       }
     }
@@ -70,21 +80,20 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
             seenUrls.add(decodedUrl);
             images.push({
               url: decodedUrl,
-              thumb: decodedUrl,
+              thumb: gstaticUrls[idx] || decodedUrl,
               engine: 'google',
               title: `${query} image`,
             });
+            idx++;
             if (images.length >= count) break;
           }
         } catch (e) {}
       }
     }
 
-    // 3. Fallback to gstatic thumbnails if no full-size images parsed
+    // 3. Fallback to gstatic thumbnails directly
     if (images.length === 0) {
-      const gstaticRegex = /(https:\/\/encrypted-tbn\d+\.gstatic\.com\/images\?q=tbn:[^"\s&]+)/g;
-      while ((match = gstaticRegex.exec(html)) !== null) {
-        const thumbUrl = match[1];
+      gstaticUrls.forEach((thumbUrl) => {
         if (thumbUrl && !seenUrls.has(thumbUrl)) {
           seenUrls.add(thumbUrl);
           images.push({
@@ -93,12 +102,11 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
             engine: 'google',
             title: `${query} thumbnail`,
           });
-          if (images.length >= count) break;
         }
-      }
+      });
     }
 
-    return images.length > 0 ? images : null;
+    return images.length > 0 ? images.slice(0, count) : null;
   } catch (err) {
     console.error("Google scrape failed:", err);
     return null;
@@ -110,6 +118,7 @@ const tryGoogleSingleImage = async (query: string) => {
   if (results && results.length > 0) {
     return {
       imageUrl: results[0].url,
+      thumbUrl: results[0].thumb,
       engine: 'google',
     };
   }
