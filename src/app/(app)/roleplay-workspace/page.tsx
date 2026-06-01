@@ -39,6 +39,7 @@ interface ChatMessage {
   type: "text" | "voice";
   timestamp: number;
   audioDuration?: number; // seconds
+  audioUrl?: string; // base64 recorded audio data
 }
 
 interface StickyNote {
@@ -119,6 +120,12 @@ export default function RoleplayWorkspacePage() {
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Audio recording engine refs
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioStreamRef = useRef<MediaStream | null>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // 1. Initial Page Load & Profile Check
   useEffect(() => {
@@ -308,6 +315,29 @@ export default function RoleplayWorkspacePage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeRoomId, rooms]);
+
+  // Clean up audio elements, recording timers, and microphone streams on unmount
+  useEffect(() => {
+    return () => {
+      if (audioIntervalRef.current) {
+        clearInterval(audioIntervalRef.current as NodeJS.Timeout);
+      }
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current as NodeJS.Timeout);
+      }
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      }
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach(track => track.stop());
+        audioStreamRef.current = null;
+      }
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Active Room Object
   const currentRoom = rooms.find(r => r.id === activeRoomId) || null;
@@ -521,12 +551,36 @@ export default function RoleplayWorkspacePage() {
   };
 
   // 8. Voice Messaging Audio Engine
-  const startRecording = () => {
-    setIsRecording(true);
-    setRecordingSeconds(0);
-    recordingTimerRef.current = setInterval(() => {
-      setRecordingSeconds(prev => prev + 1);
-    }, 1000);
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStreamRef.current = stream;
+      audioChunksRef.current = [];
+      
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.start();
+      
+      setIsRecording(true);
+      setRecordingSeconds(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds(prev => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      toast({
+        title: "Microphone Access Denied 🎙️❌",
+        description: "Please check your browser permissions to allow voice recording.",
+        variant: "destructive"
+      });
+    }
   };
 
   const stopAndSendVoice = () => {
@@ -534,86 +588,210 @@ export default function RoleplayWorkspacePage() {
     clearInterval(recordingTimerRef.current as NodeJS.Timeout);
     setIsRecording(false);
 
-    const voiceTextOptions = [
-      "Let's practice the lost luggage dialogue now. Excuse me, my baggage is missing!",
-      "I agree with that. We should ask the VC for a higher valuation because of our proprietary tech.",
-      "My soup is completely cold, and there is an actual strand of black hair in it. I need to speak to the manager.",
-      "I've been feeling extremely dizzy and seeing floating neon pets since last night, doctor."
-    ];
-    // Select dynamic speaking line matching the active scenario
-    let chosenText = "Hello team, let's coordinate this dialogue!";
-    if (currentRoom.scenario.includes("Luggage")) chosenText = voiceTextOptions[0];
-    else if (currentRoom.scenario.includes("Negotiation")) chosenText = voiceTextOptions[1];
-    else if (currentRoom.scenario.includes("Culinary")) chosenText = voiceTextOptions[2];
-    else if (currentRoom.scenario.includes("Flu")) chosenText = voiceTextOptions[3];
+    const mediaRecorder = mediaRecorderRef.current;
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.onstop = () => {
+        // Stop all tracks on the stream to turn off the recording light/microphone
+        if (audioStreamRef.current) {
+          audioStreamRef.current.getTracks().forEach(track => track.stop());
+          audioStreamRef.current = null;
+        }
 
-    const newVoiceMessage: ChatMessage = {
-      id: "msg-" + Date.now(),
-      senderName: nickname,
-      senderSeat: seatNo || "N/A",
-      senderRole: selectedRole,
-      content: chosenText,
-      type: "voice",
-      timestamp: Date.now(),
-      audioDuration: recordingSeconds || 4
-    };
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+          const base64Audio = reader.result as string;
+          
+          const voiceTextOptions = [
+            "Let's practice the lost luggage dialogue now. Excuse me, my baggage is missing!",
+            "I agree with that. We should ask the VC for a higher valuation because of our proprietary tech.",
+            "My soup is completely cold, and there is an actual strand of black hair in it. I need to speak to the manager.",
+            "I've been feeling extremely dizzy and seeing floating neon pets since last night, doctor."
+          ];
+          
+          let chosenText = "Hello team, let's coordinate this dialogue!";
+          if (currentRoom.scenario.includes("Luggage")) chosenText = voiceTextOptions[0];
+          else if (currentRoom.scenario.includes("Negotiation")) chosenText = voiceTextOptions[1];
+          else if (currentRoom.scenario.includes("Culinary")) chosenText = voiceTextOptions[2];
+          else if (currentRoom.scenario.includes("Flu")) chosenText = voiceTextOptions[3];
 
-    const updatedRooms = rooms.map(r => {
-      if (r.id === currentRoom.id) {
-        return { ...r, messages: [...r.messages, newVoiceMessage] };
+          const newVoiceMessage: ChatMessage = {
+            id: "msg-" + Date.now(),
+            senderName: nickname,
+            senderSeat: seatNo || "N/A",
+            senderRole: selectedRole,
+            content: chosenText,
+            type: "voice",
+            timestamp: Date.now(),
+            audioDuration: recordingSeconds || 4,
+            audioUrl: base64Audio
+          };
+
+          const updatedRooms = rooms.map(r => {
+            if (r.id === currentRoom.id) {
+              return { ...r, messages: [...r.messages, newVoiceMessage] };
+            }
+            return r;
+          });
+
+          setRooms(updatedRooms);
+          localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updatedRooms));
+          toast({
+            title: "Voice Message Sent! 🎙️🚀",
+            description: "Your real headset voice note has been added to the chat.",
+            className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
+          });
+        };
+      };
+      mediaRecorder.stop();
+    } else {
+      // Fallback if MediaRecorder is not supported or was not active
+      if (audioStreamRef.current) {
+        audioStreamRef.current.getTracks().forEach(track => track.stop());
+        audioStreamRef.current = null;
       }
-      return r;
-    });
+      
+      const voiceTextOptions = [
+        "Let's practice the lost luggage dialogue now. Excuse me, my baggage is missing!",
+        "I agree with that. We should ask the VC for a higher valuation because of our proprietary tech.",
+        "My soup is completely cold, and there is an actual strand of black hair in it. I need to speak to the manager.",
+        "I've been feeling extremely dizzy and seeing floating neon pets since last night, doctor."
+      ];
+      
+      let chosenText = "Hello team, let's coordinate this dialogue!";
+      if (currentRoom.scenario.includes("Luggage")) chosenText = voiceTextOptions[0];
+      else if (currentRoom.scenario.includes("Negotiation")) chosenText = voiceTextOptions[1];
+      else if (currentRoom.scenario.includes("Culinary")) chosenText = voiceTextOptions[2];
+      else if (currentRoom.scenario.includes("Flu")) chosenText = voiceTextOptions[3];
 
-    setRooms(updatedRooms);
-    localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updatedRooms));
-    toast({
-      title: "Audio speaking note sent! 🎙️🚀",
-      description: "Synthesized audio preview created dynamically.",
-      className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
-    });
+      const newVoiceMessage: ChatMessage = {
+        id: "msg-" + Date.now(),
+        senderName: nickname,
+        senderSeat: seatNo || "N/A",
+        senderRole: selectedRole,
+        content: chosenText,
+        type: "voice",
+        timestamp: Date.now(),
+        audioDuration: recordingSeconds || 4
+      };
+
+      const updatedRooms = rooms.map(r => {
+        if (r.id === currentRoom.id) {
+          return { ...r, messages: [...r.messages, newVoiceMessage] };
+        }
+        return r;
+      });
+
+      setRooms(updatedRooms);
+      localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updatedRooms));
+      toast({
+        title: "Voice Message Sent! 🎙️🚀",
+        description: "Synthesized audio preview created dynamically.",
+        className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
+      });
+    }
   };
 
-  // Dynamic Audio player using HTML5 Web Speech synthesis
   const handlePlayAudioMessage = (msg: ChatMessage) => {
+    // Stop speech synthesis if playing
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(msg.content);
-      // Give a premium voice accent depending on selectedRole
-      if (msg.senderRole.includes("Teacher") || msg.senderRole.includes("Facilitator")) {
-        utterance.rate = 0.9;
-        utterance.pitch = 1.1;
-      } else {
-        utterance.rate = 1.0;
-        utterance.pitch = 0.95;
-      }
+    }
 
-      setActiveAudioMessageId(msg.id);
-      setAudioPlaybackProgress(0);
+    // Stop real audio element if playing
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
 
-      const duration = (msg.audioDuration || 4) * 1000;
-      const startTime = Date.now();
+    // Clear existing animation interval
+    if (audioIntervalRef.current) {
+      clearInterval(audioIntervalRef.current as NodeJS.Timeout);
+      audioIntervalRef.current = null;
+    }
 
-      audioIntervalRef.current = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const pct = Math.min(100, (elapsed / duration) * 100);
-        setAudioPlaybackProgress(pct);
+    if (msg.audioUrl) {
+      try {
+        const audio = new Audio(msg.audioUrl);
+        currentAudioRef.current = audio;
+        
+        setActiveAudioMessageId(msg.id);
+        setAudioPlaybackProgress(0);
 
-        if (pct >= 100) {
-          clearInterval(audioIntervalRef.current as NodeJS.Timeout);
+        audio.play().catch(e => {
+          console.error("Failed to play real voice recording:", e);
+        });
+
+        // Set up animation progress using actual currentTime and duration
+        audioIntervalRef.current = setInterval(() => {
+          if (audio.paused || audio.ended) {
+            clearInterval(audioIntervalRef.current as NodeJS.Timeout);
+            audioIntervalRef.current = null;
+            setActiveAudioMessageId(null);
+            setAudioPlaybackProgress(0);
+            if (currentAudioRef.current === audio) {
+              currentAudioRef.current = null;
+            }
+          } else {
+            const duration = audio.duration || msg.audioDuration || 4;
+            const pct = (audio.currentTime / duration) * 100;
+            setAudioPlaybackProgress(Math.min(100, pct));
+          }
+        }, 100);
+
+        audio.onended = () => {
+          if (audioIntervalRef.current) {
+            clearInterval(audioIntervalRef.current as NodeJS.Timeout);
+            audioIntervalRef.current = null;
+          }
           setActiveAudioMessageId(null);
           setAudioPlaybackProgress(0);
-        }
-      }, 100);
-
-      window.speechSynthesis.speak(utterance);
+          if (currentAudioRef.current === audio) {
+            currentAudioRef.current = null;
+          }
+        };
+      } catch (err) {
+        console.error("Audio playback error:", err);
+      }
     } else {
-      toast({
-        title: "Browser incompatibility",
-        description: "Your system doesn't support speaking speech-synthesis.",
-        variant: "destructive"
-      });
+      // Fallback: Dynamic HTML5 Web Speech synthesis (AI voice simulation)
+      if ("speechSynthesis" in window) {
+        const utterance = new SpeechSynthesisUtterance(msg.content);
+        if (msg.senderRole.includes("Teacher") || msg.senderRole.includes("Facilitator")) {
+          utterance.rate = 0.9;
+          utterance.pitch = 1.1;
+        } else {
+          utterance.rate = 1.0;
+          utterance.pitch = 0.95;
+        }
+
+        setActiveAudioMessageId(msg.id);
+        setAudioPlaybackProgress(0);
+
+        const duration = (msg.audioDuration || 4) * 1000;
+        const startTime = Date.now();
+
+        audioIntervalRef.current = setInterval(() => {
+          const elapsed = Date.now() - startTime;
+          const pct = Math.min(100, (elapsed / duration) * 100);
+          setAudioPlaybackProgress(pct);
+          if (elapsed >= duration) {
+            clearInterval(audioIntervalRef.current as NodeJS.Timeout);
+            audioIntervalRef.current = null;
+            setActiveAudioMessageId(null);
+            setAudioPlaybackProgress(0);
+          }
+        }, 100);
+
+        window.speechSynthesis.speak(utterance);
+      } else {
+        toast({
+          title: "Browser incompatibility",
+          description: "Your system doesn't support speaking speech-synthesis.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -621,7 +799,14 @@ export default function RoleplayWorkspacePage() {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    clearInterval(audioIntervalRef.current as NodeJS.Timeout);
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+    if (audioIntervalRef.current) {
+      clearInterval(audioIntervalRef.current as NodeJS.Timeout);
+      audioIntervalRef.current = null;
+    }
     setActiveAudioMessageId(null);
     setAudioPlaybackProgress(0);
   };
