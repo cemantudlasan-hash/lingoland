@@ -1471,7 +1471,7 @@ export default function RoleplayWorkspacePage() {
 
                   {/* Messages Feed body */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[400px]">
-                    {currentRoom.messages.length === 0 ? (
+                    {(currentRoom?.messages || []).length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500 space-y-1.5">
                         <MessageSquare className="h-8 w-8 text-slate-700" />
                         <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400">The Dialogue is empty</h4>
@@ -1480,7 +1480,7 @@ export default function RoleplayWorkspacePage() {
                         </p>
                       </div>
                     ) : (
-                      currentRoom.messages.map((msg) => (
+                      (currentRoom?.messages || []).map((msg) => (
                         <div key={msg.id} className="flex flex-col text-left space-y-1">
                           <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wide">
                             <span className="text-purple-400">{msg.senderName}</span>
@@ -1614,7 +1614,7 @@ export default function RoleplayWorkspacePage() {
                       </div>
 
                       {/* List of voice clips inside active room */}
-                      {currentRoom && currentRoom.messages.filter(m => m.type === "voice").length === 0 ? (
+                      {currentRoom && (currentRoom?.messages || []).filter(m => m.type === "voice").length === 0 ? (
                         <p className="text-[9px] text-slate-600 italic select-none">
                           No voice clips recorded in this room yet. Send a voice note above to start sequencing!
                         </p>
@@ -1622,7 +1622,7 @@ export default function RoleplayWorkspacePage() {
                         <div className="space-y-2">
                           {/* Playlist selector cards */}
                           <div className="flex flex-wrap gap-2 py-1 max-h-[85px] overflow-y-auto pr-1">
-                            {currentRoom?.messages.filter(m => m.type === "voice").map((msg) => {
+                            {(currentRoom?.messages || []).filter(m => m.type === "voice").map((msg) => {
                               const isSelected = sequencedMessageIds.includes(msg.id);
                               return (
                                 <button
@@ -1658,7 +1658,7 @@ export default function RoleplayWorkspacePage() {
                               </span>
                               <div className="flex flex-wrap gap-1.5 max-h-[90px] overflow-y-auto pr-1">
                                 {sequencedMessageIds.map((id, index) => {
-                                  const msg = currentRoom?.messages.find(m => m.id === id);
+                                  const msg = (currentRoom?.messages || []).find(m => m.id === id);
                                   if (!msg) return null;
                                   const isCurrentlyPlaying = isSequencePlaying && currentPlayingSeqIndex === index;
                                   return (
@@ -1710,7 +1710,7 @@ export default function RoleplayWorkspacePage() {
                         <Award className="h-4 w-4" /> Brainstorm whiteboard Board
                       </div>
                       <Badge variant="outline" className="text-[9px] border-slate-800 bg-slate-950 text-slate-400">
-                        {currentRoom.notes.length} Notes pinned
+                        {(currentRoom?.notes || []).length} Notes pinned
                       </Badge>
                     </div>
                   </CardHeader>
@@ -1754,7 +1754,7 @@ export default function RoleplayWorkspacePage() {
 
                     {/* Scrollable container of sticky notes */}
                     <div className="flex-1 overflow-y-auto max-h-[300px] space-y-3 pr-1">
-                      {currentRoom.notes.length === 0 ? (
+                      {(currentRoom?.notes || []).length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-600 space-y-1">
                           <FileText className="h-8 w-8 text-slate-800" />
                           <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400">Board is Empty</h4>
@@ -1763,7 +1763,7 @@ export default function RoleplayWorkspacePage() {
                           </p>
                         </div>
                       ) : (
-                        currentRoom.notes.map((note) => (
+                        (currentRoom?.notes || []).map((note) => (
                           <div 
                             key={note.id}
                             className={`p-3 rounded-xl border relative shadow-md text-slate-900 text-left select-none animate-in fade-in zoom-in duration-300 ${
