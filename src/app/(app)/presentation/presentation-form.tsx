@@ -256,7 +256,14 @@ export function PresentationForm() {
   const [splitVideos, setSplitVideos] = React.useState<Array<{ title: string; duration: string; channel: string; url: string; thumb: string; embedUrl?: string; views?: string }>>([]);
   const [isLoadingSplit, setIsLoadingSplit] = React.useState(false);
   const [activeSplitTab, setActiveSplitTab] = React.useState("IMAGES");
-  const [activeSplitSource, setActiveSplitSource] = React.useState<string>("unsplash");
+  const [activeSplitSource, setActiveSplitSource] = React.useState<string>("google");
+
+  // "View Clearly" Text Lightbox/Viewer states
+  const [showTextModal, setShowTextModal] = React.useState(false);
+  const [selectedTextTitle, setSelectedTextTitle] = React.useState("");
+  const [selectedTextContent, setSelectedTextContent] = React.useState("");
+  const [selectedTextUrl, setSelectedTextUrl] = React.useState("");
+  const [textZoomScale, setTextZoomScale] = React.useState(1.2); // default zoom scale
 
   // Video Lightbox Player states
   const [showVideoLightbox, setShowVideoLightbox] = React.useState(false);
@@ -1834,6 +1841,106 @@ export function PresentationForm() {
                 )}
               </div>
 
+              {/* Floating Presentation Text Lightbox/Viewer Modal */}
+              {showTextModal && (
+                <div 
+                  className="absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300 select-none"
+                  onClick={() => setShowTextModal(false)}
+                >
+                  <div 
+                    className="relative w-full max-w-2xl bg-slate-900/95 border border-slate-800 rounded-3xl p-6 shadow-[0_20px_50px_rgba(99,102,241,0.4)] animate-in zoom-in-95 duration-300 text-center flex flex-col justify-between backdrop-blur-md min-h-[350px]"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Header */}
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-850 select-none">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🌐</span>
+                        <div className="text-left">
+                          <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest leading-none">
+                            Presentation Text Viewer
+                          </h4>
+                          <p className="text-[9px] text-slate-500 font-mono mt-0.5 truncate max-w-[300px] select-all">
+                            {selectedTextUrl}
+                          </p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setShowTextModal(false)}
+                        className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    {/* Content View Area */}
+                    <div className="flex-1 my-5 overflow-y-auto px-2 flex flex-col justify-center text-left">
+                      <h2 
+                        className="font-black text-slate-100 mb-3 border-l-4 border-purple-500 pl-3.5 leading-snug tracking-tight"
+                        style={{ fontSize: `${textZoomScale * 1.3}rem` }}
+                      >
+                        {selectedTextTitle}
+                      </h2>
+                      <div 
+                        className="bg-slate-950/40 border border-slate-850 p-5 rounded-2xl text-slate-200 leading-relaxed font-semibold select-text overflow-y-auto max-h-[250px]"
+                        style={{ fontSize: `${textZoomScale}rem` }}
+                      >
+                        {selectedTextContent}
+                      </div>
+                    </div>
+
+                    {/* Dynamic Font-Size Adjuster Panel */}
+                    <div className="pt-4 border-t border-slate-850 flex flex-wrap items-center justify-between gap-4 select-none">
+                      <div className="flex items-center gap-3 bg-slate-950 border border-slate-850 px-3.5 py-1.5 rounded-2xl text-[10px] font-black uppercase text-slate-400">
+                        <span>Font Legibility:</span>
+                        <button 
+                          type="button"
+                          onClick={() => setTextZoomScale(prev => Math.max(0.8, prev - 0.1))}
+                          className="h-6 w-6 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-lg text-xs hover:text-white"
+                          title="Decrease text size"
+                        >
+                          A-
+                        </button>
+                        <span className="text-[10px] font-mono text-purple-400">
+                          {Math.round(textZoomScale * 100)}%
+                        </span>
+                        <button 
+                          type="button"
+                          onClick={() => setTextZoomScale(prev => Math.min(2.5, prev + 0.1))}
+                          className="h-6 w-6 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-lg text-xs hover:text-white"
+                          title="Increase text size"
+                        >
+                          A+
+                        </button>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            navigator.clipboard.writeText(selectedTextContent);
+                            toast({ title: "Copied! 📋", description: "Snippet copied to clipboard." });
+                          }}
+                          className="h-10 text-xs font-bold border-slate-850 bg-slate-950 text-slate-300 hover:bg-slate-900 rounded-xl"
+                        >
+                          Copy Snippet
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            handleInsertTextToSlide(selectedTextContent);
+                            setShowTextModal(false);
+                          }}
+                          className="h-10 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl shadow-md"
+                        >
+                          Insert to Slide
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Right Side: Split Screen Visual Search Sidebar */}
               {showSplitSearch && (
                 <div 
@@ -1958,6 +2065,20 @@ export function PresentationForm() {
                                   {result.url.replace('https://', '').replace('www.', '')}
                                 </span>
                                 <div className="flex gap-1.5 shrink-0">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setSelectedTextTitle(result.title);
+                                        setSelectedTextContent(result.snippet);
+                                        setSelectedTextUrl(result.url);
+                                        setShowTextModal(true);
+                                      }}
+                                      className="h-6 px-2 text-[9px] font-bold border-slate-800 bg-slate-900 text-slate-300 hover:text-white rounded-lg flex items-center gap-0.5"
+                                      title="View Clearly on Presentation"
+                                    >
+                                      🔍 View
+                                    </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
@@ -2081,7 +2202,18 @@ export function PresentationForm() {
                                 <div key={idx} className="p-3 rounded-xl bg-slate-950/80 border border-slate-850 space-y-1 text-left">
                                   <p className="text-[10px] font-black text-indigo-400 truncate">{res.title}</p>
                                   <p className="text-[9px] text-slate-400 line-clamp-2 leading-relaxed">{res.snippet}</p>
-                                  <div className="flex justify-end pt-1">
+                                  <div className="flex justify-between items-center pt-1 border-t border-slate-900/40 mt-1 select-none">
+                                    <button 
+                                      onClick={() => {
+                                        setSelectedTextTitle(res.title);
+                                        setSelectedTextContent(res.snippet);
+                                        setSelectedTextUrl(res.url);
+                                        setShowTextModal(true);
+                                      }}
+                                      className="text-[9px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest"
+                                    >
+                                      🔍 View Clearly
+                                    </button>
                                     <button 
                                       onClick={() => handleInsertTextToSlide(res.snippet)}
                                       className="text-[9px] font-black text-purple-400 hover:text-purple-300 uppercase tracking-widest"

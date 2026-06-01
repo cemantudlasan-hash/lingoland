@@ -74,6 +74,18 @@ export interface PeerListing {
   status?: 'pending' | 'approved' | 'rejected';
 }
 
+export interface PeerReview {
+  id: string;
+  listingId: string;
+  teacherName: string;
+  authorId: string;
+  authorName: string;
+  rating: number;
+  text: string;
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
 const presetPeerListings: PeerListing[] = [
   {
     id: 'peer-1',
@@ -178,14 +190,20 @@ export default function MarketplacePage() {
   const { toast } = useToast();
   const { user, isGuest, isLoading, isAdmin, setAuthAction } = useAuth();
   
-  // Tabs: 'browse' | 'peer-listings' | 'peer-create' | 'create'
-  const [activeTab, setActiveTab] = useState<'browse' | 'peer-listings' | 'peer-create' | 'create'>('browse');
+  // Tabs: 'browse' | 'peer-listings' | 'peer-create' | 'create' | 'moderate-reviews'
+  const [activeTab, setActiveTab] = useState<'browse' | 'peer-listings' | 'peer-create' | 'create' | 'moderate-reviews'>('browse');
   
   // Custom created tutors list (syncs to localStorage)
   const [tutors, setTutors] = useState<Tutor[]>(presetTutors);
   
   // Peer listings state, search, and filters
   const [peerListings, setPeerListings] = useState<PeerListing[]>([]);
+  
+  // Peer Reviews state & form states (Curated empty database by user request)
+  const [peerReviews, setPeerReviews] = useState<PeerReview[]>([]);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+
   const [peerSearchQuery, setPeerSearchQuery] = useState('');
   const [peerTypeFilter, setPeerTypeFilter] = useState<'all' | 'student' | 'teacher'>('all');
   const [activePeerListing, setActivePeerListing] = useState<PeerListing | null>(null);
@@ -263,15 +281,29 @@ export default function MarketplacePage() {
           const parsed = JSON.parse(storedPeer) as PeerListing[];
           // Clean out preset listings immediately
           const cleaned = parsed.filter(p => p.id !== 'peer-1' && p.id !== 'peer-2' && p.id !== 'peer-3');
-          setPeerListings(cleaned);
+          setPeerListings([...presetPeerListings, ...cleaned]);
           localStorage.setItem('lingoland_peer_listings', JSON.stringify(cleaned));
         } catch (e) {
           console.error("Failed to parse peer listings", e);
-          setPeerListings([]);
+          setPeerListings(presetPeerListings);
         }
       } else {
         localStorage.setItem('lingoland_peer_listings', JSON.stringify([]));
-        setPeerListings([]);
+        setPeerListings(presetPeerListings);
+      }
+
+      // Sync Peer Reviews (Curated empty database by user request)
+      const storedReviews = localStorage.getItem('lingoland_peer_reviews');
+      if (storedReviews) {
+        try {
+          setPeerReviews(JSON.parse(storedReviews));
+        } catch (e) {
+          console.error("Failed to parse peer reviews", e);
+          setPeerReviews([]);
+        }
+      } else {
+        localStorage.setItem('lingoland_peer_reviews', JSON.stringify([]));
+        setPeerReviews([]);
       }
     }
   }, []);
@@ -417,6 +449,81 @@ export default function MarketplacePage() {
     toast({
       title: "Listing Deleted 🗑️",
       description: "The peer listing has been permanently removed.",
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
+  };
+
+  // Peer Reviews Handlers
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewText.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Empty Review",
+        description: "Please write a comment for your review."
+      });
+      return;
+    }
+    if (!activePeerListing) return;
+
+    const newReview: PeerReview = {
+      id: `rev-${Date.now()}`,
+      listingId: activePeerListing.id,
+      teacherName: activePeerListing.name,
+      authorId: user?.uid || 'anonymous',
+      authorName: user?.displayName || user?.email?.split('@')[0] || 'Peer Student',
+      rating: reviewRating,
+      text: reviewText.trim(),
+      createdAt: new Date().toISOString().split('T')[0],
+      status: 'pending' // pending by default for admin moderation!
+    };
+
+    const updatedReviews = [...peerReviews, newReview];
+    setPeerReviews(updatedReviews);
+    localStorage.setItem('lingoland_peer_reviews', JSON.stringify(updatedReviews));
+
+    toast({
+      title: "Review Submitted! 📝🛡️",
+      description: "Please wait until the admin approves your review. Thank you for your patience!",
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
+
+    setReviewText('');
+    setReviewRating(5);
+  };
+
+  const handleApproveReview = (id: string) => {
+    if (!isAdmin) return;
+    const updated = peerReviews.map(r => r.id === id ? { ...r, status: 'approved' as const } : r);
+    setPeerReviews(updated);
+    localStorage.setItem('lingoland_peer_reviews', JSON.stringify(updated));
+    toast({
+      title: "Review Approved! 🛡️✨",
+      description: "This review has been approved and is now publicly live on the teacher profile.",
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
+  };
+
+  const handleRejectReview = (id: string) => {
+    if (!isAdmin) return;
+    const updated = peerReviews.map(r => r.id === id ? { ...r, status: 'rejected' as const } : r);
+    setPeerReviews(updated);
+    localStorage.setItem('lingoland_peer_reviews', JSON.stringify(updated));
+    toast({
+      title: "Review Rejected ❌",
+      description: "This review has been flagged and rejected.",
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
+    });
+  };
+
+  const handleDeleteReview = (id: string) => {
+    if (!isAdmin) return;
+    const updated = peerReviews.filter(r => r.id !== id);
+    setPeerReviews(updated);
+    localStorage.setItem('lingoland_peer_reviews', JSON.stringify(updated));
+    toast({
+      title: "Review Deleted 🗑️",
+      description: "Review successfully removed permanently.",
       className: "bg-indigo-950 border-indigo-500/30 text-indigo-200",
     });
   };
@@ -872,17 +979,30 @@ export default function MarketplacePage() {
                 </button>
 
                 {isAdmin && (
-                  <button
-                    onClick={() => setActiveTab('create')}
-                    className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 ${
-                      activeTab === 'create'
-                        ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
-                        : 'text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    <Code className="h-3.5 w-3.5" />
-                    AI Tutor Architect
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setActiveTab('create')}
+                      className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 ${
+                        activeTab === 'create'
+                          ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
+                          : 'text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      <Code className="h-3.5 w-3.5" />
+                      AI Tutor Architect
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('moderate-reviews')}
+                      className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 ${
+                        activeTab === 'moderate-reviews'
+                          ? 'bg-gradient-to-r from-amber-500/20 to-orange-650/20 border border-orange-500/35 text-orange-405'
+                          : 'text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5 text-orange-405" />
+                      Review Approvals
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -1540,6 +1660,107 @@ export default function MarketplacePage() {
               </Card>
             )}
 
+            {/* REVIEW APPROVALS MODERATION TAB (Admin-Only) */}
+            {activeTab === 'moderate-reviews' && isAdmin && (
+              <div className="space-y-6 flex-grow animate-in fade-in duration-500">
+                <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl p-6 sm:p-8 w-full">
+                  <CardHeader className="p-0 pb-6 border-b border-slate-850/80 flex flex-row items-center gap-3 select-none">
+                    <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400">
+                      <ShieldCheck className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-slate-100 font-black text-xl uppercase tracking-wider">Review Approvals Suite</CardTitle>
+                      <p className="text-xs text-slate-400 font-semibold mt-0.5">Administrator Moderator: Examine submitted user feedback for legitimacy.</p>
+                    </div>
+                  </CardHeader>
+
+                  <div className="pt-6">
+                    {peerReviews.length === 0 ? (
+                      <div className="text-center py-16 border border-dashed border-slate-800 rounded-3xl">
+                        <MessageSquare className="h-10 w-10 text-slate-700 mx-auto mb-3" />
+                        <h4 className="font-extrabold text-slate-400 text-base uppercase tracking-wider">No Reviews Logged</h4>
+                        <p className="text-xs text-slate-500 max-w-xs mx-auto mt-1">
+                          No reviews have been written or synced yet. Switch to the public profiles to write one!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {peerReviews.map((rev) => (
+                          <div 
+                            key={rev.id} 
+                            className="p-5 rounded-2xl bg-slate-950/60 border border-slate-850 flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all hover:border-slate-800"
+                          >
+                            <div className="space-y-2.5 text-left flex-1">
+                              <div className="flex flex-wrap items-center gap-2 select-none">
+                                <span className="text-xs font-black text-slate-200">{rev.authorName}</span>
+                                <span className="text-[10px] text-slate-500 font-semibold">reviewed</span>
+                                <span className="text-xs font-extrabold text-indigo-400 bg-indigo-500/5 px-2.5 py-0.5 rounded-lg border border-indigo-500/10">
+                                  👩‍🏫 Teacher: {rev.teacherName}
+                                </span>
+                                <span className="text-[9px] text-slate-550 font-mono ml-auto md:ml-0">{rev.createdAt}</span>
+                                <Badge className={`border-none text-[8px] font-black uppercase py-0.5 px-2 ${
+                                  rev.status === 'approved' 
+                                    ? 'bg-emerald-500/15 text-emerald-400' 
+                                    : rev.status === 'rejected'
+                                    ? 'bg-rose-500/15 text-rose-455'
+                                    : 'bg-amber-500/15 text-amber-400 animate-pulse'
+                                }`}>
+                                  {rev.status}
+                                </Badge>
+                              </div>
+
+                              <div className="flex items-center gap-1 text-amber-400 select-none">
+                                {Array.from({ length: 5 }).map((_, idx) => (
+                                  <Star 
+                                    key={idx} 
+                                    className={`h-4 w-4 ${idx < rev.rating ? 'fill-current' : 'text-slate-800'}`} 
+                                  />
+                                ))}
+                              </div>
+
+                              <p className="text-xs text-slate-350 leading-relaxed font-semibold select-text text-justify">
+                                "{rev.text}"
+                              </p>
+                            </div>
+
+                            {/* Moderator Buttons */}
+                            <div className="flex flex-wrap gap-2 shrink-0 md:justify-end select-none">
+                              {rev.status !== 'approved' && (
+                                <Button 
+                                  size="sm"
+                                  onClick={() => handleApproveReview(rev.id)}
+                                  className="h-8.5 px-4 text-[10px] font-black uppercase bg-emerald-650/80 hover:bg-emerald-600 text-white rounded-xl flex items-center gap-1 shrink-0"
+                                >
+                                  Approve
+                                </Button>
+                              )}
+                              {rev.status !== 'rejected' && (
+                                <Button 
+                                  size="sm"
+                                  onClick={() => handleRejectReview(rev.id)}
+                                  className="h-8.5 px-4 text-[10px] font-black uppercase bg-rose-650/80 hover:bg-rose-600 text-white rounded-xl flex items-center gap-1 shrink-0"
+                                >
+                                  Reject
+                                </Button>
+                              )}
+                              <Button 
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeleteReview(rev.id)}
+                                className="h-8.5 px-4 text-[10px] font-extrabold uppercase border-slate-800 bg-slate-900 hover:bg-slate-850 hover:text-white rounded-xl shrink-0"
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </div>
+            )}
+
           </motion.div>
         </AnimatePresence>
 
@@ -1976,6 +2197,118 @@ export default function MarketplacePage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Peer Reviews section (only for Teacher listings) */}
+                  {activePeerListing.type === 'teacher' && (
+                    <div className="space-y-4 pt-5 border-t border-slate-850">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1 select-none">
+                          <MessageSquare className="h-3 w-3 text-indigo-400" />
+                          Student Reviews
+                        </span>
+                        {/* Average Rating Display */}
+                        {(() => {
+                          const approved = peerReviews.filter(r => r.listingId === activePeerListing.id && r.status === 'approved');
+                          if (approved.length === 0) return null;
+                          const avg = approved.reduce((acc, r) => acc + r.rating, 0) / approved.length;
+                          return (
+                            <div className="flex items-center gap-1 text-amber-400 text-xs font-black select-none">
+                              <Star className="h-3.5 w-3.5 fill-current" />
+                              <span>{avg.toFixed(1)} / 5.0</span>
+                              <span className="text-slate-500 font-bold text-[10px]">({approved.length})</span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Approved Reviews List */}
+                      {(() => {
+                        const approved = peerReviews.filter(r => r.listingId === activePeerListing.id && r.status === 'approved');
+                        if (approved.length === 0) {
+                          return (
+                            <div className="text-center py-5 border border-dashed border-slate-850 rounded-2xl select-none">
+                              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">No legit reviews approved yet</p>
+                              <p className="text-[9px] text-slate-600 mt-0.5">Be the first to submit a review below!</p>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                            {approved.map((rev) => (
+                              <div key={rev.id} className="p-3 bg-slate-950/40 border border-slate-850 rounded-xl space-y-1.5 text-left">
+                                <div className="flex items-center justify-between select-none">
+                                  <span className="text-[10px] font-black text-slate-300">{rev.authorName}</span>
+                                  <div className="flex items-center gap-0.5 text-amber-400">
+                                    {Array.from({ length: 5 }).map((_, idx) => (
+                                      <Star 
+                                        key={idx} 
+                                        className={`h-2.5 w-2.5 ${idx < rev.rating ? 'fill-current' : 'text-slate-800'}`} 
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                                <p className="text-[10px] text-slate-400 leading-normal font-semibold text-justify select-text">
+                                  "{rev.text}"
+                                </p>
+                                <div className="text-[8px] text-slate-600 font-mono text-right select-none">{rev.createdAt}</div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Submit Review Form */}
+                      <form onSubmit={handleSubmitReview} className="space-y-3 pt-3 border-t border-slate-850/60 text-left">
+                        <div className="flex items-center justify-between select-none">
+                          <Label className="text-[10px] font-black uppercase text-indigo-455 tracking-wider">Write a Review</Label>
+                          
+                          {/* Interactive Star Picker */}
+                          <div className="flex items-center gap-1 select-none">
+                            {Array.from({ length: 5 }).map((_, idx) => {
+                              const starValue = idx + 1;
+                              return (
+                                <button
+                                  type="button"
+                                  key={idx}
+                                  onClick={() => setReviewRating(starValue)}
+                                  className="p-0.5 rounded transition-all active:scale-90"
+                                >
+                                  <Star 
+                                    className={`h-4.5 w-4.5 transition-colors ${
+                                      starValue <= reviewRating 
+                                        ? 'text-amber-400 fill-current' 
+                                        : 'text-slate-850 hover:text-amber-500/50'
+                                    }`} 
+                                  />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="relative">
+                          <Textarea
+                            placeholder="Share your learning experience with this teacher. e.g. very patient, explains rules clearly..."
+                            value={reviewText}
+                            onChange={(e) => setReviewText(e.target.value)}
+                            rows={2}
+                            className="bg-slate-950 border-slate-850 rounded-xl resize-none text-[11px] text-slate-200 placeholder-slate-600 h-14"
+                          />
+                        </div>
+                        <Button
+                          type="submit"
+                          disabled={!reviewText.trim()}
+                          className="w-full h-8.5 text-[9px] font-black uppercase tracking-wider bg-gradient-to-r from-indigo-650 to-purple-650 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl shadow-md transition-all flex items-center justify-center gap-1 select-none"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Submit Review for Approval
+                        </Button>
+                        <p className="text-[8px] text-slate-500 font-semibold text-center select-none">
+                          🛡️ In order to prevent spam, reviews must be approved by the admin before going public.
+                        </p>
+                      </form>
+                    </div>
+                  )}
                 </div>
               </CardContent>
               

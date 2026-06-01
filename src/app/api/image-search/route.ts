@@ -6,6 +6,116 @@ const PLACEHOLDER_FG = 'ede9fe';
 const formatPlaceholderUrl = (query: string) =>
   `https://placehold.co/600x600/${PLACEHOLDER_BG}/${PLACEHOLDER_FG}?text=${encodeURIComponent(query)}&font=inter`;
 
+// High-accuracy Curated "Storage" Image Database for ambiguous terms
+const AVAILABLE_IMAGES_STORAGE: Record<string, string> = {
+  'keys': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
+  'key': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
+  'alicia keys': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
+  'alicia': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
+  'apple': 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800',
+  'banana': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=800',
+  'orange': 'https://images.unsplash.com/photo-1547514701-42782101795e?w=800',
+  'python': 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800',
+  'jaguar': 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=800',
+  'amazon': 'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800'
+};
+
+const checkStorageImage = (query: string): string | null => {
+  const cleanQuery = query.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+  return AVAILABLE_IMAGES_STORAGE[cleanQuery] || null;
+};
+
+// Robust Google Images scraper
+const tryGoogleImages = async (query: string, count: number = 10) => {
+  try {
+    const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&safe=active`;
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      }
+    });
+
+    if (!response.ok) return null;
+    const html = await response.text();
+
+    const images: any[] = [];
+    const seenUrls = new Set<string>();
+
+    // 1. Try modern Google Images AF_initDataCallback format: e.g. ["https://url", h, w]
+    const arrayRegex = /\["(https?:\/\/[^"]+?\.(?:jpg|jpeg|png|gif|webp|svg))",\s*(\d+),\s*(\d+)\]/gi;
+    let match;
+    while ((match = arrayRegex.exec(html)) !== null) {
+      const imageUrl = match[1];
+      if (imageUrl && !seenUrls.has(imageUrl) && !imageUrl.includes('gstatic.com')) {
+        seenUrls.add(imageUrl);
+        images.push({
+          url: imageUrl,
+          thumb: imageUrl,
+          engine: 'google',
+          title: `${query} image`,
+        });
+        if (images.length >= count) break;
+      }
+    }
+
+    // 2. Try matching legacy /imgres?imgurl= parameter
+    if (images.length === 0) {
+      const imgresRegex = /\/imgres\?imgurl=([^&]+)/g;
+      while ((match = imgresRegex.exec(html)) !== null) {
+        try {
+          const decodedUrl = decodeURIComponent(match[1]);
+          if (decodedUrl && !seenUrls.has(decodedUrl)) {
+            seenUrls.add(decodedUrl);
+            images.push({
+              url: decodedUrl,
+              thumb: decodedUrl,
+              engine: 'google',
+              title: `${query} image`,
+            });
+            if (images.length >= count) break;
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 3. Fallback to gstatic thumbnails if no full-size images parsed
+    if (images.length === 0) {
+      const gstaticRegex = /(https:\/\/encrypted-tbn\d+\.gstatic\.com\/images\?q=tbn:[^"\s&]+)/g;
+      while ((match = gstaticRegex.exec(html)) !== null) {
+        const thumbUrl = match[1];
+        if (thumbUrl && !seenUrls.has(thumbUrl)) {
+          seenUrls.add(thumbUrl);
+          images.push({
+            url: thumbUrl,
+            thumb: thumbUrl,
+            engine: 'google',
+            title: `${query} thumbnail`,
+          });
+          if (images.length >= count) break;
+        }
+      }
+    }
+
+    return images.length > 0 ? images : null;
+  } catch (err) {
+    console.error("Google scrape failed:", err);
+    return null;
+  }
+};
+
+const tryGoogleSingleImage = async (query: string) => {
+  const results = await tryGoogleImages(query, 1);
+  if (results && results.length > 0) {
+    return {
+      imageUrl: results[0].url,
+      engine: 'google',
+    };
+  }
+  return null;
+};
+
 const tryUnsplash = async (query: string) => {
   const response = await fetch(
     `https://unsplash.com/napi/search/photos?query=${encodeURIComponent(query)}&per_page=3`,
@@ -87,6 +197,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: false, error: 'Query parameter is required' }, { status: 400 });
   }
 
+  // 1. Check local "storage" database first (No Fallback Required if found!)
+  const storageImageUrl = checkStorageImage(query);
+  if (storageImageUrl) {
+    return NextResponse.json({ success: true, imageUrl: storageImageUrl, engine: 'storage' });
+  }
+
+  // 2. Google is default search engine when highlighting word
+  try {
+    const googleResult = await tryGoogleSingleImage(query);
+    if (googleResult) return NextResponse.json({ success: true, ...googleResult });
+  } catch (error) {
+    console.warn('Google image search engine failed. Falling back to Unsplash...', error);
+  }
+
+  // 3. Fallback search engines
   try {
     const unsplashResult = await tryUnsplash(query);
     if (unsplashResult) return NextResponse.json({ success: true, ...unsplashResult });
