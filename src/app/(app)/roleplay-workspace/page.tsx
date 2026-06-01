@@ -231,16 +231,64 @@ export default function RoleplayWorkspacePage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const inviteId = params.get("roomInvite");
+      const inviteName = params.get("roomName");
+      const inviteScenario = params.get("roomScenario");
+      const inviteTimer = params.get("roomTimer");
+      const inviteDueDate = params.get("roomDue");
+      const invitePass = params.get("roomPass");
+      const invitePrivate = params.get("roomPrivate");
+
       if (inviteId) {
-        // Add to unlocked private rooms list
+        // Ensure private rooms are added to unlocked list
         const unlocked = JSON.parse(localStorage.getItem("lingoland_unlocked_private_rooms") || "[]");
         if (!unlocked.includes(inviteId)) {
           unlocked.push(inviteId);
           localStorage.setItem("lingoland_unlocked_private_rooms", JSON.stringify(unlocked));
           setUnlockedPrivateRooms(unlocked);
         }
-        // Force refresh room list to make sure we load it
+
+        // If metadata is present, check and register room in local rooms list if missing!
+        if (inviteName && inviteScenario) {
+          const storedRoomsStr = localStorage.getItem("lingoland_roleplay_rooms");
+          let storedRooms: RoleplayRoom[] = [];
+          if (storedRoomsStr) {
+            try {
+              storedRooms = JSON.parse(storedRoomsStr) as RoleplayRoom[];
+            } catch (e) {}
+          }
+          
+          const roomExists = storedRooms.some(r => r.id === inviteId);
+          if (!roomExists) {
+            const sharedRoom: RoleplayRoom = {
+              id: inviteId,
+              name: inviteName,
+              scenario: inviteScenario,
+              timerMinutes: inviteTimer ? Number(inviteTimer) : 15,
+              dueDate: inviteDueDate || new Date(Date.now() + 86400000 * 7).toISOString().split("T")[0],
+              password: invitePass || undefined,
+              isPrivate: invitePrivate === "true",
+              messages: [
+                {
+                  id: "msg-invite-welcome-" + Date.now(),
+                  senderName: "System",
+                  senderSeat: "SYS",
+                  senderRole: "System Notification",
+                  content: `You have successfully joined "${inviteName}" created by another student. Start brainstorming!`,
+                  type: "text",
+                  timestamp: Date.now()
+                }
+              ],
+              notes: [],
+              creatorName: "Other Student"
+            };
+            storedRooms.push(sharedRoom);
+            localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(storedRooms));
+          }
+        }
+
+        // Force refresh room list to load the new room
         loadRoomsAndPurgeExpired();
+        
         // Join the room automatically!
         setActiveRoomId(inviteId);
         
@@ -248,9 +296,9 @@ export default function RoleplayWorkspacePage() {
         window.history.replaceState({}, document.title, window.location.pathname);
         
         toast({
-          title: "Private Room Unlocked! 🔑✨",
-          description: "You have joined the private roleplay room via invitation link.",
-          className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
+          title: "Collaborative Room Joined! 🔗✨",
+          description: "You have joined the roleplay session via invitation link.",
+          className: "bg-slate-900 border-purple-500/30 text-purple-200"
         });
       }
     }
@@ -689,7 +737,7 @@ export default function RoleplayWorkspacePage() {
       </div>
 
       {/* STAGE A: Registration Setup Panel */}
-      {!isRegistered ? (
+      {!isRegistered && (
         <div className="relative z-10 flex-1 flex items-center justify-center p-4">
           <Card className="bg-slate-900/60 border-slate-850 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 max-w-md w-full animate-in fade-in zoom-in-95 duration-500 text-center space-y-6">
             <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-purple-500/20">
@@ -749,11 +797,13 @@ export default function RoleplayWorkspacePage() {
             </form>
           </Card>
         </div>
-      ) : (
-        /* STAGE B: Registered user view */
+      )}
+
+      {/* STAGE B: Registered user view */}
+      {isRegistered && (
         <div className="relative z-10 flex-1 flex flex-col gap-5">
           {/* LOBBY VIEW: Active rooms and creations */}
-          {!activeRoomId ? (
+          {!activeRoomId && (
             <div className="flex-1 flex flex-col lg:flex-row gap-5 animate-in fade-in duration-500">
               {/* Rooms List Grid */}
               <div className="flex-1 flex flex-col space-y-4">
@@ -949,7 +999,9 @@ export default function RoleplayWorkspacePage() {
                 </Card>
               )}
             </div>
-          ) : (
+          )}
+
+          {activeRoomId && currentRoom && (
             /* ACTIVE WORKSPACE ZONE: Inside a Room */
             <div className="flex-1 flex flex-col gap-4 animate-in zoom-in-95 duration-500">
               {/* Active Workspace Header details */}
@@ -972,8 +1024,22 @@ export default function RoleplayWorkspacePage() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          if (typeof window !== 'undefined') {
-                            const inviteUrl = window.location.origin + window.location.pathname + "?roomInvite=" + currentRoom.id;
+                          if (typeof window !== 'undefined' && currentRoom) {
+                            const baseUrl = window.location.origin + window.location.pathname;
+                            const params = new URLSearchParams();
+                            params.set("roomInvite", currentRoom.id);
+                            params.set("roomName", currentRoom.name);
+                            params.set("roomScenario", currentRoom.scenario);
+                            params.set("roomTimer", currentRoom.timerMinutes.toString());
+                            params.set("roomDue", currentRoom.dueDate);
+                            if (currentRoom.password) {
+                              params.set("roomPass", currentRoom.password);
+                            }
+                            if (currentRoom.isPrivate) {
+                              params.set("roomPrivate", "true");
+                            }
+                            
+                            const inviteUrl = baseUrl + "?" + params.toString();
                             navigator.clipboard.writeText(inviteUrl);
                             toast({
                               title: "Invite Link Copied! 🔗✨",
@@ -1283,6 +1349,17 @@ export default function RoleplayWorkspacePage() {
                   </div>
                 </Card>
               </div>
+            </div>
+          )}
+
+          {activeRoomId && !currentRoom && (
+            /* Graceful Room Loading/Fallback View */
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-3 border border-dashed border-slate-850 rounded-3xl bg-slate-900/10 min-h-[300px]">
+              <span className="text-4xl animate-pulse">⏳</span>
+              <h4 className="text-sm font-bold text-slate-350">Loading Roleplay Room...</h4>
+              <p className="text-slate-500 text-[10px] uppercase tracking-wider max-w-xs leading-relaxed">
+                Please wait while the shared room credentials and details are established.
+              </p>
             </div>
           )}
         </div>
