@@ -26,6 +26,8 @@ interface RoleplayRoom {
   timerStartedAt?: number; // timestamp
   messages: ChatMessage[];
   notes: StickyNote[];
+  creatorName: string;
+  isPrivate?: boolean;
 }
 
 interface ChatMessage {
@@ -88,7 +90,7 @@ export default function RoleplayWorkspacePage() {
   const [roomPasswordInput, setRoomPasswordInput] = useState("");
   const [passwordGateRoomId, setPasswordGateRoomId] = useState<string | null>(null);
 
-  // State: Room Creation (Teacher/Admin only)
+  // State: Room Creation
   const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
   const [newRoomPassword, setNewRoomPassword] = useState("");
@@ -96,6 +98,8 @@ export default function RoleplayWorkspacePage() {
   const [customScenario, setCustomScenario] = useState("");
   const [newRoomDueDate, setNewRoomDueDate] = useState("");
   const [newRoomTimer, setNewRoomTimer] = useState(15); // Default 15 minutes
+  const [newRoomIsPrivate, setNewRoomIsPrivate] = useState(false);
+  const [unlockedPrivateRooms, setUnlockedPrivateRooms] = useState<string[]>([]);
 
   // State: Active Workspace UI
   const [chatInput, setChatInput] = useState("");
@@ -131,6 +135,14 @@ export default function RoleplayWorkspacePage() {
     } else if (!isGuest && user) {
       // Auto fill if real student
       setNickname(userProfile?.fullName || user.displayName || user.email?.split("@")[0] || "Student");
+    }
+
+    // Load unlocked private rooms list
+    const storedUnlocked = localStorage.getItem("lingoland_unlocked_private_rooms");
+    if (storedUnlocked) {
+      try {
+        setUnlockedPrivateRooms(JSON.parse(storedUnlocked));
+      } catch (e) {}
     }
 
     // Load rooms and run automatic expiration purge
@@ -214,6 +226,36 @@ export default function RoleplayWorkspacePage() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  // Listen for invitation link query params
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const inviteId = params.get("roomInvite");
+      if (inviteId) {
+        // Add to unlocked private rooms list
+        const unlocked = JSON.parse(localStorage.getItem("lingoland_unlocked_private_rooms") || "[]");
+        if (!unlocked.includes(inviteId)) {
+          unlocked.push(inviteId);
+          localStorage.setItem("lingoland_unlocked_private_rooms", JSON.stringify(unlocked));
+          setUnlockedPrivateRooms(unlocked);
+        }
+        // Force refresh room list to make sure we load it
+        loadRoomsAndPurgeExpired();
+        // Join the room automatically!
+        setActiveRoomId(inviteId);
+        
+        // Clear query param so it doesn't stay in the URL bar permanently
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        toast({
+          title: "Private Room Unlocked! 🔑✨",
+          description: "You have joined the private roleplay room via invitation link.",
+          className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
+        });
+      }
+    }
+  }, [rooms.length]);
+
   // Scroll Chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -221,6 +263,12 @@ export default function RoleplayWorkspacePage() {
 
   // Active Room Object
   const currentRoom = rooms.find(r => r.id === activeRoomId) || null;
+
+  // Filter rooms based on privacy and sharing link list
+  const visibleRooms = rooms.filter(room => {
+    if (!room.isPrivate) return true;
+    return room.creatorName === nickname || unlockedPrivateRooms.includes(room.id);
+  });
 
   // Active Timer Countdown logic
   useEffect(() => {
@@ -312,7 +360,9 @@ export default function RoleplayWorkspacePage() {
       dueDate: newRoomDueDate,
       timerMinutes: newRoomTimer,
       messages: [],
-      notes: []
+      notes: [],
+      creatorName: nickname || "Student",
+      isPrivate: newRoomIsPrivate
     };
 
     const updatedRooms = [...rooms, newRoom];
@@ -324,6 +374,7 @@ export default function RoleplayWorkspacePage() {
     setNewRoomPassword("");
     setNewRoomDueDate("");
     setNewRoomTimer(15);
+    setNewRoomIsPrivate(false);
     setShowCreatePanel(false);
     
     toast({
@@ -333,10 +384,12 @@ export default function RoleplayWorkspacePage() {
     });
   };
 
-  // 5. Delete Room Handler (Teacher/Admin only)
+  // 5. Delete Room Handler (Admins & Creator only)
   const handleDeleteRoom = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isAdmin) return;
+    const targetRoom = rooms.find(r => r.id === id);
+    const isCreator = targetRoom?.creatorName === nickname;
+    if (!isAdmin && !isCreator) return;
     
     const confirmDelete = window.confirm("Are you sure you want to permanently delete this collaborative room?");
     if (!confirmDelete) return;
@@ -706,26 +759,24 @@ export default function RoleplayWorkspacePage() {
               <div className="flex-1 flex flex-col space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-sm font-black uppercase text-slate-300 tracking-widest flex items-center gap-2">
-                    <Users className="h-4 w-4 text-purple-400" /> Active Dialogue Rooms ({rooms.length})
+                    <Users className="h-4 w-4 text-purple-400" /> Active Dialogue Rooms ({visibleRooms.length})
                   </h3>
-                  {isAdmin && (
-                    <Button onClick={() => setShowCreatePanel(!showCreatePanel)} className="bg-purple-600/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 text-xs font-extrabold uppercase rounded-xl h-8">
-                      {showCreatePanel ? "Hide Panel" : "Create Room"}
-                    </Button>
-                  )}
+                  <Button onClick={() => setShowCreatePanel(!showCreatePanel)} className="bg-purple-600/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 text-xs font-extrabold uppercase rounded-xl h-8">
+                    {showCreatePanel ? "Hide Panel" : "Create Room"}
+                  </Button>
                 </div>
 
-                {rooms.length === 0 ? (
-                  <div className="flex-1 border border-dashed border-slate-850 rounded-3xl flex flex-col items-center justify-center text-center p-8 space-y-2 bg-slate-900/10">
+                {visibleRooms.length === 0 ? (
+                  <div className="flex-1 border border-dashed border-slate-850 rounded-3xl flex flex-col items-center justify-center text-center p-8 space-y-2 bg-slate-900/10 min-h-[250px]">
                     <span className="text-4xl animate-bounce">💬</span>
                     <h4 className="text-sm font-bold text-slate-300">No rooms active right now</h4>
                     <p className="text-slate-500 text-[10px] max-w-xs leading-relaxed uppercase">
-                      Ask your teacher to set up a roleplay scenario room, or create one if you possess admin capabilities.
+                      Start by creating a room and choosing a roleplay scenario!
                     </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {rooms.map((room) => (
+                    {visibleRooms.map((room) => (
                       <Card 
                         key={room.id}
                         onClick={() => handleTryJoinRoom(room)}
@@ -752,13 +803,18 @@ export default function RoleplayWorkspacePage() {
                           </span>
                           
                           <div className="flex items-center gap-2">
-                            {isAdmin && (
+                            {room.isPrivate && (
+                              <Badge variant="outline" className="text-[8px] border-amber-600/30 bg-amber-950/20 text-amber-400 uppercase font-black tracking-widest">
+                                Private Link
+                              </Badge>
+                            )}
+                            {(isAdmin || room.creatorName === nickname) && (
                               <Button 
                                 size="icon"
                                 variant="ghost"
                                 onClick={(e) => handleDeleteRoom(room.id, e)}
                                 className="h-7 w-7 text-slate-500 hover:text-rose-400"
-                                title="Teacher: Purge Room"
+                                title="Purge Room"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -774,8 +830,8 @@ export default function RoleplayWorkspacePage() {
                 )}
               </div>
 
-              {/* STAGE C: Create Room Sideboard Panel (Teacher/Admin only) */}
-              {showCreatePanel && isAdmin && (
+              {/* STAGE C: Create Room Sideboard Panel */}
+              {showCreatePanel && (
                 <Card className="w-full lg:w-96 bg-slate-900/60 border-slate-850 backdrop-blur-xl rounded-3xl p-5 space-y-5 h-fit shrink-0 animate-in slide-in-from-right duration-300 text-left">
                   <div className="flex justify-between items-center pb-3 border-b border-slate-850">
                     <h3 className="text-xs font-black uppercase text-purple-400 tracking-wider flex items-center gap-1.5">
@@ -867,6 +923,25 @@ export default function RoleplayWorkspacePage() {
                       </div>
                     </div>
 
+                    {/* Private sharing room option */}
+                    <div className="flex items-center space-x-2 pt-1 pb-2 select-none">
+                      <input
+                        id="isPrivateRoom"
+                        type="checkbox"
+                        checked={newRoomIsPrivate}
+                        onChange={(e) => setNewRoomIsPrivate(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-800 bg-slate-950 text-purple-600 focus:ring-purple-500 focus:ring-offset-slate-900 focus:ring-offset-2"
+                      />
+                      <div className="space-y-0.5 text-left">
+                        <Label htmlFor="isPrivateRoom" className="text-[10px] font-black uppercase text-purple-400 tracking-wider cursor-pointer">
+                          Private Room (Invite Link Only)
+                        </Label>
+                        <p className="text-[9px] text-slate-500 leading-tight">
+                          Only visible in your account and to users who click your invite link.
+                        </p>
+                      </div>
+                    </div>
+
                     <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs h-10 rounded-xl shadow-md">
                       Register collaborative room
                     </Button>
@@ -882,13 +957,35 @@ export default function RoleplayWorkspacePage() {
                 {/* Expire / Scenario prompt banner */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div className="space-y-1.5 max-w-2xl">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center flex-wrap gap-2">
                       <Button variant="outline" size="sm" onClick={() => setActiveRoomId(null)} className="h-7 px-2.5 bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] uppercase font-black tracking-widest rounded-lg">
                         ← Exit room
                       </Button>
-                      <h3 className="text-base font-extrabold text-slate-100 flex items-center gap-1.5">
+                      <h3 className="text-base font-extrabold text-slate-100 flex items-center gap-1.5 mr-2">
                         {currentRoom.name}
                       </h3>
+                      {currentRoom.isPrivate && (
+                        <Badge className="bg-amber-950 border-amber-850 text-amber-400 text-[8px] uppercase tracking-widest font-black mr-2">
+                          Private Link Only
+                        </Badge>
+                      )}
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (typeof window !== 'undefined') {
+                            const inviteUrl = window.location.origin + window.location.pathname + "?roomInvite=" + currentRoom.id;
+                            navigator.clipboard.writeText(inviteUrl);
+                            toast({
+                              title: "Invite Link Copied! 🔗✨",
+                              description: "Send this link to your roleplay partner to let them join this room.",
+                              className: "bg-slate-900 border-purple-500/30 text-purple-200"
+                            });
+                          }
+                        }}
+                        className="h-7 px-3 bg-purple-650/20 border border-purple-500/30 hover:bg-purple-600/30 text-purple-300 text-[9px] font-black uppercase tracking-wider rounded-lg flex items-center gap-1"
+                      >
+                        Copy Invite Link 🔗
+                      </Button>
                     </div>
 
                     <div className="p-3 bg-slate-950/70 border border-slate-850 rounded-xl">
