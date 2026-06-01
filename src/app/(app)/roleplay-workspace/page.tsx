@@ -109,6 +109,11 @@ export default function RoleplayWorkspacePage() {
   const [activeAudioMessageId, setActiveAudioMessageId] = useState<string | null>(null);
   const [audioPlaybackProgress, setAudioPlaybackProgress] = useState(0);
 
+  // State: Dialogue Sequencer / Playlist
+  const [sequencedMessageIds, setSequencedMessageIds] = useState<string[]>([]);
+  const [isSequencePlaying, setIsSequencePlaying] = useState(false);
+  const [currentPlayingSeqIndex, setCurrentPlayingSeqIndex] = useState<number | null>(null);
+
   // State: Sticky Notes
   const [newNoteContent, setNewNoteContent] = useState("");
   const [newNoteColor, setNewNoteColor] = useState<"yellow" | "blue" | "pink" | "green" | "purple">("yellow");
@@ -126,6 +131,7 @@ export default function RoleplayWorkspacePage() {
   const audioChunksRef = useRef<Blob[]>([]);
   const audioStreamRef = useRef<MediaStream | null>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const sequenceAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // 1. Initial Page Load & Profile Check
   useEffect(() => {
@@ -351,6 +357,10 @@ export default function RoleplayWorkspacePage() {
       if (currentAudioRef.current) {
         currentAudioRef.current.pause();
         currentAudioRef.current = null;
+      }
+      if (sequenceAudioRef.current) {
+        sequenceAudioRef.current.pause();
+        sequenceAudioRef.current = null;
       }
       if (audioStreamRef.current) {
         audioStreamRef.current.getTracks().forEach(track => track.stop());
@@ -832,6 +842,112 @@ export default function RoleplayWorkspacePage() {
     }
     setActiveAudioMessageId(null);
     setAudioPlaybackProgress(0);
+  };
+
+  // Dialogue Sequencer & Playback Assembler logic
+  const handleToggleSeqMessage = (msgId: string) => {
+    if (sequencedMessageIds.includes(msgId)) {
+      setSequencedMessageIds(prev => prev.filter(id => id !== msgId));
+    } else {
+      setSequencedMessageIds(prev => [...prev, msgId]);
+    }
+  };
+
+  const handleMoveSeqItem = (index: number, direction: "up" | "down", e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newSeq = [...sequencedMessageIds];
+    if (direction === "up" && index > 0) {
+      [newSeq[index], newSeq[index - 1]] = [newSeq[index - 1], newSeq[index]];
+    } else if (direction === "down" && index < newSeq.length - 1) {
+      [newSeq[index], newSeq[index + 1]] = [newSeq[index + 1], newSeq[index]];
+    }
+    setSequencedMessageIds(newSeq);
+  };
+
+  const handlePlaySequence = (index: number = 0) => {
+    // Stop any active single-audio plays
+    handleStopAudioMessage();
+
+    if (index >= sequencedMessageIds.length) {
+      setIsSequencePlaying(false);
+      setCurrentPlayingSeqIndex(null);
+      if (sequenceAudioRef.current) {
+        sequenceAudioRef.current.pause();
+        sequenceAudioRef.current = null;
+      }
+      toast({
+        title: "Roleplay Sequence Finished! 🎭🎬",
+        description: "The sequenced roleplay voice conversation has ended successfully.",
+        className: "bg-slate-900 border-emerald-500/30 text-emerald-300"
+      });
+      return;
+    }
+
+    setIsSequencePlaying(true);
+    setCurrentPlayingSeqIndex(index);
+
+    const nextMsgId = sequencedMessageIds[index];
+    const msg = currentRoom?.messages.find(m => m.id === nextMsgId);
+    if (!msg) {
+      handlePlaySequence(index + 1);
+      return;
+    }
+
+    if (msg.audioUrl) {
+      try {
+        const audio = new Audio(msg.audioUrl);
+        sequenceAudioRef.current = audio;
+        audio.play().catch(e => {
+          console.error("Failed to play sequence audio clip:", e);
+          handlePlaySequence(index + 1);
+        });
+
+        audio.onended = () => {
+          audio.onended = null;
+          handlePlaySequence(index + 1);
+        };
+      } catch (err) {
+        console.error("Sequence audio setup error:", err);
+        handlePlaySequence(index + 1);
+      }
+    } else {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(msg.content);
+        if (msg.senderRole.includes("Teacher") || msg.senderRole.includes("Facilitator")) {
+          utterance.rate = 0.9;
+          utterance.pitch = 1.1;
+        } else {
+          utterance.rate = 1.0;
+          utterance.pitch = 0.95;
+        }
+
+        utterance.onend = () => {
+          utterance.onend = null;
+          handlePlaySequence(index + 1);
+        };
+        utterance.onerror = () => {
+          utterance.onerror = null;
+          handlePlaySequence(index + 1);
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } else {
+        handlePlaySequence(index + 1);
+      }
+    }
+  };
+
+  const handleStopSequence = () => {
+    setIsSequencePlaying(false);
+    setCurrentPlayingSeqIndex(null);
+    if (sequenceAudioRef.current) {
+      sequenceAudioRef.current.pause();
+      sequenceAudioRef.current = null;
+    }
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
   };
 
   // 9. Standard Text Message handler
@@ -1458,6 +1574,131 @@ export default function RoleplayWorkspacePage() {
                         </Button>
                       </form>
                     )}
+
+                    {/* Premium Dialogue Sequencer & Playback Assembler */}
+                    <div className="mt-4 pt-3 border-t border-slate-850 text-left">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-[10px] font-black uppercase text-purple-400 tracking-wider flex items-center gap-1">
+                          <ListCollapse className="h-3.5 w-3.5" /> 🎭 Dialogue Sequencer & Playback Assembler
+                        </h4>
+                        
+                        {sequencedMessageIds.length > 0 && (
+                          <div className="flex gap-2">
+                            {isSequencePlaying ? (
+                              <Button 
+                                size="sm" 
+                                onClick={handleStopSequence} 
+                                className="h-6 px-2.5 bg-rose-650 hover:bg-rose-600 border border-rose-500/20 text-white text-[9px] font-bold uppercase rounded-lg flex items-center gap-1"
+                              >
+                                <Square className="h-2.5 w-2.5" /> Stop Sequence
+                              </Button>
+                            ) : (
+                              <Button 
+                                size="sm" 
+                                onClick={() => handlePlaySequence(0)} 
+                                className="h-6 px-3 bg-purple-600 hover:bg-purple-500 border border-purple-500/20 text-white text-[9px] font-black uppercase rounded-lg flex items-center gap-1.5 shadow-md shadow-purple-600/10"
+                              >
+                                <Play className="h-2.5 w-2.5" /> Play Sequenced Scene ({sequencedMessageIds.length})
+                              </Button>
+                            )}
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => setSequencedMessageIds([])} 
+                              className="h-6 px-2 text-slate-500 hover:text-slate-355 text-[9px] font-bold uppercase"
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* List of voice clips inside active room */}
+                      {currentRoom && currentRoom.messages.filter(m => m.type === "voice").length === 0 ? (
+                        <p className="text-[9px] text-slate-600 italic select-none">
+                          No voice clips recorded in this room yet. Send a voice note above to start sequencing!
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {/* Playlist selector cards */}
+                          <div className="flex flex-wrap gap-2 py-1 max-h-[85px] overflow-y-auto pr-1">
+                            {currentRoom?.messages.filter(m => m.type === "voice").map((msg) => {
+                              const isSelected = sequencedMessageIds.includes(msg.id);
+                              return (
+                                <button
+                                  key={msg.id}
+                                  type="button"
+                                  onClick={() => handleToggleSeqMessage(msg.id)}
+                                  className={`px-2.5 py-1.5 rounded-xl border text-left transition-all flex items-center gap-2 max-w-[170px] ${
+                                    isSelected
+                                      ? "bg-purple-950/20 border-purple-500/40 text-purple-200"
+                                      : "bg-slate-950/60 border-slate-900 hover:border-slate-800 text-slate-400"
+                                  }`}
+                                >
+                                  <input 
+                                    type="checkbox" 
+                                    checked={isSelected}
+                                    readOnly
+                                    className="h-3 w-3 rounded text-purple-600 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-[9px] font-bold truncate leading-tight">{msg.senderName}</p>
+                                    <p className="text-[8px] opacity-60 truncate">Seat {msg.senderSeat} • {msg.audioDuration || 4}s</p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Sortable sequenced list */}
+                          {sequencedMessageIds.length > 0 && (
+                            <div className="mt-2.5 bg-slate-950/60 border border-slate-850 rounded-2xl p-2 select-none">
+                              <span className="text-[8px] font-black uppercase text-purple-400 tracking-wider block mb-1">
+                                Dialogue Sequence Order (Drag/Reorder):
+                              </span>
+                              <div className="flex flex-wrap gap-1.5 max-h-[90px] overflow-y-auto pr-1">
+                                {sequencedMessageIds.map((id, index) => {
+                                  const msg = currentRoom?.messages.find(m => m.id === id);
+                                  if (!msg) return null;
+                                  const isCurrentlyPlaying = isSequencePlaying && currentPlayingSeqIndex === index;
+                                  return (
+                                    <div 
+                                      key={`${id}-${index}`} 
+                                      className={`px-2 py-1 rounded-lg border text-[9px] font-bold flex items-center gap-1.5 transition-all ${
+                                        isCurrentlyPlaying
+                                          ? "bg-purple-600/20 border-purple-500 text-purple-100 shadow-[0_0_8px_rgba(147,51,234,0.2)] animate-pulse"
+                                          : "bg-slate-900 border-slate-800/80 text-slate-350"
+                                      }`}
+                                    >
+                                      <span className="opacity-50 text-[8px]">{index + 1}.</span>
+                                      <span className="truncate max-w-[80px]">{msg.senderName} ({msg.senderSeat})</span>
+                                      <div className="flex items-center gap-0.5 border-l border-slate-800 pl-1.5 ml-1">
+                                        <button
+                                          type="button"
+                                          disabled={index === 0}
+                                          onClick={(e) => handleMoveSeqItem(index, "up", e)}
+                                          className="hover:text-purple-400 disabled:opacity-30 disabled:hover:text-inherit"
+                                        >
+                                          <ArrowUp className="h-3 w-3" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          disabled={index === sequencedMessageIds.length - 1}
+                                          onClick={(e) => handleMoveSeqItem(index, "down", e)}
+                                          className="hover:text-purple-400 disabled:opacity-30 disabled:hover:text-inherit"
+                                        >
+                                          <ArrowDown className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Card>
 
