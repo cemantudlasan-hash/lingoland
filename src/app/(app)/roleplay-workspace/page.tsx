@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Users, MessageSquare, Trash2, Calendar, Lock, Unlock, Play, Pause, Mic, 
   Square, Plus, Sparkles, Clock, Crown, Settings, LogOut, Check, X, 
-  ShieldAlert, Award, FileText, Send, Volume2, RotateCcw
+  ShieldAlert, Award, FileText, Send, Volume2, RotateCcw, ListCollapse, ArrowUp, ArrowDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -1629,7 +1629,7 @@ export default function RoleplayWorkspacePage() {
                       </div>
 
                       {/* List of voice clips inside active room */}
-                      {currentRoom && (currentRoom?.messages || []).filter(m => m.type === "voice").length === 0 ? (
+                      {!currentRoom || (currentRoom?.messages || []).filter(m => m.type === "voice").length === 0 ? (
                         <p className="text-[9px] text-slate-600 italic select-none">
                           No voice clips recorded in this room yet. Send a voice note above to start sequencing!
                         </p>
