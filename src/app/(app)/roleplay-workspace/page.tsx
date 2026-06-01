@@ -15,6 +15,39 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// Firebase imports
+import { db, storage } from "@/lib/firebase";
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  addDoc, 
+  deleteDoc, 
+  updateDoc, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  writeBatch, 
+  getDocs, 
+  getDoc 
+} from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+// Profanity list
+const BANNED_WORDS = [
+  "fuck", "shit", "asshole", "bitch", "cunt", "dick", "pussy", "bastard", "slut", "whore",
+  "faggot", "nigger", "crap", "damn", "foul", "bastards", "motherfucker", "fucker", "cock",
+  "ass", "bullshit"
+];
+
+const containsBadWord = (text: string) => {
+  const normalized = text.toLowerCase();
+  return BANNED_WORDS.some(word => {
+    const regex = new RegExp(`\\b${word}\\b|${word}`, 'i');
+    return regex.test(normalized);
+  });
+};
+
 // Interface definitions
 interface RoleplayRoom {
   id: string;
@@ -23,11 +56,11 @@ interface RoleplayRoom {
   scenario: string;
   dueDate: string; // Expiry date
   timerMinutes: number;
-  timerStartedAt?: number; // timestamp
-  messages: ChatMessage[];
-  notes: StickyNote[];
+  timerStartedAt?: number | null; // timestamp
+  creatorUid: string;
   creatorName: string;
   isPrivate?: boolean;
+  notes: StickyNote[];
 }
 
 interface ChatMessage {
@@ -39,7 +72,7 @@ interface ChatMessage {
   type: "text" | "voice";
   timestamp: number;
   audioDuration?: number; // seconds
-  audioUrl?: string; // base64 recorded audio data
+  audioUrl?: string; // stored Firebase Storage download URL
 }
 
 interface StickyNote {
@@ -85,8 +118,9 @@ export default function RoleplayWorkspacePage() {
   const [selectedRole, setSelectedRole] = useState("Actor A");
   const [isRegistered, setIsRegistered] = useState(false);
 
-  // State: Room List & Active Room
+  // State: Room List, Active Room, and Subscribed Messages
   const [rooms, setRooms] = useState<RoleplayRoom[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [roomPasswordInput, setRoomPasswordInput] = useState("");
   const [passwordGateRoomId, setPasswordGateRoomId] = useState<string | null>(null);
@@ -105,6 +139,7 @@ export default function RoleplayWorkspacePage() {
   // State: Active Workspace UI
   const [chatInput, setChatInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [isUploadingVoice, setIsUploadingVoice] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [activeAudioMessageId, setActiveAudioMessageId] = useState<string | null>(null);
   const [audioPlaybackProgress, setAudioPlaybackProgress] = useState(0);
@@ -147,7 +182,7 @@ export default function RoleplayWorkspacePage() {
       } catch (e) {}
     } else if (!isGuest && user) {
       // Auto fill if real student
-      setNickname(userProfile?.fullName || user.displayName || user.email?.split("@")[0] || "Student");
+      setNickname(userProfile?.displayName || user.displayName || user.email?.split("@")[0] || "Student");
     }
 
     // Load unlocked private rooms list
@@ -157,193 +192,171 @@ export default function RoleplayWorkspacePage() {
         setUnlockedPrivateRooms(JSON.parse(storedUnlocked));
       } catch (e) {}
     }
-
-    // Load rooms and run automatic expiration purge
-    loadRoomsAndPurgeExpired();
   }, [user, isGuest, userProfile]);
 
-  // Load Rooms and Exclude Expired Rooms
-  const loadRoomsAndPurgeExpired = () => {
-    const storedRooms = localStorage.getItem("lingoland_roleplay_rooms");
-    if (storedRooms) {
-      try {
-        const parsedRooms = JSON.parse(storedRooms) as RoleplayRoom[];
-        const now = new Date();
-        
-        // Filter out rooms where due date is passed
-        const activeRooms = parsedRooms.filter(room => {
-          if (!room.dueDate) return true;
-          const expiry = new Date(room.dueDate);
-          return expiry >= now;
-        });
+  // 2. Real-Time Rooms List Sync Hook (Firestore)
+  useEffect(() => {
+    const q = query(collection(db, "roleplay_rooms"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const roomList: RoleplayRoom[] = [];
+      const now = new Date();
+      let hasExpiredRooms = false;
 
-        // Save purged list back if any were expired
-        if (activeRooms.length !== parsedRooms.length) {
-          localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(activeRooms));
-          toast({
-            title: "Rooms Cleaned up! 🧹",
-            description: "Expired collaborative roleplay rooms have been automatically purged.",
-            className: "bg-slate-900 border-purple-500/30 text-purple-200"
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const dueDate = data.dueDate;
+        let expired = false;
+        
+        if (dueDate) {
+          const expiry = new Date(dueDate);
+          if (expiry < now) {
+            expired = true;
+            hasExpiredRooms = true;
+            // Let the creator or admin delete it asynchronously
+            if (isAdmin || data.creatorUid === user?.uid || data.creatorName === nickname) {
+              deleteDoc(doc(db, "roleplay_rooms", docSnap.id)).catch(err => console.error("Error purging room:", err));
+            }
+          }
+        }
+
+        if (!expired) {
+          roomList.push({
+            id: docSnap.id,
+            name: data.name,
+            password: data.password,
+            scenario: data.scenario,
+            dueDate: data.dueDate,
+            timerMinutes: data.timerMinutes,
+            timerStartedAt: data.timerStartedAt,
+            creatorUid: data.creatorUid || "",
+            creatorName: data.creatorName || "Student",
+            isPrivate: data.isPrivate || false,
+            notes: data.notes || []
           });
         }
-        setRooms(activeRooms);
-      } catch (e) {
-        setRooms([]);
-      }
-    } else {
-      // Default Rooms on initial setup
-      const defaultRooms: RoleplayRoom[] = [
-        {
-          id: "room-default-1",
-          name: "Gate 12B Lost passport Group",
-          scenario: "Help! Lost Luggage at Boarding Gate",
-          dueDate: new Date(Date.now() + 86400000 * 7).toISOString().split("T")[0], // 7 days from now
-          timerMinutes: 15,
-          messages: [
-            {
-              id: "msg-1",
-              senderName: "Teacher Maria",
-              senderSeat: "T-1",
-              senderRole: "Facilitator (Teacher/Host)",
-              content: "Welcome to Room 1! Please pick a role (Traveler or Gate Agent) and start brainstorming scenario steps using text or audio speaking messages.",
-              type: "text",
-              timestamp: Date.now() - 3600000
-            }
-          ],
-          notes: [
-            {
-              id: "note-1",
-              content: "Identify the problem clearly to the agent",
-              color: "yellow",
-              senderName: "Teacher Maria",
-              senderSeat: "T-1",
-              x: 10,
-              y: 10
-            }
-          ]
-        }
-      ];
-      localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(defaultRooms));
-      setRooms(defaultRooms);
-    }
-  };
+      });
 
-  // 2. Real-Time Multi-Tab Synchronization Hook
+      if (hasExpiredRooms) {
+        toast({
+          title: "Rooms Cleaned up! 🧹",
+          description: "Expired collaborative roleplay rooms have been automatically purged.",
+          className: "bg-slate-900 border-purple-500/30 text-purple-200"
+        });
+      }
+      setRooms(roomList);
+    }, (err) => {
+      console.error("Error listing rooms:", err);
+    });
+
+    return () => unsubscribe();
+  }, [user, isGuest, nickname, isAdmin]);
+
+  // 3. Real-Time Messages Sync Hook (Firestore)
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "lingoland_roleplay_rooms") {
-        loadRoomsAndPurgeExpired();
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+    if (!activeRoomId) {
+      setMessages([]);
+      return;
+    }
+    const q = query(collection(db, "roleplay_rooms", activeRoomId, "messages"), orderBy("timestamp", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs: ChatMessage[] = [];
+      snapshot.forEach((doc) => {
+        msgs.push({ id: doc.id, ...doc.data() } as ChatMessage);
+      });
+      setMessages(msgs);
+    }, (err) => {
+      console.error("Error loading messages:", err);
+    });
+    return () => unsubscribe();
+  }, [activeRoomId]);
 
-  // Listen for invitation link query params
+  // 4. Invite Link Query Parameters Hook
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const inviteId = params.get("roomInvite");
-      const inviteName = params.get("roomName");
-      const inviteScenario = params.get("roomScenario");
-      const inviteTimer = params.get("roomTimer");
-      const inviteDueDate = params.get("roomDue");
-      const invitePass = params.get("roomPass");
-      const invitePrivate = params.get("roomPrivate");
 
       if (inviteId) {
-        // Ensure private rooms are added to unlocked list
-        const unlocked = JSON.parse(localStorage.getItem("lingoland_unlocked_private_rooms") || "[]");
-        if (!unlocked.includes(inviteId)) {
-          unlocked.push(inviteId);
-          localStorage.setItem("lingoland_unlocked_private_rooms", JSON.stringify(unlocked));
-          setUnlockedPrivateRooms(unlocked);
-        }
-
-        let roomToJoin: RoleplayRoom | null = null;
-        
-        // Check local storage rooms list first
-        const storedRoomsStr = localStorage.getItem("lingoland_roleplay_rooms");
-        let storedRooms: RoleplayRoom[] = [];
-        if (storedRoomsStr) {
-          try {
-            storedRooms = JSON.parse(storedRoomsStr) as RoleplayRoom[];
-          } catch (e) {}
-        }
-        
-        const existingRoom = storedRooms.find(r => r.id === inviteId);
-        if (existingRoom) {
-          roomToJoin = existingRoom;
-        } else if (inviteName && inviteScenario) {
-          // Reconstruct room from URL params
-          const sharedRoom: RoleplayRoom = {
-            id: inviteId,
-            name: inviteName,
-            scenario: inviteScenario,
-            timerMinutes: inviteTimer ? Number(inviteTimer) : 15,
-            dueDate: inviteDueDate || new Date(Date.now() + 86400000 * 7).toISOString().split("T")[0],
-            password: invitePass || undefined,
-            isPrivate: invitePrivate === "true",
-            messages: [
-              {
-                id: "msg-invite-welcome-" + Date.now(),
-                senderName: "System",
-                senderSeat: "SYS",
-                senderRole: "System Notification",
-                content: `You have successfully joined "${inviteName}" created by another student. Start brainstorming!`,
-                type: "text",
-                timestamp: Date.now()
-              }
-            ],
-            notes: [],
-            creatorName: "Other Student"
-          };
-          storedRooms.push(sharedRoom);
-          localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(storedRooms));
-          roomToJoin = sharedRoom;
-        }
-
         // Clear query param so it doesn't stay in the URL bar permanently
         window.history.replaceState({}, document.title, window.location.pathname);
 
-        if (roomToJoin) {
-          // Force refresh room list to load the new room in local state
-          loadRoomsAndPurgeExpired();
-          
-          // Check if the room requires password authentication
-          if (roomToJoin.password) {
-            setPasswordGateRoomId(roomToJoin.id);
-            setRoomPasswordInput("");
-            toast({
-              title: "Room is Locked 🔑🛡️",
-              description: "This collaborative room is password-restricted. Please enter the password to join.",
-              className: "bg-slate-900 border-amber-500/30 text-amber-200"
-            });
-          } else {
-            // Join the room automatically!
-            setActiveRoomId(roomToJoin.id);
-            toast({
-              title: "Collaborative Room Joined! 🔗✨",
-              description: "You have joined the roleplay session via invitation link.",
-              className: "bg-slate-900 border-purple-500/30 text-purple-200"
-            });
+        const checkAndJoin = async () => {
+          try {
+            // Find in current loaded state first
+            const existingRoom = rooms.find(r => r.id === inviteId);
+            if (existingRoom) {
+              joinOrPromptPassword(existingRoom);
+            } else {
+              // Fetch directly from Firestore
+              const docRef = doc(db, "roleplay_rooms", inviteId);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                const roomData = docSnap.data();
+                const fetchedRoom: RoleplayRoom = {
+                  id: docSnap.id,
+                  name: roomData.name,
+                  password: roomData.password,
+                  scenario: roomData.scenario,
+                  dueDate: roomData.dueDate,
+                  timerMinutes: roomData.timerMinutes,
+                  timerStartedAt: roomData.timerStartedAt,
+                  creatorUid: roomData.creatorUid || "",
+                  creatorName: roomData.creatorName || "Student",
+                  isPrivate: roomData.isPrivate || false,
+                  notes: roomData.notes || []
+                };
+                joinOrPromptPassword(fetchedRoom);
+              } else {
+                toast({
+                  title: "Shared Room Not Found 🔍❌",
+                  description: "This collaborative room does not exist in the database.",
+                  variant: "destructive"
+                });
+              }
+            }
+          } catch (err) {
+            console.error("Error looking up room:", err);
           }
-        } else {
-          // Display descriptive toast warning instead of letting the user get stuck on loading screen
-          toast({
-            title: "Shared Room Not Found 🔍❌",
-            description: "This collaborative room is not in your local history, and the invitation link is missing setup metadata. Please request the full setup link from the creator.",
-            variant: "destructive"
-          });
-        }
+        };
+
+        checkAndJoin();
       }
     }
   }, [rooms.length]);
 
+  const joinOrPromptPassword = (room: RoleplayRoom) => {
+    // Add to unlocked list if private
+    if (room.isPrivate) {
+      const unlocked = JSON.parse(localStorage.getItem("lingoland_unlocked_private_rooms") || "[]");
+      if (!unlocked.includes(room.id)) {
+        unlocked.push(room.id);
+        localStorage.setItem("lingoland_unlocked_private_rooms", JSON.stringify(unlocked));
+        setUnlockedPrivateRooms(unlocked);
+      }
+    }
+
+    if (room.password) {
+      setPasswordGateRoomId(room.id);
+      setRoomPasswordInput("");
+      toast({
+        title: "Room is Locked 🔑🛡️",
+        description: "This collaborative room is password-restricted. Please enter the password to join.",
+        className: "bg-slate-900 border-amber-500/30 text-amber-200"
+      });
+    } else {
+      setActiveRoomId(room.id);
+      toast({
+        title: "Collaborative Room Joined! 🔗✨",
+        description: "You have joined the roleplay session via invitation link.",
+        className: "bg-slate-900 border-purple-500/30 text-purple-200"
+      });
+    }
+  };
+
   // Scroll Chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeRoomId, rooms]);
+  }, [activeRoomId, messages]);
 
   // Clean up audio elements, recording timers, and microphone streams on unmount
   useEffect(() => {
@@ -378,10 +391,24 @@ export default function RoleplayWorkspacePage() {
   // Filter rooms based on privacy and sharing link list
   const visibleRooms = rooms.filter(room => {
     if (!room.isPrivate) return true;
-    return room.creatorName === nickname || unlockedPrivateRooms.includes(room.id);
+    const isCreator = (user && !isGuest && room.creatorUid === user.uid) || room.creatorName === nickname;
+    return isCreator || unlockedPrivateRooms.includes(room.id);
   });
 
-  // Active Timer Countdown logic
+  // Check if current user is room creator (to control timer / delete etc.)
+  const canControlTimer = currentRoom ? (
+    isAdmin || 
+    (user && !isGuest && currentRoom.creatorUid === user.uid) ||
+    (currentRoom.creatorName === nickname)
+  ) : false;
+
+  const isRoomCreator = (room: RoleplayRoom) => {
+    return isAdmin || 
+      (user && !isGuest && room.creatorUid === user.uid) ||
+      (room.creatorName === nickname);
+  };
+
+  // Active Room Timer Countdown logic (Firestore Synced)
   useEffect(() => {
     if (!currentRoom || !currentRoom.timerStartedAt) {
       setTimeLeft(null);
@@ -408,7 +435,7 @@ export default function RoleplayWorkspacePage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeRoomId, currentRoom?.timerStartedAt, rooms]);
+  }, [activeRoomId, currentRoom?.timerStartedAt, currentRoom?.timerMinutes]);
 
   // 3. User Setup registration handler
   const handleRegister = (e: React.FormEvent) => {
@@ -439,8 +466,8 @@ export default function RoleplayWorkspacePage() {
     setSeatNo("");
   };
 
-  // 4. Room Creation Handler (Teachers/Admin)
-  const handleCreateRoom = (e: React.FormEvent) => {
+  // 4. Room Creation Handler (Firestore)
+  const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRoomName.trim()) {
       toast({
@@ -463,59 +490,93 @@ export default function RoleplayWorkspacePage() {
       ? customScenario.trim() || "Custom Roleplay Scenario" 
       : scenarioPresets.find(s => s.id === newRoomScenarioId)?.title || "Standard Scenario";
 
-    const newRoom: RoleplayRoom = {
-      id: "room-" + Date.now(),
+    const roomId = "room-" + Date.now();
+    const newRoom: Omit<RoleplayRoom, "messages"> = {
+      id: roomId,
       name: newRoomName.trim(),
       password: newRoomPassword.trim() || undefined,
       scenario: scenarioText,
       dueDate: newRoomDueDate,
       timerMinutes: newRoomTimer,
-      messages: [],
-      notes: [],
+      creatorUid: user?.uid || "guest-" + nickname,
       creatorName: nickname || "Student",
-      isPrivate: newRoomIsPrivate
+      isPrivate: newRoomIsPrivate,
+      notes: []
     };
 
-    const updatedRooms = [...rooms, newRoom];
-    setRooms(updatedRooms);
-    localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updatedRooms));
-    
-    // Reset room form state
-    setNewRoomName("");
-    setNewRoomPassword("");
-    setNewRoomDueDate("");
-    setNewRoomTimer(15);
-    setNewRoomIsPrivate(false);
-    setShowCreatePanel(false);
-    
-    toast({
-      title: "Roleplay Room Created! 🎓🛡️",
-      description: `"${newRoom.name}" has been registered successfully.`,
-      className: "bg-slate-900 border-purple-500/30 text-purple-200"
-    });
+    try {
+      await setDoc(doc(db, "roleplay_rooms", roomId), newRoom);
+      
+      // Reset room form state
+      setNewRoomName("");
+      setNewRoomPassword("");
+      setNewRoomDueDate("");
+      setNewRoomTimer(15);
+      setNewRoomIsPrivate(false);
+      setShowCreatePanel(false);
+      
+      toast({
+        title: "Roleplay Room Created! 🎓🛡️",
+        description: `"${newRoom.name}" has been registered successfully.`,
+        className: "bg-slate-900 border-purple-500/30 text-purple-200"
+      });
+    } catch (error) {
+      console.error("Error creating room:", error);
+      toast({
+        title: "Error Creating Room",
+        description: "Could not sync room to database. Check connection.",
+        variant: "destructive"
+      });
+    }
   };
 
-  // 5. Delete Room Handler (Admins & Creator only)
-  const handleDeleteRoom = (id: string, e: React.MouseEvent) => {
+  // 5. Delete Room Handler (Firestore - Admins & Creator only)
+  const handleDeleteRoom = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const targetRoom = rooms.find(r => r.id === id);
-    const isCreator = targetRoom?.creatorName === nickname;
-    if (!isAdmin && !isCreator) return;
+    if (!targetRoom) return;
+
+    if (!isRoomCreator(targetRoom)) {
+      toast({
+        title: "Access Denied",
+        description: "Only the teacher who created this room can delete it.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     const confirmDelete = window.confirm("Are you sure you want to permanently delete this collaborative room?");
     if (!confirmDelete) return;
 
-    const updated = rooms.filter(r => r.id !== id);
-    setRooms(updated);
-    localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updated));
-    if (activeRoomId === id) {
-      setActiveRoomId(null);
+    try {
+      // First batch delete messages
+      const messagesQuery = query(collection(db, "roleplay_rooms", id, "messages"));
+      const messagesSnapshot = await getDocs(messagesQuery);
+      const batch = writeBatch(db);
+      messagesSnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+
+      // Delete the room doc itself
+      await deleteDoc(doc(db, "roleplay_rooms", id));
+
+      if (activeRoomId === id) {
+        setActiveRoomId(null);
+      }
+      toast({
+        title: "Room Purged",
+        description: "Collaborative space has been removed completely.",
+        className: "bg-slate-900 border-rose-500/20 text-rose-300"
+      });
+    } catch (error) {
+      console.error("Error deleting room:", error);
+      toast({
+        title: "Deletion Failed ❌",
+        description: "Only authenticated creators or administrators can delete rooms from the database.",
+        variant: "destructive"
+      });
     }
-    toast({
-      title: "Room Purged",
-      description: "Collaborative space has been removed completely.",
-      className: "bg-slate-900 border-rose-500/20 text-rose-300"
-    });
   };
 
   // 6. Join Room Handlers
@@ -551,39 +612,46 @@ export default function RoleplayWorkspacePage() {
     }
   };
 
-  // 7. Timer Control
-  const handleStartTimer = () => {
+  // 7. Timer Control (Firestore Dynamic)
+  const handleStartTimer = async () => {
     if (!currentRoom) return;
-    const updated = rooms.map(r => {
-      if (r.id === currentRoom.id) {
-        return { ...r, timerStartedAt: Date.now() };
-      }
-      return r;
-    });
-    setRooms(updated);
-    localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updated));
-    toast({
-      title: "Timer Started! ⏱️",
-      description: `Countdown set to ${currentRoom.timerMinutes} minutes.`,
-      className: "bg-indigo-950 border-indigo-500 text-indigo-100"
-    });
+    if (!canControlTimer) {
+      toast({
+        title: "Host Action Only ⏱️🚫",
+        description: "Only the teacher/host can trigger the workspace countdown timer.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "roleplay_rooms", currentRoom.id), {
+        timerStartedAt: Date.now()
+      });
+      toast({
+        title: "Timer Started! ⏱️",
+        description: `Countdown set to ${currentRoom.timerMinutes} minutes.`,
+        className: "bg-indigo-950 border-indigo-500 text-indigo-100"
+      });
+    } catch (error) {
+      console.error("Error starting timer:", error);
+    }
   };
 
-  const handleResetTimer = () => {
+  const handleResetTimer = async () => {
     if (!currentRoom) return;
-    const updated = rooms.map(r => {
-      if (r.id === currentRoom.id) {
-        const copy = { ...r };
-        delete copy.timerStartedAt;
-        return copy;
-      }
-      return r;
-    });
-    setRooms(updated);
-    localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updated));
+    if (!canControlTimer) return;
+
+    try {
+      await updateDoc(doc(db, "roleplay_rooms", currentRoom.id), {
+        timerStartedAt: null
+      });
+    } catch (error) {
+      console.error("Error resetting timer:", error);
+    }
   };
 
-  // 8. Voice Messaging Audio Engine
+  // 8. Voice Messaging Audio Engine (Firebase Storage sync)
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -623,7 +691,7 @@ export default function RoleplayWorkspacePage() {
 
     const mediaRecorder = mediaRecorderRef.current;
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         // Stop all tracks on the stream to turn off the recording light/microphone
         if (audioStreamRef.current) {
           audioStreamRef.current.getTracks().forEach(track => track.stop());
@@ -631,10 +699,19 @@ export default function RoleplayWorkspacePage() {
         }
 
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
-        reader.onloadend = () => {
-          const base64Audio = reader.result as string;
+        
+        setIsUploadingVoice(true);
+        const uploadToast = toast({
+          title: "Uploading voice recording... 🎙️⏳",
+          description: "Syncing audio speaking file to secure cloud database.",
+          className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
+        });
+
+        try {
+          const messageId = "msg-" + Date.now();
+          const storageRef = ref(storage, `roleplay_audio/${currentRoom.id}/${messageId}.webm`);
+          const uploadSnapshot = await uploadBytes(storageRef, audioBlob);
+          const downloadUrl = await getDownloadURL(uploadSnapshot.ref);
           
           const voiceTextOptions = [
             "Let's practice the lost luggage dialogue now. Excuse me, my baggage is missing!",
@@ -650,7 +727,7 @@ export default function RoleplayWorkspacePage() {
           else if (currentRoom.scenario.includes("Flu")) chosenText = voiceTextOptions[3];
 
           const newVoiceMessage: ChatMessage = {
-            id: "msg-" + Date.now(),
+            id: messageId,
             senderName: nickname,
             senderSeat: seatNo || "N/A",
             senderRole: selectedRole,
@@ -658,24 +735,26 @@ export default function RoleplayWorkspacePage() {
             type: "voice",
             timestamp: Date.now(),
             audioDuration: recordingSeconds || 4,
-            audioUrl: base64Audio
+            audioUrl: downloadUrl
           };
 
-          const updatedRooms = rooms.map(r => {
-            if (r.id === currentRoom.id) {
-              return { ...r, messages: [...(r.messages || []), newVoiceMessage] };
-            }
-            return r;
-          });
+          await setDoc(doc(db, "roleplay_rooms", currentRoom.id, "messages", messageId), newVoiceMessage);
 
-          setRooms(updatedRooms);
-          localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updatedRooms));
           toast({
             title: "Voice Message Sent! 🎙️🚀",
             description: "Your real headset voice note has been added to the chat.",
             className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
           });
-        };
+        } catch (error) {
+          console.error("Error uploading voice file:", error);
+          toast({
+            title: "Upload Failed 🎙️❌",
+            description: "Could not upload voice note. Please try again.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsUploadingVoice(false);
+        }
       };
       mediaRecorder.stop();
     } else {
@@ -709,20 +788,15 @@ export default function RoleplayWorkspacePage() {
         audioDuration: recordingSeconds || 4
       };
 
-      const updatedRooms = rooms.map(r => {
-        if (r.id === currentRoom.id) {
-          return { ...r, messages: [...(r.messages || []), newVoiceMessage] };
-        }
-        return r;
-      });
-
-      setRooms(updatedRooms);
-      localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updatedRooms));
-      toast({
-        title: "Voice Message Sent! 🎙️🚀",
-        description: "Synthesized audio preview created dynamically.",
-        className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
-      });
+      setDoc(doc(db, "roleplay_rooms", currentRoom.id, "messages", newVoiceMessage.id), newVoiceMessage)
+        .then(() => {
+          toast({
+            title: "Voice Message Sent! 🎙️🚀",
+            description: "Synthesized audio preview created dynamically.",
+            className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
+          });
+        })
+        .catch(err => console.error("Error saving voice message:", err));
     }
   };
 
@@ -887,7 +961,7 @@ export default function RoleplayWorkspacePage() {
     setCurrentPlayingSeqIndex(index);
 
     const nextMsgId = sequencedMessageIds[index];
-    const msg = (currentRoom?.messages || []).find(m => m.id === nextMsgId);
+    const msg = messages.find(m => m.id === nextMsgId);
     if (!msg) {
       handlePlaySequence(index + 1);
       return;
@@ -950,13 +1024,21 @@ export default function RoleplayWorkspacePage() {
     }
   };
 
-  // 9. Standard Text Message handler
-  const handleSendMessage = (e: React.FormEvent) => {
+  // 9. Standard Text Message handler (Firestore Collection)
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim() || !currentRoom) return;
 
-    const newMessage: ChatMessage = {
-      id: "msg-" + Date.now(),
+    if (containsBadWord(chatInput)) {
+      toast({
+        title: "Message Restricted 🚫",
+        description: "Your message contains inappropriate language and cannot be sent.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newMessage: Omit<ChatMessage, "id"> = {
       senderName: nickname,
       senderSeat: seatNo || "N/A",
       senderRole: selectedRole,
@@ -965,22 +1047,32 @@ export default function RoleplayWorkspacePage() {
       timestamp: Date.now()
     };
 
-    const updatedRooms = rooms.map(r => {
-      if (r.id === currentRoom.id) {
-        return { ...r, messages: [...(r.messages || []), newMessage] };
-      }
-      return r;
-    });
-
-    setRooms(updatedRooms);
-    localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updatedRooms));
-    setChatInput("");
+    try {
+      await addDoc(collection(db, "roleplay_rooms", currentRoom.id, "messages"), newMessage);
+      setChatInput("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: "Send Failed ❌",
+        description: "Could not deliver message to Firestore.",
+        variant: "destructive"
+      });
+    }
   };
 
-  // 10. Whiteboard Brainstorm Sticky notes handler
-  const handleAddStickyNote = (e: React.FormEvent) => {
+  // 10. Whiteboard Brainstorm Sticky notes handler (Firestore Update)
+  const handleAddStickyNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNoteContent.trim() || !currentRoom) return;
+
+    if (containsBadWord(newNoteContent)) {
+      toast({
+        title: "Note Restricted 🚫",
+        description: "Your brainstorm note contains inappropriate language and cannot be pinned.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const newNote: StickyNote = {
       id: "note-" + Date.now(),
@@ -992,36 +1084,39 @@ export default function RoleplayWorkspacePage() {
       y: Math.floor(Math.random() * 50) + 10
     };
 
-    const updatedRooms = rooms.map(r => {
-      if (r.id === currentRoom.id) {
-        return { ...r, notes: [...(r.notes || []), newNote] };
-      }
-      return r;
-    });
-
-    setRooms(updatedRooms);
-    localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updatedRooms));
-    setNewNoteContent("");
-    
-    toast({
-      title: "Note Pinned! 📌",
-      description: "Brainstorm card synced to whiteboard.",
-      className: "bg-slate-900 border-indigo-500/20 text-indigo-200 animate-in fade-in"
-    });
+    try {
+      const updatedNotes = [...(currentRoom.notes || []), newNote];
+      await updateDoc(doc(db, "roleplay_rooms", currentRoom.id), {
+        notes: updatedNotes
+      });
+      setNewNoteContent("");
+      
+      toast({
+        title: "Note Pinned! 📌",
+        description: "Brainstorm card synced to whiteboard.",
+        className: "bg-slate-900 border-indigo-500/20 text-indigo-200 animate-in fade-in"
+      });
+    } catch (error) {
+      console.error("Error adding sticky note:", error);
+      toast({
+        title: "Note Pin Failed",
+        description: "Could not upload card. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleDeleteStickyNote = (noteId: string) => {
+  const handleDeleteStickyNote = async (noteId: string) => {
     if (!currentRoom) return;
 
-    const updatedRooms = rooms.map(r => {
-      if (r.id === currentRoom.id) {
-        return { ...r, notes: (r.notes || []).filter(n => n.id !== noteId) };
-      }
-      return r;
-    });
-
-    setRooms(updatedRooms);
-    localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(updatedRooms));
+    try {
+      const updatedNotes = (currentRoom.notes || []).filter(n => n.id !== noteId);
+      await updateDoc(doc(db, "roleplay_rooms", currentRoom.id), {
+        notes: updatedNotes
+      });
+    } catch (error) {
+      console.error("Error deleting note:", error);
+    }
   };
 
   return (
@@ -1182,7 +1277,7 @@ export default function RoleplayWorkspacePage() {
                                 Private Link
                               </Badge>
                             )}
-                            {(isAdmin || room.creatorName === nickname) && (
+                            {(isAdmin || isRoomCreator(room)) && (
                               <Button 
                                 size="icon"
                                 variant="ghost"
@@ -1422,25 +1517,33 @@ export default function RoleplayWorkspacePage() {
                         <span className="text-lg font-black text-slate-500 font-mono">
                           {currentRoom?.timerMinutes || 15}:00
                         </span>
-                        <Button size="sm" onClick={handleStartTimer} className="h-6 px-3 bg-purple-600/10 border border-purple-500/30 text-purple-400 text-[9px] font-black uppercase tracking-wider rounded-lg">
-                          Start Timer
-                        </Button>
+                        {canControlTimer ? (
+                          <Button size="sm" onClick={handleStartTimer} className="h-6 px-3 bg-purple-650/10 border border-purple-500/30 text-purple-400 text-[9px] font-black uppercase tracking-wider rounded-lg">
+                            Start Timer
+                          </Button>
+                        ) : (
+                          <span className="text-[10px] text-slate-500 uppercase font-bold animate-pulse">Waiting for host</span>
+                        )}
                       </div>
                     ) : timeLeft === 0 ? (
                       <div className="text-center">
                         <span className="text-xs font-black text-rose-500 uppercase tracking-widest block animate-pulse">Time Expired</span>
-                        <Button size="sm" onClick={handleResetTimer} className="h-5 px-2 bg-slate-900 border border-slate-800 text-slate-400 text-[8px] font-black uppercase tracking-wider rounded-lg mt-1">
-                          <RotateCcw className="h-2 w-2 mr-1" /> Reset
-                        </Button>
+                        {canControlTimer && (
+                          <Button size="sm" onClick={handleResetTimer} className="h-5 px-2 bg-slate-900 border border-slate-850 text-slate-400 text-[8px] font-black uppercase tracking-wider rounded-lg mt-1">
+                            <RotateCcw className="h-2 w-2 mr-1" /> Reset
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center">
                         <span className="text-2xl font-black text-purple-400 font-mono tracking-wider animate-pulse">
                           {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
                         </span>
-                        <Button size="sm" onClick={handleResetTimer} className="h-5 px-2 bg-slate-900 border border-slate-800 text-slate-400 text-[8px] font-black uppercase tracking-wider rounded-lg mt-1">
-                          <RotateCcw className="h-2 w-2 mr-1" /> Reset
-                        </Button>
+                        {canControlTimer && (
+                          <Button size="sm" onClick={handleResetTimer} className="h-5 px-2 bg-slate-900 border border-slate-850 text-slate-400 text-[8px] font-black uppercase tracking-wider rounded-lg mt-1">
+                            <RotateCcw className="h-2 w-2 mr-1" /> Reset
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1486,7 +1589,7 @@ export default function RoleplayWorkspacePage() {
 
                   {/* Messages Feed body */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[400px]">
-                    {(currentRoom?.messages || []).length === 0 ? (
+                    {messages.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500 space-y-1.5">
                         <MessageSquare className="h-8 w-8 text-slate-700" />
                         <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-400">The Dialogue is empty</h4>
@@ -1495,11 +1598,11 @@ export default function RoleplayWorkspacePage() {
                         </p>
                       </div>
                     ) : (
-                      (currentRoom?.messages || []).map((msg) => (
+                      messages.map((msg) => (
                         <div key={msg.id} className="flex flex-col text-left space-y-1">
                           <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wide">
                             <span className="text-purple-400">{msg.senderName}</span>
-                            <Badge variant="outline" className="text-[8px] px-1 border-slate-800 bg-slate-950 text-slate-500">Seat {msg.senderSeat}</Badge>
+                            <Badge variant="outline" className="text-[8px] px-1 border-slate-880 bg-slate-950 text-slate-500">Seat {msg.senderSeat}</Badge>
                             <span className="text-slate-600 font-medium">({msg.senderRole})</span>
                           </div>
 
@@ -1510,7 +1613,7 @@ export default function RoleplayWorkspacePage() {
                               /* Interactive speaking audio note */
                               <div className="flex items-center gap-3">
                                 {activeAudioMessageId === msg.id ? (
-                                  <Button size="icon" onClick={handleStopAudioMessage} className="h-8 w-8 bg-rose-600 hover:bg-rose-500 rounded-full shrink-0 text-white animate-pulse">
+                                  <Button size="icon" onClick={handleStopAudioMessage} className="h-8 w-8 bg-rose-650 hover:bg-rose-600 rounded-full shrink-0 text-white animate-pulse">
                                     <Pause className="h-4 w-4" />
                                   </Button>
                                 ) : (
@@ -1568,9 +1671,16 @@ export default function RoleplayWorkspacePage() {
                           <span className="w-0.5 h-4 bg-red-500 rounded-full animate-bounce [animation-delay:0.4s]" />
                           <span className="w-0.5 h-3 bg-red-500 rounded-full" />
                         </div>
-                        <Button onClick={stopAndSendVoice} className="bg-red-600 hover:bg-red-500 text-white font-extrabold text-[10px] uppercase h-8 px-4 rounded-xl shadow-lg shadow-red-600/20 flex items-center gap-1.5">
+                        <Button onClick={stopAndSendVoice} className="bg-red-650 hover:bg-red-600 text-white font-extrabold text-[10px] uppercase h-8 px-4 rounded-xl shadow-lg shadow-red-600/20 flex items-center gap-1.5">
                           <Square className="h-3.5 w-3.5" /> Stop & Send Note
                         </Button>
+                      </div>
+                    ) : isUploadingVoice ? (
+                      <div className="flex items-center justify-center p-3 bg-indigo-950/20 border border-indigo-500/20 rounded-2xl">
+                        <div className="h-4 w-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mr-2" />
+                        <span className="text-xs font-black uppercase text-indigo-400 tracking-wider">
+                          Uploading Voice Speaking Note...
+                        </span>
                       </div>
                     ) : (
                       /* Text and microphone input feed Form */
@@ -1584,7 +1694,7 @@ export default function RoleplayWorkspacePage() {
                           placeholder="Type something to coordinate dialogs..."
                           className="flex-1 bg-slate-950 border-slate-850 h-11 rounded-xl text-xs placeholder:text-slate-600 focus-visible:ring-purple-500"
                         />
-                        <Button type="submit" className="bg-purple-600 hover:bg-purple-500 text-white rounded-xl h-11 px-4 shrink-0 flex items-center justify-center">
+                        <Button type="submit" className="bg-purple-650 hover:bg-purple-600 text-white rounded-xl h-11 px-4 shrink-0 flex items-center justify-center">
                           <Send className="h-4 w-4" />
                         </Button>
                       </form>
@@ -1620,7 +1730,7 @@ export default function RoleplayWorkspacePage() {
                               size="sm" 
                               variant="ghost"
                               onClick={() => setSequencedMessageIds([])} 
-                              className="h-6 px-2 text-slate-500 hover:text-slate-355 text-[9px] font-bold uppercase"
+                              className="h-6 px-2 text-slate-500 hover:text-slate-300 text-[9px] font-bold uppercase"
                             >
                               Clear
                             </Button>
@@ -1629,15 +1739,15 @@ export default function RoleplayWorkspacePage() {
                       </div>
 
                       {/* List of voice clips inside active room */}
-                      {!currentRoom || (currentRoom?.messages || []).filter(m => m.type === "voice").length === 0 ? (
-                        <p className="text-[9px] text-slate-600 italic select-none">
+                      {messages.filter(m => m.type === "voice").length === 0 ? (
+                        <p className="text-[9px] text-slate-650 italic select-none">
                           No voice clips recorded in this room yet. Send a voice note above to start sequencing!
                         </p>
                       ) : (
                         <div className="space-y-2">
                           {/* Playlist selector cards */}
                           <div className="flex flex-wrap gap-2 py-1 max-h-[85px] overflow-y-auto pr-1">
-                            {(currentRoom?.messages || []).filter(m => m.type === "voice").map((msg) => {
+                            {messages.filter(m => m.type === "voice").map((msg) => {
                               const isSelected = sequencedMessageIds.includes(msg.id);
                               return (
                                 <button
@@ -1654,7 +1764,7 @@ export default function RoleplayWorkspacePage() {
                                     type="checkbox" 
                                     checked={isSelected}
                                     readOnly
-                                    className="h-3 w-3 rounded text-purple-600 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                                    className="h-3 w-3 rounded text-purple-650 focus:ring-0 focus:ring-offset-0 cursor-pointer bg-slate-950"
                                   />
                                   <div className="min-w-0 flex-1">
                                     <p className="text-[9px] font-bold truncate leading-tight">{msg.senderName}</p>
@@ -1669,11 +1779,11 @@ export default function RoleplayWorkspacePage() {
                           {sequencedMessageIds.length > 0 && (
                             <div className="mt-2.5 bg-slate-950/60 border border-slate-850 rounded-2xl p-2 select-none">
                               <span className="text-[8px] font-black uppercase text-purple-400 tracking-wider block mb-1">
-                                Dialogue Sequence Order (Drag/Reorder):
+                                Dialogue Sequence Order (Reorder Clips):
                               </span>
                               <div className="flex flex-wrap gap-1.5 max-h-[90px] overflow-y-auto pr-1">
                                 {sequencedMessageIds.map((id, index) => {
-                                  const msg = (currentRoom?.messages || []).find(m => m.id === id);
+                                  const msg = messages.find(m => m.id === id);
                                   if (!msg) return null;
                                   const isCurrentlyPlaying = isSequencePlaying && currentPlayingSeqIndex === index;
                                   return (
@@ -1682,7 +1792,7 @@ export default function RoleplayWorkspacePage() {
                                       className={`px-2 py-1 rounded-lg border text-[9px] font-bold flex items-center gap-1.5 transition-all ${
                                         isCurrentlyPlaying
                                           ? "bg-purple-600/20 border-purple-500 text-purple-100 shadow-[0_0_8px_rgba(147,51,234,0.2)] animate-pulse"
-                                          : "bg-slate-900 border-slate-800/80 text-slate-350"
+                                          : "bg-slate-900 border-slate-800/80 text-slate-300"
                                       }`}
                                     >
                                       <span className="opacity-50 text-[8px]">{index + 1}.</span>
@@ -1733,7 +1843,7 @@ export default function RoleplayWorkspacePage() {
                   <div className="flex-1 p-4 flex flex-col space-y-4">
                     {/* Write new note panel */}
                     <form onSubmit={handleAddStickyNote} className="space-y-3 bg-slate-950/40 p-3 rounded-2xl border border-slate-850 text-left select-none">
-                      <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest block mb-1">Pin New Idea Card</span>
+                      <span className="text-[9px] font-black uppercase text-slate-550 tracking-widest block mb-1">Pin New Idea Card</span>
                       <Textarea
                         value={newNoteContent}
                         onChange={(e) => setNewNoteContent(e.target.value)}
@@ -1761,7 +1871,7 @@ export default function RoleplayWorkspacePage() {
                           ))}
                         </div>
 
-                        <Button type="submit" className="bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-[9px] uppercase h-7 rounded-lg">
+                        <Button type="submit" className="bg-purple-650 hover:bg-purple-600 text-white font-extrabold text-[9px] uppercase h-7 rounded-lg">
                           Pin Note
                         </Button>
                       </div>
@@ -1770,7 +1880,7 @@ export default function RoleplayWorkspacePage() {
                     {/* Scrollable container of sticky notes */}
                     <div className="flex-1 overflow-y-auto max-h-[300px] space-y-3 pr-1">
                       {(currentRoom?.notes || []).length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-600 space-y-1">
+                        <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-650 space-y-1">
                           <FileText className="h-8 w-8 text-slate-800" />
                           <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400">Board is Empty</h4>
                           <p className="text-[9px] max-w-xs leading-normal">
@@ -1820,7 +1930,7 @@ export default function RoleplayWorkspacePage() {
             /* Graceful Room Loading/Fallback View */
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-3 border border-dashed border-slate-850 rounded-3xl bg-slate-900/10 min-h-[300px]">
               <span className="text-4xl animate-pulse">⏳</span>
-              <h4 className="text-sm font-bold text-slate-350">Loading Roleplay Room...</h4>
+              <h4 className="text-sm font-bold text-slate-300">Loading Roleplay Room...</h4>
               <p className="text-slate-500 text-[10px] uppercase tracking-wider max-w-xs leading-relaxed">
                 Please wait while the shared room credentials and details are established.
               </p>

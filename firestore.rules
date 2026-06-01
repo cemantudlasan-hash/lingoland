@@ -119,9 +119,36 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+
     match /stats/{statId} {
       allow read: if true;
       allow write: if true;
+    }
+
+    // ── Roleplay Workspace ──────────────────────────────────────────────────
+    match /roleplay_rooms/{roomId} {
+      // Anyone can read room metadata (needed for invite links, guest students, lobby)
+      allow read: if true;
+
+      // Anyone can create a room (guest teachers included — enforced at app level)
+      allow create: if true;
+
+      // Anyone can update room fields: notes, timerStartedAt, etc. (app-level guards used)
+      allow update: if true;
+
+      // Only authenticated creator or admin can permanently delete a room
+      allow delete: if (request.auth != null && (
+        resource.data.creatorUid == request.auth.uid || isAdmin()
+      ));
+
+      match /messages/{messageId} {
+        allow read: if true;
+        // Any user (including guests) can post messages
+        allow create: if true;
+        // Only admin can delete individual messages
+        allow delete: if request.auth != null && isAdmin();
+        allow update: if false;
+      }
     }
   }
 }
@@ -131,6 +158,10 @@ service firebase.storage {
     match /users/{userId}/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /roleplay_audio/{allPaths=**} {
+      allow read: if true;
+      allow write: if true;
     }
     match /{allPaths=**} {
       allow read: if true;
