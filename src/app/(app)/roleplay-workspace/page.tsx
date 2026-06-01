@@ -254,59 +254,82 @@ export default function RoleplayWorkspacePage() {
           setUnlockedPrivateRooms(unlocked);
         }
 
-        // If metadata is present, check and register room in local rooms list if missing!
-        if (inviteName && inviteScenario) {
-          const storedRoomsStr = localStorage.getItem("lingoland_roleplay_rooms");
-          let storedRooms: RoleplayRoom[] = [];
-          if (storedRoomsStr) {
-            try {
-              storedRooms = JSON.parse(storedRoomsStr) as RoleplayRoom[];
-            } catch (e) {}
-          }
-          
-          const roomExists = storedRooms.some(r => r.id === inviteId);
-          if (!roomExists) {
-            const sharedRoom: RoleplayRoom = {
-              id: inviteId,
-              name: inviteName,
-              scenario: inviteScenario,
-              timerMinutes: inviteTimer ? Number(inviteTimer) : 15,
-              dueDate: inviteDueDate || new Date(Date.now() + 86400000 * 7).toISOString().split("T")[0],
-              password: invitePass || undefined,
-              isPrivate: invitePrivate === "true",
-              messages: [
-                {
-                  id: "msg-invite-welcome-" + Date.now(),
-                  senderName: "System",
-                  senderSeat: "SYS",
-                  senderRole: "System Notification",
-                  content: `You have successfully joined "${inviteName}" created by another student. Start brainstorming!`,
-                  type: "text",
-                  timestamp: Date.now()
-                }
-              ],
-              notes: [],
-              creatorName: "Other Student"
-            };
-            storedRooms.push(sharedRoom);
-            localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(storedRooms));
-          }
+        let roomToJoin: RoleplayRoom | null = null;
+        
+        // Check local storage rooms list first
+        const storedRoomsStr = localStorage.getItem("lingoland_roleplay_rooms");
+        let storedRooms: RoleplayRoom[] = [];
+        if (storedRoomsStr) {
+          try {
+            storedRooms = JSON.parse(storedRoomsStr) as RoleplayRoom[];
+          } catch (e) {}
+        }
+        
+        const existingRoom = storedRooms.find(r => r.id === inviteId);
+        if (existingRoom) {
+          roomToJoin = existingRoom;
+        } else if (inviteName && inviteScenario) {
+          // Reconstruct room from URL params
+          const sharedRoom: RoleplayRoom = {
+            id: inviteId,
+            name: inviteName,
+            scenario: inviteScenario,
+            timerMinutes: inviteTimer ? Number(inviteTimer) : 15,
+            dueDate: inviteDueDate || new Date(Date.now() + 86400000 * 7).toISOString().split("T")[0],
+            password: invitePass || undefined,
+            isPrivate: invitePrivate === "true",
+            messages: [
+              {
+                id: "msg-invite-welcome-" + Date.now(),
+                senderName: "System",
+                senderSeat: "SYS",
+                senderRole: "System Notification",
+                content: `You have successfully joined "${inviteName}" created by another student. Start brainstorming!`,
+                type: "text",
+                timestamp: Date.now()
+              }
+            ],
+            notes: [],
+            creatorName: "Other Student"
+          };
+          storedRooms.push(sharedRoom);
+          localStorage.setItem("lingoland_roleplay_rooms", JSON.stringify(storedRooms));
+          roomToJoin = sharedRoom;
         }
 
-        // Force refresh room list to load the new room
-        loadRoomsAndPurgeExpired();
-        
-        // Join the room automatically!
-        setActiveRoomId(inviteId);
-        
         // Clear query param so it doesn't stay in the URL bar permanently
         window.history.replaceState({}, document.title, window.location.pathname);
-        
-        toast({
-          title: "Collaborative Room Joined! 🔗✨",
-          description: "You have joined the roleplay session via invitation link.",
-          className: "bg-slate-900 border-purple-500/30 text-purple-200"
-        });
+
+        if (roomToJoin) {
+          // Force refresh room list to load the new room in local state
+          loadRoomsAndPurgeExpired();
+          
+          // Check if the room requires password authentication
+          if (roomToJoin.password) {
+            setPasswordGateRoomId(roomToJoin.id);
+            setRoomPasswordInput("");
+            toast({
+              title: "Room is Locked 🔑🛡️",
+              description: "This collaborative room is password-restricted. Please enter the password to join.",
+              className: "bg-slate-900 border-amber-500/30 text-amber-200"
+            });
+          } else {
+            // Join the room automatically!
+            setActiveRoomId(roomToJoin.id);
+            toast({
+              title: "Collaborative Room Joined! 🔗✨",
+              description: "You have joined the roleplay session via invitation link.",
+              className: "bg-slate-900 border-purple-500/30 text-purple-200"
+            });
+          }
+        } else {
+          // Display descriptive toast warning instead of letting the user get stuck on loading screen
+          toast({
+            title: "Shared Room Not Found 🔍❌",
+            description: "This collaborative room is not in your local history, and the invitation link is missing setup metadata. Please request the full setup link from the creator.",
+            variant: "destructive"
+          });
+        }
       }
     }
   }, [rooms.length]);
@@ -1545,6 +1568,14 @@ export default function RoleplayWorkspacePage() {
               <p className="text-slate-500 text-[10px] uppercase tracking-wider max-w-xs leading-relaxed">
                 Please wait while the shared room credentials and details are established.
               </p>
+              <Button 
+                onClick={() => setActiveRoomId(null)}
+                variant="outline" 
+                size="sm" 
+                className="mt-3 bg-slate-950 border-slate-850 text-slate-400 hover:text-slate-200 text-[10px] uppercase font-black tracking-widest rounded-lg h-8 px-4"
+              >
+                ← Back to Lobby
+              </Button>
             </div>
           )}
         </div>
