@@ -40,6 +40,7 @@ import {
   StickyNote,
   Egg,
   Store,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -59,6 +60,7 @@ const publicItems = [
   { href: "/lingo-pet", label: "Lingo-Pet", icon: Egg },
   { href: "/games", label: "Classroom Games", icon: Gamepad2 },
   { href: "/marketplace", label: "Tutor Marketplace", icon: Store },
+  { href: "/roleplay-workspace", label: "Roleplay Workspace", icon: Users },
   { href: "/storytelling", label: "AI Storytelling", icon: BookOpen },
   { href: "/classroom-tools", label: "Classroom Tools", icon: Wrench },
   { href: "/reader", label: "Reader", icon: BookOpen },

@@ -276,20 +276,23 @@ export default function MarketplacePage() {
 
       // Sync Peer Listings
       const storedPeer = localStorage.getItem('lingoland_peer_listings');
+      const deletedPeerPresets = JSON.parse(localStorage.getItem('lingoland_deleted_peer_presets') || '[]');
+      const activePresets = presetPeerListings.filter(p => !deletedPeerPresets.includes(p.id));
+      
       if (storedPeer) {
         try {
           const parsed = JSON.parse(storedPeer) as PeerListing[];
           // Clean out preset listings immediately
           const cleaned = parsed.filter(p => p.id !== 'peer-1' && p.id !== 'peer-2' && p.id !== 'peer-3');
-          setPeerListings([...presetPeerListings, ...cleaned]);
+          setPeerListings([...activePresets, ...cleaned]);
           localStorage.setItem('lingoland_peer_listings', JSON.stringify(cleaned));
         } catch (e) {
           console.error("Failed to parse peer listings", e);
-          setPeerListings(presetPeerListings);
+          setPeerListings(activePresets);
         }
       } else {
         localStorage.setItem('lingoland_peer_listings', JSON.stringify([]));
-        setPeerListings(presetPeerListings);
+        setPeerListings(activePresets);
       }
 
       // Sync Peer Reviews (Curated empty database by user request)
@@ -444,7 +447,20 @@ export default function MarketplacePage() {
     if (!isAdmin && !isOwner) return;
     const updated = peerListings.filter(p => p.id !== id);
     setPeerListings(updated);
-    localStorage.setItem('lingoland_peer_listings', JSON.stringify(updated));
+    
+    // Save to localStorage (filtering out presets)
+    const cleaned = updated.filter(p => p.id !== 'peer-1' && p.id !== 'peer-2' && p.id !== 'peer-3');
+    localStorage.setItem('lingoland_peer_listings', JSON.stringify(cleaned));
+    
+    // If it was a preset, add to deleted preset peers list!
+    if (id === 'peer-1' || id === 'peer-2' || id === 'peer-3') {
+      const deletedPeerPresets = JSON.parse(localStorage.getItem('lingoland_deleted_peer_presets') || '[]');
+      if (!deletedPeerPresets.includes(id)) {
+        deletedPeerPresets.push(id);
+        localStorage.setItem('lingoland_deleted_peer_presets', JSON.stringify(deletedPeerPresets));
+      }
+    }
+    
     setShowDeleteConfirm(null);
     toast({
       title: "Listing Deleted 🗑️",
@@ -1318,7 +1334,7 @@ export default function MarketplacePage() {
                               )}
                               <Button
                                 size="sm"
-                                onClick={() => handleDeletePeerListing(listing.id)}
+                                onClick={() => setShowDeleteConfirm(listing.id)}
                                 className="h-7 px-2.5 bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-slate-200 font-extrabold text-[9px] uppercase rounded-lg border border-slate-750"
                               >
                                 Delete
@@ -2026,7 +2042,7 @@ export default function MarketplacePage() {
               <div className="space-y-1.5">
                 <h3 className="text-lg font-black text-slate-100 uppercase tracking-widest">Delete Listing?</h3>
                 <p className="text-slate-400 text-xs leading-relaxed">
-                  This will permanently remove your peer listing from the marketplace. This action cannot be undone.
+                  This will permanently remove this peer tutoring listing from the marketplace. This action cannot be undone.
                 </p>
               </div>
               <div className="flex gap-3">
