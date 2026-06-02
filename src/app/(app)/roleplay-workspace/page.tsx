@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Users, MessageSquare, Trash2, Calendar, Lock, Unlock, Play, Pause, Mic, 
   Square, Plus, Sparkles, Clock, Crown, Settings, LogOut, Check, X, 
-  ShieldAlert, Award, FileText, Send, Volume2, RotateCcw, ListCollapse, ArrowUp, ArrowDown, Download, Loader2
+  ShieldAlert, Award, FileText, Send, Volume2, RotateCcw, ListCollapse, ArrowUp, ArrowDown, Download, Loader2,
+  HelpCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -213,6 +214,14 @@ export default function RoleplayWorkspacePage() {
   const [currentPlayingSeqIndex, setCurrentPlayingSeqIndex] = useState<number | null>(null);
   const [isExportingAudio, setIsExportingAudio] = useState(false);
 
+  // State: Background Music Generator
+  const [isBgmEnabled, setIsBgmEnabled] = useState(false);
+  const [bgmGenre, setBgmGenre] = useState("ambient");
+  const [bgmVolume, setBgmVolume] = useState(0.15);
+
+  // State: Help Guide popover tooltip
+  const [showHelpTooltip, setShowHelpTooltip] = useState(false);
+
   // State: Sticky Notes
   const [newNoteContent, setNewNoteContent] = useState("");
   const [newNoteColor, setNewNoteColor] = useState<"yellow" | "blue" | "pink" | "green" | "purple">("yellow");
@@ -231,6 +240,7 @@ export default function RoleplayWorkspacePage() {
   const audioStreamRef = useRef<MediaStream | null>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const sequenceAudioRef = useRef<HTMLAudioElement | null>(null);
+  const liveBgmCtxRef = useRef<AudioContext | null>(null);
 
   // 1. Initial Page Load & Profile Check
   useEffect(() => {
@@ -454,6 +464,12 @@ export default function RoleplayWorkspacePage() {
       if (audioStreamRef.current) {
         audioStreamRef.current.getTracks().forEach(track => track.stop());
         audioStreamRef.current = null;
+      }
+      if (liveBgmCtxRef.current) {
+        try {
+          liveBgmCtxRef.current.close();
+        } catch (e) {}
+        liveBgmCtxRef.current = null;
       }
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
@@ -1117,6 +1133,296 @@ export default function RoleplayWorkspacePage() {
     setSequencedMessageIds(newSeq);
   };
 
+  // Core background music scheduler using Web Audio API nodes
+  const scheduleBGM = (
+    ctx: BaseAudioContext,
+    destination: AudioNode,
+    duration: number,
+    genre: string,
+    volume: number
+  ) => {
+    const gainNode = ctx.createGain();
+    gainNode.gain.setValueAtTime(volume, ctx.currentTime);
+    gainNode.connect(destination);
+
+    if (genre === "ambient") {
+      const chords = [
+        [261.63, 329.63, 392.00, 493.88], // Cmaj7: C4, E4, G4, B4
+        [220.00, 261.63, 329.63, 392.00], // Am7: A3, C4, E4, G4
+        [349.23, 440.00, 261.63, 329.63], // Fmaj7: F3, A3, C4, E4
+        [196.00, 246.94, 293.66, 349.23], // G7: G3, B3, D4, F4
+      ];
+      const chordDuration = 6;
+      let time = 0;
+      let chordIndex = 0;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(800, ctx.currentTime);
+      filter.connect(gainNode);
+
+      while (time < duration) {
+        const currentChord = chords[chordIndex % chords.length];
+        const activeChordDuration = Math.min(chordDuration, duration - time);
+
+        currentChord.forEach((freq) => {
+          const osc = ctx.createOscillator();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, time);
+
+          const oscGain = ctx.createGain();
+          oscGain.gain.setValueAtTime(0, time);
+          oscGain.gain.linearRampToValueAtTime(0.25, time + 2);
+          oscGain.gain.setValueAtTime(0.25, time + activeChordDuration - 2 > time + 2 ? time + activeChordDuration - 2 : time + 2);
+          oscGain.gain.linearRampToValueAtTime(0, time + activeChordDuration);
+
+          osc.connect(oscGain);
+          oscGain.connect(filter);
+
+          osc.start(time);
+          osc.stop(time + activeChordDuration);
+        });
+
+        time += chordDuration;
+        chordIndex++;
+      }
+    } else if (genre === "electronic") {
+      const chords = [
+        [293.66, 349.23, 440.00, 523.25], // Dm7: D4, F4, A4, C5
+        [392.00, 493.88, 293.66, 349.23], // G7: G3, B3, D4, F4
+        [261.63, 329.63, 392.00, 493.88], // Cmaj7: C4, E4, G4, B4
+        [220.00, 277.18, 329.63, 392.00], // A7: A3, C#4, E4, G4
+      ];
+      const barDuration = 3.0;
+      let time = 0;
+      let chordIndex = 0;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(1000, ctx.currentTime);
+      filter.connect(gainNode);
+
+      while (time < duration) {
+        const activeBarDuration = Math.min(barDuration, duration - time);
+
+        // Kick Drum
+        [0.0, 1.5].forEach((kickOffset) => {
+          if (time + kickOffset < duration) {
+            const kickOsc = ctx.createOscillator();
+            const kickGain = ctx.createGain();
+            kickOsc.type = "sine";
+            kickOsc.frequency.setValueAtTime(150, time + kickOffset);
+            kickOsc.frequency.exponentialRampToValueAtTime(0.01, time + kickOffset + 0.15);
+            kickGain.gain.setValueAtTime(0.6, time + kickOffset);
+            kickGain.gain.exponentialRampToValueAtTime(0.01, time + kickOffset + 0.15);
+
+            kickOsc.connect(kickGain);
+            kickGain.connect(gainNode);
+
+            kickOsc.start(time + kickOffset);
+            kickOsc.stop(time + kickOffset + 0.2);
+          }
+        });
+
+        // Hi-Hats
+        [0.0, 0.75, 1.5, 2.25].forEach((hatOffset) => {
+          if (time + hatOffset < duration) {
+            const bufferSize = ctx.sampleRate * 0.05;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+              data[i] = Math.random() * 2 - 1;
+            }
+
+            const noiseNode = ctx.createBufferSource();
+            noiseNode.buffer = buffer;
+
+            const bandpass = ctx.createBiquadFilter();
+            bandpass.type = "bandpass";
+            bandpass.frequency.setValueAtTime(10000, time + hatOffset);
+            bandpass.Q.setValueAtTime(3.0, time + hatOffset);
+
+            const noiseGain = ctx.createGain();
+            noiseGain.gain.setValueAtTime(0.08, time + hatOffset);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, time + hatOffset + 0.04);
+
+            noiseNode.connect(bandpass);
+            bandpass.connect(noiseGain);
+            noiseGain.connect(gainNode);
+
+            noiseNode.start(time + hatOffset);
+            noiseNode.stop(time + hatOffset + 0.05);
+          }
+        });
+
+        // Pluck Chords
+        const currentChord = chords[chordIndex % chords.length];
+        currentChord.forEach((freq) => {
+          const osc = ctx.createOscillator();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, time);
+
+          const oscGain = ctx.createGain();
+          oscGain.gain.setValueAtTime(0, time);
+          oscGain.gain.linearRampToValueAtTime(0.12, time + 0.1);
+          oscGain.gain.exponentialRampToValueAtTime(0.03, time + activeBarDuration - 0.2 > time + 0.1 ? time + activeBarDuration - 0.2 : time + 0.5);
+          oscGain.gain.linearRampToValueAtTime(0, time + activeBarDuration);
+
+          osc.connect(oscGain);
+          oscGain.connect(filter);
+
+          osc.start(time);
+          osc.stop(time + activeBarDuration);
+        });
+
+        time += barDuration;
+        chordIndex++;
+      }
+    } else if (genre === "cheerful") {
+      const progression = [
+        [261.63, 329.63, 392.00, 523.25], // C major
+        [392.00, 493.88, 587.33, 783.99], // G major
+        [220.00, 261.63, 329.63, 440.00], // A minor
+        [349.23, 440.00, 261.63, 523.25], // F major
+      ];
+      const chordDuration = 2.0;
+      const noteInterval = 0.25;
+      let time = 0;
+      let step = 0;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(2000, ctx.currentTime);
+      filter.connect(gainNode);
+
+      while (time < duration) {
+        const chordIndex = Math.floor(time / chordDuration) % progression.length;
+        const currentChord = progression[chordIndex];
+        const arpNotes = [0, 1, 2, 3, 2, 1];
+        const noteIndex = arpNotes[step % arpNotes.length];
+        const freq = currentChord[noteIndex];
+
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, time);
+
+        const oscGain = ctx.createGain();
+        oscGain.gain.setValueAtTime(0.18, time);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+
+        osc.connect(oscGain);
+        oscGain.connect(filter);
+
+        osc.start(time);
+        osc.stop(time + 0.25);
+
+        time += noteInterval;
+        step++;
+      }
+    } else if (genre === "mysterious") {
+      let time = 0;
+
+      const bassFilter = ctx.createBiquadFilter();
+      bassFilter.type = "lowpass";
+      bassFilter.frequency.setValueAtTime(150, ctx.currentTime);
+      bassFilter.Q.setValueAtTime(4.0, ctx.currentTime);
+      bassFilter.connect(gainNode);
+
+      const bassDroneDuration = 8.0;
+      let bassTime = 0;
+      let bassIndex = 0;
+      while (bassTime < duration) {
+        const bassFreq = bassIndex % 2 === 0 ? 55.0 : 58.27; // A1 and Bb1
+        const activeBassDuration = Math.min(bassDroneDuration, duration - bassTime);
+
+        const bassOsc = ctx.createOscillator();
+        bassOsc.type = "sawtooth";
+        bassOsc.frequency.setValueAtTime(bassFreq, bassTime);
+
+        const bassGain = ctx.createGain();
+        bassGain.gain.setValueAtTime(0, bassTime);
+        bassGain.gain.linearRampToValueAtTime(0.3, bassTime + 2.0);
+        bassGain.gain.setValueAtTime(0.3, bassTime + activeBassDuration - 2.0 > bassTime + 2.0 ? bassTime + activeBassDuration - 2.0 : bassTime + 2.0);
+        bassGain.gain.linearRampToValueAtTime(0, bassTime + activeBassDuration);
+
+        bassOsc.connect(bassGain);
+        bassGain.connect(bassFilter);
+
+        bassOsc.start(bassTime);
+        bassOsc.stop(bassTime + activeBassDuration);
+
+        bassTime += bassDroneDuration;
+        bassIndex++;
+      }
+
+      const plucksFreqs = [440.0, 466.16, 523.25, 554.37, 659.25, 698.46];
+      const pluckInterval = 1.5;
+      let pluckTime = 0.5;
+
+      const pluckFilter = ctx.createBiquadFilter();
+      pluckFilter.type = "bandpass";
+      pluckFilter.frequency.setValueAtTime(1500, ctx.currentTime);
+      pluckFilter.connect(gainNode);
+
+      while (pluckTime < duration) {
+        const randIndex = Math.floor(Math.sin(pluckTime) * 10 + 10) % plucksFreqs.length;
+        const freq = plucksFreqs[randIndex];
+
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, pluckTime);
+
+        const lfo = ctx.createOscillator();
+        lfo.frequency.setValueAtTime(4.0, pluckTime);
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.setValueAtTime(8.0, pluckTime);
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        const oscGain = ctx.createGain();
+        oscGain.gain.setValueAtTime(0.12, pluckTime);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, pluckTime + 1.2);
+
+        osc.connect(oscGain);
+        oscGain.connect(pluckFilter);
+
+        lfo.start(pluckTime);
+        osc.start(pluckTime);
+        lfo.stop(pluckTime + 1.3);
+        osc.stop(pluckTime + 1.3);
+
+        pluckTime += pluckInterval;
+      }
+    }
+  };
+
+  // Controller methods for live BGM during sequence playback
+  const startLiveBGM = (genre: string, volume: number, duration: number) => {
+    stopLiveBGM();
+
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    try {
+      const ctx = new AudioContextClass();
+      liveBgmCtxRef.current = ctx;
+      scheduleBGM(ctx, ctx.destination, duration, genre, volume);
+    } catch (e) {
+      console.error("Failed to start live BGM:", e);
+    }
+  };
+
+  const stopLiveBGM = () => {
+    if (liveBgmCtxRef.current) {
+      try {
+        liveBgmCtxRef.current.close();
+      } catch (e) {
+        console.error("Error closing live BGM context:", e);
+      }
+      liveBgmCtxRef.current = null;
+    }
+  };
+
   const handlePlaySequence = (index: number = 0) => {
     // Stop any active single-audio plays
     handleStopAudioMessage();
@@ -1128,6 +1434,7 @@ export default function RoleplayWorkspacePage() {
         sequenceAudioRef.current.pause();
         sequenceAudioRef.current = null;
       }
+      stopLiveBGM();
       toast({
         title: "Roleplay Sequence Finished! 🎭🎬",
         description: "The sequenced roleplay voice conversation has ended successfully.",
@@ -1138,6 +1445,16 @@ export default function RoleplayWorkspacePage() {
 
     setIsSequencePlaying(true);
     setCurrentPlayingSeqIndex(index);
+
+    // Sync live BGM startup on index 0
+    if (index === 0 && isBgmEnabled) {
+      const totalDuration = sequencedMessageIds
+        .map(id => messages.find(m => m.id === id))
+        .filter((m): m is ChatMessage => !!m && !!m.audioUrl)
+        .reduce((acc, m) => acc + (m.audioDuration || 4), 0);
+      
+      startLiveBGM(bgmGenre, bgmVolume, totalDuration);
+    }
 
     const nextMsgId = sequencedMessageIds[index];
     const msg = messages.find(m => m.id === nextMsgId);
@@ -1176,9 +1493,10 @@ export default function RoleplayWorkspacePage() {
       sequenceAudioRef.current.pause();
       sequenceAudioRef.current = null;
     }
+    stopLiveBGM();
   };
 
-  // Splicing & Concatenating Sequenced Audio Clips into a Single Downloadable WAV file
+  // Splicing & Concatenating Sequenced Audio Clips into a Single Downloadable WAV file with optional BGM
   const handleDownloadMergedSequence = async () => {
     if (sequencedMessageIds.length === 0 || !currentRoom) return;
 
@@ -1216,23 +1534,38 @@ export default function RoleplayWorkspacePage() {
       const audioBuffers = await Promise.all(bufferPromises);
 
       const totalLength = audioBuffers.reduce((acc, buf) => acc + buf.length, 0);
+      const totalDuration = audioBuffers.reduce((acc, buf) => acc + buf.duration, 0.0);
       const numberOfChannels = Math.max(...audioBuffers.map(buf => buf.numberOfChannels), 1);
       const sampleRate = audioCtx.sampleRate;
 
-      const mergedBuffer = audioCtx.createBuffer(numberOfChannels, totalLength, sampleRate);
-
-      for (let channel = 0; channel < numberOfChannels; channel++) {
-        const mergedData = mergedBuffer.getChannelData(channel);
-        let offset = 0;
-        for (const buf of audioBuffers) {
-          const sourceChannel = channel < buf.numberOfChannels ? channel : 0;
-          const channelData = buf.getChannelData(sourceChannel);
-          mergedData.set(channelData, offset);
-          offset += buf.length;
-        }
+      const OfflineAudioContextClass = window.OfflineAudioContext || (window as any).webkitOfflineAudioContext;
+      if (!OfflineAudioContextClass) {
+        throw new Error("Offline Audio Context is not supported in this browser.");
       }
 
-      const wavBlob = audioBufferToWav(mergedBuffer);
+      // Initialize the OfflineAudioContext
+      const offlineCtx = new OfflineAudioContextClass(numberOfChannels, totalLength, sampleRate);
+
+      // 1. Schedule all speech voice buffer notes sequentially on the offline timeline
+      let currentTime = 0;
+      for (const buf of audioBuffers) {
+        const sourceNode = offlineCtx.createBufferSource();
+        sourceNode.buffer = buf;
+        sourceNode.connect(offlineCtx.destination);
+        sourceNode.start(currentTime);
+        currentTime += buf.duration;
+      }
+
+      // 2. Schedule procedural Background Music if enabled
+      if (isBgmEnabled) {
+        scheduleBGM(offlineCtx, offlineCtx.destination, totalDuration, bgmGenre, bgmVolume);
+      }
+
+      // 3. Render the mixed timeline buffer
+      const renderedBuffer = await offlineCtx.startRendering();
+
+      // 4. Encode the rendered buffer to a standard WAV Blob
+      const wavBlob = audioBufferToWav(renderedBuffer);
 
       const downloadLink = document.createElement("a");
       downloadLink.href = URL.createObjectURL(wavBlob);
@@ -1243,7 +1576,7 @@ export default function RoleplayWorkspacePage() {
 
       toast({
         title: "Dialogue Exported! 🎙️🎉",
-        description: "All sequenced clips compiled successfully into 1 clean WAV file.",
+        description: "All sequenced clips and BGM compiled successfully into 1 clean WAV file.",
         className: "bg-slate-900 border-green-500/30 text-green-200"
       });
     } catch (err: any) {
@@ -1384,16 +1717,28 @@ export default function RoleplayWorkspacePage() {
         </div>
 
         {isRegistered && (
-          <div className="flex items-center gap-3 bg-slate-900/60 backdrop-blur-md px-4 py-2 border border-slate-850 rounded-2xl">
-            <div className="flex flex-col text-left">
-              <span className="text-[10px] uppercase font-black text-purple-400 tracking-widest">Active Student</span>
-              <span className="text-xs font-bold text-slate-200">
-                {nickname} <Badge variant="outline" className="text-[9px] border-slate-700 bg-slate-950/80">Seat {seatNo || "N/A"}</Badge>
-              </span>
-            </div>
-            <Button size="icon" variant="ghost" onClick={handleResetProfile} className="h-7 w-7 text-slate-400 hover:text-rose-400 rounded-lg" title="Change Profile Details">
-              <LogOut className="h-4 w-4" />
+          <div className="flex items-center gap-3">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowHelpTooltip(!showHelpTooltip)}
+              className="h-9 px-3 bg-purple-950/20 border border-purple-500/30 hover:bg-purple-950/40 text-purple-300 text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 shadow-md shadow-purple-650/5 cursor-pointer"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Help Guide
             </Button>
+            
+            <div className="flex items-center gap-3 bg-slate-900/60 backdrop-blur-md px-4 py-2 border border-slate-850 rounded-2xl">
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] uppercase font-black text-purple-400 tracking-widest">Active Student</span>
+                <span className="text-xs font-bold text-slate-200">
+                  {nickname} <Badge variant="outline" className="text-[9px] border-slate-700 bg-slate-950/80">Seat {seatNo || "N/A"}</Badge>
+                </span>
+              </div>
+              <Button size="icon" variant="ghost" onClick={handleResetProfile} className="h-7 w-7 text-slate-400 hover:text-rose-400 rounded-lg" title="Change Profile Details">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -1981,22 +2326,20 @@ export default function RoleplayWorkspacePage() {
                               </Button>
                             )}
 
-                            {/* Host/Teacher Consolidated WAV Download Button */}
-                            {canControlTimer && (
-                              <Button
-                                size="sm"
-                                onClick={handleDownloadMergedSequence}
-                                disabled={isExportingAudio}
-                                className="h-6 px-2.5 bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/20 text-white text-[9px] font-black uppercase rounded-lg flex items-center gap-1 shadow-md shadow-indigo-600/10 disabled:opacity-50"
-                              >
-                                {isExportingAudio ? (
-                                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                                ) : (
-                                  <Download className="h-2.5 w-2.5" />
-                                )}
-                                Export Scene WAV
-                              </Button>
-                            )}
+                            {/* Consolidated WAV Download Button for all users */}
+                            <Button
+                              size="sm"
+                              onClick={handleDownloadMergedSequence}
+                              disabled={isExportingAudio}
+                              className="h-6 px-2.5 bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/20 text-white text-[9px] font-black uppercase rounded-lg flex items-center gap-1 shadow-md shadow-indigo-600/10 disabled:opacity-50"
+                            >
+                              {isExportingAudio ? (
+                                <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                              ) : (
+                                <Download className="h-2.5 w-2.5" />
+                              )}
+                              Export Scene WAV
+                            </Button>
 
                             <Button 
                               size="sm" 
@@ -2091,6 +2434,67 @@ export default function RoleplayWorkspacePage() {
                                   );
                                 })}
                               </div>
+                            </div>
+                          )}
+
+                          {/* Premium Background Music Deck */}
+                          {sequencedMessageIds.length > 0 && (
+                            <div className="mt-2 bg-gradient-to-r from-purple-950/20 to-slate-950/80 border border-purple-500/10 rounded-2xl p-3 select-none flex flex-col sm:flex-row gap-3 items-center justify-between animate-in slide-in-from-bottom duration-300">
+                              <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <input
+                                  id="enableBgmToggle"
+                                  type="checkbox"
+                                  checked={isBgmEnabled}
+                                  onChange={(e) => setIsBgmEnabled(e.target.checked)}
+                                  className="h-4 w-4 rounded border-purple-800 bg-slate-950 text-purple-650 focus:ring-0 cursor-pointer"
+                                />
+                                <div className="text-left">
+                                  <label htmlFor="enableBgmToggle" className="text-[10px] font-black uppercase text-purple-400 tracking-wider cursor-pointer flex items-center gap-1">
+                                    <Sparkles className="h-3 w-3 animate-pulse text-purple-400" /> Background Music
+                                  </label>
+                                  <p className="text-[8px] text-slate-500 leading-tight">
+                                    Procedural ambient track synced with dialogue
+                                  </p>
+                                </div>
+                              </div>
+
+                              {isBgmEnabled && (
+                                <div className="flex flex-wrap gap-3 items-center w-full sm:w-auto justify-between sm:justify-end">
+                                  {/* Genre Selector */}
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[8px] uppercase font-black text-slate-500">Genre:</span>
+                                    <select
+                                      value={bgmGenre}
+                                      onChange={(e) => setBgmGenre(e.target.value)}
+                                      className="h-6 border border-purple-900 bg-slate-950 text-[9px] font-bold text-slate-200 outline-none rounded-md px-1.5 focus:border-purple-500"
+                                    >
+                                      <option value="ambient">🌌 Cinematic Ambient</option>
+                                      <option value="electronic">🎧 Chill Lo-Fi Beat</option>
+                                      <option value="cheerful">✨ Bright & Cheerful</option>
+                                      <option value="mysterious">🕵️ Mysterious Suspense</option>
+                                    </select>
+                                  </div>
+
+                                  {/* Volume Slider */}
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[8px] uppercase font-black text-slate-500 flex items-center gap-0.5">
+                                      <Volume2 className="h-3 w-3" /> Volume:
+                                    </span>
+                                    <input
+                                      type="range"
+                                      min="0.0"
+                                      max="0.5"
+                                      step="0.01"
+                                      value={bgmVolume}
+                                      onChange={(e) => setBgmVolume(parseFloat(e.target.value))}
+                                      className="h-1 w-16 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                                    />
+                                    <span className="text-[8px] font-mono text-slate-400 w-6 text-right">
+                                      {Math.round(bgmVolume * 200)}%
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -2353,6 +2757,82 @@ export default function RoleplayWorkspacePage() {
                 </Button>
               </div>
             </form>
+          </Card>
+        </div>
+      )}
+
+      {/* HOW TO USE COLLABORATIVE WORKSPACE TOOLTIP / GUIDE MODAL */}
+      {showHelpTooltip && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <Card className="bg-slate-900 border-slate-850 rounded-3xl shadow-2xl p-6 max-w-2xl w-full text-left space-y-6 select-none animate-in zoom-in-95 duration-300 relative overflow-y-auto max-h-[90vh]">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowHelpTooltip(false)} 
+              className="absolute top-4 right-4 h-8 w-8 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-full"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
+              <div className="p-1.5 bg-purple-500/10 border border-purple-500/25 rounded-lg text-purple-400">
+                <HelpCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-100 uppercase tracking-widest">Workspace Help Guide</h3>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">How to master the collaborative roleplay sandbox</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="space-y-2 bg-slate-950/40 p-3 rounded-2xl border border-slate-850">
+                <span className="text-[9px] font-black text-purple-400 uppercase tracking-wider block">1. Enter a Room</span>
+                <p className="text-slate-300 leading-normal">
+                  Connect by typing your nickname, seat, and role. Create a cooperative dialogue room, choose an educational scenario prompt, set a brainstorming countdown timer, and share your unique <strong>Invite Link</strong> with your partner!
+                </p>
+              </div>
+
+              <div className="space-y-2 bg-slate-950/40 p-3 rounded-2xl border border-slate-850">
+                <span className="text-[9px] font-black text-purple-400 uppercase tracking-wider block">2. Record Speaking Audio</span>
+                <p className="text-slate-300 leading-normal">
+                  Tap the microphone icon (🎙️) to record your headset voice clip, practice target idioms, and send it to the chat. Your audio notes automatically upload to the secure cloud. You can also send standard text notes to organize roles.
+                </p>
+              </div>
+
+              <div className="space-y-2 bg-slate-950/40 p-3 rounded-2xl border border-slate-850">
+                <span className="text-[9px] font-black text-purple-400 uppercase tracking-wider block">3. Sequence & Reorder Clips</span>
+                <p className="text-slate-300 leading-normal">
+                  Use the <strong>Dialogue Sequencer</strong> to check the recorded speaking voice notes you wish to include in your final scene. Use the up/down arrow buttons (⬆️/⬇️) to reorder the clips into a perfect conversational flow.
+                </p>
+              </div>
+
+              <div className="space-y-2 bg-slate-950/40 p-3 rounded-2xl border border-slate-850">
+                <span className="text-[9px] font-black text-purple-400 uppercase tracking-wider block">4. Generate Background Music</span>
+                <p className="text-slate-300 leading-normal">
+                  Toggle <strong>Background Music</strong> to enable dynamic browser-synthesized tracks! Choose between 🌌 Ambient, 🎧 Lo-Fi Beat, ✨ Cheerful, or 🕵️ Mysterious Suspense genres, and slide the volume bar to your preferred mix.
+                </p>
+              </div>
+
+              <div className="space-y-2 bg-slate-950/40 p-3 rounded-2xl border border-slate-850">
+                <span className="text-[9px] font-black text-purple-400 uppercase tracking-wider block">5. Multi-track WAV Export</span>
+                <p className="text-slate-300 leading-normal">
+                  Click <strong>Export Scene WAV</strong>. The workspace compiles all student recordings in sequence and mixes in the generated background track using browser-native parallel rendering, downloading a high-quality finished audio scene!
+                </p>
+              </div>
+
+              <div className="space-y-2 bg-slate-950/40 p-3 rounded-2xl border border-slate-850">
+                <span className="text-[9px] font-black text-purple-400 uppercase tracking-wider block">6. Active whiteboard Board</span>
+                <p className="text-slate-300 leading-normal">
+                  Pin colored brainstorm cards to the sticky note wall. Brainstorm vocabulary lists, dialogue outlines, and coordinate presentation times dynamically in real-time with students across the entire classroom lobby.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-850 flex justify-end">
+              <Button onClick={() => setShowHelpTooltip(false)} className="bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-600 hover:to-indigo-600 text-white font-black uppercase text-[10px] tracking-wider h-9 px-6 rounded-xl">
+                Got it, Let's Roleplay!
+              </Button>
+            </div>
           </Card>
         </div>
       )}
