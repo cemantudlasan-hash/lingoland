@@ -1393,6 +1393,210 @@ export default function RoleplayWorkspacePage() {
 
         pluckTime += pluckInterval;
       }
+    } else if (genre === "acoustic") {
+      const progression = [
+        [196.00, 246.94, 293.66, 369.99], // Gmaj7: G3, B3, D4, F#4
+        [130.81, 164.81, 196.00, 246.94], // Cmaj7: C3, E3, G3, B3
+      ];
+      const chordDuration = 2.66;
+      const noteInterval = 0.33;
+      let time = 0;
+      let step = 0;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(1200, ctx.currentTime);
+      filter.connect(gainNode);
+
+      while (time < duration) {
+        const chordIndex = Math.floor(time / chordDuration) % progression.length;
+        const currentChord = progression[chordIndex];
+        
+        if (step % 2 === 1 && time < duration) {
+          const bufferSize = ctx.sampleRate * 0.03;
+          const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+          const noise = ctx.createBufferSource();
+          noise.buffer = buffer;
+
+          const bp = ctx.createBiquadFilter();
+          bp.type = "bandpass";
+          bp.frequency.setValueAtTime(8000, time);
+          bp.Q.setValueAtTime(4.0, time);
+
+          const noiseGain = ctx.createGain();
+          noiseGain.gain.setValueAtTime(0.02, time);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.025);
+
+          noise.connect(bp);
+          bp.connect(noiseGain);
+          noiseGain.connect(gainNode);
+
+          noise.start(time);
+          noise.stop(time + 0.03);
+        }
+
+        if (step % 8 === 0 && time < duration) {
+          const bassOsc = ctx.createOscillator();
+          bassOsc.type = "triangle";
+          bassOsc.frequency.setValueAtTime(chordIndex === 0 ? 49.00 : 32.70, time);
+
+          const bassGain = ctx.createGain();
+          bassGain.gain.setValueAtTime(0.35, time);
+          bassGain.gain.exponentialRampToValueAtTime(0.001, time + 1.2);
+
+          bassOsc.connect(bassGain);
+          bassGain.connect(gainNode);
+          bassOsc.start(time);
+          bassOsc.stop(time + 1.3);
+        }
+
+        const arpPattern = [0, 1, 2, 3, 2, 1, 2, 3];
+        const noteIndex = arpPattern[step % arpPattern.length];
+        const freq = currentChord[noteIndex];
+
+        const osc = ctx.createOscillator();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, time);
+
+        const oscGain = ctx.createGain();
+        oscGain.gain.setValueAtTime(0, time);
+        oscGain.gain.linearRampToValueAtTime(0.18, time + 0.02);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.38);
+
+        osc.connect(oscGain);
+        oscGain.connect(filter);
+
+        osc.start(time);
+        osc.stop(time + 0.4);
+
+        time += noteInterval;
+        step++;
+      }
+    } else if (genre === "piano") {
+      const progression = [
+        [261.63, 329.63, 392.00], // C major: C4, E4, G4
+        [196.00, 246.94, 293.66], // G major: G3, B3, D4
+        [220.00, 261.63, 329.63], // A minor: A3, C4, E4
+        [174.61, 220.00, 261.63], // F major: F3, A3, C4
+      ];
+      const barDuration = 1.5;
+      let time = 0;
+      let barIndex = 0;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(1500, ctx.currentTime);
+      filter.connect(gainNode);
+
+      while (time < duration) {
+        const chordIndex = barIndex % progression.length;
+        const currentChord = progression[chordIndex];
+
+        const bassFreq = currentChord[0] / 2;
+        const bassOsc = ctx.createOscillator();
+        bassOsc.type = "sine";
+        bassOsc.frequency.setValueAtTime(bassFreq, time);
+
+        const bassGain = ctx.createGain();
+        bassGain.gain.setValueAtTime(0.25, time);
+        bassGain.gain.exponentialRampToValueAtTime(0.001, time + 1.2);
+
+        bassOsc.connect(bassGain);
+        bassGain.connect(filter);
+        bassOsc.start(time);
+        bassOsc.stop(time + 1.3);
+
+        [0.5, 1.0].forEach((pluckOffset) => {
+          if (time + pluckOffset < duration) {
+            currentChord.forEach((freq) => {
+              const osc = ctx.createOscillator();
+              osc.type = "triangle";
+              osc.frequency.setValueAtTime(freq, time + pluckOffset);
+
+              const oscGain = ctx.createGain();
+              oscGain.gain.setValueAtTime(0, time + pluckOffset);
+              oscGain.gain.linearRampToValueAtTime(0.08, time + pluckOffset + 0.05);
+              oscGain.gain.exponentialRampToValueAtTime(0.001, time + pluckOffset + 0.45);
+
+              osc.connect(oscGain);
+              oscGain.connect(filter);
+
+              osc.start(time + pluckOffset);
+              osc.stop(time + pluckOffset + 0.5);
+            });
+          }
+        });
+
+        time += barDuration;
+        barIndex++;
+      }
+    } else if (genre === "retro") {
+      const progression = [
+        [220.00, 261.63, 329.63], // Am: A3, C4, E4
+        [196.00, 246.94, 293.66], // G: G3, B3, D4
+        [174.61, 220.00, 261.63], // F: F3, A3, C4
+        [164.81, 207.65, 246.94], // E: E3, G#3, B3
+      ];
+      const barDuration = 2.18;
+      const beatDuration = 0.545;
+      let time = 0;
+      let barIndex = 0;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(1100, ctx.currentTime);
+      filter.connect(gainNode);
+
+      while (time < duration) {
+        const chordIndex = barIndex % progression.length;
+        const currentChord = progression[chordIndex];
+        const rootFreq = currentChord[0] / 2;
+
+        for (let beat = 0; beat < 8; beat++) {
+          const bassOffset = beat * (beatDuration / 2);
+          if (time + bassOffset < duration) {
+            const isOctave = beat % 2 === 1;
+            const freq = isOctave ? rootFreq * 2 : rootFreq;
+
+            const bassOsc = ctx.createOscillator();
+            bassOsc.type = "sawtooth";
+            bassOsc.frequency.setValueAtTime(freq, time + bassOffset);
+
+            const bassGain = ctx.createGain();
+            bassGain.gain.setValueAtTime(0.18, time + bassOffset);
+            bassGain.gain.exponentialRampToValueAtTime(0.001, time + bassOffset + 0.22);
+
+            bassOsc.connect(bassGain);
+            bassGain.connect(filter);
+            bassOsc.start(time + bassOffset);
+            bassOsc.stop(time + bassOffset + 0.25);
+          }
+        }
+
+        currentChord.forEach((freq) => {
+          const osc = ctx.createOscillator();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq * 2, time);
+
+          const oscGain = ctx.createGain();
+          oscGain.gain.setValueAtTime(0, time);
+          oscGain.gain.linearRampToValueAtTime(0.06, time + 0.2);
+          oscGain.gain.setValueAtTime(0.06, time + barDuration - 0.4 > time + 0.2 ? time + barDuration - 0.4 : time + 0.5);
+          oscGain.gain.linearRampToValueAtTime(0, time + barDuration);
+
+          osc.connect(oscGain);
+          oscGain.connect(filter);
+          osc.start(time);
+          osc.stop(time + barDuration);
+        });
+
+        time += barDuration;
+        barIndex++;
+      }
     }
   };
 
@@ -2466,12 +2670,15 @@ export default function RoleplayWorkspacePage() {
                                     <select
                                       value={bgmGenre}
                                       onChange={(e) => setBgmGenre(e.target.value)}
-                                      className="h-6 border border-purple-900 bg-slate-950 text-[9px] font-bold text-slate-200 outline-none rounded-md px-1.5 focus:border-purple-500"
+                                      className="h-6 border border-purple-900 bg-slate-950 text-[9px] font-black text-slate-100 outline-none rounded-md px-1.5 focus:border-purple-500 cursor-pointer"
                                     >
-                                      <option value="ambient">🌌 Cinematic Ambient</option>
-                                      <option value="electronic">🎧 Chill Lo-Fi Beat</option>
-                                      <option value="cheerful">✨ Bright & Cheerful</option>
-                                      <option value="mysterious">🕵️ Mysterious Suspense</option>
+                                      <option value="ambient" className="bg-slate-950 text-slate-100 font-semibold text-[10px]">🌌 Cinematic Ambient</option>
+                                      <option value="electronic" className="bg-slate-950 text-slate-100 font-semibold text-[10px]">🎧 Chill Lo-Fi Beat</option>
+                                      <option value="cheerful" className="bg-slate-950 text-slate-100 font-semibold text-[10px]">✨ Bright & Cheerful</option>
+                                      <option value="mysterious" className="bg-slate-950 text-slate-100 font-semibold text-[10px]">🕵️ Mysterious Suspense</option>
+                                      <option value="acoustic" className="bg-slate-950 text-slate-100 font-semibold text-[10px]">🎸 Acoustic Lounge</option>
+                                      <option value="piano" className="bg-slate-950 text-slate-100 font-semibold text-[10px]">🎹 Classical Piano</option>
+                                      <option value="retro" className="bg-slate-950 text-slate-100 font-semibold text-[10px]">🚀 Futuristic Retro</option>
                                     </select>
                                   </div>
 
