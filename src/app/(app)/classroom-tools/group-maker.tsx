@@ -85,7 +85,10 @@ export function GroupMaker() {
         <div className="space-y-4">
           <h3 className="font-bold">Generated Groups</h3>
           {generatedGroups.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 max-h-[24rem] overflow-y-auto pr-2">
+            <div 
+              className="space-y-4 max-h-[24rem] overflow-y-auto pr-2 block"
+              style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "thin" }}
+            >
                 {generatedGroups.map((group, index) => (
                     <Card key={index} className="bg-muted">
                         <CardContent className="p-4">

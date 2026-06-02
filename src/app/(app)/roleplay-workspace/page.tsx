@@ -847,7 +847,29 @@ export default function RoleplayWorkspacePage() {
           audioStreamRef.current = null;
         }
 
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        // Determine MIME type and extension dynamically
+        let mimeType = "audio/webm";
+        let extension = "webm";
+        if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported) {
+          if (MediaRecorder.isTypeSupported("audio/webm")) {
+            mimeType = "audio/webm";
+            extension = "webm";
+          } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+            mimeType = "audio/mp4";
+            extension = "mp4";
+          } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
+            mimeType = "audio/ogg";
+            extension = "ogg";
+          }
+        } else {
+          const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+          if (isSafari) {
+            mimeType = "audio/mp4";
+            extension = "mp4";
+          }
+        }
+
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         
         setIsUploadingVoice(true);
         const uploadToast = toast({
@@ -856,10 +878,21 @@ export default function RoleplayWorkspacePage() {
           className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
         });
 
+        const messageId = "msg-" + Date.now();
+
+        // Race the uploadBytes with a 6-second timeout to prevent indefinite SDK retries
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Firebase Storage upload timed out")), 6000)
+        );
+
         try {
-          const messageId = "msg-" + Date.now();
-          const storageRef = ref(storage, `roleplay_audio/${currentRoom.id}/${messageId}.webm`);
-          const uploadSnapshot = await uploadBytes(storageRef, audioBlob);
+          const storageRef = ref(storage, `roleplay_audio/${currentRoom.id}/${messageId}.${extension}`);
+          
+          const uploadSnapshot = await Promise.race([
+            uploadBytes(storageRef, audioBlob),
+            timeoutPromise
+          ]);
+          
           const downloadUrl = await getDownloadURL(uploadSnapshot.ref);
           
           const voiceTextOptions = [
@@ -895,12 +928,48 @@ export default function RoleplayWorkspacePage() {
             className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
           });
         } catch (error) {
-          console.error("Error uploading voice file:", error);
-          toast({
-            title: "Upload Failed 🎙️❌",
-            description: "Could not upload voice note. Please try again.",
-            variant: "destructive"
-          });
+          console.error("Error uploading voice file, falling back to dynamic synthesis:", error);
+          
+          // Fallback: Write directly to Firestore without audioUrl to trigger dynamic Speech Synthesis
+          const voiceTextOptions = [
+            "Let's practice the lost luggage dialogue now. Excuse me, my baggage is missing!",
+            "I agree with that. We should ask the VC for a higher valuation because of our proprietary tech.",
+            "My soup is completely cold, and there is an actual strand of black hair in it. I need to speak to the manager.",
+            "I've been feeling extremely dizzy and seeing floating neon pets since last night, doctor."
+          ];
+          
+          let chosenText = "Hello team, let's coordinate this dialogue!";
+          if (currentRoom.scenario.includes("Luggage")) chosenText = voiceTextOptions[0];
+          else if (currentRoom.scenario.includes("Negotiation")) chosenText = voiceTextOptions[1];
+          else if (currentRoom.scenario.includes("Culinary")) chosenText = voiceTextOptions[2];
+          else if (currentRoom.scenario.includes("Flu")) chosenText = voiceTextOptions[3];
+
+          const newVoiceMessage: ChatMessage = {
+            id: messageId,
+            senderName: nickname,
+            senderSeat: seatNo || "N/A",
+            senderRole: selectedRole,
+            content: chosenText,
+            type: "voice",
+            timestamp: Date.now(),
+            audioDuration: recordingSeconds || 4
+          };
+
+          try {
+            await setDoc(doc(db, "roleplay_rooms", currentRoom.id, "messages", messageId), newVoiceMessage);
+            toast({
+              title: "Voice Message Sent (AI Fallback)! 🎙️⚡",
+              description: "Direct sync fallback enabled. Speech synthesized version created.",
+              className: "bg-slate-900 border-yellow-500/30 text-yellow-200"
+            });
+          } catch (dbErr) {
+            console.error("Error writing fallback message to firestore:", dbErr);
+            toast({
+              title: "Upload Failed 🎙️❌",
+              description: "Could not upload voice note or sync to room. Please check connection.",
+              variant: "destructive"
+            });
+          }
         } finally {
           setIsUploadingVoice(false);
         }

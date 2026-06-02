@@ -146,8 +146,10 @@ export default function ClassroomToolsPage() {
                         <CardTitle>Group Maker</CardTitle>
                         <CardDescription>Randomly assign students into groups.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex items-center justify-center">
-                        <GroupMaker />
+                    <CardContent className="flex-grow overflow-y-auto">
+                        <div className="min-h-full flex items-center justify-center w-full">
+                            <GroupMaker />
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>
