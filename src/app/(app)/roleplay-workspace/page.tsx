@@ -326,6 +326,17 @@ export default function RoleplayWorkspacePage() {
   }, [rooms.length]);
 
   const joinOrPromptPassword = (room: RoleplayRoom) => {
+    const myNameLower = nickname.trim().toLowerCase();
+    const isBlocked = room.blockedUsers?.some(n => n.toLowerCase() === myNameLower);
+    if (isBlocked && !isAdmin) {
+      toast({
+        title: "Access Denied 🚫",
+        description: "You are blocked from entering this collaborative room.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Add to unlocked list if private
     if (room.isPrivate) {
       const unlocked = JSON.parse(localStorage.getItem("lingoland_unlocked_private_rooms") || "[]");
@@ -388,6 +399,100 @@ export default function RoleplayWorkspacePage() {
 
   // Active Room Object
   const currentRoom = rooms.find(r => r.id === activeRoomId) || null;
+
+  const myNameLower = nickname.trim().toLowerCase();
+  const isCurrentUserMuted = currentRoom?.mutedUsers?.some(n => n.toLowerCase() === myNameLower) || false;
+
+  // Compile list of participants dynamically (students only)
+  const activeParticipants = Array.from(new Set([
+    ...messages.map(m => m.senderName),
+    ...(currentRoom?.mutedUsers || []),
+    ...(currentRoom?.blockedUsers || [])
+  ])).filter(name => {
+    if (!name || !name.trim()) return false;
+    if (currentRoom && name.trim().toLowerCase() === currentRoom.creatorName.trim().toLowerCase()) return false;
+    return true;
+  });
+
+  // Host toggle mute
+  const handleToggleMute = async (nicknameToMute: string) => {
+    if (!currentRoom) return;
+    const targetName = nicknameToMute.trim().toLowerCase();
+    const mutedList = currentRoom.mutedUsers || [];
+    let updatedMuted: string[];
+    
+    if (mutedList.map(n => n.toLowerCase()).includes(targetName)) {
+      updatedMuted = mutedList.filter(n => n.toLowerCase() !== targetName);
+      toast({
+        title: "Student Unmuted 🔊",
+        description: `"${nicknameToMute}" has been unmuted in this room.`,
+        className: "bg-slate-900 border-green-500/30 text-green-200"
+      });
+    } else {
+      updatedMuted = [...mutedList, nicknameToMute];
+      toast({
+        title: "Student Muted 🔇",
+        description: `"${nicknameToMute}" has been muted. They cannot send messages.`,
+        className: "bg-slate-900 border-rose-500/30 text-rose-200"
+      });
+    }
+    
+    try {
+      await updateDoc(doc(db, "roleplay_rooms", currentRoom.id), {
+        mutedUsers: updatedMuted
+      });
+    } catch (err) {
+      console.error("Error updating muted list:", err);
+    }
+  };
+
+  // Host toggle block
+  const handleToggleBlock = async (nicknameToBlock: string) => {
+    if (!currentRoom) return;
+    const targetName = nicknameToBlock.trim().toLowerCase();
+    const blockedList = currentRoom.blockedUsers || [];
+    let updatedBlocked: string[];
+    
+    if (blockedList.map(n => n.toLowerCase()).includes(targetName)) {
+      updatedBlocked = blockedList.filter(n => n.toLowerCase() !== targetName);
+      toast({
+        title: "Student Unblocked 🔓",
+        description: `"${nicknameToBlock}" has been unblocked.`,
+        className: "bg-slate-900 border-green-500/30 text-green-200"
+      });
+    } else {
+      updatedBlocked = [...blockedList, nicknameToBlock];
+      toast({
+        title: "Student Blocked 🚫",
+        description: `"${nicknameToBlock}" has been blocked and kicked out of this room.`,
+        className: "bg-slate-900 border-rose-500/30 text-rose-200"
+      });
+    }
+    
+    try {
+      await updateDoc(doc(db, "roleplay_rooms", currentRoom.id), {
+        blockedUsers: updatedBlocked
+      });
+    } catch (err) {
+      console.error("Error updating blocked list:", err);
+    }
+  };
+
+  // Auto kick blocked student in real-time
+  useEffect(() => {
+    if (currentRoom) {
+      const myNameLower = nickname.trim().toLowerCase();
+      const isBlocked = currentRoom.blockedUsers?.some(n => n.toLowerCase() === myNameLower);
+      if (isBlocked && !isAdmin) {
+        setActiveRoomId(null);
+        toast({
+          title: "Kicked / Blocked from Room 🚫",
+          description: "You have been blocked from accessing this collaborative room by the host.",
+          variant: "destructive"
+        });
+      }
+    }
+  }, [currentRoom?.blockedUsers, nickname]);
 
   // Filter rooms based on privacy and sharing link list
   const visibleRooms = rooms.filter(room => {
@@ -605,6 +710,17 @@ export default function RoleplayWorkspacePage() {
 
   // 6. Join Room Handlers
   const handleTryJoinRoom = (room: RoleplayRoom) => {
+    const myNameLower = nickname.trim().toLowerCase();
+    const isBlocked = room.blockedUsers?.some(n => n.toLowerCase() === myNameLower);
+    if (isBlocked && !isAdmin) {
+      toast({
+        title: "Access Denied 🚫",
+        description: "You are blocked from entering this collaborative room.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (room.password) {
       setPasswordGateRoomId(room.id);
       setRoomPasswordInput("");
@@ -677,6 +793,15 @@ export default function RoleplayWorkspacePage() {
 
   // 8. Voice Messaging Audio Engine (Firebase Storage sync)
   const startRecording = async () => {
+    if (isCurrentUserMuted) {
+      toast({
+        title: "Microphone Restricted 🔇",
+        description: "You have been muted in this room and cannot record voice clips.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       audioStreamRef.current = stream;
@@ -1052,6 +1177,15 @@ export default function RoleplayWorkspacePage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim() || !currentRoom) return;
+
+    if (isCurrentUserMuted) {
+      toast({
+        title: "Action Denied 🔇",
+        description: "You have been muted in this room by the host.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     if (containsBadWord(chatInput)) {
       toast({
@@ -1709,16 +1843,27 @@ export default function RoleplayWorkspacePage() {
                     ) : (
                       /* Text and microphone input feed Form */
                       <form onSubmit={handleSendMessage} className="flex gap-2">
-                        <Button type="button" onClick={startRecording} className="bg-slate-950 border border-slate-850 hover:bg-indigo-950 text-indigo-400 rounded-xl h-11 w-11 shrink-0 flex items-center justify-center" title="Record Voice speaking clip">
+                        <Button 
+                          type="button" 
+                          onClick={startRecording} 
+                          disabled={isCurrentUserMuted}
+                          className="bg-slate-950 border border-slate-850 hover:bg-indigo-950 text-indigo-400 rounded-xl h-11 w-11 shrink-0 flex items-center justify-center disabled:opacity-30" 
+                          title={isCurrentUserMuted ? "You are muted" : "Record Voice speaking clip"}
+                        >
                           <Mic className="h-5 w-5 animate-pulse" />
                         </Button>
                         <Input
                           value={chatInput}
                           onChange={(e) => setChatInput(e.target.value)}
-                          placeholder="Type something to coordinate dialogs..."
-                          className="flex-1 bg-slate-950 border-slate-850 h-11 rounded-xl text-xs placeholder:text-slate-600 focus-visible:ring-purple-500"
+                          disabled={isCurrentUserMuted}
+                          placeholder={isCurrentUserMuted ? "You are muted in this room by the host 🔇" : "Type something to coordinate dialogs..."}
+                          className="flex-1 bg-slate-950 border-slate-850 h-11 rounded-xl text-xs placeholder:text-slate-600 focus-visible:ring-purple-500 disabled:bg-slate-950/40 disabled:placeholder:text-rose-550/60"
                         />
-                        <Button type="submit" className="bg-purple-650 hover:bg-purple-600 text-white rounded-xl h-11 px-4 shrink-0 flex items-center justify-center">
+                        <Button 
+                          type="submit" 
+                          disabled={isCurrentUserMuted}
+                          className="bg-purple-650 hover:bg-purple-600 text-white rounded-xl h-11 px-4 shrink-0 flex items-center justify-center disabled:bg-slate-800 disabled:text-slate-500"
+                        >
                           <Send className="h-4 w-4" />
                         </Button>
                       </form>
@@ -1902,13 +2047,13 @@ export default function RoleplayWorkspacePage() {
                     </form>
 
                     {/* Scrollable container of sticky notes */}
-                    <div className="flex-1 overflow-y-auto max-h-[300px] space-y-3 pr-1">
+                    <div className="flex-1 overflow-y-auto max-h-[160px] space-y-3 pr-1">
                       {(currentRoom?.notes || []).length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-650 space-y-1">
-                          <FileText className="h-8 w-8 text-slate-800" />
+                        <div className="h-full flex flex-col items-center justify-center text-center p-4 text-slate-655 space-y-1">
+                          <FileText className="h-7 w-7 text-slate-850" />
                           <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400">Board is Empty</h4>
                           <p className="text-[9px] max-w-xs leading-normal">
-                            Sticky notes added by group members will display here dynamically in real-time.
+                            Sticky notes will display here dynamically in real-time.
                           </p>
                         </div>
                       ) : (
@@ -1942,6 +2087,105 @@ export default function RoleplayWorkspacePage() {
                             </div>
                           </div>
                         ))
+                      )}
+                    </div>
+
+                    {/* Collaborative participants & Host Moderation board */}
+                    <div className="border-t border-slate-850/60 pt-4 flex flex-col space-y-3 text-left">
+                      <span className="text-[10px] font-black uppercase text-purple-400 tracking-wider flex items-center gap-1.5 select-none">
+                        <Users className="h-3.5 w-3.5 text-purple-400" /> Workspace Participants ({activeParticipants.length})
+                      </span>
+                      
+                      {activeParticipants.length === 0 ? (
+                        <p className="text-[9px] text-slate-500 italic select-none">
+                          No active students in this room yet. When they send messages, they will appear here.
+                        </p>
+                      ) : (
+                        <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                          {activeParticipants.map(participant => {
+                            const isMuted = currentRoom?.mutedUsers?.some(n => n.toLowerCase() === participant.toLowerCase());
+                            const isBlocked = currentRoom?.blockedUsers?.some(n => n.toLowerCase() === participant.toLowerCase());
+                            const isHost = isRoomCreator(currentRoom);
+
+                            return (
+                              <div key={participant} className="flex items-center justify-between p-2 bg-slate-950/60 border border-slate-850/80 rounded-xl animate-in fade-in duration-300">
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5 flex-wrap">
+                                    {participant}
+                                    {isMuted && <Badge className="bg-rose-955 border-rose-800/30 text-rose-400 text-[8px] scale-90 px-1 py-0 font-bold uppercase tracking-wider">Muted</Badge>}
+                                    {isBlocked && <Badge className="bg-red-955 border-red-800/30 text-red-400 text-[8px] scale-90 px-1 py-0 font-bold uppercase tracking-wider">Blocked</Badge>}
+                                  </span>
+                                  <span className="text-[8px] text-slate-550 uppercase tracking-widest font-black">Roleplay Student</span>
+                                </div>
+
+                                {isHost && (
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleToggleMute(participant)}
+                                      className={`h-7 px-2 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
+                                        isMuted 
+                                          ? "text-green-400 hover:text-green-300 bg-green-955/20 border border-green-800/20" 
+                                          : "text-rose-400 hover:text-rose-300 bg-rose-955/20 border border-rose-800/20"
+                                      }`}
+                                    >
+                                      {isMuted ? "Unmute" : "Mute"}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleToggleBlock(participant)}
+                                      className={`h-7 px-2 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
+                                        isBlocked 
+                                          ? "text-green-400 hover:text-green-300 bg-green-955/20 border border-green-800/20" 
+                                          : "text-red-400 hover:text-red-300 bg-red-955/20 border border-red-800/20"
+                                      }`}
+                                    >
+                                      {isBlocked ? "Unblock" : "Block"}
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Manual Block panel for host */}
+                      {isRoomCreator(currentRoom) && (
+                        <div className="bg-slate-950/30 p-2.5 rounded-xl border border-slate-850/60 mt-1 flex flex-col space-y-1.5">
+                          <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest select-none">Pre-emptively Block Student</span>
+                          <div className="flex gap-2">
+                            <Input
+                              id="manualBlockInput"
+                              placeholder="Type student name..."
+                              className="bg-slate-950 border-slate-850 h-8 text-[11px] rounded-lg"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const val = (e.target as HTMLInputElement).value.trim();
+                                  if (val) {
+                                    handleToggleBlock(val);
+                                    (e.target as HTMLInputElement).value = "";
+                                  }
+                                }
+                              }}
+                            />
+                            <Button 
+                              onClick={() => {
+                                const input = document.getElementById("manualBlockInput") as HTMLInputElement;
+                                if (input && input.value.trim()) {
+                                  handleToggleBlock(input.value.trim());
+                                  input.value = "";
+                                }
+                              }}
+                              className="bg-red-650 hover:bg-red-600 text-white text-[9px] font-black uppercase h-8 px-3 rounded-lg"
+                            >
+                              Block
+                            </Button>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
