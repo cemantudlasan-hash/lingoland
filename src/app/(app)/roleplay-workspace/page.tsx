@@ -248,6 +248,15 @@ export default function RoleplayWorkspacePage() {
   const sequenceAudioRef = useRef<HTMLAudioElement | null>(null);
   const liveBgmCtxRef = useRef<AudioContext | null>(null);
 
+  // Active Room Object and creator helper (defined early to prevent TDZ reference errors in hooks)
+  const currentRoom = rooms.find(r => r.id === activeRoomId) || null;
+
+  const isRoomCreator = (room: RoleplayRoom) => {
+    return isAdmin || 
+      (user && room.creatorUid === user.uid) ||
+      (nickname.trim() !== "" && room.creatorName.trim().toLowerCase() === nickname.trim().toLowerCase());
+  };
+
   // 1. Initial Page Load & Profile Check
   useEffect(() => {
     // Load registered profile from local storage if exists
@@ -500,9 +509,6 @@ export default function RoleplayWorkspacePage() {
     };
   }, []);
 
-  // Active Room Object
-  const currentRoom = rooms.find(r => r.id === activeRoomId) || null;
-
   const myNameLower = nickname.trim().toLowerCase();
   const isCurrentUserMuted = currentRoom?.mutedUsers?.some(n => n.toLowerCase() === myNameLower) || false;
 
@@ -612,12 +618,6 @@ export default function RoleplayWorkspacePage() {
     (user && currentRoom.creatorUid === user.uid) ||
     (nickname.trim() !== "" && currentRoom.creatorName.trim().toLowerCase() === nickname.trim().toLowerCase())
   ) : false;
-
-  const isRoomCreator = (room: RoleplayRoom) => {
-    return isAdmin || 
-      (user && room.creatorUid === user.uid) ||
-      (nickname.trim() !== "" && room.creatorName.trim().toLowerCase() === nickname.trim().toLowerCase());
-  };
 
   // Active Room Timer Countdown logic (Firestore Synced)
   useEffect(() => {
