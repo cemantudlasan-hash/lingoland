@@ -222,6 +222,9 @@ export default function RoleplayWorkspacePage() {
   // State: Help Guide popover tooltip
   const [showHelpTooltip, setShowHelpTooltip] = useState(false);
 
+  // State: Staged invitation room for unregistered link-clicks
+  const [pendingRoomToJoin, setPendingRoomToJoin] = useState<RoleplayRoom | null>(null);
+
   // State: Sticky Notes
   const [newNoteContent, setNewNoteContent] = useState("");
   const [newNoteColor, setNewNoteColor] = useState<"yellow" | "blue" | "pink" | "green" | "purple">("yellow");
@@ -360,7 +363,16 @@ export default function RoleplayWorkspacePage() {
             // Find in current loaded state first
             const existingRoom = rooms.find(r => r.id === inviteId);
             if (existingRoom) {
-              joinOrPromptPassword(existingRoom);
+              if (isRegistered) {
+                joinOrPromptPassword(existingRoom);
+              } else {
+                setPendingRoomToJoin(existingRoom);
+                toast({
+                  title: "Room Invitation Received! ✉️🔑",
+                  description: "Please enter your collaborative details first to join.",
+                  className: "bg-slate-900 border-purple-500/30 text-purple-200"
+                });
+              }
             } else {
               // Fetch directly from Firestore
               const docRef = doc(db, "roleplay_rooms", inviteId);
@@ -380,7 +392,17 @@ export default function RoleplayWorkspacePage() {
                   isPrivate: roomData.isPrivate || false,
                   notes: roomData.notes || []
                 };
-                joinOrPromptPassword(fetchedRoom);
+                
+                if (isRegistered) {
+                  joinOrPromptPassword(fetchedRoom);
+                } else {
+                  setPendingRoomToJoin(fetchedRoom);
+                  toast({
+                    title: "Room Invitation Received! ✉️🔑",
+                    description: "Please enter your collaborative details first to join.",
+                    className: "bg-slate-900 border-purple-500/30 text-purple-200"
+                  });
+                }
               } else {
                 toast({
                   title: "Shared Room Not Found 🔍❌",
@@ -397,10 +419,11 @@ export default function RoleplayWorkspacePage() {
         checkAndJoin();
       }
     }
-  }, [rooms.length]);
+  }, [rooms.length, isRegistered]);
 
-  const joinOrPromptPassword = (room: RoleplayRoom) => {
-    const myNameLower = nickname.trim().toLowerCase();
+  const joinOrPromptPassword = (room: RoleplayRoom, customNickname?: string) => {
+    const finalNickname = customNickname || nickname;
+    const myNameLower = finalNickname.trim().toLowerCase();
     const isBlocked = room.blockedUsers?.some(n => n.toLowerCase() === myNameLower);
     if (isBlocked && !isAdmin) {
       toast({
@@ -646,6 +669,12 @@ export default function RoleplayWorkspacePage() {
       description: `Welcome aboard, ${trimmedNickname}! Ready to brainstorm roleplay groups.`,
       className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
     });
+
+    // Auto trigger invite link join flow if staged
+    if (pendingRoomToJoin) {
+      joinOrPromptPassword(pendingRoomToJoin, trimmedNickname);
+      setPendingRoomToJoin(null);
+    }
   };
 
   // Logout/Reset Profile state
