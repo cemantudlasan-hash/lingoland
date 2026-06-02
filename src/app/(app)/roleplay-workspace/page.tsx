@@ -553,6 +553,35 @@ export default function RoleplayWorkspacePage() {
     }
   };
 
+  // Host delete single message
+  const handleDeleteMessage = async (msgId: string) => {
+    if (!currentRoom) return;
+    if (!isRoomCreator(currentRoom)) {
+      toast({
+        title: "Host Action Only 🚫",
+        description: "Only the room creator / host can delete messages in this session.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, "roleplay_rooms", currentRoom.id, "messages", msgId));
+      toast({
+        title: "Message Deleted 🗑️",
+        description: "The message has been removed from the dialogue feed.",
+        className: "bg-slate-900 border-purple-500/20 text-purple-300"
+      });
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast({
+        title: "Deletion Failed ❌",
+        description: "Could not remove message from the database.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Host toggle block
   const handleToggleBlock = async (nicknameToBlock: string) => {
     if (!currentRoom) return;
@@ -2431,7 +2460,18 @@ export default function RoleplayWorkspacePage() {
                             <span className="text-slate-600 font-medium">({msg.senderRole})</span>
                           </div>
 
-                          <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-850/60 max-w-xl text-slate-200 text-xs relative overflow-hidden animate-in fade-in duration-300">
+                          <div className={`p-3 rounded-2xl bg-slate-950/80 border border-slate-850/60 max-w-xl text-slate-200 text-xs relative overflow-hidden animate-in fade-in duration-300 ${isRoomCreator(currentRoom) ? 'pr-8' : ''}`}>
+                            {isRoomCreator(currentRoom) && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleDeleteMessage(msg.id)}
+                                className="absolute top-1.5 right-1.5 h-5 w-5 p-0 text-slate-500 hover:text-rose-400 hover:bg-slate-850/40 rounded transition-colors"
+                                title="Delete Message"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
                             {msg.type === "text" ? (
                               <p className="leading-relaxed">{msg.content}</p>
                             ) : (

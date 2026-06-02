@@ -70,13 +70,13 @@ export default function ClassroomToolsPage() {
     <div 
         ref={containerRef}
         className={cn(
-          "relative w-full transition-all duration-500", 
+          "relative w-full transition-all duration-500 flex flex-col h-auto md:h-[calc(100vh-130px)] min-h-[550px]", 
           isFullscreen && "bg-background p-6 w-screen h-screen flex flex-col items-center justify-start overflow-y-auto"
         )}
         data-fullscreen-container={isFullscreen}
     >
-        <Tabs value={activeTab} onValueChange={setActiveTab} className={cn("w-full flex flex-col", isFullscreen ? "max-w-7xl" : "h-full")}>
-            <div className="flex items-center justify-between gap-2 mb-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className={cn("w-full flex flex-col", isFullscreen ? "max-w-7xl" : "h-full flex-grow min-h-0")}>
+            <div className="flex items-center justify-between gap-2 mb-4 flex-shrink-0">
                 <TabsList className="flex flex-wrap w-full justify-start items-center gap-1 md:gap-2 flex-grow relative overflow-visible h-auto p-1">
                     {tabs.map((tab) => (
                         <div key={tab.value} className="relative">
@@ -104,49 +104,49 @@ export default function ClassroomToolsPage() {
                 </Button>
             </div>
 
-            <TabsContent value="morning-dashboard" className="flex-grow mt-0 h-full">
-                <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
+            <TabsContent value="morning-dashboard" className="flex-grow mt-0 h-full min-h-0">
+                <Card className="h-full flex flex-col min-h-0">
+                    <CardHeader className="pb-2 flex-shrink-0">
                         <CardTitle>Classroom Dashboard</CardTitle>
                         <CardDescription>A landing page for your students as they enter the room.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow">
+                    <CardContent className="flex-grow min-h-0 overflow-hidden p-3 md:p-6">
                         <MorningDashboard />
                     </CardContent>
                 </Card>
             </TabsContent>
 
-            <TabsContent value="timer" className="flex-grow mt-0 h-full">
-                <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
+            <TabsContent value="timer" className="flex-grow mt-0 h-full min-h-0">
+                <Card className="h-full flex flex-col min-h-0">
+                    <CardHeader className="pb-2 flex-shrink-0">
                         <CardTitle>Classroom Timer</CardTitle>
                         <CardDescription>A simple timer for classroom activities.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex items-center justify-center">
+                    <CardContent className="flex-grow flex items-center justify-center min-h-0 overflow-y-auto">
                         <TimerTool />
                     </CardContent>
                 </Card>
             </TabsContent>
 
-            <TabsContent value="random-name-picker" className="flex-grow mt-0 h-full">
-                 <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
+            <TabsContent value="random-name-picker" className="flex-grow mt-0 h-full min-h-0">
+                 <Card className="h-full flex flex-col min-h-0">
+                    <CardHeader className="pb-2 flex-shrink-0">
                         <CardTitle>Random Name Picker</CardTitle>
                         <CardDescription>Quickly and fairly select a student for a task.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex items-center justify-center">
+                    <CardContent className="flex-grow flex items-center justify-center min-h-0 overflow-y-auto">
                         <RandomNamePicker />
                     </CardContent>
                 </Card>
             </TabsContent>
 
-            <TabsContent value="group-maker" className="flex-grow mt-0 h-full">
-                 <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
+            <TabsContent value="group-maker" className="flex-grow mt-0 h-full min-h-0">
+                 <Card className="h-full flex flex-col min-h-0">
+                    <CardHeader className="pb-2 flex-shrink-0">
                         <CardTitle>Group Maker</CardTitle>
                         <CardDescription>Randomly assign students into groups.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow overflow-y-auto">
+                    <CardContent className="flex-grow overflow-y-auto min-h-0">
                         <div className="min-h-full flex items-center justify-center w-full">
                             <GroupMaker />
                         </div>
@@ -154,55 +154,55 @@ export default function ClassroomToolsPage() {
                 </Card>
             </TabsContent>
 
-            <TabsContent value="scoreboard" className="flex-grow mt-0 h-full">
-                 <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
+            <TabsContent value="scoreboard" className="flex-grow mt-0 h-full min-h-0">
+                 <Card className="h-full flex flex-col min-h-0">
+                    <CardHeader className="pb-2 flex-shrink-0">
                         <CardTitle>Scoreboard</CardTitle>
                         <CardDescription>Keep track of team scores during classroom games.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex items-center justify-center">
+                    <CardContent className="flex-grow flex items-center justify-center min-h-0 overflow-y-auto">
                         <Scoreboard />
                     </CardContent>
                 </Card>
             </TabsContent>
 
-            <TabsContent value="comment-generator" className="flex-grow mt-0 h-full">
-                 <Card className={cn("flex flex-col", isFullscreen ? "min-h-0 h-auto" : "h-full")}>
-                    <CardHeader className="pb-2">
+            <TabsContent value="comment-generator" className="flex-grow mt-0 h-full min-h-0">
+                 <Card className={cn("flex flex-col min-h-0", isFullscreen ? "h-auto" : "h-full")}>
+                    <CardHeader className="pb-2 flex-shrink-0">
                         <CardTitle>AI Student Comment Generator</CardTitle>
                         <CardDescription>Generate balanced performance feedback for reports and meetings.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow overflow-y-auto">
+                    <CardContent className="flex-grow overflow-y-auto min-h-0">
                         <CommentGenerator />
                     </CardContent>
                 </Card>
             </TabsContent>
 
-            <TabsContent value="memorandum" className="flex-grow mt-0 h-full">
-                <Card className="h-full flex flex-col overflow-y-auto">
+            <TabsContent value="memorandum" className="flex-grow mt-0 h-full min-h-0">
+                <Card className="h-full flex flex-col overflow-y-auto min-h-0">
                     <MemorandumTool />
                 </Card>
             </TabsContent>
 
-            <TabsContent value="noise-meter" className="flex-grow mt-0 h-full">
-                <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
+            <TabsContent value="noise-meter" className="flex-grow mt-0 h-full min-h-0">
+                <Card className="h-full flex flex-col min-h-0">
+                    <CardHeader className="pb-2 flex-shrink-0">
                         <CardTitle>Classroom Noise Meter</CardTitle>
                         <CardDescription>Monitor and manage classroom sound levels using your microphone.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow overflow-y-auto">
+                    <CardContent className="flex-grow overflow-y-auto min-h-0">
                         <NoiseMeter />
                     </CardContent>
                 </Card>
             </TabsContent>
 
-            <TabsContent value="daily-verse" className="flex-grow mt-0 h-full">
-                <Card className="h-full flex flex-col">
-                    <CardHeader className="pb-2">
+            <TabsContent value="daily-verse" className="flex-grow mt-0 h-full min-h-0">
+                <Card className="h-full flex flex-col min-h-0">
+                    <CardHeader className="pb-2 flex-shrink-0">
                         <CardTitle>The Daily Verse</CardTitle>
                         <CardDescription>AI News Aggregator & Quiz Game for students.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow overflow-y-auto">
+                    <CardContent className="flex-grow overflow-y-auto min-h-0">
                         <DailyVerse slug="daily-verse" />
                     </CardContent>
                 </Card>

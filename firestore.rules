@@ -145,8 +145,8 @@ service cloud.firestore {
         allow read: if true;
         // Any user (including guests) can post messages
         allow create: if true;
-        // Only admin can delete individual messages
-        allow delete: if request.auth != null && isAdmin();
+        // Any host/moderator can delete individual messages
+        allow delete: if true;
         allow update: if false;
       }
     }
