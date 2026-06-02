@@ -8,7 +8,7 @@ import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   "projectId": "lingoland-kpvxp",
   "appId": "1:596969092114:web:146d136d31db1ec35a54cb",
-  "storageBucket": "lingoland-kpvxp.appspot.com",
+  "storageBucket": "lingoland-kpvxp.firebasestorage.app",
   "apiKey": "AIzaSyCpwdk8psfEfSVsxDpoXvsNinq-0kjPtP0",
   "authDomain": "lingoland-kpvxp.firebaseapp.com",
   "measurementId": "",
