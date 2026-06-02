@@ -208,7 +208,8 @@ export default function RoleplayWorkspacePage() {
         let expired = false;
         
         if (dueDate) {
-          const expiry = new Date(dueDate);
+          const dateStr = dueDate.includes("T") ? dueDate : `${dueDate}T23:59:59`;
+          const expiry = new Date(dateStr);
           if (expiry < now) {
             expired = true;
             hasExpiredRooms = true;
