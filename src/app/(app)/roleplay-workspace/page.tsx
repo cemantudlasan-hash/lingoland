@@ -494,7 +494,6 @@ export default function RoleplayWorkspacePage() {
     const newRoom: Omit<RoleplayRoom, "messages"> = {
       id: roomId,
       name: newRoomName.trim(),
-      password: newRoomPassword.trim() || undefined,
       scenario: scenarioText,
       dueDate: newRoomDueDate,
       timerMinutes: newRoomTimer,
@@ -503,6 +502,10 @@ export default function RoleplayWorkspacePage() {
       isPrivate: newRoomIsPrivate,
       notes: []
     };
+
+    if (newRoomPassword.trim()) {
+      newRoom.password = newRoomPassword.trim();
+    }
 
     try {
       await setDoc(doc(db, "roleplay_rooms", roomId), newRoom);
