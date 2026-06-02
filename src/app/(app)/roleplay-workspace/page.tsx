@@ -225,6 +225,9 @@ export default function RoleplayWorkspacePage() {
   // State: Staged invitation room for unregistered link-clicks
   const [pendingRoomToJoin, setPendingRoomToJoin] = useState<RoleplayRoom | null>(null);
 
+  // State: Tracking if user entered workspace via a shared link
+  const [isInvitedUser, setIsInvitedUser] = useState(false);
+
   // State: Sticky Notes
   const [newNoteContent, setNewNoteContent] = useState("");
   const [newNoteColor, setNewNoteColor] = useState<"yellow" | "blue" | "pink" | "green" | "purple">("yellow");
@@ -270,6 +273,13 @@ export default function RoleplayWorkspacePage() {
       } catch (e) {}
     }
   }, [user, isGuest, userProfile]);
+
+  // Auto reset role if student tries to select Facilitator/Host role
+  useEffect(() => {
+    if ((pendingRoomToJoin || isInvitedUser || (currentRoom && !isRoomCreator(currentRoom))) && selectedRole === "Facilitator (Teacher/Host)") {
+      setSelectedRole("Actor A");
+    }
+  }, [pendingRoomToJoin, isInvitedUser, currentRoom, selectedRole]);
 
   // 2. Real-Time Rooms List Sync Hook (Firestore)
   useEffect(() => {
@@ -348,78 +358,68 @@ export default function RoleplayWorkspacePage() {
     return () => unsubscribe();
   }, [activeRoomId]);
 
-  // 4. Invite Link Query Parameters Hook
+  // 4. Invite Link Query Parameters Hook (Checks immediately on load and polls to handle consecutive links)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return;
+
+    const checkInviteUrl = async () => {
       const params = new URLSearchParams(window.location.search);
       const inviteId = params.get("roomInvite");
+      if (!inviteId) return;
 
-      if (inviteId) {
-        // Clear query param so it doesn't stay in the URL bar permanently
-        window.history.replaceState({}, document.title, window.location.pathname);
+      // Clear query param so it doesn't stay in the URL bar permanently
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setIsInvitedUser(true);
 
-        const checkAndJoin = async () => {
-          try {
-            // Find in current loaded state first
-            const existingRoom = rooms.find(r => r.id === inviteId);
-            if (existingRoom) {
-              if (isRegistered) {
-                joinOrPromptPassword(existingRoom);
-              } else {
-                setPendingRoomToJoin(existingRoom);
-                toast({
-                  title: "Room Invitation Received! ✉️🔑",
-                  description: "Please enter your collaborative details first to join.",
-                  className: "bg-slate-900 border-purple-500/30 text-purple-200"
-                });
-              }
-            } else {
-              // Fetch directly from Firestore
-              const docRef = doc(db, "roleplay_rooms", inviteId);
-              const docSnap = await getDoc(docRef);
-              if (docSnap.exists()) {
-                const roomData = docSnap.data();
-                const fetchedRoom: RoleplayRoom = {
-                  id: docSnap.id,
-                  name: roomData.name,
-                  password: roomData.password,
-                  scenario: roomData.scenario,
-                  dueDate: roomData.dueDate,
-                  timerMinutes: roomData.timerMinutes,
-                  timerStartedAt: roomData.timerStartedAt,
-                  creatorUid: roomData.creatorUid || "",
-                  creatorName: roomData.creatorName || "Student",
-                  isPrivate: roomData.isPrivate || false,
-                  notes: roomData.notes || []
-                };
-                
-                if (isRegistered) {
-                  joinOrPromptPassword(fetchedRoom);
-                } else {
-                  setPendingRoomToJoin(fetchedRoom);
-                  toast({
-                    title: "Room Invitation Received! ✉️🔑",
-                    description: "Please enter your collaborative details first to join.",
-                    className: "bg-slate-900 border-purple-500/30 text-purple-200"
-                  });
-                }
-              } else {
-                toast({
-                  title: "Shared Room Not Found 🔍❌",
-                  description: "This collaborative room does not exist in the database.",
-                  variant: "destructive"
-                });
-              }
-            }
-          } catch (err) {
-            console.error("Error looking up room:", err);
+      try {
+        // Fetch directly from Firestore to get the most updated room reference
+        const docRef = doc(db, "roleplay_rooms", inviteId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const roomData = docSnap.data();
+          const fetchedRoom: RoleplayRoom = {
+            id: docSnap.id,
+            name: roomData.name,
+            password: roomData.password,
+            scenario: roomData.scenario,
+            dueDate: roomData.dueDate,
+            timerMinutes: roomData.timerMinutes,
+            timerStartedAt: roomData.timerStartedAt,
+            creatorUid: roomData.creatorUid || "",
+            creatorName: roomData.creatorName || "Student",
+            isPrivate: roomData.isPrivate || false,
+            notes: roomData.notes || []
+          };
+          
+          if (isRegistered) {
+            joinOrPromptPassword(fetchedRoom);
+          } else {
+            setPendingRoomToJoin(fetchedRoom);
+            toast({
+              title: "Room Invitation Received! ✉️🔑",
+              description: "Please enter your collaborative details first to join.",
+              className: "bg-slate-900 border-purple-500/30 text-purple-200"
+            });
           }
-        };
-
-        checkAndJoin();
+        } else {
+          toast({
+            title: "Shared Room Not Found 🔍❌",
+            description: "This collaborative room does not exist in the database.",
+            variant: "destructive"
+          });
+        }
+      } catch (err) {
+        console.error("Error looking up room from invite parameter:", err);
       }
-    }
-  }, [rooms.length, isRegistered]);
+    };
+
+    // Run once on load
+    checkInviteUrl();
+
+    // Check periodically every 1s to support clicking/pasting consecutive links on the same page
+    const timer = setInterval(checkInviteUrl, 1000);
+    return () => clearInterval(timer);
+  }, [isRegistered]);
 
   const joinOrPromptPassword = (room: RoleplayRoom, customNickname?: string) => {
     const finalNickname = customNickname || nickname;
@@ -2024,7 +2024,9 @@ export default function RoleplayWorkspacePage() {
                   >
                     <option value="Actor A">Actor A (Protagonist)</option>
                     <option value="Actor B">Actor B (Antagonist)</option>
-                    <option value="Facilitator (Teacher/Host)">Facilitator / Host</option>
+                    {!pendingRoomToJoin && !isInvitedUser && (
+                      <option value="Facilitator (Teacher/Host)">Facilitator / Host</option>
+                    )}
                     <option value="Scribe">Scribe / Recorder</option>
                     <option value="Presenter">Presenter</option>
                     <option value="Timekeeper">Timekeeper</option>
@@ -2051,9 +2053,11 @@ export default function RoleplayWorkspacePage() {
                   <h3 className="text-sm font-black uppercase text-slate-300 tracking-widest flex items-center gap-2">
                     <Users className="h-4 w-4 text-purple-400" /> Active Dialogue Rooms ({visibleRooms.length})
                   </h3>
-                  <Button onClick={() => setShowCreatePanel(!showCreatePanel)} className="bg-purple-600/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 text-xs font-extrabold uppercase rounded-xl h-8">
-                    {showCreatePanel ? "Hide Panel" : "Create Room"}
-                  </Button>
+                  {!isInvitedUser && (
+                    <Button onClick={() => setShowCreatePanel(!showCreatePanel)} className="bg-purple-650/10 border border-purple-500/20 text-purple-400 hover:bg-purple-500/20 text-xs font-extrabold uppercase rounded-xl h-8">
+                      {showCreatePanel ? "Hide Panel" : "Create Room"}
+                    </Button>
+                  )}
                 </div>
 
                 {visibleRooms.length === 0 ? (
@@ -2400,7 +2404,9 @@ export default function RoleplayWorkspacePage() {
                       >
                         <option value="Actor A">Actor A</option>
                         <option value="Actor B">Actor B</option>
-                        <option value="Facilitator (Teacher/Host)">Facilitator</option>
+                        {isRoomCreator(currentRoom) && (
+                          <option value="Facilitator (Teacher/Host)">Facilitator</option>
+                        )}
                         <option value="Scribe">Scribe</option>
                         <option value="Presenter">Presenter</option>
                         <option value="Timekeeper">Timekeeper</option>
