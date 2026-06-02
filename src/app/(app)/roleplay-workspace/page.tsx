@@ -400,16 +400,14 @@ export default function RoleplayWorkspacePage() {
             notes: roomData.notes || []
           };
           
-          if (isRegistered) {
-            joinOrPromptPassword(fetchedRoom);
-          } else {
-            setPendingRoomToJoin(fetchedRoom);
-            toast({
-              title: "Room Invitation Received! ✉️🔑",
-              description: "Please enter your collaborative details first to join.",
-              className: "bg-slate-900 border-purple-500/30 text-purple-200"
-            });
-          }
+          // Always show the setup registration screen ("collaborative zone") first when entering via an invite link
+          setIsRegistered(false);
+          setPendingRoomToJoin(fetchedRoom);
+          toast({
+            title: "Room Invitation Received! ✉️🔑",
+            description: "Please enter or confirm your collaborative details first to join.",
+            className: "bg-slate-900 border-purple-500/30 text-purple-200"
+          });
         } else {
           toast({
             title: "Shared Room Not Found 🔍❌",
