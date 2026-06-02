@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Users, MessageSquare, Trash2, Calendar, Lock, Unlock, Play, Pause, Mic, 
   Square, Plus, Sparkles, Clock, Crown, Settings, LogOut, Check, X, 
-  ShieldAlert, Award, FileText, Send, Volume2, RotateCcw, ListCollapse, ArrowUp, ArrowDown
+  ShieldAlert, Award, FileText, Send, Volume2, RotateCcw, ListCollapse, ArrowUp, ArrowDown, Download, Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -108,6 +108,69 @@ const scenarioPresets = [
   }
 ];
 
+// Premium browser WAV Audio Encoder helpers
+const audioBufferToWav = (buffer: AudioBuffer): Blob => {
+  const numOfChan = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const format = 1; // 1 = raw PCM (16-bit integer)
+  const bitDepth = 16;
+  
+  let result;
+  if (numOfChan === 2) {
+    result = interleave(buffer.getChannelData(0), buffer.getChannelData(1));
+  } else {
+    result = buffer.getChannelData(0);
+  }
+  
+  const bufferLength = result.length * 2;
+  const arrayBuffer = new ArrayBuffer(44 + bufferLength);
+  const view = new DataView(arrayBuffer);
+  
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + bufferLength, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, format, true);
+  view.setUint16(22, numOfChan, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numOfChan * (bitDepth / 8), true);
+  view.setUint16(32, numOfChan * (bitDepth / 8), true);
+  view.setUint16(34, bitDepth, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, bufferLength, true);
+  
+  floatTo16BitPCM(view, 44, result);
+  return new Blob([view], { type: 'audio/wav' });
+};
+
+const interleave = (inputL: Float32Array, inputR: Float32Array): Float32Array => {
+  const length = inputL.length + inputR.length;
+  const result = new Float32Array(length);
+  let index = 0;
+  let inputIndex = 0;
+  
+  while (index < length) {
+    result[index++] = inputL[inputIndex];
+    result[index++] = inputR[inputIndex];
+    inputIndex++;
+  }
+  return result;
+};
+
+const floatTo16BitPCM = (output: DataView, offset: number, input: Float32Array) => {
+  for (let i = 0; i < input.length; i++, offset += 2) {
+    let s = Math.max(-1, Math.min(1, input[i]));
+    output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+};
+
+const writeString = (view: DataView, offset: number, string: string) => {
+  for (let i = 0; i < string.length; i++) {
+    view.setUint8(offset + i, string.charCodeAt(i));
+  }
+};
+
 export default function RoleplayWorkspacePage() {
   const { user, isGuest, userProfile, isAdmin } = useAuth();
   const { toast } = useToast();
@@ -148,6 +211,7 @@ export default function RoleplayWorkspacePage() {
   const [sequencedMessageIds, setSequencedMessageIds] = useState<string[]>([]);
   const [isSequencePlaying, setIsSequencePlaying] = useState(false);
   const [currentPlayingSeqIndex, setCurrentPlayingSeqIndex] = useState<number | null>(null);
+  const [isExportingAudio, setIsExportingAudio] = useState(false);
 
   // State: Sticky Notes
   const [newNoteContent, setNewNoteContent] = useState("");
@@ -1113,6 +1177,87 @@ export default function RoleplayWorkspacePage() {
       sequenceAudioRef.current = null;
     }
   };
+
+  // Splicing & Concatenating Sequenced Audio Clips into a Single Downloadable WAV file
+  const handleDownloadMergedSequence = async () => {
+    if (sequencedMessageIds.length === 0 || !currentRoom) return;
+
+    setIsExportingAudio(true);
+    const exportToast = toast({
+      title: "Consolidating dialogue sequence... 🎙️🎛️",
+      description: "Downloading and splicing voice note audio streams in the browser.",
+      className: "bg-slate-900 border-purple-500/30 text-purple-200"
+    });
+
+    try {
+      const validMsgs = sequencedMessageIds
+        .map(id => messages.find(m => m.id === id))
+        .filter((m): m is ChatMessage => !!m && !!m.audioUrl);
+
+      if (validMsgs.length === 0) {
+        throw new Error("No recorded voice clips found in the sequence.");
+      }
+
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) {
+        throw new Error("Web Audio API is not supported in this browser.");
+      }
+      const audioCtx = new AudioContextClass();
+
+      const bufferPromises = validMsgs.map(async (msg) => {
+        const response = await fetch(msg.audioUrl!);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch audio for ${msg.senderName}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        return await audioCtx.decodeAudioData(arrayBuffer);
+      });
+
+      const audioBuffers = await Promise.all(bufferPromises);
+
+      const totalLength = audioBuffers.reduce((acc, buf) => acc + buf.length, 0);
+      const numberOfChannels = Math.max(...audioBuffers.map(buf => buf.numberOfChannels), 1);
+      const sampleRate = audioCtx.sampleRate;
+
+      const mergedBuffer = audioCtx.createBuffer(numberOfChannels, totalLength, sampleRate);
+
+      for (let channel = 0; channel < numberOfChannels; channel++) {
+        const mergedData = mergedBuffer.getChannelData(channel);
+        let offset = 0;
+        for (const buf of audioBuffers) {
+          const sourceChannel = channel < buf.numberOfChannels ? channel : 0;
+          const channelData = buf.getChannelData(sourceChannel);
+          mergedData.set(channelData, offset);
+          offset += buf.length;
+        }
+      }
+
+      const wavBlob = audioBufferToWav(mergedBuffer);
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = URL.createObjectURL(wavBlob);
+      downloadLink.download = `${currentRoom.name.replace(/\s+/g, "_")}_Consolidated_Dialogue.wav`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+      toast({
+        title: "Dialogue Exported! 🎙️🎉",
+        description: "All sequenced clips compiled successfully into 1 clean WAV file.",
+        className: "bg-slate-900 border-green-500/30 text-green-200"
+      });
+    } catch (err: any) {
+      console.error("Error exporting dialogue sequence:", err);
+      toast({
+        title: "Export Failed 🎙️❌",
+        description: err.message || "Could not consolidate audio clips.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExportingAudio(false);
+    }
+  };
+
   // 9. Standard Text Message handler (Firestore Collection)
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1817,7 +1962,7 @@ export default function RoleplayWorkspacePage() {
                         </h4>
                         
                         {sequencedMessageIds.length > 0 && (
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap items-center">
                             {isSequencePlaying ? (
                               <Button 
                                 size="sm" 
@@ -1835,6 +1980,24 @@ export default function RoleplayWorkspacePage() {
                                 <Play className="h-2.5 w-2.5" /> Play Sequenced Scene ({sequencedMessageIds.length})
                               </Button>
                             )}
+
+                            {/* Host/Teacher Consolidated WAV Download Button */}
+                            {canControlTimer && (
+                              <Button
+                                size="sm"
+                                onClick={handleDownloadMergedSequence}
+                                disabled={isExportingAudio}
+                                className="h-6 px-2.5 bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/20 text-white text-[9px] font-black uppercase rounded-lg flex items-center gap-1 shadow-md shadow-indigo-600/10 disabled:opacity-50"
+                              >
+                                {isExportingAudio ? (
+                                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                                ) : (
+                                  <Download className="h-2.5 w-2.5" />
+                                )}
+                                Export Scene WAV
+                              </Button>
+                            )}
+
                             <Button 
                               size="sm" 
                               variant="ghost"
