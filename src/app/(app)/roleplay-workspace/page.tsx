@@ -213,7 +213,7 @@ export default function RoleplayWorkspacePage() {
             expired = true;
             hasExpiredRooms = true;
             // Let the creator or admin delete it asynchronously
-            if (isAdmin || data.creatorUid === user?.uid || data.creatorName === nickname) {
+            if (isAdmin || (user && data.creatorUid === user.uid) || (nickname.trim() !== "" && data.creatorName && data.creatorName.trim().toLowerCase() === nickname.trim().toLowerCase())) {
               deleteDoc(doc(db, "roleplay_rooms", docSnap.id)).catch(err => console.error("Error purging room:", err));
             }
           }
@@ -391,21 +391,23 @@ export default function RoleplayWorkspacePage() {
   // Filter rooms based on privacy and sharing link list
   const visibleRooms = rooms.filter(room => {
     if (!room.isPrivate) return true;
-    const isCreator = (user && !isGuest && room.creatorUid === user.uid) || room.creatorName === nickname;
+    const isCreator = 
+      (user && room.creatorUid === user.uid) || 
+      (nickname.trim() !== "" && room.creatorName.trim().toLowerCase() === nickname.trim().toLowerCase());
     return isCreator || unlockedPrivateRooms.includes(room.id);
   });
 
   // Check if current user is room creator (to control timer / delete etc.)
   const canControlTimer = currentRoom ? (
     isAdmin || 
-    (user && !isGuest && currentRoom.creatorUid === user.uid) ||
-    (currentRoom.creatorName === nickname)
+    (user && currentRoom.creatorUid === user.uid) ||
+    (nickname.trim() !== "" && currentRoom.creatorName.trim().toLowerCase() === nickname.trim().toLowerCase())
   ) : false;
 
   const isRoomCreator = (room: RoleplayRoom) => {
     return isAdmin || 
-      (user && !isGuest && room.creatorUid === user.uid) ||
-      (room.creatorName === nickname);
+      (user && room.creatorUid === user.uid) ||
+      (nickname.trim() !== "" && room.creatorName.trim().toLowerCase() === nickname.trim().toLowerCase());
   };
 
   // Active Room Timer Countdown logic (Firestore Synced)
@@ -440,7 +442,8 @@ export default function RoleplayWorkspacePage() {
   // 3. User Setup registration handler
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nickname.trim()) {
+    const trimmedNickname = nickname.trim();
+    if (!trimmedNickname) {
       toast({
         title: "Registration incomplete",
         description: "Please enter a nickname/name to connect.",
@@ -448,12 +451,13 @@ export default function RoleplayWorkspacePage() {
       });
       return;
     }
-    const profile = { nickname, seatNo: seatNo.trim() || "N/A", role: selectedRole };
+    setNickname(trimmedNickname);
+    const profile = { nickname: trimmedNickname, seatNo: seatNo.trim() || "N/A", role: selectedRole };
     localStorage.setItem("lingoland_roleplay_user", JSON.stringify(profile));
     setIsRegistered(true);
     toast({
       title: "Workspace Connected! 🤝✨",
-      description: `Welcome aboard, ${nickname}! Ready to brainstorm roleplay groups.`,
+      description: `Welcome aboard, ${trimmedNickname}! Ready to brainstorm roleplay groups.`,
       className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
     });
   };
@@ -497,8 +501,8 @@ export default function RoleplayWorkspacePage() {
       scenario: scenarioText,
       dueDate: newRoomDueDate,
       timerMinutes: newRoomTimer,
-      creatorUid: user?.uid || "guest-" + nickname,
-      creatorName: nickname || "Student",
+      creatorUid: user?.uid || "guest-" + nickname.trim(),
+      creatorName: nickname.trim() || "Student",
       isPrivate: newRoomIsPrivate,
       notes: []
     };
@@ -509,6 +513,22 @@ export default function RoleplayWorkspacePage() {
 
     try {
       await setDoc(doc(db, "roleplay_rooms", roomId), newRoom);
+      
+      // Auto-unlock private room locally so it instantly appears in active list for creator
+      if (newRoom.isPrivate) {
+        const storedUnlocked = localStorage.getItem("lingoland_unlocked_private_rooms");
+        let unlocked: string[] = [];
+        if (storedUnlocked) {
+          try {
+            unlocked = JSON.parse(storedUnlocked);
+          } catch (e) {}
+        }
+        if (!unlocked.includes(roomId)) {
+          unlocked.push(roomId);
+          localStorage.setItem("lingoland_unlocked_private_rooms", JSON.stringify(unlocked));
+          setUnlockedPrivateRooms(unlocked);
+        }
+      }
       
       // Reset room form state
       setNewRoomName("");
