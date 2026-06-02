@@ -928,102 +928,29 @@ export default function RoleplayWorkspacePage() {
             className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
           });
         } catch (error) {
-          console.error("Error uploading voice file, falling back to dynamic synthesis:", error);
-          
-          // Fallback: Write directly to Firestore without audioUrl to trigger dynamic Speech Synthesis
-          const voiceTextOptions = [
-            "Let's practice the lost luggage dialogue now. Excuse me, my baggage is missing!",
-            "I agree with that. We should ask the VC for a higher valuation because of our proprietary tech.",
-            "My soup is completely cold, and there is an actual strand of black hair in it. I need to speak to the manager.",
-            "I've been feeling extremely dizzy and seeing floating neon pets since last night, doctor."
-          ];
-          
-          let chosenText = "Hello team, let's coordinate this dialogue!";
-          if (currentRoom.scenario.includes("Luggage")) chosenText = voiceTextOptions[0];
-          else if (currentRoom.scenario.includes("Negotiation")) chosenText = voiceTextOptions[1];
-          else if (currentRoom.scenario.includes("Culinary")) chosenText = voiceTextOptions[2];
-          else if (currentRoom.scenario.includes("Flu")) chosenText = voiceTextOptions[3];
-
-          const newVoiceMessage: ChatMessage = {
-            id: messageId,
-            senderName: nickname,
-            senderSeat: seatNo || "N/A",
-            senderRole: selectedRole,
-            content: chosenText,
-            type: "voice",
-            timestamp: Date.now(),
-            audioDuration: recordingSeconds || 4
-          };
-
-          try {
-            await setDoc(doc(db, "roleplay_rooms", currentRoom.id, "messages", messageId), newVoiceMessage);
-            toast({
-              title: "Voice Message Sent (AI Fallback)! 🎙️⚡",
-              description: "Direct sync fallback enabled. Speech synthesized version created.",
-              className: "bg-slate-900 border-yellow-500/30 text-yellow-200"
-            });
-          } catch (dbErr) {
-            console.error("Error writing fallback message to firestore:", dbErr);
-            toast({
-              title: "Upload Failed 🎙️❌",
-              description: "Could not upload voice note or sync to room. Please check connection.",
-              variant: "destructive"
-            });
-          }
+          console.error("Error uploading voice file:", error);
+          toast({
+            title: "Upload Failed 🎙️❌",
+            description: "Could not upload voice note. Please check your storage rules and internet connection.",
+            variant: "destructive"
+          });
         } finally {
           setIsUploadingVoice(false);
         }
       };
       mediaRecorder.stop();
     } else {
-      // Fallback if MediaRecorder is not supported or was not active
       if (audioStreamRef.current) {
         audioStreamRef.current.getTracks().forEach(track => track.stop());
         audioStreamRef.current = null;
       }
-      
-      const voiceTextOptions = [
-        "Let's practice the lost luggage dialogue now. Excuse me, my baggage is missing!",
-        "I agree with that. We should ask the VC for a higher valuation because of our proprietary tech.",
-        "My soup is completely cold, and there is an actual strand of black hair in it. I need to speak to the manager.",
-        "I've been feeling extremely dizzy and seeing floating neon pets since last night, doctor."
-      ];
-      
-      let chosenText = "Hello team, let's coordinate this dialogue!";
-      if (currentRoom.scenario.includes("Luggage")) chosenText = voiceTextOptions[0];
-      else if (currentRoom.scenario.includes("Negotiation")) chosenText = voiceTextOptions[1];
-      else if (currentRoom.scenario.includes("Culinary")) chosenText = voiceTextOptions[2];
-      else if (currentRoom.scenario.includes("Flu")) chosenText = voiceTextOptions[3];
-
-      const newVoiceMessage: ChatMessage = {
-        id: "msg-" + Date.now(),
-        senderName: nickname,
-        senderSeat: seatNo || "N/A",
-        senderRole: selectedRole,
-        content: chosenText,
-        type: "voice",
-        timestamp: Date.now(),
-        audioDuration: recordingSeconds || 4
-      };
-
-      setDoc(doc(db, "roleplay_rooms", currentRoom.id, "messages", newVoiceMessage.id), newVoiceMessage)
-        .then(() => {
-          toast({
-            title: "Voice Message Sent! 🎙️🚀",
-            description: "Synthesized audio preview created dynamically.",
-            className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
-          });
-        })
-        .catch(err => console.error("Error saving voice message:", err));
+      toast({
+        title: "Recording Failed 🎙️❌",
+        description: "Voice recording is not supported or was not active in this browser.",
+        variant: "destructive"
+      });
     }
-  };
-
-  const handlePlayAudioMessage = (msg: ChatMessage) => {
-    // Stop speech synthesis if playing
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-
+  };  const handlePlayAudioMessage = (msg: ChatMessage) => {
     // Stop real audio element if playing
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
@@ -1046,6 +973,11 @@ export default function RoleplayWorkspacePage() {
 
         audio.play().catch(e => {
           console.error("Failed to play real voice recording:", e);
+          toast({
+            title: "Playback Failed 🎙️❌",
+            description: "Could not play the recorded voice file. Please try again.",
+            variant: "destructive"
+          });
         });
 
         // Set up animation progress using actual currentTime and duration
@@ -1080,57 +1012,15 @@ export default function RoleplayWorkspacePage() {
         console.error("Audio playback error:", err);
       }
     } else {
-      // Fallback: Dynamic HTML5 Web Speech synthesis (AI voice simulation)
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel(); // Cancel any active queue first
-
-        const utterance = new SpeechSynthesisUtterance(msg.content);
-        if (msg.senderRole.includes("Teacher") || msg.senderRole.includes("Facilitator")) {
-          utterance.rate = 0.9;
-          utterance.pitch = 1.1;
-        } else {
-          utterance.rate = 1.0;
-          utterance.pitch = 0.95;
-        }
-
-        setActiveAudioMessageId(msg.id);
-        setAudioPlaybackProgress(0);
-
-        const duration = (msg.audioDuration || 4) * 1000;
-        const startTime = Date.now();
-
-        audioIntervalRef.current = setInterval(() => {
-          const elapsed = Date.now() - startTime;
-          const pct = Math.min(100, (elapsed / duration) * 100);
-          setAudioPlaybackProgress(pct);
-          if (elapsed >= duration) {
-            clearInterval(audioIntervalRef.current as NodeJS.Timeout);
-            audioIntervalRef.current = null;
-            setActiveAudioMessageId(null);
-            setAudioPlaybackProgress(0);
-          }
-        }, 100);
-
-        // Schedule speech synthesis after a 100ms delay to allow cancellation to complete cleanly
-        setTimeout(() => {
-          if ("speechSynthesis" in window) {
-            window.speechSynthesis.speak(utterance);
-          }
-        }, 100);
-      } else {
-        toast({
-          title: "Browser incompatibility",
-          description: "Your system doesn't support speaking speech-synthesis.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Audio Unavailable 🎙️❌",
+        description: "This voice message has no audio recording associated with it.",
+        variant: "destructive"
+      });
     }
   };
 
   const handleStopAudioMessage = () => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
       currentAudioRef.current = null;
@@ -1210,35 +1100,8 @@ export default function RoleplayWorkspacePage() {
         handlePlaySequence(index + 1);
       }
     } else {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(msg.content);
-        if (msg.senderRole.includes("Teacher") || msg.senderRole.includes("Facilitator")) {
-          utterance.rate = 0.9;
-          utterance.pitch = 1.1;
-        } else {
-          utterance.rate = 1.0;
-          utterance.pitch = 0.95;
-        }
-
-        utterance.onend = () => {
-          utterance.onend = null;
-          handlePlaySequence(index + 1);
-        };
-        utterance.onerror = () => {
-          utterance.onerror = null;
-          handlePlaySequence(index + 1);
-        };
-
-        // Schedule speech synthesis after a 100ms delay to allow cancellation to complete cleanly
-        setTimeout(() => {
-          if ("speechSynthesis" in window) {
-            window.speechSynthesis.speak(utterance);
-          }
-        }, 100);
-      } else {
-        handlePlaySequence(index + 1);
-      }
+      // Just skip this message in sequence play since it has no audio recording
+      handlePlaySequence(index + 1);
     }
   };
 
@@ -1249,11 +1112,7 @@ export default function RoleplayWorkspacePage() {
       sequenceAudioRef.current.pause();
       sequenceAudioRef.current = null;
     }
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
   };
-
   // 9. Standard Text Message handler (Firestore Collection)
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
