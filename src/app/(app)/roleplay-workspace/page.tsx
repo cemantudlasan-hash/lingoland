@@ -1082,6 +1082,8 @@ export default function RoleplayWorkspacePage() {
     } else {
       // Fallback: Dynamic HTML5 Web Speech synthesis (AI voice simulation)
       if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel(); // Cancel any active queue first
+
         const utterance = new SpeechSynthesisUtterance(msg.content);
         if (msg.senderRole.includes("Teacher") || msg.senderRole.includes("Facilitator")) {
           utterance.rate = 0.9;
@@ -1109,7 +1111,12 @@ export default function RoleplayWorkspacePage() {
           }
         }, 100);
 
-        window.speechSynthesis.speak(utterance);
+        // Schedule speech synthesis after a 100ms delay to allow cancellation to complete cleanly
+        setTimeout(() => {
+          if ("speechSynthesis" in window) {
+            window.speechSynthesis.speak(utterance);
+          }
+        }, 100);
       } else {
         toast({
           title: "Browser incompatibility",
@@ -1223,7 +1230,12 @@ export default function RoleplayWorkspacePage() {
           handlePlaySequence(index + 1);
         };
 
-        window.speechSynthesis.speak(utterance);
+        // Schedule speech synthesis after a 100ms delay to allow cancellation to complete cleanly
+        setTimeout(() => {
+          if ("speechSynthesis" in window) {
+            window.speechSynthesis.speak(utterance);
+          }
+        }, 100);
       } else {
         handlePlaySequence(index + 1);
       }
@@ -1840,11 +1852,11 @@ export default function RoleplayWorkspacePage() {
                               /* Interactive speaking audio note */
                               <div className="flex items-center gap-3">
                                 {activeAudioMessageId === msg.id ? (
-                                  <Button size="icon" onClick={handleStopAudioMessage} className="h-8 w-8 bg-rose-650 hover:bg-rose-600 rounded-full shrink-0 text-white animate-pulse">
+                                  <Button size="icon" onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleStopAudioMessage(); }} className="h-8 w-8 bg-rose-650 hover:bg-rose-600 rounded-full shrink-0 text-white animate-pulse">
                                     <Pause className="h-4 w-4" />
                                   </Button>
                                 ) : (
-                                  <Button size="icon" onClick={() => handlePlayAudioMessage(msg)} className="h-8 w-8 bg-indigo-600 hover:bg-indigo-500 rounded-full shrink-0 text-white">
+                                  <Button size="icon" onClick={(e) => { e.stopPropagation(); e.preventDefault(); handlePlayAudioMessage(msg); }} className="h-8 w-8 bg-indigo-600 hover:bg-indigo-500 rounded-full shrink-0 text-white">
                                     <Play className="h-4 w-4 ml-0.5" />
                                   </Button>
                                 )}
