@@ -53,6 +53,8 @@ interface Flashcard {
   nextReviewDate: string;
   intervalDays: number;
   box: number;
+  emoji?: string;
+  imageUrl?: string;
 }
 
 export default function FlashcardsPage() {
@@ -72,6 +74,11 @@ export default function FlashcardsPage() {
   const [hint, setHint] = useState("");
   const [context, setContext] = useState("");
   const [emoji, setEmoji] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageSearchQuery, setImageSearchQuery] = useState("");
+  const [imageSearchSource, setImageSearchSource] = useState<"google" | "bing" | "pinterest" | "unsplash">("unsplash");
+  const [searchedImages, setSearchedImages] = useState<any[]>([]);
+  const [isSearchingImages, setIsSearchingImages] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -201,6 +208,7 @@ export default function FlashcardsPage() {
         hint: hint.trim(),
         context: context.trim(),
         emoji: emoji.trim(),
+        imageUrl: imageUrl.trim(),
         createdAt: new Date().toISOString(),
         nextReviewDate: new Date().toISOString(),
         intervalDays: 1,
@@ -222,6 +230,9 @@ export default function FlashcardsPage() {
       setHint("");
       setContext("");
       setEmoji("");
+      setImageUrl("");
+      setImageSearchQuery("");
+      setSearchedImages([]);
       setActiveTab("collection");
     } catch (err: any) {
       console.error("Failed to create card:", err);
@@ -234,6 +245,57 @@ export default function FlashcardsPage() {
       setIsCreating(false);
     }
   };
+
+  // Sync search input query with vocabulary word when it changes
+  useEffect(() => {
+    if (word) {
+      setImageSearchQuery(word);
+    }
+  }, [word]);
+
+  // Dynamic web image search handler
+  const handleWebImageSearch = async () => {
+    if (!imageSearchQuery.trim()) return;
+    setIsSearchingImages(true);
+    try {
+      const response = await fetch(`/api/image-picker?query=${encodeURIComponent(imageSearchQuery.trim())}&source=${imageSearchSource}&tab=IMAGES&count=12`);
+      const data = await response.json();
+      if (data.success && data.images) {
+        setSearchedImages(data.images);
+        if (data.images.length === 0) {
+          toast({
+            variant: "destructive",
+            title: "No Images Found",
+            description: `Could not find any images for "${imageSearchQuery}" on ${imageSearchSource}.`,
+          });
+        }
+      } else {
+        setSearchedImages([]);
+        toast({
+          variant: "destructive",
+          title: "Search Failed",
+          description: data.error || `Failed to search images on ${imageSearchSource}.`,
+        });
+      }
+    } catch (err) {
+      console.error("Image search error:", err);
+      setSearchedImages([]);
+      toast({
+        variant: "destructive",
+        title: "Search Error",
+        description: "An error occurred while connecting to the image search service.",
+      });
+    } finally {
+      setIsSearchingImages(false);
+    }
+  };
+
+  // Re-trigger search when engine source changes and query is present
+  useEffect(() => {
+    if (imageSearchQuery.trim()) {
+      handleWebImageSearch();
+    }
+  }, [imageSearchSource]);
 
   // Spaced Repetition Leitner Logic
   const handleRateCard = async (card: Flashcard, success: boolean, easy = false) => {
@@ -320,8 +382,13 @@ export default function FlashcardsPage() {
     const wordRow = document.createElement("div");
     wordRow.style.cssText = "display:flex;align-items:center;gap:12px;margin:0 0 12px 0;";
 
-    // @ts-ignore
-    if (card.emoji) {
+    if (card.imageUrl) {
+      const imgEl = document.createElement("img");
+      imgEl.src = card.imageUrl;
+      imgEl.crossOrigin = "anonymous";
+      imgEl.style.cssText = "width:44px;height:44px;object-fit:contain;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:#030712;";
+      wordRow.appendChild(imgEl);
+    } else if (card.emoji) {
       const emojiEl = document.createElement("span");
       emojiEl.style.cssText = "font-size:36px;user-select:none;";
       // @ts-ignore
@@ -560,9 +627,19 @@ export default function FlashcardsPage() {
                         <div className="text-xs font-bold text-indigo-400 tracking-widest uppercase flex items-center gap-1 select-none">
                           <Layers className="h-3.5 w-3.5" /> Box {dueCards[reviewIndex].box}
                         </div>
-                        <h2 className="text-4xl font-black leading-tight tracking-wide px-2 select-text flex flex-col items-center gap-3">
-                          {/* @ts-ignore */}
-                          {dueCards[reviewIndex].emoji && <span className="text-5xl select-none animate-bounce">{dueCards[reviewIndex].emoji}</span>}
+                        <h2 className="text-4xl font-black leading-tight tracking-wide px-2 select-text flex flex-col items-center gap-3 w-full">
+                          {dueCards[reviewIndex].imageUrl ? (
+                            <div className="w-24 h-24 rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-950 flex items-center justify-center shadow-lg mb-1 select-none animate-in zoom-in duration-300">
+                              <img
+                                src={dueCards[reviewIndex].imageUrl}
+                                alt={dueCards[reviewIndex].word}
+                                className="object-contain max-h-full max-w-full"
+                              />
+                            </div>
+                          ) : (
+                            /* @ts-ignore */
+                            dueCards[reviewIndex].emoji && <span className="text-5xl select-none animate-bounce">{dueCards[reviewIndex].emoji}</span>
+                          )}
                           <span className="bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent capitalize text-center">
                             {dueCards[reviewIndex].word}
                           </span>
@@ -743,6 +820,101 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
 
+                {/* Web Image Selector Section */}
+                <div className="space-y-3 border-t border-slate-850/60 pt-4 text-left select-none">
+                  <Label className="text-xs font-bold text-slate-400 flex justify-between items-center">
+                    <span>Card Illustration Image (Web Search)</span>
+                    {imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setImageUrl("")}
+                        className="text-[10px] text-rose-400 hover:underline hover:text-rose-300 font-extrabold uppercase tracking-wide"
+                      >
+                        Remove Image
+                      </button>
+                    )}
+                  </Label>
+                  
+                  {imageUrl ? (
+                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-slate-800 bg-slate-950/40 flex items-center justify-center animate-in zoom-in duration-300">
+                      <img
+                        src={imageUrl}
+                        alt="Selected flashcard illustration"
+                        className="object-contain max-h-full max-w-full p-2"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="relative flex-1">
+                          <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-500" />
+                          <Input
+                            placeholder="Type terms to search illustration images on Google, Bing, Pinterest..."
+                            value={imageSearchQuery}
+                            onChange={(e) => setImageSearchQuery(e.target.value)}
+                            className="bg-slate-950 border-slate-850 pl-10 h-11 rounded-xl text-white text-xs"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleWebImageSearch();
+                              }
+                            }}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={handleWebImageSearch}
+                          disabled={isSearchingImages || !imageSearchQuery.trim()}
+                          className="bg-indigo-650 hover:bg-indigo-600 text-white rounded-xl h-11 px-5 text-xs font-bold shrink-0 flex items-center gap-1.5"
+                        >
+                          {isSearchingImages ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                          Search Images
+                        </Button>
+                      </div>
+                      
+                      {/* Search source tabs */}
+                      <div className="flex gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-900 w-fit">
+                        {(["unsplash", "google", "bing", "pinterest"] as const).map((source) => (
+                          <button
+                            key={source}
+                            type="button"
+                            onClick={() => setImageSearchSource(source)}
+                            className={cn(
+                              "px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all",
+                              imageSearchSource === source
+                                ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-sm"
+                                : "text-slate-500 hover:text-slate-355"
+                            )}
+                          >
+                            {source}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Search results thumbnail grid */}
+                      {searchedImages.length > 0 && (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-48 overflow-y-auto p-3 border border-slate-900 bg-slate-950/60 rounded-2xl animate-in fade-in duration-300">
+                          {searchedImages.map((img: any, idx: number) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setImageUrl(img.url)}
+                              className="relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900 hover:border-indigo-500/70 hover:scale-[1.03] transition-all group flex items-center justify-center shadow"
+                            >
+                              <img
+                                src={img.thumb || img.url}
+                                alt={img.title || "Search result"}
+                                className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                                loading="lazy"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <Button
                   type="submit"
                   disabled={isCreating}
@@ -800,8 +972,18 @@ export default function FlashcardsPage() {
 
                       <div className="my-4 space-y-3">
                         <h3 className="text-2xl font-black text-white tracking-wide truncate flex items-center gap-2">
-                          {/* @ts-ignore */}
-                          {card.emoji && <span className="text-2xl shrink-0 select-none">{card.emoji}</span>}
+                          {card.imageUrl ? (
+                            <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center shrink-0 select-none">
+                              <img
+                                src={card.imageUrl}
+                                alt={card.word}
+                                className="object-contain max-h-full max-w-full"
+                              />
+                            </div>
+                          ) : (
+                            /* @ts-ignore */
+                            card.emoji && <span className="text-2xl shrink-0 select-none">{card.emoji}</span>
+                          )}
                           <span className="bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent capitalize">{card.word}</span>
                         </h3>
                         <p className="text-slate-350 text-xs font-semibold leading-relaxed line-clamp-2">

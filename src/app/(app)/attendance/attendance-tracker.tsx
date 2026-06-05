@@ -148,7 +148,11 @@ export const AttendanceTracker = ({ selectedStudent }) => {
         const batch = writeBatch(firestore);
     
         const attendanceDocRef = doc(firestore, `users/${user.uid}/students/${selectedStudent.id}/attendance`, statusModal.date);
-        batch.set(attendanceDocRef, { status: statusModal.currentStatus, markedAt: new Date().toISOString() }, { merge: true });
+        if (statusModal.currentStatus) {
+            batch.set(attendanceDocRef, { status: statusModal.currentStatus, markedAt: new Date().toISOString() }, { merge: true });
+        } else {
+            batch.delete(attendanceDocRef);
+        }
     
         const reminderDocRef = doc(firestore, `users/${user.uid}/students/${selectedStudent.id}/reminders`, statusModal.date);
         if (statusModal.reminderText.trim()) {
@@ -363,12 +367,18 @@ export const AttendanceTracker = ({ selectedStudent }) => {
                                 {['present', 'absent', 'leave', 'holiday'].map(status => (
                                     <button
                                         key={status}
-                                        onClick={() => setStatusModal(prev => ({ ...prev, currentStatus: status }))}
-                                        className={`py-2 px-4 rounded-lg font-bold ${statusModal.currentStatus === status ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}
+                                        onClick={() => setStatusModal(prev => ({ ...prev, currentStatus: prev.currentStatus === status ? '' : status }))}
+                                        className={`py-2 px-4 rounded-lg font-bold transition-all ${statusModal.currentStatus === status ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'}`}
                                     >
                                         {status.charAt(0).toUpperCase() + status.slice(1)}
                                     </button>
                                 ))}
+                                <button
+                                    onClick={() => setStatusModal(prev => ({ ...prev, currentStatus: '' }))}
+                                    className={`py-2 px-4 rounded-lg font-bold transition-all ${!statusModal.currentStatus ? 'bg-rose-600 text-white shadow-md' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-rose-500/10 hover:text-rose-500'}`}
+                                >
+                                    Unselect
+                                </button>
                             </div>
                         </div>
                          <div className="mb-6">
