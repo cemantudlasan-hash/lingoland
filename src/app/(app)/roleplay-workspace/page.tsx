@@ -943,7 +943,22 @@ export default function RoleplayWorkspacePage() {
       audioStreamRef.current = stream;
       audioChunksRef.current = [];
       
-      const mediaRecorder = new MediaRecorder(stream);
+      let options: any = {};
+      let mimeType = "";
+      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported) {
+        if (MediaRecorder.isTypeSupported("audio/mp4")) {
+          mimeType = "audio/mp4";
+        } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+          mimeType = "audio/webm";
+        } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
+          mimeType = "audio/ogg";
+        }
+        if (mimeType) {
+          options = { mimeType };
+        }
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       
       mediaRecorder.ondataavailable = (event) => {
@@ -952,7 +967,8 @@ export default function RoleplayWorkspacePage() {
         }
       };
       
-      mediaRecorder.start();
+      // Pass a timeslice of 1000ms to ensure Safari ondataavailable events trigger periodically
+      mediaRecorder.start(1000);
       
       setIsRecording(true);
       setRecordingSeconds(0);
@@ -1005,12 +1021,13 @@ export default function RoleplayWorkspacePage() {
           }
         }
 
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        const rawMimeType = mediaRecorder.mimeType || mimeType;
+        const rawBlob = new Blob(audioChunksRef.current, { type: rawMimeType });
         
         setIsUploadingVoice(true);
         const uploadToast = toast({
-          title: "Uploading voice recording... 🎙️⏳",
-          description: "Syncing audio speaking file to secure cloud database.",
+          title: "Processing and uploading voice... 🎙️⏳",
+          description: "Converting audio to universal high-compatibility WAV format.",
           className: "bg-slate-900 border-indigo-500/30 text-indigo-200"
         });
 
@@ -1021,11 +1038,48 @@ export default function RoleplayWorkspacePage() {
           setTimeout(() => reject(new Error("Firebase Storage upload timed out")), 6000)
         );
 
+        let wavBlob: Blob;
         try {
-          const storageRef = ref(storage, `roleplay_audio/${currentRoom.id}/${messageId}.${extension}`);
+          const arrayBuffer = await rawBlob.arrayBuffer();
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          if (!AudioContextClass) {
+            throw new Error("Web Audio API is not supported in this browser.");
+          }
+          
+          let audioCtx: AudioContext;
+          try {
+            // Downsample to 16000Hz to save bandwidth/storage
+            audioCtx = new AudioContextClass({ sampleRate: 16000 });
+          } catch (e) {
+            audioCtx = new AudioContextClass();
+          }
+
+          const decodedBuffer = await new Promise<AudioBuffer>((resolve, reject) => {
+            audioCtx.decodeAudioData(
+              arrayBuffer,
+              (buf) => resolve(buf),
+              (err) => reject(err || new Error("Failed to decode audio data"))
+            );
+          });
+
+          wavBlob = audioBufferToWav(decodedBuffer);
+          
+          // Close the AudioContext to release resources
+          if (audioCtx.state !== 'closed') {
+            audioCtx.close().catch(e => console.error("Error closing AudioContext:", e));
+          }
+        } catch (err) {
+          console.error("In-browser transcoding to WAV failed, uploading raw audio instead:", err);
+          wavBlob = rawBlob; // Fallback to raw blob if transcoding fails
+        }
+
+        try {
+          const isWav = wavBlob.type === 'audio/wav';
+          const finalExtension = isWav ? 'wav' : extension;
+          const storageRef = ref(storage, `roleplay_audio/${currentRoom.id}/${messageId}.${finalExtension}`);
           
           const uploadSnapshot = await Promise.race([
-            uploadBytes(storageRef, audioBlob),
+            uploadBytes(storageRef, wavBlob, { contentType: wavBlob.type }),
             timeoutPromise
           ]);
           
@@ -1086,7 +1140,7 @@ export default function RoleplayWorkspacePage() {
         variant: "destructive"
       });
     }
-  };  const handlePlayAudioMessage = (msg: ChatMessage) => {
+  };  const handlePlayAudioMessage = async (msg: ChatMessage) => {
     // Stop real audio element if playing
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
@@ -1100,12 +1154,17 @@ export default function RoleplayWorkspacePage() {
     }
 
     if (msg.audioUrl) {
+      let blobUrl = "";
       try {
-        const audio = new Audio(msg.audioUrl);
-        currentAudioRef.current = audio;
-        
         setActiveAudioMessageId(msg.id);
         setAudioPlaybackProgress(0);
+
+        const response = await fetch(msg.audioUrl);
+        if (!response.ok) throw new Error("Failed to fetch audio file");
+        const blob = await response.blob();
+        blobUrl = URL.createObjectURL(blob);
+        const audio = new Audio(blobUrl);
+        currentAudioRef.current = audio;
 
         audio.play().catch(e => {
           console.error("Failed to play real voice recording:", e);
@@ -1123,6 +1182,9 @@ export default function RoleplayWorkspacePage() {
             audioIntervalRef.current = null;
             setActiveAudioMessageId(null);
             setAudioPlaybackProgress(0);
+            if (blobUrl) {
+              URL.revokeObjectURL(blobUrl);
+            }
             if (currentAudioRef.current === audio) {
               currentAudioRef.current = null;
             }
@@ -1140,12 +1202,36 @@ export default function RoleplayWorkspacePage() {
           }
           setActiveAudioMessageId(null);
           setAudioPlaybackProgress(0);
+          if (blobUrl) {
+            URL.revokeObjectURL(blobUrl);
+          }
           if (currentAudioRef.current === audio) {
             currentAudioRef.current = null;
           }
         };
       } catch (err) {
-        console.error("Audio playback error:", err);
+        console.error("Audio playback fetch error, falling back to direct play:", err);
+        try {
+          const audio = new Audio(msg.audioUrl);
+          currentAudioRef.current = audio;
+          audio.play().catch(e => {
+            console.error("Direct playback failed:", e);
+            toast({
+              title: "Playback Failed 🎙️❌",
+              description: "Could not play the recorded voice file. Please try again.",
+              variant: "destructive"
+            });
+          });
+          audio.onended = () => {
+            setActiveAudioMessageId(null);
+            setAudioPlaybackProgress(0);
+            if (currentAudioRef.current === audio) {
+              currentAudioRef.current = null;
+            }
+          };
+        } catch (e) {
+          console.error("Direct play fallback failed:", e);
+        }
       }
     } else {
       toast({
@@ -1683,7 +1769,7 @@ export default function RoleplayWorkspacePage() {
     }
   };
 
-  const handlePlaySequence = (index: number = 0) => {
+  const handlePlaySequence = async (index: number = 0) => {
     // Stop any active single-audio plays
     handleStopAudioMessage();
 
@@ -1724,21 +1810,43 @@ export default function RoleplayWorkspacePage() {
     }
 
     if (msg.audioUrl) {
+      let blobUrl = "";
       try {
-        const audio = new Audio(msg.audioUrl);
+        const response = await fetch(msg.audioUrl);
+        if (!response.ok) throw new Error("Failed to fetch sequence audio clip");
+        const blob = await response.blob();
+        blobUrl = URL.createObjectURL(blob);
+        const audio = new Audio(blobUrl);
         sequenceAudioRef.current = audio;
+        
         audio.play().catch(e => {
           console.error("Failed to play sequence audio clip:", e);
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
           handlePlaySequence(index + 1);
         });
 
         audio.onended = () => {
           audio.onended = null;
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
           handlePlaySequence(index + 1);
         };
       } catch (err) {
-        console.error("Sequence audio setup error:", err);
-        handlePlaySequence(index + 1);
+        console.error("Sequence audio setup error, falling back to direct play:", err);
+        try {
+          const audio = new Audio(msg.audioUrl);
+          sequenceAudioRef.current = audio;
+          audio.play().catch(e => {
+            console.error("Direct sequence play failed:", e);
+            handlePlaySequence(index + 1);
+          });
+          audio.onended = () => {
+            audio.onended = null;
+            handlePlaySequence(index + 1);
+          };
+        } catch (fallbackErr) {
+          console.error("Sequence playback fallback failed:", fallbackErr);
+          handlePlaySequence(index + 1);
+        }
       }
     } else {
       // Just skip this message in sequence play since it has no audio recording
