@@ -326,7 +326,10 @@ export function VocabFlipper3D({ slug, onToggleFullscreen }: { slug: string; onT
           )}
 
           {gameState === 'playing' && vocabList[currentIndex] && (
-            <div className="w-full flex flex-col items-center gap-8 relative max-w-lg">
+            <div className={cn(
+              "w-full flex flex-col items-center gap-8 relative transition-all duration-300",
+              isFullscreen ? "max-w-3xl" : "max-w-xl"
+            )}>
               {/* Words remaining widget */}
               <div className="bg-black/40 px-6 py-2 rounded-full border border-white/10 shadow-lg text-sm text-gray-300 font-bold uppercase tracking-wider">
                 Card {currentIndex + 1} of {vocabList.length}
@@ -335,7 +338,10 @@ export function VocabFlipper3D({ slug, onToggleFullscreen }: { slug: string; onT
               {/* 3D Flipping Flashcard */}
               <div 
                 onClick={handleFlipCard}
-                className="w-full aspect-[5/3] cursor-pointer"
+                className={cn(
+                  "w-full cursor-pointer transition-all duration-300",
+                  isFullscreen ? "aspect-[16/10]" : "aspect-[5/3]"
+                )}
                 style={{ perspective: '1200px' }}
               >
                 <motion.div
@@ -349,11 +355,11 @@ export function VocabFlipper3D({ slug, onToggleFullscreen }: { slug: string; onT
                     className="absolute inset-0 w-full h-full bg-white/10 border-2 border-white/20 rounded-3xl p-8 flex flex-col justify-center items-center text-center backdrop-blur-md shadow-2xl"
                     style={{ backfaceVisibility: 'hidden' }}
                   >
-                    <span className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-4">Definition</span>
-                    <p className="text-xl md:text-2xl font-bold text-white italic leading-tight">
+                    <span className={cn("font-black uppercase text-primary tracking-[0.2em] transition-all", isFullscreen ? "text-sm mb-6" : "text-[10px] mb-4")}>Definition</span>
+                    <p className={cn("font-bold text-white italic leading-tight transition-all", isFullscreen ? "text-3xl md:text-4xl px-8" : "text-xl md:text-2xl")}>
                       "{vocabList[currentIndex].hint}"
                     </p>
-                    <span className="text-[9px] font-bold text-gray-400 mt-6 animate-pulse">TAP TO FLIP 🔄</span>
+                    <span className={cn("font-bold text-gray-400 animate-pulse transition-all", isFullscreen ? "text-xs mt-10" : "text-[9px] mt-6")}>TAP TO FLIP 🔄</span>
                   </div>
 
                   {/* Back: Answer */}
@@ -361,11 +367,11 @@ export function VocabFlipper3D({ slug, onToggleFullscreen }: { slug: string; onT
                     className="absolute inset-0 w-full h-full bg-white text-primary border-4 border-primary/50 rounded-3xl p-8 flex flex-col justify-center items-center text-center shadow-2xl"
                     style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                   >
-                    <span className="text-[10px] font-black uppercase text-primary/75 tracking-[0.2em] mb-4">Vocabulary Word</span>
-                    <h2 className="text-3xl md:text-4xl font-extrabold uppercase tracking-tight text-primary">
+                    <span className={cn("font-black uppercase text-primary/75 tracking-[0.2em] transition-all", isFullscreen ? "text-sm mb-6" : "text-[10px] mb-4")}>Vocabulary Word</span>
+                    <h2 className={cn("font-extrabold uppercase tracking-tight text-primary transition-all", isFullscreen ? "text-5xl md:text-6xl" : "text-3xl md:text-4xl")}>
                       {vocabList[currentIndex].word}
                     </h2>
-                    <span className="text-[9px] font-bold text-muted-foreground mt-6">TAP CARD TO FLIP BACK</span>
+                    <span className={cn("font-bold text-muted-foreground transition-all", isFullscreen ? "text-xs mt-10" : "text-[9px] mt-6")}>TAP CARD TO FLIP BACK</span>
                   </div>
                 </motion.div>
               </div>
