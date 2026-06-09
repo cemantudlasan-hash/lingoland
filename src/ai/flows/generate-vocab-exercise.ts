@@ -14,6 +14,7 @@ const GenerateVocabExerciseInputSchema = z.object({
   count: z.number().int().positive().describe('The number of word-definition pairs to generate.'),
   usedWords: z.array(z.string()).optional().describe('A list of words that have already been used in this session to avoid repetition.'),
   category: z.string().optional().describe('An optional category or theme to focus the vocabulary on.'),
+  salt: z.number().optional().describe('A random value to prevent cached or repetitive responses.'),
 });
 export type GenerateVocabExerciseInput = z.infer<typeof GenerateVocabExerciseInputSchema>;
 
@@ -58,7 +59,7 @@ const generateVocabExerciseFlow = ai.defineFlow(
     outputSchema: GenerateVocabExerciseOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt(input, { config: { temperature: 1.2 } });
     return output!;
   }
 );

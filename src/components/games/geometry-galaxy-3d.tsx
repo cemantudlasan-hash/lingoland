@@ -48,20 +48,38 @@ interface ShapeNode {
   id: string;
 }
 
-// Reclassified SHAPE_DATA: Beginner has exactly 4 core solids with highly simplified, child-friendly descriptions
+// Reclassified SHAPE_DATA: Beginner has exactly 9 core solids with highly simplified, child-friendly descriptions
 const SHAPE_DATA = [
   { name: "Cube", property: "A 3D box with 6 equal square faces (like a dice).", level: 1 },
   { name: "Sphere", property: "A perfectly round 3D ball (like a marble or planet).", level: 1 },
   { name: "Cone", property: "A shape with a flat circular base that tapers to a point (like an ice cream cone).", level: 1 },
   { name: "Cylinder", property: "A tube shape with two flat circular ends (like a soda can).", level: 1 },
+  { name: "Rectangular Prism", property: "A 3D box with 6 rectangular faces (like a shoe box).", level: 1 },
+  { name: "Hemisphere", property: "A perfect half of a sphere (like a cereal bowl).", level: 1 },
+  { name: "Capsule", property: "A cylinder shape with hemispherical caps at both ends (like a medical pill).", level: 1 },
+  { name: "Cuboid", property: "A 3D solid with rectangular faces, similar to a rectangular prism.", level: 1 },
+  { name: "Prism", property: "A solid with parallel and identical ends and flat rectangular sides.", level: 1 },
   { name: "Pyramid", property: "A solid object with a square base and four triangular sides that meet at a point.", level: 2 },
   { name: "Triangular Prism", property: "A prism with two parallel triangular bases.", level: 2 },
   { name: "Hexagonal Prism", property: "A prism with two parallel hexagonal bases.", level: 2 },
   { name: "Tetrahedron", property: "The simplest pyramid, having 4 triangular faces.", level: 2 },
+  { name: "Triangular Pyramid", property: "A pyramid with a triangular base and 3 triangular faces.", level: 2 },
+  { name: "Pentagonal Pyramid", property: "A pyramid with a pentagonal base and 5 triangular faces.", level: 2 },
+  { name: "Hexagonal Pyramid", property: "A pyramid with a hexagonal base and 6 triangular faces.", level: 2 },
+  { name: "Pentagonal Prism", property: "A prism with two parallel pentagonal bases and 5 rectangular sides.", level: 2 },
+  { name: "Octagonal Prism", property: "A prism with two parallel octagonal bases and 8 rectangular sides.", level: 2 },
+  { name: "Square Pyramid", property: "A pyramid with a square base and 4 triangular sides.", level: 2 },
+  { name: "Heptagonal Prism", property: "A prism with two parallel heptagonal bases and 7 rectangular sides.", level: 2 },
   { name: "Torus", property: "A doughnut-shaped 3D solid formed by rotating a circle around an axis.", level: 3 },
   { name: "Octahedron", property: "A polyhedron with 8 faces (often equilateral triangles).", level: 3 },
   { name: "Dodecahedron", property: "A regular polyhedron with 12 pentagonal faces.", level: 3 },
   { name: "Icosahedron", property: "A regular polyhedron with 20 triangular faces.", level: 3 },
+  { name: "Ellipsoid", property: "A 3D shape formed by stretching or squishing a sphere (like an egg or rugby ball).", level: 3 },
+  { name: "Frustum", property: "A cone or pyramid with its top cut off parallel to the base.", level: 3 },
+  { name: "Dipyramid", property: "A shape made by joining two pyramids base-to-base.", level: 3 },
+  { name: "Oblique Cylinder", property: "A cylinder where the circular bases are not directly aligned over each other.", level: 3 },
+  { name: "Decahedron", property: "A polyhedron with exactly 10 faces.", level: 3 },
+  { name: "Prismatoid", property: "A polyhedron whose vertices lie in two parallel planes.", level: 3 },
 ];
 
 const GAME_TIMER_LIMIT = 120;
@@ -120,9 +138,13 @@ export function GeometryGalaxy3D({ slug, onToggleFullscreen }: { slug: string; o
     const filteredData = SHAPE_DATA.filter(item => item.level <= levelThreshold);
     const shuffled = shuffleArray([...filteredData]);
 
-    const newNodes: ShapeNode[] = shuffled.map((item, i) => {
-      const phi = Math.acos(-1 + (2 * i) / (shuffled.length - 1));
-      const theta = Math.sqrt(shuffled.length * Math.PI) * phi;
+    // Pick dynamic random subset
+    const count = level === 'beginner' ? 4 : level === 'intermediate' ? 6 : 8;
+    const subset = shuffled.slice(0, count);
+
+    const newNodes: ShapeNode[] = subset.map((item, i) => {
+      const phi = Math.acos(-1 + (2 * i) / (subset.length - 1));
+      const theta = Math.sqrt(subset.length * Math.PI) * phi;
       const radius = 240;
       return {
         ...item,

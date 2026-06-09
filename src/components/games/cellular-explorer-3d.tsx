@@ -49,20 +49,38 @@ interface OrganelleNode {
   id: string;
 }
 
-// Reclassified CELL_DATA: Beginner has exactly 4 core components (Nucleus, Mitochondria, Membrane, Cytoplasm)
+// Reclassified CELL_DATA: Beginner has exactly 5 core components (Nucleus, Mitochondria, Membrane, Cytoplasm, Cytosol)
 const CELL_DATA = [
   { name: "Nucleus", function: "The brain of the cell. It contains DNA and coordinates cell activities.", level: 1 },
   { name: "Mitochondria", function: "The powerhouse of the cell. It generates energy (ATP) through respiration.", level: 1 },
   { name: "Cell Membrane", function: "The security guard. It controls what enters and exits the cell.", level: 1 },
   { name: "Cytoplasm", function: "The jelly-like fluid that fills the cell and holds organelles.", level: 1 },
+  { name: "Cytosol", function: "The liquid part of the cytoplasm, excluding the organelles.", level: 1 },
   { name: "Vacuole", function: "The storage tank. It stores water, nutrients, or waste products.", level: 2 },
   { name: "Cell Wall", function: "Found in plant cells. It provides structure and protection.", level: 2 },
   { name: "Ribosomes", function: "The protein factories. They synthesize proteins for the cell.", level: 2 },
   { name: "Endoplasmic Reticulum", function: "The transport network. It processes and moves proteins and lipids.", level: 2 },
   { name: "Golgi Apparatus", function: "The post office. It packages and distributes proteins.", level: 2 },
   { name: "Chloroplast", function: "Found in plant cells. It converts sunlight into food (photosynthesis).", level: 2 },
+  { name: "Nucleolus", function: "A small dense spherical structure inside the nucleus where ribosomes are made.", level: 2 },
+  { name: "Cytoskeleton", function: "A network of protein fibers that helps the cell keep its shape and move.", level: 2 },
+  { name: "Vesicle", function: "A small membrane-bound sac that transports materials within or outside the cell.", level: 2 },
+  { name: "Plastid", function: "Double-membrane organelles in plant cells that store food or pigments.", level: 2 },
+  { name: "Nuclear Envelope", function: "The double membrane that encloses the cell nucleus.", level: 2 },
+  { name: "Chromatin", function: "The material that makes up chromosomes, consisting of DNA and proteins.", level: 2 },
+  { name: "Amyoplast", function: "Non-pigmented plastids in plant cells that synthesize and store starch.", level: 2 },
+  { name: "Nucleoplasm", function: "The fluid inside the nucleus, supporting chromatin and nucleolus.", level: 2 },
   { name: "Lysosomes", function: "The recycling center. They break down waste and cellular debris.", level: 3 },
   { name: "Centrioles", function: "Organelles that help with cell division in animal cells.", level: 3 },
+  { name: "Microtubules", function: "Thick, hollow protein tubes that maintain shape and help cell division.", level: 3 },
+  { name: "Cilia", function: "Hair-like structures on the cell surface that clear fluids or help movement.", level: 3 },
+  { name: "Flagella", function: "Long, whip-like tails that help single-celled organisms move or swim.", level: 3 },
+  { name: "Plasmodesmata", function: "Microscopic channels through plant cell walls that allow transport.", level: 3 },
+  { name: "Peroxisome", function: "Organelles that break down fatty acids and protect the cell from toxins.", level: 3 },
+  { name: "Microfilaments", function: "Thin, solid protein fibers that help with cell shape and division.", level: 3 },
+  { name: "Tonoplast", function: "The semi-permeable membrane that surrounds the vacuole in plant cells.", level: 3 },
+  { name: "Desmosome", function: "Intercellular junctions that hold adjacent animal cells tightly together.", level: 3 },
+  { name: "Tight Junctions", function: "Membranes of neighboring animal cells pressed together to prevent leakage.", level: 3 },
 ];
 
 const GAME_TIMER_LIMIT = 120;
@@ -121,9 +139,13 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
     const filteredData = CELL_DATA.filter(item => item.level <= levelThreshold);
     const shuffled = shuffleArray([...filteredData]);
     
-    const newNodes: OrganelleNode[] = shuffled.map((item, i) => {
-      const phi = Math.acos(-1 + (2 * i) / (shuffled.length - 1));
-      const theta = Math.sqrt(shuffled.length * Math.PI) * phi;
+    // Pick dynamic random subset
+    const count = level === 'beginner' ? 4 : level === 'intermediate' ? 6 : 8;
+    const subset = shuffled.slice(0, count);
+    
+    const newNodes: OrganelleNode[] = subset.map((item, i) => {
+      const phi = Math.acos(-1 + (2 * i) / (subset.length - 1));
+      const theta = Math.sqrt(subset.length * Math.PI) * phi;
       const radius = 240;
       return {
         ...item,

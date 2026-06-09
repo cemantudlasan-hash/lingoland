@@ -256,7 +256,8 @@ export function LexiSphere({ slug, onToggleFullscreen }: { slug: string; onToggl
         difficulty: level,
         count: nodeCount,
         usedWords: usedWords,
-        category: activeCategory
+        category: activeCategory,
+        salt: Math.random()
       });
 
       const pairs = result.pairs;
