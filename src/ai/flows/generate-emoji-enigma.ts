@@ -12,6 +12,10 @@ import {
   type GenerateEmojiEnigmaInput, 
   type GenerateEmojiEnigmaOutput 
 } from '@/ai/flows/schemas/emoji-enigma-schema';
+import { EMOJI_ENIGMA_DATA } from '@/lib/emoji-enigma-data';
+
+// Re-export output type for UI components
+export type { GenerateEmojiEnigmaOutput };
 
 const prompt = ai.definePrompt({
   name: 'generateEmojiEnigmaPrompt',
@@ -47,6 +51,28 @@ const generateEmojiEnigmaFlow = ai.defineFlow(
     outputSchema: GenerateEmojiEnigmaOutputSchema,
   },
   async input => {
+    const { difficulty, category, usedAnswers = [] } = input;
+
+    // Filter local dataset to find matches
+    const candidates = EMOJI_ENIGMA_DATA.filter(item => {
+      const matchDifficulty = item.difficulty === difficulty;
+      const matchCategory = category === 'Random' || item.category === category;
+      const notUsed = !usedAnswers.includes(item.answer);
+      return matchDifficulty && matchCategory && notUsed;
+    });
+
+    if (candidates.length > 0) {
+      // Pick a random candidate from local dataset
+      const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      return {
+        emojis: chosen.emojis,
+        answer: chosen.answer,
+        clue: chosen.clue,
+        explanation: chosen.explanation,
+      };
+    }
+
+    // Fallback to LLM if local candidates are exhausted
     const { output } = await prompt(input);
     return output!;
   }
