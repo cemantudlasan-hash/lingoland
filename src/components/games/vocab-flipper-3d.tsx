@@ -328,7 +328,7 @@ export function VocabFlipper3D({ slug, onToggleFullscreen }: { slug: string; onT
           {gameState === 'playing' && vocabList[currentIndex] && (
             <div className={cn(
               "w-full flex flex-col items-center gap-8 relative transition-all duration-300",
-              isFullscreen ? "max-w-3xl" : "max-w-xl"
+              isFullscreen ? "max-w-5xl" : "max-w-xl"
             )}>
               {/* Words remaining widget */}
               <div className="bg-black/40 px-6 py-2 rounded-full border border-white/10 shadow-lg text-sm text-gray-300 font-bold uppercase tracking-wider">
