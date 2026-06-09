@@ -52,6 +52,7 @@ import {
   Building2,
   Grid3X3,
   Newspaper,
+  Rotate3d,
 } from "lucide-react";
 
 export const allGames: Game[] = [
@@ -738,6 +739,15 @@ export const allGames: Game[] = [
     focus: "grammar",
     subject: "english",
     icon: Compass,
+  },
+  {
+    title: "3D Vocab Flipper",
+    slug: "vocab-flipper-3d",
+    description: "Flip beautiful 3D flashcards to match words with their definition and build your vocabulary.",
+    level: "beginner",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Rotate3d,
   },
 ];
 

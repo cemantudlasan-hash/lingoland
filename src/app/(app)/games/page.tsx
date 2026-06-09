@@ -100,6 +100,7 @@ export const gameComponentMap = {
       'living-puzzles-3d': dynamic(() => import('@/components/games/living-puzzles-3d').then(mod => mod.LivingPuzzles3D)),
       'character-conversations-3d': dynamic(() => import('@/components/games/character-conversations-3d').then(mod => mod.CharacterConversations3D)),
       'ai-storyteller-adventure': dynamic(() => import('@/components/games/ai-storyteller-adventure').then(mod => mod.AiStorytellerAdventure)),
+      'vocab-flipper-3d': dynamic(() => import('@/components/games/vocab-flipper-3d').then(mod => mod.VocabFlipper3D)),
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
 };
 
