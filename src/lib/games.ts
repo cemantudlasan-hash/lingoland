@@ -160,7 +160,7 @@ export const allGames: Game[] = [
     description: "Spin the 3D cell structure to identify organelles based on their biological functions.",
     level: "intermediate",
     focus: "vocabulary",
-    subject: "english",
+    subject: "science",
     icon: FlaskConical,
   },
   {

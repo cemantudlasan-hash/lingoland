@@ -23,7 +23,8 @@ const NATIVELY_TRACKED_GAMES = new Set([
   'synonym-sniper', 'syntax-skyline', 'vocab-vortex', 'cosmic-word-voyager', 
   'spellcaster-defense', 'exploration-quest-3d', 'living-puzzles-3d', 
   'character-conversations-3d', 'ai-storyteller-adventure', 'emoji-enigma',
-  'states-of-matter', 'fraction-fusion'
+  'states-of-matter', 'fraction-fusion', 'lexi-sphere', 'cellular-explorer-3d',
+  'geometry-galaxy-3d'
 ]);
 
 export default function GamePage() {
