@@ -749,6 +749,15 @@ export const allGames: Game[] = [
     subject: "english",
     icon: Rotate3d,
   },
+  {
+    title: "3D Math Vault",
+    slug: "math-vault-3d",
+    description: "Solve math equations to decrypt the security vault and swing open the 3D doors to reveal the core.",
+    level: "intermediate",
+    focus: "geometry",
+    subject: "math",
+    icon: Rotate3d,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {
