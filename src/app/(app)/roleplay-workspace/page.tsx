@@ -62,6 +62,8 @@ interface RoleplayRoom {
   creatorName: string;
   isPrivate?: boolean;
   notes: StickyNote[];
+  blockedUsers?: string[];
+  mutedUsers?: string[];
 }
 
 interface ChatMessage {
@@ -367,71 +369,10 @@ export default function RoleplayWorkspacePage() {
     return () => unsubscribe();
   }, [activeRoomId]);
 
-  // 4. Invite Link Query Parameters Hook (Checks immediately on load and polls to handle consecutive links)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const checkInviteUrl = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const inviteId = params.get("roomInvite");
-      if (!inviteId) return;
-
-      // Clear query param so it doesn't stay in the URL bar permanently
-      window.history.replaceState({}, document.title, window.location.pathname);
-      setIsInvitedUser(true);
-
-      try {
-        // Fetch directly from Firestore to get the most updated room reference
-        const docRef = doc(db, "roleplay_rooms", inviteId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const roomData = docSnap.data();
-          const fetchedRoom: RoleplayRoom = {
-            id: docSnap.id,
-            name: roomData.name,
-            password: roomData.password,
-            scenario: roomData.scenario,
-            dueDate: roomData.dueDate,
-            timerMinutes: roomData.timerMinutes,
-            timerStartedAt: roomData.timerStartedAt,
-            creatorUid: roomData.creatorUid || "",
-            creatorName: roomData.creatorName || "Student",
-            isPrivate: roomData.isPrivate || false,
-            notes: roomData.notes || []
-          };
-          
-          // Always show the setup registration screen ("collaborative zone") first when entering via an invite link
-          setIsRegistered(false);
-          setPendingRoomToJoin(fetchedRoom);
-          toast({
-            title: "Room Invitation Received! ✉️🔑",
-            description: "Please enter or confirm your collaborative details first to join.",
-            className: "bg-slate-900 border-purple-500/30 text-purple-200"
-          });
-        } else {
-          toast({
-            title: "Shared Room Not Found 🔍❌",
-            description: "This collaborative room does not exist in the database.",
-            variant: "destructive"
-          });
-        }
-      } catch (err) {
-        console.error("Error looking up room from invite parameter:", err);
-      }
-    };
-
-    // Run once on load
-    checkInviteUrl();
-
-    // Check periodically every 1s to support clicking/pasting consecutive links on the same page
-    const timer = setInterval(checkInviteUrl, 1000);
-    return () => clearInterval(timer);
-  }, [isRegistered]);
-
   const joinOrPromptPassword = (room: RoleplayRoom, customNickname?: string) => {
     const finalNickname = customNickname || nickname;
     const myNameLower = finalNickname.trim().toLowerCase();
-    const isBlocked = room.blockedUsers?.some(n => n.toLowerCase() === myNameLower);
+    const isBlocked = room.blockedUsers?.some((n: string) => n.toLowerCase() === myNameLower);
     if (isBlocked && !isAdmin) {
       toast({
         title: "Access Denied 🚫",
@@ -468,6 +409,85 @@ export default function RoleplayWorkspacePage() {
       });
     }
   };
+
+  // 4. Invite Link Query Parameters Hook (Checks immediately on load and polls to handle consecutive links)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const checkInviteUrl = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const inviteId = params.get("roomInvite");
+      if (!inviteId) return;
+
+      // Clear query param so it doesn't stay in the URL bar permanently
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setIsInvitedUser(true);
+
+      try {
+        // Fetch directly from Firestore to get the most updated room reference
+        const docRef = doc(db, "roleplay_rooms", inviteId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const roomData = docSnap.data();
+          const fetchedRoom: RoleplayRoom = {
+            id: docSnap.id,
+            name: roomData.name,
+            password: roomData.password,
+            scenario: roomData.scenario,
+            dueDate: roomData.dueDate,
+            timerMinutes: roomData.timerMinutes,
+            timerStartedAt: roomData.timerStartedAt,
+            creatorUid: roomData.creatorUid || "",
+            creatorName: roomData.creatorName || "Student",
+            isPrivate: roomData.isPrivate || false,
+            notes: roomData.notes || []
+          };
+          
+          // Check if user is already registered locally
+          const storedUser = localStorage.getItem("lingoland_roleplay_user");
+          if (storedUser) {
+            try {
+              const parsed = JSON.parse(storedUser);
+              joinOrPromptPassword(fetchedRoom, parsed.nickname);
+            } catch (e) {
+              // Fallback to registration screen if stored profile is corrupted
+              setIsRegistered(false);
+              setPendingRoomToJoin(fetchedRoom);
+              toast({
+                title: "Room Invitation Received! ✉️🔑",
+                description: "Please enter or confirm your collaborative details first to join.",
+                className: "bg-slate-900 border-purple-500/30 text-purple-200"
+              });
+            }
+          } else {
+            // Always show the setup registration screen ("collaborative zone") first when entering via an invite link
+            setIsRegistered(false);
+            setPendingRoomToJoin(fetchedRoom);
+            toast({
+              title: "Room Invitation Received! ✉️🔑",
+              description: "Please enter or confirm your collaborative details first to join.",
+              className: "bg-slate-900 border-purple-500/30 text-purple-200"
+            });
+          }
+        } else {
+          toast({
+            title: "Shared Room Not Found 🔍❌",
+            description: "This collaborative room does not exist in the database.",
+            variant: "destructive"
+          });
+        }
+      } catch (err) {
+        console.error("Error looking up room from invite parameter:", err);
+      }
+    };
+
+    // Run once on load
+    checkInviteUrl();
+
+    // Check periodically every 1s to support clicking/pasting consecutive links on the same page
+    const timer = setInterval(checkInviteUrl, 1000);
+    return () => clearInterval(timer);
+  }, [isRegistered]);
 
   // Scroll Chat to bottom
   useEffect(() => {
@@ -508,7 +528,7 @@ export default function RoleplayWorkspacePage() {
   }, []);
 
   const myNameLower = nickname.trim().toLowerCase();
-  const isCurrentUserMuted = currentRoom?.mutedUsers?.some(n => n.toLowerCase() === myNameLower) || false;
+  const isCurrentUserMuted = currentRoom?.mutedUsers?.some((n: string) => n.toLowerCase() === myNameLower) || false;
 
   // Compile list of participants dynamically (students only)
   const activeParticipants = Array.from(new Set([
@@ -528,8 +548,8 @@ export default function RoleplayWorkspacePage() {
     const mutedList = currentRoom.mutedUsers || [];
     let updatedMuted: string[];
     
-    if (mutedList.map(n => n.toLowerCase()).includes(targetName)) {
-      updatedMuted = mutedList.filter(n => n.toLowerCase() !== targetName);
+    if (mutedList.map((n: string) => n.toLowerCase()).includes(targetName)) {
+      updatedMuted = mutedList.filter((n: string) => n.toLowerCase() !== targetName);
       toast({
         title: "Student Unmuted 🔊",
         description: `"${nicknameToMute}" has been unmuted in this room.`,
@@ -589,8 +609,8 @@ export default function RoleplayWorkspacePage() {
     const blockedList = currentRoom.blockedUsers || [];
     let updatedBlocked: string[];
     
-    if (blockedList.map(n => n.toLowerCase()).includes(targetName)) {
-      updatedBlocked = blockedList.filter(n => n.toLowerCase() !== targetName);
+    if (blockedList.map((n: string) => n.toLowerCase()).includes(targetName)) {
+      updatedBlocked = blockedList.filter((n: string) => n.toLowerCase() !== targetName);
       toast({
         title: "Student Unblocked 🔓",
         description: `"${nicknameToBlock}" has been unblocked.`,
@@ -618,7 +638,7 @@ export default function RoleplayWorkspacePage() {
   useEffect(() => {
     if (currentRoom) {
       const myNameLower = nickname.trim().toLowerCase();
-      const isBlocked = currentRoom.blockedUsers?.some(n => n.toLowerCase() === myNameLower);
+      const isBlocked = currentRoom.blockedUsers?.some((n: string) => n.toLowerCase() === myNameLower);
       if (isBlocked && !isAdmin) {
         setActiveRoomId(null);
         toast({
@@ -847,7 +867,7 @@ export default function RoleplayWorkspacePage() {
   // 6. Join Room Handlers
   const handleTryJoinRoom = (room: RoleplayRoom) => {
     const myNameLower = nickname.trim().toLowerCase();
-    const isBlocked = room.blockedUsers?.some(n => n.toLowerCase() === myNameLower);
+    const isBlocked = room.blockedUsers?.some((n: string) => n.toLowerCase() === myNameLower);
     if (isBlocked && !isAdmin) {
       toast({
         title: "Access Denied 🚫",
@@ -2998,8 +3018,8 @@ export default function RoleplayWorkspacePage() {
                       ) : (
                         <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                           {activeParticipants.map(participant => {
-                            const isMuted = currentRoom?.mutedUsers?.some(n => n.toLowerCase() === participant.toLowerCase());
-                            const isBlocked = currentRoom?.blockedUsers?.some(n => n.toLowerCase() === participant.toLowerCase());
+                            const isMuted = currentRoom?.mutedUsers?.some((n: string) => n.toLowerCase() === participant.toLowerCase());
+                            const isBlocked = currentRoom?.blockedUsers?.some((n: string) => n.toLowerCase() === participant.toLowerCase());
                             const isHost = isRoomCreator(currentRoom);
 
                             return (
