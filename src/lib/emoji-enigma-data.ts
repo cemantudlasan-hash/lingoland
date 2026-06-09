@@ -271,7 +271,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🍎👁️",
     answer: "Apple of my eye",
     clue: "An idiom meaning someone who is cherished above all others",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The apple and the eye combine literally to represent this expression of affection."
   },
@@ -279,7 +279,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🧩🍰",
     answer: "Piece of cake",
     clue: "An idiom meaning something that is extremely easy to complete",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The puzzle piece represents a 'piece' and the cake represents a dessert, forming 'piece of cake'."
   },
@@ -287,7 +287,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "⏱️✈️",
     answer: "Time flies",
     clue: "An idiom expressing that time passes surprisingly quickly",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The stopwatch represents time, and the airplane represents flying."
   },
@@ -295,7 +295,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🌧️🐱🐶",
     answer: "Raining cats and dogs",
     clue: "An idiom describing a heavy downpour of rain",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The rain cloud combined with a cat and dog represents this common weather expression."
   },
@@ -303,7 +303,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🐱💼🤫",
     answer: "Let the cat out of the bag",
     clue: "An idiom that means to accidentally reveal a secret",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The cat, the briefcase (bag), and the shushing face represent revealing a secret."
   },
@@ -311,7 +311,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "💰🌳🚫",
     answer: "Money doesn't grow on trees",
     clue: "An idiom warning that money is limited and must be earned",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The money bag, tree, and prohibited sign represent that money is not grew on branches."
   },
@@ -319,7 +319,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🥚🧺❌",
     answer: "Don't put all your eggs in one basket",
     clue: "An idiom warning against putting all your resources in one single option",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The egg, basket, and red X represent not consolidating all risks."
   },
@@ -327,7 +327,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🗣️👹👿",
     answer: "Speak of the devil",
     clue: "An idiom used when someone appears right as they are being mentioned",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The speaking mouth and devil emojis represent mentioning the devil."
   },
@@ -335,7 +335,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🛏️🛏️🛏️",
     answer: "Hit the sack",
     clue: "An idiom that simply means going to sleep or going to bed",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The beds represent sleeping or going to bed."
   },
@@ -343,7 +343,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🤫🤐🔑",
     answer: "Under lock and key",
     clue: "An idiom meaning securely locked up or stored away safely",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The key and locked padlock represent storing secrets safely."
   },
@@ -351,7 +351,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🔔🔊🔔",
     answer: "Ring a bell",
     clue: "An idiom meaning to sound familiar or bring back a memory",
-    difficulty: "beginner",
+    difficulty: "intermediate",
     category: "Idioms",
     explanation: "The bells and speaker represent making a familiar sound."
   },
@@ -1024,7 +1024,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     explanation: "The classical column, mosque dome, and Turkish flag represent Istanbul's landmark."
   },
   {
-    emojis: "🏰🏔️🇩🇪",
+    emojis: "🏰🏔️🇩",
     answer: "Neuschwanstein Castle",
     clue: "A fairytale Romanesque Revival palace on a rugged hill in Bavaria",
     difficulty: "advanced",
@@ -1042,10 +1042,130 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
 
   // --- OBJECTS ---
   {
+    emojis: "🍉",
+    answer: "Watermelon",
+    clue: "A large green fruit with sweet red flesh and black seeds",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The watermelon emoji literally represents this sweet summer fruit."
+  },
+  {
+    emojis: "🍎",
+    answer: "Apple",
+    clue: "A round red or green fruit that is crisp and sweet",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The red apple emoji directly represents the apple fruit."
+  },
+  {
+    emojis: "🍕",
+    answer: "Pizza",
+    clue: "A baked flatbread topped with tomato sauce, cheese, and toppings",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The pizza slice emoji shows a classic slice of cheese and pepperoni pizza."
+  },
+  {
+    emojis: "🚗",
+    answer: "Car",
+    clue: "A four-wheeled road vehicle powered by an engine",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The red automobile emoji shows a standard passenger car."
+  },
+  {
+    emojis: "🏠",
+    answer: "House",
+    clue: "A building designed for people to live in",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The home emoji shows a standard residential house."
+  },
+  {
+    emojis: "⚽",
+    answer: "Football",
+    clue: "A round black and white ball used in soccer",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The soccer ball emoji represents football."
+  },
+  {
+    emojis: "🚲",
+    answer: "Bicycle",
+    clue: "A vehicle with two wheels that you pedal with your feet",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The bicycle emoji represents a standard push-bike."
+  },
+  {
+    emojis: "🐈",
+    answer: "Cat",
+    clue: "A small domesticated carnivorous mammal kept as a household pet",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The domestic cat emoji represents a pet cat."
+  },
+  {
+    emojis: "🐕",
+    answer: "Dog",
+    clue: "A domesticated canine mammal known as man's best friend",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The dog emoji represents a pet dog."
+  },
+  {
+    emojis: "🧸",
+    answer: "Teddy bear",
+    clue: "A soft toy bear stuffed with cotton or wool",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The teddy bear emoji represents a plush stuffed animal."
+  },
+  {
+    emojis: "🍦",
+    answer: "Ice cream",
+    clue: "A sweet frozen food made from milk and cream, served on a cone",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The soft serve ice cream emoji represents this frozen dessert."
+  },
+  {
+    emojis: "🍿",
+    answer: "Popcorn",
+    clue: "Puffed kernels of corn eaten as a snack, especially at movies",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The popcorn box emoji represents movie theater popcorn."
+  },
+  {
+    emojis: "🎈",
+    answer: "Balloon",
+    clue: "A small colored rubber bag filled with air or helium",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The red balloon emoji represents a party balloon."
+  },
+  {
+    emojis: "🌞",
+    answer: "Sun",
+    clue: "The star that sits at the center of our Solar System",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The sun with face emoji represents our daylight star."
+  },
+  {
+    emojis: "⛄",
+    answer: "Snowman",
+    clue: "A figure of a person made of packed snow, usually with a carrot nose",
+    difficulty: "beginner",
+    category: "Objects",
+    explanation: "The snowman emoji represents a figure built from winter snow."
+  },
+  {
     emojis: "⏰🔊",
     answer: "Alarm clock",
     clue: "A timekeeping device set to make a loud sound at a specific hour",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The clock and speaker represent an alarm that rings to wake you up."
   },
@@ -1053,7 +1173,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "📱🎧",
     answer: "Smart phone",
     clue: "A portable cellular device used for calling, internet, and music",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The mobile phone and headphones represent a smartphone device."
   },
@@ -1061,7 +1181,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🌂🌧",
     answer: "Umbrella",
     clue: "A collapsible canopy designed for protection against downpours",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The closed umbrella and rain droplets show a tool used for rainy weather."
   },
@@ -1069,7 +1189,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🕶️☀️",
     answer: "Sunglasses",
     clue: "Dark-tinted eyewear designed to shield the eyes from solar glare",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The sunglasses and sun represent glasses worn in sunny weather."
   },
@@ -1077,7 +1197,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "💳💰💼",
     answer: "Credit card",
     clue: "A plastic card issued by a bank allowing you to purchase items on debt",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The credit card, bag of money, and briefcase represent electronic money cards."
   },
@@ -1085,7 +1205,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🔦🔋👻",
     answer: "Flashlight",
     clue: "A battery-powered portable light source used to illuminate dark areas",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The flashlight, battery, and ghost represent finding your way in the dark."
   },
@@ -1093,7 +1213,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🪞👩‍🦰✨",
     answer: "Mirror",
     clue: "A reflective surface made of glass that shows your reflection clearly",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The hand mirror, woman, and sparkles represent checking your reflection."
   },
@@ -1101,7 +1221,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🖨️📄💼",
     answer: "Printer",
     clue: "An office machine that reproduces digital documents and text onto paper sheets",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The printer and printed page represent office printing equipment."
   },
@@ -1109,7 +1229,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🧱🎨🖌️",
     answer: "Paintbrush",
     clue: "A tool with bristles used by artists to apply paint to canvases or walls",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The brick wall, art palette, and paintbrush represent painting."
   },
@@ -1117,7 +1237,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🔑🔒📦",
     answer: "Padlock",
     clue: "A detachable lock hanging by a shackle to secure doors, gates, or chests",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The key and locked padlock represent locking storage items."
   },
@@ -1125,7 +1245,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "⌚💎👑",
     answer: "Wrist watch",
     clue: "A small portable clock worn on a strap around the wrist",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The watch, diamond, and crown represent premium wrist chronometers."
   },
@@ -1133,7 +1253,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🕯️🔥🕯️",
     answer: "Candle",
     clue: "A cylinder of wax with a central wick that is lit to provide light",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The candles and fire show wax sticks burnt for illumination."
   },
@@ -1141,7 +1261,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "✂️📄🧵",
     answer: "Scissors",
     clue: "An instrument with two sharp blades used for cutting paper, cloth, or string",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The scissors, document, and sewing thread show cutting utilities."
   },
@@ -1149,7 +1269,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "📸🎞️🏜️",
     answer: "Photo camera",
     clue: "A device with a lens used to capture and record photographs of landscapes",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The camera, film frame, and desert show landscape photography."
   },
@@ -1157,7 +1277,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🧴☀️🏖️",
     answer: "Sunscreen lotion",
     clue: "A protective cream rubbed on the skin to shield against solar burns",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The lotion bottle, sun, and beach represent UV protection creams."
   },
@@ -1165,7 +1285,7 @@ export const EMOJI_ENIGMA_DATA: EmojiEnigmaItem[] = [
     emojis: "🎙️🔊🎙️",
     answer: "Microphone",
     clue: "An acoustic sensor instrument that captures and amplifies vocal audio",
-    difficulty: "beginner",
+    difficulty: "intermediate", // shifted up from beginner
     category: "Objects",
     explanation: "The studio micro and speakers show sound recording gear."
   },
