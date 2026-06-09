@@ -230,6 +230,9 @@ export default function RoleplayWorkspacePage() {
   // State: Tracking if user entered workspace via a shared link
   const [isInvitedUser, setIsInvitedUser] = useState(false);
 
+  // State: Track if user successfully unlocked password gate for pending room
+  const [hasUnlockedPendingRoom, setHasUnlockedPendingRoom] = useState(false);
+
   // State: Sticky Notes
   const [newNoteContent, setNewNoteContent] = useState("");
   const [newNoteColor, setNewNoteColor] = useState<"yellow" | "blue" | "pink" | "green" | "purple">("yellow");
@@ -445,12 +448,32 @@ export default function RoleplayWorkspacePage() {
           
           // Check if user is already registered locally
           const storedUser = localStorage.getItem("lingoland_roleplay_user");
-          if (storedUser) {
-            try {
-              const parsed = JSON.parse(storedUser);
-              joinOrPromptPassword(fetchedRoom, parsed.nickname);
-            } catch (e) {
-              // Fallback to registration screen if stored profile is corrupted
+          if (fetchedRoom.password) {
+            // Always show the password gate first if locked
+            setPasswordGateRoomId(fetchedRoom.id);
+            setPendingRoomToJoin(fetchedRoom);
+            toast({
+              title: "Room is Locked 🔑🛡️",
+              description: "This collaborative room is password-restricted. Please enter the password to unlock.",
+              className: "bg-slate-900 border-amber-500/30 text-amber-200"
+            });
+          } else {
+            if (storedUser) {
+              try {
+                const parsed = JSON.parse(storedUser);
+                joinOrPromptPassword(fetchedRoom, parsed.nickname);
+              } catch (e) {
+                // Fallback to registration screen if stored profile is corrupted
+                setIsRegistered(false);
+                setPendingRoomToJoin(fetchedRoom);
+                toast({
+                  title: "Room Invitation Received! ✉️🔑",
+                  description: "Please enter or confirm your collaborative details first to join.",
+                  className: "bg-slate-900 border-purple-500/30 text-purple-200"
+                });
+              }
+            } else {
+              // Always show the setup registration screen ("collaborative zone") first when entering via an invite link
               setIsRegistered(false);
               setPendingRoomToJoin(fetchedRoom);
               toast({
@@ -459,15 +482,6 @@ export default function RoleplayWorkspacePage() {
                 className: "bg-slate-900 border-purple-500/30 text-purple-200"
               });
             }
-          } else {
-            // Always show the setup registration screen ("collaborative zone") first when entering via an invite link
-            setIsRegistered(false);
-            setPendingRoomToJoin(fetchedRoom);
-            toast({
-              title: "Room Invitation Received! ✉️🔑",
-              description: "Please enter or confirm your collaborative details first to join.",
-              className: "bg-slate-900 border-purple-500/30 text-purple-200"
-            });
           }
         } else {
           toast({
@@ -719,8 +733,19 @@ export default function RoleplayWorkspacePage() {
 
     // Auto trigger invite link join flow if staged
     if (pendingRoomToJoin) {
-      joinOrPromptPassword(pendingRoomToJoin, trimmedNickname);
-      setPendingRoomToJoin(null);
+      if (hasUnlockedPendingRoom) {
+        setActiveRoomId(pendingRoomToJoin.id);
+        setPendingRoomToJoin(null);
+        setHasUnlockedPendingRoom(false);
+        toast({
+          title: "Collaborative Room Joined! 🔗✨",
+          description: "You have joined the roleplay session via invitation link.",
+          className: "bg-slate-900 border-purple-500/30 text-purple-200"
+        });
+      } else {
+        joinOrPromptPassword(pendingRoomToJoin, trimmedNickname);
+        setPendingRoomToJoin(null);
+      }
     }
   };
 
@@ -887,18 +912,44 @@ export default function RoleplayWorkspacePage() {
 
   const handlePasswordGateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const target = rooms.find(r => r.id === passwordGateRoomId);
+    let target = rooms.find(r => r.id === passwordGateRoomId);
+    if (!target && pendingRoomToJoin && pendingRoomToJoin.id === passwordGateRoomId) {
+      target = pendingRoomToJoin;
+    }
     if (!target) return;
 
     if (roomPasswordInput.trim() === (target.password || "").trim()) {
-      setActiveRoomId(target.id);
+      // Add to unlocked list if private
+      if (target.isPrivate) {
+        const unlocked = JSON.parse(localStorage.getItem("lingoland_unlocked_private_rooms") || "[]");
+        if (!unlocked.includes(target.id)) {
+          unlocked.push(target.id);
+          localStorage.setItem("lingoland_unlocked_private_rooms", JSON.stringify(unlocked));
+          setUnlockedPrivateRooms(unlocked);
+        }
+      }
+
+      setHasUnlockedPendingRoom(true);
       setPasswordGateRoomId(null);
       setRoomPasswordInput("");
-      toast({
-        title: "Access Granted! 🔓",
-        description: `Successfully joined ${target.name}.`,
-        className: "bg-slate-900 border-emerald-500/30 text-emerald-300"
-      });
+
+      // Check if user is already registered locally
+      const storedUser = localStorage.getItem("lingoland_roleplay_user");
+      if (storedUser) {
+        setActiveRoomId(target.id);
+        toast({
+          title: "Access Granted! 🔓",
+          description: `Successfully joined ${target.name}.`,
+          className: "bg-slate-900 border-emerald-500/30 text-emerald-300"
+        });
+      } else {
+        setIsRegistered(false);
+        toast({
+          title: "Room Unlocked! 🔓✨",
+          description: "Please enter your collaborative details (nickname, seat, role) next to join.",
+          className: "bg-slate-900 border-purple-500/30 text-purple-200"
+        });
+      }
     } else {
       toast({
         title: "Access Denied ❌",
@@ -3157,7 +3208,7 @@ export default function RoleplayWorkspacePage() {
               />
               
               <div className="flex gap-3">
-                <Button type="button" variant="outline" onClick={() => setPasswordGateRoomId(null)} className="flex-1 bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-400 font-extrabold uppercase text-xs h-10 rounded-xl">
+                <Button type="button" variant="outline" onClick={() => { setPasswordGateRoomId(null); setPendingRoomToJoin(null); }} className="flex-1 bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-400 font-extrabold uppercase text-xs h-10 rounded-xl">
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1 bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-600 hover:to-indigo-600 text-white font-black uppercase text-xs h-10 rounded-xl">
