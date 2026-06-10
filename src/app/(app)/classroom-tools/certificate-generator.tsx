@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -122,6 +123,33 @@ export function CertificateGenerator() {
   const [showSeal, setShowSeal] = React.useState(true);
   const [showSignatures, setShowSignatures] = React.useState(true);
   const [showDate, setShowDate] = React.useState(true);
+
+  // Print Portal State
+  const [isPrinting, setIsPrinting] = React.useState(false);
+  const [printMode, setPrintMode] = React.useState<'single' | 'batch'>('single');
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (isPrinting) {
+      const timer = setTimeout(() => {
+        window.print();
+        setIsPrinting(false);
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [isPrinting]);
+
+  React.useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   // Batch Mode
   const [batchList, setBatchList] = React.useState<StudentCertificate[]>([
@@ -279,93 +307,9 @@ export function CertificateGenerator() {
   };
 
   // Trigger print dialog
-  const handlePrint = (printMode: 'single' | 'batch') => {
-    const printAreaId = printMode === 'single' ? 'single-print-area' : 'batch-print-area';
-    const printElement = document.getElementById(printAreaId);
-    if (!printElement) return;
-
-    // Create a hidden iframe
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    iframe.style.zIndex = '-1000';
-    document.body.appendChild(iframe);
-
-    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (!iframeDoc) return;
-
-    // Retrieve all parent document styles
-    let stylesHtml = '';
-    const stylesheets = document.querySelectorAll('link[rel="stylesheet"], style');
-    stylesheets.forEach(el => {
-      stylesHtml += el.outerHTML;
-    });
-
-    // Write contents to iframe doc
-    iframeDoc.open();
-    iframeDoc.write(`
-      <html>
-        <head>
-          <title>Print Certificate</title>
-          ${stylesHtml}
-          <style>
-            @page {
-              size: A4 landscape;
-              margin: 0;
-            }
-            html, body {
-              margin: 0 !important;
-              padding: 0 !important;
-              width: 297mm !important;
-              height: 210mm !important;
-              background-color: #ffffff;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            .cert-container-print {
-              width: 297mm !important;
-              height: 210mm !important;
-              box-shadow: none !important;
-              border: none !important;
-              margin: 0 !important;
-              transform: none !important;
-              box-sizing: border-box !important;
-            }
-            .cert-page-break {
-              width: 297mm !important;
-              height: 210mm !important;
-              page-break-after: always !important;
-              break-after: page !important;
-              overflow: hidden !important;
-              box-sizing: border-box !important;
-            }
-          </style>
-        </head>
-        <body>
-          ${printElement.innerHTML}
-        </body>
-      </html>
-    `);
-    iframeDoc.close();
-
-    // Trigger printing once loaded
-    setTimeout(() => {
-      try {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-      } catch (err) {
-        console.error("Print error:", err);
-      } finally {
-        // Remove iframe from DOM after print dialog handles it
-        setTimeout(() => {
-          iframe.remove();
-        }, 1000);
-      }
-    }, 500);
+  const handlePrint = (mode: 'single' | 'batch') => {
+    setPrintMode(mode);
+    setIsPrinting(true);
   };
 
   // Theme Class Resolvers
@@ -625,6 +569,65 @@ export function CertificateGenerator() {
         </div>
       </div>
     );
+  };
+
+  const renderPrintPortal = () => {
+    if (!isMounted || !isPrinting) return null;
+    
+    const content = (
+      <div id="print-root" className="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-start">
+        <style dangerouslySetInnerHTML={{ __html: `
+          @media print {
+            body > *:not(#print-root) {
+              display: none !important;
+            }
+            #print-root {
+              display: block !important;
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 297mm !important;
+              height: 210mm !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background-color: #ffffff !important;
+            }
+            .cert-page-break {
+              width: 297mm !important;
+              height: 210mm !important;
+              page-break-after: always !important;
+              break-after: page !important;
+              overflow: hidden !important;
+              box-sizing: border-box !important;
+            }
+            .cert-container-print {
+              width: 297mm !important;
+              height: 210mm !important;
+              box-shadow: none !important;
+              border: none !important;
+              margin: 0 !important;
+              transform: none !important;
+              box-sizing: border-box !important;
+            }
+          }
+        `}} />
+        {printMode === 'single' ? (
+          <div className="w-full h-full">
+            {renderCertificate(currentCert, 1, true)}
+          </div>
+        ) : (
+          <div className="w-full h-full flex flex-col">
+            {batchList.map((cert) => (
+              <div key={cert.id} className="cert-page-break">
+                {renderCertificate(cert, 1, true)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+
+    return createPortal(content, document.body);
   };
 
   return (
@@ -1071,6 +1074,7 @@ export function CertificateGenerator() {
           </div>
         </TabsContent>
       </Tabs>
+      {renderPrintPortal()}
     </div>
   );
 }
