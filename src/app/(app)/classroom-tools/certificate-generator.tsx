@@ -132,6 +132,13 @@ export function CertificateGenerator() {
   const [bodyFont, setBodyFont] = React.useState('Playfair Display');
   const [signatureFont, setSignatureFont] = React.useState('Dancing Script');
 
+  // Font Sizes
+  const [titleFontSize, setTitleFontSize] = React.useState<number>(45);
+  const [nameFontSize, setNameFontSize] = React.useState<number>(36);
+  const [bodyFontSize, setBodyFontSize] = React.useState<number>(14);
+  const [signatureFontSize, setSignatureFontSize] = React.useState<number>(14);
+  const [schoolNameFontSize, setSchoolNameFontSize] = React.useState<number>(11);
+
   // Custom Texts
   const [certTitleText, setCertTitleText] = React.useState('CERTIFICATE OF RECOGNITION');
   const [presentationText, setPresentationText] = React.useState('This award is proudly presented to');
@@ -510,18 +517,23 @@ export function CertificateGenerator() {
           <div className="flex items-center gap-2 mb-1">
             {!customLogo && <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />}
             <span 
-              className={`text-[11px] font-semibold tracking-[0.25em] uppercase opacity-75 ${currentTheme.textColor}`}
-              style={{ fontFamily: getFontFamily(bodyFont) }}
+              className={`font-semibold tracking-[0.25em] uppercase opacity-75 ${currentTheme.textColor}`}
+              style={{ 
+                fontFamily: getFontFamily(bodyFont),
+                fontSize: `${schoolNameFontSize}px` 
+              }}
             >
               {schoolName}
             </span>
             {!customLogo && <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />}
           </div>
           <h1 
-            className={`text-4xl md:text-5xl font-extrabold tracking-widest text-center ${currentTheme.titleColor}`} 
+            className={`font-extrabold tracking-widest text-center ${currentTheme.titleColor}`} 
             style={{ 
               textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
-              fontFamily: getFontFamily(titleFont)
+              fontFamily: getFontFamily(titleFont),
+              fontSize: `${titleFontSize}px`,
+              lineHeight: '1.2'
             }}
           >
             {certTitleText}
@@ -536,16 +548,20 @@ export function CertificateGenerator() {
         {/* Certificate Body */}
         <div className="flex flex-col items-center justify-center flex-grow w-full max-w-[85%] text-center z-10 px-4 mt-4">
           <p 
-            className={`text-sm italic opacity-75 ${currentTheme.textColor}`}
-            style={{ fontFamily: getFontFamily(bodyFont) }}
+            className={`italic opacity-75 ${currentTheme.textColor}`}
+            style={{ 
+              fontFamily: getFontFamily(bodyFont),
+              fontSize: `${bodyFontSize}px`
+            }}
           >
             {presentationText}
           </p>
 
           <h2 
-            className={`text-3xl md:text-4xl font-semibold my-2 border-b-2 pb-1 text-slate-800 inline-block px-10`}
+            className={`font-semibold my-2 border-b-2 pb-1 text-slate-800 inline-block px-10`}
             style={{ 
               fontFamily: getFontFamily(nameFont),
+              fontSize: `${nameFontSize}px`,
               borderImage: `linear-gradient(to right, transparent, ${theme === 'minimalist' ? '#334155' : '#d97706'}, transparent) 1`
             }}
           >
@@ -553,22 +569,31 @@ export function CertificateGenerator() {
           </h2>
 
           <p 
-            className={`text-xs uppercase tracking-widest font-semibold opacity-60 mb-3 ${currentTheme.textColor}`}
-            style={{ fontFamily: getFontFamily(bodyFont) }}
+            className={`uppercase tracking-widest font-semibold opacity-60 mb-3 ${currentTheme.textColor}`}
+            style={{ 
+              fontFamily: getFontFamily(bodyFont),
+              fontSize: `${bodyFontSize - 2}px`
+            }}
           >
             {classLabelText} {cert.className}
           </p>
 
           <h3 
-            className={`text-xl font-bold tracking-wide mb-2 uppercase ${currentTheme.titleColor}`}
-            style={{ fontFamily: getFontFamily(titleFont) }}
+            className={`font-bold tracking-wide mb-2 uppercase ${currentTheme.titleColor}`}
+            style={{ 
+              fontFamily: getFontFamily(titleFont),
+              fontSize: `${bodyFontSize + 4}px`
+            }}
           >
             {awardPrefixText} <span className="underline decoration-wavy decoration-amber-500 underline-offset-4">{title}</span>
           </h3>
 
           <p 
-            className={`text-sm max-w-[88%] leading-relaxed ${currentTheme.textColor} italic opacity-90 px-4 py-2 bg-white/40 rounded-lg shadow-sm border border-white/60`}
-            style={{ fontFamily: getFontFamily(bodyFont) }}
+            className={`max-w-[88%] leading-relaxed ${currentTheme.textColor} italic opacity-90 px-4 py-2 bg-white/40 rounded-lg shadow-sm border border-white/60`}
+            style={{ 
+              fontFamily: getFontFamily(bodyFont),
+              fontSize: `${bodyFontSize}px`
+            }}
           >
             {description}
           </p>
@@ -581,8 +606,11 @@ export function CertificateGenerator() {
             {showDate && (
               <div className="flex flex-col items-center w-full max-w-[140px]">
                 <span 
-                  className="text-[13px] font-medium text-slate-800 h-6 flex items-center justify-center whitespace-nowrap"
-                  style={{ fontFamily: getFontFamily(bodyFont) }}
+                  className="font-medium text-slate-800 h-6 flex items-center justify-center whitespace-nowrap"
+                  style={{ 
+                    fontFamily: getFontFamily(bodyFont),
+                    fontSize: `${bodyFontSize - 1}px`
+                  }}
                 >
                   {issueDate}
                 </span>
@@ -630,8 +658,11 @@ export function CertificateGenerator() {
             {showSignatures && showPrincipal && (
               <div className={`flex flex-col items-center w-full max-w-[140px] ${showSeal ? "mt-4" : ""}`}>
                 <span 
-                  className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
-                  style={{ fontFamily: getFontFamily(signatureFont) }}
+                  className="italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
+                  style={{ 
+                    fontFamily: getFontFamily(signatureFont),
+                    fontSize: `${signatureFontSize}px`
+                  }}
                 >
                   {signatureTeacher}
                 </span>
@@ -651,8 +682,11 @@ export function CertificateGenerator() {
             {showPrincipal ? (
               <div className="flex flex-col items-center w-full max-w-[140px]">
                 <span 
-                  className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
-                  style={{ fontFamily: getFontFamily(signatureFont) }}
+                  className="italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
+                  style={{ 
+                    fontFamily: getFontFamily(signatureFont),
+                    fontSize: `${signatureFontSize}px`
+                  }}
                 >
                   {signaturePrincipal}
                 </span>
@@ -668,8 +702,11 @@ export function CertificateGenerator() {
               showSignatures && (
                 <div className="flex flex-col items-center w-full max-w-[140px]">
                   <span 
-                    className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
-                    style={{ fontFamily: getFontFamily(signatureFont) }}
+                    className="italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
+                    style={{ 
+                      fontFamily: getFontFamily(signatureFont),
+                      fontSize: `${signatureFontSize}px`
+                    }}
                   >
                     {signatureTeacher}
                   </span>
@@ -1064,66 +1101,134 @@ export function CertificateGenerator() {
                     {/* FONTS TAB */}
                     <TabsContent value="fonts" className="space-y-4">
                       {/* Title Font */}
-                      <div className="space-y-1.5">
-                        <Label>Certificate Title Font</Label>
-                        <Select value={titleFont} onValueChange={(val) => setTitleFont(val)}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Cinzel">Classic Roman (Cinzel)</SelectItem>
-                            <SelectItem value="Playfair Display">Elegant Serif (Playfair)</SelectItem>
-                            <SelectItem value="Montserrat">Modern Sans (Montserrat)</SelectItem>
-                            <SelectItem value="Georgia">Standard Serif (Georgia)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="space-y-2 border-b pb-2">
+                        <div className="flex justify-between items-center">
+                          <Label className="font-semibold">Certificate Title Font</Label>
+                          <span className="text-xs text-muted-foreground font-mono">{titleFontSize}px</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                          <Select value={titleFont} onValueChange={(val) => setTitleFont(val)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Cinzel">Classic Roman (Cinzel)</SelectItem>
+                              <SelectItem value="Playfair Display">Elegant Serif (Playfair)</SelectItem>
+                              <SelectItem value="Montserrat">Modern Sans (Montserrat)</SelectItem>
+                              <SelectItem value="Georgia">Standard Serif (Georgia)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Slider
+                            value={[titleFontSize]}
+                            onValueChange={(val) => setTitleFontSize(val[0])}
+                            min={24}
+                            max={64}
+                            step={1}
+                            className="py-2"
+                          />
+                        </div>
                       </div>
 
                       {/* Name Font */}
-                      <div className="space-y-1.5">
-                        <Label>Student Name Font</Label>
-                        <Select value={nameFont} onValueChange={(val) => setNameFont(val)}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Great Vibes">Elegant Script (Great Vibes)</SelectItem>
-                            <SelectItem value="Alex Brush">Flowing Script (Alex Brush)</SelectItem>
-                            <SelectItem value="Pinyon Script">Ornate Calligraphy (Pinyon Script)</SelectItem>
-                            <SelectItem value="Playfair Display">Classic Serif (Playfair)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="space-y-2 border-b pb-2">
+                        <div className="flex justify-between items-center">
+                          <Label className="font-semibold">Student Name Font</Label>
+                          <span className="text-xs text-muted-foreground font-mono">{nameFontSize}px</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                          <Select value={nameFont} onValueChange={(val) => setNameFont(val)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Great Vibes">Elegant Script (Great Vibes)</SelectItem>
+                              <SelectItem value="Alex Brush">Flowing Script (Alex Brush)</SelectItem>
+                              <SelectItem value="Pinyon Script">Ornate Calligraphy (Pinyon Script)</SelectItem>
+                              <SelectItem value="Playfair Display">Classic Serif (Playfair)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Slider
+                            value={[nameFontSize]}
+                            onValueChange={(val) => setNameFontSize(val[0])}
+                            min={20}
+                            max={60}
+                            step={1}
+                            className="py-2"
+                          />
+                        </div>
                       </div>
 
                       {/* Body Font */}
-                      <div className="space-y-1.5">
-                        <Label>Body Text & Subtitles Font</Label>
-                        <Select value={bodyFont} onValueChange={(val) => setBodyFont(val)}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Playfair Display">Elegant Serif (Playfair)</SelectItem>
-                            <SelectItem value="Montserrat">Modern Sans (Montserrat)</SelectItem>
-                            <SelectItem value="Georgia">Standard Serif (Georgia)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="space-y-2 border-b pb-2">
+                        <div className="flex justify-between items-center">
+                          <Label className="font-semibold">Body Text Font</Label>
+                          <span className="text-xs text-muted-foreground font-mono">{bodyFontSize}px</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                          <Select value={bodyFont} onValueChange={(val) => setBodyFont(val)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Playfair Display">Elegant Serif (Playfair)</SelectItem>
+                              <SelectItem value="Montserrat">Modern Sans (Montserrat)</SelectItem>
+                              <SelectItem value="Georgia">Standard Serif (Georgia)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Slider
+                            value={[bodyFontSize]}
+                            onValueChange={(val) => setBodyFontSize(val[0])}
+                            min={10}
+                            max={20}
+                            step={1}
+                            className="py-2"
+                          />
+                        </div>
                       </div>
 
                       {/* Signature Font */}
-                      <div className="space-y-1.5">
-                        <Label>Signature Font</Label>
-                        <Select value={signatureFont} onValueChange={(val) => setSignatureFont(val)}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Dancing Script">Handwritten Script (Dancing Script)</SelectItem>
-                            <SelectItem value="Great Vibes">Calligraphy Script (Great Vibes)</SelectItem>
-                            <SelectItem value="Sacramento">Fine Handwriting (Sacramento)</SelectItem>
-                            <SelectItem value="Playfair Display">Plain Text (Playfair)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="space-y-2 border-b pb-2">
+                        <div className="flex justify-between items-center">
+                          <Label className="font-semibold">Signature Font</Label>
+                          <span className="text-xs text-muted-foreground font-mono">{signatureFontSize}px</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                          <Select value={signatureFont} onValueChange={(val) => setSignatureFont(val)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Dancing Script">Handwritten Script (Dancing Script)</SelectItem>
+                              <SelectItem value="Great Vibes">Calligraphy Script (Great Vibes)</SelectItem>
+                              <SelectItem value="Sacramento">Fine Handwriting (Sacramento)</SelectItem>
+                              <SelectItem value="Playfair Display">Plain Text (Playfair)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Slider
+                            value={[signatureFontSize]}
+                            onValueChange={(val) => setSignatureFontSize(val[0])}
+                            min={10}
+                            max={24}
+                            step={1}
+                            className="py-2"
+                          />
+                        </div>
+                      </div>
+
+                      {/* School Name Font Size */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <Label className="font-semibold">School Name Font Size</Label>
+                          <span className="text-xs text-muted-foreground font-mono">{schoolNameFontSize}px</span>
+                        </div>
+                        <Slider
+                          value={[schoolNameFontSize]}
+                          onValueChange={(val) => setSchoolNameFontSize(val[0])}
+                          min={8}
+                          max={18}
+                          step={1}
+                          className="py-2"
+                        />
                       </div>
                     </TabsContent>
 
