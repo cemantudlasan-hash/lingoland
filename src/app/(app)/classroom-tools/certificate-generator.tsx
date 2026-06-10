@@ -454,13 +454,18 @@ export function CertificateGenerator() {
         </div>
 
         {/* Certificate Header Banner */}
-        <div className="flex flex-col items-center mt-12 z-10">
+        <div className="flex flex-col items-center mt-10 z-10">
+          {customLogo && (
+            <div className="mb-2 max-h-12 flex items-center justify-center print:max-h-12">
+              <img src={customLogo} alt="School Logo" className="object-contain max-h-12 max-w-[120px]" />
+            </div>
+          )}
           <div className="flex items-center gap-2 mb-1">
-            <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />
+            {!customLogo && <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />}
             <span className={`text-[11px] font-semibold tracking-[0.25em] uppercase opacity-75 ${currentTheme.textColor}`}>
               {schoolName}
             </span>
-            <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />
+            {!customLogo && <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />}
           </div>
           <h1 className={`text-4xl md:text-5xl font-extrabold tracking-widest text-center ${currentTheme.titleColor} ${getFontFamilyClass()}`} style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
             CERTIFICATE OF RECOGNITION
@@ -578,6 +583,19 @@ export function CertificateGenerator() {
       <div id="print-root" className="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-start">
         <style dangerouslySetInnerHTML={{ __html: `
           @media print {
+            @page {
+              size: A4 landscape;
+              margin: 0mm !important;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 297mm !important;
+              height: 210mm !important;
+              background-color: #ffffff !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
             body > *:not(#print-root) {
               display: none !important;
             }
@@ -890,6 +908,39 @@ export function CertificateGenerator() {
                       onChange={(e) => setIssueDate(e.target.value)}
                       placeholder="June 10, 2026"
                     />
+                  </div>
+
+                  {/* Custom Logo Upload */}
+                  <div className="space-y-1.5 pt-2 border-t">
+                    <Label htmlFor="logo-upload">Custom School Logo (PNG, JPG)</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="logo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setCustomLogo(reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="text-xs py-1.5 h-9 cursor-pointer"
+                      />
+                      {customLogo && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-rose-500 hover:text-rose-600 hover:bg-rose-50 shrink-0 border"
+                          onClick={() => setCustomLogo(null)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Toggle Elements */}
