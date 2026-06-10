@@ -11,8 +11,12 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias.canvas = false;
+    // Prevent Three.js from being bundled server-side (it uses browser-only APIs)
+    if (isServer) {
+      config.externals = [...(config.externals || []), 'three'];
+    }
     return config;
   },
   images: {
