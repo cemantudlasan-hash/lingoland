@@ -117,7 +117,6 @@ export function CertificateGenerator() {
   // Certificate Styling
   const [schoolName, setSchoolName] = React.useState('LingoLand Academy');
   const [theme, setTheme] = React.useState<'gold' | 'royal-blue' | 'emerald' | 'crimson' | 'minimalist'>('gold');
-  const [fontFamily, setFontFamily] = React.useState<'serif' | 'sans' | 'elegant'>('serif');
   const [signatureTeacher, setSignatureTeacher] = React.useState('Ms. Sarah Jenkins');
   const [signaturePrincipal, setSignaturePrincipal] = React.useState('Dr. Arthur Pendelton');
   const [issueDate, setIssueDate] = React.useState(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
@@ -126,6 +125,22 @@ export function CertificateGenerator() {
   const [showDate, setShowDate] = React.useState(true);
   const [customLogo, setCustomLogo] = React.useState<string | null>(null);
   const [logoSize, setLogoSize] = React.useState<number>(64);
+
+  // Fonts Styling
+  const [titleFont, setTitleFont] = React.useState('Cinzel');
+  const [nameFont, setNameFont] = React.useState('Great Vibes');
+  const [bodyFont, setBodyFont] = React.useState('Playfair Display');
+  const [signatureFont, setSignatureFont] = React.useState('Dancing Script');
+
+  // Custom Texts
+  const [certTitleText, setCertTitleText] = React.useState('CERTIFICATE OF RECOGNITION');
+  const [presentationText, setPresentationText] = React.useState('This award is proudly presented to');
+  const [classLabelText, setClassLabelText] = React.useState('Student of');
+  const [awardPrefixText, setAwardPrefixText] = React.useState('For being recognized as the');
+  const [dateLabelText, setDateLabelText] = React.useState('Date Issued');
+  const [teacherLabelText, setTeacherLabelText] = React.useState('Class Teacher');
+  const [principalLabelText, setPrincipalLabelText] = React.useState('School Principal');
+  const [showPrincipal, setShowPrincipal] = React.useState(false);
 
   // Print Portal State
   const [isPrinting, setIsPrinting] = React.useState(false);
@@ -383,15 +398,28 @@ export function CertificateGenerator() {
 
   const currentTheme = getThemeClasses();
 
-  const getFontFamilyClass = () => {
-    switch (fontFamily) {
-      case 'sans':
-        return 'font-sans';
-      case 'elegant':
-        return 'font-serif tracking-wide';
-      case 'serif':
+  const getFontFamily = (fontName: string) => {
+    switch (fontName) {
+      case 'Cinzel':
+        return "'Cinzel', serif";
+      case 'Playfair Display':
+        return "'Playfair Display', serif";
+      case 'Montserrat':
+        return "'Montserrat', sans-serif";
+      case 'Great Vibes':
+        return "'Great Vibes', cursive";
+      case 'Alex Brush':
+        return "'Alex Brush', cursive";
+      case 'Pinyon Script':
+        return "'Pinyon Script', cursive";
+      case 'Dancing Script':
+        return "'Dancing Script', cursive";
+      case 'Sacramento':
+        return "'Sacramento', cursive";
+      case 'Georgia':
+        return "Georgia, serif";
       default:
-        return 'font-serif';
+        return "inherit";
     }
   };
 
@@ -412,6 +440,11 @@ export function CertificateGenerator() {
         }}
         className={`relative border-8 p-1.5 shadow-2xl rounded-sm transition-all duration-300 overflow-hidden flex flex-col justify-between items-center select-none w-full cert-container-print`}
       >
+        {/* Load Google Fonts */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@600;700;800&family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Montserrat:wght@400;600;700&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,600;1,400;1,600&family=Sacramento&display=swap');
+        ` }} />
+
         {/* Intricate Gradient Frame Border */}
         <div className={`absolute inset-0 border-[14px] border-double z-0 pointer-events-none rounded-sm border-transparent bg-clip-border`} style={{
           backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))`,
@@ -476,13 +509,22 @@ export function CertificateGenerator() {
           )}
           <div className="flex items-center gap-2 mb-1">
             {!customLogo && <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />}
-            <span className={`text-[11px] font-semibold tracking-[0.25em] uppercase opacity-75 ${currentTheme.textColor}`}>
+            <span 
+              className={`text-[11px] font-semibold tracking-[0.25em] uppercase opacity-75 ${currentTheme.textColor}`}
+              style={{ fontFamily: getFontFamily(bodyFont) }}
+            >
               {schoolName}
             </span>
             {!customLogo && <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />}
           </div>
-          <h1 className={`text-4xl md:text-5xl font-extrabold tracking-widest text-center ${currentTheme.titleColor} ${getFontFamilyClass()}`} style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
-            CERTIFICATE OF RECOGNITION
+          <h1 
+            className={`text-4xl md:text-5xl font-extrabold tracking-widest text-center ${currentTheme.titleColor}`} 
+            style={{ 
+              textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
+              fontFamily: getFontFamily(titleFont)
+            }}
+          >
+            {certTitleText}
           </h1>
           {honorText && (
             <div className={`mt-2 px-6 py-0.5 border border-dashed rounded-full text-xs font-semibold uppercase tracking-wider ${currentTheme.accentColor} border-current`}>
@@ -493,52 +535,70 @@ export function CertificateGenerator() {
 
         {/* Certificate Body */}
         <div className="flex flex-col items-center justify-center flex-grow w-full max-w-[85%] text-center z-10 px-4 mt-4">
-          <p className={`text-sm italic opacity-75 font-serif ${currentTheme.textColor}`}>
-            This award is proudly presented to
+          <p 
+            className={`text-sm italic opacity-75 ${currentTheme.textColor}`}
+            style={{ fontFamily: getFontFamily(bodyFont) }}
+          >
+            {presentationText}
           </p>
 
           <h2 
             className={`text-3xl md:text-4xl font-semibold my-2 border-b-2 pb-1 text-slate-800 inline-block px-10`}
             style={{ 
-              fontFamily: "'Great Vibes', 'Dancing Script', 'Brush Script MT', 'Playfair Display', cursive, serif",
+              fontFamily: getFontFamily(nameFont),
               borderImage: `linear-gradient(to right, transparent, ${theme === 'minimalist' ? '#334155' : '#d97706'}, transparent) 1`
             }}
           >
             {cert.name}
           </h2>
 
-          <p className={`text-xs uppercase tracking-widest font-semibold opacity-60 mb-3 ${currentTheme.textColor}`}>
-            Student of {cert.className}
+          <p 
+            className={`text-xs uppercase tracking-widest font-semibold opacity-60 mb-3 ${currentTheme.textColor}`}
+            style={{ fontFamily: getFontFamily(bodyFont) }}
+          >
+            {classLabelText} {cert.className}
           </p>
 
-          <h3 className={`text-xl font-bold tracking-wide mb-2 uppercase ${currentTheme.titleColor}`}>
-            For being recognized as the <span className="underline decoration-wavy decoration-amber-500 underline-offset-4">{title}</span>
+          <h3 
+            className={`text-xl font-bold tracking-wide mb-2 uppercase ${currentTheme.titleColor}`}
+            style={{ fontFamily: getFontFamily(titleFont) }}
+          >
+            {awardPrefixText} <span className="underline decoration-wavy decoration-amber-500 underline-offset-4">{title}</span>
           </h3>
 
-          <p className={`text-sm max-w-[88%] leading-relaxed ${currentTheme.textColor} italic font-serif opacity-90 px-4 py-2 bg-white/40 rounded-lg shadow-sm border border-white/60`}>
+          <p 
+            className={`text-sm max-w-[88%] leading-relaxed ${currentTheme.textColor} italic opacity-90 px-4 py-2 bg-white/40 rounded-lg shadow-sm border border-white/60`}
+            style={{ fontFamily: getFontFamily(bodyFont) }}
+          >
             {description}
           </p>
         </div>
 
         {/* Footer Area with Signatures, Date and Seal */}
-        <div className="w-full flex justify-between items-end px-16 pb-10 z-10">
+        <div className="w-full flex justify-between items-end px-12 pb-10 z-10 gap-4">
           {/* Issue Date */}
-          <div className="w-1/3 flex flex-col items-start">
+          <div className="flex-1 flex flex-col items-center">
             {showDate && (
-              <div className="flex flex-col items-center w-40">
-                <span className="text-[13px] font-medium text-slate-800 h-6 flex items-center justify-center whitespace-nowrap">
+              <div className="flex flex-col items-center w-full max-w-[140px]">
+                <span 
+                  className="text-[13px] font-medium text-slate-800 h-6 flex items-center justify-center whitespace-nowrap"
+                  style={{ fontFamily: getFontFamily(bodyFont) }}
+                >
                   {issueDate}
                 </span>
                 <div className="w-full border-t border-slate-400 mt-1.5 mb-1" />
-                <span className={`text-[10px] uppercase tracking-wider font-semibold opacity-60 ${currentTheme.textColor}`}>
-                  Date Issued
+                <span 
+                  className={`text-[10px] uppercase tracking-wider font-semibold opacity-60 text-center ${currentTheme.textColor}`}
+                  style={{ fontFamily: getFontFamily(bodyFont) }}
+                >
+                  {dateLabelText}
                 </span>
               </div>
             )}
           </div>
 
           {/* Golden Seal of Excellence */}
-          <div className="w-1/3 flex justify-center relative -bottom-2">
+          <div className="flex-1 flex justify-center relative -bottom-2">
             {showSeal && (
               <div className="relative flex flex-col items-center justify-center">
                 {/* Ribbon tails */}
@@ -566,20 +626,47 @@ export function CertificateGenerator() {
             )}
           </div>
 
-          {/* Signatures */}
-          <div className="w-1/3 flex flex-col items-end">
+          {/* Teacher Signature */}
+          <div className="flex-1 flex flex-col items-center">
             {showSignatures && (
-              <div className="flex flex-col items-center w-40">
-                <span className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" style={{ fontFamily: "'Great Vibes', 'Dancing Script', 'Brush Script MT', cursive" }}>
+              <div className="flex flex-col items-center w-full max-w-[140px]">
+                <span 
+                  className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
+                  style={{ fontFamily: getFontFamily(signatureFont) }}
+                >
                   {signatureTeacher}
                 </span>
                 <div className="w-full border-t border-slate-400 mt-1.5 mb-1" />
-                <span className={`text-[10px] uppercase tracking-wider font-semibold opacity-60 ${currentTheme.textColor}`}>
-                  Class Teacher
+                <span 
+                  className={`text-[10px] uppercase tracking-wider font-semibold opacity-60 text-center ${currentTheme.textColor}`}
+                  style={{ fontFamily: getFontFamily(bodyFont) }}
+                >
+                  {teacherLabelText}
                 </span>
               </div>
             )}
           </div>
+
+          {/* Principal Signature */}
+          {showPrincipal && (
+            <div className="flex-1 flex flex-col items-center">
+              <div className="flex flex-col items-center w-full max-w-[140px]">
+                <span 
+                  className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
+                  style={{ fontFamily: getFontFamily(signatureFont) }}
+                >
+                  {signaturePrincipal}
+                </span>
+                <div className="w-full border-t border-slate-400 mt-1.5 mb-1" />
+                <span 
+                  className={`text-[10px] uppercase tracking-wider font-semibold opacity-60 text-center ${currentTheme.textColor}`}
+                  style={{ fontFamily: getFontFamily(bodyFont) }}
+                >
+                  {principalLabelText}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Subtle Watermark Logo / Background Details */}
@@ -849,163 +936,301 @@ export function CertificateGenerator() {
               </Card>
 
               {/* STYLING CONFIG */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-amber-500" /> Certificate Theme & Styles
-                  </CardTitle>
-                </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* Theme */}
-                    <div className="space-y-1.5">
-                      <Label>Theme Color</Label>
-                      <Select value={theme} onValueChange={(val: any) => setTheme(val)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Theme" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="gold">Classic Gold</SelectItem>
-                          <SelectItem value="royal-blue">Royal Blue</SelectItem>
-                          <SelectItem value="emerald">Emerald Green</SelectItem>
-                          <SelectItem value="crimson">Crimson Red</SelectItem>
-                          <SelectItem value="minimalist">Minimalist Black</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <Tabs defaultValue="design" className="w-full">
+                    <TabsList className="grid grid-cols-3 w-full mb-4">
+                      <TabsTrigger value="design" className="text-xs">Design</TabsTrigger>
+                      <TabsTrigger value="fonts" className="text-xs">Fonts</TabsTrigger>
+                      <TabsTrigger value="texts" className="text-xs">Texts</TabsTrigger>
+                    </TabsList>
 
-                    {/* Font Family */}
-                    <div className="space-y-1.5">
-                      <Label>Heading Font</Label>
-                      <Select value={fontFamily} onValueChange={(val: any) => setFontFamily(val)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Font Family" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="serif">Formal Serif</SelectItem>
-                          <SelectItem value="sans">Modern Sans</SelectItem>
-                          <SelectItem value="elegant">Elegant Serif</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                    {/* DESIGN TAB */}
+                    <TabsContent value="design" className="space-y-4">
+                      <div className="space-y-1.5">
+                        <Label>Theme Color</Label>
+                        <Select value={theme} onValueChange={(val: any) => setTheme(val)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Theme" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="gold">Classic Gold</SelectItem>
+                            <SelectItem value="royal-blue">Royal Blue</SelectItem>
+                            <SelectItem value="emerald">Emerald Green</SelectItem>
+                            <SelectItem value="crimson">Crimson Red</SelectItem>
+                            <SelectItem value="minimalist">Minimalist Black</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* Teacher Signature */}
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sig-teacher">Teacher Name</Label>
-                      <Input
-                        id="sig-teacher"
-                        value={signatureTeacher}
-                        onChange={(e) => setSignatureTeacher(e.target.value)}
-                        placeholder="Ms. Jenkins"
-                      />
-                    </div>
-
-                    {/* Principal Signature */}
-                    <div className="space-y-1.5">
-                      <Label htmlFor="sig-principal">Principal Name</Label>
-                      <Input
-                        id="sig-principal"
-                        value={signaturePrincipal}
-                        onChange={(e) => setSignaturePrincipal(e.target.value)}
-                        placeholder="Dr. Pendelton"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="cert-date">Issue Date</Label>
-                    <Input
-                      id="cert-date"
-                      value={issueDate}
-                      onChange={(e) => setIssueDate(e.target.value)}
-                      placeholder="June 10, 2026"
-                    />
-                  </div>
-
-                  {/* Custom Logo Upload */}
-                  <div className="space-y-2 pt-2 border-t">
-                    <Label htmlFor="logo-upload">Custom School Logo (PNG, JPG)</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="logo-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setCustomLogo(reader.result as string);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                        className="text-xs py-1.5 h-9 cursor-pointer"
-                      />
-                      {customLogo && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 text-rose-500 hover:text-rose-600 hover:bg-rose-50 shrink-0 border"
-                          onClick={() => setCustomLogo(null)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    {customLogo && (
-                      <div className="space-y-1.5 pt-2 animate-fadeIn">
-                        <div className="flex justify-between text-xs">
-                          <Label>Logo Size (Height)</Label>
-                          <span className="text-muted-foreground font-mono">{logoSize}px</span>
+                      {/* Custom Logo Upload */}
+                      <div className="space-y-2 pt-2 border-t">
+                        <Label htmlFor="logo-upload">Custom School Logo (PNG, JPG)</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="logo-upload"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setCustomLogo(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="text-xs py-1.5 h-9 cursor-pointer"
+                          />
+                          {customLogo && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 text-rose-500 hover:text-rose-600 hover:bg-rose-50 shrink-0 border"
+                              onClick={() => setCustomLogo(null)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
-                        <Slider
-                          value={[logoSize]}
-                          onValueChange={(val) => setLogoSize(val[0])}
-                          min={30}
-                          max={150}
-                          step={5}
-                          className="py-2"
+
+                        {customLogo && (
+                          <div className="space-y-1.5 pt-2 animate-fadeIn">
+                            <div className="flex justify-between text-xs">
+                              <Label>Logo Size (Height)</Label>
+                              <span className="text-muted-foreground font-mono">{logoSize}px</span>
+                            </div>
+                            <Slider
+                              value={[logoSize]}
+                              onValueChange={(val) => setLogoSize(val[0])}
+                              min={30}
+                              max={150}
+                              step={5}
+                              className="py-2"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Toggle Elements */}
+                      <div className="flex flex-wrap gap-4 text-xs font-semibold pt-2 border-t">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={showSeal}
+                            onChange={(e) => setShowSeal(e.target.checked)}
+                            className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                          />
+                          Show Seal
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={showDate}
+                            onChange={(e) => setShowDate(e.target.checked)}
+                            className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                          />
+                          Show Date
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={showSignatures}
+                            onChange={(e) => setShowSignatures(e.target.checked)}
+                            className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                          />
+                          Show Signatures
+                        </label>
+                      </div>
+                    </TabsContent>
+
+                    {/* FONTS TAB */}
+                    <TabsContent value="fonts" className="space-y-4">
+                      {/* Title Font */}
+                      <div className="space-y-1.5">
+                        <Label>Certificate Title Font</Label>
+                        <Select value={titleFont} onValueChange={(val) => setTitleFont(val)}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Cinzel">Classic Roman (Cinzel)</SelectItem>
+                            <SelectItem value="Playfair Display">Elegant Serif (Playfair)</SelectItem>
+                            <SelectItem value="Montserrat">Modern Sans (Montserrat)</SelectItem>
+                            <SelectItem value="Georgia">Standard Serif (Georgia)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Name Font */}
+                      <div className="space-y-1.5">
+                        <Label>Student Name Font</Label>
+                        <Select value={nameFont} onValueChange={(val) => setNameFont(val)}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Great Vibes">Elegant Script (Great Vibes)</SelectItem>
+                            <SelectItem value="Alex Brush">Flowing Script (Alex Brush)</SelectItem>
+                            <SelectItem value="Pinyon Script">Ornate Calligraphy (Pinyon Script)</SelectItem>
+                            <SelectItem value="Playfair Display">Classic Serif (Playfair)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Body Font */}
+                      <div className="space-y-1.5">
+                        <Label>Body Text & Subtitles Font</Label>
+                        <Select value={bodyFont} onValueChange={(val) => setBodyFont(val)}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Playfair Display">Elegant Serif (Playfair)</SelectItem>
+                            <SelectItem value="Montserrat">Modern Sans (Montserrat)</SelectItem>
+                            <SelectItem value="Georgia">Standard Serif (Georgia)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Signature Font */}
+                      <div className="space-y-1.5">
+                        <Label>Signature Font</Label>
+                        <Select value={signatureFont} onValueChange={(val) => setSignatureFont(val)}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Dancing Script">Handwritten Script (Dancing Script)</SelectItem>
+                            <SelectItem value="Great Vibes">Calligraphy Script (Great Vibes)</SelectItem>
+                            <SelectItem value="Sacramento">Fine Handwriting (Sacramento)</SelectItem>
+                            <SelectItem value="Playfair Display">Plain Text (Playfair)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </TabsContent>
+
+                    {/* TEXTS TAB */}
+                    <TabsContent value="texts" className="space-y-4">
+                      {/* Certificate Title Text */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="text-title">Certificate Header Title</Label>
+                        <Input
+                          id="text-title"
+                          value={certTitleText}
+                          onChange={(e) => setCertTitleText(e.target.value)}
                         />
                       </div>
-                    )}
-                  </div>
 
-                  {/* Toggle Elements */}
-                  <div className="flex flex-wrap gap-4 text-xs font-semibold pt-2 border-t">
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={showSeal}
-                        onChange={(e) => setShowSeal(e.target.checked)}
-                        className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                      />
-                      Show Seal
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={showSignatures}
-                        onChange={(e) => setShowSignatures(e.target.checked)}
-                        className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                      />
-                      Show Signatures
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={showDate}
-                        onChange={(e) => setShowDate(e.target.checked)}
-                        className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                      />
-                      Show Date
-                    </label>
-                  </div>
+                      {/* Presentation Text */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="text-presentation">Presentation Subtitle</Label>
+                        <Input
+                          id="text-presentation"
+                          value={presentationText}
+                          onChange={(e) => setPresentationText(e.target.value)}
+                        />
+                      </div>
+
+                      {/* Class Prefix Text */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="text-class-prefix">Class Prefix Label</Label>
+                        <Input
+                          id="text-class-prefix"
+                          value={classLabelText}
+                          onChange={(e) => setClassLabelText(e.target.value)}
+                        />
+                      </div>
+
+                      {/* Award Prefix Text */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="text-award-prefix">Award Prefix Label</Label>
+                        <Input
+                          id="text-award-prefix"
+                          value={awardPrefixText}
+                          onChange={(e) => setAwardPrefixText(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="border-t pt-2 space-y-3">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Signatures & Date</h4>
+                        
+                        {/* Issue Date & Label */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="val-date">Date Issued</Label>
+                            <Input
+                              id="val-date"
+                              value={issueDate}
+                              onChange={(e) => setIssueDate(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="label-date">Date Label</Label>
+                            <Input
+                              id="label-date"
+                              value={dateLabelText}
+                              onChange={(e) => setDateLabelText(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Teacher Signature & Label */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="val-teacher">Teacher Name</Label>
+                            <Input
+                              id="val-teacher"
+                              value={signatureTeacher}
+                              onChange={(e) => setSignatureTeacher(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor="label-teacher">Teacher Label</Label>
+                            <Input
+                              id="label-teacher"
+                              value={teacherLabelText}
+                              onChange={(e) => setTeacherLabelText(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Principal Signature Toggle */}
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-semibold pt-1">
+                          <input
+                            type="checkbox"
+                            checked={showPrincipal}
+                            onChange={(e) => setShowPrincipal(e.target.checked)}
+                            className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                          />
+                          Add Principal Signature
+                        </label>
+
+                        {/* Principal Signature & Label */}
+                        {showPrincipal && (
+                          <div className="grid grid-cols-2 gap-3 animate-fadeIn border-l-2 pl-2 border-amber-500">
+                            <div className="space-y-1.5">
+                              <Label htmlFor="val-principal">Principal Name</Label>
+                              <Input
+                                id="val-principal"
+                                value={signaturePrincipal}
+                                onChange={(e) => setSignaturePrincipal(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label htmlFor="label-principal">Principal Label</Label>
+                              <Input
+                                id="label-principal"
+                                value={principalLabelText}
+                                onChange={(e) => setPrincipalLabelText(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
-              </Card>
 
               {/* Action Buttons */}
               <div className="flex gap-2 w-full">
