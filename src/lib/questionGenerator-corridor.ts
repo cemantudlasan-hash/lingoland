@@ -1,4 +1,4 @@
-import { Question } from "../types";
+import { Question } from "./game-types-corridor";
 
 // Dynamic pools for various grammar/word challenges
 
