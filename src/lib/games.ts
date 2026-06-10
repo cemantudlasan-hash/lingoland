@@ -767,6 +767,15 @@ export const allGames: Game[] = [
     subject: "math",
     icon: Calculator,
   },
+  {
+    title: "3D Corridor Speed",
+    slug: "three-corridor-speed",
+    description: "Maneuver high speed space portals to solve grammar and vocabulary enigmas.",
+    level: "intermediate",
+    focus: "grammar",
+    subject: "english",
+    icon: Compass,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {

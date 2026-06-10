@@ -104,6 +104,7 @@ export const gameComponentMap = {
       'math-vault-3d': dynamic(() => import('@/components/games/math-vault-3d').then(mod => mod.MathVault3D), { ssr: false }),
       'math-dash-3d': dynamic(() => import('@/components/games/math-dash-3d').then(mod => mod.MathDash3D), { ssr: false }),
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
+      'three-corridor-speed': dynamic(() => import('@/components/games/three-corridor-speed'), { ssr: false }),
 };
 
 export default function GamesPage() {
