@@ -140,7 +140,6 @@ export function CertificateGenerator() {
     if (isPrinting) {
       const timer = setTimeout(() => {
         window.print();
-        setIsPrinting(false);
       }, 250);
       return () => clearTimeout(timer);
     }
