@@ -57,7 +57,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
 
   // Setup real-time listener to Firestore classroom_teams
   useEffect(() => {
-    const unsubscribe = if (!firestore) return;
+    if (!firestore) return;
     const unsubscribe = onSnapshot(collection(firestore, "classroom_teams"), (snapshot) => {
       if (snapshot.empty) {
         // Seed default teams if Firestore collection is empty
