@@ -113,6 +113,7 @@ export function CertificateGenerator() {
   });
 
   // Certificate Styling
+  const [schoolName, setSchoolName] = React.useState('LingoLand Academy');
   const [theme, setTheme] = React.useState<'gold' | 'royal-blue' | 'emerald' | 'crimson' | 'minimalist'>('gold');
   const [fontFamily, setFontFamily] = React.useState<'serif' | 'sans' | 'elegant'>('serif');
   const [signatureTeacher, setSignatureTeacher] = React.useState('Ms. Sarah Jenkins');
@@ -479,7 +480,7 @@ export function CertificateGenerator() {
           <div className="flex items-center gap-2 mb-1">
             <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />
             <span className={`text-[11px] font-semibold tracking-[0.25em] uppercase opacity-75 ${currentTheme.textColor}`}>
-              LingoLand Academy
+              {schoolName}
             </span>
             <Award className={`h-8 w-8 ${currentTheme.accentColor} animate-pulse`} />
           </div>
@@ -527,15 +528,15 @@ export function CertificateGenerator() {
           {/* Issue Date */}
           <div className="w-1/3 flex flex-col items-start">
             {showDate && (
-              <>
-                <span className="text-[12px] italic text-slate-700" style={{ fontFamily: "'Great Vibes', 'Dancing Script', cursive" }}>
+              <div className="flex flex-col items-center w-40">
+                <span className="text-[13px] font-medium text-slate-800 h-6 flex items-center justify-center whitespace-nowrap">
                   {issueDate}
                 </span>
-                <div className="w-full border-t border-slate-400 mt-1 my-1" />
+                <div className="w-full border-t border-slate-400 mt-1.5 mb-1" />
                 <span className={`text-[10px] uppercase tracking-wider font-semibold opacity-60 ${currentTheme.textColor}`}>
                   Date Issued
                 </span>
-              </>
+              </div>
             )}
           </div>
 
@@ -571,17 +572,15 @@ export function CertificateGenerator() {
           {/* Signatures */}
           <div className="w-1/3 flex flex-col items-end">
             {showSignatures && (
-              <>
-                <div className="flex flex-col items-center">
-                  <span className="text-[14px] italic text-slate-800 font-semibold" style={{ fontFamily: "'Great Vibes', 'Dancing Script', 'Brush Script MT', cursive" }}>
-                    {signatureTeacher}
-                  </span>
-                  <div className="w-40 border-t border-slate-400 mt-1 my-1" />
-                  <span className={`text-[10px] uppercase tracking-wider font-semibold opacity-60 ${currentTheme.textColor}`}>
-                    Class Teacher
-                  </span>
-                </div>
-              </>
+              <div className="flex flex-col items-center w-40">
+                <span className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" style={{ fontFamily: "'Great Vibes', 'Dancing Script', 'Brush Script MT', cursive" }}>
+                  {signatureTeacher}
+                </span>
+                <div className="w-full border-t border-slate-400 mt-1.5 mb-1" />
+                <span className={`text-[10px] uppercase tracking-wider font-semibold opacity-60 ${currentTheme.textColor}`}>
+                  Class Teacher
+                </span>
+              </div>
             )}
           </div>
         </div>
@@ -632,6 +631,17 @@ export function CertificateGenerator() {
                       value={currentCert.name}
                       onChange={(e) => setCurrentCert({ ...currentCert, name: e.target.value })}
                       placeholder="e.g. Ceman Dejamo Tudlasan"
+                    />
+                  </div>
+
+                  {/* School Name */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cert-school">School / Academy Name</Label>
+                    <Input
+                      id="cert-school"
+                      value={schoolName}
+                      onChange={(e) => setSchoolName(e.target.value)}
+                      placeholder="e.g. LingoLand Academy"
                     />
                   </div>
 
