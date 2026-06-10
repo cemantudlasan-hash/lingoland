@@ -123,6 +123,7 @@ export function CertificateGenerator() {
   const [showSeal, setShowSeal] = React.useState(true);
   const [showSignatures, setShowSignatures] = React.useState(true);
   const [showDate, setShowDate] = React.useState(true);
+  const [customLogo, setCustomLogo] = React.useState<string | null>(null);
 
   // Print Portal State
   const [isPrinting, setIsPrinting] = React.useState(false);
