@@ -30,6 +30,8 @@ import { VisitorCounter } from "@/components/layout/VisitorCounter";
 import { HolidayCountdown } from "@/components/layout/HolidayCountdown";
 import { BeautifulCalendar } from "@/components/layout/BeautifulCalendar";
 import { BeautifulWeather } from "@/components/layout/BeautifulWeather";
+import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -398,6 +400,18 @@ export default function AuthPage() {
     const [activeTab, setActiveTab] = useState("signin");
     const router = useRouter();
 
+    const firestore = useFirestore();
+    const loginFormRef = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return doc(firestore, "announcements", "login_form");
+    }, [firestore]);
+
+    const { data: loginTexts } = useDoc(loginFormRef);
+
+    const title = loginTexts?.title || "Master Any Subject with Your Personal AI Companion";
+    const description = loginTexts?.description || "Welcome to LingoLandVerse — Learn language and educational subjects with 66+ interactive games.";
+    const credits = loginTexts?.credits || "Ideas and created by: CSC Tech Corp., Powered by AI.";
+
     useEffect(() => {
         if (!isLoading) {
             // Only redirect if a real user is logged in.
@@ -444,13 +458,13 @@ export default function AuthPage() {
                                 priority
                               />
                             </div>
-                            <CardTitle className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
-                                Master Any Subject with Your Personal AI Companion
+                            <CardTitle className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent whitespace-pre-wrap">
+                                {title}
                             </CardTitle>
-                            <CardDescription className="text-zinc-400 text-sm mt-1">
-                                Welcome to LingoLandVerse — Learn language and educational subjects with 66+ interactive games.
+                            <CardDescription className="text-zinc-400 text-sm mt-1 whitespace-pre-wrap">
+                                {description}
                             </CardDescription>
-                            <p className="text-xs text-indigo-400/80 font-semibold pt-1">Ideas and created by: CSC Tech Corp., Powered by AI.</p>
+                            <p className="text-xs text-indigo-400/80 font-semibold pt-1 whitespace-pre-wrap">{credits}</p>
                         </CardHeader>
                         <CardContent className="relative z-10">
                             <Tabs value={activeTab} onValueChange={setActiveTab}>

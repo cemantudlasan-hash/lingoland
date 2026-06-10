@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useFirestore, useMemoFirebase } from "@/firebase";
@@ -32,6 +33,11 @@ export default function AdminPage() {
     const [widgetMsg2, setWidgetMsg2] = useState("");
     const [useMotivational, setUseMotivational] = useState(false);
     const [isSavingWidget, setIsSavingWidget] = useState(false);
+
+    const [loginTitle, setLoginTitle] = useState("");
+    const [loginDescription, setLoginDescription] = useState("");
+    const [loginCredits, setLoginCredits] = useState("");
+    const [isSavingLogin, setIsSavingLogin] = useState(false);
     
     const announcementRef = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -41,6 +47,11 @@ export default function AdminPage() {
     const widgetMessagesRef = useMemoFirebase(() => {
         if (!firestore) return null;
         return doc(firestore, "announcements", "floating_pet_widget");
+    }, [firestore]);
+
+    const loginFormRef = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return doc(firestore, "announcements", "login_form");
     }, [firestore]);
 
     useEffect(() => {
@@ -98,6 +109,27 @@ export default function AdminPage() {
         return () => unsubscribe();
     }, [widgetMessagesRef, isLoading, isAdmin]);
 
+    useEffect(() => {
+        if (!loginFormRef || isLoading || !isAdmin) return;
+
+        const unsubscribe = onSnapshot(loginFormRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                setLoginTitle(data.title || "");
+                setLoginDescription(data.description || "");
+                setLoginCredits(data.credits || "");
+            }
+        },
+        (error: FirestoreError) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+              operation: 'get',
+              path: loginFormRef.path,
+            }));
+          }
+        );
+        return () => unsubscribe();
+    }, [loginFormRef, isLoading, isAdmin]);
+
     const handleSave = async () => {
         if (!announcementRef || !user) return;
         setIsSaving(true);
@@ -134,6 +166,26 @@ export default function AdminPage() {
         });
 
         setIsSavingWidget(false);
+    };
+
+    const handleSaveLogin = async () => {
+        if (!loginFormRef || !user) return;
+        setIsSavingLogin(true);
+        
+        const dataToSave = { 
+            title: loginTitle.trim(),
+            description: loginDescription.trim(),
+            credits: loginCredits.trim()
+        };
+
+        setDocumentNonBlocking(loginFormRef, dataToSave, { merge: true });
+
+        toast({
+            title: "Success",
+            description: "Login page texts have been updated.",
+        });
+
+        setIsSavingLogin(false);
     };
 
     if (isLoading || isFetching) {
@@ -248,6 +300,53 @@ export default function AdminPage() {
                          <Button onClick={handleSaveWidget} disabled={isSavingWidget}>
                             {isSavingWidget && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save Companion Texts
+                        </Button>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader
+                      className="bg-white text-black"
+                      style={{
+                        backgroundImage: `repeating-linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 10px)`,
+                        backgroundSize: '20px 20px',
+                      }}
+                    >
+                        <CardTitle>Manage Login Page Texts</CardTitle>
+                        <CardDescription>
+                            Edit the main title, description, and credits shown on the login form.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pt-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="login-title">Login Page Title</Label>
+                            <Textarea
+                                id="login-title"
+                                value={loginTitle}
+                                onChange={(e) => setLoginTitle(e.target.value)}
+                                placeholder="Master Any Subject with Your Personal AI Companion"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="login-description">Login Page Subtitle / Description</Label>
+                            <Textarea
+                                id="login-description"
+                                value={loginDescription}
+                                onChange={(e) => setLoginDescription(e.target.value)}
+                                placeholder="Welcome to LingoLandVerse — Learn language and educational subjects with 66+ interactive games."
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="login-credits">Login Page Credits</Label>
+                            <Input
+                                id="login-credits"
+                                value={loginCredits}
+                                onChange={(e) => setLoginCredits(e.target.value)}
+                                placeholder="Ideas and created by: CSC Tech Corp., Powered by AI."
+                            />
+                        </div>
+                        <Button onClick={handleSaveLogin} disabled={isSavingLogin}>
+                            {isSavingLogin && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save Login Texts
                         </Button>
                     </CardContent>
                 </Card>
