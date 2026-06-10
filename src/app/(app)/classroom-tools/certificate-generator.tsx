@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Slider } from '@/components/ui/slider';
 import {
   Award,
   Printer,
@@ -124,6 +125,7 @@ export function CertificateGenerator() {
   const [showSignatures, setShowSignatures] = React.useState(true);
   const [showDate, setShowDate] = React.useState(true);
   const [customLogo, setCustomLogo] = React.useState<string | null>(null);
+  const [logoSize, setLogoSize] = React.useState<number>(64);
 
   // Print Portal State
   const [isPrinting, setIsPrinting] = React.useState(false);
@@ -457,8 +459,20 @@ export function CertificateGenerator() {
         {/* Certificate Header Banner */}
         <div className="flex flex-col items-center mt-10 z-10">
           {customLogo && (
-            <div className="mb-2 max-h-12 flex items-center justify-center print:max-h-12">
-              <img src={customLogo} alt="School Logo" className="object-contain max-h-12 max-w-[120px]" />
+            <div 
+              style={{ height: `${logoSize}px` }} 
+              className="mb-2 flex items-center justify-center"
+            >
+              <img 
+                src={customLogo} 
+                alt="School Logo" 
+                className="object-contain" 
+                style={{ 
+                  height: `${logoSize}px`, 
+                  maxHeight: `${logoSize}px`,
+                  maxWidth: `${logoSize * 2.5}px` 
+                }} 
+              />
             </div>
           )}
           <div className="flex items-center gap-2 mb-1">
@@ -912,7 +926,7 @@ export function CertificateGenerator() {
                   </div>
 
                   {/* Custom Logo Upload */}
-                  <div className="space-y-1.5 pt-2 border-t">
+                  <div className="space-y-2 pt-2 border-t">
                     <Label htmlFor="logo-upload">Custom School Logo (PNG, JPG)</Label>
                     <div className="flex items-center gap-2">
                       <Input
@@ -942,6 +956,23 @@ export function CertificateGenerator() {
                         </Button>
                       )}
                     </div>
+
+                    {customLogo && (
+                      <div className="space-y-1.5 pt-2 animate-fadeIn">
+                        <div className="flex justify-between text-xs">
+                          <Label>Logo Size (Height)</Label>
+                          <span className="text-muted-foreground font-mono">{logoSize}px</span>
+                        </div>
+                        <Slider
+                          value={[logoSize]}
+                          onValueChange={(val) => setLogoSize(val[0])}
+                          min={30}
+                          max={150}
+                          step={5}
+                          className="py-2"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Toggle Elements */}
