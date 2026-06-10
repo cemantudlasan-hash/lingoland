@@ -280,58 +280,92 @@ export function CertificateGenerator() {
 
   // Trigger print dialog
   const handlePrint = (printMode: 'single' | 'batch') => {
-    // We will append a stylesheet dynamically or toggle printing classes.
-    // Standard approach: trigger window.print() and use CSS @media print
     const printAreaId = printMode === 'single' ? 'single-print-area' : 'batch-print-area';
-    
-    // Create print stylesheet
-    const style = document.createElement('style');
-    style.id = 'certificate-print-style';
-    style.innerHTML = `
-      @media print {
-        body * {
-          visibility: hidden !important;
-        }
-        #${printAreaId}, #${printAreaId} * {
-          visibility: visible !important;
-        }
-        #${printAreaId} {
-          position: absolute !important;
-          left: 0 !important;
-          top: 0 !important;
-          width: 297mm !important; /* A4 landscape */
-          height: 210mm !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          box-shadow: none !important;
-          border: none !important;
-          background: #ffffff !important;
-        }
-        .cert-container-print {
-          width: 297mm !important;
-          height: 209mm !important;
-          page-break-after: always !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          transform: scale(1) !important;
-          box-shadow: none !important;
-          border: none !important;
-          margin: 0 !important;
-        }
-      }
-    `;
-    
-    document.head.appendChild(style);
-    window.print();
-    
-    // Cleanup stylesheet after print dialog closes
+    const printElement = document.getElementById(printAreaId);
+    if (!printElement) return;
+
+    // Create a hidden iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.zIndex = '-1000';
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc) return;
+
+    // Retrieve all parent document styles
+    let stylesHtml = '';
+    const stylesheets = document.querySelectorAll('link[rel="stylesheet"], style');
+    stylesheets.forEach(el => {
+      stylesHtml += el.outerHTML;
+    });
+
+    // Write contents to iframe doc
+    iframeDoc.open();
+    iframeDoc.write(`
+      <html>
+        <head>
+          <title>Print Certificate</title>
+          ${stylesHtml}
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 0;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 297mm !important;
+              height: 210mm !important;
+              background-color: #ffffff;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .cert-container-print {
+              width: 297mm !important;
+              height: 210mm !important;
+              box-shadow: none !important;
+              border: none !important;
+              margin: 0 !important;
+              transform: none !important;
+              box-sizing: border-box !important;
+            }
+            .cert-page-break {
+              width: 297mm !important;
+              height: 210mm !important;
+              page-break-after: always !important;
+              break-after: page !important;
+              overflow: hidden !important;
+              box-sizing: border-box !important;
+            }
+          </style>
+        </head>
+        <body>
+          ${printElement.innerHTML}
+        </body>
+      </html>
+    `);
+    iframeDoc.close();
+
+    // Trigger printing once loaded
     setTimeout(() => {
-      const existingStyle = document.getElementById('certificate-print-style');
-      if (existingStyle) {
-        existingStyle.remove();
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch (err) {
+        console.error("Print error:", err);
+      } finally {
+        // Remove iframe from DOM after print dialog handles it
+        setTimeout(() => {
+          iframe.remove();
+        }, 1000);
       }
-    }, 1000);
+    }, 500);
   };
 
   // Theme Class Resolvers
@@ -1028,7 +1062,7 @@ export function CertificateGenerator() {
             <div className="hidden">
               <div id="batch-print-area" className="flex flex-col gap-0 bg-white">
                 {batchList.map((cert) => (
-                  <div key={cert.id} className="w-full">
+                  <div key={cert.id} className="cert-page-break">
                     {renderCertificate(cert, 1, true)}
                   </div>
                 ))}
