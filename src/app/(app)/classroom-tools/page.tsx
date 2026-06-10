@@ -15,7 +15,9 @@ import { Button } from '@/components/ui/button';
 import { MemorandumTool } from './memorandum-tool';
 import { NoiseMeter } from './noise-meter';
 import { DailyVerse } from '@/components/games/daily-verse';
-import { CertificateGenerator } from './certificate-generator';
+import dynamic from 'next/dynamic';
+
+const CertificateGenerator = dynamic(() => import('./certificate-generator').then(mod => mod.CertificateGenerator), { ssr: false });
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
