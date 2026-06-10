@@ -576,7 +576,7 @@ export function CertificateGenerator() {
 
         {/* Footer Area with Signatures, Date and Seal */}
         <div className="w-full flex justify-between items-end px-12 pb-10 z-10 gap-4">
-          {/* Issue Date */}
+          {/* Left Column: Issue Date */}
           <div className="flex-1 flex flex-col items-center">
             {showDate && (
               <div className="flex flex-col items-center w-full max-w-[140px]">
@@ -597,10 +597,11 @@ export function CertificateGenerator() {
             )}
           </div>
 
-          {/* Golden Seal of Excellence */}
-          <div className="flex-1 flex justify-center relative -bottom-2">
+          {/* Center Column: Seal & Class Teacher Signature (if Principal enabled) */}
+          <div className="flex-1 flex flex-col items-center relative">
+            {/* Golden Seal of Excellence */}
             {showSeal && (
-              <div className="relative flex flex-col items-center justify-center">
+              <div className={showSignatures && showPrincipal ? "absolute -top-20 z-10 flex flex-col items-center justify-center" : "relative flex flex-col items-center justify-center -bottom-2"}>
                 {/* Ribbon tails */}
                 <svg className={`absolute top-6 h-16 w-12 drop-shadow-md z-0 ${currentTheme.ribbonColor}`} viewBox="0 0 100 150">
                   <path d="M15,20 L35,140 L50,120 L65,140 L85,20 Z" />
@@ -624,12 +625,10 @@ export function CertificateGenerator() {
                 </span>
               </div>
             )}
-          </div>
 
-          {/* Teacher Signature */}
-          <div className="flex-1 flex flex-col items-center">
-            {showSignatures && (
-              <div className="flex flex-col items-center w-full max-w-[140px]">
+            {/* Class Teacher Signature (only placed in center when Principal is enabled) */}
+            {showSignatures && showPrincipal && (
+              <div className={`flex flex-col items-center w-full max-w-[140px] ${showSeal ? "mt-4" : ""}`}>
                 <span 
                   className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
                   style={{ fontFamily: getFontFamily(signatureFont) }}
@@ -647,9 +646,9 @@ export function CertificateGenerator() {
             )}
           </div>
 
-          {/* Principal Signature */}
-          {showPrincipal && (
-            <div className="flex-1 flex flex-col items-center">
+          {/* Right Column: School Principal (if enabled) OR Class Teacher (if Principal disabled) */}
+          <div className="flex-1 flex flex-col items-center">
+            {showPrincipal ? (
               <div className="flex flex-col items-center w-full max-w-[140px]">
                 <span 
                   className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
@@ -665,8 +664,26 @@ export function CertificateGenerator() {
                   {principalLabelText}
                 </span>
               </div>
-            </div>
-          )}
+            ) : (
+              showSignatures && (
+                <div className="flex flex-col items-center w-full max-w-[140px]">
+                  <span 
+                    className="text-[14px] italic text-slate-800 font-semibold h-6 flex items-center justify-center whitespace-nowrap" 
+                    style={{ fontFamily: getFontFamily(signatureFont) }}
+                  >
+                    {signatureTeacher}
+                  </span>
+                  <div className="w-full border-t border-slate-400 mt-1.5 mb-1" />
+                  <span 
+                    className={`text-[10px] uppercase tracking-wider font-semibold opacity-60 text-center ${currentTheme.textColor}`}
+                    style={{ fontFamily: getFontFamily(bodyFont) }}
+                  >
+                    {teacherLabelText}
+                  </span>
+                </div>
+              )
+            )}
+          </div>
         </div>
 
         {/* Subtle Watermark Logo / Background Details */}
