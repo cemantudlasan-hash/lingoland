@@ -10,11 +10,12 @@ import { Scoreboard } from './scoreboard';
 import { MorningDashboard } from './morning-dashboard';
 import { CommentGenerator } from './comment-generator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote, Volume2, Newspaper } from 'lucide-react';
+import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote, Volume2, Newspaper, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MemorandumTool } from './memorandum-tool';
 import { NoiseMeter } from './noise-meter';
 import { DailyVerse } from '@/components/games/daily-verse';
+import { CertificateGenerator } from './certificate-generator';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -27,7 +28,7 @@ export default function ClassroomToolsPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab && ['morning-dashboard', 'timer', 'noise-meter', 'random-name-picker', 'group-maker', 'scoreboard', 'comment-generator', 'memorandum', 'daily-verse'].includes(tab)) {
+      if (tab && ['morning-dashboard', 'timer', 'noise-meter', 'random-name-picker', 'group-maker', 'scoreboard', 'comment-generator', 'memorandum', 'daily-verse', 'certificate-generator'].includes(tab)) {
         setActiveTab(tab);
       }
     }
@@ -64,6 +65,7 @@ export default function ClassroomToolsPage() {
     { value: 'comment-generator', label: 'Comments', icon: MessageSquareQuote },
     { value: 'memorandum', label: 'Memorandum', icon: StickyNote },
     { value: 'daily-verse', label: 'Daily Verse', icon: Newspaper },
+    { value: 'certificate-generator', label: 'Certificates', icon: Award },
   ];
 
   return (
@@ -204,6 +206,18 @@ export default function ClassroomToolsPage() {
                     </CardHeader>
                     <CardContent className="flex-grow overflow-y-auto min-h-0">
                         <DailyVerse slug="daily-verse" />
+                    </CardContent>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="certificate-generator" className="flex-grow mt-0 h-full min-h-0">
+                <Card className="h-full flex flex-col min-h-0">
+                    <CardHeader className="pb-2 flex-shrink-0">
+                        <CardTitle>Certificate Generator</CardTitle>
+                        <CardDescription>Create custom certificates of recognition and achievement for students.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow overflow-y-auto min-h-0">
+                        <CertificateGenerator />
                     </CardContent>
                 </Card>
             </TabsContent>
