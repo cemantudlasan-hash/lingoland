@@ -564,7 +564,7 @@ export function CertificateGenerator() {
         </div>
 
         {/* Subtle Watermark Logo / Background Details */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none z-0">
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none z-0 print:hidden">
           <BookOpen className="w-96 h-96" />
         </div>
       </div>
