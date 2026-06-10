@@ -102,6 +102,7 @@ export const gameComponentMap = {
       'ai-storyteller-adventure': dynamic(() => import('@/components/games/ai-storyteller-adventure').then(mod => mod.AiStorytellerAdventure)),
       'vocab-flipper-3d': dynamic(() => import('@/components/games/vocab-flipper-3d').then(mod => mod.VocabFlipper3D)),
       'math-vault-3d': dynamic(() => import('@/components/games/math-vault-3d').then(mod => mod.MathVault3D)),
+      'math-dash-3d': dynamic(() => import('@/components/games/math-dash-3d').then(mod => mod.MathDash3D), { ssr: false }),
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
 };
 

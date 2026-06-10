@@ -758,6 +758,15 @@ export const allGames: Game[] = [
     subject: "math",
     icon: Rotate3d,
   },
+  {
+    title: "Math Dash 3D",
+    slug: "math-dash-3d",
+    description: "Solve math equations in a 3D classroom while avoiding flying paper airplanes.",
+    level: "intermediate",
+    focus: "geometry",
+    subject: "math",
+    icon: Calculator,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {
