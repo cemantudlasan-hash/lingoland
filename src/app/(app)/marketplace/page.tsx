@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { chatWithTutor } from '@/ai/flows/tutor-chat';
+import { chatWithTutor, translateText } from '@/ai/flows/tutor-chat';
+import { useFirestore } from '@/firebase';
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -189,6 +191,7 @@ const presetTutors: Tutor[] = [
 export default function MarketplacePage() {
   const { toast } = useToast();
   const { user, isGuest, isLoading, isAdmin, setAuthAction } = useAuth();
+  const firestore = useFirestore();
   
   // Tabs: 'browse' | 'peer-listings' | 'peer-create' | 'create' | 'moderate-reviews'
   const [activeTab, setActiveTab] = useState<'browse' | 'peer-listings' | 'peer-create' | 'create' | 'moderate-reviews'>('browse');
@@ -242,13 +245,93 @@ export default function MarketplacePage() {
   
   // Chat Room state
   const [activeChatTutor, setActiveChatTutor] = useState<Tutor | null>(null);
-  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'model'; text: string }>>([]);
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'model'; text: string; translation?: string }>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isSpeakingMsgIndex, setIsSpeakingMsgIndex] = useState<number | null>(null);
   const [ttsEnabled, setTtsEnabled] = useState(true);
   
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // Language detection helper
+  const detectUserLanguage = (): string => {
+    if (typeof window === 'undefined') return 'English';
+    const langCode = navigator.language || (navigator.languages && navigator.languages[0]) || '';
+    const cleanLang = langCode.toLowerCase().split('-')[0];
+    
+    let tz = '';
+    try {
+      tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    } catch (e) {}
+
+    if (cleanLang === 'th' || tz.includes('Bangkok')) return 'Thai';
+    if (cleanLang === 'vi' || tz.includes('Ho_Chi_Minh') || tz.includes('Saigon')) return 'Vietnamese';
+    if (cleanLang === 'ja' || tz.includes('Tokyo')) return 'Japanese';
+    if (cleanLang === 'ko' || tz.includes('Seoul')) return 'Korean';
+    if (cleanLang === 'es' || tz.includes('Madrid') || tz.includes('Mexico') || tz.includes('Bogota') || tz.includes('Buenos_Aires')) return 'Spanish';
+    if (cleanLang === 'zh' || tz.includes('Shanghai') || tz.includes('Taipei') || tz.includes('Hong_Kong') || tz.includes('Beijing')) return 'Chinese';
+    if (cleanLang === 'fr' || tz.includes('Paris')) return 'French';
+    if (cleanLang === 'de' || tz.includes('Berlin')) return 'German';
+    if (cleanLang === 'it' || tz.includes('Rome')) return 'Italian';
+    if (cleanLang === 'ru' || tz.includes('Moscow')) return 'Russian';
+
+    if (tz.includes('Bangkok')) return 'Thai';
+    if (tz.includes('Jakarta')) return 'Indonesian';
+    if (tz.includes('Manila')) return 'Tagalog';
+    if (tz.includes('Kuala_Lumpur') || tz.includes('Singapore')) return 'Malay';
+
+    return 'English';
+  };
+
+  // Sync to Firestore helper for Admin
+  const syncTutorsToFirestore = async (
+    customList: Tutor[],
+    overridesList: Tutor[],
+    deletedList: string[]
+  ) => {
+    if (!firestore) return;
+    try {
+      const docRef = doc(firestore, "stats", "shared_ai_tutors_catalog");
+      await setDoc(docRef, {
+        customTutors: customList,
+        presetOverrides: overridesList,
+        deletedPresets: deletedList,
+        updatedAt: Date.now()
+      });
+    } catch (e) {
+      console.error("Failed to sync tutors to Firestore:", e);
+    }
+  };
+
+  // Listen to Firestore for AI Tutors catalog changes (deletions, additions, overrides)
+  useEffect(() => {
+    if (!firestore) return;
+
+    const docRef = doc(firestore, "stats", "shared_ai_tutors_catalog");
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        const customList = (data.customTutors || []) as Tutor[];
+        const overridesList = (data.presetOverrides || []) as Tutor[];
+        const deletedList = (data.deletedPresets || []) as string[];
+
+        // Sync local storage so subsequent offline reads have it
+        localStorage.setItem('lingoland_custom_tutors', JSON.stringify(customList));
+        localStorage.setItem('lingoland_preset_overrides', JSON.stringify(overridesList));
+        localStorage.setItem('lingoland_deleted_presets', JSON.stringify(deletedList));
+
+        // Merge and set state
+        let initialTutors = presetTutors.map(t => {
+          const override = overridesList.find(o => o.id === t.id);
+          return override ? { ...t, ...override } : t;
+        }).filter(t => !deletedList.includes(t.id));
+
+        setTutors([...initialTutors, ...customList]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [firestore]);
 
   // Sync custom tutors, overrides, deletions, and peer listings from localStorage on load
   useEffect(() => {
@@ -318,7 +401,7 @@ export default function MarketplacePage() {
   }, [chatMessages, isTyping]);
 
   // Handle Tutor Creation Form Submission
-  const handleCreateTutor = (e: React.FormEvent) => {
+  const handleCreateTutor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tutorName.trim() || !tutorDesc.trim() || !tutorPrompt.trim()) {
       toast({
@@ -345,7 +428,12 @@ export default function MarketplacePage() {
     const updatedCustomList = [...tutors.filter(t => !t.isPreset), newTutor];
     localStorage.setItem('lingoland_custom_tutors', JSON.stringify(updatedCustomList));
     
+    // Get presets and overrides to sync
+    const deletedList = JSON.parse(localStorage.getItem('lingoland_deleted_presets') || '[]');
+    const overridesList = JSON.parse(localStorage.getItem('lingoland_preset_overrides') || '[]');
+    
     setTutors([...presetTutors, ...updatedCustomList]);
+    await syncTutorsToFirestore(updatedCustomList, overridesList, deletedList);
     
     toast({
       title: "Tutor Shared Successfully! 🚀✨",
@@ -570,7 +658,7 @@ export default function MarketplacePage() {
   };
 
   // Admin Delete Tutor Handler
-  const handleDeleteTutor = (tutorId: string) => {
+  const handleDeleteTutor = async (tutorId: string) => {
     if (!isAdmin) {
       toast({ variant: 'destructive', title: 'Unauthorized', description: 'Admin privileges required.' });
       return;
@@ -579,16 +667,20 @@ export default function MarketplacePage() {
     const updatedList = tutors.filter(t => t.id !== tutorId);
     setTutors(updatedList);
     
+    let customList = updatedList.filter(t => !t.isPreset);
+    let deletedList = JSON.parse(localStorage.getItem('lingoland_deleted_presets') || '[]');
+    let overridesList = JSON.parse(localStorage.getItem('lingoland_preset_overrides') || '[]');
+
     if (tutorId.startsWith('custom-')) {
-      const customOnly = updatedList.filter(t => !t.isPreset);
-      localStorage.setItem('lingoland_custom_tutors', JSON.stringify(customOnly));
+      localStorage.setItem('lingoland_custom_tutors', JSON.stringify(customList));
     } else {
-      const deletedPresets = JSON.parse(localStorage.getItem('lingoland_deleted_presets') || '[]');
-      if (!deletedPresets.includes(tutorId)) {
-        deletedPresets.push(tutorId);
+      if (!deletedList.includes(tutorId)) {
+        deletedList.push(tutorId);
       }
-      localStorage.setItem('lingoland_deleted_presets', JSON.stringify(deletedPresets));
+      localStorage.setItem('lingoland_deleted_presets', JSON.stringify(deletedList));
     }
+
+    await syncTutorsToFirestore(customList, overridesList, deletedList);
 
     toast({
       title: "AI Module Decommissioned 🗑️",
@@ -597,7 +689,7 @@ export default function MarketplacePage() {
   };
 
   // Admin Edit/Update Tutor Handler
-  const handleUpdateTutor = (updatedTutor: Tutor) => {
+  const handleUpdateTutor = async (updatedTutor: Tutor) => {
     if (!isAdmin) {
       toast({ variant: 'destructive', title: 'Unauthorized', description: 'Admin privileges required.' });
       return;
@@ -606,15 +698,20 @@ export default function MarketplacePage() {
     const updatedList = tutors.map(t => t.id === updatedTutor.id ? updatedTutor : t);
     setTutors(updatedList);
 
+    let customList = updatedList.filter(t => !t.isPreset);
+    let deletedList = JSON.parse(localStorage.getItem('lingoland_deleted_presets') || '[]');
+    let overridesList = JSON.parse(localStorage.getItem('lingoland_preset_overrides') || '[]');
+
     if (updatedTutor.id.startsWith('custom-')) {
-      const customOnly = updatedList.filter(t => !t.isPreset);
-      localStorage.setItem('lingoland_custom_tutors', JSON.stringify(customOnly));
+      localStorage.setItem('lingoland_custom_tutors', JSON.stringify(customList));
     } else {
-      const overrides = JSON.parse(localStorage.getItem('lingoland_preset_overrides') || '[]') as Tutor[];
-      const filteredOverrides = overrides.filter(o => o.id !== updatedTutor.id);
+      const filteredOverrides = overridesList.filter((o: Tutor) => o.id !== updatedTutor.id);
       filteredOverrides.push(updatedTutor);
+      overridesList = filteredOverrides;
       localStorage.setItem('lingoland_preset_overrides', JSON.stringify(filteredOverrides));
     }
+
+    await syncTutorsToFirestore(customList, overridesList, deletedList);
 
     setEditingTutor(null);
     toast({
@@ -626,14 +723,32 @@ export default function MarketplacePage() {
 
 
   // Start chat room with tutor
-  const handleStartChat = (tutor: Tutor) => {
+  const handleStartChat = async (tutor: Tutor) => {
     setActiveChatTutor(tutor);
+    const welcomeText = `Salutations, scholar! I am **${tutor.name}**, your specialized AI subject module for **${tutor.category}**. What details shall we conquer today? Type anything to begin!`;
+    
     setChatMessages([
       {
         role: 'model',
-        text: `Salutations, scholar! I am **${tutor.name}**, your specialized AI subject module for **${tutor.category}**. What details shall we conquer today? Type anything to begin!`
+        text: welcomeText
       }
     ]);
+
+    const targetLang = detectUserLanguage();
+    if (targetLang && targetLang !== 'English') {
+      try {
+        const translated = await translateText(welcomeText, targetLang);
+        setChatMessages([
+          {
+            role: 'model',
+            text: welcomeText,
+            translation: translated
+          }
+        ]);
+      } catch (err) {
+        console.error("Welcome message translation error:", err);
+      }
+    }
   };
 
   // Close chat room
@@ -653,6 +768,9 @@ export default function MarketplacePage() {
     const userMsg = inputMessage.trim();
     setInputMessage('');
     
+    // Detect target language
+    const targetLang = detectUserLanguage();
+    
     const updatedHistory = [...chatMessages, { role: 'user' as const, text: userMsg }];
     setChatMessages(updatedHistory);
     setIsTyping(true);
@@ -662,11 +780,16 @@ export default function MarketplacePage() {
         tutorName: activeChatTutor.name,
         tutorPrompt: activeChatTutor.prompt,
         latestMessage: userMsg,
-        messageHistory: updatedHistory.slice(1) // exclude the system intro message
+        messageHistory: updatedHistory.slice(1).map(m => ({ role: m.role, text: m.text })),
+        userLanguage: targetLang
       });
       
       if (res && res.replyText) {
-        setChatMessages(prev => [...prev, { role: 'model', text: res.replyText }]);
+        setChatMessages(prev => [...prev, { 
+          role: 'model', 
+          text: res.replyText,
+          translation: res.translationText
+        }]);
       } else {
         setChatMessages(prev => [...prev, { role: 'model', text: "Forgive me, my neural circuits are currently experiencing high latency. Let us try that again." }]);
       }
@@ -849,6 +972,14 @@ export default function MarketplacePage() {
                             <p className="text-sm leading-relaxed whitespace-pre-line font-medium text-justify select-text">
                               {msg.text}
                             </p>
+                            {!isUser && msg.translation && (
+                              <div className="mt-2.5 pt-2.5 border-t border-slate-800/80 text-xs text-slate-350 italic font-medium leading-relaxed select-text">
+                                <span className="not-italic mr-1.5 text-[9px] bg-slate-900 border border-slate-850 px-1.5 py-0.5 rounded text-indigo-400 font-mono font-black">
+                                  TRANSLATION
+                                </span>
+                                {msg.translation}
+                              </div>
+                            )}
                           </div>
                           
                           {/* Audio TTS speaker button for model messages */}
