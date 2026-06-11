@@ -188,6 +188,21 @@ const presetTutors: Tutor[] = [
   }
 ];
 
+const renderFormattedText = (text: string) => {
+  if (!text) return null;
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={index} className="font-extrabold text-white">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+};
+
 export default function MarketplacePage() {
   const { toast } = useToast();
   const { user, isGuest, isLoading, isAdmin, setAuthAction } = useAuth();
@@ -970,15 +985,12 @@ export default function MarketplacePage() {
                               : 'bg-slate-950/80 border border-slate-850 text-slate-100 rounded-tl-none shadow-md'
                           }`}>
                             <p className="text-sm leading-relaxed whitespace-pre-line font-medium text-justify select-text">
-                              {msg.text}
+                              {renderFormattedText(msg.text)}
                             </p>
                             {!isUser && msg.translation && (
-                              <div className="mt-2.5 pt-2.5 border-t border-slate-800/80 text-xs text-slate-350 italic font-medium leading-relaxed select-text">
-                                <span className="not-italic mr-1.5 text-[9px] bg-slate-900 border border-slate-850 px-1.5 py-0.5 rounded text-indigo-400 font-mono font-black">
-                                  TRANSLATION
-                                </span>
-                                {msg.translation}
-                              </div>
+                              <p className="mt-1 text-xs text-indigo-400/90 italic font-semibold leading-relaxed select-text">
+                                {renderFormattedText(msg.translation)}
+                              </p>
                             )}
                           </div>
                           
