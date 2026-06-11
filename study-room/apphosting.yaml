@@ -1,0 +1,15 @@
+# Settings to manage and configure the Firebase App Hosting backend for the Study Room applet.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  maxInstances: 1
+
+env:
+  - variable: GEMINI_API_KEY
+    secret: GEMINIAPIKEY
+  - variable: GOOGLE_GENAI_API_KEY
+    secret: GEMINIAPIKEY
+  - variable: GEMINI_API_KEY_ALT
+    secret: GEMINI_API_KEY
+  - variable: GOOGLE_GENAI_API_KEY_ALT
+    secret: GEMINI_API_KEY
