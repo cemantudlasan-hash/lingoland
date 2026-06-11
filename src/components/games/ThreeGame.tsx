@@ -114,7 +114,7 @@ export default function ThreeGame({
     playerY: 0,
     playerVelocityY: 0,
     isJumping: false,
-    speedFactor: config.speed * 0.02 + 0.012,
+    speedFactor: config.speed * 0.06 + 0.01,
     gatesDistance: -100,
     requestFrameId: 0,
     isPaused: false,
@@ -129,8 +129,9 @@ export default function ThreeGame({
   }, [selectedFeedBack, isGameOver, isVictory]);
 
   // ✅ SPEED FIX: directly sync speedFactor whenever config.speed changes
+  // Formula: 1x=0.07, 2x=0.13, 3x=0.19, 4x=0.25, 5x=0.31 (very fast)
   useEffect(() => {
-    gameRef.current.speedFactor = config.speed * 0.02 + 0.012;
+    gameRef.current.speedFactor = config.speed * 0.06 + 0.01;
   }, [config.speed]);
 
   // ── Timer countdown ──────────────────────────────────────────────
@@ -389,8 +390,12 @@ export default function ThreeGame({
     scene.fog = new THREE.FogExp2(0x060814, 0.015);
     gameRef.current.scene = scene;
 
-    const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 200);
-    camera.position.set(0, 3.5, 9);
+    // Use wider FOV on narrow/portrait screens so all 3 lanes are visible
+    const aspect = w / h;
+    const fov = aspect < 0.8 ? 82 : aspect < 1.2 ? 72 : 60;
+    const camZ = aspect < 0.8 ? 12 : 9;
+    const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 200);
+    camera.position.set(0, 3.5, camZ);
     camera.lookAt(0, 1.2, 1);
     gameRef.current.camera = camera;
 
@@ -466,7 +471,10 @@ export default function ThreeGame({
       const nw = container.clientWidth;
       const nh = container.clientHeight;
       if (!nw || !nh) return;
-      gameRef.current.camera.aspect = nw / nh;
+      const newAspect = nw / nh;
+      gameRef.current.camera.aspect = newAspect;
+      // Recompute FOV on orientation change too
+      gameRef.current.camera.fov = newAspect < 0.8 ? 82 : newAspect < 1.2 ? 72 : 60;
       gameRef.current.camera.updateProjectionMatrix();
       gameRef.current.renderer.setSize(nw, nh);
     });
@@ -728,9 +736,9 @@ export default function ThreeGame({
   // ── JSX ──────────────────────────────────────────────────────────
   return (
     <div
-      className="relative w-full h-full min-h-[200px] flex flex-col bg-[#060814] overflow-hidden font-sans select-none"
+      className="relative w-full h-full min-h-[200px] flex flex-col bg-[#060814] font-sans select-none"
       id="three-game-playground"
-      style={{ touchAction: "none" }}
+      style={{ touchAction: "none", overflow: "hidden", maxWidth: "100vw" }}
       onTouchStart={() => {
         // Touching the 3D canvas area triggers jump.
         // Answer buttons / HUD divs stop propagation to prevent this.
@@ -738,7 +746,7 @@ export default function ThreeGame({
       }}
     >
       {/* 3D Canvas mount */}
-      <div ref={mountRef} className="absolute inset-0 z-0 w-full h-full" id="threejs-canvas" />
+      <div ref={mountRef} className="absolute inset-0 z-0" style={{ width: "100%", height: "100%" }} id="threejs-canvas" />
 
       {/* ── Obstacle hit flash ─────────────────────────────── */}
       {obstacleFlash && (

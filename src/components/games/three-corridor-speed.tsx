@@ -131,9 +131,18 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
   };
 
   const startPlaying = () => {
+    // If the question bank is smaller than the requested count, auto-augment with dynamic questions
+    let activeBank = questions;
+    if (questions.length < maxQuestionsPerGame) {
+      const extra = generateDynamicQuestions(maxQuestionsPerGame * 3); // generate a big pool
+      // Combine preset + dynamic, deduplicate by id
+      const combined = [...questions, ...extra.filter(q => !questions.find(e => e.id === q.id))];
+      activeBank = combined;
+    }
+
     // Generate distinct randomized question sets for different runners, sliced to round length constraint
-    const shuffledP1 = shuffleArray(questions).slice(0, maxQuestionsPerGame);
-    const shuffledP2 = shuffleArray(questions).slice(0, maxQuestionsPerGame);
+    const shuffledP1 = shuffleArray(activeBank).slice(0, maxQuestionsPerGame);
+    const shuffledP2 = shuffleArray(activeBank).slice(0, maxQuestionsPerGame);
     setP1Questions(shuffledP1);
     setP2Questions(shuffledP2);
 
@@ -575,7 +584,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                         <div>
                           <div className="flex justify-between items-center text-xs font-mono mb-1">
                             <span className="text-slate-400">Questions per Game</span>
-                            <span className="text-teal-400 font-bold">{Math.min(maxQuestionsPerGame, questions.length)} Items</span>
+                            <span className="text-teal-400 font-bold">{maxQuestionsPerGame} Items</span>
                           </div>
                           <input
                             type="range"
@@ -586,8 +595,11 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                             onChange={(e) => setMaxQuestionsPerGame(parseInt(e.target.value))}
                             className="w-full h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-teal-400"
                           />
-                          <p className="text-[9px] text-slate-500 mt-1 font-mono">
-                            Selects a unique randomized subset on launch.
+                          <p className="text-[9px] mt-1 font-mono"> 
+                            {maxQuestionsPerGame > questions.length
+                              ? <span className="text-amber-400">⚡ Bank has {questions.length} questions — extra will be auto-generated on launch.</span>
+                              : <span className="text-slate-500">Bank: {questions.length} questions available.</span>
+                            }
                           </p>
                         </div>
 
@@ -709,23 +721,25 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
               style={{ touchAction: "none" }}
             >
               {gameMode === "single" ? (
-                <ThreeGame
-                  playerRole="single"
-                  config={{
-                    speed,
-                    duration,
-                    invincible,
-                    activeQuestions: p1Questions.length > 0 ? p1Questions : questions,
-                    currentTeamId: activeTeamId,
-                    startingLives,
-                    lifeLossPerMistake,
-                    continueOnZeroHealth,
-                  }}
-                  onGameCompleted={handleGameCompleted}
-                  onExit={() => setScreen("MENU")}
-                />
+                <div className="relative w-full h-full">
+                  <ThreeGame
+                    playerRole="single"
+                    config={{
+                      speed,
+                      duration,
+                      invincible,
+                      activeQuestions: p1Questions.length > 0 ? p1Questions : questions,
+                      currentTeamId: activeTeamId,
+                      startingLives,
+                      lifeLossPerMistake,
+                      continueOnZeroHealth,
+                    }}
+                    onGameCompleted={handleGameCompleted}
+                    onExit={() => setScreen("MENU")}
+                  />
+                </div>
               ) : (
-                <div className={`w-full h-full grid ${isMobile ? 'grid-rows-2 grid-cols-1' : 'grid-cols-2 grid-rows-1'} bg-slate-950 p-1 md:p-2 gap-1 md:gap-2 relative`}>
+                <div className={`w-full h-full grid ${isMobile ? 'grid-rows-2 grid-cols-1' : 'grid-cols-2 grid-rows-1'} bg-slate-950 p-1 gap-1 relative`} style={{ maxWidth: '100vw', maxHeight: '100vh', overflow: 'hidden' }}>
                   {/* Left Column: Player 1 (Pink) */}
                   <div className="relative w-full h-full border border-pink-500/20 rounded-2xl overflow-hidden bg-slate-900">
                     {p1Stats?.completed ? (
@@ -860,9 +874,9 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                   <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
                     <button
                       onClick={() => setScreen("MENU")}
-                      className="bg-slate-900/90 backdrop-blur-md border border-slate-600 hover:bg-rose-950/70 hover:border-rose-500 text-slate-300 hover:text-rose-300 px-3 py-1.5 rounded-xl text-[9px] font-black font-mono tracking-widest uppercase cursor-pointer transition-all shadow-lg"
+                      className="bg-rose-600/90 backdrop-blur-md border-2 border-rose-400 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-[11px] font-black font-mono tracking-widest uppercase cursor-pointer transition-all shadow-[0_4px_0_#991b1b] active:translate-y-1 active:shadow-none"
                     >
-                      ⬅ EXIT DUEL
+                      ⬅ BACK TO MENU
                     </button>
                   </div>
                 </div>
