@@ -342,7 +342,8 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       mesh.castShadow = true;
       const edge = Math.floor(Math.random() * 4);
       let sx = 0, sz = 0, vx = 0, vz = 0;
-      const speed = 0.15 + Math.random() * 0.15 + solvedCountRef.current * 0.02;
+      // Convert speed from per-frame to per-second (scaled by 60 for 60fps base)
+      const speed = 9.0 + Math.random() * 9.0 + solvedCountRef.current * 1.2;
       if (edge === 0) { sx = -28; sz = Math.random() * 50 - 20; vx = speed; vz = (Math.random() - 0.5) * speed; }
       else if (edge === 1) { sx = 28; sz = Math.random() * 50 - 20; vx = -speed; vz = (Math.random() - 0.5) * speed; }
       else if (edge === 2) { sx = Math.random() * 50 - 25; sz = -28; vx = (Math.random() - 0.5) * speed; vz = speed; }
@@ -358,21 +359,28 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     window.addEventListener('resize', handleResize);
 
     // 11. Animation loop
-    const playerSpeed = 0.25;
+    const playerSpeed = 15.0; // units per second
     let frameId = 0;
     let isColliding = false; // debounce collisions
+    let lastTime = performance.now();
 
     const animate = () => {
       if (gameStateRef.current !== 'playing') return;
       frameId = requestAnimationFrame(animate);
 
+      // Delta time tracking
+      const currentTime = performance.now();
+      const deltaTime = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+      const dt = Math.min(deltaTime, 0.1); // clamp to max 100ms to avoid huge jumps on lag spikes
+
       // Movement
       const keys = keysRef.current;
       let moveX = 0, moveZ = 0;
-      if (keys.w || keys.ArrowUp) moveZ -= playerSpeed;
-      if (keys.s || keys.ArrowDown) moveZ += playerSpeed;
-      if (keys.a || keys.ArrowLeft) moveX -= playerSpeed;
-      if (keys.d || keys.ArrowRight) moveX += playerSpeed;
+      if (keys.w || keys.ArrowUp) moveZ -= playerSpeed * dt;
+      if (keys.s || keys.ArrowDown) moveZ += playerSpeed * dt;
+      if (keys.a || keys.ArrowLeft) moveX -= playerSpeed * dt;
+      if (keys.d || keys.ArrowRight) moveX += playerSpeed * dt;
 
       player.position.x = Math.max(-28, Math.min(28, player.position.x + moveX));
       player.position.z = Math.max(-25, Math.min(28, player.position.z + moveZ));
@@ -383,11 +391,11 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         s.mesh.position.y = 4.5 + Math.sin(time + s.mesh.position.x) * 0.5;
       });
 
-      // Move + recycle obstacles
+      // Move + recycle obstacles (scaled by dt)
       for (let i = obstaclesList.length - 1; i >= 0; i--) {
         const obs = obstaclesList[i];
-        obs.mesh.position.x += obs.vx;
-        obs.mesh.position.z += obs.vz;
+        obs.mesh.position.x += obs.vx * dt;
+        obs.mesh.position.z += obs.vz * dt;
         if (Math.abs(obs.mesh.position.x) > 35 || Math.abs(obs.mesh.position.z) > 35) {
           scene.remove(obs.mesh);
           obstaclesList.splice(i, 1);
@@ -437,11 +445,11 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         }
       }
 
-      // Camera — smooth lerp behind player
+      // Camera — smooth lerp behind player (framerate independent lerp)
       const isPortrait = camera.aspect < 1.0;
       const camZ = isPortrait ? 26 : 20;
       const camY = isPortrait ? 28 : 25;
-      camera.position.lerp(new THREE.Vector3(player.position.x, camY, player.position.z + camZ), 0.1);
+      camera.position.lerp(new THREE.Vector3(player.position.x, camY, player.position.z + camZ), 1 - Math.exp(-10 * dt));
       camera.lookAt(player.position.x, 0, player.position.z - 5);
 
       renderer.render(scene, camera);
