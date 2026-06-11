@@ -92,6 +92,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
   const [startingLives, setStartingLives] = useState<number>(3);
   const [lifeLossPerMistake, setLifeLossPerMistake] = useState<number>(1);
   const [continueOnZeroHealth, setContinueOnZeroHealth] = useState<boolean>(false);
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("medium");
 
   // Optional Multiplayer & Singleplayer mode states
   const [gameMode, setGameMode] = useState<"single" | "multi">("single");
@@ -132,12 +133,21 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
   };
 
   const startPlaying = () => {
-    // If the question bank is smaller than the requested count, auto-augment with dynamic questions
-    let activeBank = questions;
-    if (questions.length < maxQuestionsPerGame) {
-      const extra = generateDynamicQuestions(maxQuestionsPerGame * 3); // generate a big pool
-      // Combine preset + dynamic, deduplicate by id
-      const combined = [...questions, ...extra.filter(q => !questions.find(e => e.id === q.id))];
+    // Determine active category and filter base bank by difficulty
+    const activeCategory = questions[0]?.category;
+    let filteredBank = questions.filter(q => !q.difficulty || q.difficulty === difficulty);
+    
+    // If filtering left us with nothing (e.g. custom teacher questions), fallback to all questions
+    if (filteredBank.length === 0) {
+      filteredBank = questions;
+    }
+
+    // If the filtered question bank is smaller than the requested count, auto-generate more matching questions!
+    let activeBank = filteredBank;
+    if (filteredBank.length < maxQuestionsPerGame) {
+      const extra = generateDynamicQuestions(maxQuestionsPerGame * 3, activeCategory, difficulty);
+      // Combine filtered preset + dynamic, deduplicate by id
+      const combined = [...filteredBank, ...extra.filter(q => !filteredBank.find(e => e.id === q.id))];
       activeBank = combined;
     }
 
@@ -499,6 +509,47 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                         </div>
                       </div>
 
+                      {/* Interactive Difficulty Selector */}
+                      <div className="bg-slate-900/60 p-4 rounded-3xl border border-white/5 space-y-3">
+                        <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest font-mono block">
+                          ⚡ Select Difficulty
+                        </span>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(["easy", "medium", "hard"] as const).map((diff) => (
+                            <button
+                              key={diff}
+                              type="button"
+                              onClick={() => {
+                                audioEngine.playMove();
+                                setDifficulty(diff);
+                                // Automatically adjust speed and lives based on difficulty
+                                if (diff === "easy") {
+                                  setSpeed(1.5);
+                                  setStartingLives(5);
+                                } else if (diff === "medium") {
+                                  setSpeed(3.0);
+                                  setStartingLives(3);
+                                } else if (diff === "hard") {
+                                  setSpeed(4.5);
+                                  setStartingLives(1);
+                                }
+                              }}
+                              className={`py-2 px-3 rounded-xl border text-center transition-all cursor-pointer font-bold text-xs uppercase font-sans ${
+                                difficulty === diff
+                                  ? diff === "easy"
+                                    ? "bg-emerald-500/10 border-emerald-500 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                                    : diff === "medium"
+                                      ? "bg-teal-500/10 border-teal-500 text-teal-300 shadow-[0_0_12px_rgba(20,184,166,0.2)]"
+                                      : "bg-rose-500/10 border-rose-500 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.2)]"
+                                  : "bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-750"
+                              }`}
+                            >
+                              {diff}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
                       <button
                         onClick={() => {
                           audioEngine.playMove();
@@ -695,7 +746,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                       <button
                         onClick={() => {
                           audioEngine.playScorePopup();
-                          const generated = generateDynamicQuestions(20);
+                          const generated = generateDynamicQuestions(30, undefined, difficulty);
                           setQuestions(generated);
                         }}
                         className="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 border border-slate-850 hover:border-slate-750 text-teal-300 hover:text-white rounded-xl font-bold font-mono tracking-wide text-[10px] uppercase flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md"
@@ -901,7 +952,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                 onBack={() => setScreen("MENU")}
                 onLaunchGame={() => {
                   audioEngine.playMove();
-                  setScreen("PLAYING");
+                  startPlaying();
                 }}
               />
             </motion.div>
