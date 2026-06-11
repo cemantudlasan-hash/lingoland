@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "userProgress": {
+      "title": "User Progress Stats",
+      "description": "User learning statistics, points, streak, and completed lessons count",
+      "type": "object",
+      "properties": {
+        "completedLessons": {
+          "type": "array",
+          "description": "List of completed lesson IDs"
+        },
+        "streakCount": {
+          "type": "number",
+          "description": "The consecutive days of study"
+        },
+        "lastActiveDate": {
+          "type": "string",
+          "description": "Date of last activity (Y-M-D)"
+        },
+        "points": {
+          "type": "number",
+          "description": "Total XP Points earned"
+        },
+        "timeSpentMinutes": {
+          "type": "number",
+          "description": "Total spent time in minutes"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The firebase auth owner current user UID"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update server timestamp"
+        }
+      },
+      "required": ["userId", "points"]
+    },
+    "studyNotes": {
+      "title": "Study Notes",
+      "description": "Study notes and phrases shared in the Study Room",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User UID who posted the note"
+        },
+        "userEmail": {
+          "type": "string",
+          "description": "Email of the author"
+        },
+        "content": {
+          "type": "string",
+          "description": "Note content or phrase studied"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation server timestamp"
+        }
+      },
+      "required": ["userId", "content", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/progress/stats": {
+      "schema": "userProgress",
+      "description": "Isolated progress tracking data for users"
+    },
+    "/studyNotes/{noteId}": {
+      "schema": "studyNotes",
+      "description": "Global list of real-time study notes"
+    }
+  }
+}

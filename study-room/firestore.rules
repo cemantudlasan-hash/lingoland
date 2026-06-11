@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Reusable global helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 3. User Progress statistics validation blueprint
+    function isValidUserProgress(data) {
+      return data.userId is string && data.userId.size() <= 128
+        && data.points is int && data.points >= 0
+        && (!('streakCount' in data) || (data.streakCount is int && data.streakCount >= 0))
+        && (!('timeSpentMinutes' in data) || (data.timeSpentMinutes is int && data.timeSpentMinutes >= 0))
+        && (!('completedLessons' in data) || data.completedLessons is list)
+        && (!('lastActiveDate' in data) || (data.lastActiveDate is string && data.lastActiveDate.size() <= 32));
+    }
+
+    // 4. Study Note validation blueprint
+    function isValidStudyNote(data) {
+      return data.userId is string && data.userId == request.auth.uid
+        && data.content is string && data.content.size() > 0 && data.content.size() <= 1000
+        && (!('userEmail' in data) || (data.userEmail is string && data.userEmail.size() <= 256))
+        && data.createdAt != null;
+    }
+
+    // 5. Matches and accesses for secure collections
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /progress/stats {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidUserProgress(incoming());
+      }
+    }
+
+    match /studyNotes/{noteId} {
+      allow read, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(noteId) && isValidStudyNote(incoming());
+      allow update, delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+  }
+}
