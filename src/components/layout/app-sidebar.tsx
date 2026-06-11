@@ -57,7 +57,6 @@ import type { InternalQuery } from "@/firebase/firestore/use-collection";
 
 
 const publicItems = [
-  { href: "/study-room", label: "Acoustic Study Room", icon: GraduationCap },
   { href: "/lingo-pet", label: "Lingo-Pet", icon: Egg },
   { href: "/games", label: "Classroom Games", icon: Gamepad2 },
   { href: "/marketplace", label: "Tutor Marketplace", icon: Store },
@@ -85,7 +84,9 @@ const privateItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/profile", label: "Profile", icon: User },
     { href: "/my-postings", label: "My Postings", icon: FileText },
+    { href: "/study-room", label: "Acoustic Study Room", icon: GraduationCap },
 ];
+
 
 const adminItems = [
     { href: "/admin", label: "Admin", icon: Shield },
