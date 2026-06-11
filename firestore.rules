@@ -150,6 +150,16 @@ service cloud.firestore {
         allow update: if false;
       }
     }
+
+    // ── Math Vault Rooms ──────────────────────────────────────────────────
+    match /math_vault_rooms/{roomId} {
+      allow read, create, update, delete: if true;
+    }
+
+    // ── Classroom Teams ───────────────────────────────────────────────────
+    match /classroom_teams/{teamId} {
+      allow read, write: if true;
+    }
   }
 }
 
