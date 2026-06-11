@@ -95,12 +95,21 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
 
   // Optional Multiplayer & Singleplayer mode states
   const [gameMode, setGameMode] = useState<"single" | "multi">("single");
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport for responsive split-screen layout
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
   const [p1Questions, setP1Questions] = useState<Question[]>([]);
   const [p2Questions, setP2Questions] = useState<Question[]>([]);
 
   // Split-screen individual completion statistics
-  const [p1Stats, setP1Stats] = useState<{ score: number; correctCount: number; totalCount: number; completed: boolean } | null>(null);
-  const [p2Stats, setP2Stats] = useState<{ score: number; correctCount: number; totalCount: number; completed: boolean } | null>(null);
+  const [p1Stats, setP1Stats] = useState<{ score: number; correctCount: number; totalCount: number; completed: boolean; obstacleHits: number } | null>(null);
+  const [p2Stats, setP2Stats] = useState<{ score: number; correctCount: number; totalCount: number; completed: boolean; obstacleHits: number } | null>(null);
 
   // Post game stats
   const [lastGameStats, setLastGameStats] = useState<{
@@ -108,6 +117,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
     correctCount: number;
     totalCount: number;
     teamName: string | null;
+    obstacleHits: number;
   } | null>(null);
 
   // Shuffle questions array helper to ensure players get "different questions" simultaneously
@@ -197,7 +207,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
   };
 
   // Callback when a 3D run completes in Single Player mode
-  const handleGameCompleted = async (achievedScore: number, correctCount: number, totalQuestions: number) => {
+  const handleGameCompleted = async (achievedScore: number, correctCount: number, totalQuestions: number, obstacleHits: number = 0) => {
     // If an active session team is registered, update their row statistics
     let currentTeamName: string | null = null;
     if (activeTeamId) {
@@ -232,7 +242,8 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
       score: achievedScore,
       correctCount,
       totalCount: totalQuestions,
-      teamName: currentTeamName
+      teamName: currentTeamName,
+      obstacleHits,
     });
 
     // Display rich rewards screens
@@ -256,13 +267,13 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
   };
 
   // Callback when Player 1 finishes in Multiplayer
-  const handleP1Completed = (achievedScore: number, correctCount: number, totalQuestions: number) => {
-    setP1Stats({ score: achievedScore, correctCount, totalCount: totalQuestions, completed: true });
+  const handleP1Completed = (achievedScore: number, correctCount: number, totalQuestions: number, obstacleHits: number = 0) => {
+    setP1Stats({ score: achievedScore, correctCount, totalCount: totalQuestions, completed: true, obstacleHits });
   };
 
   // Callback when Player 2 finishes in Multiplayer
-  const handleP2Completed = (achievedScore: number, correctCount: number, totalQuestions: number) => {
-    setP2Stats({ score: achievedScore, correctCount, totalCount: totalQuestions, completed: true });
+  const handleP2Completed = (achievedScore: number, correctCount: number, totalQuestions: number, obstacleHits: number = 0) => {
+    setP2Stats({ score: achievedScore, correctCount, totalCount: totalQuestions, completed: true, obstacleHits });
   };
 
   // Coordinate multiplayer completion via useEffect to completely bypass stale closure state bugs
@@ -309,7 +320,8 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
           score: winningScore,
           correctCount: (p1Stats.correctCount || 0) + (p2Stats.correctCount || 0),
           totalCount: (p1Stats.totalCount || 0) + (p2Stats.totalCount || 0),
-          teamName: currentTeamName
+          teamName: currentTeamName,
+          obstacleHits: (p1Stats.obstacleHits || 0) + (p2Stats.obstacleHits || 0),
         });
 
         setScreen("POST_GAME");
@@ -694,6 +706,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="w-full h-full fixed inset-0 z-30"
+              style={{ touchAction: "none" }}
             >
               {gameMode === "single" ? (
                 <ThreeGame
@@ -712,7 +725,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                   onExit={() => setScreen("MENU")}
                 />
               ) : (
-                <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 bg-slate-950 p-2 gap-2 relative">
+                <div className={`w-full h-full grid ${isMobile ? 'grid-rows-2 grid-cols-1' : 'grid-cols-2 grid-rows-1'} bg-slate-950 p-1 md:p-2 gap-1 md:gap-2 relative`}>
                   {/* Left Column: Player 1 (Pink) */}
                   <div className="relative w-full h-full border border-pink-500/20 rounded-2xl overflow-hidden bg-slate-900">
                     {p1Stats?.completed ? (
@@ -769,7 +782,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                           lifeLossPerMistake,
                           continueOnZeroHealth,
                         }}
-                        onGameCompleted={(sc, corr, tot) => handleP1Completed(sc, corr, tot)}
+                        onGameCompleted={(sc, corr, tot, hits) => handleP1Completed(sc, corr, tot, hits)}
                         onExit={() => setScreen("MENU")}
                       />
                     )}
@@ -831,14 +844,27 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                           lifeLossPerMistake,
                           continueOnZeroHealth,
                         }}
-                        onGameCompleted={(sc, corr, tot) => handleP2Completed(sc, corr, tot)}
+                        onGameCompleted={(sc, corr, tot, hits) => handleP2Completed(sc, corr, tot, hits)}
                         onExit={() => setScreen("MENU")}
                       />
                     )}
                   </div>
 
-                  {/* Central Split Line Divider */}
-                  <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-slate-800/80 hidden md:block z-20 pointer-events-none transform -translate-x-1/2" />
+                  {/* Desktop: Vertical divider */}
+                  <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-slate-700/60 hidden md:block z-20 pointer-events-none transform -translate-x-1/2" />
+
+                  {/* Mobile: Horizontal divider */}
+                  <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-slate-700/60 block md:hidden z-20 pointer-events-none transform -translate-y-1/2" />
+
+                  {/* EXIT DUEL — floats at top center above both screens */}
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+                    <button
+                      onClick={() => setScreen("MENU")}
+                      className="bg-slate-900/90 backdrop-blur-md border border-slate-600 hover:bg-rose-950/70 hover:border-rose-500 text-slate-300 hover:text-rose-300 px-3 py-1.5 rounded-xl text-[9px] font-black font-mono tracking-widest uppercase cursor-pointer transition-all shadow-lg"
+                    >
+                      ⬅ EXIT DUEL
+                    </button>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -1056,14 +1082,22 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-slate-900/50 p-2.5 rounded-lg border border-slate-805">
+                        <div className="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800">
                           <span className="text-slate-500 block text-[9.5px] uppercase font-mono mb-0.5">Success Gates</span>
                           <span className="text-emerald-400 font-bold font-mono text-sm">{lastGameStats.correctCount} Solved</span>
                         </div>
-                        <div className="bg-slate-900/50 p-2.5 rounded-lg border border-slate-805">
+                        <div className="bg-slate-900/50 p-2.5 rounded-lg border border-slate-800">
                           <span className="text-slate-500 block text-[9.5px] uppercase font-mono mb-0.5">Mistakes / Collisions</span>
                           <span className="text-rose-400 font-bold font-mono text-sm">{lastGameStats.totalCount - lastGameStats.correctCount} Total</span>
                         </div>
+                      </div>
+                      {/* Obstacle hits stat */}
+                      <div className="bg-slate-900/50 p-2.5 rounded-lg border border-orange-500/20">
+                        <span className="text-slate-500 block text-[9.5px] uppercase font-mono mb-0.5">Obstacles Hit</span>
+                        <span className="text-orange-400 font-bold font-mono text-sm">
+                          {lastGameStats.obstacleHits} {lastGameStats.obstacleHits === 1 ? 'Crash' : 'Crashes'}
+                          {lastGameStats.obstacleHits === 0 && <span className="text-emerald-400 ml-1">✓ Clean Run!</span>}
+                        </span>
                       </div>
 
                       {/* Explicitly state score achievement sentence */}
