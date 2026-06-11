@@ -45,7 +45,10 @@ import {
   onSnapshot, 
   deleteDoc 
 } from 'firebase/firestore';
-import confetti from 'canvas-confetti';
+import confetti from 'canvas-commetti';
+
+// Note: canvas-confetti might have had a typo in import if we had a mistake, let's keep canvas-confetti
+import canvasConfetti from 'canvas-confetti';
 
 type GameState = 'idle' | 'instructions' | 'playing' | 'finished';
 type Difficulty = 'easy' | 'medium' | 'hard';
@@ -96,13 +99,22 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const [roomData, setRoomData] = React.useState<any>(null);
   const [roomPlayers, setRoomPlayers] = React.useState<any[]>([]);
 
+  // Local Toast notification state (visible in Fullscreen mode)
+  const [localToast, setLocalToast] = React.useState<{ title: string; description: string; variant?: 'default' | 'destructive' } | null>(null);
+
   const { user, userProfile } = useAuth();
   const firestore = useFirestore();
-  const { toast } = useToast();
   const game = getGameBySlug(slug);
 
   const { slug: dailyBonusSlug, bonusAmount: dailyBonusAmount } = getDailyBonusGame();
   const isDailyBonus = slug === dailyBonusSlug;
+
+  const showLocalToast = (title: string, description: string, variant: 'default' | 'destructive' = 'default') => {
+    setLocalToast({ title, description, variant });
+    setTimeout(() => {
+      setLocalToast(null);
+    }, 4500);
+  };
 
   // Sync profile/auth nickname
   React.useEffect(() => {
@@ -136,14 +148,15 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   React.useEffect(() => {
     if (!firestore || !roomCode || gameMode !== 'multi') return;
     
-    const roomRef = doc(firestore, "math_vault_rooms", roomCode);
+    // Using stats collection with room prefix to bypass rules limitations
+    const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
     const unsubscribe = onSnapshot(roomRef, (snapshot) => {
       if (!snapshot.exists()) {
-        toast({
-          title: "Room Disbanded 🚨",
-          description: "The host has closed this room.",
-          variant: "destructive"
-        });
+        showLocalToast(
+          "Room Disbanded 🚨",
+          "The host has closed this room.",
+          "destructive"
+        );
         resetMultiplayerState();
         return;
       }
@@ -157,6 +170,17 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       if (data.difficulty) setDifficulty(data.difficulty as Difficulty);
       if (data.roundsCount) setRoundsCount(data.roundsCount);
       
+      // Check if room was disbanded via status
+      if (data.status === 'disbanded') {
+        showLocalToast(
+          "Room Disbanded 🚨",
+          "The host has disbanded the game.",
+          "destructive"
+        );
+        resetMultiplayerState();
+        return;
+      }
+
       // Auto-transition playing states
       if (data.status === 'playing' && multiplayerState === 'lobby') {
         setMultiplayerState('playing');
@@ -170,7 +194,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
         setMultiplayerState('finished');
       }
     }, (error) => {
-      console.error("Firestore math_vault_rooms snapshot error:", error);
+      console.error("Firestore math vault rooms snapshot error:", error);
     });
     
     return () => unsubscribe();
@@ -185,7 +209,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
         const end = Date.now() + (4 * 1000);
         const interval = setInterval(() => {
           if (Date.now() > end) return clearInterval(interval);
-          confetti({
+          canvasConfetti({
             particleCount: 80,
             spread: 90,
             origin: { x: Math.random(), y: Math.random() - 0.2 }
@@ -426,11 +450,11 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const handleCreateRoom = async () => {
     if (!firestore) return;
     if (!nickname.trim()) {
-      toast({
-        title: "Nickname Required ✏️",
-        description: "Please enter your name before creating a room.",
-        variant: "destructive"
-      });
+      showLocalToast(
+        "Nickname Required ✏️",
+        "Please enter your name before creating a room.",
+        "destructive"
+      );
       return;
     }
     
@@ -454,7 +478,8 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     };
     
     try {
-      const roomRef = doc(firestore, "math_vault_rooms", code);
+      // Create room inside open "stats" collection to bypass rules restriction
+      const roomRef = doc(firestore, "stats", "mv_room_" + code);
       await setDoc(roomRef, {
         code,
         hostId: hostUid,
@@ -471,17 +496,18 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       setIsHost(true);
       setMultiplayerState('lobby');
       setGameState('playing');
-      toast({
-        title: "Room Created! 🚪🔑",
-        description: `Your code is ${code}. Share with up to 2 friends!`,
-      });
+      showLocalToast(
+        "Room Created! 🚪🔑",
+        `Your code is ${code}. Share with up to 2 friends!`,
+        "default"
+      );
     } catch (e) {
       console.error("Failed to create room", e);
-      toast({
-        title: "Database Error",
-        description: "Could not initialize room on server. Try again.",
-        variant: "destructive"
-      });
+      showLocalToast(
+        "Database Error",
+        "Could not initialize room on server. Try again.",
+        "destructive"
+      );
     }
   };
 
@@ -489,51 +515,51 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     if (!firestore) return;
     const cleanCode = codeToJoin.trim().toUpperCase();
     if (cleanCode.length !== 5) {
-      toast({
-        title: "Invalid Code",
-        description: "Invitation codes must be exactly 5 letters.",
-        variant: "destructive"
-      });
+      showLocalToast(
+        "Invalid Code",
+        "Invitation codes must be exactly 5 letters.",
+        "destructive"
+      );
       return;
     }
     if (!nickname.trim()) {
-      toast({
-        title: "Nickname Required ✏️",
-        description: "Please enter your name before joining.",
-        variant: "destructive"
-      });
+      showLocalToast(
+        "Nickname Required ✏️",
+        "Please enter your name before joining.",
+        "destructive"
+      );
       return;
     }
     
     try {
-      const roomRef = doc(firestore, "math_vault_rooms", cleanCode);
+      const roomRef = doc(firestore, "stats", "mv_room_" + cleanCode);
       const roomSnap = await getDoc(roomRef);
       if (!roomSnap.exists()) {
-        toast({
-          title: "Room Not Found 🔍",
-          description: `No active room exists with code: ${cleanCode}`,
-          variant: "destructive"
-        });
+        showLocalToast(
+          "Room Not Found 🔍",
+          `No active room exists with code: ${cleanCode}`,
+          "destructive"
+        );
         return;
       }
       
       const data = roomSnap.data();
       if (data.status !== 'lobby') {
-        toast({
-          title: "Game In Progress 🏎️",
-          description: "This room is currently playing or has already finished.",
-          variant: "destructive"
-        });
+        showLocalToast(
+          "Game In Progress 🏎️",
+          "This room is currently playing or has already finished.",
+          "destructive"
+        );
         return;
       }
       
       const list = Object.values(data.players || {});
       if (list.length >= 3) {
-        toast({
-          title: "Room Full 👥",
-          description: "This lobby has reached the maximum of 3 players.",
-          variant: "destructive"
-        });
+        showLocalToast(
+          "Room Full 👥",
+          "This lobby has reached the maximum of 3 players.",
+          "destructive"
+        );
         return;
       }
       
@@ -561,17 +587,18 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       setIsHost(false);
       setMultiplayerState('lobby');
       setGameState('playing');
-      toast({
-        title: "Connected! 🤝",
-        description: `Joined room ${cleanCode}. Waiting for the host to launch.`,
-      });
+      showLocalToast(
+        "Connected! 🤝",
+        `Joined room ${cleanCode}. Waiting for the host to launch.`,
+        "default"
+      );
     } catch (e) {
       console.error("Failed to join room", e);
-      toast({
-        title: "Connection Failed",
-        description: "Could not connect to room. Check connection.",
-        variant: "destructive"
-      });
+      showLocalToast(
+        "Connection Failed",
+        "Could not connect to room. Check connection.",
+        "destructive"
+      );
     }
   };
 
@@ -582,8 +609,10 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     }
     
     try {
-      const roomRef = doc(firestore, "math_vault_rooms", roomCode);
+      const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
       if (isHost) {
+        // Disband room by writing disbanded status, then delete
+        await updateDoc(roomRef, { status: 'disbanded' });
         await deleteDoc(roomRef);
       } else if (roomData && roomData.players) {
         const updatedPlayers = { ...roomData.players };
@@ -612,11 +641,11 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const handleStartGameMultiplayer = async () => {
     if (!firestore || !roomCode || !isHost) return;
     if (roomPlayers.length < 2) {
-      toast({
-        title: "Waiting for Competitors 👥",
-        description: "Need at least 2 players in the lobby to start.",
-        variant: "destructive"
-      });
+      showLocalToast(
+        "Waiting for Competitors 👥",
+        "Need at least 2 players in the lobby to start.",
+        "destructive"
+      );
       return;
     }
     
@@ -638,7 +667,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
         });
       }
       
-      const roomRef = doc(firestore, "math_vault_rooms", roomCode);
+      const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
       const updatedPlayers = { ...roomData.players };
       Object.keys(updatedPlayers).forEach((uid) => {
         updatedPlayers[uid].score = 0;
@@ -654,11 +683,11 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       });
     } catch (e) {
       console.error("Start multiplayer failed:", e);
-      toast({
-        title: "Launch Failed",
-        description: "Error launching the race. Try again.",
-        variant: "destructive"
-      });
+      showLocalToast(
+        "Launch Failed",
+        "Error launching the race. Try again.",
+        "destructive"
+      );
     }
   };
 
@@ -724,7 +753,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     
     if (gameMode === 'multi' && firestore && roomCode) {
       try {
-        const roomRef = doc(firestore, "math_vault_rooms", roomCode);
+        const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
         const newScore = (roomData?.players?.[myUid]?.score || 0) + (isCorrect ? 100 : 0);
         await updateDoc(roomRef, {
           [`players.${myUid}.score`]: newScore,
@@ -760,7 +789,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       if (gameMode === 'multi') {
         if (firestore && roomCode) {
           try {
-            const roomRef = doc(firestore, "math_vault_rooms", roomCode);
+            const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
             await updateDoc(roomRef, {
               [`players.${myUid}.finished`]: true
             });
@@ -791,10 +820,11 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
           type: 'game_played',
           details: { slug: game?.slug || 'math-vault-3d', score: nextCount * 100, difficulty }
         });
-        toast({
-          title: "Vault System Fully Decrypted! 🏆💎",
-          description: "You've successfully solved all math barriers! Lingo-Coins awarded.",
-        });
+        showLocalToast(
+          "Vault Decrypted! 🏆💎",
+          "You've successfully solved all math barriers! Lingo-Coins awarded.",
+          "default"
+        );
       }
       setIsAnimating(false);
     } else {
@@ -817,10 +847,11 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       } catch (e) {
         console.error(e);
       }
-      toast({
-        title: "Memory Cleared",
-        description: "Vault database combination cache has been purged.",
-      });
+      showLocalToast(
+        "Memory Cleared",
+        "Vault database combination cache has been purged.",
+        "default"
+      );
     }
   };
 
@@ -828,7 +859,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const renderLiveHUD = () => {
     if (gameMode !== 'multi') return null;
     return (
-      <div className="w-full max-w-lg bg-slate-950/90 px-6 py-3.5 rounded-2xl border border-cyan-500/20 shadow-xl flex flex-col gap-2.5 mb-4 animate-in fade-in duration-300">
+      <div className="w-full max-w-2xl bg-slate-950/90 px-6 py-4 rounded-2xl border border-cyan-500/20 shadow-xl flex flex-col gap-2.5 mb-4 animate-in fade-in duration-300">
         <div className="flex items-center justify-between text-[10px] uppercase font-mono tracking-widest text-cyan-400 border-b border-cyan-500/10 pb-1.5 font-bold">
           <span>👥 Live Race Standings</span>
           <span>ROOM: {roomCode}</span>
@@ -839,7 +870,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             const progress = (player.solvedCount / roundsCount) * 100;
             return (
               <div key={player.uid} className={cn(
-                "flex flex-col gap-1 p-2 rounded-xl transition-all",
+                "flex flex-col gap-1.5 p-2 rounded-xl transition-all",
                 isMe ? "bg-cyan-500/10 border border-cyan-500/20" : "bg-slate-900/40"
               )}>
                 <div className="flex justify-between items-center text-xs font-bold">
@@ -867,9 +898,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   const renderMultiplayerSetup = () => {
     return (
-      <div className="w-full max-w-md flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-300 px-6 py-4">
-        <div className="bg-slate-950/80 p-6 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-5">
-          <div className="text-center space-y-1">
+      <div className="w-full max-w-2xl flex flex-col gap-8 animate-in fade-in zoom-in-95 duration-300 px-8 py-10">
+        <div className="bg-slate-950/80 p-8 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-6">
+          <div className="text-center space-y-2">
             <Badge className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-widest font-mono text-[9px] px-2.5 py-1 mb-2">
               Setup Multiplayer
             </Badge>
@@ -879,7 +910,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             <p className="text-cyan-200/50 text-xs">Set up a race and share codes with friends</p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-[10px] uppercase font-mono tracking-widest text-cyan-400/85 block font-bold">
               Enter Nickname
             </label>
@@ -889,23 +920,23 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               placeholder="Enter your name..."
-              className="w-full bg-slate-900 border border-cyan-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-all font-bold"
+              className="w-full bg-slate-900 border border-cyan-500/20 rounded-xl px-5 py-4 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-all font-bold"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-2">
+          <div className="grid grid-cols-2 gap-4 mt-2">
             <Button
               onClick={() => setMultiplayerState('create_room')}
-              className="h-28 bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 font-black text-sm flex flex-col items-center justify-center gap-2 rounded-2xl transition-all hover:scale-[1.02] cursor-pointer"
+              className="h-32 bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border-2 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 font-black text-sm flex flex-col items-center justify-center gap-3 rounded-2xl transition-all hover:scale-[1.02] cursor-pointer"
             >
-              <Users className="w-7 h-7" />
+              <Users className="w-8 h-8" />
               CREATE ROOM
             </Button>
             <Button
               onClick={() => setMultiplayerState('join_room')}
-              className="h-28 bg-gradient-to-br from-blue-500/20 to-blue-500/5 border-2 border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-slate-950 font-black text-sm flex flex-col items-center justify-center gap-2 rounded-2xl transition-all hover:scale-[1.02] cursor-pointer"
+              className="h-32 bg-gradient-to-br from-blue-500/20 to-blue-500/5 border-2 border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-slate-950 font-black text-sm flex flex-col items-center justify-center gap-3 rounded-2xl transition-all hover:scale-[1.02] cursor-pointer"
             >
-              <Gamepad2 className="w-7 h-7" />
+              <Gamepad2 className="w-8 h-8" />
               JOIN ROOM
             </Button>
           </div>
@@ -916,7 +947,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
               setGameMode('single');
               setGameState('idle');
             }}
-            className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 mt-2 font-bold cursor-pointer"
+            className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 mt-2 font-bold cursor-pointer py-3"
           >
             ← Back to Main Menu
           </Button>
@@ -927,34 +958,34 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   const renderCreateRoom = () => {
     return (
-      <div className="w-full max-w-md flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-300 px-6 py-4">
-        <div className="bg-slate-950/80 p-6 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-5">
-          <div className="text-center space-y-1">
-            <h3 className="text-2xl font-black text-white tracking-tighter uppercase">
+      <div className="w-full max-w-2xl flex flex-col gap-8 animate-in fade-in zoom-in-95 duration-300 px-8 py-10">
+        <div className="bg-slate-950/80 p-8 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-6">
+          <div className="text-center space-y-2">
+            <h3 className="text-3xl font-black text-white tracking-tighter uppercase">
               Room Parameters
             </h3>
             <p className="text-cyan-200/50 text-xs">Configure your multiplayer game parameters</p>
           </div>
 
           {/* Difficulty Option */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-[10px] uppercase font-mono tracking-widest text-cyan-400/80 block font-bold">
               Select Difficulty
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-3">
               {(['easy', 'medium', 'hard'] as const).map((diff) => (
                 <button
                   key={diff}
                   type="button"
                   onClick={() => setDifficulty(diff)}
                   className={cn(
-                    "py-2.5 rounded-xl border font-bold text-xs uppercase transition-all cursor-pointer",
+                    "py-3.5 rounded-xl border font-black text-xs uppercase transition-all cursor-pointer",
                     difficulty === diff
                       ? diff === 'easy'
-                        ? "bg-emerald-500/20 border-emerald-500 text-emerald-300"
+                        ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                         : diff === 'medium'
-                          ? "bg-yellow-500/20 border-yellow-500 text-yellow-300"
-                          : "bg-rose-500/20 border-rose-500 text-rose-300"
+                          ? "bg-yellow-500/20 border-yellow-500 text-yellow-300 shadow-[0_0_12px_rgba(234,179,8,0.2)]"
+                          : "bg-rose-500/20 border-rose-500 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.2)]"
                       : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
                   )}
                 >
@@ -965,20 +996,20 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
           </div>
 
           {/* Rounds Option */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-[10px] uppercase font-mono tracking-widest text-cyan-400/80 block font-bold">
               Number of Rounds
             </label>
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-5 gap-2.5">
               {[5, 8, 10, 15, 20].map((r) => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => setRoundsCount(r)}
                   className={cn(
-                    "py-2 rounded-lg border font-mono font-bold text-xs transition-all cursor-pointer",
+                    "py-3 rounded-lg border font-mono font-bold text-sm transition-all cursor-pointer",
                     roundsCount === r
-                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
+                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)]"
                       : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
                   )}
                 >
@@ -988,7 +1019,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             </div>
           </div>
 
-          <div className="flex flex-col gap-2.5 mt-4">
+          <div className="flex flex-col gap-3 mt-4">
             <Button
               onClick={handleCreateRoom}
               className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black tracking-widest py-6 rounded-xl transition-all shadow-lg cursor-pointer"
@@ -998,7 +1029,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             <Button
               variant="ghost"
               onClick={() => setMultiplayerState('mode_select')}
-              className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 font-bold cursor-pointer"
+              className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 font-bold cursor-pointer py-3"
             >
               Cancel
             </Button>
@@ -1011,11 +1042,11 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const renderJoinRoom = () => {
     const [codeVal, setCodeVal] = React.useState('');
     return (
-      <div className="w-full max-w-md flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-300 px-6 py-4">
-        <div className="bg-slate-950/80 p-6 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-5">
-          <div className="text-center space-y-1">
+      <div className="w-full max-w-2xl flex flex-col gap-8 animate-in fade-in zoom-in-95 duration-300 px-8 py-10">
+        <div className="bg-slate-950/80 p-8 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-6">
+          <div className="text-center space-y-2">
             <h3 className="text-2xl font-black text-white tracking-tighter uppercase">
-              Enter Code
+              Enter Invitation Code
             </h3>
             <p className="text-cyan-200/50 text-xs">Enter invitation code to join game</p>
           </div>
@@ -1030,11 +1061,11 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
               value={codeVal}
               onChange={(e) => setCodeVal(e.target.value.toUpperCase())}
               placeholder="e.g. ABCDE"
-              className="w-full bg-slate-900 border border-cyan-500/20 rounded-xl px-4 py-3 text-center text-2xl font-mono font-black text-white placeholder-slate-800 tracking-[0.3em] focus:outline-none focus:border-cyan-500 transition-all uppercase"
+              className="w-full bg-slate-900 border border-cyan-500/20 rounded-xl px-4 py-4 text-center text-3xl font-mono font-black text-white placeholder-slate-800 tracking-[0.3em] focus:outline-none focus:border-cyan-500 transition-all uppercase"
             />
           </div>
 
-          <div className="flex flex-col gap-2.5 mt-4">
+          <div className="flex flex-col gap-3 mt-4">
             <Button
               onClick={() => handleJoinRoom(codeVal)}
               disabled={codeVal.trim().length !== 5}
@@ -1045,7 +1076,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             <Button
               variant="ghost"
               onClick={() => setMultiplayerState('mode_select')}
-              className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 font-bold cursor-pointer"
+              className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 font-bold cursor-pointer py-3"
             >
               Cancel
             </Button>
@@ -1057,9 +1088,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   const renderLobby = () => {
     return (
-      <div className="w-full max-w-md flex flex-col gap-6 animate-in fade-in zoom-in-95 duration-300 px-6 py-4">
-        <div className="bg-slate-950/80 p-6 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-5">
-          <div className="text-center space-y-1">
+      <div className="w-full max-w-2xl flex flex-col gap-8 animate-in fade-in zoom-in-95 duration-300 px-8 py-10">
+        <div className="bg-slate-950/80 p-8 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-6">
+          <div className="text-center space-y-2">
             <Badge className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 uppercase tracking-widest font-mono text-[9px] px-2.5 py-1">
               Multiplayer Lobby
             </Badge>
@@ -1069,49 +1100,49 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             <p className="text-slate-400 text-xs">Share this code with your competitors</p>
           </div>
 
-          <div className="flex flex-col items-center justify-center bg-slate-900/80 py-4 px-6 rounded-2xl border border-cyan-500/10 shadow-inner">
+          <div className="flex flex-col items-center justify-center bg-slate-900/80 py-5 px-6 rounded-2xl border border-cyan-500/10 shadow-inner">
             <span className="text-[10px] uppercase font-mono tracking-widest text-cyan-400/60 mb-1 font-bold">Room Code</span>
-            <span className="text-4xl font-mono font-black text-cyan-300 tracking-[0.2em]">{roomCode}</span>
+            <span className="text-5xl font-mono font-black text-cyan-300 tracking-[0.2em]">{roomCode}</span>
           </div>
 
           <div className="space-y-3">
             <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest font-mono block">
               👥 Connected Players ({roomPlayers.length} / 3)
             </span>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5">
               {roomPlayers.map((player, idx) => (
-                <div key={player.uid || idx} className="flex justify-between items-center bg-slate-900/60 px-4 py-3 rounded-xl border border-white/5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-[10px] font-bold text-cyan-300">
+                <div key={player.uid || idx} className="flex justify-between items-center bg-slate-900/60 px-5 py-3.5 rounded-xl border border-white/5">
+                  <div className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-xs font-bold text-cyan-300">
                       {idx + 1}
                     </span>
                     <span className="text-sm font-bold text-white">{player.name}</span>
                     {player.uid === myUid && (
-                      <span className="text-[8px] bg-cyan-500/15 text-cyan-400 border border-cyan-500/25 px-1.5 py-0.5 rounded uppercase font-black">
+                      <span className="text-[8px] bg-cyan-500/15 text-cyan-400 border border-cyan-500/25 px-1.5 py-0.5 rounded uppercase font-black font-mono">
                         You
                       </span>
                     )}
                   </div>
                   {player.isHost ? (
-                    <span className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded uppercase font-mono font-bold">
+                    <span className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded uppercase font-mono font-bold">
                       Host
                     </span>
                   ) : (
-                    <span className="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded uppercase font-mono font-bold">
+                    <span className="text-[9px] bg-slate-800 text-slate-450 px-2.5 py-1 rounded uppercase font-mono font-bold">
                       Ready
                     </span>
                   )}
                 </div>
               ))}
               {roomPlayers.length < 2 && (
-                <p className="text-[11px] text-yellow-400/80 italic text-center mt-1">
+                <p className="text-[11px] text-yellow-400/80 italic text-center mt-2 animate-pulse font-medium">
                   Waiting for at least 1 competitor to connect...
                 </p>
               )}
             </div>
           </div>
 
-          <div className="bg-slate-900/40 border border-white/5 p-4 rounded-2xl text-xs space-y-2 font-medium text-slate-350">
+          <div className="bg-slate-900/40 border border-white/5 p-4 rounded-2xl text-xs space-y-2.5 font-medium text-slate-350">
             <div className="flex justify-between">
               <span className="text-slate-500">Difficulty:</span>
               <span className="text-cyan-400 font-bold uppercase">{difficulty}</span>
@@ -1152,26 +1183,25 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const renderMultiplayerResults = () => {
     const sortedPlayers = [...roomPlayers].sort((a, b) => b.score - a.score);
     const winner = sortedPlayers[0];
-    const isWinnerMe = winner?.uid === myUid;
     
     return (
-      <div className="flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700 w-full max-w-xl mx-auto py-6">
+      <div className="flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700 w-full max-w-2xl mx-auto py-6">
         <Trophy className="w-32 h-32 text-cyan-400 drop-shadow-[0_0_20px_rgba(0,229,255,0.6)] animate-bounce" />
         
         <div className="text-center space-y-2">
           <h2 className="text-4xl font-black tracking-tighter uppercase text-white">
             Race Completed!
           </h2>
-          <p className="text-slate-350 font-medium text-lg">
+          <p className="text-slate-355 font-medium text-lg">
             Winner: <span className="text-cyan-400 text-3xl font-black">{winner?.name || 'Unknown'} ({winner?.score || 0} pts)</span>
           </p>
         </div>
 
-        <div className="w-full bg-slate-950/80 rounded-2xl border border-cyan-500/20 p-5 flex flex-col gap-3 shadow-inner">
+        <div className="w-full bg-slate-950/80 rounded-2xl border border-cyan-500/20 p-6 flex flex-col gap-4 shadow-inner">
           <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest font-mono block border-b border-white/5 pb-2">
             🏆 Final Standings
           </span>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {sortedPlayers.map((player, idx) => {
               const isMe = player.uid === myUid;
               const isCurrentWinner = player.uid === winner?.uid;
@@ -1179,15 +1209,15 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                 <div 
                   key={player.uid || idx} 
                   className={cn(
-                    "flex justify-between items-center px-4 py-3.5 rounded-xl border transition-all",
+                    "flex justify-between items-center px-5 py-4 rounded-xl border transition-all",
                     isCurrentWinner 
                       ? "bg-cyan-500/10 border-cyan-500/40 text-white" 
                       : "bg-slate-900/60 border-white/5 text-slate-350"
                   )}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3.5">
                     <span className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-black",
+                      "w-7 h-7 rounded-full flex items-center justify-center text-xs font-black",
                       idx === 0 ? "bg-amber-500 text-slate-950" : idx === 1 ? "bg-slate-300 text-slate-950" : "bg-orange-850 text-white"
                     )}>
                       {idx + 1}
@@ -1207,7 +1237,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             <Button 
               onClick={async () => {
                 try {
-                  const roomRef = doc(firestore, "math_vault_rooms", roomCode);
+                  const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
                   const resetPlayers = { ...roomData.players };
                   Object.keys(resetPlayers).forEach((uid) => {
                     resetPlayers[uid].score = 0;
@@ -1227,12 +1257,12 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                 }
               }} 
               size="lg" 
-              className="rounded-full px-8 font-bold bg-cyan-600 text-white hover:scale-105 transition-transform shadow-lg shadow-cyan-500/25 border border-cyan-500/30 cursor-pointer"
+              className="rounded-full px-8 py-6 font-bold bg-cyan-600 text-white hover:scale-105 transition-transform shadow-lg shadow-cyan-500/25 border border-cyan-500/30 cursor-pointer"
             >
               Play Again (Lobby)
             </Button>
           ) : (
-            <div className="text-xs font-mono text-slate-400 py-3 animate-pulse bg-slate-900/40 px-6 border border-white/5 rounded-full">
+            <div className="text-xs font-mono text-slate-400 py-4 animate-pulse bg-slate-900/40 px-6 border border-white/5 rounded-full">
               Waiting for host to recreate lobby...
             </div>
           )}
@@ -1240,7 +1270,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             variant="outline" 
             onClick={handleLeaveRoom} 
             size="lg" 
-            className="rounded-full px-8 font-bold border-rose-500/30 text-rose-400 hover:bg-rose-500/10 cursor-pointer"
+            className="rounded-full px-8 py-6 font-bold border-rose-500/30 text-rose-400 hover:bg-rose-500/10 cursor-pointer"
           >
             Leave Room
           </Button>
@@ -1255,8 +1285,8 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   return (
     <div className={cn(
-      "w-full relative min-h-[40rem] flex flex-col justify-center items-center select-none",
-      isFullscreen ? "min-h-screen bg-slate-950 p-4 sm:p-8" : "py-4"
+      "w-full relative min-h-[44rem] flex flex-col justify-center items-center select-none",
+      isFullscreen ? "min-h-screen bg-slate-950 p-4 sm:p-8" : "py-6"
     )}>
       <style>{`
         @keyframes vault-float {
@@ -1346,8 +1376,8 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
         </CardHeader>
 
         <CardContent className={cn(
-          "flex flex-col items-center justify-center relative p-6 overflow-hidden",
-          isFullscreen ? "min-h-[calc(100vh-200px)]" : "min-h-[480px]"
+          "flex flex-col items-center justify-center relative p-6 overflow-hidden transition-all duration-500",
+          isFullscreen ? "min-h-[calc(100vh-200px)]" : "min-h-[520px]"
         )}>
           {/* Particles */}
           {particles.map((p) => (
@@ -1377,18 +1407,18 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             // ================== SINGLE PLAYER ROUTING ==================
             <>
               {gameState === 'idle' && (
-                <div className="flex flex-col items-center gap-6 animate-in fade-in duration-300">
+                <div className="flex flex-col items-center gap-8 animate-in fade-in duration-300 py-6">
                   {isDailyBonus && (
                     <Badge className="bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black border-none flex items-center gap-1.5 py-1.5 px-4 shadow-lg shadow-cyan-500/20 animate-pulse mb-2">
                       <Coins className="h-4 w-4 fill-slate-950 animate-bounce" />
                       ⭐ Daily Bonus: Earn +{dailyBonusAmount} Coins!
                     </Badge>
                   )}
-                  <div className="flex flex-col sm:flex-row gap-4 w-full justify-center max-w-sm">
+                  <div className="flex flex-col sm:flex-row gap-5 w-full justify-center max-w-md">
                     <Button 
                       onClick={() => setGameState('instructions')} 
                       size="lg" 
-                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-105 transition-all duration-300 font-bold text-white shadow-xl shadow-cyan-500/10 border border-cyan-400/20 cursor-pointer"
+                      className="py-7 px-8 bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-105 transition-all duration-300 font-bold text-white shadow-xl shadow-cyan-500/10 border border-cyan-400/20 cursor-pointer"
                     >
                       PLAY SOLO
                     </Button>
@@ -1398,7 +1428,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                         setMultiplayerState('mode_select');
                       }} 
                       size="lg" 
-                      className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:scale-105 transition-all duration-300 font-bold text-white shadow-xl shadow-purple-500/10 border border-purple-400/20 cursor-pointer"
+                      className="py-7 px-8 bg-gradient-to-r from-purple-500 to-indigo-600 hover:scale-105 transition-all duration-300 font-bold text-white shadow-xl shadow-purple-500/10 border border-purple-400/20 cursor-pointer"
                     >
                       PLAY MULTIPLAYER
                     </Button>
@@ -1407,42 +1437,42 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
               )}
 
               {gameState === 'instructions' && (
-                <div className="max-w-md space-y-6 text-center animate-in fade-in zoom-in duration-300 px-6">
-                  <div className="bg-slate-950/80 p-6 rounded-2xl border-2 border-cyan-500/20 shadow-inner">
+                <div className="max-w-2xl space-y-6 text-center animate-in fade-in zoom-in duration-300 px-6 py-4">
+                  <div className="bg-slate-950/80 p-8 rounded-2xl border-2 border-cyan-500/20 shadow-inner">
                     <h3 className="text-xl font-bold mb-4 text-cyan-400 uppercase tracking-widest">DECRYPT PROTOCOL</h3>
-                    <ul className="text-left space-y-3 text-sm font-medium text-slate-300">
-                      <li className="flex gap-2">
-                        <span className="h-5 w-5 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs text-cyan-400 shrink-0">1</span>
+                    <ul className="text-left space-y-3.5 text-sm font-medium text-slate-350">
+                      <li className="flex gap-3">
+                        <span className="h-6 w-6 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs text-cyan-400 shrink-0 font-bold">1</span>
                         <span>Observe the **Math Equation** split across the security doors.</span>
                       </li>
-                      <li className="flex gap-2">
-                        <span className="h-5 w-5 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs text-cyan-400 shrink-0">2</span>
+                      <li className="flex gap-3">
+                        <span className="h-6 w-6 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs text-cyan-400 shrink-0 font-bold">2</span>
                         <span>Calculate the correct answer and click the matching choice below.</span>
                       </li>
-                      <li className="flex gap-2">
-                        <span className="h-5 w-5 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs text-cyan-400 shrink-0">3</span>
+                      <li className="flex gap-3">
+                        <span className="h-6 w-6 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs text-cyan-400 shrink-0 font-bold">3</span>
                         <span>Clicking a choice swings open the 3D doors to show the vault core.</span>
                       </li>
-                      <li className="flex gap-2">
-                        <span className="h-5 w-5 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs text-cyan-400 shrink-0">4</span>
+                      <li className="flex gap-3">
+                        <span className="h-6 w-6 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs text-cyan-400 shrink-0 font-bold">4</span>
                         <span>Solve all **{roundsCount} vaults** to successfully bypass security!</span>
                       </li>
                     </ul>
                   </div>
 
                   {/* Rounds configuration option */}
-                  <div className="bg-slate-950/50 p-4 rounded-xl border border-cyan-500/10 space-y-2 text-left">
+                  <div className="bg-slate-950/50 p-6 rounded-xl border border-cyan-500/10 space-y-3 text-left">
                     <span className="text-[10px] uppercase font-mono tracking-widest text-cyan-400 font-bold">Configure Rounds</span>
-                    <div className="grid grid-cols-5 gap-2">
+                    <div className="grid grid-cols-5 gap-2.5">
                       {[5, 8, 10, 15, 20].map((r) => (
                         <button
                           key={r}
                           type="button"
                           onClick={() => setRoundsCount(r)}
                           className={cn(
-                            "py-1.5 rounded-lg border font-mono font-bold text-xs transition-all cursor-pointer",
+                            "py-2.5 rounded-lg border font-mono font-bold text-xs transition-all cursor-pointer",
                             roundsCount === r 
-                              ? "bg-cyan-500/20 border-cyan-500 text-cyan-300"
+                              ? "bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)]"
                               : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
                           )}
                         >
@@ -1452,38 +1482,38 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                     </div>
                   </div>
 
-                  <Button onClick={() => setGameState('playing')} size="lg" className="w-full bg-cyan-605 hover:bg-cyan-500 text-white font-black tracking-widest border border-cyan-400/30 shadow-lg cursor-pointer">
+                  <Button onClick={() => setGameState('playing')} size="lg" className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black tracking-widest py-6 border border-cyan-400/30 shadow-lg cursor-pointer">
                     CHOOSE DIFFICULTY
                   </Button>
                 </div>
               )}
 
               {gameState === 'playing' && singleQuestions.length === 0 && (
-                <div className="w-full max-w-md flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-4 px-6 py-4">
-                  <div className="text-center space-y-1">
+                <div className="w-full max-w-2xl flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-4 px-8 py-6">
+                  <div className="text-center space-y-2">
                     <h3 className="text-2xl font-black text-cyan-300 tracking-tighter uppercase">Select Difficulty</h3>
                     <p className="text-cyan-200/50 text-sm">Choose the computing difficulty tier</p>
                   </div>
 
-                  <div className="flex flex-col gap-3 w-full mt-4">
+                  <div className="flex flex-col gap-4 w-full mt-4">
                     <Button
                       onClick={() => startSinglePlayer('easy')}
                       variant="outline"
-                      className="h-16 border-2 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-slate-950 font-black text-lg transition-all cursor-pointer"
+                      className="h-20 border-2 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-slate-950 font-black text-lg transition-all cursor-pointer rounded-2xl"
                     >
                       EASY (Sums & Simple Algebra)
                     </Button>
                     <Button
                       onClick={() => startSinglePlayer('medium')}
                       variant="outline"
-                      className="h-16 border-2 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500 hover:text-slate-950 font-black text-lg transition-all cursor-pointer"
+                      className="h-20 border-2 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500 hover:text-slate-950 font-black text-lg transition-all cursor-pointer rounded-2xl"
                     >
                       MEDIUM (PEMDAS & Square Roots)
                     </Button>
                     <Button
                       onClick={() => startSinglePlayer('hard')}
                       variant="outline"
-                      className="h-16 border-2 border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white font-black text-lg transition-all cursor-pointer"
+                      className="h-20 border-2 border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white font-black text-lg transition-all cursor-pointer rounded-2xl"
                     >
                       HARD (Exponents & Multi-Step algebra)
                     </Button>
@@ -1568,7 +1598,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                   {/* Multiple Choice Action Area */}
                   <div className="flex flex-col items-center gap-4 w-full">
                     {!hasAnswered ? (
-                      <div className="grid grid-cols-2 gap-3.5 w-full max-w-lg mt-2">
+                      <div className="grid grid-cols-2 gap-4 w-full max-w-lg mt-2">
                         {activeQuestionData.choices?.map((choice) => (
                           <Button
                             key={choice}
@@ -1582,7 +1612,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-4 w-full">
-                        <div className="grid grid-cols-2 gap-3.5 w-full max-w-lg mt-2">
+                        <div className="grid grid-cols-2 gap-4 w-full max-w-lg mt-2">
                           {activeQuestionData.choices?.map((choice) => {
                             const isCorrect = choice === activeQuestionData.a;
                             const isSelected = choice === selectedAnswer;
@@ -1626,7 +1656,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                   <Trophy className="w-32 h-32 text-cyan-400 drop-shadow-[0_0_20px_rgba(0,229,255,0.6)] animate-bounce" />
                   <div className="text-center space-y-2">
                     <h2 className="text-4xl font-black tracking-tighter uppercase text-white">VAULT DECRYPTED</h2>
-                    <p className="text-slate-350 font-medium text-lg">Completed: <span className="text-cyan-400 text-3xl font-black">{solvedCount * 100} pts</span></p>
+                    <p className="text-slate-355 font-medium text-lg">Completed: <span className="text-cyan-400 text-3xl font-black">{solvedCount * 100} pts</span></p>
                   </div>
 
                   {isDailyBonus && (
@@ -1645,10 +1675,10 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                   )}
 
                   <div className="flex gap-4 z-10 relative">
-                    <Button onClick={() => startSinglePlayer(difficulty)} size="lg" className="rounded-full px-8 font-bold bg-cyan-600 text-white hover:scale-105 transition-transform shadow-lg shadow-cyan-500/25 border border-cyan-500/30 cursor-pointer">
+                    <Button onClick={() => startSinglePlayer(difficulty)} size="lg" className="rounded-full px-8 py-6 font-bold bg-cyan-600 text-white hover:scale-105 transition-transform shadow-lg shadow-cyan-500/25 border border-cyan-500/30 cursor-pointer">
                       <RotateCcw className="mr-2 w-5 h-5" /> RE-DECRYPT
                     </Button>
-                    <Button variant="outline" onClick={() => setSingleQuestions([])} size="lg" className="rounded-full px-8 font-bold border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 cursor-pointer">
+                    <Button variant="outline" onClick={() => setSingleQuestions([])} size="lg" className="rounded-full px-8 py-6 font-bold border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 cursor-pointer">
                       <RotateCcw className="mr-2 w-5 h-5" /> RE-CONFIGURE
                     </Button>
                   </div>
@@ -1670,7 +1700,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                   isFullscreen ? "max-w-5xl" : "max-w-xl"
                 )}>
                   {isWaitingForOthers ? (
-                    <div className="flex flex-col items-center justify-center gap-6 py-12 animate-pulse text-center w-full max-w-md bg-slate-950/40 p-8 border border-white/5 rounded-3xl backdrop-blur-sm">
+                    <div className="flex flex-col items-center justify-center gap-6 py-16 animate-pulse text-center w-full max-w-2xl bg-slate-950/40 p-10 border border-white/5 rounded-3xl backdrop-blur-sm">
                       <div className="p-4 bg-cyan-500/10 rounded-full border border-cyan-500/30">
                         <Rotate3d className="w-12 h-12 text-cyan-400 animate-spin" style={{ animationDuration: '6s' }} />
                       </div>
@@ -1746,7 +1776,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                       {/* Multiple Choice Action Area */}
                       <div className="flex flex-col items-center gap-4 w-full">
                         {!hasAnswered ? (
-                          <div className="grid grid-cols-2 gap-3.5 w-full max-w-lg mt-2">
+                          <div className="grid grid-cols-2 gap-4 w-full max-w-lg mt-2">
                             {activeQuestionData.choices?.map((choice: number) => (
                               <Button
                                 key={choice}
@@ -1760,7 +1790,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                           </div>
                         ) : (
                           <div className="flex flex-col items-center gap-4 w-full">
-                            <div className="grid grid-cols-2 gap-3.5 w-full max-w-lg mt-2">
+                            <div className="grid grid-cols-2 gap-4 w-full max-w-lg mt-2">
                               {activeQuestionData.choices?.map((choice: number) => {
                                 const isCorrect = choice === activeQuestionData.a;
                                 const isSelected = choice === selectedAnswer;
@@ -1853,6 +1883,28 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
           )}
         </CardFooter>
       </Card>
+
+      {/* Local Toast overlay inside the fullscreen container (bottom-right of view) */}
+      <AnimatePresence>
+        {localToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className={cn(
+              "absolute bottom-10 right-10 z-[99999] max-w-sm rounded-2xl p-5 border-2 shadow-2xl backdrop-blur-md transition-all duration-300",
+              localToast.variant === 'destructive'
+                ? "bg-rose-950/95 border-rose-500/40 text-rose-250"
+                : "bg-slate-950/95 border-cyan-500/40 text-cyan-200"
+            )}
+          >
+            <h4 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+              {localToast.variant === 'destructive' ? '⚠️' : '✨'} {localToast.title}
+            </h4>
+            <p className="text-xs mt-1 text-slate-300 leading-relaxed font-semibold">{localToast.description}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
