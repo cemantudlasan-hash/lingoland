@@ -45,10 +45,7 @@ import {
   onSnapshot, 
   deleteDoc 
 } from 'firebase/firestore';
-import confetti from 'canvas-commetti';
-
-// Note: canvas-confetti might have had a typo in import if we had a mistake, let's keep canvas-confetti
-import canvasConfetti from 'canvas-confetti';
+import confetti from 'canvas-confetti';
 
 type GameState = 'idle' | 'instructions' | 'playing' | 'finished';
 type Difficulty = 'easy' | 'medium' | 'hard';
@@ -209,7 +206,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
         const end = Date.now() + (4 * 1000);
         const interval = setInterval(() => {
           if (Date.now() > end) return clearInterval(interval);
-          canvasConfetti({
+          confetti({
             particleCount: 80,
             spread: 90,
             origin: { x: Math.random(), y: Math.random() - 0.2 }
