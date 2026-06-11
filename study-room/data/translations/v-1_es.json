@@ -1,0 +1,43 @@
+{
+  "title": "Frases Esenciales de Hotel y Viaje",
+  "description": "Aprende los términos y expresiones más comunes al registrarte en un hotel o viajar por el mundo.",
+  "introduction": "¡Viajar a un país de habla inglesa puede ser muy emocionante! Aquí tienes las palabras clave de vocabulario que necesitas para hablar con recepcionistas de hotel y personal con total confianza.",
+  "words": [
+    "Reservación: Un acuerdo para asegurar una habitación, asiento o mesa por adelantado.",
+    "Registro (Check-in): El proceso de registrarse y recibir las llaves en un hotel o aeropuerto.",
+    "Servicios / Comodidades (Amenities): Características o instalaciones útiles de un edificio, como piscina, gimnasio o Wi-Fi gratuito.",
+    "Servicio de traslado (Shuttle): Un vehículo que realiza viajes cortos y frecuentes de ida y vuelta entre dos puntos."
+  ],
+  "quiz": [
+    {
+      "question": "¿Cuál es la palabra correspondiente a: \"un acuerdo para asegurar una habitación de hotel por adelantado\"?",
+      "options": [
+        "Lobby (Vestíbulo)",
+        "Reservation (Reservación)",
+        "Checkout (Salida)",
+        "Luggage (Equipaje)"
+      ],
+      "explanation": \"Reservation\" significa reservar una habitación o servicio con antelación."
+    },
+    {
+      "question": "Completa la petición: \"Excuse me, I'd like to ________ our keys and verify our check-out time.\"",
+      "options": [
+        "shuttle (trasladar)",
+        "amenity (servicio)",
+        "return (devolver)",
+        "registering (registrar)"
+      ],
+      "explanation": \"Return\" (devolver) encaja perfectamente: \"Disculpe, me gustaría devolver nuestras llaves...\""
+    },
+    {
+      "question": "El gimnasio gratuito, la piscina y el Wi-Fi de alta velocidad son ejemplos de:",
+      "options": [
+        "Amenities (Servicios / Comodidades)",
+        "Reservations (Reservaciones)",
+        "Check-ins (Registros)",
+        "Shuttle services (Servicios de traslado)"
+      ],
+      "explanation": "Estas comodidades y beneficios físicos que ofrece un hotel se definen en inglés como \"Amenities\"."
+    }
+  ]
+}

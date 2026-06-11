@@ -1,0 +1,6 @@
+{
+  "name": "Study Room",
+  "description": "An interactive study room for learning grammar, vocabulary, listening, and pronunciation with auto-translation and visual progress tracking.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
