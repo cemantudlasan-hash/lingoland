@@ -203,6 +203,40 @@ const renderFormattedText = (text: string) => {
   });
 };
 
+const renderInterleavedParagraphs = (text: string, translation?: string) => {
+  if (!text) return null;
+  
+  const paragraphs = text.split(/\n\n+/);
+  const transParagraphs = translation ? translation.split(/\n\n+/) : [];
+  
+  const elements = [];
+  const maxLen = Math.max(paragraphs.length, transParagraphs.length);
+  
+  for (let i = 0; i < maxLen; i++) {
+    const para = paragraphs[i];
+    const transPara = transParagraphs[i];
+    
+    if (para || transPara) {
+      elements.push(
+        <div key={i} className="space-y-1">
+          {para && (
+            <p className="text-sm leading-relaxed text-justify select-text whitespace-pre-line">
+              {renderFormattedText(para)}
+            </p>
+          )}
+          {transPara && (
+            <p className="text-xs text-indigo-400/90 italic font-semibold leading-relaxed select-text whitespace-pre-line mt-1">
+              {renderFormattedText(transPara)}
+            </p>
+          )}
+        </div>
+      );
+    }
+  }
+  
+  return <div className="space-y-4">{elements}</div>;
+};
+
 export default function MarketplacePage() {
   const { toast } = useToast();
   const { user, isGuest, isLoading, isAdmin, setAuthAction } = useAuth();
@@ -984,14 +1018,7 @@ export default function MarketplacePage() {
                               ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-tr-none shadow-lg' 
                               : 'bg-slate-950/80 border border-slate-850 text-slate-100 rounded-tl-none shadow-md'
                           }`}>
-                            <p className="text-sm leading-relaxed whitespace-pre-line font-medium text-justify select-text">
-                              {renderFormattedText(msg.text)}
-                            </p>
-                            {!isUser && msg.translation && (
-                              <p className="mt-1 text-xs text-indigo-400/90 italic font-semibold leading-relaxed select-text">
-                                {renderFormattedText(msg.translation)}
-                              </p>
-                            )}
+                            {renderInterleavedParagraphs(msg.text, isUser ? undefined : msg.translation)}
                           </div>
                           
                           {/* Audio TTS speaker button for model messages */}
