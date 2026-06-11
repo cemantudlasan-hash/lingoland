@@ -1,4 +1,5 @@
-import { BookOpen, Brain, Headphones, Mic, Sparkles, CheckCircle2, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, Brain, Headphones, Mic, Sparkles, CheckCircle2, ChevronRight, Search } from "lucide-react";
 import { Lesson, LC_Category, LC_Level, UserStats } from "../types";
 
 interface CategoryNavigatorProps {
@@ -20,6 +21,7 @@ export default function CategoryNavigator({
   setSelectedLevel,
   onSelectLesson,
 }: CategoryNavigatorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
   
   const categories: Array<{ id: LC_Category | "all"; label: string; icon: any; color: string }> = [
     { id: "all", label: "All Lessons", icon: Sparkles, color: "text-indigo-500 bg-indigo-50" },
@@ -40,7 +42,11 @@ export default function CategoryNavigator({
   const filteredLessons = lessons.filter((lesson) => {
     const categoryMatch = selectedCategory === "all" || lesson.category === selectedCategory;
     const levelMatch = selectedLevel === "all" || lesson.level === selectedLevel;
-    return categoryMatch && levelMatch;
+    const searchMatch = !searchQuery.trim() || 
+      lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      lesson.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lesson.category.toLowerCase().includes(searchQuery.toLowerCase());
+    return categoryMatch && levelMatch && searchMatch;
   });
 
   const getCategoryIcon = (category: LC_Category) => {
@@ -119,6 +125,26 @@ export default function CategoryNavigator({
             })}
           </div>
         </div>
+        
+        {/* Search Input - Shown when 'All Lessons' or 'All Levels' is selected */}
+        {(selectedCategory === "all" || selectedLevel === "all") && (
+          <div className="pt-4 border-t-2 border-slate-100 space-y-2">
+            <label htmlFor="search-input" className="text-xs font-black text-slate-900 uppercase tracking-widest block font-display">
+              Search Modules or Topics
+            </label>
+            <div className="relative max-w-md w-full">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <input
+                id="search-input"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by module title, description, or topic..."
+                className="w-full bg-slate-50 border-2 border-slate-900 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder:text-slate-400 text-slate-900"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Grid of Lesson Cards */}

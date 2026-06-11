@@ -99,7 +99,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans p-4 sm:p-6 pb-12 gap-6">
       {/* Upper Navigation Header bar inside the Bento wrapper */}
-      <header className="max-w-5xl w-full mx-auto bg-white border-2 border-slate-900 p-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col md:flex-row gap-4 justify-between items-center">
+      <header className="max-w-7xl w-full mx-auto bg-white border-2 border-slate-900 p-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col md:flex-row gap-4 justify-between items-center">
         {/* Logo Brand Title */}
         <div className="flex items-center gap-3">
           <span className="w-10 h-10 rounded-xl bg-indigo-600 border-2 border-slate-900 text-white flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] shrink-0">
@@ -157,7 +157,7 @@ export default function App() {
       </header>
 
       {/* Main Container Layout content Area */}
-      <main className="flex-1 max-w-5xl w-full mx-auto flex flex-col gap-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto flex flex-col gap-6">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 space-y-4 bg-white border-2 border-slate-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
             <span className="w-10 h-10 rounded-full border-4 border-slate-200 border-t-indigo-600 animate-spin" />
@@ -222,7 +222,7 @@ export default function App() {
       </main>
 
       {/* Footer footer element */}
-      <footer className="max-w-5xl w-full mx-auto border-2 border-slate-900 bg-white p-5 rounded-2xl text-center text-slate-500 font-bold text-xs shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+      <footer className="max-w-7xl w-full mx-auto border-2 border-slate-900 bg-white p-5 rounded-2xl text-center text-slate-500 font-bold text-xs shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
         <p className="font-display uppercase tracking-wider">
           © 2026 lingolandverse.com • Crafted for dual language english proficiency immersion.
         </p>
