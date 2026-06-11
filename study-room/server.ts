@@ -11,14 +11,16 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Allow embedding from the lingoland main domain and any other origin (for iframe support)
-// Firebase App Hosting sets X-Frame-Options: SAMEORIGIN by default, we override it here.
+// Allow embedding in iframes from any origin.
+// X-Frame-Options: ALLOWALL is NOT a valid spec value - Edge rejects it.
+// The correct modern approach is to REMOVE X-Frame-Options entirely and
+// use Content-Security-Policy: frame-ancestors instead.
 app.use((req, res, next) => {
   res.removeHeader('X-Frame-Options');
-  res.setHeader('X-Frame-Options', 'ALLOWALL');
+  // CSP frame-ancestors replaces X-Frame-Options in all modern browsers (Chrome, Edge, Firefox, Safari)
   res.setHeader(
     'Content-Security-Policy',
-    "frame-ancestors 'self' https://*.hosted.app https://*.web.app https://lingolandverse.com https://*.lingolandverse.com"
+    "frame-ancestors *"
   );
   next();
 });
@@ -374,15 +376,15 @@ async function startServer() {
   } else {
     // Production compiled static hosting
     const distPath = path.join(process.cwd(), "dist");
-    // Serve static assets without overriding security headers we already set
+    // Serve static assets — headers already set by global middleware above
     app.use(express.static(distPath, { setHeaders: (res) => {
       res.removeHeader('X-Frame-Options');
-      res.setHeader('X-Frame-Options', 'ALLOWALL');
+      res.setHeader('Content-Security-Policy', "frame-ancestors *");
     }}));
     app.get("*", (req, res) => {
       // Ensure iframe headers on SPA fallback too
       res.removeHeader('X-Frame-Options');
-      res.setHeader('X-Frame-Options', 'ALLOWALL');
+      res.setHeader('Content-Security-Policy', "frame-ancestors *");
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
