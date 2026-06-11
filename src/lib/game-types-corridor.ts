@@ -27,6 +27,15 @@ export interface GameConfig {
   continueOnZeroHealth?: boolean;
 }
 
+export interface AnswerRecord {
+  questionPrompt: string;
+  selectedAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  pointsEarned: number;
+  questionIndex: number;
+}
+
 export const PRESET_CATEGORIES = [
   {
     name: "Parts of Speech",

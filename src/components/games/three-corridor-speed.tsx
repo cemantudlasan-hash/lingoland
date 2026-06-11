@@ -27,7 +27,7 @@ import {
   Users, 
   GraduationCap 
 } from "lucide-react";
-import { Question, Team, GameConfig, PRESET_CATEGORIES } from "@/lib/game-types-corridor";
+import { Question, Team, GameConfig, PRESET_CATEGORIES, AnswerRecord } from "@/lib/game-types-corridor";
 import { generateDynamicQuestions } from "@/lib/questionGenerator-corridor";
 import ThreeGame from "./ThreeGame";
 import TeacherPanel from "../TeacherPanel";
@@ -108,8 +108,8 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
   const [p2Questions, setP2Questions] = useState<Question[]>([]);
 
   // Split-screen individual completion statistics
-  const [p1Stats, setP1Stats] = useState<{ score: number; correctCount: number; totalCount: number; completed: boolean; obstacleHits: number } | null>(null);
-  const [p2Stats, setP2Stats] = useState<{ score: number; correctCount: number; totalCount: number; completed: boolean; obstacleHits: number } | null>(null);
+  const [p1Stats, setP1Stats] = useState<{ score: number; correctCount: number; totalCount: number; completed: boolean; obstacleHits: number; answerHistory: AnswerRecord[] } | null>(null);
+  const [p2Stats, setP2Stats] = useState<{ score: number; correctCount: number; totalCount: number; completed: boolean; obstacleHits: number; answerHistory: AnswerRecord[] } | null>(null);
 
   // Post game stats
   const [lastGameStats, setLastGameStats] = useState<{
@@ -118,6 +118,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
     totalCount: number;
     teamName: string | null;
     obstacleHits: number;
+    answerHistory: AnswerRecord[];
   } | null>(null);
 
   // Shuffle questions array helper to ensure players get "different questions" simultaneously
@@ -216,7 +217,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
   };
 
   // Callback when a 3D run completes in Single Player mode
-  const handleGameCompleted = async (achievedScore: number, correctCount: number, totalQuestions: number, obstacleHits: number = 0) => {
+  const handleGameCompleted = async (achievedScore: number, correctCount: number, totalQuestions: number, obstacleHits: number = 0, history: AnswerRecord[] = []) => {
     // If an active session team is registered, update their row statistics
     let currentTeamName: string | null = null;
     if (activeTeamId) {
@@ -253,6 +254,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
       totalCount: totalQuestions,
       teamName: currentTeamName,
       obstacleHits,
+      answerHistory: history,
     });
 
     // Display rich rewards screens
@@ -276,13 +278,13 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
   };
 
   // Callback when Player 1 finishes in Multiplayer
-  const handleP1Completed = (achievedScore: number, correctCount: number, totalQuestions: number, obstacleHits: number = 0) => {
-    setP1Stats({ score: achievedScore, correctCount, totalCount: totalQuestions, completed: true, obstacleHits });
+  const handleP1Completed = (achievedScore: number, correctCount: number, totalQuestions: number, obstacleHits: number = 0, history: AnswerRecord[] = []) => {
+    setP1Stats({ score: achievedScore, correctCount, totalCount: totalQuestions, completed: true, obstacleHits, answerHistory: history });
   };
 
   // Callback when Player 2 finishes in Multiplayer
-  const handleP2Completed = (achievedScore: number, correctCount: number, totalQuestions: number, obstacleHits: number = 0) => {
-    setP2Stats({ score: achievedScore, correctCount, totalCount: totalQuestions, completed: true, obstacleHits });
+  const handleP2Completed = (achievedScore: number, correctCount: number, totalQuestions: number, obstacleHits: number = 0, history: AnswerRecord[] = []) => {
+    setP2Stats({ score: achievedScore, correctCount, totalCount: totalQuestions, completed: true, obstacleHits, answerHistory: history });
   };
 
   // Coordinate multiplayer completion via useEffect to completely bypass stale closure state bugs
@@ -331,6 +333,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
           totalCount: (p1Stats.totalCount || 0) + (p2Stats.totalCount || 0),
           teamName: currentTeamName,
           obstacleHits: (p1Stats.obstacleHits || 0) + (p2Stats.obstacleHits || 0),
+          answerHistory: [],
         });
 
         setScreen("POST_GAME");
@@ -796,7 +799,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                           lifeLossPerMistake,
                           continueOnZeroHealth,
                         }}
-                        onGameCompleted={(sc, corr, tot, hits) => handleP1Completed(sc, corr, tot, hits)}
+                        onGameCompleted={(sc, corr, tot, hits, hist) => handleP1Completed(sc, corr, tot, hits, hist)}
                         onExit={() => setScreen("MENU")}
                       />
                     )}
@@ -858,7 +861,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                           lifeLossPerMistake,
                           continueOnZeroHealth,
                         }}
-                        onGameCompleted={(sc, corr, tot, hits) => handleP2Completed(sc, corr, tot, hits)}
+                        onGameCompleted={(sc, corr, tot, hits, hist) => handleP2Completed(sc, corr, tot, hits, hist)}
                         onExit={() => setScreen("MENU")}
                       />
                     )}
@@ -1123,6 +1126,77 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                     </div>
                   </>
                 ) : null}
+
+                {/* ── ROUND SUMMARY (single player) ── */}
+                {lastGameStats?.answerHistory && lastGameStats.answerHistory.length > 0 && gameMode !== "multi" && (
+                  <div className="w-full mt-4 border-t border-slate-700/40 pt-4">
+                    <h3 className="text-[10px] font-black text-teal-400 font-mono uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      📋 ROUND BREAKDOWN — {lastGameStats.correctCount}/{lastGameStats.totalCount} Correct
+                    </h3>
+                    <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                      {lastGameStats.answerHistory.map((record, i) => (
+                        <div key={i} className={`p-2.5 rounded-xl border text-left flex items-start gap-2 ${
+                          record.isCorrect ? "bg-emerald-950/30 border-emerald-800/40" : "bg-rose-950/30 border-rose-800/40"
+                        }`}>
+                          <span className={`text-sm shrink-0 font-bold ${record.isCorrect ? "text-emerald-400" : "text-rose-400"}`}>{record.isCorrect ? "✓" : "✗"}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[9px] text-slate-500 font-mono truncate mb-0.5">Q{i + 1}: {record.questionPrompt}</p>
+                            <div className="flex flex-wrap items-center gap-x-2">
+                              <span className={`text-[10px] font-bold ${record.isCorrect ? "text-emerald-300" : "text-rose-300"}`}>{record.selectedAnswer}</span>
+                              {record.isCorrect && <span className="text-[9px] font-mono text-teal-400">+{record.pointsEarned}pts</span>}
+                              {!record.isCorrect && <span className="text-[9px] text-slate-400">→ <span className="text-emerald-300 font-bold">{record.correctAnswer}</span></span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── ROUND SUMMARY (duel mode — both players) ── */}
+                {gameMode === "multi" && p1Stats && p2Stats && (p1Stats as any).answerHistory && (
+                  <div className="w-full mt-4 border-t border-slate-700/40 pt-4">
+                    <h3 className="text-[10px] font-black text-slate-400 font-mono uppercase tracking-widest mb-3 text-center">📋 ROUND BREAKDOWN</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* P1 */}
+                      <div>
+                        <p className="text-[9px] font-bold text-pink-400 font-mono uppercase mb-2">Player 1 (Pink) — {p1Stats.correctCount}/{p1Stats.totalCount} ✓</p>
+                        <div className="space-y-1 max-h-44 overflow-y-auto">
+                          {((p1Stats as any).answerHistory as AnswerRecord[]).map((record, i) => (
+                            <div key={i} className={`p-2 rounded-lg border flex gap-1.5 text-left ${
+                              record.isCorrect ? "bg-emerald-950/20 border-emerald-800/30" : "bg-rose-950/20 border-rose-800/30"
+                            }`}>
+                              <span className={`text-xs shrink-0 font-bold ${record.isCorrect ? "text-emerald-400" : "text-rose-400"}`}>{record.isCorrect ? "✓" : "✗"}</span>
+                              <div className="min-w-0">
+                                <p className="text-[8px] text-slate-500 truncate">Q{i+1}: {record.questionPrompt}</p>
+                                <p className={`text-[9px] font-bold ${record.isCorrect ? "text-emerald-300" : "text-rose-300"}`}>{record.selectedAnswer}</p>
+                                {!record.isCorrect && <p className="text-[8px] text-slate-400">→ <span className="text-emerald-300 font-semibold">{record.correctAnswer}</span></p>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {/* P2 */}
+                      <div>
+                        <p className="text-[9px] font-bold text-cyan-400 font-mono uppercase mb-2">Player 2 (Cyan) — {p2Stats.correctCount}/{p2Stats.totalCount} ✓</p>
+                        <div className="space-y-1 max-h-44 overflow-y-auto">
+                          {((p2Stats as any).answerHistory as AnswerRecord[]).map((record, i) => (
+                            <div key={i} className={`p-2 rounded-lg border flex gap-1.5 text-left ${
+                              record.isCorrect ? "bg-emerald-950/20 border-emerald-800/30" : "bg-rose-950/20 border-rose-800/30"
+                            }`}>
+                              <span className={`text-xs shrink-0 font-bold ${record.isCorrect ? "text-emerald-400" : "text-rose-400"}`}>{record.isCorrect ? "✓" : "✗"}</span>
+                              <div className="min-w-0">
+                                <p className="text-[8px] text-slate-500 truncate">Q{i+1}: {record.questionPrompt}</p>
+                                <p className={`text-[9px] font-bold ${record.isCorrect ? "text-emerald-300" : "text-rose-300"}`}>{record.selectedAnswer}</p>
+                                {!record.isCorrect && <p className="text-[8px] text-slate-400">→ <span className="text-emerald-300 font-semibold">{record.correctAnswer}</span></p>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Back navigators */}
                 <div className="flex flex-col gap-3.5 w-full pr-1 mt-6">
