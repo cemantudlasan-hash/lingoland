@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { 
@@ -765,13 +766,13 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
             </motion.div>
           )}
 
-          {screen === "PLAYING" && (
+          {screen === "PLAYING" && typeof window !== "undefined" && createPortal(
             <motion.div
               key="playing"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full h-full fixed inset-0 z-30"
+              className="w-full h-full fixed inset-0 z-[9999] bg-[#060814]"
               style={{ touchAction: "none" }}
             >
               {gameMode === "single" ? (
@@ -935,7 +936,8 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                   </div>
                 </div>
               )}
-            </motion.div>
+            </motion.div>,
+            document.body
           )}
 
           {screen === "TEACHER" && (

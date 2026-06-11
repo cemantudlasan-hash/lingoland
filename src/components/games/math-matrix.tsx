@@ -145,7 +145,7 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
   return (
     <Card className={cn(
       "w-full transition-all duration-500 flex flex-col overflow-y-auto relative border-none shadow-2xl",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-black" : "max-w-4xl mx-auto h-[700px] bg-zinc-950"
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-black" : "max-w-4xl mx-auto min-h-[500px] h-[600px] md:h-[700px] bg-zinc-950"
     )}>
       {/* Cyberpunk Grid Background Effect */}
       <div className="absolute inset-0 z-0 opacity-20">
@@ -198,8 +198,8 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                     className="absolute -inset-4 bg-green-500/20 blur-2xl rounded-full"
                 />
-                <h2 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none mb-4 relative font-mono">
-                    Crack the<br/><span className="text-7xl md:text-8xl text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.8)]">Matrix</span>
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none mb-4 relative font-mono">
+                    Crack the<br/><span className="text-5xl sm:text-7xl md:text-8xl text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.8)]">Matrix</span>
                 </h2>
               </div>
               <p className="text-green-200/60 max-w-md mx-auto text-lg font-mono">
@@ -220,44 +220,44 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="bg-black/80 backdrop-blur-xl border border-green-500/30 p-10 md:p-12 rounded-xl max-w-2xl w-full mx-4 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+              className="bg-black/80 backdrop-blur-xl border border-green-500/30 p-6 sm:p-10 md:p-12 rounded-xl max-w-2xl w-full mx-4 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
             >
-              <h3 className="text-3xl font-black text-green-400 uppercase mb-8 flex items-center gap-3 font-mono">
+              <h3 className="text-xl sm:text-3xl font-black text-green-400 uppercase mb-4 sm:mb-8 flex items-center gap-3 font-mono">
                 <Activity className="text-green-400" /> System Protocol
               </h3>
-              <div className="space-y-6 text-xl text-zinc-300 font-mono">
-                <div className="flex gap-4">
-                  <div className="h-8 w-8 rounded-sm border border-green-500 text-green-500 bg-green-500/10 flex items-center justify-center text-sm font-bold shrink-0">01</div>
+              <div className="space-y-4 sm:space-y-6 text-sm sm:text-xl text-zinc-300 font-mono">
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-sm border border-green-500 text-green-500 bg-green-500/10 flex items-center justify-center text-xs sm:text-sm font-bold shrink-0">01</div>
                   <span>Analyze the 2x2 data grid. The numbers follow a strict mathematical sequence.</span>
                 </div>
-                <div className="flex gap-4">
-                  <div className="h-8 w-8 rounded-sm border border-green-500 text-green-500 bg-green-500/10 flex items-center justify-center text-sm font-bold shrink-0">02</div>
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-sm border border-green-500 text-green-500 bg-green-500/10 flex items-center justify-center text-xs sm:text-sm font-bold shrink-0">02</div>
                   <span>Deduce the pattern (addition or multiplication) to find the corrupted block <span className="text-red-400 font-bold">[?]</span>.</span>
                 </div>
-                <div className="flex gap-4">
-                  <div className="h-8 w-8 rounded-sm border border-green-500 text-green-500 bg-green-500/10 flex items-center justify-center text-sm font-bold shrink-0">03</div>
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-sm border border-green-500 text-green-500 bg-green-500/10 flex items-center justify-center text-xs sm:text-sm font-bold shrink-0">03</div>
                   <span>Input the correct value before the connection times out.</span>
                 </div>
               </div>
-              <Button onClick={startNextRound} className="w-full mt-12 h-16 text-xl font-black bg-green-500 text-black hover:bg-green-400 transition-colors uppercase tracking-[0.2em] rounded-sm border border-green-300 shadow-[0_0_20px_rgba(74,222,128,0.3)]">
+              <Button onClick={startNextRound} className="w-full mt-6 sm:mt-12 h-12 sm:h-16 text-base sm:text-xl font-black bg-green-500 text-black hover:bg-green-400 transition-colors uppercase tracking-[0.2em] rounded-sm border border-green-300 shadow-[0_0_20px_rgba(74,222,128,0.3)]">
                 Access Mainframe
               </Button>
             </motion.div>
           )}
 
           {gameState === "playing" && currentProblem && (
-            <div className="w-full h-full flex flex-col items-center justify-center relative">
+            <div className="w-full h-full flex flex-col items-center justify-center relative pb-16 sm:pb-24">
                <motion.div
                   key={currentProblem.id}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: "spring", damping: 20 }}
-                  className="mb-12 w-full max-w-md px-4"
+                  className="mb-4 sm:mb-12 w-full max-w-xs sm:max-w-md px-4"
                >
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {currentProblem.grid.map((val, idx) => (
                         <div key={idx} className={cn(
-                            "aspect-square flex items-center justify-center text-5xl md:text-7xl font-bold font-mono border-2 rounded-xl backdrop-blur-sm",
+                            "aspect-square flex items-center justify-center text-3xl sm:text-5xl md:text-7xl font-bold font-mono border-2 rounded-xl backdrop-blur-sm",
                             val === null 
                                 ? "border-red-500 bg-red-500/10 text-red-500 shadow-[inset_0_0_20px_rgba(239,68,68,0.3)] animate-pulse" 
                                 : "border-green-500/40 bg-green-900/20 text-white shadow-[0_0_15px_rgba(34,197,94,0.2)]"
@@ -268,7 +268,7 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
                   </div>
                </motion.div>
 
-               <div className="grid grid-cols-2 gap-4 w-full max-w-xl px-4">
+               <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-md sm:max-w-xl px-4">
                   {currentProblem.options.map((opt, i) => (
                     <motion.div
                         key={opt}
@@ -278,7 +278,7 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
                     >
                         <Button
                             onClick={() => handleAnswer(opt)}
-                            className="w-full h-20 md:h-24 text-3xl md:text-4xl font-black font-mono bg-zinc-900/80 hover:bg-green-900/40 text-white border border-zinc-700 hover:border-green-400 rounded-lg transition-all group overflow-hidden relative"
+                            className="w-full h-14 sm:h-20 md:h-24 text-xl sm:text-3xl md:text-4xl font-black font-mono bg-zinc-900/80 hover:bg-green-900/40 text-white border border-zinc-700 hover:border-green-400 rounded-lg transition-all group overflow-hidden relative"
                         >
                             <span className="relative z-10">{opt}</span>
                             <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -287,12 +287,13 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
                   ))}
                </div>
 
-               <div className="absolute bottom-8 left-0 right-0 px-8 md:px-12">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-zinc-500 text-xs font-black uppercase tracking-widest font-mono">Uplink Stability</span>
-                    <span className="text-green-400 font-black tabular-nums font-mono">{timeLeft.toFixed(1)}s</span>
+               {/* Relative layout for progress bar ensures it flows below the options without absolute overlaps on mobile */}
+               <div className="absolute bottom-2 sm:bottom-6 left-0 right-0 px-6 sm:px-12">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-zinc-500 text-[10px] sm:text-xs font-black uppercase tracking-widest font-mono">Uplink Stability</span>
+                    <span className="text-green-400 text-xs sm:text-sm font-black tabular-nums font-mono">{timeLeft.toFixed(1)}s</span>
                   </div>
-                  <Progress value={(timeLeft / TIMER_LIMIT) * 100} className="h-2 bg-zinc-900 border border-zinc-800 rounded-none">
+                  <Progress value={(timeLeft / TIMER_LIMIT) * 100} className="h-1.5 sm:h-2 bg-zinc-900 border border-zinc-800 rounded-none">
                     <div className="h-full bg-green-500 rounded-none shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
                   </Progress>
                </div>
@@ -308,27 +309,27 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
               className="w-full h-full flex flex-col items-center justify-center relative text-center px-4"
             >
                 {resultData.status === "correct" && (
-                    <div className="bg-green-500/10 border border-green-500/30 p-12 rounded-2xl backdrop-blur-lg">
-                        <h2 className="text-5xl md:text-6xl font-black text-green-400 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(74,222,128,0.5)] font-mono">
+                    <div className="bg-green-500/10 border border-green-500/30 p-6 sm:p-12 rounded-2xl backdrop-blur-lg">
+                        <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-green-400 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(74,222,128,0.5)] font-mono">
                             Decrypted
                         </h2>
-                        <p className="text-2xl text-green-100 mt-4 font-bold font-mono">+{resultData.points} Bytes</p>
+                        <p className="text-xl sm:text-2xl text-green-100 mt-2 sm:mt-4 font-bold font-mono">+{resultData.points} Bytes</p>
                     </div>
                 )}
                 {resultData.status === "incorrect" && (
-                    <div className="bg-red-500/10 border border-red-500/30 p-12 rounded-2xl backdrop-blur-lg">
-                        <h2 className="text-5xl md:text-6xl font-black text-red-500 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] font-mono">
+                    <div className="bg-red-500/10 border border-red-500/30 p-6 sm:p-12 rounded-2xl backdrop-blur-lg">
+                        <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-red-500 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] font-mono">
                             Breach Detected
                         </h2>
-                        <p className="text-xl md:text-2xl text-white mt-6 font-mono">Valid fragment was <span className="font-bold text-red-400 bg-red-900/40 px-3 py-1 rounded">{resultData.trueAnswer}</span></p>
+                        <p className="text-base sm:text-xl md:text-2xl text-white mt-4 sm:mt-6 font-mono">Valid fragment was <span className="font-bold text-red-400 bg-red-900/40 px-2.5 py-1 rounded text-sm sm:text-base">{resultData.trueAnswer}</span></p>
                     </div>
                 )}
                 {resultData.status === "timeout" && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 p-12 rounded-2xl backdrop-blur-lg">
-                        <h2 className="text-5xl md:text-6xl font-black text-yellow-500 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(234,179,8,0.5)] font-mono">
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 p-6 sm:p-12 rounded-2xl backdrop-blur-lg">
+                        <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-yellow-500 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(234,179,8,0.5)] font-mono">
                             Uplink Lost
                         </h2>
-                        <p className="text-xl md:text-2xl text-white mt-6 font-mono">Valid fragment was <span className="font-bold text-yellow-400 bg-yellow-900/40 px-3 py-1 rounded">{resultData.trueAnswer}</span></p>
+                        <p className="text-base sm:text-xl md:text-2xl text-white mt-4 sm:mt-6 font-mono">Valid fragment was <span className="font-bold text-yellow-400 bg-yellow-900/40 px-2.5 py-1 rounded text-sm sm:text-base">{resultData.trueAnswer}</span></p>
                     </div>
                 )}
             </motion.div>
