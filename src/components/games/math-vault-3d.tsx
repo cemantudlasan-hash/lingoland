@@ -53,8 +53,8 @@ type MultiplayerState = 'mode_select' | 'create_room' | 'join_room' | 'lobby' | 
 
 interface MathProblem {
   q: string;
-  a: number;
-  choices: number[];
+  a: number | string;
+  choices: (number | string)[];
 }
 
 const BACKGROUND_FLOATS = [
@@ -84,7 +84,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const [usedQuestions, setUsedQuestions] = React.useState<string[]>([]);
 
   // Upgraded Multiple Choice Selection states
-  const [selectedAnswer, setSelectedAnswer] = React.useState<number | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = React.useState<number | string | null>(null);
   const [hasAnswered, setHasAnswered] = React.useState(false);
   const [singleQuestions, setSingleQuestions] = React.useState<MathProblem[]>([]);
 
@@ -96,6 +96,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const [roomData, setRoomData] = React.useState<any>(null);
   const [roomPlayers, setRoomPlayers] = React.useState<any[]>([]);
   const [codeVal, setCodeVal] = React.useState<string>('');
+  const [questionMode, setQuestionMode] = React.useState<'auto' | 'custom'>('auto');
+  const [customQuestions, setCustomQuestions] = React.useState<any[]>([{ q: '', choices: ['', '', '', ''], correctIndex: 0 }]);
+  const [isEditingQuestions, setIsEditingQuestions] = React.useState<boolean>(false);
 
   // Local Toast notification state (visible in Fullscreen mode)
   const [localToast, setLocalToast] = React.useState<{ title: string; description: string; variant?: 'default' | 'destructive' } | null>(null);
@@ -167,6 +170,10 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       
       if (data.difficulty) setDifficulty(data.difficulty as Difficulty);
       if (data.roundsCount) setRoundsCount(data.roundsCount);
+      if (data.questionMode) setQuestionMode(data.questionMode);
+      if (data.customQuestions && !isEditingQuestions) {
+        setCustomQuestions(data.customQuestions);
+      }
       
       // Check if room was disbanded via status
       if (data.status === 'disbanded') {
@@ -196,7 +203,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     });
     
     return () => unsubscribe();
-  }, [firestore, roomCode, gameMode, multiplayerState]);
+  }, [firestore, roomCode, gameMode, multiplayerState, isEditingQuestions]);
 
   // Celebrate with Confetti for the Winner
   React.useEffect(() => {
@@ -455,6 +462,26 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       );
       return;
     }
+
+    if (questionMode === 'custom') {
+      if (customQuestions.length === 0) {
+        showLocalToast("Incomplete Lobby", "Please add at least 1 custom question.", "destructive");
+        return;
+      }
+      for (let i = 0; i < customQuestions.length; i++) {
+        const cq = customQuestions[i];
+        if (!cq.q.trim()) {
+          showLocalToast("Incomplete Question", `Round ${i + 1} question is empty.`, "destructive");
+          return;
+        }
+        for (let j = 0; j < cq.choices.length; j++) {
+          if (!cq.choices[j].trim()) {
+            showLocalToast("Incomplete Choices", `Round ${i + 1} choice ${String.fromCharCode(65 + j)} is empty.`, "destructive");
+            return;
+          }
+        }
+      }
+    }
     
     const code = Array.from({ length: 5 }, () => 
       String.fromCharCode(65 + Math.floor(Math.random() * 26))
@@ -483,10 +510,12 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
         hostId: hostUid,
         hostName: nickname,
         difficulty,
-        roundsCount,
+        roundsCount: questionMode === 'custom' ? customQuestions.length : roundsCount,
         status: 'lobby',
         players: initialPlayers,
         questions: [],
+        questionMode,
+        customQuestions: questionMode === 'custom' ? customQuestions : [],
         createdAt: Date.now()
       });
       
@@ -633,8 +662,53 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     setRoomData(null);
     setRoomPlayers([]);
     setCodeVal('');
+    setQuestionMode('auto');
+    setCustomQuestions([{ q: '', choices: ['', '', '', ''], correctIndex: 0 }]);
+    setIsEditingQuestions(false);
     setMultiplayerState('mode_select');
     setGameState('idle');
+  };
+
+  const addCustomQuestion = () => {
+    setCustomQuestions([...customQuestions, { q: '', choices: ['', '', '', ''], correctIndex: 0 }]);
+  };
+
+  const removeCustomQuestion = (index: number) => {
+    if (customQuestions.length <= 1) return;
+    const list = [...customQuestions];
+    list.splice(index, 1);
+    setCustomQuestions(list);
+  };
+
+  const updateCustomQuestion = (index: number, field: string, value: any) => {
+    const list = [...customQuestions];
+    if (field === 'q') {
+      list[index].q = value;
+    } else if (field === 'correctIndex') {
+      list[index].correctIndex = value;
+    }
+    setCustomQuestions(list);
+  };
+
+  const updateCustomChoice = (qIndex: number, choiceIndex: number, value: string) => {
+    const list = [...customQuestions];
+    list[qIndex].choices[choiceIndex] = value;
+    setCustomQuestions(list);
+  };
+
+  const handleSaveCustomQuestions = async (updatedList: any[]) => {
+    if (!firestore || !roomCode || !isHost) return;
+    try {
+      const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
+      await updateDoc(roomRef, {
+        customQuestions: updatedList,
+        roundsCount: updatedList.length
+      });
+      showLocalToast("Questions Saved", "Custom question database updated successfully.", "default");
+    } catch (e) {
+      console.error(e);
+      showLocalToast("Error Saving", "Could not update questions on server.", "destructive");
+    }
   };
 
   const handleStartGameMultiplayer = async () => {
@@ -649,21 +723,44 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     }
     
     try {
-      const questionsList: any[] = [];
-      const tempUsed: string[] = [];
-      for (let i = 0; i < roundsCount; i++) {
-        let newProb = generateMath(difficulty);
-        let attempts = 15;
-        while (tempUsed.includes(newProb.q) && attempts > 0) {
-          newProb = generateMath(difficulty);
-          attempts--;
+      let questionsList: any[] = [];
+      const mode = roomData?.questionMode || 'auto';
+      const rounds = mode === 'custom' ? (roomData?.customQuestions?.length || 0) : roundsCount;
+
+      if (mode === 'custom') {
+        const rawList = roomData?.customQuestions || [];
+        if (rawList.length === 0) {
+          showLocalToast("No Questions", "Please add custom questions first.", "destructive");
+          return;
         }
-        tempUsed.push(newProb.q);
-        questionsList.push({
-          q: newProb.q,
-          a: newProb.a,
-          choices: newProb.choices
+        questionsList = rawList.map((cq: any) => {
+          const processedChoices = cq.choices.map((c: string) => {
+            const num = Number(c);
+            return isNaN(num) || c.trim() === '' ? c : num;
+          });
+          const correctVal = processedChoices[cq.correctIndex];
+          return {
+            q: cq.q,
+            a: correctVal,
+            choices: processedChoices
+          };
         });
+      } else {
+        const tempUsed: string[] = [];
+        for (let i = 0; i < rounds; i++) {
+          let newProb = generateMath(difficulty);
+          let attempts = 15;
+          while (tempUsed.includes(newProb.q) && attempts > 0) {
+            newProb = generateMath(difficulty);
+            attempts--;
+          }
+          tempUsed.push(newProb.q);
+          questionsList.push({
+            q: newProb.q,
+            a: newProb.a,
+            choices: newProb.choices
+          });
+        }
       }
       
       const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
@@ -716,7 +813,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     setGameState('playing');
   };
 
-  const handleAnswerSubmit = async (choice: number) => {
+  const handleAnswerSubmit = async (choice: number | string) => {
     if (hasAnswered || isAnimating) return;
     
     setSelectedAnswer(choice);
@@ -966,57 +1063,176 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             <p className="text-cyan-200/50 text-xs">Configure your multiplayer game parameters</p>
           </div>
 
-          {/* Difficulty Option */}
+          {/* Question Mode Option */}
           <div className="space-y-3">
             <label className="text-[10px] uppercase font-mono tracking-widest text-cyan-400/80 block font-bold">
-              Select Difficulty
+              Question Mode
             </label>
-            <div className="grid grid-cols-3 gap-3">
-              {(['easy', 'medium', 'hard'] as const).map((diff) => (
-                <button
-                  key={diff}
-                  type="button"
-                  onClick={() => setDifficulty(diff)}
-                  className={cn(
-                    "py-3.5 rounded-xl border font-black text-xs uppercase transition-all cursor-pointer",
-                    difficulty === diff
-                      ? diff === 'easy'
-                        ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
-                        : diff === 'medium'
-                          ? "bg-yellow-500/20 border-yellow-500 text-yellow-300 shadow-[0_0_12px_rgba(234,179,8,0.2)]"
-                          : "bg-rose-500/20 border-rose-500 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.2)]"
-                      : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
-                  )}
-                >
-                  {diff}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setQuestionMode('auto')}
+                className={cn(
+                  "py-3.5 rounded-xl border font-black text-xs uppercase transition-all cursor-pointer",
+                  questionMode === 'auto'
+                    ? "bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)]"
+                    : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                )}
+              >
+                🤖 Auto-Generated Math
+              </button>
+              <button
+                type="button"
+                onClick={() => setQuestionMode('custom')}
+                className={cn(
+                  "py-3.5 rounded-xl border font-black text-xs uppercase transition-all cursor-pointer",
+                  questionMode === 'custom'
+                    ? "bg-purple-500/20 border-purple-500 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]"
+                    : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                )}
+              >
+                ✏️ Custom Created Items
+              </button>
             </div>
           </div>
 
-          {/* Rounds Option */}
-          <div className="space-y-3">
-            <label className="text-[10px] uppercase font-mono tracking-widest text-cyan-400/80 block font-bold">
-              Number of Rounds
-            </label>
-            <div className="grid grid-cols-5 gap-2.5">
-              {[5, 8, 10, 15, 20].map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRoundsCount(r)}
-                  className={cn(
-                    "py-3 rounded-lg border font-mono font-bold text-sm transition-all cursor-pointer",
-                    roundsCount === r
-                      ? "bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)]"
-                      : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
-                  )}
-                >
-                  {r}
-                </button>
-              ))}
+          {/* Difficulty Option */}
+          {questionMode === 'auto' && (
+            <div className="space-y-3">
+              <label className="text-[10px] uppercase font-mono tracking-widest text-cyan-400/80 block font-bold">
+                Select Difficulty
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {(['easy', 'medium', 'hard'] as const).map((diff) => (
+                  <button
+                    key={diff}
+                    type="button"
+                    onClick={() => setDifficulty(diff)}
+                    className={cn(
+                      "py-3.5 rounded-xl border font-black text-xs uppercase transition-all cursor-pointer",
+                      difficulty === diff
+                        ? diff === 'easy'
+                          ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                          : diff === 'medium'
+                            ? "bg-yellow-500/20 border-yellow-500 text-yellow-300 shadow-[0_0_12px_rgba(234,179,8,0.2)]"
+                            : "bg-rose-500/20 border-rose-500 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.2)]"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                    )}
+                  >
+                    {diff}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Rounds Option */}
+          {questionMode === 'auto' && (
+            <div className="space-y-3">
+              <label className="text-[10px] uppercase font-mono tracking-widest text-cyan-400/80 block font-bold">
+                Number of Rounds
+              </label>
+              <div className="grid grid-cols-5 gap-2.5">
+                {[5, 8, 10, 15, 20].map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRoundsCount(r)}
+                    className={cn(
+                      "py-3 rounded-lg border font-mono font-bold text-sm transition-all cursor-pointer",
+                      roundsCount === r
+                        ? "bg-cyan-500/20 border-cyan-500 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.2)]"
+                        : "bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700"
+                    )}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Custom Question Builder Option */}
+          {questionMode === 'custom' && (
+            <div className="space-y-4 border-t border-white/5 pt-4 mt-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-white uppercase tracking-wider">
+                  ✏️ Custom Questions ({customQuestions.length} Rounds)
+                </span>
+                <Button
+                  type="button"
+                  onClick={addCustomQuestion}
+                  size="sm"
+                  className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold cursor-pointer text-xs"
+                >
+                  + Add Round
+                </Button>
+              </div>
+
+              <div className="max-h-96 overflow-y-auto space-y-5 pr-2 custom-scrollbar">
+                {customQuestions.map((q, qIdx) => (
+                  <div key={qIdx} className="bg-slate-900/50 p-4 rounded-xl border border-white/5 space-y-3 relative">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-mono font-bold text-cyan-400">Round {qIdx + 1}</span>
+                      {customQuestions.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeCustomQuestion(qIdx)}
+                          className="text-rose-400 hover:text-rose-300 transition-colors p-1"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] uppercase font-mono tracking-widest text-slate-400 block font-bold">
+                        Question / Problem
+                      </label>
+                      <input
+                        type="text"
+                        value={q.q}
+                        onChange={(e) => updateCustomQuestion(qIdx, 'q', e.target.value)}
+                        placeholder="e.g. 15 x 3 - 5 or What color is the sky?"
+                        className="w-full bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-700 focus:outline-none focus:border-cyan-500 transition-all font-semibold"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] uppercase font-mono tracking-widest text-slate-400 block font-bold">
+                        Choices & Correct Answer
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {q.choices.map((choice: string, cIdx: number) => (
+                          <div key={cIdx} className="flex items-center gap-1.5 bg-slate-950/80 px-2 py-1 rounded-lg border border-white/5">
+                            <button
+                              type="button"
+                              onClick={() => updateCustomQuestion(qIdx, 'correctIndex', cIdx)}
+                              className={cn(
+                                "w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0",
+                                q.correctIndex === cIdx
+                                  ? "border-emerald-500 bg-emerald-500 text-slate-950"
+                                  : "border-slate-700 hover:border-slate-500"
+                              )}
+                            >
+                              {q.correctIndex === cIdx && <span className="w-1.5 h-1.5 bg-slate-950 rounded-full" />}
+                            </button>
+                            <input
+                              type="text"
+                              value={choice}
+                              onChange={(e) => updateCustomChoice(qIdx, cIdx, e.target.value)}
+                              placeholder={`Choice ${String.fromCharCode(65 + cIdx)}`}
+                              className="w-full bg-transparent border-none p-1 text-xs text-white placeholder-slate-700 focus:outline-none font-medium"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-3 mt-4">
             <Button
@@ -1084,7 +1300,148 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     );
   };
 
+  const renderLobbyQuestionEditor = () => {
+    return (
+      <div className="w-full max-w-2xl flex flex-col gap-8 animate-in fade-in zoom-in-95 duration-300 px-8 py-10">
+        <div className="bg-slate-950/80 p-8 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-6">
+          <div className="text-center space-y-2">
+            <Badge className="bg-purple-500/10 text-purple-400 border border-purple-500/20 uppercase tracking-widest font-mono text-[9px] px-2.5 py-1 mb-2">
+              Lobby Editor
+            </Badge>
+            <h3 className="text-3xl font-black text-white tracking-tighter uppercase">
+              Edit Custom Questions
+            </h3>
+            <p className="text-cyan-200/50 text-xs">Tweak your questions before starting the game</p>
+          </div>
+
+          <div className="space-y-4 pt-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-bold text-white uppercase tracking-wider">
+                ✏️ Questions ({customQuestions.length} Rounds)
+              </span>
+              <Button
+                type="button"
+                onClick={addCustomQuestion}
+                size="sm"
+                className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold cursor-pointer text-xs"
+              >
+                + Add Round
+              </Button>
+            </div>
+
+            <div className="max-h-96 overflow-y-auto space-y-5 pr-2 custom-scrollbar">
+              {customQuestions.map((q, qIdx) => (
+                <div key={qIdx} className="bg-slate-900/50 p-4 rounded-xl border border-white/5 space-y-3 relative">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-mono font-bold text-cyan-400">Round {qIdx + 1}</span>
+                    {customQuestions.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeCustomQuestion(qIdx)}
+                        className="text-rose-400 hover:text-rose-300 transition-colors p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[9px] uppercase font-mono tracking-widest text-slate-400 block font-bold">
+                      Question / Problem
+                    </label>
+                    <input
+                      type="text"
+                      value={q.q}
+                      onChange={(e) => updateCustomQuestion(qIdx, 'q', e.target.value)}
+                      placeholder="e.g. 15 x 3 - 5 or What color is the sky?"
+                      className="w-full bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-700 focus:outline-none focus:border-cyan-500 transition-all font-semibold"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[9px] uppercase font-mono tracking-widest text-slate-400 block font-bold">
+                      Choices & Correct Answer
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {q.choices.map((choice: string, cIdx: number) => (
+                        <div key={cIdx} className="flex items-center gap-1.5 bg-slate-950/80 px-2 py-1 rounded-lg border border-white/5">
+                          <button
+                            type="button"
+                            onClick={() => updateCustomQuestion(qIdx, 'correctIndex', cIdx)}
+                            className={cn(
+                              "w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0",
+                              q.correctIndex === cIdx
+                                ? "border-emerald-500 bg-emerald-500 text-slate-950"
+                                : "border-slate-700 hover:border-slate-500"
+                            )}
+                          >
+                            {q.correctIndex === cIdx && <span className="w-1.5 h-1.5 bg-slate-950 rounded-full" />}
+                          </button>
+                          <input
+                            type="text"
+                            value={choice}
+                            onChange={(e) => updateCustomChoice(qIdx, cIdx, e.target.value)}
+                            placeholder={`Choice ${String.fromCharCode(65 + cIdx)}`}
+                            className="w-full bg-transparent border-none p-1 text-xs text-white placeholder-slate-700 focus:outline-none font-medium"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-3.5 mt-4">
+            <Button
+              onClick={async () => {
+                // Validation
+                for (let i = 0; i < customQuestions.length; i++) {
+                  const cq = customQuestions[i];
+                  if (!cq.q.trim()) {
+                    showLocalToast("Incomplete Question", `Round ${i + 1} question is empty.`, "destructive");
+                    return;
+                  }
+                  for (let j = 0; j < cq.choices.length; j++) {
+                    if (!cq.choices[j].trim()) {
+                      showLocalToast("Incomplete Choices", `Round ${i + 1} choice ${String.fromCharCode(65 + j)} is empty.`, "destructive");
+                      return;
+                    }
+                  }
+                }
+                // Save to Firestore
+                await handleSaveCustomQuestions(customQuestions);
+                setIsEditingQuestions(false);
+              }}
+              className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-black tracking-widest py-6 rounded-xl transition-all shadow-lg cursor-pointer"
+            >
+              SAVE & APPLY CHANGES
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                // Revert to database state
+                if (roomData?.customQuestions) {
+                  setCustomQuestions(JSON.parse(JSON.stringify(roomData.customQuestions)));
+                }
+                setIsEditingQuestions(false);
+              }}
+              className="text-slate-400 hover:text-white hover:bg-white/5 font-bold cursor-pointer py-3 px-6"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderLobby = () => {
+    if (isEditingQuestions) {
+      return renderLobbyQuestionEditor();
+    }
+
     return (
       <div className="w-full max-w-2xl flex flex-col gap-8 animate-in fade-in zoom-in-95 duration-300 px-8 py-10">
         <div className="bg-slate-950/80 p-8 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-6">
@@ -1142,8 +1499,10 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
 
           <div className="bg-slate-900/40 border border-white/5 p-4 rounded-2xl text-xs space-y-2.5 font-medium text-slate-350">
             <div className="flex justify-between">
-              <span className="text-slate-500">Difficulty:</span>
-              <span className="text-cyan-400 font-bold uppercase">{difficulty}</span>
+              <span className="text-slate-500">Question Mode:</span>
+              <span className={cn("font-bold uppercase", roomData?.questionMode === 'custom' ? "text-purple-400" : "text-cyan-400")}>
+                {roomData?.questionMode === 'custom' ? 'Custom Created' : `Auto (${difficulty})`}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Total Rounds:</span>
@@ -1152,6 +1511,14 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
           </div>
 
           <div className="flex flex-col gap-2.5 mt-2">
+            {isHost && roomData?.questionMode === 'custom' && (
+              <Button
+                onClick={() => setIsEditingQuestions(true)}
+                className="w-full bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 font-bold py-3.5 rounded-xl transition-all cursor-pointer"
+              >
+                ✏️ Edit Custom Questions
+              </Button>
+            )}
             <Button
               onClick={handleStartGameMultiplayer}
               disabled={roomPlayers.length < 2}
@@ -1769,7 +2136,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                       <div className="flex flex-col items-center gap-4 w-full">
                         {!hasAnswered ? (
                           <div className="grid grid-cols-2 gap-4 w-full max-w-lg mt-2">
-                            {activeQuestionData.choices?.map((choice: number) => (
+                            {activeQuestionData.choices?.map((choice: number | string) => (
                               <Button
                                 key={choice}
                                 onClick={() => handleAnswerSubmit(choice)}
@@ -1783,7 +2150,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                         ) : (
                           <div className="flex flex-col items-center gap-4 w-full">
                             <div className="grid grid-cols-2 gap-4 w-full max-w-lg mt-2">
-                              {activeQuestionData.choices?.map((choice: number) => {
+                              {activeQuestionData.choices?.map((choice: number | string) => {
                                 const isCorrect = choice === activeQuestionData.a;
                                 const isSelected = choice === selectedAnswer;
                                 let btnClass = "bg-slate-950 border-2 border-cyan-500/20 text-cyan-350";
