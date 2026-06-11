@@ -84,7 +84,7 @@ export default function ThreeGame({
     starfield: THREE.Points | null;
     crystals: THREE.Mesh[];
     particles: { mesh: THREE.Mesh; velocity: THREE.Vector3; life: number }[];
-    obstacles: { mesh: THREE.Mesh; lane: number }[];
+    obstacles: { obj: THREE.Group; lane: number }[];
     obstacleHitCooldown: number;
     nextObstacleTime: number;
     targetLane: number;
@@ -489,9 +489,9 @@ export default function ThreeGame({
 
       // Rotate obstacles for visual flair
       for (const obs of gameRef.current.obstacles) {
-        obs.mesh.rotation.x += 0.05;
-        obs.mesh.rotation.y += 0.07;
-        obs.mesh.rotation.z += 0.03;
+        obs.obj.rotation.x += 0.04;
+        obs.obj.rotation.y += 0.06;
+        obs.obj.rotation.z += 0.02;
       }
 
       // Particle fade + move
@@ -516,6 +516,9 @@ export default function ThreeGame({
       playerGroup.position.x += (targetX - playerGroup.position.x) * 0.22;
       const bankingAngle = (targetX - playerGroup.position.x) * -0.15;
       playerGroup.rotation.z += (bankingAngle - playerGroup.rotation.z) * 0.2;
+
+      // Camera soft-follows player X → ball always visible on left/right lanes
+      camera.position.x += (playerGroup.position.x * 0.38 - camera.position.x) * 0.07;
 
       // Jump physics
       if (gameRef.current.isJumping) {
@@ -571,18 +574,42 @@ export default function ThreeGame({
       if (gameRef.current.nextObstacleTime > 0 && nowTime > gameRef.current.nextObstacleTime && !gateNearby) {
         const obsLane = Math.floor(Math.random() * 3);
         if (gameRef.current.scene) {
-          const obsGeom = new THREE.OctahedronGeometry(0.55, 0);
-          const obsMat = new THREE.MeshStandardMaterial({
-            color: 0xff2200,
-            emissive: 0xff2200,
-            emissiveIntensity: 2.0,
-            roughness: 0.1,
-            metalness: 0.8,
+          // ── Spike Mine: dark boulder + red cone spikes + warning rings ──
+          const mineGroup = new THREE.Group();
+          mineGroup.position.set((obsLane - 1) * 3.0, 1.0, -50);
+
+          // Dark stone body
+          const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3d1a1a, roughness: 0.85, metalness: 0.15 });
+          const bodyMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), bodyMat);
+          mineGroup.add(bodyMesh);
+
+          // Red glowing spikes (10 cones in all directions)
+          const spikeMat = new THREE.MeshStandardMaterial({
+            color: 0xff1a00, emissive: 0xff1a00,
+            emissiveIntensity: 3.0, roughness: 0.1, metalness: 0.8,
           });
-          const obsMesh = new THREE.Mesh(obsGeom, obsMat);
-          obsMesh.position.set((obsLane - 1) * 3.0, 0.85, -50);
-          gameRef.current.scene.add(obsMesh);
-          gameRef.current.obstacles.push({ mesh: obsMesh, lane: obsLane });
+          const spikeGeom = new THREE.ConeGeometry(0.14, 1.0, 6);
+          [
+            [0,1,0],[0,-1,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1],
+            [0.7,0.7,0],[-0.7,0.7,0],[0.7,-0.7,0],[-0.7,-0.7,0],
+          ].forEach(([dx, dy, dz]) => {
+            const spike = new THREE.Mesh(spikeGeom, spikeMat);
+            const dir = new THREE.Vector3(dx, dy, dz).normalize();
+            spike.position.copy(dir.clone().multiplyScalar(0.72));
+            spike.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+            mineGroup.add(spike);
+          });
+
+          // Warning glow rings
+          const ringMat = new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+          const ring1 = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.07, 8, 32), ringMat);
+          const ring2 = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.07, 8, 32), ringMat);
+          ring2.rotation.x = Math.PI / 2;
+          mineGroup.add(ring1);
+          mineGroup.add(ring2);
+
+          gameRef.current.scene.add(mineGroup);
+          gameRef.current.obstacles.push({ obj: mineGroup, lane: obsLane });
         }
         // Next obstacle: 8-15 seconds later
         gameRef.current.nextObstacleTime = nowTime + 8000 + Math.random() * 7000;
@@ -591,23 +618,27 @@ export default function ThreeGame({
       // ── Obstacle movement + collision ───────────────────────
       for (let i = gameRef.current.obstacles.length - 1; i >= 0; i--) {
         const obs = gameRef.current.obstacles[i];
-        obs.mesh.position.z += gameRef.current.speedFactor;
+        obs.obj.position.z += gameRef.current.speedFactor;
 
         // Remove if past player
-        if (obs.mesh.position.z > 12) {
-          scene.remove(obs.mesh);
-          obs.mesh.geometry.dispose();
-          (obs.mesh.material as THREE.Material).dispose();
+        if (obs.obj.position.z > 12) {
+          scene.remove(obs.obj);
+          obs.obj.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              child.geometry.dispose();
+              (child.material as THREE.Material).dispose();
+            }
+          });
           gameRef.current.obstacles.splice(i, 1);
           continue;
         }
 
         // Collision window: obstacle is near player Z
-        if (obs.mesh.position.z > 3.0 && obs.mesh.position.z < 5.8 && nowTime > gameRef.current.obstacleHitCooldown) {
+        if (obs.obj.position.z > 3.0 && obs.obj.position.z < 5.8 && nowTime > gameRef.current.obstacleHitCooldown) {
           const playerX = playerGroup.position.x;
           const playerYPos = playerGroup.position.y;
-          const xOverlap = Math.abs(playerX - obs.mesh.position.x) < 1.1;
-          const notJumpingOver = playerYPos < 1.7; // player can jump over obstacle
+          const xOverlap = Math.abs(playerX - obs.obj.position.x) < 1.3;
+          const notJumpingOver = playerYPos < 1.9; // player can jump over obstacle
 
           if (xOverlap && notJumpingOver) {
             // ── HIT! ──────────────────────────────────────────
@@ -620,13 +651,17 @@ export default function ThreeGame({
             setTimeout(() => setObstacleFlash(false), 380);
 
             // Particles
-            spawnExplosionParticles(obs.mesh.position.clone(), 0xff2200, 30);
+            spawnExplosionParticles(obs.obj.position.clone(), 0xff2200, 30);
             audioEngine.playIncorrect();
 
-            // Remove obstacle mesh
-            scene.remove(obs.mesh);
-            obs.mesh.geometry.dispose();
-            (obs.mesh.material as THREE.Material).dispose();
+            // Remove obstacle group
+            scene.remove(obs.obj);
+            obs.obj.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                child.geometry.dispose();
+                (child.material as THREE.Material).dispose();
+              }
+            });
             gameRef.current.obstacles.splice(i, 1);
 
             // Apply penalty based on game mode
@@ -656,11 +691,15 @@ export default function ThreeGame({
       cancelAnimationFrame(gameRef.current.requestFrameId);
       resizeObserver.disconnect();
 
-      // Clean up all obstacle meshes
+      // Clean up all obstacle groups
       gameRef.current.obstacles.forEach((obs) => {
-        scene.remove(obs.mesh);
-        obs.mesh.geometry.dispose();
-        (obs.mesh.material as THREE.Material).dispose();
+        scene.remove(obs.obj);
+        obs.obj.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.geometry.dispose();
+            (child.material as THREE.Material).dispose();
+          }
+        });
       });
       gameRef.current.obstacles = [];
 
@@ -773,19 +812,19 @@ export default function ThreeGame({
               💥{obstacleHitsCount}
             </div>
           )}
-          {/* ← MENU button (2-tap confirm) */}
+          {/* ← MENU button — prominent rose-red, always visible */}
           <button
             onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); handleExitClick(); }}
             onClick={handleExitClick}
-            className={`min-h-[36px] px-2 md:px-3 py-1 text-[9px] font-bold font-mono tracking-wider rounded-lg transition-all border cursor-pointer uppercase flex items-center gap-1 ${
+            className={`min-h-[40px] px-3 py-1.5 text-[10px] font-black font-mono tracking-wider rounded-xl transition-all border-2 cursor-pointer uppercase flex items-center gap-1.5 shadow-lg ${
               exitConfirmActive
-                ? "bg-rose-600 border-rose-500 text-white animate-pulse"
-                : "text-slate-300 hover:text-white bg-slate-900 hover:bg-rose-950/40 border-slate-800"
+                ? "bg-rose-500 border-rose-400 text-white animate-pulse scale-105"
+                : "bg-rose-950/80 border-rose-600 text-rose-300 hover:bg-rose-600 hover:text-white hover:border-rose-400"
             }`}
             id="exit-game-btn"
             title="Back to Menu"
           >
-            <LogOut className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
+            <LogOut className="w-3.5 h-3.5 shrink-0" />
             <span>{exitConfirmActive ? "Confirm?" : "Menu"}</span>
           </button>
         </div>
@@ -793,7 +832,8 @@ export default function ThreeGame({
 
       {/* ── BOTTOM HUD: Question + Answers + Jump ─────────────── */}
       <div
-        className="relative z-10 w-full mt-auto px-2 pb-2 pt-1"
+        className="relative z-10 w-full mt-auto px-2 pt-1"
+        style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom, 10px))' }}
         onTouchStart={(e) => e.stopPropagation()}
       >
         <div className="w-full bg-slate-950/95 border border-white/10 backdrop-blur-md p-2.5 md:p-4 rounded-3xl shadow-2xl pointer-events-auto flex flex-col items-center gap-2">
@@ -839,11 +879,12 @@ export default function ThreeGame({
             })}
           </div>
 
-          {/* JUMP button — visible always, especially important on mobile */}
+          {/* JUMP button — tall and easy to tap on mobile */}
           <button
             onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); triggerJump(); }}
             onClick={triggerJump}
-            className={`w-full py-2 md:py-2.5 rounded-2xl border font-black text-xs md:text-sm tracking-widest uppercase transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 ${themeTailwindBg} ${themeTailwindText}`}
+            className={`w-full py-3.5 rounded-2xl border-2 font-black text-sm tracking-widest uppercase transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-lg ${themeTailwindBg} ${themeTailwindText}`}
+            style={{ minHeight: '52px' }}
           >
             ↑ JUMP
           </button>
