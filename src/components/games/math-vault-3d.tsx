@@ -638,7 +638,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   };
 
   const handleStartGameMultiplayer = async () => {
-    if (!firestore || !roomCode || !isHost) return;
+    if (!firestore || !roomCode) return;
     if (roomPlayers.length < 2) {
       showLocalToast(
         "Waiting for Competitors 👥",
@@ -1152,19 +1152,13 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
           </div>
 
           <div className="flex flex-col gap-2.5 mt-2">
-            {isHost ? (
-              <Button
-                onClick={handleStartGameMultiplayer}
-                disabled={roomPlayers.length < 2}
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black tracking-widest py-6 rounded-xl transition-all shadow-lg cursor-pointer"
-              >
-                START GAME 🚀
-              </Button>
-            ) : (
-              <div className="w-full py-4 text-center bg-slate-900/60 border border-white/5 rounded-xl text-slate-450 text-xs font-semibold animate-pulse">
-                Waiting for host to start the game...
-              </div>
-            )}
+            <Button
+              onClick={handleStartGameMultiplayer}
+              disabled={roomPlayers.length < 2}
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black tracking-widest py-6 rounded-xl transition-all shadow-lg cursor-pointer"
+            >
+              START GAME 🚀
+            </Button>
             <Button
               variant="outline"
               onClick={handleLeaveRoom}
