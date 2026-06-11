@@ -712,7 +712,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   };
 
   const handleStartGameMultiplayer = async () => {
-    if (!firestore || !roomCode) return;
+    if (!firestore || !roomCode || !isHost) return;
     if (roomPlayers.length < 2) {
       showLocalToast(
         "Waiting for Competitors 👥",
@@ -1169,7 +1169,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                 </Button>
               </div>
 
-              <div className="max-h-96 overflow-y-auto space-y-5 pr-2 custom-scrollbar">
+              <div className="max-h-[45vh] md:max-h-[30rem] overflow-y-auto space-y-5 pr-2 custom-scrollbar">
                 {customQuestions.map((q, qIdx) => (
                   <div key={qIdx} className="bg-slate-900/50 p-4 rounded-xl border border-white/5 space-y-3 relative">
                     <div className="flex justify-between items-center">
@@ -1202,27 +1202,37 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                       <label className="text-[9px] uppercase font-mono tracking-widest text-slate-400 block font-bold">
                         Choices & Correct Answer
                       </label>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-2.5">
                         {q.choices.map((choice: string, cIdx: number) => (
-                          <div key={cIdx} className="flex items-center gap-1.5 bg-slate-950/80 px-2 py-1 rounded-lg border border-white/5">
+                          <div
+                            key={cIdx}
+                            className={cn(
+                              "flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all duration-200",
+                              q.correctIndex === cIdx
+                                ? "bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)] text-emerald-250"
+                                : "bg-slate-950/80 border-white/5 text-slate-300"
+                            )}
+                          >
                             <button
                               type="button"
                               onClick={() => updateCustomQuestion(qIdx, 'correctIndex', cIdx)}
                               className={cn(
-                                "w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0",
+                                "w-6 h-6 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-sm",
                                 q.correctIndex === cIdx
-                                  ? "border-emerald-500 bg-emerald-500 text-slate-950"
-                                  : "border-slate-700 hover:border-slate-500"
+                                  ? "border-emerald-400 bg-emerald-500 text-slate-950"
+                                  : "border-slate-700 hover:border-slate-500 hover:bg-white/5"
                               )}
                             >
-                              {q.correctIndex === cIdx && <span className="w-1.5 h-1.5 bg-slate-950 rounded-full" />}
+                              {q.correctIndex === cIdx && (
+                                <span className="w-2 bg-slate-950 rounded-full h-2" />
+                              )}
                             </button>
                             <input
                               type="text"
                               value={choice}
                               onChange={(e) => updateCustomChoice(qIdx, cIdx, e.target.value)}
                               placeholder={`Choice ${String.fromCharCode(65 + cIdx)}`}
-                              className="w-full bg-transparent border-none p-1 text-xs text-white placeholder-slate-700 focus:outline-none font-medium"
+                              className="w-full bg-transparent border-none p-1 text-xs text-white placeholder-slate-700 focus:outline-none font-semibold"
                             />
                           </div>
                         ))}
@@ -1329,7 +1339,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
               </Button>
             </div>
 
-            <div className="max-h-96 overflow-y-auto space-y-5 pr-2 custom-scrollbar">
+            <div className="max-h-[45vh] md:max-h-[30rem] overflow-y-auto space-y-5 pr-2 custom-scrollbar">
               {customQuestions.map((q, qIdx) => (
                 <div key={qIdx} className="bg-slate-900/50 p-4 rounded-xl border border-white/5 space-y-3 relative">
                   <div className="flex justify-between items-center">
@@ -1362,27 +1372,37 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                     <label className="text-[9px] uppercase font-mono tracking-widest text-slate-400 block font-bold">
                       Choices & Correct Answer
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2.5">
                       {q.choices.map((choice: string, cIdx: number) => (
-                        <div key={cIdx} className="flex items-center gap-1.5 bg-slate-950/80 px-2 py-1 rounded-lg border border-white/5">
+                        <div
+                          key={cIdx}
+                          className={cn(
+                            "flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all duration-200",
+                            q.correctIndex === cIdx
+                              ? "bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)] text-emerald-250"
+                              : "bg-slate-950/80 border-white/5 text-slate-300"
+                          )}
+                        >
                           <button
                             type="button"
                             onClick={() => updateCustomQuestion(qIdx, 'correctIndex', cIdx)}
                             className={cn(
-                              "w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0",
+                              "w-6 h-6 rounded-full border flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-sm",
                               q.correctIndex === cIdx
-                                ? "border-emerald-500 bg-emerald-500 text-slate-950"
-                                : "border-slate-700 hover:border-slate-500"
+                                ? "border-emerald-400 bg-emerald-500 text-slate-950"
+                                : "border-slate-700 hover:border-slate-500 hover:bg-white/5"
                             )}
                           >
-                            {q.correctIndex === cIdx && <span className="w-1.5 h-1.5 bg-slate-950 rounded-full" />}
+                            {q.correctIndex === cIdx && (
+                              <span className="w-2 bg-slate-950 rounded-full h-2" />
+                            )}
                           </button>
                           <input
                             type="text"
                             value={choice}
                             onChange={(e) => updateCustomChoice(qIdx, cIdx, e.target.value)}
                             placeholder={`Choice ${String.fromCharCode(65 + cIdx)}`}
-                            className="w-full bg-transparent border-none p-1 text-xs text-white placeholder-slate-700 focus:outline-none font-medium"
+                            className="w-full bg-transparent border-none p-1 text-xs text-white placeholder-slate-700 focus:outline-none font-semibold"
                           />
                         </div>
                       ))}
@@ -1519,13 +1539,19 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                 ✏️ Edit Custom Questions
               </Button>
             )}
-            <Button
-              onClick={handleStartGameMultiplayer}
-              disabled={roomPlayers.length < 2}
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black tracking-widest py-6 rounded-xl transition-all shadow-lg cursor-pointer"
-            >
-              START GAME 🚀
-            </Button>
+            {isHost ? (
+              <Button
+                onClick={handleStartGameMultiplayer}
+                disabled={roomPlayers.length < 2}
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black tracking-widest py-6 rounded-xl transition-all shadow-lg cursor-pointer"
+              >
+                START GAME 🚀
+              </Button>
+            ) : (
+              <div className="w-full py-4 text-center bg-slate-900/60 border border-white/5 rounded-xl text-slate-450 text-xs font-semibold animate-pulse">
+                Waiting for host to start the game...
+              </div>
+            )}
             <Button
               variant="outline"
               onClick={handleLeaveRoom}
@@ -1645,7 +1671,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   return (
     <div className={cn(
       "w-full relative min-h-[44rem] flex flex-col justify-center items-center select-none",
-      isFullscreen ? "min-h-screen bg-slate-950 p-4 sm:p-8" : "py-6"
+      isFullscreen ? "h-screen max-h-screen overflow-hidden bg-slate-950 p-0" : "py-6"
     )}>
       <style>{`
         @keyframes vault-float {
@@ -1705,8 +1731,8 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       </div>
 
       <Card className={cn(
-        "w-full overflow-hidden bg-slate-900/90 backdrop-blur-md border-cyan-500/20 shadow-2xl relative transition-all duration-500 z-10",
-        isFullscreen ? "h-screen rounded-none border-none" : "max-w-4xl mx-auto rounded-xl border-2 border-cyan-500/10"
+        "w-full bg-slate-900/90 backdrop-blur-md border-cyan-500/20 shadow-2xl relative transition-all duration-500 z-10",
+        isFullscreen ? "h-screen w-screen rounded-none border-none flex flex-col overflow-hidden" : "max-w-4xl mx-auto rounded-xl border-2 border-cyan-500/10 overflow-hidden"
       )}>
         <CardHeader className="text-center pb-2 relative border-b border-cyan-500/10">
           <Button
@@ -1735,8 +1761,8 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
         </CardHeader>
 
         <CardContent className={cn(
-          "flex flex-col items-center justify-center relative p-6 overflow-hidden transition-all duration-500",
-          isFullscreen ? "min-h-[calc(100vh-200px)]" : "min-h-[520px]"
+          "flex flex-col items-center relative p-6 transition-all duration-500",
+          isFullscreen ? "flex-1 overflow-y-auto w-full justify-start py-8 md:justify-center" : "min-h-[520px] justify-center"
         )}>
           {/* Particles */}
           {particles.map((p) => (
