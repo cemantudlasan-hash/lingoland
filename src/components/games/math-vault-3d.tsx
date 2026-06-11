@@ -95,6 +95,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const [isHost, setIsHost] = React.useState<boolean>(false);
   const [roomData, setRoomData] = React.useState<any>(null);
   const [roomPlayers, setRoomPlayers] = React.useState<any[]>([]);
+  const [codeVal, setCodeVal] = React.useState<string>('');
 
   // Local Toast notification state (visible in Fullscreen mode)
   const [localToast, setLocalToast] = React.useState<{ title: string; description: string; variant?: 'default' | 'destructive' } | null>(null);
@@ -631,6 +632,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     setIsHost(false);
     setRoomData(null);
     setRoomPlayers([]);
+    setCodeVal('');
     setMultiplayerState('mode_select');
     setGameState('idle');
   };
@@ -1037,7 +1039,6 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   };
 
   const renderJoinRoom = () => {
-    const [codeVal, setCodeVal] = React.useState('');
     return (
       <div className="w-full max-w-2xl flex flex-col gap-8 animate-in fade-in zoom-in-95 duration-300 px-8 py-10">
         <div className="bg-slate-950/80 p-8 rounded-3xl border border-cyan-500/20 shadow-2xl relative overflow-hidden flex flex-col gap-6">
