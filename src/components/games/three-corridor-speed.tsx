@@ -45,6 +45,17 @@ const DEFAULT_TEAMS: Team[] = [
   { id: "team-3", name: "Phonic Dragons (Row C)", score: 620, multiplier: 1, questionsAnswered: 8, correctAnswers: 6 }
 ];
 
+// A custom Portal wrapper that returns a valid React Element to ensure compatibility with framer-motion AnimatePresence
+function GamePortal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+  return createPortal(children, document.body);
+}
+
 export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const firestore = useFirestore();
   const { user } = useAuth();
@@ -766,15 +777,16 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
             </motion.div>
           )}
 
-          {screen === "PLAYING" && typeof window !== "undefined" && createPortal(
-            <motion.div
-              key="playing"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full h-full fixed inset-0 z-[9999] bg-[#060814]"
-              style={{ touchAction: "none" }}
-            >
+          {screen === "PLAYING" && (
+            <GamePortal>
+              <motion.div
+                key="playing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full h-full fixed inset-0 z-[9999] bg-[#060814]"
+                style={{ touchAction: "none" }}
+              >
               {gameMode === "single" ? (
                 <div className="relative w-full h-full">
                   <ThreeGame
@@ -936,8 +948,8 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                   </div>
                 </div>
               )}
-            </motion.div>,
-            document.body
+            </motion.div>
+            </GamePortal>
           )}
 
           {screen === "TEACHER" && (
