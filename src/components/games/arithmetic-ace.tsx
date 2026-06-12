@@ -256,9 +256,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     return () => unsubscribe();
   }, [firestore, roomCode, gameMode, multiplayerState, isEditingQuestions, user, myUid]);
 
-  // Host checker: declare finished once everyone completes
+  // Sync finished status: declare finished once everyone completes
   React.useEffect(() => {
-    if (gameMode === 'multi' && isCreator && roomCode && roomData && roomData.status === 'playing') {
+    if (gameMode === 'multi' && roomCode && roomData && roomData.status === 'playing') {
       const list = Object.values(roomData.players || {}) as any[];
       if (list.length > 0 && list.every((p: any) => p.finished)) {
         // Everyone is finished, declare winner and end game
@@ -272,7 +272,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         }).catch(e => console.error("Error setting winner:", e));
       }
     }
-  }, [gameMode, isCreator, roomCode, roomData]);
+  }, [gameMode, roomCode, roomData]);
 
   // Celebrate with Confetti for the Winner
   React.useEffect(() => {
@@ -755,9 +755,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
 
   // Rendering Sub-sections
   const renderMultiModeSelect = () => (
-    <div className="flex flex-col items-center gap-6 w-full max-w-md">
-      <Users className="w-16 h-16 text-teal-400 mx-auto" />
-      <h3 className="text-2xl font-black uppercase text-center">Multiplayer Lobby</h3>
+    <div className="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-md p-4 sm:p-6 bg-slate-900/40 rounded-3xl border border-border/20 shadow-lg">
+      <Users className="w-12 h-12 sm:w-16 sm:h-16 text-teal-400 mx-auto" />
+      <h3 className="text-xl sm:text-2xl font-black uppercase text-center">Multiplayer Lobby</h3>
       
       <div className="w-full space-y-2">
         <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Your Nickname</label>
@@ -766,15 +766,15 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           placeholder="Enter nickname"
-          className="w-full h-12 px-4 rounded-xl border border-border bg-slate-900/50 text-white font-bold"
+          className="w-full h-11 sm:h-12 px-4 rounded-xl border border-border bg-slate-900/50 text-white text-sm sm:text-base font-bold"
           maxLength={15}
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 w-full pt-4">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 w-full pt-2 sm:pt-4">
         <Button 
           onClick={handleCreateRoom}
-          className="h-14 text-lg font-black uppercase tracking-wider bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+          className="h-11 sm:h-14 text-sm sm:text-lg font-black uppercase tracking-wider bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/20"
         >
           Create Battle Room
         </Button>
@@ -785,30 +785,30 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             value={codeVal}
             onChange={(e) => setCodeVal(e.target.value.toUpperCase())}
             placeholder="INVITE CODE"
-            className="flex-1 h-14 text-center text-xl font-black tracking-widest uppercase rounded-2xl border border-border bg-slate-900/50"
+            className="flex-1 h-11 sm:h-14 text-center text-sm sm:text-xl font-black tracking-widest uppercase rounded-2xl border border-border bg-slate-900/50"
             maxLength={5}
           />
           <Button 
             onClick={() => handleJoinRoom(codeVal)}
-            className="h-14 px-6 text-lg font-black uppercase bg-teal-500 hover:bg-teal-400 text-slate-950"
+            className="h-11 sm:h-14 px-4 sm:px-6 text-sm sm:text-lg font-black uppercase bg-teal-500 hover:bg-teal-400 text-slate-950"
           >
             Join
           </Button>
         </div>
       </div>
 
-      <Button variant="ghost" onClick={resetMultiplayerState} className="uppercase font-bold opacity-60">
+      <Button variant="ghost" onClick={resetMultiplayerState} className="uppercase font-bold opacity-60 text-xs sm:text-sm">
         <ArrowLeft className="w-4 h-4 mr-2" /> Back to Solo Mode
       </Button>
     </div>
   );
 
   const renderMultiJoinRoom = () => (
-    <div className="flex flex-col items-center gap-6 w-full max-w-md">
-      <Users className="w-16 h-16 text-teal-400 mx-auto" />
-      <h3 className="text-2xl font-black uppercase text-center">Join Battle Room</h3>
+    <div className="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-md p-4 sm:p-6 bg-slate-900/40 rounded-3xl border border-border/20 shadow-lg">
+      <Users className="w-12 h-12 sm:w-16 sm:h-16 text-teal-400 mx-auto" />
+      <h3 className="text-xl sm:text-2xl font-black uppercase text-center">Join Battle Room</h3>
       
-      <div className="w-full space-y-4">
+      <div className="w-full space-y-3 sm:space-y-4">
         <div className="space-y-1.5">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Your Nickname</label>
           <input
@@ -816,7 +816,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             placeholder="Enter nickname"
-            className="w-full h-12 px-4 rounded-xl border border-border bg-slate-900/50 text-white font-bold"
+            className="w-full h-11 sm:h-12 px-4 rounded-xl border border-border bg-slate-900/50 text-white text-sm sm:text-base font-bold"
             maxLength={15}
           />
         </div>
@@ -828,23 +828,23 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             value={codeVal}
             onChange={(e) => setCodeVal(e.target.value.toUpperCase())}
             placeholder="5-LETTER CODE"
-            className="w-full h-14 text-center text-2xl font-black tracking-widest uppercase rounded-2xl border border-border bg-slate-900/50"
+            className="w-full h-11 sm:h-14 text-center text-sm sm:text-2xl font-black tracking-widest uppercase rounded-2xl border border-border bg-slate-900/50"
             maxLength={5}
           />
         </div>
       </div>
 
-      <div className="flex gap-3 w-full pt-4">
+      <div className="flex gap-3 w-full pt-2 sm:pt-4">
         <Button 
           variant="outline" 
           onClick={() => setMultiplayerState('mode_select')}
-          className="flex-1 h-14 text-sm font-black uppercase border-border cursor-pointer"
+          className="flex-1 h-11 sm:h-14 text-xs sm:text-sm font-black uppercase border-border cursor-pointer"
         >
           Cancel
         </Button>
         <Button 
           onClick={() => handleJoinRoom(codeVal)}
-          className="flex-1 h-14 text-sm font-black uppercase tracking-wider bg-teal-500 hover:bg-teal-400 text-slate-950 cursor-pointer"
+          className="flex-1 h-11 sm:h-14 text-xs sm:text-sm font-black uppercase tracking-wider bg-teal-500 hover:bg-teal-400 text-slate-950 cursor-pointer"
         >
           Join Room
         </Button>
@@ -969,11 +969,11 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     const sortedPlayers = [...playersList].sort((a, b) => (a.isHost ? -1 : b.isHost ? 1 : 0));
 
     return (
-      <div className="flex flex-col gap-6 w-full max-w-2xl">
-        <div className="text-center p-6 bg-slate-950/40 border border-border/40 rounded-3xl relative overflow-hidden">
+      <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-2xl">
+        <div className="text-center p-4 sm:p-6 bg-slate-950/40 border border-border/40 rounded-3xl relative overflow-hidden">
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Room Code</p>
           <div className="flex items-center justify-center gap-3">
-            <span className="text-5xl font-black tracking-wider text-teal-400 font-mono select-all">{roomCode}</span>
+            <span className="text-3xl sm:text-5xl font-black tracking-wider text-teal-400 font-mono select-all">{roomCode}</span>
             <Button
               size="icon"
               variant="ghost"
@@ -992,7 +992,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         </div>
 
         {/* Game Settings Card */}
-        <div className="p-6 bg-slate-900/20 border border-border/20 rounded-3xl space-y-4">
+        <div className="p-4 sm:p-6 bg-slate-900/20 border border-border/20 rounded-3xl space-y-4">
           <h4 className="text-sm font-black uppercase text-teal-400 flex items-center gap-1.5">
             Battle Parameters
           </h4>
@@ -1125,7 +1125,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
 
           <div className="divide-y divide-border/20 border border-border/20 rounded-2xl overflow-hidden bg-slate-950/20">
             {sortedPlayers.map((player) => (
-              <div key={player.uid} className="flex justify-between items-center p-4">
+              <div key={player.uid} className="flex justify-between items-center p-3 sm:p-4">
                 <div className="flex items-center gap-2">
                   {player.isHost ? (
                     <Crown className="w-4 h-4 text-amber-500 shrink-0" />
@@ -1152,7 +1152,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
           <Button 
             variant="outline" 
             onClick={handleLeaveRoom}
-            className="flex-1 h-14 text-sm font-black uppercase text-rose-400 border-rose-500/20 hover:bg-rose-950/10 cursor-pointer"
+            className="flex-1 h-11 sm:h-14 text-xs sm:text-sm font-black uppercase text-rose-400 border-rose-500/20 hover:bg-rose-950/10 cursor-pointer"
           >
             {isCreator ? 'Disband Room' : 'Leave Lobby'}
           </Button>
@@ -1161,7 +1161,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             <Button 
               onClick={handleStartMultiplayerGame}
               disabled={playersList.length < 1}
-              className="flex-1 h-14 text-sm font-black uppercase tracking-wider bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 hover:from-teal-400 hover:to-emerald-450 cursor-pointer shadow-lg shadow-teal-500/10"
+              className="flex-1 h-11 sm:h-14 text-xs sm:text-sm font-black uppercase tracking-wider bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 hover:from-teal-400 hover:to-emerald-450 cursor-pointer shadow-lg shadow-teal-500/10"
             >
               Start Math Race
             </Button>

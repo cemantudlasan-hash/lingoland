@@ -266,9 +266,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
     return () => unsubscribe();
   }, [firestore, roomCode, gameMode, multiplayerState, isEditingQuestions, user, myUid]);
 
-  // Host checker: declare finished once everyone completes
+  // Sync finished status: declare finished once everyone completes
   React.useEffect(() => {
-    if (gameMode === 'multi' && isCreator && roomCode && roomData && roomData.status === 'playing') {
+    if (gameMode === 'multi' && roomCode && roomData && roomData.status === 'playing') {
       const list = Object.values(roomData.players || {}) as any[];
       if (list.length > 0 && list.every((p: any) => p.finished)) {
         // Everyone is finished, declare winner and end game
@@ -282,7 +282,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         }).catch(e => console.error("Error setting winner:", e));
       }
     }
-  }, [gameMode, isCreator, roomCode, roomData]);
+  }, [gameMode, roomCode, roomData]);
 
   // Celebrate with Confetti for the Winner
   React.useEffect(() => {

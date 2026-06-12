@@ -958,6 +958,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     const nextCount = solvedCount + 1;
     if (nextCount >= totalRounds) {
       if (gameMode === 'multi') {
+        setSolvedCount(nextCount);
         if (firestore && roomCode) {
           try {
             const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
@@ -977,8 +978,6 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                 winnerId: winner.uid,
                 winnerName: winner.name
               });
-            } else {
-              setMultiplayerState('finished');
             }
           } catch (e) {
             console.error("Finished flag update error:", e);
