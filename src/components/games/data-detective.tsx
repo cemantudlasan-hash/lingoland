@@ -144,6 +144,56 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
+  // Session Recovery
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !firestore) return;
+    
+    const savedRoom = localStorage.getItem("lingoland_active_roomCode_data-detective");
+    const savedUid = localStorage.getItem("lingoland_active_myUid_data-detective");
+    const savedMode = localStorage.getItem("lingoland_active_gameMode_data-detective");
+    
+    if (savedRoom && savedUid && savedMode === 'multi') {
+      const roomRef = doc(firestore, "stats", "dd_room_" + savedRoom);
+      getDoc(roomRef).then((snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.players && data.players[savedUid] && data.status !== 'disbanded' && data.status !== 'finished') {
+            setMyUid(savedUid);
+            setRoomCode(savedRoom);
+            setGameMode('multi');
+            
+            const playerObj = data.players[savedUid];
+            if (playerObj.name) {
+              setNickname(playerObj.name);
+            }
+            setIsHost(data.hostId === savedUid);
+            
+            if (data.status === 'lobby') {
+              setMultiplayerState('lobby');
+            } else if (data.status === 'playing') {
+              const solved = playerObj.solvedCount || 0;
+              const savedScore = playerObj.score || 0;
+              setScore(savedScore);
+              setRound(solved + 1);
+              setMultiplayerState('playing');
+            }
+            
+            toast({
+              title: "Reconnected 🎮",
+              description: `Resumed active session in room ${savedRoom}.`,
+            });
+            return;
+          }
+        }
+        localStorage.removeItem("lingoland_active_roomCode_data-detective");
+        localStorage.removeItem("lingoland_active_myUid_data-detective");
+        localStorage.removeItem("lingoland_active_gameMode_data-detective");
+      }).catch((err) => {
+        console.warn("Session recovery failed:", err);
+      });
+    }
+  }, [firestore]);
+
   // Sync nickname
   React.useEffect(() => {
     if (user?.displayName) {
@@ -471,6 +521,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
       setRoomCode(code);
       setIsHost(true);
       setMultiplayerState('lobby');
+      localStorage.setItem("lingoland_active_roomCode_data-detective", code);
+      localStorage.setItem("lingoland_active_myUid_data-detective", hostUid);
+      localStorage.setItem("lingoland_active_gameMode_data-detective", 'multi');
       toast({
         title: "Room Created! 🚪🔑",
         description: `Your code is ${code}. Share it with friends.`,
@@ -560,6 +613,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
       setRoomCode(cleanCode);
       setIsHost(false);
       setMultiplayerState('lobby');
+      localStorage.setItem("lingoland_active_roomCode_data-detective", cleanCode);
+      localStorage.setItem("lingoland_active_myUid_data-detective", playerUid);
+      localStorage.setItem("lingoland_active_gameMode_data-detective", 'multi');
       toast({
         title: "Connected! 🤝",
         description: `Joined room ${cleanCode}. Waiting for host to start.`,
@@ -599,7 +655,14 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
     }
   };
 
+  const cleanSavedSession = () => {
+    localStorage.removeItem("lingoland_active_roomCode_data-detective");
+    localStorage.removeItem("lingoland_active_myUid_data-detective");
+    localStorage.removeItem("lingoland_active_gameMode_data-detective");
+  };
+
   const resetMultiplayerState = () => {
+    cleanSavedSession();
     setRoomCode('');
     setMyUid('');
     setIsHost(false);
@@ -657,10 +720,10 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
 
   const handleStartMultiplayerGame = async () => {
     if (!firestore || !roomCode || !isCreator) return;
-    if (roomPlayers.length < 2) {
+    if (roomPlayers.length < 1) {
       toast({
         title: "Waiting for Competitors 👥",
-        description: "Need at least 2 players in the lobby to start.",
+        description: "Need at least 1 player in the lobby to start.",
         variant: "destructive"
       });
       return;
@@ -1113,7 +1176,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
           {isCreator && (
             <Button 
               onClick={handleStartMultiplayerGame}
-              disabled={sortedPlayers.length < 2}
+              disabled={sortedPlayers.length < 1}
               className="flex-1 h-14 text-xs font-black uppercase tracking-wider bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif cursor-pointer shadow-lg border border-[#8b8273]"
             >
               Launch Investigation

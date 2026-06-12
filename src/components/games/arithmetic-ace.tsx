@@ -134,6 +134,56 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
+  // Session Recovery
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !firestore) return;
+    
+    const savedRoom = localStorage.getItem("lingoland_active_roomCode_arithmetic-ace");
+    const savedUid = localStorage.getItem("lingoland_active_myUid_arithmetic-ace");
+    const savedMode = localStorage.getItem("lingoland_active_gameMode_arithmetic-ace");
+    
+    if (savedRoom && savedUid && savedMode === 'multi') {
+      const roomRef = doc(firestore, "stats", "aa_room_" + savedRoom);
+      getDoc(roomRef).then((snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.players && data.players[savedUid] && data.status !== 'disbanded' && data.status !== 'finished') {
+            setMyUid(savedUid);
+            setRoomCode(savedRoom);
+            setGameMode('multi');
+            
+            const playerObj = data.players[savedUid];
+            if (playerObj.name) {
+              setNickname(playerObj.name);
+            }
+            setIsHost(data.hostId === savedUid);
+            
+            if (data.status === 'lobby') {
+              setMultiplayerState('lobby');
+            } else if (data.status === 'playing') {
+              const solved = playerObj.solvedCount || 0;
+              const savedScore = playerObj.score || 0;
+              setScore(savedScore);
+              setRound(solved + 1);
+              setMultiplayerState('playing');
+            }
+            
+            toast({
+              title: "Reconnected 🎮",
+              description: `Resumed active session in room ${savedRoom}.`,
+            });
+            return;
+          }
+        }
+        localStorage.removeItem("lingoland_active_roomCode_arithmetic-ace");
+        localStorage.removeItem("lingoland_active_myUid_arithmetic-ace");
+        localStorage.removeItem("lingoland_active_gameMode_arithmetic-ace");
+      }).catch((err) => {
+        console.warn("Session recovery failed:", err);
+      });
+    }
+  }, [firestore]);
+
   // Sync nickname on user context load
   React.useEffect(() => {
     if (user?.displayName) {
@@ -457,6 +507,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       setRoomCode(code);
       setIsHost(true);
       setMultiplayerState('lobby');
+      localStorage.setItem("lingoland_active_roomCode_arithmetic-ace", code);
+      localStorage.setItem("lingoland_active_myUid_arithmetic-ace", hostUid);
+      localStorage.setItem("lingoland_active_gameMode_arithmetic-ace", 'multi');
       toast({
         title: "Room Created! 🚪🔑",
         description: `Your code is ${code}. Share it with friends!`,
@@ -546,6 +599,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       setRoomCode(cleanCode);
       setIsHost(false);
       setMultiplayerState('lobby');
+      localStorage.setItem("lingoland_active_roomCode_arithmetic-ace", cleanCode);
+      localStorage.setItem("lingoland_active_myUid_arithmetic-ace", playerUid);
+      localStorage.setItem("lingoland_active_gameMode_arithmetic-ace", 'multi');
       toast({
         title: "Connected! 🤝",
         description: `Joined room ${cleanCode}. Waiting for host to start.`,
@@ -585,7 +641,14 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     }
   };
 
+  const cleanSavedSession = () => {
+    localStorage.removeItem("lingoland_active_roomCode_arithmetic-ace");
+    localStorage.removeItem("lingoland_active_myUid_arithmetic-ace");
+    localStorage.removeItem("lingoland_active_gameMode_arithmetic-ace");
+  };
+
   const resetMultiplayerState = () => {
+    cleanSavedSession();
     setRoomCode('');
     setMyUid('');
     setIsHost(false);
@@ -638,10 +701,10 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
 
   const handleStartMultiplayerGame = async () => {
     if (!firestore || !roomCode || !isCreator) return;
-    if (roomPlayers.length < 2) {
+    if (roomPlayers.length < 1) {
       toast({
         title: "Waiting for Players 👥",
-        description: "Need at least 2 players in the lobby to start.",
+        description: "Need at least 1 player in the lobby to start.",
         variant: "destructive"
       });
       return;
@@ -1097,7 +1160,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
           {isCreator && (
             <Button 
               onClick={handleStartMultiplayerGame}
-              disabled={playersList.length < 2}
+              disabled={playersList.length < 1}
               className="flex-1 h-14 text-sm font-black uppercase tracking-wider bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 hover:from-teal-400 hover:to-emerald-450 cursor-pointer shadow-lg shadow-teal-500/10"
             >
               Start Math Race

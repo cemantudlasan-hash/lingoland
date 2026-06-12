@@ -94,6 +94,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const [roomCode, setRoomCode] = React.useState<string>('');
   const [isHost, setIsHost] = React.useState<boolean>(false);
   const [roomData, setRoomData] = React.useState<any>(null);
+
   const [roomPlayers, setRoomPlayers] = React.useState<any[]>([]);
   const [codeVal, setCodeVal] = React.useState<string>('');
   const [questionMode, setQuestionMode] = React.useState<'auto' | 'custom'>('auto');
@@ -106,6 +107,12 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   const { user, userProfile } = useAuth();
   const firestore = useFirestore();
   const game = getGameBySlug(slug);
+
+  const isCreator = React.useMemo(() => {
+    if (gameMode !== 'multi') return false;
+    const currentUid = user?.uid || myUid;
+    return roomData && roomData.hostId && currentUid ? roomData.hostId === currentUid : isHost;
+  }, [gameMode, roomData, user, myUid, isHost]);
 
   const { slug: dailyBonusSlug, bonusAmount: dailyBonusAmount } = getDailyBonusGame();
   const isDailyBonus = slug === dailyBonusSlug;
@@ -144,6 +151,61 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     document.addEventListener('fullscreenchange', handler);
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
+
+  // Session Recovery
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !firestore) return;
+    
+    const savedRoom = localStorage.getItem("lingoland_active_roomCode_math-vault-3d");
+    const savedUid = localStorage.getItem("lingoland_active_myUid_math-vault-3d");
+    const savedMode = localStorage.getItem("lingoland_active_gameMode_math-vault-3d");
+    
+    if (savedRoom && savedUid && savedMode === 'multi') {
+      const roomRef = doc(firestore, "stats", "mv_room_" + savedRoom);
+      getDoc(roomRef).then((snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.players && data.players[savedUid] && data.status !== 'disbanded' && data.status !== 'finished') {
+            setMyUid(savedUid);
+            setRoomCode(savedRoom);
+            setGameMode('multi');
+            
+            const playerObj = data.players[savedUid];
+            if (playerObj.name) {
+              setNickname(playerObj.name);
+            }
+            setIsHost(data.hostId === savedUid);
+            
+            if (data.status === 'lobby') {
+              setMultiplayerState('lobby');
+              setGameState('playing');
+            } else if (data.status === 'playing') {
+              const solved = playerObj.solvedCount || 0;
+              const savedScore = playerObj.score || 0;
+              setSolvedCount(solved);
+              setMultiplayerState('playing');
+              setGameState('playing');
+              setIsOpen(false);
+              setSelectedAnswer(null);
+              setHasAnswered(false);
+            }
+            
+            showLocalToast(
+              "Reconnected 🎮",
+              `Resumed active session in room ${savedRoom}.`,
+              "default"
+            );
+            return;
+          }
+        }
+        localStorage.removeItem("lingoland_active_roomCode_math-vault-3d");
+        localStorage.removeItem("lingoland_active_myUid_math-vault-3d");
+        localStorage.removeItem("lingoland_active_gameMode_math-vault-3d");
+      }).catch((err) => {
+        console.warn("Session recovery failed:", err);
+      });
+    }
+  }, [firestore]);
 
   // Sync Room Updates in Lobby and Play (Multiplayer)
   React.useEffect(() => {
@@ -523,6 +585,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       setIsHost(true);
       setMultiplayerState('lobby');
       setGameState('playing');
+      localStorage.setItem("lingoland_active_roomCode_math-vault-3d", code);
+      localStorage.setItem("lingoland_active_myUid_math-vault-3d", hostUid);
+      localStorage.setItem("lingoland_active_gameMode_math-vault-3d", 'multi');
       showLocalToast(
         "Room Created! 🚪🔑",
         `Your code is ${code}. Share with up to 2 friends!`,
@@ -614,6 +679,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       setIsHost(false);
       setMultiplayerState('lobby');
       setGameState('playing');
+      localStorage.setItem("lingoland_active_roomCode_math-vault-3d", cleanCode);
+      localStorage.setItem("lingoland_active_myUid_math-vault-3d", playerUid);
+      localStorage.setItem("lingoland_active_gameMode_math-vault-3d", 'multi');
       showLocalToast(
         "Connected! 🤝",
         `Joined room ${cleanCode}. Waiting for the host to launch.`,
@@ -637,7 +705,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     
     try {
       const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
-      if (isHost) {
+      if (isCreator) {
         // Disband room by writing disbanded status, then delete
         await updateDoc(roomRef, { status: 'disbanded' });
         await deleteDoc(roomRef);
@@ -655,7 +723,14 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
     }
   };
 
+  const cleanSavedSession = () => {
+    localStorage.removeItem("lingoland_active_roomCode_math-vault-3d");
+    localStorage.removeItem("lingoland_active_myUid_math-vault-3d");
+    localStorage.removeItem("lingoland_active_gameMode_math-vault-3d");
+  };
+
   const resetMultiplayerState = () => {
+    cleanSavedSession();
     setRoomCode('');
     setMyUid('');
     setIsHost(false);
@@ -697,7 +772,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   };
 
   const handleSaveCustomQuestions = async (updatedList: any[]) => {
-    if (!firestore || !roomCode || !isHost) return;
+    if (!firestore || !roomCode || !isCreator) return;
     try {
       const roomRef = doc(firestore, "stats", "mv_room_" + roomCode);
       await updateDoc(roomRef, {
@@ -712,7 +787,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   };
 
   const handleStartGameMultiplayer = async () => {
-    if (!firestore || !roomCode || !isHost) return;
+    if (!firestore || !roomCode || !isCreator) return;
     if (roomPlayers.length < 2) {
       showLocalToast(
         "Waiting for Competitors 👥",
@@ -896,7 +971,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             const allFinished = Object.values(updatedPlayers).every((p: any) => p.finished);
             if (allFinished) {
               const sorted = Object.values(updatedPlayers).sort((a: any, b: any) => b.score - a.score);
-              const winner = sorted[0];
+              const winner = sorted[0] as any;
               await updateDoc(roomRef, {
                 status: 'finished',
                 winnerId: winner.uid,
@@ -1531,7 +1606,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
           </div>
 
           <div className="flex flex-col gap-2.5 mt-2">
-            {isHost && roomData?.questionMode === 'custom' && (
+            {isCreator && roomData?.questionMode === 'custom' && (
               <Button
                 onClick={() => setIsEditingQuestions(true)}
                 className="w-full bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 font-bold py-3.5 rounded-xl transition-all cursor-pointer"
@@ -1539,7 +1614,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                 ✏️ Edit Custom Questions
               </Button>
             )}
-            {isHost ? (
+            {isCreator ? (
               <Button
                 onClick={handleStartGameMultiplayer}
                 disabled={roomPlayers.length < 2}
@@ -1618,7 +1693,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
         </div>
 
         <div className="flex gap-4">
-          {isHost ? (
+          {isCreator ? (
             <Button 
               onClick={async () => {
                 try {
@@ -1984,7 +2059,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                   <div className="flex flex-col items-center gap-4 w-full">
                     {!hasAnswered ? (
                       <div className="grid grid-cols-2 gap-4 w-full max-w-lg mt-2">
-                        {activeQuestionData.choices?.map((choice) => (
+                        {activeQuestionData.choices?.map((choice: number | string) => (
                           <Button
                             key={choice}
                             onClick={() => handleAnswerSubmit(choice)}
@@ -1998,7 +2073,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
                     ) : (
                       <div className="flex flex-col items-center gap-4 w-full">
                         <div className="grid grid-cols-2 gap-4 w-full max-w-lg mt-2">
-                          {activeQuestionData.choices?.map((choice) => {
+                          {activeQuestionData.choices?.map((choice: number | string) => {
                             const isCorrect = choice === activeQuestionData.a;
                             const isSelected = choice === selectedAnswer;
                             let btnClass = "bg-slate-950 border-2 border-cyan-500/20 text-cyan-350";
