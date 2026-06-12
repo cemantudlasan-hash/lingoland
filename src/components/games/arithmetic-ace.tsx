@@ -31,7 +31,9 @@ import {
   Users,
   Copy,
   ArrowLeft,
-  Crown
+  Crown,
+  Trash2,
+  Settings
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
@@ -71,6 +73,18 @@ const CATEGORIES: { label: Operation; icon: any; color: string }[] = [
     { label: "Mixed", icon: Shuffle, color: "bg-purple-500" },
 ];
 
+const generateWrongOptions = (ans: number): number[] => {
+  const options = [ans];
+  while (options.length < 4) {
+    const offset = Math.floor(Math.random() * 10) - 5;
+    const wrong = ans + offset;
+    if (!options.includes(wrong) && wrong >= 0) {
+      options.push(wrong);
+    }
+  }
+  return shuffleArray(options);
+};
+
 export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -102,6 +116,11 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
   const [myUid, setMyUid] = React.useState('');
   const [codeVal, setCodeVal] = React.useState('');
   const [localAnswered, setLocalAnswered] = React.useState(false);
+  const [questionMode, setQuestionMode] = React.useState<'auto' | 'custom'>('auto');
+  const [customQuestions, setCustomQuestions] = React.useState<Problem[]>([
+    { question: "10 + 20", answer: 30, options: [30, 20, 40, 25] }
+  ]);
+  const [isEditingQuestions, setIsEditingQuestions] = React.useState(false);
 
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -143,6 +162,8 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       
       if (data.difficulty) setDifficulty(data.difficulty as SkillLevel);
       if (data.operation) setOperation(data.operation as Operation);
+      if (data.questionMode) setQuestionMode(data.questionMode as 'auto' | 'custom');
+      if (data.customQuestions && !isEditingQuestions) setCustomQuestions(data.customQuestions);
       
       // Check if room was disbanded via status
       if (data.status === 'disbanded') {
@@ -172,7 +193,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     });
     
     return () => unsubscribe();
-  }, [firestore, roomCode, gameMode, multiplayerState]);
+  }, [firestore, roomCode, gameMode, multiplayerState, isEditingQuestions]);
 
   // Host checker: declare finished once everyone completes
   React.useEffect(() => {
@@ -339,7 +360,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       setTimeout(async () => {
         setLocalAnswered(false);
         setIsCorrect(null);
-        if (round < 10) {
+        if (round < (roomData?.questions?.length || 10)) {
           setRound(r => r + 1);
           setTimeLeft(TIMER_LIMIT);
         } else {
@@ -412,6 +433,10 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         hostName: nickname,
         difficulty: "beginner",
         operation: "Mixed",
+        questionMode: "auto",
+        customQuestions: [
+          { question: "10 + 20", answer: 30, options: [30, 20, 40, 25] }
+        ],
         status: 'lobby',
         players: initialPlayers,
         questions: [],
@@ -564,16 +589,39 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     setGameMode('single');
   };
 
-  const handleUpdateLobbySettings = async (selectedOp: Operation, selectedDiff: SkillLevel) => {
+  const handleUpdateLobbySettings = async (selectedOp: Operation, selectedDiff: SkillLevel, qMode?: 'auto' | 'custom') => {
+    if (!firestore || !roomCode || !isHost) return;
+    try {
+      const roomRef = doc(firestore, "stats", "aa_room_" + roomCode);
+      const updates: any = {
+        operation: selectedOp,
+        difficulty: selectedDiff
+      };
+      if (qMode) updates.questionMode = qMode;
+      await updateDoc(roomRef, updates);
+    } catch (e) {
+      console.error("Failed to update settings:", e);
+    }
+  };
+
+  const handleSaveCustomQuestions = async (updatedList: Problem[]) => {
     if (!firestore || !roomCode || !isHost) return;
     try {
       const roomRef = doc(firestore, "stats", "aa_room_" + roomCode);
       await updateDoc(roomRef, {
-        operation: selectedOp,
-        difficulty: selectedDiff
+        customQuestions: updatedList
+      });
+      toast({
+        title: "Calculations Saved 💾",
+        description: `Custom question list updated (${updatedList.length} rounds).`
       });
     } catch (e) {
-      console.error("Failed to update settings:", e);
+      console.error("Failed to save custom questions:", e);
+      toast({
+        title: "Database Error",
+        description: "Could not save custom questions to server.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -589,9 +637,22 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     }
 
     try {
-      const questionsList = [];
-      for (let i = 0; i < 10; i++) {
-        questionsList.push(generateProblem(difficulty, operation));
+      let questionsList = [];
+      if (questionMode === 'custom') {
+        const rawList = roomData?.customQuestions || [];
+        if (rawList.length === 0) {
+          toast({
+            title: "No Calculations configured 📄",
+            description: "Please configure custom questions first or use auto mode.",
+            variant: "destructive"
+          });
+          return;
+        }
+        questionsList = [...rawList];
+      } else {
+        for (let i = 0; i < 10; i++) {
+          questionsList.push(generateProblem(difficulty, operation));
+        }
       }
 
       const roomRef = doc(firestore, "stats", "aa_room_" + roomCode);
@@ -717,6 +778,118 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     </div>
   );
 
+  const renderCustomQuestionsEditor = () => {
+    const addQuestion = () => {
+      setCustomQuestions([...customQuestions, { question: "10 + 10", answer: 20, options: [20, 15, 25, 18] }]);
+    };
+
+    const removeQuestion = (idx: number) => {
+      if (customQuestions.length <= 1) return;
+      setCustomQuestions(customQuestions.filter((_, i) => i !== idx));
+    };
+
+    const updateQuestionText = (idx: number, question: string) => {
+      const updated = [...customQuestions];
+      updated[idx].question = question;
+      setCustomQuestions(updated);
+    };
+
+    const updateQuestionAnswer = (idx: number, answerStr: string) => {
+      const updated = [...customQuestions];
+      const ansNum = Number(answerStr.trim());
+      updated[idx].answer = isNaN(ansNum) ? 0 : ansNum;
+      updated[idx].options = generateWrongOptions(updated[idx].answer);
+      setCustomQuestions(updated);
+    };
+
+    return (
+      <div className="w-full max-w-2xl bg-slate-900/90 p-6 rounded-3xl border border-border space-y-4 max-h-[550px] overflow-y-auto text-left">
+        <div className="flex justify-between items-center border-b border-border/30 pb-3">
+          <h3 className="text-lg font-black uppercase text-teal-400 flex items-center gap-1.5">
+            <Settings className="w-5 h-5" /> Customize Calculations
+          </h3>
+          <Button 
+            size="sm" 
+            onClick={addQuestion} 
+            className="bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" /> Add Round
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          {customQuestions.map((cq, idx) => (
+            <div key={idx} className="p-4 bg-slate-950/40 border border-border/20 rounded-2xl relative space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-black text-teal-400">Round {idx + 1}</span>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={() => removeQuestion(idx)}
+                  disabled={customQuestions.length <= 1}
+                  className="text-rose-400 hover:text-rose-350 hover:bg-rose-950/20 w-8 h-8 rounded-full"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground">Math Equation / Question</label>
+                  <input
+                    type="text"
+                    value={cq.question}
+                    onChange={(e) => updateQuestionText(idx, e.target.value)}
+                    placeholder="e.g. 15 + 25 or 12 x 12"
+                    className="w-full h-10 px-3 rounded-xl border border-border bg-slate-950 text-sm font-bold text-white"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground">Correct Answer (Number)</label>
+                  <input
+                    type="text"
+                    value={cq.answer || ''}
+                    onChange={(e) => updateQuestionAnswer(idx, e.target.value)}
+                    placeholder="e.g. 40"
+                    className="w-full h-10 px-3 rounded-xl border border-border bg-slate-950 text-sm font-bold text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Computed Options:</span>
+                <span className="font-bold text-teal-400 bg-slate-950 px-2 py-0.5 rounded border border-border/30 font-mono">
+                  {cq.options.join(', ')}
+                </span>
+                <span className="text-[10px] opacity-75">(Distractors generated automatically)</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-3 pt-4 border-t border-border/30">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsEditingQuestions(false)}
+            className="flex-1 h-12 text-xs font-black uppercase border-border text-muted-foreground"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => {
+              handleSaveCustomQuestions(customQuestions);
+              setIsEditingQuestions(false);
+            }}
+            className="flex-1 h-12 text-xs font-black uppercase bg-teal-500 hover:bg-teal-400 text-slate-950"
+          >
+            Apply & Save
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   const renderMultiLobby = () => {
     const playersList = roomPlayers;
     const sortedPlayers = [...playersList].sort((a, b) => (a.isHost ? -1 : b.isHost ? 1 : 0));
@@ -750,60 +923,122 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             Battle Parameters
           </h4>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Operations selector */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Math Operation</label>
+          <div className="grid grid-cols-1 gap-4">
+            {/* Question Mode selection */}
+            <div className="space-y-1.5 border-b border-border/10 pb-3">
+              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Question Mode</label>
               {isHost ? (
-                <div className="flex flex-wrap gap-1.5">
-                  {CATEGORIES.map((cat) => (
-                    <Button
-                      key={cat.label}
-                      size="sm"
-                      variant={operation === cat.label ? 'default' : 'outline'}
-                      onClick={() => {
-                        setOperation(cat.label);
-                        handleUpdateLobbySettings(cat.label, difficulty);
-                      }}
-                      className="text-xs font-bold uppercase"
-                    >
-                      {cat.label}
-                    </Button>
-                  ))}
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant={questionMode === 'auto' ? 'default' : 'outline'}
+                    onClick={() => {
+                      setQuestionMode('auto');
+                      handleUpdateLobbySettings(operation, difficulty, 'auto');
+                    }}
+                    className="text-xs font-bold uppercase flex-1"
+                  >
+                    Auto Generated
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={questionMode === 'custom' ? 'default' : 'outline'}
+                    onClick={() => {
+                      setQuestionMode('custom');
+                      handleUpdateLobbySettings(operation, difficulty, 'custom');
+                    }}
+                    className="text-xs font-bold uppercase flex-1"
+                  >
+                    Custom Equations
+                  </Button>
                 </div>
               ) : (
-                <div className="h-10 flex items-center px-3 rounded-xl bg-slate-950/40 border border-border/40">
-                  <Badge variant="secondary" className="uppercase font-bold">{operation}</Badge>
+                <div className="h-10 flex items-center px-3 rounded-xl bg-slate-950/40 border border-border/40 justify-between">
+                  <Badge variant="outline" className="uppercase font-bold">{questionMode === 'auto' ? 'Auto Generated' : 'Custom Equations'}</Badge>
+                  {questionMode === 'custom' && (
+                    <span className="text-xs font-bold text-teal-400 font-mono">
+                      {customQuestions.length} Questions
+                    </span>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Difficulty selector */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Difficulty Level</label>
-              {isHost ? (
-                <div className="flex gap-1.5">
-                  {['beginner', 'intermediate', 'advanced'].map((lvl) => (
-                    <Button
-                      key={lvl}
-                      size="sm"
-                      variant={difficulty === lvl ? 'default' : 'outline'}
-                      onClick={() => {
-                        setDifficulty(lvl as SkillLevel);
-                        handleUpdateLobbySettings(operation, lvl as SkillLevel);
-                      }}
-                      className="text-xs font-bold uppercase flex-1"
+            {questionMode === 'auto' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Operations selector */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Math Operation</label>
+                  {isHost ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {CATEGORIES.map((cat) => (
+                        <Button
+                          key={cat.label}
+                          size="sm"
+                          variant={operation === cat.label ? 'default' : 'outline'}
+                          onClick={() => {
+                            setOperation(cat.label);
+                            handleUpdateLobbySettings(cat.label, difficulty, 'auto');
+                          }}
+                          className="text-xs font-bold uppercase"
+                        >
+                          {cat.label}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-10 flex items-center px-3 rounded-xl bg-slate-950/40 border border-border/40">
+                      <Badge variant="secondary" className="uppercase font-bold">{operation}</Badge>
+                    </div>
+                  )}
+                </div>
+
+                {/* Difficulty selector */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Difficulty Level</label>
+                  {isHost ? (
+                    <div className="flex gap-1.5">
+                      {['beginner', 'intermediate', 'advanced'].map((lvl) => (
+                        <Button
+                          key={lvl}
+                          size="sm"
+                          variant={difficulty === lvl ? 'default' : 'outline'}
+                          onClick={() => {
+                            setDifficulty(lvl as SkillLevel);
+                            handleUpdateLobbySettings(operation, lvl as SkillLevel, 'auto');
+                          }}
+                          className="text-xs font-bold uppercase flex-1"
+                        >
+                          {lvl}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-10 flex items-center px-3 rounded-xl bg-slate-950/40 border border-border/40">
+                      <Badge variant="outline" className="uppercase font-bold">{difficulty}</Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-1">
+                <div className="flex justify-between items-center bg-slate-950/40 border border-border/40 p-3 rounded-xl">
+                  <div className="text-left">
+                    <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Active Rounds</p>
+                    <p className="text-sm font-bold text-white font-mono mt-0.5">{customQuestions.length} Custom Calculations</p>
+                  </div>
+                  {isHost && (
+                    <Button 
+                      size="sm" 
+                      onClick={() => setIsEditingQuestions(true)}
+                      className="bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold cursor-pointer"
                     >
-                      {lvl}
+                      <Settings className="w-3.5 h-3.5 mr-1" /> Edit Calculations ({customQuestions.length})
                     </Button>
-                  ))}
+                  )}
                 </div>
-              ) : (
-                <div className="h-10 flex items-center px-3 rounded-xl bg-slate-950/40 border border-border/40">
-                  <Badge variant="outline" className="uppercase font-bold">{difficulty}</Badge>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -865,7 +1100,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
   const renderLiveScoreboard = () => {
     const sorted = [...roomPlayers].sort((a, b) => b.score - a.score);
     return (
-      <div className="space-y-2 w-full text-left">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:space-y-2 w-full text-left">
         {sorted.map((p, idx) => (
           <div key={p.uid} className="flex justify-between items-center p-2.5 rounded-xl bg-slate-950/40 border border-border/25">
             <div className="flex items-center gap-2 truncate">
@@ -912,9 +1147,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     }
 
     return (
-      <div className="w-full max-w-4xl flex flex-col md:flex-row gap-8 items-stretch">
+      <div className="w-full max-w-4xl flex flex-col md:flex-row gap-4 md:gap-8 items-stretch">
         {/* Main calculation card */}
-        <div className="flex-1 flex flex-col items-center gap-8">
+        <div className="flex-1 flex flex-col items-center gap-4 md:gap-8">
           <div className="w-full space-y-2">
             <div className="flex justify-between font-black uppercase text-xs tracking-widest text-muted-foreground">
               <span>Syncing calculations</span>
@@ -924,13 +1159,13 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
           </div>
 
           <div className={cn(
-            "font-black text-center tabular-nums transition-all my-4",
-            isFullscreen ? "text-[12vw] leading-none" : "text-7xl md:text-8xl"
+            "font-black text-center tabular-nums transition-all my-2 md:my-4",
+            isFullscreen ? "text-[15vw] md:text-[12vw] leading-none" : "text-5xl sm:text-6xl md:text-7xl lg:text-8xl"
           )}>
             {activeProblem.question}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 w-full">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full">
             {activeProblem.options.map((opt: number) => {
               const hasAnswered = localAnswered;
               return (
@@ -939,9 +1174,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
                   variant={hasAnswered ? (opt === activeProblem.answer ? 'secondary' : 'destructive') : 'outline'}
                   onClick={() => handleAnswer(opt)}
                   className={cn(
-                    "h-20 text-3xl font-black rounded-2xl transition-all border-4 shadow-md",
+                    "h-14 sm:h-16 md:h-20 text-xl sm:text-2xl md:text-3xl font-black rounded-2xl transition-all border-4 shadow-md",
                     hasAnswered && opt === activeProblem.answer && "bg-green-500 text-white border-green-400 scale-105",
-                    isFullscreen && "h-28 text-5xl"
+                    isFullscreen && "h-16 sm:h-20 md:h-28 text-2xl sm:text-3xl md:text-5xl"
                   )}
                   disabled={hasAnswered}
                 >
@@ -953,9 +1188,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         </div>
 
         {/* Live Scoreboard Side panel */}
-        <div className="w-full md:w-64 bg-slate-900/30 border border-border/20 p-5 rounded-3xl shrink-0 flex flex-col justify-between">
+        <div className="w-full md:w-64 bg-slate-900/30 border border-border/20 p-4 md:p-5 rounded-3xl shrink-0 flex flex-col md:justify-between gap-4 md:gap-0 mt-4 md:mt-0">
           <div>
-            <h4 className="text-xs font-black uppercase text-teal-400 tracking-wider mb-4 flex items-center gap-1.5 border-b border-border/20 pb-2">
+            <h4 className="text-xs font-black uppercase text-teal-400 tracking-wider mb-2 md:mb-4 flex items-center gap-1.5 border-b border-border/20 pb-2">
               <Users className="w-4 h-4 text-teal-400" />
               Live Standings
             </h4>
@@ -963,7 +1198,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
           </div>
           <div className="pt-4 border-t border-border/20 text-center">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              Battle Round {round}/10
+              Battle Round {round}/{roomData?.questions?.length || 10}
             </p>
           </div>
         </div>
@@ -1023,13 +1258,13 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         "w-full transition-all duration-500 flex flex-col",
         isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" : "max-w-3xl mx-auto bg-card shadow-xl"
       )}>
-      <CardHeader className="text-center relative">
+      <CardHeader className="text-center relative px-4 sm:px-10">
         <Button variant="ghost" size="sm" className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]" onClick={onToggleFullscreen}>
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
         </Button>
-        {!isFullscreen && <Calculator className="w-12 h-12 text-primary mx-auto mb-2" />}
-        <CardTitle className={cn("font-black uppercase tracking-tight", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
+        {!isFullscreen && <Calculator className="w-8 h-8 sm:w-12 sm:h-12 text-primary mx-auto mb-2" />}
+        <CardTitle className={cn("font-black uppercase tracking-tight px-12 sm:px-0", isFullscreen ? "text-2xl sm:text-4xl md:text-6xl" : "text-xl sm:text-2xl md:text-3xl")}>{game.title}</CardTitle>
         {(gameMode === 'single' && gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_category' && gameState !== 'selecting_difficulty') && (
             <div className="flex justify-center gap-2 mt-2">
                 <Badge variant="secondary" className="uppercase">{operation}</Badge>
@@ -1041,7 +1276,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             <div className="flex justify-center gap-2 mt-2">
                 <Badge variant="secondary" className="uppercase">{operation}</Badge>
                 <Badge variant="outline" className="uppercase">{difficulty}</Badge>
-                <Badge variant="outline">Round {round}/10</Badge>
+                <Badge variant="outline">Round {round}/{roomData?.questions?.length || 10}</Badge>
             </div>
         )}
       </CardHeader>
@@ -1049,11 +1284,17 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       <CardContent className={cn("flex flex-col items-center justify-center p-6", isFullscreen ? "min-h-[60vh]" : "min-h-[350px]")}>
         {gameMode === 'multi' ? (
           <>
-            {multiplayerState === 'mode_select' && renderMultiModeSelect()}
-            {multiplayerState === 'join_room' && renderMultiJoinRoom()}
-            {multiplayerState === 'lobby' && renderMultiLobby()}
-            {multiplayerState === 'playing' && renderMultiPlaying()}
-            {multiplayerState === 'finished' && renderMultiFinished()}
+            {isEditingQuestions ? (
+              renderCustomQuestionsEditor()
+            ) : (
+              <>
+                {multiplayerState === 'mode_select' && renderMultiModeSelect()}
+                {multiplayerState === 'join_room' && renderMultiJoinRoom()}
+                {multiplayerState === 'lobby' && renderMultiLobby()}
+                {multiplayerState === 'playing' && renderMultiPlaying()}
+                {multiplayerState === 'finished' && renderMultiFinished()}
+              </>
+            )}
           </>
         ) : (
           <>
@@ -1140,7 +1381,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             )}
 
             {(gameState === "playing" || gameState === "answered") && problem && (
-              <div className="w-full max-w-4xl flex flex-col items-center gap-12">
+              <div className="w-full max-w-4xl flex flex-col items-center gap-4 sm:gap-8 md:gap-12">
                 <div className="w-full space-y-2">
                     <div className="flex justify-between font-black uppercase text-xs tracking-widest text-muted-foreground">
                         <span>Time Sync</span>
@@ -1150,22 +1391,22 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
                 </div>
 
                 <div className={cn(
-                    "font-black text-center tabular-nums transition-all",
-                    isFullscreen ? "text-[15vw] leading-none" : "text-7xl md:text-8xl"
+                    "font-black text-center tabular-nums transition-all my-2 sm:my-4",
+                    isFullscreen ? "text-[15vw] leading-none" : "text-5xl sm:text-6xl md:text-7xl lg:text-8xl"
                 )}>
                     {problem.question}
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 w-full">
+                <div className="grid grid-cols-2 gap-2 sm:gap-6 w-full">
                     {problem.options.map(opt => (
                         <Button
                             key={opt}
                             variant={gameState === 'answered' ? (opt === problem.answer ? 'secondary' : 'destructive') : 'outline'}
                             onClick={() => handleAnswer(opt)}
                             className={cn(
-                                "h-24 text-4xl font-black rounded-3xl transition-all border-4 shadow-lg",
+                                "h-14 sm:h-16 md:h-24 text-xl sm:text-2xl md:text-4xl font-black rounded-3xl transition-all border-4 shadow-lg",
                                 gameState === 'answered' && opt === problem.answer && "bg-green-500 text-white border-green-400 scale-105",
-                                isFullscreen && "h-32 text-6xl"
+                                isFullscreen && "h-16 sm:h-20 md:h-32 text-2xl sm:text-3xl md:text-6xl"
                             )}
                             disabled={gameState === 'answered'}
                         >
