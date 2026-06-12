@@ -38,6 +38,7 @@ export function WorksheetScanner() {
   const [additionalInstructions, setAdditionalInstructions] = React.useState('');
   const [isCameraActive, setIsCameraActive] = React.useState(false);
   const [cameraError, setCameraError] = React.useState<string | null>(null);
+  const [videoAspectRatio, setVideoAspectRatio] = React.useState<number | null>(null);
 
   // Video and Canvas refs
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -74,7 +75,11 @@ export function WorksheetScanner() {
         stream.getTracks().forEach((track) => track.stop());
       }
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: facingMode } },
+        video: { 
+          facingMode: { ideal: facingMode },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
         audio: false,
       });
       setStream(mediaStream);
@@ -96,6 +101,7 @@ export function WorksheetScanner() {
       setStream(null);
     }
     setIsCameraActive(false);
+    setVideoAspectRatio(null);
   };
 
   const toggleCameraFacing = () => {
@@ -227,7 +233,7 @@ export function WorksheetScanner() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         
         {/* LEFT COLUMN: Input Camera & Image Capture Controls */}
-        <div className="xl:col-span-5 space-y-4">
+        <div className="xl:col-span-6 space-y-4">
           <Card className="bg-slate-900/40 border-slate-800 backdrop-blur-md">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -241,7 +247,12 @@ export function WorksheetScanner() {
             <CardContent className="space-y-4">
               
               {/* Media viewer block */}
-              <div className="relative aspect-[4/3] bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner">
+              <div 
+                style={{ aspectRatio: videoAspectRatio ? videoAspectRatio : undefined }}
+                className={`relative bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden flex items-center justify-center shadow-inner transition-all duration-300 ${
+                  !videoAspectRatio ? 'aspect-[4/3]' : ''
+                }`}
+              >
                 {isCameraActive ? (
                   <>
                     <video 
@@ -249,7 +260,15 @@ export function WorksheetScanner() {
                       autoPlay 
                       playsInline 
                       muted 
-                      className={`w-full h-full object-cover ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`} 
+                      onLoadedMetadata={() => {
+                        if (videoRef.current) {
+                          const { videoWidth, videoHeight } = videoRef.current;
+                          if (videoWidth && videoHeight) {
+                            setVideoAspectRatio(videoWidth / videoHeight);
+                          }
+                        }
+                      }}
+                      className={`w-full h-full object-contain ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`} 
                     />
                     {/* Overlay Grid lines for layout alignment */}
                     <div className="absolute inset-0 border border-teal-500/10 pointer-events-none grid grid-cols-3 grid-rows-3">
@@ -396,7 +415,7 @@ export function WorksheetScanner() {
         </div>
 
         {/* RIGHT COLUMN: Grading Results Report */}
-        <div className="xl:col-span-7 flex flex-col gap-2 min-h-[400px]">
+        <div className="xl:col-span-6 flex flex-col gap-2 min-h-[400px]">
           
           <AnimatePresence mode="wait">
             
