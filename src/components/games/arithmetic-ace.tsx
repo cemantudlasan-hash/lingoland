@@ -122,6 +122,12 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
   ]);
   const [isEditingQuestions, setIsEditingQuestions] = React.useState(false);
 
+  const isCreator = React.useMemo(() => {
+    if (gameMode !== 'multi') return false;
+    const currentUid = user?.uid || myUid;
+    return roomData && roomData.hostId && currentUid ? roomData.hostId === currentUid : isHost;
+  }, [gameMode, roomData, user, myUid, isHost]);
+
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handler);
@@ -165,6 +171,11 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       if (data.questionMode) setQuestionMode(data.questionMode as 'auto' | 'custom');
       if (data.customQuestions && !isEditingQuestions) setCustomQuestions(data.customQuestions);
       
+      const currentUid = user?.uid || myUid;
+      if (currentUid && data.hostId) {
+        setIsHost(data.hostId === currentUid);
+      }
+      
       // Check if room was disbanded via status
       if (data.status === 'disbanded') {
         toast({
@@ -193,11 +204,11 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
     });
     
     return () => unsubscribe();
-  }, [firestore, roomCode, gameMode, multiplayerState, isEditingQuestions]);
+  }, [firestore, roomCode, gameMode, multiplayerState, isEditingQuestions, user, myUid]);
 
   // Host checker: declare finished once everyone completes
   React.useEffect(() => {
-    if (gameMode === 'multi' && isHost && roomCode && roomData && roomData.status === 'playing') {
+    if (gameMode === 'multi' && isCreator && roomCode && roomData && roomData.status === 'playing') {
       const list = Object.values(roomData.players || {}) as any[];
       if (list.length > 0 && list.every((p: any) => p.finished)) {
         // Everyone is finished, declare winner and end game
@@ -211,7 +222,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         }).catch(e => console.error("Error setting winner:", e));
       }
     }
-  }, [gameMode, isHost, roomCode, roomData]);
+  }, [gameMode, isCreator, roomCode, roomData]);
 
   // Celebrate with Confetti for the Winner
   React.useEffect(() => {
@@ -557,7 +568,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
 
     try {
       const roomRef = doc(firestore, "stats", "aa_room_" + roomCode);
-      if (isHost) {
+      if (isCreator) {
         await updateDoc(roomRef, { status: 'disbanded' });
         await deleteDoc(roomRef);
       } else if (roomData && roomData.players) {
@@ -590,7 +601,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   const handleUpdateLobbySettings = async (selectedOp: Operation, selectedDiff: SkillLevel, qMode?: 'auto' | 'custom') => {
-    if (!firestore || !roomCode || !isHost) return;
+    if (!firestore || !roomCode || !isCreator) return;
     try {
       const roomRef = doc(firestore, "stats", "aa_room_" + roomCode);
       const updates: any = {
@@ -605,7 +616,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   const handleSaveCustomQuestions = async (updatedList: Problem[]) => {
-    if (!firestore || !roomCode || !isHost) return;
+    if (!firestore || !roomCode || !isCreator) return;
     try {
       const roomRef = doc(firestore, "stats", "aa_room_" + roomCode);
       await updateDoc(roomRef, {
@@ -626,7 +637,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   const handleStartMultiplayerGame = async () => {
-    if (!firestore || !roomCode || !isHost) return;
+    if (!firestore || !roomCode || !isCreator) return;
     if (roomPlayers.length < 2) {
       toast({
         title: "Waiting for Players 👥",
@@ -927,7 +938,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             {/* Question Mode selection */}
             <div className="space-y-1.5 border-b border-border/10 pb-3">
               <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Question Mode</label>
-              {isHost ? (
+              {isCreator ? (
                 <div className="flex gap-2">
                   <Button
                     size="sm"
@@ -969,7 +980,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
                 {/* Operations selector */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Math Operation</label>
-                  {isHost ? (
+                  {isCreator ? (
                     <div className="flex flex-wrap gap-1.5">
                       {CATEGORIES.map((cat) => (
                         <Button
@@ -996,7 +1007,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
                 {/* Difficulty selector */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Difficulty Level</label>
-                  {isHost ? (
+                  {isCreator ? (
                     <div className="flex gap-1.5">
                       {['beginner', 'intermediate', 'advanced'].map((lvl) => (
                         <Button
@@ -1027,7 +1038,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
                     <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Active Rounds</p>
                     <p className="text-sm font-bold text-white font-mono mt-0.5">{customQuestions.length} Custom Calculations</p>
                   </div>
-                  {isHost && (
+                  {isCreator && (
                     <Button 
                       size="sm" 
                       onClick={() => setIsEditingQuestions(true)}
@@ -1080,10 +1091,10 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             onClick={handleLeaveRoom}
             className="flex-1 h-14 text-sm font-black uppercase text-rose-400 border-rose-500/20 hover:bg-rose-950/10 cursor-pointer"
           >
-            {isHost ? 'Disband Room' : 'Leave Lobby'}
+            {isCreator ? 'Disband Room' : 'Leave Lobby'}
           </Button>
 
-          {isHost && (
+          {isCreator && (
             <Button 
               onClick={handleStartMultiplayerGame}
               disabled={playersList.length < 2}

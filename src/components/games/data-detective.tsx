@@ -130,6 +130,12 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
     { type: "Mean", dataStr: "5, 10, 15, 20, 25", answer: "15", options: ["15", "10", "20", "12"] }
   ]);
 
+  const isCreator = React.useMemo(() => {
+    if (gameMode !== 'multi') return false;
+    const currentUid = user?.uid || myUid;
+    return roomData && roomData.hostId && currentUid ? roomData.hostId === currentUid : isHost;
+  }, [gameMode, roomData, user, myUid, isHost]);
+
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
@@ -177,6 +183,11 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         setCustomQuestions(data.customQuestions);
       }
       
+      const currentUid = user?.uid || myUid;
+      if (currentUid && data.hostId) {
+        setIsHost(data.hostId === currentUid);
+      }
+      
       if (data.status === 'disbanded') {
         toast({
           title: "Room Disbanded 🚨",
@@ -203,11 +214,11 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
     });
     
     return () => unsubscribe();
-  }, [firestore, roomCode, gameMode, multiplayerState, isEditingQuestions]);
+  }, [firestore, roomCode, gameMode, multiplayerState, isEditingQuestions, user, myUid]);
 
   // Host checker: declare finished once everyone completes
   React.useEffect(() => {
-    if (gameMode === 'multi' && isHost && roomCode && roomData && roomData.status === 'playing') {
+    if (gameMode === 'multi' && isCreator && roomCode && roomData && roomData.status === 'playing') {
       const list = Object.values(roomData.players || {}) as any[];
       if (list.length > 0 && list.every((p: any) => p.finished)) {
         // Everyone is finished, declare winner and end game
@@ -221,7 +232,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         }).catch(e => console.error("Error setting winner:", e));
       }
     }
-  }, [gameMode, isHost, roomCode, roomData]);
+  }, [gameMode, isCreator, roomCode, roomData]);
 
   // Celebrate with Confetti for the Winner
   React.useEffect(() => {
@@ -571,7 +582,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
 
     try {
       const roomRef = doc(firestore, "stats", "dd_room_" + roomCode);
-      if (isHost) {
+      if (isCreator) {
         await updateDoc(roomRef, { status: 'disbanded' });
         await deleteDoc(roomRef);
       } else if (roomData && roomData.players) {
@@ -607,7 +618,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   const handleUpdateLobbySettings = async (selectedDiff: Difficulty, mode: 'auto' | 'custom', count: number) => {
-    if (!firestore || !roomCode || !isHost) return;
+    if (!firestore || !roomCode || !isCreator) return;
     try {
       const roomRef = doc(firestore, "stats", "dd_room_" + roomCode);
       await updateDoc(roomRef, {
@@ -621,7 +632,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   const handleSaveCustomQuestions = async (updatedList: CustomQuestion[]) => {
-    if (!firestore || !roomCode || !isHost) return;
+    if (!firestore || !roomCode || !isCreator) return;
     try {
       const roomRef = doc(firestore, "stats", "dd_room_" + roomCode);
       await updateDoc(roomRef, {
@@ -645,7 +656,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   const handleStartMultiplayerGame = async () => {
-    if (!firestore || !roomCode || !isHost) return;
+    if (!firestore || !roomCode || !isCreator) return;
     if (roomPlayers.length < 2) {
       toast({
         title: "Waiting for Competitors 👥",
@@ -707,11 +718,10 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
     }
   };
 
-  // Lobby components
   const renderMultiModeSelect = () => (
-    <div className="flex flex-col items-center gap-6 w-full max-w-md bg-white/40 p-8 rounded-3xl border border-[#8b8273]/40 shadow-lg">
-      <Users className="w-16 h-16 text-[#5c5448] mx-auto" />
-      <h3 className="text-3xl font-black uppercase text-center font-serif tracking-widest text-[#2c2a27]">Case Room</h3>
+    <div className="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-md bg-white/40 p-4 sm:p-8 rounded-3xl border border-[#8b8273]/40 shadow-lg">
+      <Users className="w-12 h-12 sm:w-16 sm:h-16 text-[#5c5448] mx-auto" />
+      <h3 className="text-2xl sm:text-3xl font-black uppercase text-center font-serif tracking-widest text-[#2c2a27]">Case Room</h3>
       
       <div className="w-full space-y-2 text-left">
         <label className="text-[10px] font-black uppercase tracking-wider text-[#5c5448]">Detective Alias</label>
@@ -720,15 +730,15 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           placeholder="Enter alias"
-          className="w-full h-12 px-4 rounded-xl border border-[#8b8273] bg-[#e4dfd5]/40 text-[#2c2a27] font-bold"
+          className="w-full h-11 sm:h-12 px-4 rounded-xl border border-[#8b8273] bg-[#e4dfd5]/40 text-[#2c2a27] font-bold text-sm sm:text-base"
           maxLength={15}
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 w-full pt-4">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 w-full pt-2 sm:pt-4">
         <Button 
           onClick={handleCreateRoom}
-          className="h-14 text-sm font-black uppercase tracking-widest bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif shadow-lg border border-[#8b8273]"
+          className="h-12 sm:h-14 text-xs sm:text-sm font-black uppercase tracking-widest bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif shadow-lg border border-[#8b8273]"
         >
           Create Room File
         </Button>
@@ -739,30 +749,30 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
             value={codeVal}
             onChange={(e) => setCodeVal(e.target.value.toUpperCase())}
             placeholder="INVITE CODE"
-            className="flex-1 h-14 text-center text-xl font-mono font-black tracking-widest uppercase rounded-xl border border-[#8b8273] bg-[#e4dfd5]/60 text-[#2c2a27]"
+            className="flex-1 h-12 sm:h-14 text-center text-lg sm:text-xl font-mono font-black tracking-widest uppercase rounded-xl border border-[#8b8273] bg-[#e4dfd5]/60 text-[#2c2a27]"
             maxLength={5}
           />
           <Button 
             onClick={() => handleJoinRoom(codeVal)}
-            className="h-14 px-6 text-sm font-black uppercase bg-[#8b8273] hover:bg-[#5c5448] text-white font-serif"
+            className="h-12 sm:h-14 px-4 sm:px-6 text-xs sm:text-sm font-black uppercase bg-[#8b8273] hover:bg-[#5c5448] text-white font-serif"
           >
             Join
           </Button>
         </div>
       </div>
 
-      <Button variant="ghost" onClick={resetMultiplayerState} className="uppercase font-bold opacity-60 text-[#5c5448] hover:text-[#2c2a27] font-serif tracking-wider">
+      <Button variant="ghost" onClick={resetMultiplayerState} className="uppercase font-bold opacity-60 text-[#5c5448] hover:text-[#2c2a27] font-serif tracking-wider text-xs sm:text-sm">
         <ArrowLeft className="w-4 h-4 mr-2" /> Back to Solo Mode
       </Button>
     </div>
   );
 
   const renderMultiJoinRoom = () => (
-    <div className="flex flex-col items-center gap-6 w-full max-w-md bg-white/40 p-8 rounded-3xl border border-[#8b8273]/40 shadow-lg">
-      <Users className="w-16 h-16 text-[#5c5448] mx-auto" />
-      <h3 className="text-2xl font-black uppercase text-center font-serif">Join Room</h3>
+    <div className="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-md bg-white/40 p-4 sm:p-8 rounded-3xl border border-[#8b8273]/40 shadow-lg">
+      <Users className="w-12 h-12 sm:w-16 sm:h-16 text-[#5c5448] mx-auto" />
+      <h3 className="text-xl sm:text-2xl font-black uppercase text-center font-serif">Join Room</h3>
       
-      <div className="w-full space-y-4 text-left">
+      <div className="w-full space-y-3 sm:space-y-4 text-left">
         <div className="space-y-1.5">
           <label className="text-[10px] font-black uppercase tracking-wider text-[#5c5448]">Detective Alias</label>
           <input
@@ -770,7 +780,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             placeholder="Enter alias"
-            className="w-full h-12 px-4 rounded-xl border border-[#8b8273] bg-[#e4dfd5]/40 text-[#2c2a27] font-bold"
+            className="w-full h-11 sm:h-12 px-4 rounded-xl border border-[#8b8273] bg-[#e4dfd5]/40 text-[#2c2a27] font-bold text-sm sm:text-base"
             maxLength={15}
           />
         </div>
@@ -782,23 +792,23 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
             value={codeVal}
             onChange={(e) => setCodeVal(e.target.value.toUpperCase())}
             placeholder="5-LETTER CODE"
-            className="w-full h-14 text-center text-2xl font-mono font-black tracking-widest uppercase rounded-xl border border-[#8b8273] bg-[#e4dfd5]/60 text-[#2c2a27]"
+            className="w-full h-12 sm:h-14 text-center text-xl font-mono font-black tracking-widest uppercase rounded-xl border border-[#8b8273] bg-[#e4dfd5]/60 text-[#2c2a27]"
             maxLength={5}
           />
         </div>
       </div>
 
-      <div className="flex gap-3 w-full pt-4">
+      <div className="flex gap-3 w-full pt-2 sm:pt-4">
         <Button 
           variant="outline" 
           onClick={() => setMultiplayerState('mode_select')}
-          className="flex-1 h-14 text-xs font-black uppercase border-[#8b8273] text-[#5c5448] font-serif cursor-pointer"
+          className="flex-1 h-12 sm:h-14 text-xs font-black uppercase border-[#8b8273] text-[#5c5448] font-serif cursor-pointer"
         >
           Cancel
         </Button>
         <Button 
           onClick={() => handleJoinRoom(codeVal)}
-          className="flex-1 h-14 text-xs font-black uppercase tracking-wider bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif cursor-pointer"
+          className="flex-1 h-12 sm:h-14 text-xs font-black uppercase tracking-wider bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif cursor-pointer"
         >
           Join Room
         </Button>
@@ -835,15 +845,15 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
     };
 
     return (
-      <div className="w-full max-w-2xl bg-white p-6 rounded-3xl border-4 border-[#2c2a27] space-y-4 max-h-[550px] overflow-y-auto">
+      <div className="w-full max-w-2xl bg-white p-4 sm:p-6 rounded-3xl border-2 sm:border-4 border-[#2c2a27] space-y-4 max-h-[500px] overflow-y-auto">
         <div className="flex justify-between items-center border-b pb-3">
-          <h3 className="text-lg font-black uppercase font-serif text-[#2c2a27] flex items-center gap-1.5">
-            <Settings className="w-5 h-5" /> Customize Case File
+          <h3 className="text-sm sm:text-lg font-black uppercase font-serif text-[#2c2a27] flex items-center gap-1.5">
+            <Settings className="w-4 h-4 sm:w-5 sm:h-5" /> Customize Case File
           </h3>
           <Button 
             size="sm" 
             onClick={addQuestion} 
-            className="bg-[#2c2a27] hover:bg-[#4a4740] text-white text-xs font-bold font-serif"
+            className="bg-[#2c2a27] hover:bg-[#4a4740] text-white text-[10px] sm:text-xs font-bold font-serif px-2 sm:px-3 h-8 sm:h-9"
           >
             <Plus className="w-3.5 h-3.5 mr-1" /> Add Round
           </Button>
@@ -851,7 +861,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
 
         <div className="space-y-4">
           {customQuestions.map((cq, idx) => (
-            <div key={idx} className="p-4 bg-[#e4dfd5]/40 border border-[#8b8273] rounded-2xl relative space-y-3">
+            <div key={idx} className="p-3 sm:p-4 bg-[#e4dfd5]/40 border border-[#8b8273] rounded-2xl relative space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-xs font-black font-serif text-[#2c2a27]">Round {idx + 1}</span>
                 <Button 
@@ -891,7 +901,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                 </div>
               </div>
 
-              <div className="pt-1 flex items-center gap-2 text-xs font-serif text-[#5c5448]">
+              <div className="pt-1 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs font-serif text-[#5c5448]">
                 <span>Computed Answer:</span>
                 <span className="font-bold font-mono text-[#2c2a27] bg-[#e4dfd5] px-2 py-0.5 rounded border border-[#8b8273]/30">
                   {cq.answer}
@@ -906,7 +916,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
           <Button 
             variant="outline" 
             onClick={() => setIsEditingQuestions(false)}
-            className="flex-1 h-12 text-xs font-black uppercase border-[#8b8273] text-[#5c5448] font-serif"
+            className="flex-1 h-10 sm:h-12 text-xs font-black uppercase border-[#8b8273] text-[#5c5448] font-serif"
           >
             Cancel
           </Button>
@@ -915,7 +925,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
               handleSaveCustomQuestions(customQuestions);
               setIsEditingQuestions(false);
             }}
-            className="flex-1 h-12 text-xs font-black uppercase bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif"
+            className="flex-1 h-10 sm:h-12 text-xs font-black uppercase bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif"
           >
             Apply & Save
           </Button>
@@ -932,11 +942,11 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
     const sortedPlayers = [...roomPlayers].sort((a, b) => (a.isHost ? -1 : b.isHost ? 1 : 0));
 
     return (
-      <div className="flex flex-col gap-6 w-full max-w-2xl bg-white/40 p-6 rounded-3xl border border-[#8b8273]/30 shadow-lg text-left">
-        <div className="text-center p-6 bg-[#e4dfd5]/65 border border-[#8b8273]/40 rounded-3xl relative overflow-hidden">
+      <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-2xl bg-white/40 p-4 sm:p-6 rounded-3xl border border-[#8b8273]/30 shadow-lg text-left">
+        <div className="text-center p-4 sm:p-6 bg-[#e4dfd5]/65 border border-[#8b8273]/40 rounded-3xl relative overflow-hidden">
           <p className="text-[10px] font-black text-[#5c5448] uppercase tracking-widest mb-1">Case Invitation Code</p>
           <div className="flex items-center justify-center gap-3">
-            <span className="text-5xl font-mono font-black tracking-wider text-[#2c2a27] select-all">{roomCode}</span>
+            <span className="text-3xl sm:text-5xl font-mono font-black tracking-wider text-[#2c2a27] select-all">{roomCode}</span>
             <Button
               size="icon"
               variant="ghost"
@@ -955,13 +965,13 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         </div>
 
         {/* Lobby Parameter Card */}
-        <div className="p-6 bg-white/60 border border-[#8b8273]/30 rounded-3xl space-y-4">
+        <div className="p-4 sm:p-6 bg-white/60 border border-[#8b8273]/30 rounded-3xl space-y-4">
           <div className="flex justify-between items-center">
             <h4 className="text-xs font-black uppercase text-[#2c2a27] font-serif flex items-center gap-1.5">
               <Settings className="w-4 h-4" /> Parameters
             </h4>
 
-            {isHost && (
+            {isCreator && (
               <div className="flex gap-1">
                 <Button
                   size="sm"
@@ -993,8 +1003,8 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
             {/* Left side settings */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-[#5c5448] tracking-wider">Difficulty Level</label>
-              {isHost && questionMode === 'auto' ? (
-                <div className="flex gap-1.5">
+              {isCreator && questionMode === 'auto' ? (
+                <div className="flex gap-1 sm:gap-1.5">
                   {['easy', 'intermediate', 'pro'].map((lvl) => (
                     <Button
                       key={lvl}
@@ -1004,9 +1014,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                         setDifficulty(lvl as Difficulty);
                         handleUpdateLobbySettings(lvl as Difficulty, questionMode, roundsCount);
                       }}
-                      className="text-xs font-bold uppercase flex-1 font-serif"
+                      className="text-xs font-bold uppercase flex-1 font-serif px-1.5 sm:px-3"
                     >
-                      {lvl === 'easy' ? 'Easy' : lvl === 'intermediate' ? 'Medium' : 'Pro'}
+                      {lvl === 'easy' ? 'Easy' : lvl === 'intermediate' ? (<span><span className="hidden sm:inline">Medium</span><span className="inline sm:hidden">Med</span></span>) : 'Pro'}
                     </Button>
                   ))}
                 </div>
@@ -1022,7 +1032,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
             {/* Right side settings */}
             <div className="space-y-1.5 flex flex-col justify-end">
               <label className="text-[10px] font-black uppercase text-[#5c5448] tracking-wider">Rounds count</label>
-              {isHost ? (
+              {isCreator ? (
                 questionMode === 'custom' ? (
                   <Button 
                     onClick={() => setIsEditingQuestions(true)}
@@ -1041,9 +1051,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                           setRoundsCount(cnt);
                           handleUpdateLobbySettings(difficulty, questionMode, cnt);
                         }}
-                        className="text-xs font-bold uppercase flex-1 font-serif"
+                        className="text-xs font-bold uppercase flex-1 font-serif px-1 sm:px-3"
                       >
-                        {cnt} Rounds
+                        {cnt}<span className="hidden sm:inline"> Rounds</span><span className="inline sm:hidden"> R</span>
                       </Button>
                     ))}
                   </div>
@@ -1075,7 +1085,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                   ) : (
                     <Users className="w-4 h-4 text-[#5c5448] shrink-0" />
                   )}
-                  <span className="font-bold text-[#2c2a27] text-sm font-serif">{player.name}</span>
+                  <span className="font-bold text-[#2c2a27] text-sm font-serif truncate max-w-[120px] sm:max-w-[200px]">{player.name}</span>
                   {player.uid === myUid && <span className="text-[10px] font-bold text-[#8b8273] shrink-0">(You)</span>}
                 </div>
                 <div className="text-xs font-bold uppercase tracking-wider text-[#5c5448] font-serif">
@@ -1097,10 +1107,10 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
             onClick={handleLeaveRoom}
             className="flex-1 h-14 text-xs font-black uppercase text-red-800 border-red-800/20 hover:bg-red-500/10 font-serif cursor-pointer"
           >
-            {isHost ? 'Disband Case' : 'Leave Room'}
+            {isCreator ? 'Disband Case' : 'Leave Room'}
           </Button>
 
-          {isHost && (
+          {isCreator && (
             <Button 
               onClick={handleStartMultiplayerGame}
               disabled={sortedPlayers.length < 2}
@@ -1166,14 +1176,14 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
       <div className="w-full max-w-4xl flex flex-col md:flex-row gap-4 md:gap-8 items-stretch text-center">
         {/* Main math calculation view */}
         <div className="flex-1 flex flex-col items-center">
-          <motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="mb-4 sm:mb-8 bg-white/60 p-4 sm:p-8 rounded border border-[#8b8273] shadow-md transform -rotate-1 relative w-full">
+          <motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="mb-3 sm:mb-8 bg-white/60 p-3 sm:p-8 rounded border border-[#8b8273] shadow-md transform -rotate-1 relative w-full">
             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-red-800/30 -rotate-3" />
             <p className="text-[#8b8273] font-bold uppercase tracking-[0.2em] text-xs sm:text-sm mb-2 sm:mb-4 font-serif">
               Find the <span className="text-[#2c2a27] font-black underline">{activeProblem.type}</span> of this set:
             </p>
-            <div className="flex flex-wrap justify-center gap-2 sm:gap-4 bg-[#e4dfd5] p-4 sm:p-6 border-2 border-dashed border-[#8b8273]">
+            <div className="flex flex-wrap justify-center gap-1.5 sm:gap-4 bg-[#e4dfd5] p-3 sm:p-6 border-2 border-dashed border-[#8b8273]">
               {activeProblem.data.map((n: number, i: number) => (
-                <span key={i} className="text-xl sm:text-3xl font-black text-[#2c2a27] font-mono tracking-tighter">{n}</span>
+                <span key={i} className="text-lg sm:text-3xl font-black text-[#2c2a27] font-mono tracking-tighter">{n}</span>
               ))}
             </div>
           </motion.div>
@@ -1188,7 +1198,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                   variant={hasAnswered ? (isCorrectOpt ? 'secondary' : 'destructive') : 'outline'}
                   onClick={() => handleChoice(opt)}
                   className={cn(
-                    "w-full h-14 sm:h-20 text-xl sm:text-3xl font-black font-mono bg-white text-[#2c2a27] border-2 border-[#8b8273] transition-all rounded shadow-[2px_2px_0_0_#8b8273] sm:shadow-[4px_4px_0_0_#8b8273]",
+                    "w-full h-12 sm:h-20 text-lg sm:text-3xl font-black font-mono bg-white text-[#2c2a27] border-2 border-[#8b8273] transition-all rounded shadow-[2px_2px_0_0_#8b8273] sm:shadow-[4px_4px_0_0_#8b8273]",
                     hasAnswered && isCorrectOpt && "bg-green-700 text-white border-green-800 scale-105 shadow-none",
                     hasAnswered && !isCorrectOpt && "opacity-50"
                   )}
@@ -1200,8 +1210,8 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
             })}
           </div>
 
-          <div className="mt-6 sm:mt-8 w-full max-w-sm">
-            <div className="flex justify-between text-xs font-black uppercase text-[#8b8273] mb-2 font-serif tracking-widest">
+          <div className="mt-4 sm:mt-8 w-full max-w-sm">
+            <div className="flex justify-between text-xs font-black uppercase text-[#8b8273] mb-1 sm:mb-2 font-serif tracking-widest">
               <span>Investigation Clock</span>
               <span>{timeLeft.toFixed(1)}s</span>
             </div>
@@ -1212,9 +1222,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         </div>
 
         {/* Standings Side bar */}
-        <div className="w-full md:w-64 bg-white/40 border border-[#8b8273]/30 p-4 md:p-5 rounded-3xl shrink-0 flex flex-col md:justify-between gap-4 md:gap-0 mt-4 md:mt-0 text-left">
+        <div className="w-full md:w-64 bg-white/40 border border-[#8b8273]/30 p-3 md:p-5 rounded-3xl shrink-0 flex flex-col md:justify-between gap-3 md:gap-0 mt-3 md:mt-0 text-left">
           <div>
-            <h4 className="text-xs font-black uppercase text-[#2c2a27] tracking-wider mb-2 md:mb-4 flex items-center gap-1.5 border-b border-[#8b8273]/20 pb-2 font-serif">
+            <h4 className="text-xs font-black uppercase text-[#2c2a27] tracking-wider mb-1.5 md:mb-4 flex items-center gap-1.5 border-b border-[#8b8273]/20 pb-2 font-serif">
               <Users className="w-4 h-4 text-[#5c5448]" />
               Agents Standings
             </h4>
@@ -1235,18 +1245,18 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
     const winner = sorted[0];
 
     return (
-      <div className="text-center flex flex-col items-center gap-6 animate-in zoom-in duration-500 max-w-lg w-full bg-white p-8 border-2 border-[#2c2a27] shadow-[8px_8px_0_0_#2c2a27]">
-        <Trophy className="w-24 h-24 text-yellow-650 animate-bounce" />
-        <h2 className="text-4xl font-black uppercase font-serif text-[#2c2a27]">Investigation Closed</h2>
+      <div className="text-center flex flex-col items-center gap-4 sm:gap-6 animate-in zoom-in duration-500 max-w-lg w-full bg-white p-4 sm:p-8 border-2 border-[#2c2a27] shadow-[8px_8px_0_0_#2c2a27]">
+        <Trophy className="w-16 h-16 sm:w-24 sm:h-24 text-yellow-650 animate-bounce" />
+        <h2 className="text-2xl sm:text-4xl font-black uppercase font-serif text-[#2c2a27]">Investigation Closed</h2>
         
         {winner && (
-          <div className="p-6 bg-[#e4dfd5] border border-[#8b8273] rounded-2xl w-full text-center relative">
+          <div className="p-4 sm:p-6 bg-[#e4dfd5] border border-[#8b8273] rounded-2xl w-full text-center relative">
             <p className="text-[10px] font-bold text-yellow-700 uppercase tracking-widest mb-1 flex items-center justify-center gap-1 font-serif">
               <Crown className="w-3.5 h-3.5 fill-yellow-600 stroke-none" /> Lead Investigator
             </p>
-            <p className="text-2xl font-black text-[#2c2a27] font-serif">{winner.name}</p>
+            <p className="text-xl sm:text-2xl font-black text-[#2c2a27] font-serif">{winner.name}</p>
             <p className="text-xs text-[#5c5448] font-mono mt-1">Clues Discovered: {winner.score} points</p>
-            <div className="absolute bottom-2 right-2 text-red-800/30 font-serif text-xl border border-red-800/30 px-1 rounded uppercase tracking-wider select-none transform -rotate-12">Closed</div>
+            <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 text-red-800/30 font-serif text-base sm:text-xl border border-red-800/30 px-1 rounded uppercase tracking-wider select-none transform -rotate-12">Closed</div>
           </div>
         )}
 
@@ -1254,7 +1264,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
           <p className="text-xs font-bold text-[#5c5448] uppercase tracking-widest font-serif">Final Standings</p>
           <div className="divide-y divide-[#8b8273]/20 border border-[#8b8273]/20 rounded-xl overflow-hidden bg-[#e4dfd5]/25">
             {sorted.map((player, idx) => (
-              <div key={player.uid} className="flex justify-between items-center p-4">
+              <div key={player.uid} className="flex justify-between items-center p-3 sm:p-4">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-black font-mono text-[#5c5448]">#{idx + 1}</span>
                   <span className="font-bold text-[#2c2a27] text-sm font-serif">{player.name}</span>
@@ -1268,7 +1278,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
 
         <Button 
           onClick={handleLeaveRoom}
-          className="h-14 px-12 text-sm font-black rounded-none uppercase bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif border border-[#8b8273] mt-4 cursor-pointer"
+          className="h-12 sm:h-14 px-12 text-sm font-black rounded-none uppercase bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif border border-[#8b8273] mt-2 sm:mt-4 cursor-pointer"
         >
           Return to Office
         </Button>
@@ -1280,13 +1290,13 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 bg-[#e4dfd5] text-[#2c2a27] flex flex-col relative border-8 border-[#3c3831] overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[700px]"
+      "w-full transition-all duration-500 bg-[#e4dfd5] text-[#2c2a27] flex flex-col relative border-4 sm:border-8 border-[#3c3831] overflow-hidden",
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-auto min-h-[600px] md:h-[700px]"
     )}>
       <div className="absolute inset-0 z-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_rgba(60,56,49,0.3)_100%)] pointer-events-none z-0" />
 
-      <CardHeader className="z-10 bg-[#cfc5b4]/80 backdrop-blur-sm relative border-b-2 border-[#8b8273] p-4 sm:p-6">
+      <CardHeader className="z-10 bg-[#cfc5b4]/80 backdrop-blur-sm relative border-b-2 border-[#8b8273] p-3 sm:p-6">
         <div className="flex justify-between items-center text-[#2c2a27]">
            <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="ghost" size="icon" asChild className="text-[#5c5448] hover:text-[#2c2a27] w-8 h-8 sm:w-10 sm:h-10">
@@ -1294,7 +1304,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
               </Button>
               <Search className="h-6 w-6 sm:h-8 sm:w-8 text-[#5c5448] hidden sm:block" />
               <div>
-                <CardTitle className="text-base sm:text-2xl font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] font-serif">Data Detective</CardTitle>
+                <CardTitle className="text-sm sm:text-2xl font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] font-serif">Data Detective</CardTitle>
                 {gameMode === 'single' ? (
                   (gameState !== 'idle') && <Badge variant="outline" className="border-[#8b8273] text-[#5c5448] mt-1 text-[8px] sm:text-xs uppercase font-bold tracking-widest bg-white/20 px-1 py-0 sm:px-2.5 sm:py-0.5">Case {round}/10</Badge>
                 ) : (
@@ -1314,7 +1324,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col z-10 relative p-6 items-center justify-center">
+      <CardContent className="flex-grow overflow-y-auto min-h-0 w-full flex flex-col z-10 relative p-4 sm:p-6 items-center justify-start md:justify-center">
          <AnimatePresence mode="wait">
             {gameMode === 'multi' ? (
               <>
@@ -1328,9 +1338,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
               <>
                 {gameState === "idle" && (
                     <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, y:20}} className="text-center w-full max-w-md">
-                        <Fingerprint className="w-32 h-32 text-[#5c5448] mx-auto mb-8 drop-shadow-md opacity-80" />
-                        <h2 className="text-5xl font-black uppercase mb-4 font-serif tracking-widest text-[#2c2a27]">Solve The Case</h2>
-                        <p className="text-[#5c5448] mb-10 mx-auto lowercase font-serif">Choose single player mission or multiplayer battle room.</p>
+                        <Fingerprint className="w-20 h-20 sm:w-32 sm:h-32 text-[#5c5448] mx-auto mb-4 sm:mb-8 drop-shadow-md opacity-80" />
+                        <h2 className="text-2xl sm:text-5xl font-black uppercase mb-2 sm:mb-4 font-serif tracking-widest text-[#2c2a27]">Solve The Case</h2>
+                        <p className="text-[#5c5448] text-xs sm:text-base mb-6 sm:mb-10 mx-auto lowercase font-serif">Choose single player mission or multiplayer battle room.</p>
                         <div className="flex flex-col gap-4">
                             <Button 
                               onClick={() => {
@@ -1338,7 +1348,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                                 setGameState('idle');
                                 startGame("easy");
                               }} 
-                              className="h-16 px-12 text-xl font-bold bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] border-2 border-transparent font-serif uppercase tracking-[0.2em] transition-all"
+                              className="h-12 sm:h-16 px-6 sm:px-12 text-sm sm:text-xl font-bold bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] border-2 border-transparent font-serif uppercase tracking-[0.2em] transition-all"
                             >
                               Solo Investigation
                             </Button>
@@ -1347,11 +1357,11 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                                 setGameMode('multi');
                                 setMultiplayerState('mode_select');
                               }} 
-                              className="h-16 px-12 text-xl font-bold bg-white hover:bg-[#cfc5b4] text-[#2c2a27] border-2 border-[#8b8273] font-serif uppercase tracking-[0.2em] transition-all rounded shadow-[4px_4px_0_0_#8b8273]"
+                              className="h-12 sm:h-16 px-6 sm:px-12 text-sm sm:text-xl font-bold bg-white hover:bg-[#cfc5b4] text-[#2c2a27] border-2 border-[#8b8273] font-serif uppercase tracking-[0.2em] transition-all rounded shadow-[4px_4px_0_0_#8b8273]"
                             >
                               Multiplayer Case
                             </Button>
-                            <Button variant="ghost" asChild className="mt-4 text-[#5c5448] hover:text-[#2c2a27] uppercase tracking-widest font-serif transition-colors">
+                            <Button variant="ghost" asChild className="mt-2 text-[#5c5448] hover:text-[#2c2a27] uppercase tracking-widest font-serif transition-colors text-xs sm:text-sm">
                                <Link href="/games">Back to Agency</Link>
                             </Button>
                         </div>
@@ -1360,12 +1370,12 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
 
                 {gameState === "playing" && currentProblem && (
                     <div className="w-full max-w-2xl text-center flex flex-col items-center">
-                        <motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="mb-4 sm:mb-8 md:mb-12 bg-white/50 p-4 sm:p-8 rounded border border-[#8b8273] shadow-md transform -rotate-1 relative w-full">
+                        <motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="mb-3 sm:mb-8 md:mb-12 bg-white/50 p-3 sm:p-8 rounded border border-[#8b8273] shadow-md transform -rotate-1 relative w-full">
                             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-red-800/30 -rotate-3" />
                             <p className="text-[#8b8273] font-bold uppercase tracking-[0.2em] text-xs sm:text-sm mb-2 sm:mb-4 font-serif text-center">Find the <span className="text-[#2c2a27] font-black underline">{currentProblem.type}</span> of this set:</p>
-                            <div className="flex flex-wrap justify-center gap-2 sm:gap-4 bg-[#e4dfd5] p-4 sm:p-6 border-2 border-dashed border-[#8b8273]">
+                            <div className="flex flex-wrap justify-center gap-1.5 sm:gap-4 bg-[#e4dfd5] p-3 sm:p-6 border-2 border-dashed border-[#8b8273]">
                                 {currentProblem.data.map((n, i) => (
-                                     <span key={i} className="text-xl sm:text-3xl font-black text-[#2c2a27] font-mono tracking-tighter">{n}</span>
+                                     <span key={i} className="text-lg sm:text-3xl font-black text-[#2c2a27] font-mono tracking-tighter">{n}</span>
                                 ))}
                             </div>
                         </motion.div>
@@ -1373,15 +1383,15 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                         <div className="grid grid-cols-2 gap-2 sm:gap-6 w-full">
                             {currentProblem.options.map((opt, i) => (
                                 <motion.div key={opt} initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} transition={{delay: i*0.1}} className="w-full">
-                                    <Button onClick={() => handleChoice(opt)} className="w-full h-14 sm:h-20 text-xl sm:text-3xl font-black font-mono bg-white hover:bg-[#cfc5b4] text-[#2c2a27] border-2 border-[#8b8273] transition-all rounded shadow-[2px_2px_0_0_#8b8273] sm:shadow-[4px_4px_0_0_#8b8273] hover:translate-y-1 hover:shadow-[0px_0px_0_0_#8b8273]">
+                                    <Button onClick={() => handleChoice(opt)} className="w-full h-12 sm:h-20 text-lg sm:text-3xl font-black font-mono bg-white hover:bg-[#cfc5b4] text-[#2c2a27] border-2 border-[#8b8273] transition-all rounded shadow-[2px_2px_0_0_#8b8273] sm:shadow-[4px_4px_0_0_#8b8273] hover:translate-y-1 hover:shadow-[0px_0px_0_0_#8b8273]">
                                         {opt}
                                     </Button>
                                 </motion.div>
                             ))}
                         </div>
 
-                        <div className="mt-6 sm:mt-10 md:mt-16 w-full max-w-sm">
-                            <div className="flex justify-between text-xs font-black uppercase text-[#8b8273] mb-2 font-serif tracking-widest">
+                        <div className="mt-4 sm:mt-10 md:mt-16 w-full max-w-sm">
+                            <div className="flex justify-between text-xs font-black uppercase text-[#8b8273] mb-1 sm:mb-2 font-serif tracking-widest">
                                <span>Investigation Time</span>
                                <span>{timeLeft.toFixed(1)}s</span>
                             </div>
@@ -1393,34 +1403,34 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                 )}
 
                 {gameState === "showing_result" && (
-                    <motion.div initial={{scale:0.8, opacity:0, rotate: -5}} animate={{scale:1, opacity:1, rotate: 2}} exit={{scale:0.8, opacity:0}} className="bg-white p-12 rounded border-4 border-[#2c2a27] text-center shadow-2xl relative max-w-md w-full">
+                    <motion.div initial={{scale:0.8, opacity:0, rotate: -5}} animate={{scale:1, opacity:1, rotate: 2}} exit={{scale:0.8, opacity:0}} className="bg-white p-6 sm:p-12 rounded border-4 border-[#2c2a27] text-center shadow-2xl relative max-w-md w-full">
                         {resultStatus === "correct" && (
                             <>
-                               <CheckCircle2 className="w-24 h-24 text-green-700 mx-auto mb-6" />
-                               <h2 className="text-4xl font-black text-green-800 uppercase tracking-widest font-serif border-y-4 border-double border-green-800 py-4">Evidence Accepted</h2>
-                               <p className="text-2xl text-green-700 mt-6 font-mono tabular-nums">+{score} CLUES</p>
+                               <CheckCircle2 className="w-16 h-16 sm:w-24 sm:h-24 text-green-700 mx-auto mb-4 sm:mb-6" />
+                               <h2 className="text-xl sm:text-4xl font-black text-green-800 uppercase tracking-widest font-serif border-y-4 border-double border-green-800 py-2 sm:py-4">Evidence Accepted</h2>
+                               <p className="text-xl sm:text-2xl text-green-700 mt-4 sm:mt-6 font-mono tabular-nums">+{score} CLUES</p>
                             </>
                         )}
                         {resultStatus === "incorrect" && (
                             <>
-                               <HelpCircle className="w-24 h-24 text-red-800 mx-auto mb-6" />
-                               <h2 className="text-4xl font-black text-red-800 uppercase tracking-widest font-serif border-y-4 border-double border-red-800 py-4">False Lead</h2>
-                               <p className="text-xl text-[#5c5448] mt-6 font-serif">True value: <span className="text-[#2c2a27] font-black ml-2 font-mono text-2xl bg-[#e4dfd5] px-4 py-1">{currentProblem?.a}</span></p>
+                               <HelpCircle className="w-16 h-16 sm:w-24 sm:h-24 text-red-800 mx-auto mb-4 sm:mb-6" />
+                               <h2 className="text-xl sm:text-4xl font-black text-red-800 uppercase tracking-widest font-serif border-y-4 border-double border-red-800 py-2 sm:py-4">False Lead</h2>
+                               <p className="text-base sm:text-xl text-[#5c5448] mt-4 sm:mt-6 font-serif">True value: <span className="text-[#2c2a27] font-black ml-2 font-mono text-xl sm:text-2xl bg-[#e4dfd5] px-3 py-0.5 sm:px-4 sm:py-1">{currentProblem?.a}</span></p>
                             </>
                         )}
                         {resultStatus === "timeout" && (
                             <>
-                               <FileSearch className="w-24 h-24 text-[#8b8273] mx-auto mb-6" />
-                               <h2 className="text-4xl font-black text-[#5c5448] uppercase tracking-widest font-serif border-y-4 border-double border-[#8b8273] py-4">Trail Cold</h2>
-                               <p className="text-xl text-[#5c5448] mt-6 font-serif">True value: <span className="text-[#2c2a27] font-black ml-2 font-mono text-2xl bg-[#e4dfd5] px-4 py-1">{currentProblem?.a}</span></p>
+                               <FileSearch className="w-16 h-16 sm:w-24 sm:h-24 text-[#8b8273] mx-auto mb-4 sm:mb-6" />
+                               <h2 className="text-xl sm:text-4xl font-black text-[#5c5448] uppercase tracking-widest font-serif border-y-4 border-double border-[#8b8273] py-2 sm:py-4">Trail Cold</h2>
+                               <p className="text-base sm:text-xl text-[#5c5448] mt-4 sm:mt-6 font-serif">True value: <span className="text-[#2c2a27] font-black ml-2 font-mono text-xl sm:text-2xl bg-[#e4dfd5] px-3 py-0.5 sm:px-4 sm:py-1">{currentProblem?.a}</span></p>
                             </>
                         )}
 
-                        <div className="flex flex-col items-center gap-4 mt-10 relative z-20">
-                            <Button onClick={nextRound} className="h-16 px-12 text-2xl font-black bg-[#2c2a27] text-[#e4dfd5] hover:bg-[#4a4740] rounded shadow-2xl transition-all hover:scale-105 font-serif uppercase tracking-widest border-2 border-[#8b8273]">
+                        <div className="flex flex-col items-center gap-3 mt-6 sm:mt-10 relative z-20">
+                            <Button onClick={nextRound} className="h-12 sm:h-16 px-6 sm:px-12 text-sm sm:text-2xl font-black bg-[#2c2a27] text-[#e4dfd5] hover:bg-[#4a4740] rounded shadow-2xl transition-all hover:scale-105 font-serif uppercase tracking-widest border-2 border-[#8b8273]">
                                 {round >= 10 ? "Close Case" : "Next Evidence"}
                             </Button>
-                            <Button variant="ghost" onClick={() => setGameState("idle")} className="text-[#8b8273] hover:text-[#5c5448] uppercase tracking-widest font-serif font-bold">
+                            <Button variant="ghost" onClick={() => setGameState("idle")} className="text-[#8b8273] hover:text-[#5c5448] uppercase tracking-widest font-serif font-bold text-xs sm:text-sm">
                                 Reset Intelligence
                             </Button>
                         </div>
@@ -1428,16 +1438,16 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                 )}
 
                 {gameState === "finished" && (
-                    <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="text-center w-full max-w-xl mx-auto bg-white p-12 border-2 border-[#2c2a27] shadow-[8px_8px_0_0_#2c2a27] transform -rotate-1 relative">
-                        <h2 className="text-5xl font-black text-[#2c2a27] uppercase font-serif tracking-[0.2em] mb-2 border-b-4 border-double border-[#2c2a27] pb-4">Case Closed</h2>
-                        <div className="bg-[#e4dfd5] border border-[#8b8273] p-8 my-8 relative">
-                           <p className="text-sm font-bold uppercase tracking-widest text-[#5c5448] mb-4 font-serif">Investigation Summary Score</p>
-                           <p className="text-7xl font-black text-[#2c2a27] font-mono tabular-nums">{score}</p>
-                           <div className="absolute bottom-4 right-4 text-red-800/80 font-serif text-3xl transform -rotate-12 border-4 border-red-800/80 p-2 rounded tracking-widest uppercase">Verified</div>
+                    <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="text-center w-full max-w-xl mx-auto bg-white p-6 sm:p-12 border-2 border-[#2c2a27] shadow-[8px_8px_0_0_#2c2a27] transform -rotate-1 relative">
+                        <h2 className="text-3xl sm:text-5xl font-black text-[#2c2a27] uppercase font-serif tracking-[0.1em] sm:tracking-[0.2em] mb-2 border-b-4 border-double border-[#2c2a27] pb-4">Case Closed</h2>
+                        <div className="bg-[#e4dfd5] border border-[#8b8273] p-4 sm:p-8 my-4 sm:my-8 relative">
+                           <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#5c5448] mb-2 sm:mb-4 font-serif">Investigation Summary Score</p>
+                           <p className="text-5xl sm:text-7xl font-black text-[#2c2a27] font-mono tabular-nums">{score}</p>
+                           <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 text-red-800/80 font-serif text-xl sm:text-3xl transform -rotate-12 border-2 sm:border-4 border-red-800/80 p-1 sm:p-2 rounded tracking-widest uppercase">Verified</div>
                         </div>
-                        <div className="flex gap-6 justify-center mt-10">
-                            <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="h-16 px-8 text-lg font-bold bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif uppercase tracking-widest rounded-none transition-all hover:scale-105"><RefreshCw className="mr-2 h-5 w-5"/> Reopen File</Button>
-                            <Button variant="outline" asChild className="h-16 px-8 text-lg font-bold border-2 border-[#8b8273] text-[#2c2a27] hover:bg-[#cfc5b4] font-serif uppercase tracking-widest rounded-none"><Link href="/games">File Away</Link></Button>
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center mt-6 sm:mt-10">
+                            <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="h-12 sm:h-16 px-6 sm:px-8 text-sm sm:text-lg font-bold bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif uppercase tracking-widest rounded-none transition-all hover:scale-105"><RefreshCw className="mr-2 h-4 w-4 sm:h-5 sm:w-5"/> Reopen File</Button>
+                            <Button variant="outline" asChild className="h-12 sm:h-16 px-6 sm:px-8 text-sm sm:text-lg font-bold border-2 border-[#8b8273] text-[#2c2a27] hover:bg-[#cfc5b4] font-serif uppercase tracking-widest rounded-none"><Link href="/games">File Away</Link></Button>
                         </div>
                     </motion.div>
                 )}
@@ -1446,7 +1456,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
          </AnimatePresence>
       </CardContent>
 
-      <CardFooter className="flex justify-between border-t border-[#8b8273]/30 p-6 z-10 bg-[#cfc5b4]/20">
+      <CardFooter className="flex justify-between border-t border-[#8b8273]/30 p-4 sm:p-6 z-10 bg-[#cfc5b4]/20">
         <Button variant="outline" asChild className="border-[#8b8273] text-[#2c2a27] hover:bg-[#cfc5b4] font-serif uppercase tracking-widest"><Link href="/games">Abort Mission</Link></Button>
         {gameMode === 'single' ? (
           (gameState !== 'idle' && gameState !== 'finished') && <p className="font-black font-serif text-[#2c2a27]">CLUES: {score}</p>
