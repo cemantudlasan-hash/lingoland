@@ -50,6 +50,7 @@ import '@/ai/flows/generate-riddle.ts';
 import '@/ai/flows/generate-atmosphere-challenge.ts';
 import '@/ai/flows/generate-probability-challenge.ts';
 import '@/ai/flows/generate-student-comment.ts';
+import '@/ai/flows/scan-worksheet.ts';
 
 // Schemas
 import '@/ai/flows/schemas/article-exercise-schema';
