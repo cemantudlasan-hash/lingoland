@@ -36,6 +36,7 @@ import {
   updateDoc,
   deleteDoc,
   onSnapshot,
+  runTransaction,
 } from 'firebase/firestore';
 import confetti from 'canvas-confetti';
 
@@ -52,6 +53,36 @@ interface SphereOption {
   mesh: THREE.Mesh;
   colorName: 'red' | 'green' | 'blue';
 }
+
+const DESK_POSITIONS = [
+  { x: -15, z: -10 },
+  { x: -15, z: 0 },
+  { x: -15, z: 10 },
+  { x: -15, z: 20 },
+  { x: -5, z: -10 },
+  { x: -5, z: 0 },
+  { x: -5, z: 10 },
+  { x: -5, z: 20 },
+  { x: 5, z: -10 },
+  { x: 5, z: 0 },
+  { x: 5, z: 10 },
+  { x: 5, z: 20 },
+  { x: 15, z: -10 },
+  { x: 15, z: 0 },
+  { x: 15, z: 10 },
+  { x: 15, z: 20 },
+];
+
+const selectRandomIndices = (): [number, number, number] => {
+  const indices: number[] = [];
+  while (indices.length < 3) {
+    const r = Math.floor(Math.random() * 16);
+    if (!indices.includes(r)) {
+      indices.push(r);
+    }
+  }
+  return [indices[0], indices[1], indices[2]];
+};
 
 export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const [gameState, setGameState] = React.useState<GameState>('idle');
@@ -79,6 +110,14 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const [roundsCount, setRoundsCount] = React.useState(10); // Default 10 for multi
   const [difficulty, setDifficulty] = React.useState<'easy' | 'medium' | 'hard'>('medium');
   const [operation, setOperation] = React.useState<'addition' | 'subtraction' | 'multiplication' | 'division' | 'mixed' | 'algebra' | 'exponents'>('mixed');
+
+  const [currentRoundIndex, setCurrentRoundIndex] = React.useState(0);
+  const currentRoundIndexRef = React.useRef(0);
+  const spherePositionsRef = React.useRef<{ redIdx: number; greenIdx: number; blueIdx: number } | null>(null);
+  const resetPlayerPositionRef = React.useRef(false);
+  const roomCodeRef = React.useRef('');
+  const firestoreRef = React.useRef<any>(null);
+
 
   const ROUNDS_TO_WIN = gameMode === 'multi' ? roundsCount : 10;
 
@@ -159,9 +198,13 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   React.useEffect(() => { myUidRef.current = myUid; }, [myUid]);
   React.useEffect(() => { roundsCountRef.current = roundsCount; }, [roundsCount]);
   React.useEffect(() => { roomDataRef.current = roomData; }, [roomData]);
+  React.useEffect(() => { currentRoundIndexRef.current = currentRoundIndex; }, [currentRoundIndex]);
+  React.useEffect(() => { roomCodeRef.current = roomCode; }, [roomCode]);
+
 
   const { user, userProfile } = useAuth();
   const firestore = useFirestore();
+  React.useEffect(() => { firestoreRef.current = firestore; }, [firestore]);
   const { toast } = useToast();
   const game = getGameBySlug(slug);
 
@@ -294,7 +337,8 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         setGameState('playing');
         setScore(0);
         setSolvedCount(0);
-        generateMathProblem();
+        setCurrentRoundIndex(0);
+        currentRoundIndexRef.current = 0;
       }
 
       if (data.status === 'playing' && myUid) {
@@ -302,6 +346,31 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         if (me) {
           setScore(me.score || 0);
           setSolvedCount(me.solvedCount || 0);
+        }
+
+        if (data.currentQuestion) {
+          setQuestionText(data.currentQuestion.questionText);
+          setAnswers(data.currentQuestion.answers);
+          setCorrectAnswerColor(data.currentQuestion.correctAnswerColor);
+          
+          spherePositionsRef.current = {
+            redIdx: data.currentQuestion.redIdx ?? 0,
+            greenIdx: data.currentQuestion.greenIdx ?? 1,
+            blueIdx: data.currentQuestion.blueIdx ?? 2,
+          };
+          
+          const dbRoundIdx = data.currentQuestion.roundIndex ?? 0;
+          if (dbRoundIdx !== currentRoundIndexRef.current) {
+            if (data.lastSolverName) {
+              showFeedback(`✓ ${data.lastSolverName} solved it!`, '#4CAF50');
+              toast({
+                title: "Round Advanced! 🏁",
+                description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
+              });
+            }
+            setCurrentRoundIndex(dbRoundIdx);
+            resetPlayerPositionRef.current = true;
+          }
         }
       }
       
@@ -723,10 +792,23 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         updatedPlayers[uid].z = 20;
       });
 
+      const prob = generateMathProblemData(difficulty, operation);
+      const [rIdx, gIdx, bIdx] = selectRandomIndices();
+
       await updateDoc(roomRef, {
         status: 'playing',
         players: updatedPlayers,
-        startedAt: Date.now()
+        startedAt: Date.now(),
+        currentQuestion: {
+          questionText: prob.question,
+          answers: prob.options,
+          correctAnswerColor: prob.correctColor,
+          redIdx: rIdx,
+          greenIdx: gIdx,
+          blueIdx: bIdx,
+          roundIndex: 0
+        },
+        lastSolverName: "",
       });
     } catch (e) {
       console.error("Start multiplayer failed:", e);
@@ -749,6 +831,93 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     setGameOverReason(reason);
     setGameState('gameover');
   };
+
+  const handleCorrectAnswerMultiplayer = async (localRoundIndex: number) => {
+    if (!firestore || !roomCode || !myUid) return;
+    const roomRef = doc(firestore, "stats", "md_room_" + roomCode);
+
+    try {
+      await runTransaction(firestore, async (transaction) => {
+        const sfDoc = await transaction.get(roomRef);
+        if (!sfDoc.exists()) {
+          throw new Error("Room does not exist!");
+        }
+
+        const data = sfDoc.data();
+        if (data.status !== 'playing') {
+          return;
+        }
+
+        const dbQuestion = data.currentQuestion;
+        const dbRoundIndex = dbQuestion?.roundIndex ?? 0;
+
+        if (dbRoundIndex !== localRoundIndex) {
+          return; // Already solved by someone else
+        }
+
+        const updatedPlayers = { ...data.players };
+        const me = updatedPlayers[myUid];
+        if (!me) return;
+
+        const nextScore = (me.score || 0) + 10;
+        const nextSolved = (me.solvedCount || 0) + 1;
+        const maxRounds = data.roundsCount || 10;
+        const myFinished = nextSolved >= maxRounds;
+
+        updatedPlayers[myUid] = {
+          ...me,
+          score: nextScore,
+          solvedCount: nextSolved,
+          finished: myFinished,
+          lastActive: Date.now()
+        };
+
+        const allFinished = Object.values(updatedPlayers).every((p: any) => p.finished);
+        
+        let updates: any = {
+          players: updatedPlayers,
+          lastSolverName: nickname
+        };
+
+        if (allFinished) {
+          const sorted = Object.values(updatedPlayers).sort((a: any, b: any) => b.score - a.score);
+          const winner = sorted[0] as any;
+          updates.status = 'finished';
+          updates.winnerId = winner?.uid || '';
+          updates.winnerName = winner?.name || '';
+        } else {
+          const nextProb = generateMathProblemData(data.difficulty || "medium", data.operation || "mixed");
+          const indices: number[] = [];
+          while (indices.length < 3) {
+            const r = Math.floor(Math.random() * 16);
+            if (!indices.includes(r)) {
+              indices.push(r);
+            }
+          }
+
+          updates.currentQuestion = {
+            questionText: nextProb.question,
+            answers: nextProb.options,
+            correctAnswerColor: nextProb.correctColor,
+            redIdx: indices[0],
+            greenIdx: indices[1],
+            blueIdx: indices[2],
+            roundIndex: dbRoundIndex + 1
+          };
+        }
+
+        transaction.update(roomRef, updates);
+      });
+    } catch (e) {
+      console.error("Multiplayer solve transaction failed:", e);
+    }
+  };
+
+  const handleCorrectAnswerMultiplayerRef = React.useRef(handleCorrectAnswerMultiplayer);
+  React.useEffect(() => {
+    handleCorrectAnswerMultiplayerRef.current = handleCorrectAnswerMultiplayer;
+  }, [handleCorrectAnswerMultiplayer]);
+
 
   // ─── Three.js game loop ───────────────────────────────────────────────────
   React.useEffect(() => {
@@ -866,14 +1035,27 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     optionSpheres.forEach(s => scene.add(s.mesh));
 
     const repositionSpheres = () => {
-      const available = [...desks];
-      for (let i = available.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [available[i], available[j]] = [available[j], available[i]];
+      if (gameModeRef.current === 'multi') {
+        const positions = spherePositionsRef.current;
+        if (positions) {
+          const redPos = DESK_POSITIONS[positions.redIdx] || DESK_POSITIONS[0];
+          const greenPos = DESK_POSITIONS[positions.greenIdx] || DESK_POSITIONS[1];
+          const bluePos = DESK_POSITIONS[positions.blueIdx] || DESK_POSITIONS[2];
+
+          optionSpheres[0].mesh.position.set(redPos.x, 4.5, redPos.z);
+          optionSpheres[1].mesh.position.set(greenPos.x, 4.5, greenPos.z);
+          optionSpheres[2].mesh.position.set(bluePos.x, 4.5, bluePos.z);
+        }
+      } else {
+        const available = [...desks];
+        for (let i = available.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [available[i], available[j]] = [available[j], available[i]];
+        }
+        optionSpheres[0].mesh.position.set(available[0].position.x, 4.5, available[0].position.z);
+        optionSpheres[1].mesh.position.set(available[1].position.x, 4.5, available[1].position.z);
+        optionSpheres[2].mesh.position.set(available[2].position.x, 4.5, available[2].position.z);
       }
-      optionSpheres[0].mesh.position.set(available[0].position.x, 4.5, available[0].position.z);
-      optionSpheres[1].mesh.position.set(available[1].position.x, 4.5, available[1].position.z);
-      optionSpheres[2].mesh.position.set(available[2].position.x, 4.5, available[2].position.z);
     };
     repositionSpheres();
 
@@ -930,6 +1112,38 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       if (gameStateRef.current !== 'playing') return;
       frameId = requestAnimationFrame(animate);
 
+      if (resetPlayerPositionRef.current) {
+        player.position.set(0, 1.5, 20);
+        resetPlayerPositionRef.current = false;
+        keysRef.current = {
+          w: false,
+          a: false,
+          s: false,
+          d: false,
+          ArrowUp: false,
+          ArrowDown: false,
+          ArrowLeft: false,
+          ArrowRight: false,
+        };
+      }
+
+      if (gameModeRef.current === 'multi') {
+        const positions = spherePositionsRef.current;
+        if (positions) {
+          const redPos = DESK_POSITIONS[positions.redIdx];
+          const greenPos = DESK_POSITIONS[positions.greenIdx];
+          const bluePos = DESK_POSITIONS[positions.blueIdx];
+          if (redPos && greenPos && bluePos) {
+            optionSpheres[0].mesh.position.x = redPos.x;
+            optionSpheres[0].mesh.position.z = redPos.z;
+            optionSpheres[1].mesh.position.x = greenPos.x;
+            optionSpheres[1].mesh.position.z = greenPos.z;
+            optionSpheres[2].mesh.position.x = bluePos.x;
+            optionSpheres[2].mesh.position.z = bluePos.z;
+          }
+        }
+      }
+
       // Delta time tracking
       const currentTime = performance.now();
       const deltaTime = (currentTime - lastTime) / 1000;
@@ -948,7 +1162,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       player.position.z = Math.max(-25, Math.min(28, player.position.z + moveZ));
 
       // 1. Sync own position to Firestore (throttled)
-      if (gameModeRef.current === 'multi' && roomCode && myUidRef.current) {
+      if (gameModeRef.current === 'multi' && roomCodeRef.current && myUidRef.current) {
         const now = Date.now();
         const distMoved = Math.sqrt(
           Math.pow(player.position.x - lastWrittenX, 2) +
@@ -959,7 +1173,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           lastWrittenX = player.position.x;
           lastWrittenZ = player.position.z;
           
-          const roomRef = doc(firestore!, "stats", "md_room_" + roomCode);
+          const roomRef = doc(firestoreRef.current!, "stats", "md_room_" + roomCodeRef.current);
           updateDoc(roomRef, {
             [`players.${myUidRef.current}.x`]: player.position.x,
             [`players.${myUidRef.current}.z`]: player.position.z,
@@ -1061,43 +1275,9 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               
               if (gameModeRef.current === 'multi') {
                 showFeedback('✓ Correct! +10', '#4CAF50');
-                
-                // Write to Firestore
-                if (firestore && roomCode && myUidRef.current && roomDataRef.current) {
-                  const roomRef = doc(firestore, "stats", "md_room_" + roomCode);
-                  const updatedPlayers = { ...roomDataRef.current.players };
-                  updatedPlayers[myUidRef.current] = {
-                    ...updatedPlayers[myUidRef.current],
-                    score: nextScore,
-                    solvedCount: nextSolved,
-                    finished: nextSolved >= maxRounds
-                  };
-                  
-                  const allFinished = Object.values(updatedPlayers).every((p: any) => p.finished);
-                  
-                  const updates: any = {
-                    [`players.${myUidRef.current}.score`]: nextScore,
-                    [`players.${myUidRef.current}.solvedCount`]: nextSolved,
-                    [`players.${myUidRef.current}.finished`]: nextSolved >= maxRounds
-                  };
-                  
-                  if (allFinished) {
-                    const sorted = Object.values(updatedPlayers).sort((a: any, b: any) => b.score - a.score);
-                    const winner = sorted[0] as any;
-                    updates.status = 'finished';
-                    updates.winnerId = winner?.uid || '';
-                    updates.winnerName = winner?.name || '';
-                  }
-                  
-                  updateDoc(roomRef, updates).catch(console.warn);
-                }
-                
+                handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
                 if (nextSolved >= maxRounds) {
                   showFeedback('✓ Finished! 🏁', '#4CAF50');
-                } else {
-                  generateMathProblem();
-                  repositionSpheres();
-                  player.position.set(0, 1.5, 20);
                 }
               } else {
                 showFeedback('✓ Correct! +10', '#4CAF50');
@@ -1120,8 +1300,8 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                 showFeedback('✗ Penalty -5', '#F44336');
                 player.position.set(0, 1.5, 20);
                 
-                if (firestore && roomCode && myUidRef.current) {
-                  const roomRef = doc(firestore!, "stats", "md_room_" + roomCode);
+                if (firestoreRef.current && roomCodeRef.current && myUidRef.current) {
+                  const roomRef = doc(firestoreRef.current!, "stats", "md_room_" + roomCodeRef.current);
                   updateDoc(roomRef, {
                     [`players.${myUidRef.current}.score`]: nextScore
                   }).catch(console.warn);
@@ -1147,8 +1327,8 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               showFeedback('✗ Hit! -5', '#FF9800');
               player.position.set(0, 1.5, 20);
               
-              if (firestore && roomCode && myUidRef.current) {
-                const roomRef = doc(firestore!, "stats", "md_room_" + roomCode);
+              if (firestoreRef.current && roomCodeRef.current && myUidRef.current) {
+                const roomRef = doc(firestoreRef.current!, "stats", "md_room_" + roomCodeRef.current);
                 updateDoc(roomRef, {
                   [`players.${myUidRef.current}.score`]: nextScore
                 }).catch(console.warn);
@@ -1349,10 +1529,10 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
     return (
       <div className="flex flex-col gap-6 w-full max-w-2xl bg-slate-950/80 p-6 rounded-3xl border border-purple-500/20 shadow-2xl backdrop-blur-xl text-left max-h-[85vh] overflow-y-auto">
-        <div className="text-center p-6 bg-purple-950/30 border border-purple-500/20 rounded-2xl relative overflow-hidden">
+        <div className="text-center p-6 bg-purple-950/30 border border-purple-500/20 rounded-2xl relative overflow-hidden shrink-0">
           <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">Room Invitation Code</p>
           <div className="flex items-center justify-center gap-3">
-            <span className="text-3xl sm:text-4xl font-mono font-black tracking-wider text-purple-400 select-all">{roomCode || roomData?.code || ''}</span>
+            <span className="text-3xl sm:text-4xl font-mono font-black tracking-wider text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.4)] select-all">{roomCode || roomData?.code || ''}</span>
             <Button
               size="icon"
               variant="ghost"
@@ -1368,7 +1548,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         </div>
 
         {/* Settings Card */}
-        <div className="p-5 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
+        <div className="p-5 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4 shrink-0">
           <h4 className="text-xs font-black uppercase text-purple-400 tracking-wider">
             Game Configurations
           </h4>
@@ -1467,7 +1647,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         </div>
 
         {/* Players list */}
-        <div className="space-y-2">
+        <div className="space-y-2 shrink-0">
           <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-slate-400">
             <span>Pilots in Lobby ({sortedPlayers.length}/5)</span>
             <span>Status</span>
@@ -1498,7 +1678,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         </div>
 
         {/* Action buttons */}
-        <div className="flex gap-3 pt-4 border-t border-slate-800/40">
+        <div className="flex gap-3 pt-4 border-t border-slate-800/40 shrink-0">
           <Button 
             variant="outline" 
             onClick={handleLeaveRoom}
