@@ -64,6 +64,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
 
   // Game active config
   const [questions, setQuestions] = useState<Question[]>([...PRESET_CATEGORIES[0].questions]);
+  const [originalQuestions, setOriginalQuestions] = useState<Question[] | null>(null);
   const [teams, setTeams] = useState<Team[]>(DEFAULT_TEAMS);
   const [activeTeamId, setActiveTeamId] = useState<string | null>(null);
 
@@ -183,6 +184,7 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
 
   const handleLevelSave = (newQuestions: Question[]) => {
     setQuestions(newQuestions);
+    setOriginalQuestions(null); // Clear saved original if custom deck is saved
   };
 
   // Add a new classroom group/row
@@ -755,18 +757,37 @@ export default function ThreeCorridorSpeed({ slug, onToggleFullscreen }: { slug:
                         </span>
                       </div>
 
-                      <button
-                        onClick={() => {
-                          audioEngine.playScorePopup();
-                          const generated = generateDynamicQuestions(30, undefined, difficulty);
-                          setQuestions(generated);
-                        }}
-                        className="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 border border-slate-850 hover:border-slate-750 text-teal-300 hover:text-white rounded-xl font-bold font-mono tracking-wide text-[10px] uppercase flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md"
-                        id="quick-randomize-btn"
-                      >
-                        <Shuffle className="w-3.5 h-3.5 text-teal-400" />
-                        Auto-Generate Random Deck
-                      </button>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => {
+                            audioEngine.playScorePopup();
+                            if (!originalQuestions) {
+                              setOriginalQuestions(questions);
+                            }
+                            const generated = generateDynamicQuestions(30, undefined, difficulty);
+                            setQuestions(generated);
+                          }}
+                          className="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 border border-slate-850 hover:border-slate-750 text-teal-300 hover:text-white rounded-xl font-bold font-mono tracking-wide text-[10px] uppercase flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md"
+                          id="quick-randomize-btn"
+                        >
+                          <Shuffle className="w-3.5 h-3.5 text-teal-400" />
+                          Auto-Generate Random Deck
+                        </button>
+
+                        {originalQuestions && (
+                          <button
+                            onClick={() => {
+                              audioEngine.playMove();
+                              setQuestions(originalQuestions);
+                              setOriginalQuestions(null);
+                            }}
+                            className="w-full py-2.5 px-3 bg-rose-950/40 hover:bg-rose-900/40 border border-rose-500/30 text-rose-300 hover:text-white rounded-xl font-bold font-mono tracking-wide text-[10px] uppercase flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md"
+                            id="cancel-randomize-btn"
+                          >
+                            Cancel Random Deck (Use Default)
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                   </div>

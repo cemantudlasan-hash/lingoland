@@ -67,7 +67,7 @@ export default function ThreeGame({ config, playerRole = "single", onGameComplet
     player: THREE.Group | null; orbitRings: THREE.Mesh[]; gridFloor: THREE.GridHelper | null;
     roadLineMeshesRoot: THREE.Group | null; gatesGroup: THREE.Group | null; starfield: THREE.Points | null;
     crystals: THREE.Mesh[]; particles: { mesh: THREE.Mesh; velocity: THREE.Vector3; life: number }[];
-    obstacles: { obj: THREE.Group; lane: number }[]; obstacleHitCooldown: number; nextObstacleTime: number;
+    obstacles: { obj: THREE.Group; lane?: number; type: "mine" | "firewall"; safeLane?: number }[]; obstacleHitCooldown: number; nextObstacleTime: number;
     targetLane: number; playerY: number; playerVelocityY: number; isJumping: boolean;
     speedFactor: number; gatesDistance: number; requestFrameId: number; isPaused: boolean;
   }>({
@@ -390,25 +390,99 @@ export default function ThreeGame({ config, playerRole = "single", onGameComplet
       // Only spawn obstacles when gate is far away (prevents overlap)
       const gateNearby = gameRef.current.gatesGroup ? gameRef.current.gatesGroup.position.z > -45 : false;
       if (gameRef.current.nextObstacleTime > 0 && nowTime > gameRef.current.nextObstacleTime && !gateNearby) {
-        const obsLane = Math.floor(Math.random() * 3);
+        const spawnFirewall = Math.random() > 0.45; // 45% chance of a dual-lane firewall obstacle
         if (gameRef.current.scene) {
-          const mineGroup = new THREE.Group();
-          mineGroup.position.set((obsLane - 1) * 3.0, 1.0, -65); // spawn further back
-          const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3d1a1a, roughness: 0.85, metalness: 0.15 });
-          mineGroup.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), bodyMat));
-          const spikeMat = new THREE.MeshStandardMaterial({ color: 0xff1a00, emissive: 0xff1a00, emissiveIntensity: 3.0, roughness: 0.1, metalness: 0.8 });
-          const spikeGeom = new THREE.ConeGeometry(0.14, 1.0, 6);
-          [[0,1,0],[0,-1,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1],[0.7,0.7,0],[-0.7,0.7,0],[0.7,-0.7,0],[-0.7,-0.7,0]].forEach(([dx,dy,dz]) => {
-            const spike = new THREE.Mesh(spikeGeom, spikeMat); const dir = new THREE.Vector3(dx, dy, dz).normalize();
-            spike.position.copy(dir.clone().multiplyScalar(0.72)); spike.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir); mineGroup.add(spike);
-          });
-          const rMat = new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
-          const r1 = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.07, 8, 32), rMat);
-          const r2 = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.07, 8, 32), rMat); r2.rotation.x = Math.PI / 2;
-          mineGroup.add(r1); mineGroup.add(r2);
-          gameRef.current.scene.add(mineGroup); gameRef.current.obstacles.push({ obj: mineGroup, lane: obsLane });
+          if (spawnFirewall) {
+            // Create a Dual-Lane Laser Firewall!
+            const firewallGroup = new THREE.Group();
+            const safeLane = Math.floor(Math.random() * 3); // 0 = Left, 1 = Mid, 2 = Right
+            firewallGroup.position.set(0, 0, -65); // Spawns centered on track
+
+            // Create glowing laser grid block(s) to show which lanes are blocked
+            const wallGeom = new THREE.BoxGeometry(2.4, 3.2, 0.4);
+            const wallMat = new THREE.MeshStandardMaterial({
+              color: 0xff0055,
+              emissive: 0xff0055,
+              emissiveIntensity: 2.5,
+              transparent: true,
+              opacity: 0.65,
+              roughness: 0.2,
+              metalness: 0.8
+            });
+
+            // Construct walls blocking the other two lanes
+            if (safeLane === 0) {
+              // Block Mid (x=0) and Right (x=3.0) -> a single wide wall at x=1.5
+              const wall = new THREE.Mesh(new THREE.BoxGeometry(4.8, 3.2, 0.4), wallMat);
+              wall.position.set(1.5, 1.6, 0);
+              firewallGroup.add(wall);
+              // Add some vertical border pillars for aesthetic high-tech look
+              const pillarGeom = new THREE.BoxGeometry(0.15, 3.2, 0.15);
+              const pillarMat = new THREE.MeshBasicMaterial({ color: 0xff0088 });
+              [-0.9, 3.9].forEach(px => {
+                const p = new THREE.Mesh(pillarGeom, pillarMat);
+                p.position.set(px, 1.6, 0);
+                firewallGroup.add(p);
+              });
+            } else if (safeLane === 2) {
+              // Block Left (x=-3.0) and Mid (x=0) -> a single wide wall at x=-1.5
+              const wall = new THREE.Mesh(new THREE.BoxGeometry(4.8, 3.2, 0.4), wallMat);
+              wall.position.set(-1.5, 1.6, 0);
+              firewallGroup.add(wall);
+              const pillarGeom = new THREE.BoxGeometry(0.15, 3.2, 0.15);
+              const pillarMat = new THREE.MeshBasicMaterial({ color: 0xff0088 });
+              [-3.9, 0.9].forEach(px => {
+                const p = new THREE.Mesh(pillarGeom, pillarMat);
+                p.position.set(px, 1.6, 0);
+                firewallGroup.add(p);
+              });
+            } else {
+              // safeLane === 1 (Mid is safe) -> block Left (x=-3.0) and Right (x=3.0) with separate walls
+              const wallLeft = new THREE.Mesh(wallGeom, wallMat);
+              wallLeft.position.set(-3.0, 1.6, 0);
+              firewallGroup.add(wallLeft);
+              const wallRight = new THREE.Mesh(wallGeom, wallMat);
+              wallRight.position.set(3.0, 1.6, 0);
+              firewallGroup.add(wallRight);
+
+              const pillarGeom = new THREE.BoxGeometry(0.15, 3.2, 0.15);
+              const pillarMat = new THREE.MeshBasicMaterial({ color: 0xff0088 });
+              [-4.2, -1.8, 1.8, 4.2].forEach(px => {
+                const p = new THREE.Mesh(pillarGeom, pillarMat);
+                p.position.set(px, 1.6, 0);
+                firewallGroup.add(p);
+              });
+            }
+
+            // Add a floating warning sign sprite above the firewall
+            const warningSprite = createTextSprite("⚡ DUAL FIREWALL ⚡", "#ff0055", "rgba(60,10,20,0.95)");
+            warningSprite.position.set((safeLane === 1 ? 0.0 : safeLane === 0 ? 1.5 : -1.5), 3.8, 0);
+            firewallGroup.add(warningSprite);
+
+            gameRef.current.scene.add(firewallGroup);
+            gameRef.current.obstacles.push({ obj: firewallGroup, type: "firewall", safeLane });
+          } else {
+            // Spawn standard mine (jumpable, single lane)
+            const obsLane = Math.floor(Math.random() * 3);
+            const mineGroup = new THREE.Group();
+            mineGroup.position.set((obsLane - 1) * 3.0, 1.0, -65); // spawn further back
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3d1a1a, roughness: 0.85, metalness: 0.15 });
+            mineGroup.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), bodyMat));
+            const spikeMat = new THREE.MeshStandardMaterial({ color: 0xff1a00, emissive: 0xff1a00, emissiveIntensity: 3.0, roughness: 0.1, metalness: 0.8 });
+            const spikeGeom = new THREE.ConeGeometry(0.14, 1.0, 6);
+            [[0,1,0],[0,-1,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1],[0.7,0.7,0],[-0.7,0.7,0],[0.7,-0.7,0],[-0.7,-0.7,0]].forEach(([dx,dy,dz]) => {
+              const spike = new THREE.Mesh(spikeGeom, spikeMat); const dir = new THREE.Vector3(dx, dy, dz).normalize();
+              spike.position.copy(dir.clone().multiplyScalar(0.72)); spike.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir); mineGroup.add(spike);
+            });
+            const rMat = new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+            const r1 = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.07, 8, 32), rMat);
+            const r2 = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.07, 8, 32), rMat); r2.rotation.x = Math.PI / 2;
+            mineGroup.add(r1); mineGroup.add(r2);
+            gameRef.current.scene.add(mineGroup);
+            gameRef.current.obstacles.push({ obj: mineGroup, lane: obsLane, type: "mine" });
+          }
         }
-        gameRef.current.nextObstacleTime = nowTime + 8000 + Math.random() * 7000;
+        gameRef.current.nextObstacleTime = nowTime + 6500 + Math.random() * 5500;
       }
 
       for (let i = gameRef.current.obstacles.length - 1; i >= 0; i--) {
@@ -418,14 +492,39 @@ export default function ThreeGame({ config, playerRole = "single", onGameComplet
           gameRef.current.obstacles.splice(i, 1); continue;
         }
         if (obs.obj.position.z > 3.0 && obs.obj.position.z < 5.8 && nowTime > gameRef.current.obstacleHitCooldown) {
-          const px = playerGroup.position.x; const py = playerGroup.position.y;
-          if (Math.abs(px - obs.obj.position.x) < 1.3 && py < 1.9) {
+          const px = playerGroup.position.x;
+          const py = playerGroup.position.y;
+          let isHit = false;
+
+          if (obs.type === "firewall") {
+            let playerLane = 1;
+            if (px < -1.5) playerLane = 0;
+            else if (px > 1.5) playerLane = 2;
+            
+            // Firewall blocks two lanes and is too tall to jump over normally
+            if (playerLane !== obs.safeLane && py < 3.5) {
+              isHit = true;
+            }
+          } else {
+            // Standard jumpable mine
+            if (Math.abs(px - obs.obj.position.x) < 1.3 && py < 1.9) {
+              isHit = true;
+            }
+          }
+
+          if (isHit) {
             gameRef.current.obstacleHitCooldown = nowTime + 1500;
             obstacleHitsRef.current += 1; setObstacleHitsCount((p) => p + 1);
             setObstacleFlash(true); setTimeout(() => setObstacleFlash(false), 380);
-            spawnExplosionParticles(obs.obj.position.clone(), 0xff2200, 30); audioEngine.playIncorrect();
-            scene.remove(obs.obj); obs.obj.traverse((c) => { if (c instanceof THREE.Mesh) { c.geometry.dispose(); (c.material as THREE.Material).dispose(); } });
+            
+            const explodePos = new THREE.Vector3(px, py, obs.obj.position.z);
+            spawnExplosionParticles(explodePos, 0xff2200, 30);
+            audioEngine.playIncorrect();
+            
+            scene.remove(obs.obj); 
+            obs.obj.traverse((c) => { if (c instanceof THREE.Mesh) { c.geometry.dispose(); (c.material as THREE.Material).dispose(); } });
             gameRef.current.obstacles.splice(i, 1);
+            
             if (!configRef.current.invincible) {
               if (configRef.current.continueOnZeroHealth) {
                 const penalty = Math.floor(Math.random() * 151) + 50;
@@ -525,16 +624,18 @@ export default function ThreeGame({ config, playerRole = "single", onGameComplet
         <div className="backdrop-blur-md bg-slate-950/80 p-1.5 rounded-xl border border-white/5 shadow-md pointer-events-auto flex items-center gap-1.5 shrink-0" onTouchStart={(e) => e.stopPropagation()}>
           <div className="px-1.5 py-0.5 rounded bg-slate-900 text-white font-bold font-mono text-[8px] border border-white/10">{Math.min(currentIdx + 1, questionsList.length)}/{questionsList.length}</div>
           {obstacleHitsCount > 0 && <div className="px-1.5 py-0.5 rounded bg-red-900/60 text-red-400 font-bold font-mono text-[8px] border border-red-800/50">💥{obstacleHitsCount}</div>}
-          {/* Prominent always-visible rose MENU button */}
-          <button
-            onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); handleExitClick(); }}
-            onClick={handleExitClick}
-            className={`min-h-[40px] px-3 py-1.5 text-[11px] font-black font-mono tracking-wider rounded-xl transition-all border-2 cursor-pointer uppercase flex items-center gap-1.5 shadow-lg ${exitConfirmActive ? "bg-rose-500 border-rose-300 text-white animate-pulse scale-105" : "bg-rose-700 border-rose-500 text-white hover:bg-rose-500 hover:border-rose-300"}`}
-            id="exit-game-btn" title="Back to Menu"
-          >
-            <LogOut className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden sm:inline">{exitConfirmActive ? "Confirm?" : "MENU"}</span>
-          </button>
+          {/* Prominent always-visible rose MENU button - Hidden in duel mode to prevent overlapping HUD elements */}
+          {playerRole === "single" && (
+            <button
+              onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); handleExitClick(); }}
+              onClick={handleExitClick}
+              className={`min-h-[40px] px-3 py-1.5 text-[11px] font-black font-mono tracking-wider rounded-xl transition-all border-2 cursor-pointer uppercase flex items-center gap-1.5 shadow-lg ${exitConfirmActive ? "bg-rose-500 border-rose-300 text-white animate-pulse scale-105" : "bg-rose-700 border-rose-500 text-white hover:bg-rose-500 hover:border-rose-300"}`}
+              id="exit-game-btn" title="Back to Menu"
+            >
+              <LogOut className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{exitConfirmActive ? "Confirm?" : "MENU"}</span>
+            </button>
+          )}
         </div>
       </div>
 
