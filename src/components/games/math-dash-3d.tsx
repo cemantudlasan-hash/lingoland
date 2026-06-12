@@ -1200,7 +1200,8 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
   const handleCopyInviteLink = () => {
     if (typeof window !== 'undefined') {
-      const inviteUrl = `${window.location.origin}/games/${slug}?room=${roomCode}`;
+      const code = roomCode || roomData?.code || '';
+      const inviteUrl = `${window.location.origin}/games/${slug}?room=${code}`;
       navigator.clipboard.writeText(inviteUrl);
       toast({
         title: "Link Copied! 📋",
@@ -1242,7 +1243,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   };
 
   const renderMultiModeSelect = () => (
-    <div className="flex flex-col items-center gap-6 w-full max-w-md bg-slate-950/80 p-6 sm:p-8 rounded-3xl border border-purple-500/20 shadow-2xl backdrop-blur-xl animate-in fade-in duration-300 animate-[mathdash-glow_4s_infinite]">
+    <div className="flex flex-col items-center gap-6 w-full max-w-md bg-slate-950/80 p-6 sm:p-8 rounded-3xl border border-purple-500/20 shadow-2xl backdrop-blur-xl animate-in fade-in duration-300">
       <Users className="w-16 h-16 text-purple-400 animate-bounce" style={{ animationDuration: '3s' }} />
       <h3 className="text-3xl font-black uppercase text-center tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">
         BATTLE ROOM
@@ -1351,7 +1352,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         <div className="text-center p-6 bg-purple-950/30 border border-purple-500/20 rounded-2xl relative overflow-hidden">
           <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">Room Invitation Code</p>
           <div className="flex items-center justify-center gap-3">
-            <span className="text-3xl sm:text-4xl font-mono font-black tracking-wider text-white select-all">{roomCode}</span>
+            <span className="text-3xl sm:text-4xl font-mono font-black tracking-wider text-purple-400 select-all">{roomCode || roomData?.code || ''}</span>
             <Button
               size="icon"
               variant="ghost"
