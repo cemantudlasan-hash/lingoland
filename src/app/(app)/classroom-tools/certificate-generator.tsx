@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -154,18 +154,38 @@ export function CertificateGenerator() {
   const [printMode, setPrintMode] = React.useState<'single' | 'batch'>('single');
   const [isMounted, setIsMounted] = React.useState(false);
 
+  // Preview scaling state for mobile views
+  const previewContainerRef = React.useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = React.useState(1);
+
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
 
   React.useEffect(() => {
-    if (isPrinting) {
-      const timer = setTimeout(() => {
-        window.print();
-      }, 250);
-      return () => clearTimeout(timer);
-    }
-  }, [isPrinting]);
+    if (!isMounted || !previewContainerRef.current) return;
+    const handleResize = () => {
+      if (previewContainerRef.current) {
+        const rect = previewContainerRef.current.getBoundingClientRect();
+        const width = rect.width;
+        // Adjust for responsive padding: md:p-8 is 64px, p-4 is 32px
+        const padding = window.innerWidth >= 768 ? 64 : 32;
+        const availableWidth = width - padding;
+        const targetWidth = 800;
+        if (availableWidth < targetWidth) {
+          setPreviewScale(availableWidth / targetWidth);
+        } else {
+          setPreviewScale(1);
+        }
+      }
+    };
+
+    handleResize();
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(previewContainerRef.current);
+    return () => resizeObserver.disconnect();
+  }, [isMounted]);
 
   React.useEffect(() => {
     const handleAfterPrint = () => {
@@ -333,7 +353,12 @@ export function CertificateGenerator() {
   // Trigger print dialog
   const handlePrint = (mode: 'single' | 'batch') => {
     setPrintMode(mode);
-    setIsPrinting(true);
+    // Force React to update DOM synchronously so that the print portal is rendered before window.print() is called.
+    // This is required for iOS/Safari compatibility to keep the print dialog call synchronous within the user click event handler.
+    flushSync(() => {
+      setIsPrinting(true);
+    });
+    window.print();
   };
 
   // Theme Class Resolvers
@@ -739,14 +764,14 @@ export function CertificateGenerator() {
         <style dangerouslySetInnerHTML={{ __html: `
           @media print {
             @page {
-              size: A4 landscape;
-              margin: 0mm !important;
+              size: landscape;
+              margin: 0 !important;
             }
             html, body {
               margin: 0 !important;
               padding: 0 !important;
-              width: 297mm !important;
-              height: 210mm !important;
+              width: 100% !important;
+              height: 100% !important;
               background-color: #ffffff !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
@@ -759,33 +784,39 @@ export function CertificateGenerator() {
               position: absolute !important;
               left: 0 !important;
               top: 0 !important;
-              width: 297mm !important;
-              height: 210mm !important;
+              width: 100% !important;
+              height: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
               background-color: #ffffff !important;
             }
             .cert-page-break {
-              width: 297mm !important;
-              height: 210mm !important;
+              width: 100vw !important;
+              height: 100vh !important;
               page-break-after: always !important;
               break-after: page !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
               overflow: hidden !important;
               box-sizing: border-box !important;
             }
             .cert-container-print {
-              width: 297mm !important;
-              height: 210mm !important;
+              width: 100% !important;
+              height: 100% !important;
+              max-width: 100% !important;
+              max-height: 100% !important;
+              aspect-ratio: 297/210 !important;
               box-shadow: none !important;
               border: none !important;
-              margin: 0 !important;
+              margin: auto !important;
               transform: none !important;
               box-sizing: border-box !important;
             }
           }
         `}} />
         {printMode === 'single' ? (
-          <div className="w-full h-full">
+          <div className="w-full h-full flex flex-col cert-page-break">
             {renderCertificate(currentCert, 1, true)}
           </div>
         ) : (
@@ -1372,10 +1403,31 @@ export function CertificateGenerator() {
               </span>
 
               {/* Responsive Container for Scaling SVG */}
-              <div className="w-full bg-slate-800 p-4 md:p-8 rounded-xl flex items-center justify-center overflow-hidden border shadow-inner">
+              <div 
+                ref={previewContainerRef} 
+                className="w-full bg-slate-800 p-4 md:p-8 rounded-xl flex items-center justify-center overflow-hidden border shadow-inner"
+              >
                 {/* Print area container */}
-                <div id="single-print-area" className="w-full max-w-[800px]">
-                  {renderCertificate(currentCert)}
+                <div 
+                  id="single-print-area" 
+                  className="w-full max-w-[800px] flex items-center justify-center"
+                  style={{ 
+                    height: `${566 * previewScale}px`, 
+                    position: 'relative',
+                    width: '100%'
+                  }}
+                >
+                  <div style={{
+                    width: '800px',
+                    height: '566px',
+                    transform: `translate(-50%, 0) scale(${previewScale})`,
+                    transformOrigin: 'top center',
+                    position: 'absolute',
+                    top: 0,
+                    left: '50%',
+                  }}>
+                    {renderCertificate(currentCert, 1, false)}
+                  </div>
                 </div>
               </div>
 
