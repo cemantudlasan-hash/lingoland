@@ -110,9 +110,8 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   const isCreator = React.useMemo(() => {
     if (gameMode !== 'multi') return false;
-    const currentUid = user?.uid || myUid;
-    return roomData && roomData.hostId && currentUid ? roomData.hostId === currentUid : isHost;
-  }, [gameMode, roomData, user, myUid, isHost]);
+    return roomData && roomData.hostId && myUid ? roomData.hostId === myUid : isHost;
+  }, [gameMode, roomData, myUid, isHost]);
 
   const { slug: dailyBonusSlug, bonusAmount: dailyBonusAmount } = getDailyBonusGame();
   const isDailyBonus = slug === dailyBonusSlug;
@@ -156,9 +155,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   React.useEffect(() => {
     if (typeof window === 'undefined' || !firestore) return;
     
-    const savedRoom = localStorage.getItem("lingoland_active_roomCode_math-vault-3d");
-    const savedUid = localStorage.getItem("lingoland_active_myUid_math-vault-3d");
-    const savedMode = localStorage.getItem("lingoland_active_gameMode_math-vault-3d");
+    const savedRoom = sessionStorage.getItem("lingoland_active_roomCode_math-vault-3d");
+    const savedUid = sessionStorage.getItem("lingoland_active_myUid_math-vault-3d");
+    const savedMode = sessionStorage.getItem("lingoland_active_gameMode_math-vault-3d");
     
     if (savedRoom && savedUid && savedMode === 'multi') {
       const roomRef = doc(firestore, "stats", "mv_room_" + savedRoom);
@@ -198,9 +197,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
             return;
           }
         }
-        localStorage.removeItem("lingoland_active_roomCode_math-vault-3d");
-        localStorage.removeItem("lingoland_active_myUid_math-vault-3d");
-        localStorage.removeItem("lingoland_active_gameMode_math-vault-3d");
+        sessionStorage.removeItem("lingoland_active_roomCode_math-vault-3d");
+        sessionStorage.removeItem("lingoland_active_myUid_math-vault-3d");
+        sessionStorage.removeItem("lingoland_active_gameMode_math-vault-3d");
       }).catch((err) => {
         console.warn("Session recovery failed:", err);
       });
@@ -549,7 +548,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       String.fromCharCode(65 + Math.floor(Math.random() * 26))
     ).join('');
     
-    const hostUid = user?.uid || `guest_${Date.now()}`;
+    const hostUid = user ? `${user.uid}_${Math.random().toString(36).substring(2, 7)}` : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     setMyUid(hostUid);
     
     const initialPlayers = {
@@ -585,9 +584,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       setIsHost(true);
       setMultiplayerState('lobby');
       setGameState('playing');
-      localStorage.setItem("lingoland_active_roomCode_math-vault-3d", code);
-      localStorage.setItem("lingoland_active_myUid_math-vault-3d", hostUid);
-      localStorage.setItem("lingoland_active_gameMode_math-vault-3d", 'multi');
+      sessionStorage.setItem("lingoland_active_roomCode_math-vault-3d", code);
+      sessionStorage.setItem("lingoland_active_myUid_math-vault-3d", hostUid);
+      sessionStorage.setItem("lingoland_active_gameMode_math-vault-3d", 'multi');
       showLocalToast(
         "Room Created! 🚪🔑",
         `Your code is ${code}. Share with up to 2 friends!`,
@@ -655,7 +654,7 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
         return;
       }
       
-      const playerUid = user?.uid || `guest_${Date.now()}`;
+      const playerUid = user ? `${user.uid}_${Math.random().toString(36).substring(2, 7)}` : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       setMyUid(playerUid);
       
       const updatedPlayers = {
@@ -679,9 +678,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       setIsHost(false);
       setMultiplayerState('lobby');
       setGameState('playing');
-      localStorage.setItem("lingoland_active_roomCode_math-vault-3d", cleanCode);
-      localStorage.setItem("lingoland_active_myUid_math-vault-3d", playerUid);
-      localStorage.setItem("lingoland_active_gameMode_math-vault-3d", 'multi');
+      sessionStorage.setItem("lingoland_active_roomCode_math-vault-3d", cleanCode);
+      sessionStorage.setItem("lingoland_active_myUid_math-vault-3d", playerUid);
+      sessionStorage.setItem("lingoland_active_gameMode_math-vault-3d", 'multi');
       showLocalToast(
         "Connected! 🤝",
         `Joined room ${cleanCode}. Waiting for the host to launch.`,
@@ -724,9 +723,9 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
   };
 
   const cleanSavedSession = () => {
-    localStorage.removeItem("lingoland_active_roomCode_math-vault-3d");
-    localStorage.removeItem("lingoland_active_myUid_math-vault-3d");
-    localStorage.removeItem("lingoland_active_gameMode_math-vault-3d");
+    sessionStorage.removeItem("lingoland_active_roomCode_math-vault-3d");
+    sessionStorage.removeItem("lingoland_active_myUid_math-vault-3d");
+    sessionStorage.removeItem("lingoland_active_gameMode_math-vault-3d");
   };
 
   const resetMultiplayerState = () => {

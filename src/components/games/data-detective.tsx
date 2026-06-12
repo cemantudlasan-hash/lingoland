@@ -132,9 +132,8 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
 
   const isCreator = React.useMemo(() => {
     if (gameMode !== 'multi') return false;
-    const currentUid = user?.uid || myUid;
-    return roomData && roomData.hostId && currentUid ? roomData.hostId === currentUid : isHost;
-  }, [gameMode, roomData, user, myUid, isHost]);
+    return roomData && roomData.hostId && myUid ? roomData.hostId === myUid : isHost;
+  }, [gameMode, roomData, myUid, isHost]);
 
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -148,9 +147,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
   React.useEffect(() => {
     if (typeof window === 'undefined' || !firestore) return;
     
-    const savedRoom = localStorage.getItem("lingoland_active_roomCode_data-detective");
-    const savedUid = localStorage.getItem("lingoland_active_myUid_data-detective");
-    const savedMode = localStorage.getItem("lingoland_active_gameMode_data-detective");
+    const savedRoom = sessionStorage.getItem("lingoland_active_roomCode_data-detective");
+    const savedUid = sessionStorage.getItem("lingoland_active_myUid_data-detective");
+    const savedMode = sessionStorage.getItem("lingoland_active_gameMode_data-detective");
     
     if (savedRoom && savedUid && savedMode === 'multi') {
       const roomRef = doc(firestore, "stats", "dd_room_" + savedRoom);
@@ -185,9 +184,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
             return;
           }
         }
-        localStorage.removeItem("lingoland_active_roomCode_data-detective");
-        localStorage.removeItem("lingoland_active_myUid_data-detective");
-        localStorage.removeItem("lingoland_active_gameMode_data-detective");
+        sessionStorage.removeItem("lingoland_active_roomCode_data-detective");
+        sessionStorage.removeItem("lingoland_active_myUid_data-detective");
+        sessionStorage.removeItem("lingoland_active_gameMode_data-detective");
       }).catch((err) => {
         console.warn("Session recovery failed:", err);
       });
@@ -233,9 +232,8 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         setCustomQuestions(data.customQuestions);
       }
       
-      const currentUid = user?.uid || myUid;
-      if (currentUid && data.hostId) {
-        setIsHost(data.hostId === currentUid);
+      if (myUid && data.hostId) {
+        setIsHost(data.hostId === myUid);
       }
       
       if (data.status === 'disbanded') {
@@ -487,7 +485,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
       String.fromCharCode(65 + Math.floor(Math.random() * 26))
     ).join('');
     
-    const hostUid = user?.uid || `guest_${Date.now()}`;
+    const hostUid = user ? `${user.uid}_${Math.random().toString(36).substring(2, 7)}` : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     setMyUid(hostUid);
     
     const initialPlayers = {
@@ -521,9 +519,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
       setRoomCode(code);
       setIsHost(true);
       setMultiplayerState('lobby');
-      localStorage.setItem("lingoland_active_roomCode_data-detective", code);
-      localStorage.setItem("lingoland_active_myUid_data-detective", hostUid);
-      localStorage.setItem("lingoland_active_gameMode_data-detective", 'multi');
+      sessionStorage.setItem("lingoland_active_roomCode_data-detective", code);
+      sessionStorage.setItem("lingoland_active_myUid_data-detective", hostUid);
+      sessionStorage.setItem("lingoland_active_gameMode_data-detective", 'multi');
       toast({
         title: "Room Created! 🚪🔑",
         description: `Your code is ${code}. Share it with friends.`,
@@ -590,7 +588,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         return;
       }
 
-      const playerUid = user?.uid || `guest_${Date.now()}`;
+      const playerUid = user ? `${user.uid}_${Math.random().toString(36).substring(2, 7)}` : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       setMyUid(playerUid);
 
       const updatedPlayers = {
@@ -613,9 +611,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
       setRoomCode(cleanCode);
       setIsHost(false);
       setMultiplayerState('lobby');
-      localStorage.setItem("lingoland_active_roomCode_data-detective", cleanCode);
-      localStorage.setItem("lingoland_active_myUid_data-detective", playerUid);
-      localStorage.setItem("lingoland_active_gameMode_data-detective", 'multi');
+      sessionStorage.setItem("lingoland_active_roomCode_data-detective", cleanCode);
+      sessionStorage.setItem("lingoland_active_myUid_data-detective", playerUid);
+      sessionStorage.setItem("lingoland_active_gameMode_data-detective", 'multi');
       toast({
         title: "Connected! 🤝",
         description: `Joined room ${cleanCode}. Waiting for host to start.`,
@@ -656,9 +654,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   const cleanSavedSession = () => {
-    localStorage.removeItem("lingoland_active_roomCode_data-detective");
-    localStorage.removeItem("lingoland_active_myUid_data-detective");
-    localStorage.removeItem("lingoland_active_gameMode_data-detective");
+    sessionStorage.removeItem("lingoland_active_roomCode_data-detective");
+    sessionStorage.removeItem("lingoland_active_myUid_data-detective");
+    sessionStorage.removeItem("lingoland_active_gameMode_data-detective");
   };
 
   const resetMultiplayerState = () => {

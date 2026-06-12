@@ -124,9 +124,8 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
 
   const isCreator = React.useMemo(() => {
     if (gameMode !== 'multi') return false;
-    const currentUid = user?.uid || myUid;
-    return roomData && roomData.hostId && currentUid ? roomData.hostId === currentUid : isHost;
-  }, [gameMode, roomData, user, myUid, isHost]);
+    return roomData && roomData.hostId && myUid ? roomData.hostId === myUid : isHost;
+  }, [gameMode, roomData, myUid, isHost]);
 
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -138,9 +137,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
   React.useEffect(() => {
     if (typeof window === 'undefined' || !firestore) return;
     
-    const savedRoom = localStorage.getItem("lingoland_active_roomCode_arithmetic-ace");
-    const savedUid = localStorage.getItem("lingoland_active_myUid_arithmetic-ace");
-    const savedMode = localStorage.getItem("lingoland_active_gameMode_arithmetic-ace");
+    const savedRoom = sessionStorage.getItem("lingoland_active_roomCode_arithmetic-ace");
+    const savedUid = sessionStorage.getItem("lingoland_active_myUid_arithmetic-ace");
+    const savedMode = sessionStorage.getItem("lingoland_active_gameMode_arithmetic-ace");
     
     if (savedRoom && savedUid && savedMode === 'multi') {
       const roomRef = doc(firestore, "stats", "aa_room_" + savedRoom);
@@ -175,9 +174,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             return;
           }
         }
-        localStorage.removeItem("lingoland_active_roomCode_arithmetic-ace");
-        localStorage.removeItem("lingoland_active_myUid_arithmetic-ace");
-        localStorage.removeItem("lingoland_active_gameMode_arithmetic-ace");
+        sessionStorage.removeItem("lingoland_active_roomCode_arithmetic-ace");
+        sessionStorage.removeItem("lingoland_active_myUid_arithmetic-ace");
+        sessionStorage.removeItem("lingoland_active_gameMode_arithmetic-ace");
       }).catch((err) => {
         console.warn("Session recovery failed:", err);
       });
@@ -221,9 +220,8 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       if (data.questionMode) setQuestionMode(data.questionMode as 'auto' | 'custom');
       if (data.customQuestions && !isEditingQuestions) setCustomQuestions(data.customQuestions);
       
-      const currentUid = user?.uid || myUid;
-      if (currentUid && data.hostId) {
-        setIsHost(data.hostId === currentUid);
+      if (myUid && data.hostId) {
+        setIsHost(data.hostId === myUid);
       }
       
       // Check if room was disbanded via status
@@ -471,7 +469,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       String.fromCharCode(65 + Math.floor(Math.random() * 26))
     ).join('');
     
-    const hostUid = user?.uid || `guest_${Date.now()}`;
+    const hostUid = user ? `${user.uid}_${Math.random().toString(36).substring(2, 7)}` : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     setMyUid(hostUid);
     
     const initialPlayers = {
@@ -507,9 +505,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       setRoomCode(code);
       setIsHost(true);
       setMultiplayerState('lobby');
-      localStorage.setItem("lingoland_active_roomCode_arithmetic-ace", code);
-      localStorage.setItem("lingoland_active_myUid_arithmetic-ace", hostUid);
-      localStorage.setItem("lingoland_active_gameMode_arithmetic-ace", 'multi');
+      sessionStorage.setItem("lingoland_active_roomCode_arithmetic-ace", code);
+      sessionStorage.setItem("lingoland_active_myUid_arithmetic-ace", hostUid);
+      sessionStorage.setItem("lingoland_active_gameMode_arithmetic-ace", 'multi');
       toast({
         title: "Room Created! 🚪🔑",
         description: `Your code is ${code}. Share it with friends!`,
@@ -576,7 +574,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         return;
       }
 
-      const playerUid = user?.uid || `guest_${Date.now()}`;
+      const playerUid = user ? `${user.uid}_${Math.random().toString(36).substring(2, 7)}` : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       setMyUid(playerUid);
 
       const updatedPlayers = {
@@ -599,9 +597,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       setRoomCode(cleanCode);
       setIsHost(false);
       setMultiplayerState('lobby');
-      localStorage.setItem("lingoland_active_roomCode_arithmetic-ace", cleanCode);
-      localStorage.setItem("lingoland_active_myUid_arithmetic-ace", playerUid);
-      localStorage.setItem("lingoland_active_gameMode_arithmetic-ace", 'multi');
+      sessionStorage.setItem("lingoland_active_roomCode_arithmetic-ace", cleanCode);
+      sessionStorage.setItem("lingoland_active_myUid_arithmetic-ace", playerUid);
+      sessionStorage.setItem("lingoland_active_gameMode_arithmetic-ace", 'multi');
       toast({
         title: "Connected! 🤝",
         description: `Joined room ${cleanCode}. Waiting for host to start.`,
@@ -642,9 +640,9 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   const cleanSavedSession = () => {
-    localStorage.removeItem("lingoland_active_roomCode_arithmetic-ace");
-    localStorage.removeItem("lingoland_active_myUid_arithmetic-ace");
-    localStorage.removeItem("lingoland_active_gameMode_arithmetic-ace");
+    sessionStorage.removeItem("lingoland_active_roomCode_arithmetic-ace");
+    sessionStorage.removeItem("lingoland_active_myUid_arithmetic-ace");
+    sessionStorage.removeItem("lingoland_active_gameMode_arithmetic-ace");
   };
 
   const resetMultiplayerState = () => {
