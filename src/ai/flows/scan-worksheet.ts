@@ -40,31 +40,42 @@ const scanWorksheetFlow = ai.defineFlow({
 }, async (input) => {
   const { output } = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
+    config: {
+      temperature: 0.1,
+    },
     prompt: [
       {
         text: `You are an expert grading assistant. Your task is to analyze the provided image of a student's worksheet or English homework.
-        Read each question, the student's handwritten or typed response, and evaluate if it is correct or incorrect.
+        Read each question, transcribe the student's handwritten/typed response, and evaluate if it is correct or incorrect.
+
+        GUIDELINES FOR MAX ACCURACY:
+        - Carefully transcribe the student's answer exactly as written, accounting for messy or cursive handwriting.
+        - Compare the student's answer to the expected correct answer key.
+        - Unless specified otherwise, be lenient with minor capitalization variations (e.g., "apple" vs "Apple"), trailing/leading spaces, and minor typos or punctuation that do not change the core meaning of the answer.
+        - If the student's handwriting is ambiguous, use surrounding words and the sentence context to determine the likely intended response.
+
+        GUIDELINES FOR SPEED (KEEP OUTPUT CONCISE):
+        - For each question's "feedback" field, write an extremely short note (MAXIMUM 5 words, e.g. "Spelling error" or "Correct").
+        - For "generalFeedback", write a maximum of 2 short sentences summarizing the student's performance.
 
         For each question:
         1. Identify the question number and text.
         2. Detect the student's written response.
         3. Determine the expected correct answer key.
         4. Determine if it is correct (true) or incorrect (false).
-        5. Provide a short, constructive feedback note for that question.
+        5. Provide a short feedback note.
 
         Then, calculate:
         - Total correct questions count.
         - Total detected questions count.
         - The overall percentage score (correct / total * 100).
-        
-        Write a brief general feedback summary describing the student's performance.
 
         ${input.additionalInstructions ? `
-        IMPORTANT: Adhere strictly to the following grading guidelines or answer key details provided by the teacher:
+        IMPORTANT TEACHER INSTRUCTIONS: Adhere strictly to these grading guidelines/answer keys:
         "${input.additionalInstructions}"
         ` : ''}
         
-        Be fair, accurate, and supportive. If some text is unreadable, make a reasonable guess or flag it in the question feedback.`,
+        Be fair, accurate, and supportive. If text is unreadable, flag it in the question feedback.`,
       },
       { media: { url: input.imageDataUri } },
     ],

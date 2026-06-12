@@ -22,7 +22,9 @@ import {
   SwitchCamera,
   Trash2,
   FileCheck2,
-  Award
+  Award,
+  Minus,
+  Plus
 } from 'lucide-react';
 import { scanWorksheet, ScanWorksheetOutput } from '@/ai/flows/scan-worksheet';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +41,15 @@ export function WorksheetScanner() {
   const [isCameraActive, setIsCameraActive] = React.useState(false);
   const [cameraError, setCameraError] = React.useState<string | null>(null);
   const [videoAspectRatio, setVideoAspectRatio] = React.useState<number | null>(null);
+  const [zoom, setZoom] = React.useState(1);
+
+  const hasHardwareZoom = React.useMemo(() => {
+    if (!stream) return false;
+    const track = stream.getVideoTracks()[0];
+    if (!track || typeof track.getCapabilities !== 'function') return false;
+    const capabilities = track.getCapabilities();
+    return 'zoom' in capabilities;
+  }, [stream]);
 
   // Video and Canvas refs
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -70,6 +81,7 @@ export function WorksheetScanner() {
     setCameraError(null);
     setIsCameraActive(true);
     setCapturedImage(null);
+    setZoom(1);
     try {
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
@@ -102,6 +114,27 @@ export function WorksheetScanner() {
     }
     setIsCameraActive(false);
     setVideoAspectRatio(null);
+    setZoom(1);
+  };
+
+  const handleZoomChange = async (newZoom: number) => {
+    const clampedZoom = Math.min(3, Math.max(1, newZoom));
+    setZoom(clampedZoom);
+    if (stream) {
+      const track = stream.getVideoTracks()[0];
+      if (track) {
+        const capabilities = track.getCapabilities?.();
+        if (capabilities && 'zoom' in capabilities) {
+          try {
+            await track.applyConstraints({
+              advanced: [{ zoom: clampedZoom } as any]
+            });
+          } catch (e) {
+            console.warn("Failed to apply hardware zoom constraint:", e);
+          }
+        }
+      }
+    }
   };
 
   const toggleCameraFacing = () => {
@@ -134,13 +167,29 @@ export function WorksheetScanner() {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         
+        let sx = 0;
+        let sy = 0;
+        let sWidth = video.videoWidth;
+        let sHeight = video.videoHeight;
+
+        // If digital zoom is applied (meaning zoom > 1 and hardware zoom wasn't used)
+        if (zoom > 1 && !hasHardwareZoom) {
+          sWidth = video.videoWidth / zoom;
+          sHeight = video.videoHeight / zoom;
+          sx = (video.videoWidth - sWidth) / 2;
+          sy = (video.videoHeight - sHeight) / 2;
+        }
+
+        ctx.save();
         // Flip canvas horizontally if using front camera for mirrored preview
         if (facingMode === 'user') {
           ctx.translate(canvas.width, 0);
           ctx.scale(-1, 1);
         }
         
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+
         const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
         setCapturedImage(dataUrl);
         stopCamera();
@@ -268,8 +317,43 @@ export function WorksheetScanner() {
                           }
                         }
                       }}
-                      className={`w-full h-full object-contain ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`} 
+                      className={`w-full h-full object-contain transition-transform duration-200`} 
+                      style={{
+                        transform: `scale(${zoom * (facingMode === 'user' ? -1 : 1)}, ${zoom})`,
+                      }}
                     />
+                    {/* Zoom control overlay */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-950/85 border border-slate-800 px-3 py-1 rounded-full flex items-center gap-2 backdrop-blur-sm z-20 shadow-xl select-none">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        type="button"
+                        className="w-6 h-6 rounded-full hover:bg-slate-800 text-slate-300 hover:text-teal-400 cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleZoomChange(zoom - 0.2);
+                        }}
+                        disabled={zoom <= 1}
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </Button>
+                      <span className="text-[10px] font-mono font-bold text-teal-400 min-w-[32px] text-center">
+                        {zoom.toFixed(1)}x
+                      </span>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        type="button"
+                        className="w-6 h-6 rounded-full hover:bg-slate-800 text-slate-300 hover:text-teal-400 cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleZoomChange(zoom + 0.2);
+                        }}
+                        disabled={zoom >= 3}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                     {/* Overlay Grid lines for layout alignment */}
                     <div className="absolute inset-0 border border-teal-500/10 pointer-events-none grid grid-cols-3 grid-rows-3">
                       <div className="border-r border-b border-teal-500/10" />
