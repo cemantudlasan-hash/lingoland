@@ -1179,8 +1179,13 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
         showFeedback('✓ Correct! +10', '#4CAF50');
       } else {
-        showFeedback('Too Slow! ⏰', '#FF9800');
-        hasAnsweredCurrentRoundRef.current = true;
+        if (result && result.reason === 'stale') {
+          showFeedback('Too Slow! ⏰', '#FF9800');
+          hasAnsweredCurrentRoundRef.current = true; // Wait for round advance snapshot
+        } else {
+          showFeedback('Failed! ❌', '#F44336');
+          hasAnsweredCurrentRoundRef.current = false; // Reset lock to allow retry
+        }
       }
       return result;
     } catch (e: any) {
@@ -1191,6 +1196,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         description: `Could not advance round: ${e?.message || e}`,
         variant: "destructive"
       });
+      hasAnsweredCurrentRoundRef.current = false; // Reset lock to allow retry on error
       return { success: false, reason: 'error' };
     }
   };
