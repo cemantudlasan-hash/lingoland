@@ -1310,10 +1310,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           setDoc(posRef, {
             x: player.position.x,
             z: player.position.z,
-            lastActive: now,
-            score: scoreRef.current,
-            solvedCount: solvedCountRef.current,
-            name: nickname,
+            lastActive: now
           }, { merge: true }).catch(console.warn);
         }
       }
@@ -1411,6 +1408,23 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               const maxRounds = gameModeRef.current === 'multi' ? roundsCountRef.current : 10;
               
               if (gameModeRef.current === 'multi') {
+                // Optimistic local score update
+                setScore(nextScore);
+                setSolvedCount(nextSolved);
+                scoreRef.current = nextScore;
+                solvedCountRef.current = nextSolved;
+
+                if (myUidRef.current) {
+                  setPlayersPositions(prev => ({
+                    ...prev,
+                    [myUidRef.current]: {
+                      ...(prev[myUidRef.current] || { x: 0, z: 20 }),
+                      score: nextScore,
+                      solvedCount: nextSolved
+                    }
+                  }));
+                }
+
                 player.position.set(0, 1.5, 20);
                 handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
               } else {
@@ -1433,6 +1447,18 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               if (gameModeRef.current === 'multi') {
                 const nextScore = Math.max(0, scoreRef.current - 5);
                 setScore(nextScore);
+                scoreRef.current = nextScore;
+
+                if (myUidRef.current) {
+                  setPlayersPositions(prev => ({
+                    ...prev,
+                    [myUidRef.current]: {
+                      ...(prev[myUidRef.current] || { x: 0, z: 20 }),
+                      score: nextScore
+                    }
+                  }));
+                }
+
                 showFeedback('✗ Penalty -5', '#F44336');
                 player.position.set(0, 1.5, 20);
                 
@@ -1460,6 +1486,18 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
             if (gameModeRef.current === 'multi') {
               const nextScore = Math.max(0, scoreRef.current - 5);
               setScore(nextScore);
+              scoreRef.current = nextScore;
+
+              if (myUidRef.current) {
+                setPlayersPositions(prev => ({
+                  ...prev,
+                  [myUidRef.current]: {
+                    ...(prev[myUidRef.current] || { x: 0, z: 20 }),
+                    score: nextScore
+                  }
+                }));
+              }
+
               showFeedback('✗ Hit! -5', '#FF9800');
               player.position.set(0, 1.5, 20);
               
