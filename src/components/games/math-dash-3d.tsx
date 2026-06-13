@@ -38,6 +38,7 @@ import {
   deleteDoc,
   onSnapshot,
   runTransaction,
+  collection,
 } from 'firebase/firestore';
 import confetti from 'canvas-confetti';
 
@@ -130,6 +131,12 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const resetPlayerPositionRef = React.useRef(false);
   const roomCodeRef = React.useRef('');
   const firestoreRef = React.useRef<any>(null);
+
+  const [playersPositions, setPlayersPositions] = React.useState<Record<string, { x: number; z: number }>>({});
+  const playersPositionsRef = React.useRef<Record<string, { x: number; z: number }>>({});
+  React.useEffect(() => {
+    playersPositionsRef.current = playersPositions;
+  }, [playersPositions]);
 
 
   const ROUNDS_TO_WIN = gameMode === 'multi' ? roundsCount : 10;
@@ -384,6 +391,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               });
             }
             setCurrentRoundIndex(dbRoundIdx);
+            currentRoundIndexRef.current = dbRoundIdx;
             resetPlayerPositionRef.current = true;
           }
         }
@@ -399,6 +407,24 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     
     return () => unsubscribe();
   }, [firestore, roomCode, gameMode, multiplayerState, myUid]);
+
+  // Sync players positions in real-time (Multiplayer)
+  React.useEffect(() => {
+    if (gameMode !== 'multi' || !roomCode || !firestore) return;
+
+    const positionsRef = collection(firestore, "stats", "md_room_" + roomCode, "positions");
+    const unsubscribe = onSnapshot(positionsRef, (snapshot) => {
+      const posMap: Record<string, { x: number; z: number }> = {};
+      snapshot.forEach((doc) => {
+        posMap[doc.id] = doc.data() as any;
+      });
+      setPlayersPositions(posMap);
+    }, (error) => {
+      console.warn("Positions snapshot error:", error);
+    });
+
+    return () => unsubscribe();
+  }, [firestore, roomCode, gameMode]);
 
   // Shared round sync is handled directly inside the answer solve transaction
 
@@ -1182,22 +1208,23 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           lastWrittenX = player.position.x;
           lastWrittenZ = player.position.z;
           
-          const roomRef = doc(firestoreRef.current!, "stats", "md_room_" + roomCodeRef.current);
-          updateDoc(roomRef, {
-            [`players.${myUidRef.current}.x`]: player.position.x,
-            [`players.${myUidRef.current}.z`]: player.position.z,
-            [`players.${myUidRef.current}.lastActive`]: now
-          }).catch(console.warn);
+          const posRef = doc(firestoreRef.current!, "stats", "md_room_" + roomCodeRef.current, "positions", myUidRef.current);
+          setDoc(posRef, {
+            x: player.position.x,
+            z: player.position.z,
+            lastActive: now
+          }, { merge: true }).catch(console.warn);
         }
       }
 
       // 2. Spawn / Interpolate other players
       if (gameModeRef.current === 'multi' && roomDataRef.current?.players) {
         const players = roomDataRef.current.players;
+        const positions = playersPositionsRef.current;
         
         // Remove meshes of players who left or finished
         for (const [uid, mesh] of otherPlayers.entries()) {
-          if (!players[uid] || players[uid].finished) {
+          if (!players[uid] || players[uid].finished || !positions[uid]) {
             scene.remove(mesh);
             mesh.geometry.dispose();
             if (Array.isArray(mesh.material)) {
@@ -1215,6 +1242,9 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           const p = players[uid];
           if (p.finished) continue;
           
+          const pos = positions[uid];
+          if (!pos) continue;
+          
           let otherMesh = otherPlayers.get(uid);
           if (!otherMesh) {
             const otherGeo = new THREE.CylinderGeometry(1, 1, 3, 16);
@@ -1225,12 +1255,12 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
             });
             otherMesh = new THREE.Mesh(otherGeo, otherMat);
             otherMesh.castShadow = true;
-            otherMesh.position.set(p.x ?? 0, 1.5, p.z ?? 20);
+            otherMesh.position.set(pos.x ?? 0, 1.5, pos.z ?? 20);
             scene.add(otherMesh);
             otherPlayers.set(uid, otherMesh);
           } else {
-            const tx = p.x ?? 0;
-            const tz = p.z ?? 20;
+            const tx = pos.x ?? 0;
+            const tz = pos.z ?? 20;
             otherMesh.position.x = THREE.MathUtils.lerp(otherMesh.position.x, tx, 1 - Math.exp(-12 * dt));
             otherMesh.position.z = THREE.MathUtils.lerp(otherMesh.position.z, tz, 1 - Math.exp(-12 * dt));
           }
