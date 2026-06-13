@@ -224,6 +224,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const myUidRef = React.useRef<string>('');
   const roundsCountRef = React.useRef(10);
   const roomDataRef = React.useRef<any>(null);
+  const lastScoreWriteTimeRef = React.useRef<number>(0);
 
   // Keep refs up-to-date
   React.useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
@@ -452,7 +453,10 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       if (myUid) {
         const myLive = posMap[myUid];
         if (myLive && myLive.score !== undefined) {
-          setScore(myLive.score);
+          // Prevent stale Firestore snapshots from reverting local optimistic score updates
+          if (Date.now() - lastScoreWriteTimeRef.current > 2000) {
+            setScore(myLive.score);
+          }
         }
       }
     }, (error) => {
@@ -970,6 +974,18 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         const nextRound = dbRoundIndex + 1;
         const isGameFinished = nextRound >= maxRounds;
 
+        // Fetch other players' position documents BEFORE writing anything, if isGameFinished is true.
+        // This avoids read-after-write errors inside the transaction.
+        let playerPosSnaps: any[] = [];
+        let playerIds: string[] = [];
+        if (isGameFinished) {
+          playerIds = Object.keys(data.players || {});
+          const playerPosRefs = playerIds.map(id => doc(firestore, "stats", "md_room_" + roomCode, "positions", id));
+          playerPosSnaps = await Promise.all(playerPosRefs.map(ref => transaction.get(ref)));
+        }
+
+        // --- ALL READS COMPLETED. NOW PERFORM WRITES ---
+
         // Update the position document inside the transaction
         if (playerPosDoc.exists()) {
           transaction.update(playerPosRef, {
@@ -1002,11 +1018,6 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         };
 
         if (isGameFinished) {
-          // Fetch live scores for all players in the room to determine the correct winner
-          const playerIds = Object.keys(data.players || {});
-          const playerPosRefs = playerIds.map(id => doc(firestore, "stats", "md_room_" + roomCode, "positions", id));
-          const playerPosSnaps = await Promise.all(playerPosRefs.map(ref => transaction.get(ref)));
-          
           const finalPlayersData = playerIds.map((id, idx) => {
             const snap = playerPosSnaps[idx];
             let scoreVal = snap.exists() ? (snap.data().score || 0) : 0;
@@ -1413,6 +1424,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                 setSolvedCount(nextSolved);
                 scoreRef.current = nextScore;
                 solvedCountRef.current = nextSolved;
+                lastScoreWriteTimeRef.current = Date.now();
 
                 if (myUidRef.current) {
                   setPlayersPositions(prev => ({
@@ -1448,6 +1460,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                 const nextScore = Math.max(0, scoreRef.current - 5);
                 setScore(nextScore);
                 scoreRef.current = nextScore;
+                lastScoreWriteTimeRef.current = Date.now();
 
                 if (myUidRef.current) {
                   setPlayersPositions(prev => ({
@@ -1487,6 +1500,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               const nextScore = Math.max(0, scoreRef.current - 5);
               setScore(nextScore);
               scoreRef.current = nextScore;
+              lastScoreWriteTimeRef.current = Date.now();
 
               if (myUidRef.current) {
                 setPlayersPositions(prev => ({
