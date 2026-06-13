@@ -191,6 +191,11 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         pressKey(e.key);
+      } else if (e.key === 'p' || e.key === 'P') {
+        console.log("[MD3D-DEBUG] Debug key 'p' pressed. Triggering solve for round index:", currentRoundIndexRef.current);
+        if (gameModeRef.current === 'multi') {
+          handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
+        }
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -432,10 +437,12 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
       if (data.status === 'playing' && myUid) {
         const dbRoundIdx = data.currentRoundIndex ?? 0;
+        console.log("[MD3D-DEBUG] Snapshot update: dbRoundIdx =", dbRoundIdx, "local currentRoundIndexRef =", currentRoundIndexRef.current);
         
         setSolvedCount(dbRoundIdx);
 
         if (dbRoundIdx !== currentRoundIndexRef.current) {
+          console.log("[MD3D-DEBUG] Round advanced. Changing round to:", dbRoundIdx);
           // The round has advanced!
           if (data.lastSolverName) {
             if (data.lastSolverName !== nickname) {
@@ -1011,11 +1018,16 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   };
 
   const handleCorrectAnswerMultiplayer = async (localRoundIndex: number) => {
-    if (!firestore || !roomCode || !myUid) return;
+    console.log("[MD3D-DEBUG] handleCorrectAnswerMultiplayer called with localRoundIndex:", localRoundIndex);
+    if (!firestore || !roomCode || !myUid) {
+      console.warn("[MD3D-DEBUG] Missing firestore, roomCode, or myUid", { firestore: !!firestore, roomCode, myUid });
+      return;
+    }
     const roomRef = doc(firestore, "stats", "md_room_" + roomCode);
     const playerPosRef = doc(firestore, "stats", "md_room_" + roomCode, "positions", myUid);
 
     try {
+      console.log("[MD3D-DEBUG] Starting transaction...");
       await runTransaction(firestore, async (transaction) => {
         const sfDoc = await transaction.get(roomRef);
         if (!sfDoc.exists()) {
@@ -1024,11 +1036,14 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
         const data = sfDoc.data();
         if (data.status !== 'playing') {
+          console.warn("[MD3D-DEBUG] Transaction early return because status is not playing:", data.status);
           return;
         }
 
         const dbRoundIndex = data.currentRoundIndex ?? 0;
+        console.log("[MD3D-DEBUG] dbRoundIndex in transaction:", dbRoundIndex, "vs localRoundIndex:", localRoundIndex);
         if (dbRoundIndex !== localRoundIndex) {
+          console.warn("[MD3D-DEBUG] dbRoundIndex !== localRoundIndex. Stale event. Ignoring solve.");
           return; // Already solved by someone else
         }
 
@@ -1121,8 +1136,13 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
         transaction.update(roomRef, updates);
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error("Multiplayer solve transaction failed:", e);
+      toast({
+        title: "Sync Error 🚨",
+        description: `Could not advance round: ${e?.message || e}`,
+        variant: "destructive"
+      });
     }
   };
 
