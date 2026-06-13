@@ -201,7 +201,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         hasAnsweredCurrentRoundRef.current = true;
         if (gameModeRef.current === 'multi') {
           showFeedback('Checking... ⏳', '#FFC107');
-          handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
+          handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current, scoreRef.current, solvedCountRef.current);
         }
       }
     };
@@ -1042,7 +1042,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     setGameState('gameover');
   };
 
-  const handleCorrectAnswerMultiplayer = async (localRoundIndex: number) => {
+  const handleCorrectAnswerMultiplayer = async (localRoundIndex: number, currentLocalScore: number, currentLocalSolved: number) => {
     console.log("[MD3D-DEBUG] handleCorrectAnswerMultiplayer called with localRoundIndex:", localRoundIndex);
     if (!firestore || !roomCode || !myUid) {
       console.warn("[MD3D-DEBUG] Missing firestore, roomCode, or myUid", { firestore: !!firestore, roomCode, myUid });
@@ -1072,13 +1072,8 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           return { success: false, reason: 'stale' }; // Already solved by someone else
         }
 
-        // Get current live score and solvedCount from player's positions document
-        const playerPosDoc = await transaction.get(playerPosRef);
-        const liveScore = playerPosDoc.exists() ? (playerPosDoc.data().score || 0) : 0;
-        const liveSolved = playerPosDoc.exists() ? (playerPosDoc.data().solvedCount || 0) : 0;
-
-        const nextScore = liveScore + 10;
-        const nextSolved = liveSolved + 1;
+        const nextScore = currentLocalScore + 10;
+        const nextSolved = currentLocalSolved + 1;
         const maxRounds = data.roundsCount || 10;
         const nextRound = dbRoundIndex + 1;
         const isGameFinished = nextRound >= maxRounds;
@@ -1095,23 +1090,13 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
         // --- ALL READS COMPLETED. NOW PERFORM WRITES ---
 
-        // Update the position document inside the transaction
-        if (playerPosDoc.exists()) {
-          transaction.update(playerPosRef, {
-            score: nextScore,
-            solvedCount: nextSolved,
-            lastActive: Date.now()
-          });
-        } else {
-          transaction.set(playerPosRef, {
-            x: 0,
-            z: 20,
-            score: nextScore,
-            solvedCount: nextSolved,
-            name: nickname,
-            lastActive: Date.now()
-          });
-        }
+        // Update the position document inside the transaction using set with merge to avoid read version collision
+        transaction.set(playerPosRef, {
+          score: nextScore,
+          solvedCount: nextSolved,
+          name: nickname,
+          lastActive: Date.now()
+        }, { merge: true });
 
         // Synchronize back to the room document's static players map for session recovery / finished status
         const updatedPlayers = { ...data.players };
@@ -1576,7 +1561,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                 hasAnsweredCurrentRoundRef.current = true;
                 showFeedback('Checking... ⏳', '#FFC107');
                 player.position.set(0, 1.5, 20);
-                handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
+                handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current, scoreRef.current, solvedCountRef.current);
               } else {
                 setScore(nextScore);
                 setSolvedCount(nextSolved);
