@@ -91,6 +91,18 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [gameOverReason, setGameOverReason] = React.useState<GameOverReason>('hit');
 
+  React.useEffect(() => {
+    const handler = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      // Let Three.js re-evaluate viewport size after transition
+      setTimeout(() => {
+        handleResizeRef.current?.();
+      }, 100);
+    };
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
   // Math Question States
   const [questionText, setQuestionText] = React.useState('Solve: 5 + 3 = ?');
   const [answers, setAnswers] = React.useState<{ red: number; green: number; blue: number }>({ red: 8, green: 6, blue: 10 });
@@ -1793,7 +1805,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           'md3d-card w-full',
           isFullscreen
             ? 'rounded-none border-none h-full'
-            : 'max-w-4xl mx-auto rounded-3xl'
+            : 'max-w-[95%] xl:max-w-[90%] 2xl:max-w-[1440px] mx-auto rounded-3xl'
         )}
         style={isFullscreen ? { height: '100%' } : {}}
       >
@@ -1826,7 +1838,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         <div
           className={cn(
             'relative w-full overflow-hidden flex flex-col items-center justify-center bg-slate-950',
-            isFullscreen ? 'flex-1' : 'h-[360px] sm:h-[450px] md:h-[520px]'
+            isFullscreen ? 'flex-1' : 'h-[360px] sm:h-[450px] md:h-[520px] lg:h-[600px] xl:h-[680px] 2xl:h-[760px]'
           )}
         >
           {gameMode === 'multi' ? (
