@@ -433,11 +433,9 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       if (data.status === 'playing' && myUid) {
         const dbRoundIdx = data.currentRoundIndex ?? 0;
         
-        // Prevent stale round updates from flashing or reverting local optimistic solvedCount state
-        if (dbRoundIdx >= solvedCountRef.current) {
-          setSolvedCount(dbRoundIdx);
+        setSolvedCount(dbRoundIdx);
 
-          if (dbRoundIdx !== currentRoundIndexRef.current) {
+        if (dbRoundIdx !== currentRoundIndexRef.current) {
             // The round has advanced!
             if (data.lastSolverName) {
               if (data.lastSolverName !== nickname) {
@@ -472,7 +470,6 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
             }
           }
         }
-      }
       
       if (data.status === 'finished' && multiplayerState !== 'finished') {
         setMultiplayerState('finished');
@@ -1480,11 +1477,9 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               const maxRounds = gameModeRef.current === 'multi' ? roundsCountRef.current : 10;
               
               if (gameModeRef.current === 'multi') {
-                // Optimistic local score update
+                // Optimistic local score update (do NOT update solvedCount optimistically in multiplayer)
                 setScore(nextScore);
-                setSolvedCount(nextSolved);
                 scoreRef.current = nextScore;
-                solvedCountRef.current = nextSolved;
                 lastScoreWriteTimeRef.current = Date.now();
 
                 if (myUidRef.current) {
@@ -1492,8 +1487,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                     ...prev,
                     [myUidRef.current]: {
                       ...(prev[myUidRef.current] || { x: 0, z: 20 }),
-                      score: nextScore,
-                      solvedCount: nextSolved
+                      score: nextScore
                     }
                   }));
                 }
@@ -2140,7 +2134,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                   {/* Live Standings HUD overlay during gameplay */}
                   <div className="absolute top-16 right-2 z-[50] w-48 hidden md:block bg-black/70 border border-purple-500/25 p-2.5 rounded-xl shadow-xl space-y-1.5 max-h-[160px] overflow-y-auto">
                     <p className="text-[8px] font-black uppercase text-purple-400 tracking-wider">Live Standings</p>
-                    {roomPlayers.sort((a,b) => b.score - a.score).map((p, idx) => (
+                    {[...roomPlayersWithLiveStats].sort((a, b) => b.score - a.score).map((p, idx) => (
                       <div key={p.uid} className="flex justify-between items-center text-[10px] font-medium border-b border-slate-800/40 pb-1 last:border-b-0">
                         <span className="truncate max-w-[90px] text-slate-300">
                           {idx + 1}. {p.name} {p.uid === myUid && <span className="text-purple-400 font-bold">(You)</span>}
