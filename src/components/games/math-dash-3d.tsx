@@ -427,7 +427,22 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         setCurrentRoundIndex(0);
         currentRoundIndexRef.current = 0;
         hasAnsweredCurrentRoundRef.current = false;
-        setNextRoundCountdown(3); // Start countdown on match start
+        setNextRoundCountdown(null); // Remove countdown on match start
+
+        // Load the question instantly on match start
+        const dbRoundIdx = data.currentRoundIndex ?? 0;
+        if (data.questions && data.questions[dbRoundIdx]) {
+          const activeQ = data.questions[dbRoundIdx];
+          setQuestionText(activeQ.questionText);
+          setAnswers(activeQ.answers);
+          setCorrectAnswerColor(activeQ.correctAnswerColor);
+          
+          spherePositionsRef.current = {
+            redIdx: activeQ.redIdx ?? 0,
+            greenIdx: activeQ.greenIdx ?? 1,
+            blueIdx: activeQ.blueIdx ?? 2,
+          };
+        }
 
         // Initialize position document in Firestore immediately
         if (myUid && firestore) {
