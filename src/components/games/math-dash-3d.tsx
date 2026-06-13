@@ -22,6 +22,7 @@ import {
   Copy,
   Users,
   LogOut,
+  Heart,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
@@ -90,6 +91,9 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const [gameState, setGameState] = React.useState<GameState>('idle');
   const [score, setScore] = React.useState(0);
   const [solvedCount, setSolvedCount] = React.useState(0);
+  const [lives, setLives] = React.useState(5);
+  const livesRef = React.useRef(5);
+  React.useEffect(() => { livesRef.current = lives; }, [lives]);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [gameOverReason, setGameOverReason] = React.useState<GameOverReason>('hit');
 
@@ -985,6 +989,8 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const startGame = () => {
     setScore(0);
     setSolvedCount(0);
+    setLives(5);
+    livesRef.current = 5;
     generateMathProblem();
     setGameState('playing');
   };
@@ -1538,7 +1544,23 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                   }).catch(console.warn);
                 }
               } else {
-                triggerGameOver('wrong');
+                const nextLives = livesRef.current - 1;
+                setLives(nextLives);
+                livesRef.current = nextLives;
+
+                const nextScore = Math.max(0, scoreRef.current - 5);
+                setScore(nextScore);
+                scoreRef.current = nextScore;
+
+                showFeedback('✗ Wrong! -5', '#F44336');
+
+                if (nextLives <= 0) {
+                  triggerGameOver('wrong');
+                } else {
+                  generateMathProblem();
+                  repositionSpheres();
+                  player.position.set(0, 1.5, 20);
+                }
               }
             }
             setTimeout(() => { isColliding = false; }, 800);
@@ -1578,7 +1600,21 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                 }).catch(console.warn);
               }
             } else {
-              triggerGameOver('hit');
+              const nextLives = livesRef.current - 1;
+              setLives(nextLives);
+              livesRef.current = nextLives;
+
+              const nextScore = Math.max(0, scoreRef.current - 5);
+              setScore(nextScore);
+              scoreRef.current = nextScore;
+
+              showFeedback('✗ Hit! -5', '#FF9800');
+
+              if (nextLives <= 0) {
+                triggerGameOver('hit');
+              } else {
+                player.position.set(0, 1.5, 20);
+              }
             }
             setTimeout(() => { isColliding = false; }, 800);
             break;
@@ -2225,6 +2261,20 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                         <span className="text-[8px] uppercase font-black tracking-widest text-purple-400">Score</span>
                         <span className="text-base md:text-xl font-black">{score}</span>
                       </div>
+                      <div className="flex flex-col shrink-0 ml-2">
+                        <span className="text-[8px] uppercase font-black tracking-widest text-purple-400">Lives</span>
+                        <div className="flex gap-0.5 mt-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Heart
+                              key={i}
+                              className={cn(
+                                "w-3.5 h-3.5 shrink-0 transition-all duration-300",
+                                i < lives ? "text-rose-500 fill-rose-500 scale-100" : "text-slate-600 fill-none scale-90"
+                              )}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
                     <div className="bg-purple-500/10 px-3 py-1 rounded-lg border border-purple-500/30 truncate max-w-[45%]">
                       <span className="text-sm md:text-lg font-black text-purple-300">{questionText}</span>
@@ -2308,6 +2358,28 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                       ⭐ Daily Bonus: Earn +{dailyBonusAmount} Coins!
                     </Badge>
                   )}
+
+                  {/* Solo Difficulty Selector */}
+                  <div className="flex flex-col gap-2 bg-slate-900/60 p-4 rounded-2xl border border-purple-500/10 w-full max-w-xs text-left">
+                    <label className="text-[10px] font-black uppercase text-purple-400 tracking-wider">Select Solo Difficulty</label>
+                    <div className="flex gap-1.5">
+                      {['easy', 'medium', 'hard'].map((lvl) => (
+                        <Button
+                          key={lvl}
+                          size="sm"
+                          variant={difficulty === lvl ? 'default' : 'outline'}
+                          onClick={() => setDifficulty(lvl as any)}
+                          className={cn(
+                            "text-[10px] font-bold uppercase flex-1 rounded-lg cursor-pointer h-9",
+                            difficulty === lvl ? "bg-purple-600 text-white" : "border-slate-800 text-slate-400 hover:bg-slate-800"
+                          )}
+                        >
+                          {lvl}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="flex flex-col sm:flex-row gap-4">
                     <Button
                       onClick={startGame}
