@@ -155,6 +155,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const currentRoundIndexRef = React.useRef(0);
   const spherePositionsRef = React.useRef<{ redIdx: number; greenIdx: number; blueIdx: number } | null>(null);
   const resetPlayerPositionRef = React.useRef(false);
+  const hasAnsweredCurrentRoundRef = React.useRef(false);
   const roomCodeRef = React.useRef('');
   const firestoreRef = React.useRef<any>(null);
 
@@ -193,7 +194,13 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         pressKey(e.key);
       } else if (e.key === 'p' || e.key === 'P') {
         console.log("[MD3D-DEBUG] Debug key 'p' pressed. Triggering solve for round index:", currentRoundIndexRef.current);
+        if (hasAnsweredCurrentRoundRef.current) {
+          console.warn("[MD3D-DEBUG] Already answered this round! Ignoring debug key.");
+          return;
+        }
+        hasAnsweredCurrentRoundRef.current = true;
         if (gameModeRef.current === 'multi') {
+          showFeedback('Checking... ⏳', '#FFC107');
           handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
         }
       }
@@ -419,6 +426,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         setSolvedCount(0);
         setCurrentRoundIndex(0);
         currentRoundIndexRef.current = 0;
+        hasAnsweredCurrentRoundRef.current = false;
         setNextRoundCountdown(3); // Start countdown on match start
 
         // Initialize position document in Firestore immediately
@@ -457,6 +465,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           
           // Completely remove the countdown between rounds so they transition instantly
           resetPlayerPositionRef.current = true;
+          hasAnsweredCurrentRoundRef.current = false;
 
           setCurrentRoundIndex(dbRoundIdx);
           currentRoundIndexRef.current = dbRoundIdx;
@@ -946,6 +955,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     setMultiplayerState('mode_select');
     setGameMode('single');
     setGameState('idle');
+    hasAnsweredCurrentRoundRef.current = false;
   };
 
   const handleStartMultiplayerGame = async () => {
@@ -1021,14 +1031,14 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     console.log("[MD3D-DEBUG] handleCorrectAnswerMultiplayer called with localRoundIndex:", localRoundIndex);
     if (!firestore || !roomCode || !myUid) {
       console.warn("[MD3D-DEBUG] Missing firestore, roomCode, or myUid", { firestore: !!firestore, roomCode, myUid });
-      return;
+      return { success: false, reason: 'missing_init' };
     }
     const roomRef = doc(firestore, "stats", "md_room_" + roomCode);
     const playerPosRef = doc(firestore, "stats", "md_room_" + roomCode, "positions", myUid);
 
     try {
       console.log("[MD3D-DEBUG] Starting transaction...");
-      await runTransaction(firestore, async (transaction) => {
+      const result = await runTransaction(firestore, async (transaction) => {
         const sfDoc = await transaction.get(roomRef);
         if (!sfDoc.exists()) {
           throw new Error("Room does not exist!");
@@ -1037,14 +1047,14 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         const data = sfDoc.data();
         if (data.status !== 'playing') {
           console.warn("[MD3D-DEBUG] Transaction early return because status is not playing:", data.status);
-          return;
+          return { success: false, reason: 'not_playing' };
         }
 
         const dbRoundIndex = data.currentRoundIndex ?? 0;
         console.log("[MD3D-DEBUG] dbRoundIndex in transaction:", dbRoundIndex, "vs localRoundIndex:", localRoundIndex);
         if (dbRoundIndex !== localRoundIndex) {
           console.warn("[MD3D-DEBUG] dbRoundIndex !== localRoundIndex. Stale event. Ignoring solve.");
-          return; // Already solved by someone else
+          return { success: false, reason: 'stale' }; // Already solved by someone else
         }
 
         // Get current live score and solvedCount from player's positions document
@@ -1135,14 +1145,38 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         }
 
         transaction.update(roomRef, updates);
+        return { success: true, newScore: nextScore };
       });
+
+      if (result && result.success && result.newScore !== undefined) {
+        const nextScore = result.newScore;
+        setScore(nextScore);
+        scoreRef.current = nextScore;
+        lastScoreWriteTimeRef.current = Date.now();
+
+        setPlayersPositions(prev => ({
+          ...prev,
+          [myUid]: {
+            ...(prev[myUid] || { x: 0, z: 20 }),
+            score: nextScore
+          }
+        }));
+
+        showFeedback('✓ Correct! +10', '#4CAF50');
+      } else {
+        showFeedback('Too Slow! ⏰', '#FF9800');
+        hasAnsweredCurrentRoundRef.current = true;
+      }
+      return result;
     } catch (e: any) {
       console.error("Multiplayer solve transaction failed:", e);
+      showFeedback('Sync Error! 🚨', '#F44336');
       toast({
         title: "Sync Error 🚨",
         description: `Could not advance round: ${e?.message || e}`,
         variant: "destructive"
       });
+      return { success: false, reason: 'error' };
     }
   };
 
@@ -1504,28 +1538,22 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           const dz = player.position.z - sphere.mesh.position.z;
           if (Math.sqrt(dx * dx + dz * dz) < 2.5) {
             isColliding = true;
+            
+            if (gameModeRef.current === 'multi' && hasAnsweredCurrentRoundRef.current) {
+              showFeedback('Already Answered! 🔒', '#FFC107');
+              player.position.set(0, 1.5, 20);
+              setTimeout(() => { isColliding = false; }, 800);
+              break;
+            }
+
             if (sphere.colorName === correctAnswerColorRef.current) {
               const nextScore = scoreRef.current + 10;
               const nextSolved = solvedCountRef.current + 1;
               const maxRounds = gameModeRef.current === 'multi' ? roundsCountRef.current : 10;
               
               if (gameModeRef.current === 'multi') {
-                // Optimistic local score update (do NOT update solvedCount optimistically in multiplayer)
-                setScore(nextScore);
-                scoreRef.current = nextScore;
-                lastScoreWriteTimeRef.current = Date.now();
-
-                if (myUidRef.current) {
-                  setPlayersPositions(prev => ({
-                    ...prev,
-                    [myUidRef.current]: {
-                      ...(prev[myUidRef.current] || { x: 0, z: 20 }),
-                      score: nextScore
-                    }
-                  }));
-                }
-
-                showFeedback('✓ Correct! +10', '#4CAF50');
+                hasAnsweredCurrentRoundRef.current = true;
+                showFeedback('Checking... ⏳', '#FFC107');
                 player.position.set(0, 1.5, 20);
                 handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
               } else {
