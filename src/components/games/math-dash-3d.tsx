@@ -436,40 +436,53 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         setSolvedCount(dbRoundIdx);
 
         if (dbRoundIdx !== currentRoundIndexRef.current) {
-            // The round has advanced!
-            if (data.lastSolverName) {
-              if (data.lastSolverName !== nickname) {
-                // Only show feedback for other players here; we show ours optimistically immediately in collision
-                showFeedback(`✓ ${data.lastSolverName} solved it!`, '#E53935');
-                toast({
-                  title: "Round Advanced! 🏁",
-                  description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
-                });
-              }
-            }
-            
-            // Start countdown on round advance
-            setNextRoundCountdown(3);
-            resetPlayerPositionRef.current = true;
-
-            setCurrentRoundIndex(dbRoundIdx);
-            currentRoundIndexRef.current = dbRoundIdx;
-          } else if (nextRoundCountdown === null && multiplayerState !== 'lobby') {
-            // Only update displayed question if we are NOT in a countdown
-            if (data.questions && data.questions[dbRoundIdx]) {
-              const activeQ = data.questions[dbRoundIdx];
-              setQuestionText(activeQ.questionText);
-              setAnswers(activeQ.answers);
-              setCorrectAnswerColor(activeQ.correctAnswerColor);
-              
-              spherePositionsRef.current = {
-                redIdx: activeQ.redIdx ?? 0,
-                greenIdx: activeQ.greenIdx ?? 1,
-                blueIdx: activeQ.blueIdx ?? 2,
-              };
+          // The round has advanced!
+          if (data.lastSolverName) {
+            if (data.lastSolverName !== nickname) {
+              // Only show feedback for other players here; we show ours optimistically immediately in collision
+              showFeedback(`✓ ${data.lastSolverName} solved it!`, '#E53935');
+              toast({
+                title: "Round Advanced! 🏁",
+                description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
+              });
             }
           }
+          
+          // Completely remove the countdown between rounds so they transition instantly
+          resetPlayerPositionRef.current = true;
+
+          setCurrentRoundIndex(dbRoundIdx);
+          currentRoundIndexRef.current = dbRoundIdx;
+
+          // Load the next question instantly on round advance
+          if (data.questions && data.questions[dbRoundIdx]) {
+            const activeQ = data.questions[dbRoundIdx];
+            setQuestionText(activeQ.questionText);
+            setAnswers(activeQ.answers);
+            setCorrectAnswerColor(activeQ.correctAnswerColor);
+            
+            spherePositionsRef.current = {
+              redIdx: activeQ.redIdx ?? 0,
+              greenIdx: activeQ.greenIdx ?? 1,
+              blueIdx: activeQ.blueIdx ?? 2,
+            };
+          }
+        } else if (nextRoundCountdown === null && multiplayerState !== 'lobby') {
+          // Only update displayed question if we are NOT in a countdown
+          if (data.questions && data.questions[dbRoundIdx]) {
+            const activeQ = data.questions[dbRoundIdx];
+            setQuestionText(activeQ.questionText);
+            setAnswers(activeQ.answers);
+            setCorrectAnswerColor(activeQ.correctAnswerColor);
+            
+            spherePositionsRef.current = {
+              redIdx: activeQ.redIdx ?? 0,
+              greenIdx: activeQ.greenIdx ?? 1,
+              blueIdx: activeQ.blueIdx ?? 2,
+            };
+          }
         }
+      }
       
       if (data.status === 'finished' && multiplayerState !== 'finished') {
         setMultiplayerState('finished');
