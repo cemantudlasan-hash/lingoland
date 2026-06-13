@@ -121,6 +121,12 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const [roomPlayers, setRoomPlayers] = React.useState<any[]>([]);
   const [nickname, setNickname] = React.useState('');
 
+  const [playersPositions, setPlayersPositions] = React.useState<Record<string, { x: number; z: number; score?: number; solvedCount?: number; name?: string }>>({});
+  const playersPositionsRef = React.useRef<Record<string, { x: number; z: number; score?: number; solvedCount?: number; name?: string }>>({});
+  React.useEffect(() => {
+    playersPositionsRef.current = playersPositions;
+  }, [playersPositions]);
+
   const roomPlayersWithLiveStats = React.useMemo(() => {
     if (!roomData?.players) return [];
     return Object.keys(roomData.players).map((uid) => {
@@ -135,6 +141,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       };
     });
   }, [roomData?.players, playersPositions]);
+
   const [codeVal, setCodeVal] = React.useState('');
   const [roundsCount, setRoundsCount] = React.useState(10); // Default 10 for multi
   const [difficulty, setDifficulty] = React.useState<'easy' | 'medium' | 'hard'>('medium');
@@ -146,12 +153,6 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const resetPlayerPositionRef = React.useRef(false);
   const roomCodeRef = React.useRef('');
   const firestoreRef = React.useRef<any>(null);
-
-  const [playersPositions, setPlayersPositions] = React.useState<Record<string, { x: number; z: number }>>({});
-  const playersPositionsRef = React.useRef<Record<string, { x: number; z: number }>>({});
-  React.useEffect(() => {
-    playersPositionsRef.current = playersPositions;
-  }, [playersPositions]);
 
 
   const ROUNDS_TO_WIN = gameMode === 'multi' ? roundsCount : 10;
