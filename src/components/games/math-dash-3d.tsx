@@ -357,31 +357,25 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         const me = data.players?.[myUid];
         if (me) {
           setScore(me.score || 0);
-          setSolvedCount(me.solvedCount || 0);
-        }
+          const nextSolved = me.solvedCount || 0;
+          setSolvedCount(nextSolved);
 
-        if (data.currentQuestion) {
-          setQuestionText(data.currentQuestion.questionText);
-          setAnswers(data.currentQuestion.answers);
-          setCorrectAnswerColor(data.currentQuestion.correctAnswerColor);
-          
-          spherePositionsRef.current = {
-            redIdx: data.currentQuestion.redIdx ?? 0,
-            greenIdx: data.currentQuestion.greenIdx ?? 1,
-            blueIdx: data.currentQuestion.blueIdx ?? 2,
-          };
-          
-          const dbRoundIdx = data.currentQuestion.roundIndex ?? 0;
-          if (dbRoundIdx !== currentRoundIndexRef.current) {
-            if (data.lastSolverName) {
-              showFeedback(`✓ ${data.lastSolverName} solved it!`, '#4CAF50');
-              toast({
-                title: "Round Advanced! 🏁",
-                description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
-              });
+          if (data.questions && data.questions[nextSolved]) {
+            const activeQ = data.questions[nextSolved];
+            setQuestionText(activeQ.questionText);
+            setAnswers(activeQ.answers);
+            setCorrectAnswerColor(activeQ.correctAnswerColor);
+            
+            spherePositionsRef.current = {
+              redIdx: activeQ.redIdx ?? 0,
+              greenIdx: activeQ.greenIdx ?? 1,
+              blueIdx: activeQ.blueIdx ?? 2,
+            };
+
+            if (nextSolved !== currentRoundIndexRef.current) {
+              setCurrentRoundIndex(nextSolved);
+              resetPlayerPositionRef.current = true;
             }
-            setCurrentRoundIndex(dbRoundIdx);
-            resetPlayerPositionRef.current = true;
           }
         }
       }
@@ -396,6 +390,23 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     
     return () => unsubscribe();
   }, [firestore, roomCode, gameMode, multiplayerState, myUid]);
+
+  // Sync finished status: declare finished once everyone completes (run on Host client)
+  React.useEffect(() => {
+    if (gameMode === 'multi' && roomCode && roomData && roomData.status === 'playing' && isCreator) {
+      const list = Object.values(roomData.players || {}) as any[];
+      if (list.length > 0 && list.every((p: any) => p.finished)) {
+        const sorted = [...list].sort((a, b) => b.score - a.score);
+        const winner = sorted[0];
+        const roomRef = doc(firestore!, "stats", "md_room_" + roomCode);
+        updateDoc(roomRef, {
+          status: 'finished',
+          winnerId: winner?.uid || '',
+          winnerName: winner?.name || ''
+        }).catch(e => console.error("Error setting winner:", e));
+      }
+    }
+  }, [gameMode, roomCode, roomData, isCreator, firestore]);
 
   // ─── Math problem generator ───────────────────────────────────────────────
   const generateMathProblemData = (diff: string, opType: string): {
@@ -804,22 +815,26 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         updatedPlayers[uid].z = 20;
       });
 
-      const prob = generateMathProblemData(difficulty, operation);
-      const [rIdx, gIdx, bIdx] = selectRandomIndices();
-
-      await updateDoc(roomRef, {
-        status: 'playing',
-        players: updatedPlayers,
-        startedAt: Date.now(),
-        currentQuestion: {
+      const questionsList = [];
+      for (let i = 0; i < roundsCount; i++) {
+        const prob = generateMathProblemData(difficulty, operation);
+        const [rIdx, gIdx, bIdx] = selectRandomIndices();
+        questionsList.push({
           questionText: prob.question,
           answers: prob.options,
           correctAnswerColor: prob.correctColor,
           redIdx: rIdx,
           greenIdx: gIdx,
           blueIdx: bIdx,
-          roundIndex: 0
-        },
+          roundIndex: i
+        });
+      }
+
+      await updateDoc(roomRef, {
+        status: 'playing',
+        players: updatedPlayers,
+        startedAt: Date.now(),
+        questions: questionsList,
         lastSolverName: "",
       });
     } catch (e) {
@@ -849,79 +864,19 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     const roomRef = doc(firestore, "stats", "md_room_" + roomCode);
 
     try {
-      await runTransaction(firestore, async (transaction) => {
-        const sfDoc = await transaction.get(roomRef);
-        if (!sfDoc.exists()) {
-          throw new Error("Room does not exist!");
-        }
+      const nextScore = scoreRef.current + 10;
+      const nextSolved = solvedCountRef.current + 1;
+      const maxRounds = roundsCountRef.current || 10;
+      const myFinished = nextSolved >= maxRounds;
 
-        const data = sfDoc.data();
-        if (data.status !== 'playing') {
-          return;
-        }
-
-        const dbQuestion = data.currentQuestion;
-        const dbRoundIndex = dbQuestion?.roundIndex ?? 0;
-
-        if (dbRoundIndex !== localRoundIndex) {
-          return; // Already solved by someone else
-        }
-
-        const updatedPlayers = { ...data.players };
-        const me = updatedPlayers[myUid];
-        if (!me) return;
-
-        const nextScore = (me.score || 0) + 10;
-        const nextSolved = (me.solvedCount || 0) + 1;
-        const maxRounds = data.roundsCount || 10;
-        const myFinished = nextSolved >= maxRounds;
-
-        updatedPlayers[myUid] = {
-          ...me,
-          score: nextScore,
-          solvedCount: nextSolved,
-          finished: myFinished,
-          lastActive: Date.now()
-        };
-
-        const allFinished = Object.values(updatedPlayers).every((p: any) => p.finished);
-        
-        let updates: any = {
-          players: updatedPlayers,
-          lastSolverName: nickname
-        };
-
-        if (allFinished) {
-          const sorted = Object.values(updatedPlayers).sort((a: any, b: any) => b.score - a.score);
-          const winner = sorted[0] as any;
-          updates.status = 'finished';
-          updates.winnerId = winner?.uid || '';
-          updates.winnerName = winner?.name || '';
-        } else {
-          const nextProb = generateMathProblemData(data.difficulty || "medium", data.operation || "mixed");
-          const indices: number[] = [];
-          while (indices.length < 3) {
-            const r = Math.floor(Math.random() * 16);
-            if (!indices.includes(r)) {
-              indices.push(r);
-            }
-          }
-
-          updates.currentQuestion = {
-            questionText: nextProb.question,
-            answers: nextProb.options,
-            correctAnswerColor: nextProb.correctColor,
-            redIdx: indices[0],
-            greenIdx: indices[1],
-            blueIdx: indices[2],
-            roundIndex: dbRoundIndex + 1
-          };
-        }
-
-        transaction.update(roomRef, updates);
+      await updateDoc(roomRef, {
+        [`players.${myUid}.score`]: nextScore,
+        [`players.${myUid}.solvedCount`]: nextSolved,
+        [`players.${myUid}.finished`]: myFinished,
+        [`players.${myUid}.lastActive`]: Date.now()
       });
     } catch (e) {
-      console.error("Multiplayer solve transaction failed:", e);
+      console.error("Multiplayer solve update failed:", e);
     }
   };
 
