@@ -392,37 +392,39 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       }
 
       if (data.status === 'playing' && myUid) {
-        // Score is driven by `/positions` subcollection document to support decoupled penalty writes
         const dbRoundIdx = data.currentRoundIndex ?? 0;
-        setSolvedCount(dbRoundIdx);
+        
+        // Prevent stale round updates from flashing or reverting local optimistic solvedCount state
+        if (dbRoundIdx >= solvedCountRef.current) {
+          setSolvedCount(dbRoundIdx);
 
-        if (data.questions && data.questions[dbRoundIdx]) {
-          const activeQ = data.questions[dbRoundIdx];
-          setQuestionText(activeQ.questionText);
-          setAnswers(activeQ.answers);
-          setCorrectAnswerColor(activeQ.correctAnswerColor);
-          
-          spherePositionsRef.current = {
-            redIdx: activeQ.redIdx ?? 0,
-            greenIdx: activeQ.greenIdx ?? 1,
-            blueIdx: activeQ.blueIdx ?? 2,
-          };
+          if (data.questions && data.questions[dbRoundIdx]) {
+            const activeQ = data.questions[dbRoundIdx];
+            setQuestionText(activeQ.questionText);
+            setAnswers(activeQ.answers);
+            setCorrectAnswerColor(activeQ.correctAnswerColor);
+            
+            spherePositionsRef.current = {
+              redIdx: activeQ.redIdx ?? 0,
+              greenIdx: activeQ.greenIdx ?? 1,
+              blueIdx: activeQ.blueIdx ?? 2,
+            };
 
-          if (dbRoundIdx !== currentRoundIndexRef.current) {
-            if (data.lastSolverName) {
-              if (data.lastSolverName === nickname) {
-                showFeedback('✓ Correct! +10', '#4CAF50');
-              } else {
-                showFeedback(`✓ ${data.lastSolverName} solved it!`, '#E53935');
-                toast({
-                  title: "Round Advanced! 🏁",
-                  description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
-                });
+            if (dbRoundIdx !== currentRoundIndexRef.current) {
+              if (data.lastSolverName) {
+                if (data.lastSolverName !== nickname) {
+                  // Only show feedback for other players here; we show ours optimistically immediately in collision
+                  showFeedback(`✓ ${data.lastSolverName} solved it!`, '#E53935');
+                  toast({
+                    title: "Round Advanced! 🏁",
+                    description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
+                  });
+                }
               }
+              setCurrentRoundIndex(dbRoundIdx);
+              currentRoundIndexRef.current = dbRoundIdx;
+              resetPlayerPositionRef.current = true;
             }
-            setCurrentRoundIndex(dbRoundIdx);
-            currentRoundIndexRef.current = dbRoundIdx;
-            resetPlayerPositionRef.current = true;
           }
         }
       }
@@ -448,6 +450,16 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       snapshot.forEach((doc) => {
         posMap[doc.id] = doc.data() as any;
       });
+
+      // If we are in the write-lock window, preserve our local optimistic score and solvedCount
+      // to prevent the standings scoreboard from temporarily rolling back to stale values.
+      if (myUid && posMap[myUid]) {
+        if (Date.now() - lastScoreWriteTimeRef.current <= 2000) {
+          posMap[myUid].score = scoreRef.current;
+          posMap[myUid].solvedCount = solvedCountRef.current;
+        }
+      }
+
       setPlayersPositions(posMap);
 
       if (myUid) {
@@ -1437,6 +1449,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                   }));
                 }
 
+                showFeedback('✓ Correct! +10', '#4CAF50');
                 player.position.set(0, 1.5, 20);
                 handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
               } else {
