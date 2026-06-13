@@ -225,6 +225,40 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const roundsCountRef = React.useRef(10);
   const roomDataRef = React.useRef<any>(null);
   const lastScoreWriteTimeRef = React.useRef<number>(0);
+  const [nextRoundCountdown, setNextRoundCountdown] = React.useState<number | null>(null);
+  const nextRoundCountdownRef = React.useRef<number | null>(null);
+  React.useEffect(() => { nextRoundCountdownRef.current = nextRoundCountdown; }, [nextRoundCountdown]);
+
+  // Next round countdown effect
+  React.useEffect(() => {
+    if (nextRoundCountdown === null || nextRoundCountdown <= 0) {
+      if (nextRoundCountdown === 0) {
+        // Countdown finished! Load the new question for the current round
+        const dbRoundIdx = currentRoundIndexRef.current;
+        const data = roomDataRef.current;
+        if (data && data.questions && data.questions[dbRoundIdx]) {
+          const activeQ = data.questions[dbRoundIdx];
+          setQuestionText(activeQ.questionText);
+          setAnswers(activeQ.answers);
+          setCorrectAnswerColor(activeQ.correctAnswerColor);
+          
+          spherePositionsRef.current = {
+            redIdx: activeQ.redIdx ?? 0,
+            greenIdx: activeQ.greenIdx ?? 1,
+            blueIdx: activeQ.blueIdx ?? 2,
+          };
+        }
+        setNextRoundCountdown(null);
+      }
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setNextRoundCountdown(prev => (prev !== null ? prev - 1 : null));
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [nextRoundCountdown]);
 
   // Keep refs up-to-date
   React.useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
@@ -376,6 +410,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         setSolvedCount(0);
         setCurrentRoundIndex(0);
         currentRoundIndexRef.current = 0;
+        setNextRoundCountdown(3); // Start countdown on match start
 
         // Initialize position document in Firestore immediately
         if (myUid && firestore) {
@@ -398,32 +433,38 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         if (dbRoundIdx >= solvedCountRef.current) {
           setSolvedCount(dbRoundIdx);
 
-          if (data.questions && data.questions[dbRoundIdx]) {
-            const activeQ = data.questions[dbRoundIdx];
-            setQuestionText(activeQ.questionText);
-            setAnswers(activeQ.answers);
-            setCorrectAnswerColor(activeQ.correctAnswerColor);
-            
-            spherePositionsRef.current = {
-              redIdx: activeQ.redIdx ?? 0,
-              greenIdx: activeQ.greenIdx ?? 1,
-              blueIdx: activeQ.blueIdx ?? 2,
-            };
-
-            if (dbRoundIdx !== currentRoundIndexRef.current) {
-              if (data.lastSolverName) {
-                if (data.lastSolverName !== nickname) {
-                  // Only show feedback for other players here; we show ours optimistically immediately in collision
-                  showFeedback(`✓ ${data.lastSolverName} solved it!`, '#E53935');
-                  toast({
-                    title: "Round Advanced! 🏁",
-                    description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
-                  });
-                }
+          if (dbRoundIdx !== currentRoundIndexRef.current) {
+            // The round has advanced!
+            if (data.lastSolverName) {
+              if (data.lastSolverName !== nickname) {
+                // Only show feedback for other players here; we show ours optimistically immediately in collision
+                showFeedback(`✓ ${data.lastSolverName} solved it!`, '#E53935');
+                toast({
+                  title: "Round Advanced! 🏁",
+                  description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
+                });
               }
-              setCurrentRoundIndex(dbRoundIdx);
-              currentRoundIndexRef.current = dbRoundIdx;
-              resetPlayerPositionRef.current = true;
+            }
+            
+            // Start countdown on round advance
+            setNextRoundCountdown(3);
+            resetPlayerPositionRef.current = true;
+
+            setCurrentRoundIndex(dbRoundIdx);
+            currentRoundIndexRef.current = dbRoundIdx;
+          } else if (nextRoundCountdown === null && multiplayerState !== 'lobby') {
+            // Only update displayed question if we are NOT in a countdown
+            if (data.questions && data.questions[dbRoundIdx]) {
+              const activeQ = data.questions[dbRoundIdx];
+              setQuestionText(activeQ.questionText);
+              setAnswers(activeQ.answers);
+              setCorrectAnswerColor(activeQ.correctAnswerColor);
+              
+              spherePositionsRef.current = {
+                redIdx: activeQ.redIdx ?? 0,
+                greenIdx: activeQ.greenIdx ?? 1,
+                blueIdx: activeQ.blueIdx ?? 2,
+              };
             }
           }
         }
@@ -1309,10 +1350,12 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       // Movement
       const keys = keysRef.current;
       let moveX = 0, moveZ = 0;
-      if (keys.w || keys.ArrowUp) moveZ -= playerSpeed * dt;
-      if (keys.s || keys.ArrowDown) moveZ += playerSpeed * dt;
-      if (keys.a || keys.ArrowLeft) moveX -= playerSpeed * dt;
-      if (keys.d || keys.ArrowRight) moveX += playerSpeed * dt;
+      if (nextRoundCountdownRef.current === null) {
+        if (keys.w || keys.ArrowUp) moveZ -= playerSpeed * dt;
+        if (keys.s || keys.ArrowDown) moveZ += playerSpeed * dt;
+        if (keys.a || keys.ArrowLeft) moveX -= playerSpeed * dt;
+        if (keys.d || keys.ArrowRight) moveX += playerSpeed * dt;
+      }
 
       player.position.x = Math.max(-28, Math.min(28, player.position.x + moveX));
       player.position.z = Math.max(-25, Math.min(28, player.position.z + moveZ));
@@ -1418,7 +1461,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         }
       }
 
-      if (!isColliding) {
+      if (!isColliding && nextRoundCountdownRef.current === null) {
         // Sphere collision (2D horizontal)
         for (const sphere of optionSpheres) {
           const dx = player.position.x - sphere.mesh.position.x;
@@ -2047,12 +2090,14 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                       </div>
                     </div>
                     <div className="bg-purple-500/10 px-3 py-1 rounded-lg border border-purple-500/30 truncate max-w-[45%]">
-                      <span className="text-sm md:text-lg font-black text-purple-300">{questionText}</span>
+                      <span className="text-sm md:text-lg font-black text-purple-300">
+                        {nextRoundCountdown !== null ? "GET READY!" : questionText}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="bg-red-600/90 border border-red-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">R: {answers.red}</span>
-                      <span className="bg-green-600/90 border border-green-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">G: {answers.green}</span>
-                      <span className="bg-blue-600/90 border border-blue-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">B: {answers.blue}</span>
+                      <span className="bg-red-600/90 border border-red-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">R: {nextRoundCountdown !== null ? "?" : answers.red}</span>
+                      <span className="bg-green-600/90 border border-green-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">G: {nextRoundCountdown !== null ? "?" : answers.green}</span>
+                      <span className="bg-blue-600/90 border border-blue-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">B: {nextRoundCountdown !== null ? "?" : answers.blue}</span>
                     </div>
                   </div>
 
@@ -2084,6 +2129,32 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                         >
                           {feedback.text}
                         </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Countdown overlay */}
+                  <AnimatePresence>
+                    {nextRoundCountdown !== null && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-sm z-[80] pointer-events-none"
+                      >
+                        <motion.span
+                          key={nextRoundCountdown}
+                          initial={{ scale: 0.5, opacity: 0 }}
+                          animate={{ scale: 1.2, opacity: 1 }}
+                          exit={{ scale: 2, opacity: 0 }}
+                          transition={{ duration: 0.5 }}
+                          className="text-8xl font-black text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.6)]"
+                        >
+                          {nextRoundCountdown}
+                        </motion.span>
+                        <span className="text-xl font-bold uppercase tracking-widest text-purple-200 mt-4 animate-pulse">
+                          Get Ready for the Next Dash!
+                        </span>
                       </motion.div>
                     )}
                   </AnimatePresence>
