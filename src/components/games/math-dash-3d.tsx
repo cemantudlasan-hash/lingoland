@@ -357,25 +357,33 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         const me = data.players?.[myUid];
         if (me) {
           setScore(me.score || 0);
-          const nextSolved = me.solvedCount || 0;
-          setSolvedCount(nextSolved);
+        }
+        
+        const dbRoundIdx = data.currentRoundIndex ?? 0;
+        setSolvedCount(dbRoundIdx);
 
-          if (data.questions && data.questions[nextSolved]) {
-            const activeQ = data.questions[nextSolved];
-            setQuestionText(activeQ.questionText);
-            setAnswers(activeQ.answers);
-            setCorrectAnswerColor(activeQ.correctAnswerColor);
-            
-            spherePositionsRef.current = {
-              redIdx: activeQ.redIdx ?? 0,
-              greenIdx: activeQ.greenIdx ?? 1,
-              blueIdx: activeQ.blueIdx ?? 2,
-            };
+        if (data.questions && data.questions[dbRoundIdx]) {
+          const activeQ = data.questions[dbRoundIdx];
+          setQuestionText(activeQ.questionText);
+          setAnswers(activeQ.answers);
+          setCorrectAnswerColor(activeQ.correctAnswerColor);
+          
+          spherePositionsRef.current = {
+            redIdx: activeQ.redIdx ?? 0,
+            greenIdx: activeQ.greenIdx ?? 1,
+            blueIdx: activeQ.blueIdx ?? 2,
+          };
 
-            if (nextSolved !== currentRoundIndexRef.current) {
-              setCurrentRoundIndex(nextSolved);
-              resetPlayerPositionRef.current = true;
+          if (dbRoundIdx !== currentRoundIndexRef.current) {
+            if (data.lastSolverName) {
+              showFeedback(`✓ ${data.lastSolverName} solved it!`, '#4CAF50');
+              toast({
+                title: "Round Advanced! 🏁",
+                description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
+              });
             }
+            setCurrentRoundIndex(dbRoundIdx);
+            resetPlayerPositionRef.current = true;
           }
         }
       }
@@ -391,22 +399,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     return () => unsubscribe();
   }, [firestore, roomCode, gameMode, multiplayerState, myUid]);
 
-  // Sync finished status: declare finished once everyone completes (run on Host client)
-  React.useEffect(() => {
-    if (gameMode === 'multi' && roomCode && roomData && roomData.status === 'playing' && isCreator) {
-      const list = Object.values(roomData.players || {}) as any[];
-      if (list.length > 0 && list.every((p: any) => p.finished)) {
-        const sorted = [...list].sort((a, b) => b.score - a.score);
-        const winner = sorted[0];
-        const roomRef = doc(firestore!, "stats", "md_room_" + roomCode);
-        updateDoc(roomRef, {
-          status: 'finished',
-          winnerId: winner?.uid || '',
-          winnerName: winner?.name || ''
-        }).catch(e => console.error("Error setting winner:", e));
-      }
-    }
-  }, [gameMode, roomCode, roomData, isCreator, firestore]);
+  // Shared round sync is handled directly inside the answer solve transaction
 
   // ─── Math problem generator ───────────────────────────────────────────────
   const generateMathProblemData = (diff: string, opType: string): {
@@ -836,6 +829,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         startedAt: Date.now(),
         questions: questionsList,
         lastSolverName: "",
+        currentRoundIndex: 0,
       });
     } catch (e) {
       console.error("Start multiplayer failed:", e);
@@ -864,19 +858,56 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
     const roomRef = doc(firestore, "stats", "md_room_" + roomCode);
 
     try {
-      const nextScore = scoreRef.current + 10;
-      const nextSolved = solvedCountRef.current + 1;
-      const maxRounds = roundsCountRef.current || 10;
-      const myFinished = nextSolved >= maxRounds;
+      await runTransaction(firestore, async (transaction) => {
+        const sfDoc = await transaction.get(roomRef);
+        if (!sfDoc.exists()) {
+          throw new Error("Room does not exist!");
+        }
 
-      await updateDoc(roomRef, {
-        [`players.${myUid}.score`]: nextScore,
-        [`players.${myUid}.solvedCount`]: nextSolved,
-        [`players.${myUid}.finished`]: myFinished,
-        [`players.${myUid}.lastActive`]: Date.now()
+        const data = sfDoc.data();
+        if (data.status !== 'playing') {
+          return;
+        }
+
+        const dbRoundIndex = data.currentRoundIndex ?? 0;
+        if (dbRoundIndex !== localRoundIndex) {
+          return; // Already solved by someone else
+        }
+
+        const updatedPlayers = { ...data.players };
+        const me = updatedPlayers[myUid];
+        if (!me) return;
+
+        const nextScore = (me.score || 0) + 10;
+        const maxRounds = data.roundsCount || 10;
+        const nextRound = dbRoundIndex + 1;
+        const isGameFinished = nextRound >= maxRounds;
+
+        updatedPlayers[myUid] = {
+          ...me,
+          score: nextScore,
+          solvedCount: (me.solvedCount || 0) + 1,
+          lastActive: Date.now()
+        };
+
+        let updates: any = {
+          players: updatedPlayers,
+          currentRoundIndex: nextRound,
+          lastSolverName: nickname
+        };
+
+        if (isGameFinished) {
+          const sorted = Object.values(updatedPlayers).sort((a: any, b: any) => b.score - a.score);
+          const winner = sorted[0] as any;
+          updates.status = 'finished';
+          updates.winnerId = winner?.uid || '';
+          updates.winnerName = winner?.name || '';
+        }
+
+        transaction.update(roomRef, updates);
       });
     } catch (e) {
-      console.error("Multiplayer solve update failed:", e);
+      console.error("Multiplayer solve transaction failed:", e);
     }
   };
 
@@ -1802,112 +1833,98 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               {multiplayerState === 'join_room' && renderMultiJoinRoom()}
               {multiplayerState === 'lobby' && renderMultiLobby()}
               {multiplayerState === 'playing' && (
-                roomData?.players?.[myUid]?.finished ? (
-                  // Early finisher waiting screen
-                  <div className="flex flex-col items-center justify-center p-8 space-y-6 text-center animate-in fade-in duration-500 max-w-md w-full">
-                    <div className="mathdash-glow-trophy bg-gradient-to-tr from-purple-400 to-indigo-500 text-slate-950 p-4 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/40 animate-bounce">
-                      <Trophy className="w-12 h-12" />
+                // Active Gameplay Screen (3D Canvas + HUD with Live Standings)
+                <div className="w-full h-full absolute inset-0 flex flex-col">
+                  {/* Top HUD bar */}
+                  <div className="absolute top-2 left-2 right-2 z-[50] flex justify-between items-center bg-black/75 border border-purple-500/20 px-3 py-2 rounded-xl gap-2 shadow-lg flex-shrink-0">
+                    <div className="flex flex-col shrink-0">
+                      <span className="text-[8px] uppercase font-black tracking-widest text-purple-400">Score</span>
+                      <span className="text-base md:text-xl font-black">{score}</span>
                     </div>
-                    <h3 className="text-2xl font-black uppercase text-purple-300">Round Completed!</h3>
-                    <p className="text-sm font-semibold text-slate-400 leading-relaxed">
-                      You finished all calculation rounds. Waiting for other racers to cross the finish line...
-                    </p>
-                    <div className="w-full pt-4 max-h-[200px] overflow-y-auto">{renderLiveScoreboard()}</div>
+                    <div className="bg-purple-500/10 px-3 py-1 rounded-lg border border-purple-500/30 truncate max-w-[45%]">
+                      <span className="text-sm md:text-lg font-black text-purple-300">{questionText}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="bg-red-600/90 border border-red-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">R: {answers.red}</span>
+                      <span className="bg-green-600/90 border border-green-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">G: {answers.green}</span>
+                      <span className="bg-blue-600/90 border border-blue-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">B: {answers.blue}</span>
+                    </div>
                   </div>
-                ) : (
-                  // Active Gameplay Screen (3D Canvas + HUD with Live Standings)
-                  <div className="w-full h-full absolute inset-0 flex flex-col">
-                    {/* Top HUD bar */}
-                    <div className="absolute top-2 left-2 right-2 z-[50] flex justify-between items-center bg-black/75 border border-purple-500/20 px-3 py-2 rounded-xl gap-2 shadow-lg flex-shrink-0">
-                      <div className="flex flex-col shrink-0">
-                        <span className="text-[8px] uppercase font-black tracking-widest text-purple-400">Score</span>
-                        <span className="text-base md:text-xl font-black">{score}</span>
-                      </div>
-                      <div className="bg-purple-500/10 px-3 py-1 rounded-lg border border-purple-500/30 truncate max-w-[45%]">
-                        <span className="text-sm md:text-lg font-black text-purple-300">{questionText}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="bg-red-600/90 border border-red-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">R: {answers.red}</span>
-                        <span className="bg-green-600/90 border border-green-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">G: {answers.green}</span>
-                        <span className="bg-blue-600/90 border border-blue-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">B: {answers.blue}</span>
-                      </div>
-                    </div>
 
-                    {/* Live Standings HUD overlay during gameplay */}
-                    <div className="absolute top-16 right-2 z-[50] w-48 hidden md:block bg-black/70 border border-purple-500/25 p-2.5 rounded-xl shadow-xl space-y-1.5 max-h-[160px] overflow-y-auto">
-                      <p className="text-[8px] font-black uppercase text-purple-400 tracking-wider">Live Standings</p>
-                      {roomPlayers.sort((a,b) => b.score - a.score).map((p, idx) => (
-                        <div key={p.uid} className="flex justify-between items-center text-[10px] font-medium border-b border-slate-800/40 pb-1 last:border-b-0">
-                          <span className="truncate max-w-[90px] text-slate-300">
-                            {idx + 1}. {p.name} {p.uid === myUid && <span className="text-purple-400 font-bold">(You)</span>}
-                          </span>
-                          <span className="font-mono text-purple-300 font-bold">{p.score} pts</span>
-                        </div>
-                      ))}
-                    </div>
+                  {/* Live Standings HUD overlay during gameplay */}
+                  <div className="absolute top-16 right-2 z-[50] w-48 hidden md:block bg-black/70 border border-purple-500/25 p-2.5 rounded-xl shadow-xl space-y-1.5 max-h-[160px] overflow-y-auto">
+                    <p className="text-[8px] font-black uppercase text-purple-400 tracking-wider">Live Standings</p>
+                    {roomPlayers.sort((a,b) => b.score - a.score).map((p, idx) => (
+                      <div key={p.uid} className="flex justify-between items-center text-[10px] font-medium border-b border-slate-800/40 pb-1 last:border-b-0">
+                        <span className="truncate max-w-[90px] text-slate-300">
+                          {idx + 1}. {p.name} {p.uid === myUid && <span className="text-purple-400 font-bold">(You)</span>}
+                        </span>
+                        <span className="font-mono text-purple-300 font-bold">{p.score} pts</span>
+                      </div>
+                    ))}
+                  </div>
 
-                    {/* Feedback overlay */}
-                    <AnimatePresence>
-                      {feedback && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.5, y: -20 }}
-                          animate={{ opacity: 1, scale: 1.2, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.8, y: -40 }}
-                          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none"
+                  {/* Feedback overlay */}
+                  <AnimatePresence>
+                    {feedback && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.5, y: -20 }}
+                        animate={{ opacity: 1, scale: 1.2, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, y: -40 }}
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none"
+                      >
+                        <div
+                          className="px-6 py-3 bg-slate-950/90 border-4 rounded-2xl shadow-2xl font-black text-2xl uppercase tracking-tighter"
+                          style={{ borderColor: feedback.color, color: feedback.color }}
                         >
-                          <div
-                            className="px-6 py-3 bg-slate-950/90 border-4 rounded-2xl shadow-2xl font-black text-2xl uppercase tracking-tighter"
-                            style={{ borderColor: feedback.color, color: feedback.color }}
-                          >
-                            {feedback.text}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                          {feedback.text}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                    {/* Keyboard hint */}
-                    <div className="absolute bottom-16 left-2 z-[50] bg-black/50 px-3 py-1 border border-purple-500/10 rounded-lg text-[9px] font-black tracking-wide text-purple-200 hidden sm:block">
-                      Move: W A S D or Arrow Keys
-                    </div>
+                  {/* Keyboard hint */}
+                  <div className="absolute bottom-16 left-2 z-[50] bg-black/50 px-3 py-1 border border-purple-500/10 rounded-lg text-[9px] font-black tracking-wide text-purple-200 hidden sm:block">
+                    Move: W A S D or Arrow Keys
+                  </div>
 
-                    {/* Mobile on-screen D-pad */}
-                    <div className="absolute bottom-2 right-2 z-[50] flex flex-col items-center gap-1 sm:hidden">
+                  {/* Mobile on-screen D-pad */}
+                  <div className="absolute bottom-2 right-2 z-[50] flex flex-col items-center gap-1 sm:hidden">
+                    <button
+                      className="w-12 h-12 bg-black/60 border border-purple-500/30 rounded-xl flex items-center justify-center text-white active:bg-purple-700/40"
+                      onPointerDown={() => pressKey('ArrowUp')} onPointerUp={() => releaseKey('ArrowUp')} onPointerLeave={() => releaseKey('ArrowUp')}
+                    >
+                      <ArrowUp className="w-5 h-5" />
+                    </button>
+                    <div className="flex gap-1">
                       <button
                         className="w-12 h-12 bg-black/60 border border-purple-500/30 rounded-xl flex items-center justify-center text-white active:bg-purple-700/40"
-                        onPointerDown={() => pressKey('ArrowUp')} onPointerUp={() => releaseKey('ArrowUp')} onPointerLeave={() => releaseKey('ArrowUp')}
+                        onPointerDown={() => pressKey('ArrowLeft')} onPointerUp={() => releaseKey('ArrowLeft')} onPointerLeave={() => releaseKey('ArrowLeft')}
                       >
-                        <ArrowUp className="w-5 h-5" />
+                        <ArrowLeft className="w-5 h-5" />
                       </button>
-                      <div className="flex gap-1">
-                        <button
-                          className="w-12 h-12 bg-black/60 border border-purple-500/30 rounded-xl flex items-center justify-center text-white active:bg-purple-700/40"
-                          onPointerDown={() => pressKey('ArrowLeft')} onPointerUp={() => releaseKey('ArrowLeft')} onPointerLeave={() => releaseKey('ArrowLeft')}
-                        >
-                          <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                          className="w-12 h-12 bg-black/60 border border-purple-500/30 rounded-xl flex items-center justify-center text-white active:bg-purple-700/40"
-                          onPointerDown={() => pressKey('ArrowDown')} onPointerUp={() => releaseKey('ArrowDown')} onPointerLeave={() => releaseKey('ArrowDown')}
-                        >
-                          <ArrowDown className="w-5 h-5" />
-                        </button>
-                        <button
-                          className="w-12 h-12 bg-black/60 border border-purple-500/30 rounded-xl flex items-center justify-center text-white active:bg-purple-700/40"
-                          onPointerDown={() => pressKey('ArrowRight')} onPointerUp={() => releaseKey('ArrowRight')} onPointerLeave={() => releaseKey('ArrowRight')}
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
-                      </div>
+                      <button
+                        className="w-12 h-12 bg-black/60 border border-purple-500/30 rounded-xl flex items-center justify-center text-white active:bg-purple-700/40"
+                        onPointerDown={() => pressKey('ArrowDown')} onPointerUp={() => releaseKey('ArrowDown')} onPointerLeave={() => releaseKey('ArrowDown')}
+                      >
+                        <ArrowDown className="w-5 h-5" />
+                      </button>
+                      <button
+                        className="w-12 h-12 bg-black/60 border border-purple-500/30 rounded-xl flex items-center justify-center text-white active:bg-purple-700/40"
+                        onPointerDown={() => pressKey('ArrowRight')} onPointerUp={() => releaseKey('ArrowRight')} onPointerLeave={() => releaseKey('ArrowRight')}
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
                     </div>
-
-                    {/* Three.js canvas injection point */}
-                    <div
-                      ref={containerRef}
-                      className="absolute inset-0 w-full h-full z-0"
-                      style={{ background: '#87ceeb' }}
-                    />
                   </div>
-                )
+
+                  {/* Three.js canvas injection point */}
+                  <div
+                    ref={containerRef}
+                    className="absolute inset-0 w-full h-full z-0"
+                    style={{ background: '#87ceeb' }}
+                  />
+                </div>
               )}
               {multiplayerState === 'finished' && renderMultiFinished()}
             </>
