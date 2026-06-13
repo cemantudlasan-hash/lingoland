@@ -1435,7 +1435,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
       // Movement
       const keys = keysRef.current;
       let moveX = 0, moveZ = 0;
-      if (nextRoundCountdownRef.current === null) {
+      if (nextRoundCountdownRef.current === null || gameModeRef.current === 'multi') {
         if (keys.w || keys.ArrowUp) moveZ -= playerSpeed * dt;
         if (keys.s || keys.ArrowDown) moveZ += playerSpeed * dt;
         if (keys.a || keys.ArrowLeft) moveX -= playerSpeed * dt;
@@ -1546,7 +1546,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         }
       }
 
-      if (!isColliding && nextRoundCountdownRef.current === null) {
+      if (!isColliding && (nextRoundCountdownRef.current === null || gameModeRef.current === 'multi')) {
         // Sphere collision (2D horizontal)
         for (const sphere of optionSpheres) {
           const dx = player.position.x - sphere.mesh.position.x;
@@ -2197,13 +2197,13 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                     </div>
                     <div className="bg-purple-500/10 px-3 py-1 rounded-lg border border-purple-500/30 truncate max-w-[45%]">
                       <span className="text-sm md:text-lg font-black text-purple-300">
-                        {nextRoundCountdown !== null ? "GET READY!" : questionText}
+                        {nextRoundCountdown !== null && gameMode !== 'multi' ? "GET READY!" : questionText}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="bg-red-600/90 border border-red-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">R: {nextRoundCountdown !== null ? "?" : answers.red}</span>
-                      <span className="bg-green-600/90 border border-green-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">G: {nextRoundCountdown !== null ? "?" : answers.green}</span>
-                      <span className="bg-blue-600/90 border border-blue-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">B: {nextRoundCountdown !== null ? "?" : answers.blue}</span>
+                      <span className="bg-red-600/90 border border-red-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">R: {nextRoundCountdown !== null && gameMode !== 'multi' ? "?" : answers.red}</span>
+                      <span className="bg-green-600/90 border border-green-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">G: {nextRoundCountdown !== null && gameMode !== 'multi' ? "?" : answers.green}</span>
+                      <span className="bg-blue-600/90 border border-blue-400 px-2 py-0.5 rounded-md text-[9px] md:text-xs font-black">B: {nextRoundCountdown !== null && gameMode !== 'multi' ? "?" : answers.blue}</span>
                     </div>
                   </div>
 
@@ -2241,7 +2241,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
                   {/* Countdown overlay */}
                   <AnimatePresence>
-                    {nextRoundCountdown !== null && (
+                    {nextRoundCountdown !== null && gameMode !== 'multi' && (
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
