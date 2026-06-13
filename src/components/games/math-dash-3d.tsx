@@ -120,6 +120,21 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const [roomData, setRoomData] = React.useState<any>(null);
   const [roomPlayers, setRoomPlayers] = React.useState<any[]>([]);
   const [nickname, setNickname] = React.useState('');
+
+  const roomPlayersWithLiveStats = React.useMemo(() => {
+    if (!roomData?.players) return [];
+    return Object.keys(roomData.players).map((uid) => {
+      const staticPlayer = roomData.players[uid];
+      const liveStats = playersPositions[uid] || {};
+      return {
+        ...staticPlayer,
+        score: liveStats.score !== undefined ? liveStats.score : (staticPlayer.score || 0),
+        solvedCount: liveStats.solvedCount !== undefined ? liveStats.solvedCount : (staticPlayer.solvedCount || 0),
+        x: liveStats.x !== undefined ? liveStats.x : (staticPlayer.x || 0),
+        z: liveStats.z !== undefined ? liveStats.z : (staticPlayer.z || 20),
+      };
+    });
+  }, [roomData?.players, playersPositions]);
   const [codeVal, setCodeVal] = React.useState('');
   const [roundsCount, setRoundsCount] = React.useState(10); // Default 10 for multi
   const [difficulty, setDifficulty] = React.useState<'easy' | 'medium' | 'hard'>('medium');
@@ -359,14 +374,23 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         setSolvedCount(0);
         setCurrentRoundIndex(0);
         currentRoundIndexRef.current = 0;
+
+        // Initialize position document in Firestore immediately
+        if (myUid && firestore) {
+          const posRef = doc(firestore, "stats", "md_room_" + roomCode, "positions", myUid);
+          setDoc(posRef, {
+            x: 0,
+            z: 20,
+            score: 0,
+            solvedCount: 0,
+            name: nickname,
+            lastActive: Date.now()
+          }, { merge: true }).catch(console.warn);
+        }
       }
 
       if (data.status === 'playing' && myUid) {
-        const me = data.players?.[myUid];
-        if (me) {
-          setScore(me.score || 0);
-        }
-        
+        // Score is driven by `/positions` subcollection document to support decoupled penalty writes
         const dbRoundIdx = data.currentRoundIndex ?? 0;
         setSolvedCount(dbRoundIdx);
 
@@ -418,17 +442,24 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
     const positionsRef = collection(firestore, "stats", "md_room_" + roomCode, "positions");
     const unsubscribe = onSnapshot(positionsRef, (snapshot) => {
-      const posMap: Record<string, { x: number; z: number }> = {};
+      const posMap: Record<string, { x: number; z: number; score?: number; solvedCount?: number; name?: string }> = {};
       snapshot.forEach((doc) => {
         posMap[doc.id] = doc.data() as any;
       });
       setPlayersPositions(posMap);
+
+      if (myUid) {
+        const myLive = posMap[myUid];
+        if (myLive && myLive.score !== undefined) {
+          setScore(myLive.score);
+        }
+      }
     }, (error) => {
       console.warn("Positions snapshot error:", error);
     });
 
     return () => unsubscribe();
-  }, [firestore, roomCode, gameMode]);
+  }, [firestore, roomCode, gameMode, myUid]);
 
   // Trigger confetti when game/multiplayer finishes
   React.useEffect(() => {
@@ -908,6 +939,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const handleCorrectAnswerMultiplayer = async (localRoundIndex: number) => {
     if (!firestore || !roomCode || !myUid) return;
     const roomRef = doc(firestore, "stats", "md_room_" + roomCode);
+    const playerPosRef = doc(firestore, "stats", "md_room_" + roomCode, "positions", myUid);
 
     try {
       await runTransaction(firestore, async (transaction) => {
@@ -926,21 +958,41 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           return; // Already solved by someone else
         }
 
-        const updatedPlayers = { ...data.players };
-        const me = updatedPlayers[myUid];
-        if (!me) return;
+        // Get current live score and solvedCount from player's positions document
+        const playerPosDoc = await transaction.get(playerPosRef);
+        const liveScore = playerPosDoc.exists() ? (playerPosDoc.data().score || 0) : 0;
+        const liveSolved = playerPosDoc.exists() ? (playerPosDoc.data().solvedCount || 0) : 0;
 
-        const nextScore = (me.score || 0) + 10;
+        const nextScore = liveScore + 10;
+        const nextSolved = liveSolved + 1;
         const maxRounds = data.roundsCount || 10;
         const nextRound = dbRoundIndex + 1;
         const isGameFinished = nextRound >= maxRounds;
 
-        updatedPlayers[myUid] = {
-          ...me,
-          score: nextScore,
-          solvedCount: (me.solvedCount || 0) + 1,
-          lastActive: Date.now()
-        };
+        // Update the position document inside the transaction
+        if (playerPosDoc.exists()) {
+          transaction.update(playerPosRef, {
+            score: nextScore,
+            solvedCount: nextSolved,
+            lastActive: Date.now()
+          });
+        } else {
+          transaction.set(playerPosRef, {
+            x: 0,
+            z: 20,
+            score: nextScore,
+            solvedCount: nextSolved,
+            name: nickname,
+            lastActive: Date.now()
+          });
+        }
+
+        // Synchronize back to the room document's static players map for session recovery / finished status
+        const updatedPlayers = { ...data.players };
+        if (updatedPlayers[myUid]) {
+          updatedPlayers[myUid].score = nextScore;
+          updatedPlayers[myUid].solvedCount = nextSolved;
+        }
 
         let updates: any = {
           players: updatedPlayers,
@@ -949,7 +1001,37 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         };
 
         if (isGameFinished) {
-          const sorted = Object.values(updatedPlayers).sort((a: any, b: any) => b.score - a.score);
+          // Fetch live scores for all players in the room to determine the correct winner
+          const playerIds = Object.keys(data.players || {});
+          const playerPosRefs = playerIds.map(id => doc(firestore, "stats", "md_room_" + roomCode, "positions", id));
+          const playerPosSnaps = await Promise.all(playerPosRefs.map(ref => transaction.get(ref)));
+          
+          const finalPlayersData = playerIds.map((id, idx) => {
+            const snap = playerPosSnaps[idx];
+            let scoreVal = snap.exists() ? (snap.data().score || 0) : 0;
+            let solvedVal = snap.exists() ? (snap.data().solvedCount || 0) : 0;
+            if (id === myUid) {
+              scoreVal = nextScore;
+              solvedVal = nextSolved;
+            }
+            return {
+              uid: id,
+              name: data.players[id].name,
+              score: scoreVal,
+              solvedCount: solvedVal
+            };
+          });
+
+          // Write the final standings to the room's players list for display/history
+          finalPlayersData.forEach(p => {
+            if (updatedPlayers[p.uid]) {
+              updatedPlayers[p.uid].score = p.score;
+              updatedPlayers[p.uid].solvedCount = p.solvedCount;
+            }
+          });
+          updates.players = updatedPlayers;
+
+          const sorted = finalPlayersData.sort((a: any, b: any) => b.score - a.score);
           const winner = sorted[0] as any;
           updates.status = 'finished';
           updates.winnerId = winner?.uid || '';
@@ -1227,7 +1309,10 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
           setDoc(posRef, {
             x: player.position.x,
             z: player.position.z,
-            lastActive: now
+            lastActive: now,
+            score: scoreRef.current,
+            solvedCount: solvedCountRef.current,
+            name: nickname,
           }, { merge: true }).catch(console.warn);
         }
       }
@@ -1325,6 +1410,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               const maxRounds = gameModeRef.current === 'multi' ? roundsCountRef.current : 10;
               
               if (gameModeRef.current === 'multi') {
+                player.position.set(0, 1.5, 20);
                 handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
               } else {
                 setScore(nextScore);
@@ -1350,9 +1436,9 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                 player.position.set(0, 1.5, 20);
                 
                 if (firestoreRef.current && roomCodeRef.current && myUidRef.current) {
-                  const roomRef = doc(firestoreRef.current!, "stats", "md_room_" + roomCodeRef.current);
-                  updateDoc(roomRef, {
-                    [`players.${myUidRef.current}.score`]: nextScore
+                  const posRef = doc(firestoreRef.current!, "stats", "md_room_" + roomCodeRef.current, "positions", myUidRef.current);
+                  updateDoc(posRef, {
+                    score: nextScore
                   }).catch(console.warn);
                 }
               } else {
@@ -1377,9 +1463,9 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               player.position.set(0, 1.5, 20);
               
               if (firestoreRef.current && roomCodeRef.current && myUidRef.current) {
-                const roomRef = doc(firestoreRef.current!, "stats", "md_room_" + roomCodeRef.current);
-                updateDoc(roomRef, {
-                  [`players.${myUidRef.current}.score`]: nextScore
+                const posRef = doc(firestoreRef.current!, "stats", "md_room_" + roomCodeRef.current, "positions", myUidRef.current);
+                updateDoc(posRef, {
+                  score: nextScore
                 }).catch(console.warn);
               }
             } else {
@@ -1440,7 +1526,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   };
 
   const renderLiveScoreboard = () => {
-    const sorted = [...roomPlayers].sort((a, b) => b.score - a.score);
+    const sorted = [...roomPlayersWithLiveStats].sort((a, b) => b.score - a.score);
     return (
       <div className="grid grid-cols-2 gap-2 md:grid-cols-1 md:space-y-2 w-full text-left">
         {sorted.map((p, idx) => (
@@ -1574,7 +1660,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   );
 
   const renderMultiLobby = () => {
-    const sortedPlayers = [...roomPlayers].sort((a, b) => (a.isHost ? -1 : b.isHost ? 1 : 0));
+    const sortedPlayers = [...roomPlayersWithLiveStats].sort((a, b) => (a.isHost ? -1 : b.isHost ? 1 : 0));
 
     return (
       <div className="flex flex-col gap-6 w-full max-w-2xl bg-slate-950/80 p-6 rounded-3xl border border-purple-500/20 shadow-2xl backdrop-blur-xl text-left max-h-[85vh] overflow-y-auto">
@@ -1755,7 +1841,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   };
 
   const renderMultiFinished = () => {
-    const sorted = [...roomPlayers].sort((a, b) => b.score - a.score);
+    const sorted = [...roomPlayersWithLiveStats].sort((a, b) => b.score - a.score);
     const winner = sorted[0];
 
     return (

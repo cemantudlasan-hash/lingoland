@@ -123,6 +123,11 @@ service cloud.firestore {
     match /stats/{statId} {
       allow read: if true;
       allow write: if true;
+
+      match /positions/{posId} {
+        allow read: if true;
+        allow write: if true;
+      }
     }
 
     // ── Roleplay Workspace ──────────────────────────────────────────────────
