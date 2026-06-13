@@ -384,11 +384,15 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
           if (dbRoundIdx !== currentRoundIndexRef.current) {
             if (data.lastSolverName) {
-              showFeedback(`✓ ${data.lastSolverName} solved it!`, '#4CAF50');
-              toast({
-                title: "Round Advanced! 🏁",
-                description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
-              });
+              if (data.lastSolverName === nickname) {
+                showFeedback('✓ Correct! +10', '#4CAF50');
+              } else {
+                showFeedback(`✓ ${data.lastSolverName} solved it!`, '#E53935');
+                toast({
+                  title: "Round Advanced! 🏁",
+                  description: `${data.lastSolverName} was the fastest in round ${currentRoundIndexRef.current + 1}!`,
+                });
+              }
             }
             setCurrentRoundIndex(dbRoundIdx);
             currentRoundIndexRef.current = dbRoundIdx;
@@ -425,6 +429,17 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
     return () => unsubscribe();
   }, [firestore, roomCode, gameMode]);
+
+  // Trigger confetti when game/multiplayer finishes
+  React.useEffect(() => {
+    if (gameState === 'finished' || multiplayerState === 'finished') {
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    }
+  }, [gameState, multiplayerState]);
 
   // Shared round sync is handled directly inside the answer solve transaction
 
@@ -1309,16 +1324,11 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
               const nextSolved = solvedCountRef.current + 1;
               const maxRounds = gameModeRef.current === 'multi' ? roundsCountRef.current : 10;
               
-              setScore(nextScore);
-              setSolvedCount(nextSolved);
-              
               if (gameModeRef.current === 'multi') {
-                showFeedback('✓ Correct! +10', '#4CAF50');
                 handleCorrectAnswerMultiplayerRef.current(currentRoundIndexRef.current);
-                if (nextSolved >= maxRounds) {
-                  showFeedback('✓ Finished! 🏁', '#4CAF50');
-                }
               } else {
+                setScore(nextScore);
+                setSolvedCount(nextSolved);
                 showFeedback('✓ Correct! +10', '#4CAF50');
                 window.dispatchEvent(new CustomEvent('lingoland_game_answered_hijack'));
                 if (nextSolved >= maxRounds) {
@@ -1747,15 +1757,6 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   const renderMultiFinished = () => {
     const sorted = [...roomPlayers].sort((a, b) => b.score - a.score);
     const winner = sorted[0];
-
-    // Award coins locally for confetti and victory
-    React.useEffect(() => {
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 }
-      });
-    }, []);
 
     return (
       <div className="text-center flex flex-col items-center gap-6 animate-in zoom-in duration-500 max-w-lg w-full bg-slate-950/80 p-6 sm:p-8 rounded-3xl border border-purple-500/20 shadow-2xl backdrop-blur-xl">
