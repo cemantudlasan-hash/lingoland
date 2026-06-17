@@ -1,27 +1,47 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, GraduationCap, Lock, LogIn, ExternalLink, RefreshCw, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Loader2, GraduationCap, Lock, LogIn, ExternalLink,
+  BookOpen, MessageCircle, Globe, Brain, Mic, Headphones,
+  Sparkles, ChevronRight, Zap
+} from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
 import Link from 'next/link';
 
 const STUDIO_URL = 'https://studio--lingoland-kpvxp.us-central1.hosted.app';
 
+const FEATURES = [
+  { icon: Globe,       label: '7 Languages',        desc: 'Thai, Korean, Japanese, French, Spanish, Chinese & Vietnamese' },
+  { icon: Brain,       label: '33 Modules',          desc: 'Vocabulary, grammar, conversation & culture lessons' },
+  { icon: Sparkles,    label: '330 Quiz Questions',  desc: 'Interactive quizzes with detailed explanations' },
+  { icon: Mic,         label: 'Text-to-Speech',      desc: 'Listen to every dialogue line with AI voice' },
+  { icon: MessageCircle, label: 'Conversations',     desc: 'Real-life dialogue scenarios for every language' },
+  { icon: Zap,         label: 'XP & Progress',       desc: 'Earn XP, track streaks and completed modules' },
+];
+
 export default function StudyRoomPage() {
   const { user, isLoading, isGuest } = useAuth();
-  const [iframeLoading, setIframeLoading] = useState(true);
-  const [iframeError, setIframeError] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
+  const [launched, setLaunched] = useState(false);
 
-  const handleReload = () => {
-    setIframeLoading(true);
-    setIframeError(false);
-    setReloadKey(k => k + 1);
+  const launchStudyRoom = () => {
+    window.open(STUDIO_URL, '_blank', 'noopener,noreferrer');
+    setLaunched(true);
   };
 
-  // Show loading spinner while auth state is resolving
+  // Auto-launch hint on first load for authenticated users
+  useEffect(() => {
+    if (user && !isGuest) {
+      // Pre-warm the URL so opening is instant
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = STUDIO_URL;
+      document.head.appendChild(link);
+    }
+  }, [user, isGuest]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-[80vh]">
@@ -30,7 +50,7 @@ export default function StudyRoomPage() {
     );
   }
 
-  // Show login-required screen for guests or unauthenticated users
+  // ── GUEST / LOGGED OUT ──────────────────────────────────────────────────────
   if (!user || isGuest) {
     return (
       <div className="relative min-h-[88vh] w-full flex flex-col items-center justify-center overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900 text-white p-8">
@@ -84,99 +104,91 @@ export default function StudyRoomPage() {
     );
   }
 
-  // Authenticated users — show the study room
+  // ── AUTHENTICATED LAUNCHER ──────────────────────────────────────────────────
   return (
-    <div className="relative min-h-[88vh] w-full p-2 sm:p-4 text-white overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900 flex flex-col gap-3">
+    <div className="relative min-h-[88vh] w-full overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900 text-white flex flex-col">
       <ConstellationCanvas />
-      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Top action bar */}
-      <div className="relative z-10 flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          <GraduationCap className="w-5 h-5 text-indigo-400" />
-          <span className="text-sm font-black text-white uppercase tracking-widest">Acoustic Study Room</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleReload}
-            title="Reload"
-            className="p-2 rounded-xl border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-all"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          <a
-            href={STUDIO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open in new tab"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-indigo-500/40 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 hover:text-white text-xs font-bold transition-all"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            Open Full Screen
-          </a>
-        </div>
-      </div>
+      <div className="relative z-10 flex flex-col items-center justify-center flex-1 gap-10 p-6 sm:p-12 text-center">
 
-      <div className="relative z-10 w-full flex-1 flex flex-col h-full rounded-2xl overflow-hidden border border-slate-800 bg-slate-950/50 backdrop-blur-md">
-        {/* Loading spinner */}
-        <AnimatePresence mode="wait">
-          {iframeLoading && !iframeError && (
-            <motion.div
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 flex flex-col justify-center items-center bg-slate-950/90 z-20 gap-3"
-            >
-              <Loader2 className="animate-spin h-10 w-10 text-indigo-500" />
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider animate-pulse">
-                Loading Study Room...
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Error / blocked fallback */}
-        {iframeError && (
-          <div className="absolute inset-0 flex flex-col justify-center items-center bg-slate-950/90 z-20 gap-5 p-6 text-center">
-            <AlertCircle className="w-12 h-12 text-amber-400" />
-            <div>
-              <p className="text-white font-black text-lg">Study Room blocked by browser</p>
-              <p className="text-slate-400 text-sm mt-1 max-w-sm">
-                Your browser is blocking the embedded view. Open it in a new tab for the full experience.
-              </p>
-            </div>
-            <div className="flex gap-3 flex-wrap justify-center">
-              <button
-                onClick={handleReload}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-600 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold transition-all"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Try Again
-              </button>
-              <a
-                href={STUDIO_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-bold transition-all shadow-[0_0_20px_theme(colors.indigo.500/0.35)]"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Open in New Tab
-              </a>
-            </div>
+        {/* Hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="flex flex-col items-center gap-5"
+        >
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 flex items-center justify-center shadow-[0_0_60px_theme(colors.indigo.500/0.5)] border border-indigo-400/30">
+            <GraduationCap className="w-12 h-12 text-white" />
           </div>
-        )}
 
-        {/* Embedded Study Room */}
-        <iframe
-          key={reloadKey}
-          src={STUDIO_URL}
-          title="Acoustic Study Room"
-          className="w-full h-[85vh] border-0 rounded-2xl"
-          allow="microphone; camera; midi; encrypted-media; clipboard-read; clipboard-write; autoplay"
-          onLoad={() => setIframeLoading(false)}
-          onError={() => { setIframeLoading(false); setIframeError(true); }}
-        />
+          <div className="space-y-2">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-purple-300 bg-clip-text text-transparent">
+              Acoustic Study Room
+            </h1>
+            <p className="text-indigo-300 font-semibold text-sm uppercase tracking-widest">
+              AI-Powered Language Learning
+            </p>
+          </div>
+
+          <p className="text-slate-400 text-sm sm:text-base max-w-lg leading-relaxed">
+            Explore <span className="text-white font-bold">7 languages</span>, 
+            complete <span className="text-white font-bold">33 interactive modules</span>, 
+            and practice real conversations with AI text-to-speech in your own dedicated study environment.
+          </p>
+        </motion.div>
+
+        {/* Feature grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
+          className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl"
+        >
+          {FEATURES.map(({ icon: Icon, label, desc }) => (
+            <div
+              key={label}
+              className="flex flex-col gap-1.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all text-left"
+            >
+              <div className="flex items-center gap-2">
+                <Icon className="w-4 h-4 text-indigo-400 shrink-0" />
+                <span className="text-xs font-black text-white uppercase tracking-wider">{label}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Launch button */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.25, ease: 'easeOut' }}
+          className="flex flex-col items-center gap-3"
+        >
+          <button
+            id="launch-study-room-btn"
+            onClick={launchStudyRoom}
+            className="group relative flex items-center gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-size-200 hover:bg-right text-white font-black text-lg shadow-[0_0_40px_theme(colors.indigo.500/0.5)] hover:shadow-[0_0_60px_theme(colors.indigo.500/0.7)] transition-all duration-300 hover:scale-105 active:scale-95 border border-indigo-400/30"
+          >
+            <ExternalLink className="w-5 h-5 group-hover:rotate-12 transition-transform duration-200" />
+            {launched ? 'Open Again →' : 'Launch Study Room'}
+            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+          </button>
+
+          {launched ? (
+            <p className="text-xs text-emerald-400 font-bold animate-pulse">
+              ✓ Study Room opened in a new tab!
+            </p>
+          ) : (
+            <p className="text-xs text-slate-500">
+              Opens in a new tab for the best experience
+            </p>
+          )}
+        </motion.div>
+
       </div>
     </div>
   );
