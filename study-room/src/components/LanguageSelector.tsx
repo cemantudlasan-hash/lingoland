@@ -4,9 +4,10 @@ import { TargetLanguage } from "../types";
 
 export const LANGUAGES: TargetLanguage[] = [
   { code: "th", name: "ไทย (Thai)", flag: "🇹🇭", greetingCode: "สวัสดี" },
+  { code: "ko", name: "한국어 (Korean)", flag: "🇰🇷", greetingCode: "안녕하세요" },
+  { code: "ja", name: "日本語 (Japanese)", flag: "🇯🇵", greetingCode: "こんにちは" },
   { code: "es", name: "Español (Spanish)", flag: "🇪🇸", greetingCode: "Hola" },
   { code: "fr", name: "Français (French)", flag: "🇫🇷", greetingCode: "Bonjour" },
-  { code: "ja", name: "日本語 (Japanese)", flag: "🇯🇵", greetingCode: "こんにちは" },
   { code: "vi", name: "Tiếng Việt (Vietnamese)", flag: "🇻🇳", greetingCode: "Xin chào" },
   { code: "zh", name: "中文 (Chinese)", flag: "🇨🇳", greetingCode: "你好" },
   { code: "de", name: "Deutsch (German)", flag: "🇩🇪", greetingCode: "Hallo" },
