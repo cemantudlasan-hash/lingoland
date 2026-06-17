@@ -13,9 +13,13 @@ interface CategoryNavigatorProps {
 }
 
 const LANG_META: Record<TargetLang, { flag: string; name: string; color: string; bg: string }> = {
-  thai:     { flag: "🇹🇭", name: "Thai",    color: "text-blue-700",   bg: "bg-blue-50 border-blue-700" },
-  korean:   { flag: "🇰🇷", name: "Korean",  color: "text-red-700",    bg: "bg-red-50 border-red-700" },
-  japanese: { flag: "🇯🇵", name: "Japanese", color: "text-rose-700",  bg: "bg-rose-50 border-rose-700" },
+  thai:       { flag: "🇹🇭", name: "Thai",       color: "text-blue-700",   bg: "bg-blue-50 border-blue-700" },
+  korean:     { flag: "🇰🇷", name: "Korean",     color: "text-red-700",    bg: "bg-red-50 border-red-700" },
+  japanese:   { flag: "🇯🇵", name: "Japanese",   color: "text-rose-700",   bg: "bg-rose-50 border-rose-700" },
+  french:     { flag: "🇫🇷", name: "French",     color: "text-sky-700",    bg: "bg-sky-50 border-sky-700" },
+  spanish:    { flag: "🇪🇸", name: "Spanish",    color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-700" },
+  chinese:    { flag: "🇨🇳", name: "Chinese",    color: "text-orange-700", bg: "bg-orange-50 border-orange-700" },
+  vietnamese: { flag: "🇻🇳", name: "Vietnamese", color: "text-emerald-700",bg: "bg-emerald-50 border-emerald-700" },
 };
 
 export default function CategoryNavigator({

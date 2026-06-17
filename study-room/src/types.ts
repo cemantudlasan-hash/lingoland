@@ -1,5 +1,5 @@
 export type LC_Category = 'grammar' | 'vocabulary' | 'listening' | 'pronunciation' | 'conversation';
-export type TargetLang = 'thai' | 'korean' | 'japanese';
+export type TargetLang = 'thai' | 'korean' | 'japanese' | 'french' | 'spanish' | 'chinese' | 'vietnamese';
 export type LC_Level = 'beginner' | 'intermediate' | 'advanced';
 
 export interface QuizItem {
