@@ -265,9 +265,9 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
         { top: 14, right: 14, rotate: 90 },
         { bottom: 14, left: 14, rotate: -90 },
         { bottom: 14, right: 14, rotate: 180 },
-      ].map((pos, i) => (
+      ].map(({ rotate, ...pos }, i) => (
         <svg key={i} width="36" height="36" viewBox="0 0 100 100"
-          style={{ position: 'absolute', ...pos, transform: `rotate(${pos.rotate}deg)`, opacity: 0.65 }}>
+          style={{ position: 'absolute', ...pos, transform: `rotate(${rotate}deg)`, opacity: 0.65 }}>
           <path d="M0,0 L30,0 Q10,10 0,30 Z" fill={gradFrom} />
           <rect x="6" y="6" width="2" height="36" fill={gradFrom} />
           <rect x="6" y="6" width="36" height="2" fill={gradFrom} />
