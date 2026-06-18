@@ -85,6 +85,7 @@ const privateItems = [
     { href: "/profile", label: "Profile", icon: User },
     { href: "/my-postings", label: "My Postings", icon: FileText },
     { href: "/study-room", label: "Acoustic Study Room", icon: GraduationCap },
+    { href: "/language-modules", label: "Language Modules", icon: BookOpen },
 ];
 
 
