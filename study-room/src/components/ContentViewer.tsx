@@ -595,6 +595,54 @@ export default function ContentViewer({
                 </div>
               )}
 
+              {/* CONVERSATION BLOCK — same as listening: transcript + TTS */}
+              {lesson.category === "conversation" && (
+                <div className="space-y-6">
+                  {lesson.content.context && (
+                    <div className="space-y-1">
+                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-display">A. Conversation Context</h4>
+                      {viewMode === 'english' || !translation ? (
+                        <p className="text-slate-650 text-xs bg-slate-50 p-3.5 border-2 border-slate-900 rounded-xl leading-relaxed font-bold">{lesson.content.context}</p>
+                      ) : (
+                        <div className="p-3.5 bg-slate-50 border-2 border-slate-900 rounded-xl space-y-1.5 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+                          <p className="text-slate-700 text-xs font-semibold leading-relaxed">{lesson.content.context}</p>
+                          <p className="text-indigo-600 text-xs font-sans italic border-t border-dashed border-slate-300 pt-2 mt-1 leading-relaxed font-bold">{translation.context}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {lesson.content.transcript && (
+                    <div className="space-y-4 max-h-[460px] overflow-y-auto pr-2">
+                      {lesson.content.transcript.map((line, idx) => {
+                        const isSpeakerA = idx % 2 === 0;
+                        const bubbleBg = isSpeakerA ? "bg-slate-50 border-slate-900 mr-8" : "bg-indigo-50 border-slate-900 ml-8";
+                        const speakerColor = isSpeakerA ? "text-slate-650" : "text-indigo-800";
+                        const isPlaying = playingLineIndex === idx;
+                        return (
+                          <div key={idx} className={`border-2 border-slate-900 rounded-2xl p-4 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] transition-colors flex flex-col justify-between ${bubbleBg} ${isPlaying ? "ring-2 ring-indigo-400 border-indigo-200" : ""}`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`text-[10px] uppercase font-black tracking-wider font-display shrink-0 ${speakerColor}`}>👤 {line.speaker}</span>
+                              <button
+                                id={`speak-conv-${idx}`}
+                                onClick={() => speakLine(line.text, line.speaker, idx)}
+                                className={`p-1.5 rounded-lg flex items-center gap-1 cursor-pointer transition-all border-2 border-slate-900 text-xs font-bold ${isPlaying ? "bg-indigo-600 text-white animate-pulse" : "bg-white hover:bg-slate-50 text-slate-800 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] active:shadow-none active:translate-y-[1px]"}`}
+                              >
+                                <Volume2 className="w-3.5 h-3.5" />
+                                <span className="text-[9px] font-display font-black uppercase tracking-wider">Listen</span>
+                              </button>
+                            </div>
+                            <p className="text-slate-905 text-xs font-bold leading-relaxed font-sans">{line.text}</p>
+                            {viewMode !== 'english' && translation?.transcript?.[idx] && (
+                              <p className="text-indigo-700 text-xs font-semibold italic font-sans border-t border-dashed border-slate-300 pt-2 mt-1.5">{translation.transcript[idx]}</p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* PRONUNCIATION BLOCK */}
               {lesson.category === "pronunciation" && (
                 <div className="space-y-6">
@@ -777,7 +825,7 @@ export default function ContentViewer({
                 <div className="space-y-4">
                   {/* Render index tracker */}
                   <div className="flex justify-between items-center text-[10px] font-black text-slate-400 font-display uppercase tracking-wider">
-                    <span>Question {currentQuestionIndex + 1} of 3</span>
+                    <span>Question {currentQuestionIndex + 1} of {lesson.content.quiz.length}</span>
                     <span className="text-emerald-400 bg-emerald-950/85 border border-emerald-600 px-2 py-0.5 rounded">
                       +{lesson.xpReward} XP REWARD
                     </span>
