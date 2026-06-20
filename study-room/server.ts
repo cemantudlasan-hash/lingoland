@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { DEFAULT_LESSONS } from "./src/lessonsData";
+import { EXAM_QUESTIONS } from "./src/examsData";
 
 dotenv.config();
 
@@ -62,22 +63,26 @@ function ensureDirectories() {
 
 function readStats(): any {
   ensureDirectories();
-  try {
-    if (fs.existsSync(STATS_FILE)) {
-      const raw = fs.readFileSync(STATS_FILE, "utf-8");
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    console.error("Error reading stats, returning defaults:", err);
-  }
-  return {
+  const defaults = {
     completedLessons: [],
     streakCount: 0,
     lastActiveDate: "",
     points: 0,
     timeSpentMinutes: 0,
     history: [],
+    passedExams: [],
+    examAttempts: {},
   };
+  try {
+    if (fs.existsSync(STATS_FILE)) {
+      const raw = fs.readFileSync(STATS_FILE, "utf-8");
+      const parsed = JSON.parse(raw);
+      return { ...defaults, ...parsed };
+    }
+  } catch (err) {
+    console.error("Error reading stats, returning defaults:", err);
+  }
+  return defaults;
 }
 
 function saveStats(stats: any) {
@@ -105,6 +110,8 @@ app.post("/api/progress/reset", (req, res) => {
     points: 0,
     timeSpentMinutes: 0,
     history: [],
+    passedExams: [],
+    examAttempts: {},
   };
   saveStats(defaultStats);
   res.json(defaultStats);
@@ -163,6 +170,125 @@ app.post("/api/progress/complete", (req, res) => {
 
   saveStats(stats);
   res.json(stats);
+});
+
+// 4b. Update user progress on exam completion
+app.post("/api/progress/complete-exam", (req, res) => {
+  const { langCode, score, passed } = req.body;
+  if (!langCode || score === undefined || passed === undefined) {
+    return res.status(400).json({ error: "Missing langCode, score, or passed status" });
+  }
+
+  const stats = readStats();
+  
+  if (!stats.passedExams) stats.passedExams = [];
+  if (!stats.examAttempts) stats.examAttempts = {};
+
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  // Update best attempt or add attempt record
+  const prevAttempt = stats.examAttempts[langCode];
+  if (!prevAttempt || score > prevAttempt.score) {
+    stats.examAttempts[langCode] = {
+      score,
+      passed,
+      date: todayStr
+    };
+  }
+
+  if (passed && !stats.passedExams.includes(langCode)) {
+    stats.passedExams.push(langCode);
+    stats.points += 500; // Credit 500 XP bonus for passing the exam!
+  }
+
+  // Update points and time spent
+  stats.timeSpentMinutes += 30; // standard 30 min exam time spent
+  stats.lastActiveDate = todayStr;
+
+  saveStats(stats);
+  res.json(stats);
+});
+
+// 4c. On-the-fly and Cached AI-Driven Exam Translation
+app.post("/api/translate-exam", async (req, res) => {
+  try {
+    const { targetLang, targetLangName } = req.body;
+    if (!targetLang) {
+      return res.status(400).json({ error: "Missing targetLang" });
+    }
+
+    const cachePath = path.join(TRANSLATION_DIR, `exam_${targetLang}.json`);
+    ensureDirectories();
+
+    if (fs.existsSync(cachePath)) {
+      try {
+        const cachedContent = fs.readFileSync(cachePath, "utf-8");
+        return res.json(JSON.parse(cachedContent));
+      } catch (e) {
+        console.warn(`Failed reading cached translation for exam_${targetLang}, falling back to generation:`, e);
+      }
+    }
+
+    const client = getGeminiClient();
+    if (!client) {
+      // Fallback
+      console.info("Gemini client not configured. Generating draft fallback translation for exam.");
+      const fallbackTranslation = EXAM_QUESTIONS.map(q => ({
+        question: `[${targetLangName}] ${q.question}`,
+        options: q.options.map(opt => `${opt} (${targetLangName})`),
+        explanation: `[${targetLangName} Explanation] ${q.explanation}`
+      }));
+      fs.writeFileSync(cachePath, JSON.stringify(fallbackTranslation, null, 2), "utf-8");
+      return res.json(fallbackTranslation);
+    }
+
+    const prompt = `You are a professional language localization editor for lingolandverse.com.
+Translate all the 30 multiple-choice questions, options, and feedback explanations of this English proficiency exam into "${targetLangName}" (Code: "${targetLang}").
+Translate the meanings accurately while preserving pedagogical nuance.
+
+Questions to translate:
+${JSON.stringify(EXAM_QUESTIONS.map(q => ({ question: q.question, options: q.options, explanation: q.explanation })))}
+
+Output constraints:
+- Return the list in the exact matching index order.
+- Options array must have the same length.
+- Return ONLY the required JSON list shape. Do NOT add markdown wrappers or generic formatting notes outside the JSON block.`;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        systemInstruction: "You are a translation bot returning clean, strict JSON array matching standard objects.",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              question: { type: Type.STRING },
+              options: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              },
+              explanation: { type: Type.STRING }
+            },
+            required: ["question", "options", "explanation"]
+          }
+        }
+      }
+    });
+
+    const text = response.text || "[]";
+    const parsedTranslation = JSON.parse(text);
+
+    // Cache compiled translation
+    fs.writeFileSync(cachePath, JSON.stringify(parsedTranslation, null, 2), "utf-8");
+    return res.json(parsedTranslation);
+
+  } catch (err: any) {
+    console.error("Exam translation generation failed:", err);
+    res.status(500).json({ error: err.message || "Failed to generate exam translation" });
+  }
 });
 
 // 5. On-the-fly and Cached AI-Driven Translation

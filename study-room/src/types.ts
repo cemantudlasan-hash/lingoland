@@ -103,6 +103,8 @@ export interface UserStats {
     score: number;
     xpEarned: number;
   }>;
+  passedExams?: string[];
+  examAttempts?: Record<string, { score: number; passed: boolean; date: string }>;
 }
 
 export interface TargetLanguage {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, GraduationCap, Lock, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
@@ -10,7 +10,15 @@ import Link from 'next/link';
 export default function StudyRoomPage() {
   const { user, isLoading, isGuest } = useAuth();
   const [iframeLoading, setIframeLoading] = useState(true);
-  const studyRoomUrl = 'https://studio--lingoland-kpvxp.us-central1.hosted.app';
+  const [studyRoomUrl, setStudyRoomUrl] = useState('https://studio--lingoland-kpvxp.us-central1.hosted.app');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        setStudyRoomUrl(process.env.NEXT_PUBLIC_STUDY_ROOM_URL || 'http://localhost:3000');
+      }
+    }
+  }, []);
 
   // Show loading spinner while auth state is resolving
   if (isLoading) {

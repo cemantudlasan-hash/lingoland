@@ -6,6 +6,7 @@ import ProgressDashboard from "./components/ProgressDashboard";
 import CategoryNavigator from "./components/CategoryNavigator";
 import ContentViewer from "./components/ContentViewer";
 import StudyRoom from "./components/StudyRoom";
+import ExamContainer from "./components/ExamContainer";
 
 export default function App() {
   // Lessons and State lists
@@ -25,8 +26,8 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<LC_Category | "all">("all");
   const [selectedLevel, setSelectedLevel] = useState<LC_Level | "all">("all");
 
-  // Selection tab state ("syllabus" or "study-room")
-  const [activeTab, setActiveTab] = useState<"syllabus" | "study-room">("syllabus");
+  // Selection tab state ("syllabus", "study-room", or "exams")
+  const [activeTab, setActiveTab] = useState<"syllabus" | "study-room" | "exams">("syllabus");
 
   // Loading indicator states
   const [loading, setLoading] = useState(true);
@@ -81,6 +82,28 @@ export default function App() {
     }
   };
 
+  // Sync user completed exam points and status
+  const handleExamCompleted = async (langCode: string, score: number, passed: boolean) => {
+    try {
+      const res = await fetch("/api/progress/complete-exam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          langCode,
+          score,
+          passed
+        }),
+      });
+
+      if (res.ok) {
+        const updatedStats = await res.json();
+        setStats(updatedStats);
+      }
+    } catch (err) {
+      console.error("Failed logging exam completion on server:", err);
+    }
+  };
+
   // Reset progress stats entirely
   const handleResetStats = async () => {
     try {
@@ -118,7 +141,7 @@ export default function App() {
         {/* Dynamic Navigation tabs and LanguageSelector trigger bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           {/* Neobrutalist tab selector buttons */}
-          <div className="flex bg-slate-100 p-1 border-2 border-slate-900 rounded-xl gap-1 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+          <div className="flex bg-slate-105 p-1 border-2 border-slate-900 rounded-xl gap-1 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
             <button
               onClick={() => {
                 setActiveTab("syllabus");
@@ -127,10 +150,23 @@ export default function App() {
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
                 activeTab === "syllabus"
                   ? "bg-slate-900 text-white shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
-                  : "text-slate-600 hover:text-slate-950"
+                  : "text-slate-650 hover:text-slate-950"
               }`}
             >
               Syllabus
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("exams");
+                setSelectedLesson(null);
+              }}
+              className={`px-4 py-1.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                activeTab === "exams"
+                  ? "bg-slate-900 text-white shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                  : "text-slate-650 hover:text-slate-950"
+              }`}
+            >
+              Exams
             </button>
             <button
               onClick={() => {
@@ -140,7 +176,7 @@ export default function App() {
               className={`px-4 py-1.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
                 activeTab === "study-room"
                   ? "bg-slate-900 text-white shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
-                  : "text-slate-600 hover:text-slate-950"
+                  : "text-slate-650 hover:text-slate-950"
               }`}
             >
               Study Room
@@ -172,6 +208,13 @@ export default function App() {
             targetLanguage={currentLanguage}
             onBack={() => setSelectedLesson(null)}
             onLessonCompleted={handleLessonCompleted}
+          />
+        ) : activeTab === "exams" ? (
+          <ExamContainer
+            currentLanguage={currentLanguage}
+            stats={stats}
+            onExamCompleted={handleExamCompleted}
+            onBack={() => setActiveTab("syllabus")}
           />
         ) : activeTab === "study-room" ? (
           /* STUDY ROOM PORTAL PANEL (with Firebase, Realtime Bulletin and TTS Audio integrations) */
