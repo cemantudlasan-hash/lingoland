@@ -1,17 +1,22 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen, CheckCircle, Circle, ChevronRight, ChevronLeft,
   GraduationCap, Download, Award, Star, Globe, Clock,
   Volume2, BookMarked, Flame, Trophy, X, User, Building2,
-  Calendar, Sparkles, Lock
+  Calendar, Sparkles, Lock, RefreshCw
 } from 'lucide-react';
 import { languageModules, type Lesson, type LanguageModule } from '@/lib/language-modules';
 import { useAuth } from '@/context/auth-context';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
 import Link from 'next/link';
+import { languageExams, type ExamQuestion } from '@/lib/language-exams';
+import { getUserPet, saveUserPet } from '@/lib/user';
+import { initializeFirebase } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import type { UserPet } from '@/lib/types';
 
 /* ─── Lesson type icons ──────────────────────────────────────── */
 const lessonTypeIcon: Record<string, React.ReactNode> = {
@@ -596,6 +601,334 @@ function LessonViewer({
   );
 }
 
+/* ─── Language Exam Stepper Overlay ──────────────────────────── */
+function LanguageExamViewer({
+  exam,
+  onClose,
+  onAnswer,
+  onNavigate,
+  onSubmit,
+  onRetake,
+  onClaimCertificate,
+}: {
+  exam: {
+    languageId: string;
+    questions: ExamQuestion[];
+    currentIdx: number;
+    answers: Record<number, number>;
+    finished: boolean;
+    score: number;
+  };
+  onClose: () => void;
+  onAnswer: (questionIdx: number, optionIdx: number) => void;
+  onNavigate: (questionIdx: number) => void;
+  onSubmit: () => void;
+  onRetake: () => void;
+  onClaimCertificate: () => void;
+}) {
+  const [showReview, setShowReview] = useState(false);
+  const currentQ = exam.questions[exam.currentIdx];
+  const totalQuestions = exam.questions.length;
+  const answeredCount = Object.keys(exam.answers).length;
+  const allAnswered = answeredCount === totalQuestions;
+
+  const mod = languageModules.find(m => m.id === exam.languageId)!;
+
+  if (exam.finished) {
+    const passed = exam.score >= 25;
+    return (
+      <div className="fixed inset-0 z-[500] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col"
+        >
+          {/* Header */}
+          <div className="p-6 border-b border-slate-800 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{mod.flag}</span>
+              <div>
+                <h3 className="text-white font-black text-lg">{mod.language} Exam Results</h3>
+                <p className="text-slate-400 text-xs">Certification Exam</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="p-6 space-y-6 flex-1">
+            <div className="text-center py-6 space-y-4">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-850 border border-slate-800 relative">
+                {passed ? (
+                  <Award className="w-10 h-10 text-amber-400 animate-pulse" />
+                ) : (
+                  <X className="w-10 h-10 text-rose-500" />
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <h2 className={`text-2xl font-black ${passed ? 'text-emerald-400' : 'text-rose-455 text-rose-400'}`}>
+                  {passed ? 'Exam Passed!' : 'Exam Failed'}
+                </h2>
+                <p className="text-slate-400 text-sm">
+                  You scored <span className="text-white font-bold">{exam.score}</span> out of <span className="text-white font-bold">30</span> ({(exam.score / 30 * 100).toFixed(0)}%)
+                </p>
+              </div>
+
+              {passed ? (
+                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 max-w-md mx-auto">
+                  <p className="text-emerald-300 text-sm font-medium">
+                    🎉 Excellent! You have successfully unlocked your certificate of completion for {mod.language} and earned <span className="text-amber-400 font-bold">+500 XP</span> for your companion!
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 max-w-md mx-auto">
+                  <p className="text-rose-300 text-sm font-medium">
+                    You need at least <span className="text-white font-bold">25 correct answers</span> (83%) to pass and unlock the certificate. Keep studying and try again!
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Review Section Toggle */}
+            <div className="border-t border-slate-800 pt-4">
+              <button
+                onClick={() => setShowReview(!showReview)}
+                className="w-full flex items-center justify-between py-2 text-slate-300 hover:text-white transition-colors text-sm font-bold"
+              >
+                <span>{showReview ? 'Hide Question Review' : 'Review Questions & Explanations'}</span>
+                <ChevronRight className={`w-4 h-4 transform transition-transform ${showReview ? 'rotate-90' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {showReview && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden space-y-4 mt-3"
+                  >
+                    {exam.questions.map((q, idx) => {
+                      const userAns = exam.answers[idx];
+                      const isCorrect = userAns === q.answerIndex;
+                      return (
+                        <div key={q.id} className={`p-4 rounded-xl border ${isCorrect ? 'bg-emerald-500/[0.02] border-emerald-500/20' : 'bg-rose-500/[0.02] border-rose-500/20'}`}>
+                          <div className="flex items-start gap-2.5">
+                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                              {idx + 1}
+                            </span>
+                            <div className="space-y-2 flex-1">
+                              <h4 className="text-white font-bold text-sm">{q.question}</h4>
+                              <div className="space-y-1.5">
+                                {q.options.map((opt, optIdx) => {
+                                  const isUserSelected = userAns === optIdx;
+                                  const isRightAnswer = optIdx === q.answerIndex;
+                                  return (
+                                    <div
+                                      key={optIdx}
+                                      className={`text-xs p-2 rounded-lg flex items-center justify-between border ${
+                                        isRightAnswer
+                                          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300 font-semibold'
+                                          : isUserSelected
+                                          ? 'border-rose-500/40 bg-rose-500/10 text-rose-350 text-rose-300'
+                                          : 'border-slate-800 bg-slate-950/40 text-slate-400'
+                                      }`}
+                                    >
+                                      <span>{opt}</span>
+                                      {isRightAnswer && <span className="text-[10px] uppercase font-bold text-emerald-400">Correct Answer</span>}
+                                      {isUserSelected && !isRightAnswer && <span className="text-[10px] uppercase font-bold text-rose-400">Your Answer</span>}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <p className="text-xs text-slate-400 italic bg-slate-950/40 p-2.5 rounded-lg border border-slate-850">
+                                💡 <span className="font-bold text-slate-350">Explanation:</span> {q.explanation}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="p-6 border-t border-slate-800 bg-slate-950/40 flex flex-col sm:flex-row gap-3 shrink-0">
+            {passed ? (
+              <>
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(() => {
+                      onClaimCertificate();
+                    }, 300);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-sm hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-amber-500/20"
+                >
+                  <Award className="w-4 h-4" />
+                  Claim Certificate
+                </button>
+                <button
+                  onClick={onClose}
+                  className="px-6 py-3.5 rounded-xl border border-slate-700 text-slate-400 hover:text-white font-bold text-sm hover:bg-slate-800 transition-all"
+                >
+                  Close Results
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={onRetake}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black text-sm hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Retake Exam
+                </button>
+                <button
+                  onClick={onClose}
+                  className="px-6 py-3.5 rounded-xl border border-slate-700 text-slate-400 hover:text-white font-bold text-sm hover:bg-slate-800 transition-all"
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-3xl max-h-[95vh] overflow-y-auto shadow-2xl flex flex-col"
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-slate-900 border-b border-slate-800 px-6 py-4 rounded-t-3xl flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{mod.flag}</span>
+            <div>
+              <h3 className="text-white font-black text-lg">{mod.language} Certification Exam</h3>
+              <p className="text-slate-400 text-xs">Answer 30 questions · Pass grade: 25/30</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
+            <X className="w-5 h-5 text-slate-400" />
+          </button>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="px-6 py-3 bg-slate-950/40 border-b border-slate-800/60 flex flex-col gap-2 shrink-0">
+          <div className="flex justify-between items-center text-xs">
+            <span className="font-bold text-indigo-400 uppercase tracking-wider">Question {exam.currentIdx + 1} of {totalQuestions}</span>
+            <span className="text-slate-500 font-medium">{answeredCount} of {totalQuestions} answered</span>
+          </div>
+          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-300"
+              style={{ width: `${((exam.currentIdx + 1) / totalQuestions) * 100}%` }} />
+          </div>
+        </div>
+
+        {/* Body content */}
+        <div className="p-6 space-y-6 flex-1">
+          <div className="bg-slate-850 border border-slate-800 rounded-2xl p-5 shadow-inner">
+            <p className="text-slate-100 font-extrabold text-base sm:text-lg leading-relaxed">{currentQ.question}</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {currentQ.options.map((option, optIdx) => {
+              const letter = String.fromCharCode(65 + optIdx);
+              const isSelected = exam.answers[exam.currentIdx] === optIdx;
+              return (
+                <button
+                  key={optIdx}
+                  onClick={() => onAnswer(exam.currentIdx, optIdx)}
+                  className={`text-left p-4 rounded-2xl border transition-all flex items-start gap-3 w-full group relative ${
+                    isSelected
+                      ? 'bg-indigo-500/15 border-indigo-500 text-white shadow-lg shadow-indigo-500/5'
+                      : 'bg-slate-950/40 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 transition-all ${
+                    isSelected
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-slate-800 text-slate-500 group-hover:bg-slate-750 group-hover:text-indigo-400'
+                  }`}>
+                    {letter}
+                  </span>
+                  <span className="text-sm font-semibold pt-0.5 leading-normal">{option}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Dot Navigation Panel */}
+        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/20 shrink-0">
+          <div className="flex flex-wrap gap-1.5 justify-center max-w-xl mx-auto">
+            {exam.questions.map((_, idx) => {
+              const isCurrent = exam.currentIdx === idx;
+              const isAnswered = exam.answers[idx] !== undefined;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => onNavigate(idx)}
+                  className={`w-7 h-7 text-[10px] font-black rounded-lg transition-all border flex items-center justify-center shrink-0 ${
+                    isCurrent
+                      ? 'bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500'
+                      : isAnswered
+                      ? 'bg-indigo-950/40 border-indigo-900 text-indigo-400 hover:border-indigo-700'
+                      : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-350 hover:border-slate-700'
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer controls */}
+        <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 px-6 py-4 rounded-b-3xl flex items-center justify-between gap-4 shrink-0">
+          <button
+            disabled={exam.currentIdx === 0}
+            onClick={() => onNavigate(exam.currentIdx - 1)}
+            className="flex items-center gap-1.5 text-slate-400 disabled:opacity-30 disabled:hover:text-slate-400 text-sm font-bold hover:text-white transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" /> Previous
+          </button>
+
+          {exam.currentIdx + 1 === totalQuestions ? (
+            <button
+              onClick={onSubmit}
+              disabled={!allAnswered}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-650 text-slate-950 hover:text-white disabled:text-slate-950 disabled:from-emerald-500/50 disabled:to-teal-600/50 disabled:cursor-not-allowed disabled:scale-100 font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+            >
+              Submit Exam
+            </button>
+          ) : (
+            <button
+              onClick={() => onNavigate(exam.currentIdx + 1)}
+              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white text-sm font-bold hover:bg-slate-800 transition-colors"
+            >
+              Next <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 /* ─── Main Page ──────────────────────────────────────────────── */
 export default function LanguageModulesPage() {
   const { user, isLoading, isGuest } = useAuth();
@@ -603,6 +936,43 @@ export default function LanguageModulesPage() {
   const [completedLessons, setCompletedLessons] = useState<Record<string, Set<string>>>({});
   const [selectedLesson, setSelectedLesson] = useState<{ lesson: Lesson; index: number } | null>(null);
   const [showCertificate, setShowCertificate] = useState<string | null>(null);
+
+  // Exams states
+  const [passedExams, setPassedExams] = useState<Record<string, boolean>>({});
+  const [activeExam, setActiveExam] = useState<{
+    languageId: string;
+    questions: ExamQuestion[];
+    currentIdx: number;
+    answers: Record<number, number>;
+    finished: boolean;
+    score: number;
+  } | null>(null);
+
+  // Load progress on mount
+  useEffect(() => {
+    try {
+      const storedLessons = localStorage.getItem('lingoland_language_modules_completed_lessons');
+      if (storedLessons) {
+        const parsed = JSON.parse(storedLessons);
+        const loaded: Record<string, Set<string>> = {};
+        Object.entries(parsed).forEach(([lang, lessons]) => {
+          loaded[lang] = new Set(lessons as string[]);
+        });
+        setCompletedLessons(loaded);
+      }
+    } catch (e) {
+      console.error('Failed to load completed lessons from localStorage:', e);
+    }
+
+    try {
+      const storedExams = localStorage.getItem('lingoland_language_modules_passed_exams');
+      if (storedExams) {
+        setPassedExams(JSON.parse(storedExams));
+      }
+    } catch (e) {
+      console.error('Failed to load passed exams from localStorage:', e);
+    }
+  }, []);
 
   const currentModule = languageModules.find(m => m.id === activeLanguage)!;
   const completedForLang = completedLessons[activeLanguage] ?? new Set<string>();
@@ -612,7 +982,28 @@ export default function LanguageModulesPage() {
     setCompletedLessons(prev => {
       const updated = new Set(prev[langId] ?? []);
       updated.add(lessonId);
-      return { ...prev, [langId]: updated };
+      const next = { ...prev, [langId]: updated };
+      try {
+        const serializable = Object.fromEntries(
+          Object.entries(next).map(([k, set]) => [k, Array.from(set)])
+        );
+        localStorage.setItem('lingoland_language_modules_completed_lessons', JSON.stringify(serializable));
+      } catch (e) {
+        console.error('Failed to save completed lessons', e);
+      }
+      return next;
+    });
+  };
+
+  const handlePassExam = (langId: string) => {
+    setPassedExams(prev => {
+      const next = { ...prev, [langId]: true };
+      try {
+        localStorage.setItem('lingoland_language_modules_passed_exams', JSON.stringify(next));
+      } catch (e) {
+        console.error('Failed to save passed exams', e);
+      }
+      return next;
     });
   };
 
@@ -683,6 +1074,108 @@ export default function LanguageModulesPage() {
             />
           );
         })()}
+      </AnimatePresence>
+
+      {/* Exam Stepper Modal */}
+      <AnimatePresence>
+        {activeExam && (
+          <LanguageExamViewer
+            exam={activeExam}
+            onClose={() => setActiveExam(null)}
+            onAnswer={(questionIdx, optionIdx) => {
+              setActiveExam(prev => {
+                if (!prev) return null;
+                return {
+                  ...prev,
+                  answers: { ...prev.answers, [questionIdx]: optionIdx }
+                };
+              });
+            }}
+            onNavigate={(questionIdx) => {
+              setActiveExam(prev => {
+                if (!prev) return null;
+                return { ...prev, currentIdx: questionIdx };
+              });
+            }}
+            onClaimCertificate={() => {
+              setShowCertificate(activeExam.languageId);
+            }}
+            onSubmit={async () => {
+              if (!activeExam) return;
+              let score = 0;
+              activeExam.questions.forEach((q, idx) => {
+                if (activeExam.answers[idx] === q.answerIndex) {
+                  score += 1;
+                }
+              });
+              
+              const passed = score >= 25;
+              
+              setActiveExam(prev => {
+                if (!prev) return null;
+                return { ...prev, finished: true, score };
+              });
+
+              if (passed) {
+                handlePassExam(activeExam.languageId);
+                // Reward XP to the user's pet profile!
+                if (user) {
+                  try {
+                    const petData = await getUserPet(user.uid);
+                    const currentXp = petData ? (petData.xp || 0) : 150;
+                    const currentLevel = petData ? (petData.level || 1) : 1;
+                    const currentCoins = petData ? (petData.coins || 0) : 120;
+                    
+                    const xpToAdd = 500;
+                    let level = currentLevel;
+                    let xp = currentXp + xpToAdd;
+                    let threshold = level * 500;
+                    while (xp >= threshold) {
+                      xp -= threshold;
+                      level += 1;
+                      threshold = level * 500;
+                    }
+                    
+                    // Also add some bonus coins for passing, e.g. +100 Coins
+                    const newCoins = currentCoins + 100;
+                    
+                    const updates: Partial<UserPet> = {
+                      xp,
+                      level,
+                      coins: newCoins,
+                      lastActive: new Date().toISOString(),
+                    };
+                    
+                    // Save
+                    await saveUserPet(user.uid, updates);
+                    
+                    // Synchronize profile
+                    const { firestore } = initializeFirebase();
+                    const userRef = doc(firestore, 'users', user.uid);
+                    await setDoc(userRef, {
+                      activePetLevel: level,
+                    }, { merge: true });
+                    
+                    console.log('Rewarded XP and coins to user pet successfully!');
+                  } catch (e) {
+                    console.error('Failed to reward XP/coins to user pet', e);
+                  }
+                }
+              }
+            }}
+            onRetake={() => {
+              const questions = languageExams[activeExam.languageId] || [];
+              setActiveExam({
+                languageId: activeExam.languageId,
+                questions: questions,
+                currentIdx: 0,
+                answers: {},
+                finished: false,
+                score: 0
+              });
+            }}
+          />
+        )}
       </AnimatePresence>
 
       <div className="space-y-6">
@@ -776,13 +1269,33 @@ export default function LanguageModulesPage() {
 
                 {/* Certificate button */}
                 {allComplete ? (
-                  <button
-                    onClick={() => setShowCertificate(activeLanguage)}
-                    className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-sm hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/25 shrink-0"
-                  >
-                    <Award className="w-5 h-5" />
-                    Get Certificate!
-                  </button>
+                  passedExams[activeLanguage] ? (
+                    <button
+                      onClick={() => setShowCertificate(activeLanguage)}
+                      className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-sm hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/25 shrink-0"
+                    >
+                      <Award className="w-5 h-5 animate-bounce" />
+                      Get Certificate!
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        const questions = languageExams[activeLanguage] || [];
+                        setActiveExam({
+                          languageId: activeLanguage,
+                          questions: questions,
+                          currentIdx: 0,
+                          answers: {},
+                          finished: false,
+                          score: 0
+                        });
+                      }}
+                      className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black text-sm hover:opacity-90 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/25 shrink-0"
+                    >
+                      <GraduationCap className="w-5 h-5" />
+                      Take Exam
+                    </button>
+                  )
                 ) : (
                   <div className="flex flex-col items-center gap-1 text-center opacity-60">
                     <Award className="w-8 h-8 text-slate-500" />
@@ -806,7 +1319,11 @@ export default function LanguageModulesPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-emerald-300 font-black">🎉 Congratulations! You completed all {currentModule.language} lessons!</h3>
-                  <p className="text-emerald-400/70 text-sm">Click "Get Certificate!" to generate and download your certificate of completion.</p>
+                  <p className="text-emerald-400/70 text-sm">
+                    {passedExams[activeLanguage]
+                      ? 'Click "Get Certificate!" to generate and download your certificate of completion.'
+                      : 'You can now take the 30-question Certification Exam to unlock your certificate and earn +500 XP!'}
+                  </p>
                 </div>
               </motion.div>
             )}
