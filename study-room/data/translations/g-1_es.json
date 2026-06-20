@@ -1,0 +1,43 @@
+{
+  "title": "Present Continuous Tense (Español (Spanish))",
+  "description": "[Preview] This content was translated statically to Español (Spanish).",
+  "explanation": "[Auto Translate Demo] The Present Continuous tense is used to describe actions that are in progress right now (at the moment of speaking) or temporary situations. (This represents side-by-side localized content: Español (Spanish))",
+  "keyRules": [
+    "• Form: Subject + am/is/are + verb-ing. (Español (Spanish) Guide)",
+    "• Uses: Actions happening now, temporary habits, or current trends. (Español (Spanish) Guide)",
+    "• Negative: Subject + am/is/are + not + verb-ing. (Español (Spanish) Guide)",
+    "• Question: Am/Is/Are + Subject + verb-ing? (Español (Spanish) Guide)"
+  ],
+  "quiz": [
+    {
+      "question": "[Español (Spanish)] Complete the sentence: \"Listen! The birds ________ in the garden.\"",
+      "options": [
+        "is singing (Español (Spanish))",
+        "are singing (Español (Spanish))",
+        "singing (Español (Spanish))",
+        "sing (Español (Spanish))"
+      ],
+      "explanation": "[Español (Spanish) Explanation] \"Birds\" is plural, so we use the auxiliary \"are\" + \"singing\"."
+    },
+    {
+      "question": "[Español (Spanish)] What is the correct negative form of: \"He is doing his homework\"?",
+      "options": [
+        "He is not do his homework. (Español (Spanish))",
+        "He don't doing his homework. (Español (Spanish))",
+        "He isn't doing his homework. (Español (Spanish))",
+        "He is doing not homework. (Español (Spanish))"
+      ],
+      "explanation": "[Español (Spanish) Explanation] To form the negative, insert \"not\" after the auxiliary verb \"is\" (is not = isn't)."
+    },
+    {
+      "question": "[Español (Spanish)] Identify the present continuous sentence:",
+      "options": [
+        "I go to school every day. (Español (Spanish))",
+        "The sun is shining beautifully today. (Español (Spanish))",
+        "We enjoyed our trip to Tokyo last year. (Español (Spanish))",
+        "You will pass the English exam easily. (Español (Spanish))"
+      ],
+      "explanation": "[Español (Spanish) Explanation] \"The sun is shining\" fits the [Subject + is + verb-ing] structure describing an action in progress."
+    }
+  ]
+}
