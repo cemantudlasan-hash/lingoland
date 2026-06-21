@@ -34,6 +34,18 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: 'LingoLandVerse',
   description: 'Learn ESL with interactive games and exercises.',
+  publisher: 'LingoLandVerse',
+  openGraph: {
+    type: 'website',
+    title: 'LingoLandVerse',
+    description: 'Learn ESL with interactive games and exercises.',
+    siteName: 'LingoLandVerse',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LingoLandVerse',
+    description: 'Learn ESL with interactive games and exercises.',
+  },
 };
 
 export default function RootLayout({
