@@ -415,21 +415,18 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
                 alignItems: "center",
                 justifyContent: "center",
               }}>
-                <svg
-                  width="64"
-                  height="64"
-                  viewBox="0 0 64 64"
-                  style={{ display: "block" }}
-                >
-                  <image
-                    href="/logo-square.png"
-                    x="0"
-                    y="0"
-                    width="64"
-                    height="64"
-                    preserveAspectRatio="none"
-                  />
-                </svg>
+                <img
+                  src="/logo-square.png"
+                  alt="Official Seal"
+                  crossOrigin="anonymous"
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: "50%",
+                    display: "block",
+                    objectFit: "cover"
+                  }}
+                />
               </div>
             )}
             <div style={{ fontFamily: "Georgia, serif", fontSize: 9, color: "#92400e", letterSpacing: "0.15em", textTransform: "uppercase" }}>Official Seal</div>
