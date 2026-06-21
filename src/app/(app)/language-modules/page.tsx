@@ -72,13 +72,14 @@ function LanguageCertificateGenerator({
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const certRef = useRef<HTMLDivElement>(null);
+  const downloadCertRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadJPG = useCallback(async () => {
     if (!form.fullName.trim()) return;
     setIsGenerating(true);
     try {
       const { default: html2canvas } = await import('html2canvas');
-      const canvas = await html2canvas(certRef.current!, {
+      const canvas = await html2canvas(downloadCertRef.current!, {
         scale: 3,
         useCORS: true,
         allowTaint: false,
@@ -220,6 +221,17 @@ function LanguageCertificateGenerator({
                 />
               </div>
             </div>
+          </div>
+
+          {/* Hidden, unscaled CertificateCanvas for download capture */}
+          <div style={{ position: 'absolute', top: -9999, left: -9999, width: 900, height: 638, overflow: 'hidden', pointerEvents: 'none' }}>
+            <CertificateCanvas
+              ref={downloadCertRef}
+              data={form}
+              language={language}
+              flag={flag}
+              gradient={gradient}
+            />
           </div>
 
           {/* Actions */}
@@ -945,6 +957,28 @@ function LanguageExamViewer({
             if (consecutiveNoFaceCount >= 2) {
               setIsPausedByFace(true);
             }
+          } else if (face.landmarks) {
+            // Determine head rotation symmetry (nose relative to eyes)
+            const rightEye = face.landmarks[0];
+            const leftEye = face.landmarks[1];
+            const nose = face.landmarks[2];
+
+            const distLeft = Math.abs(nose[0] - leftEye[0]);
+            const distRight = Math.abs(nose[0] - rightEye[0]);
+            const maxDist = Math.max(distLeft, distRight);
+            const minDist = Math.min(distLeft, distRight);
+            const symmetry = maxDist > 0 ? minDist / maxDist : 0;
+
+            // If symmetry is low (< 0.35), user is looking away
+            if (symmetry < 0.35) {
+              consecutiveNoFaceCount++;
+              if (consecutiveNoFaceCount >= 2) {
+                setIsPausedByFace(true);
+              }
+            } else {
+              consecutiveNoFaceCount = 0;
+              setIsPausedByFace(false);
+            }
           } else {
             consecutiveNoFaceCount = 0;
             setIsPausedByFace(false);
@@ -1336,7 +1370,11 @@ function LanguageExamViewer({
       </div>
 
       {/* Floating live video preview widget */}
-      <div className="fixed bottom-4 right-4 z-[550] bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2.5 flex flex-col items-center gap-1.5 shadow-2xl backdrop-blur-md w-28">
+      <motion.div
+        drag
+        dragMomentum={false}
+        className="fixed bottom-4 right-4 z-[550] bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2.5 flex flex-col items-center gap-1.5 shadow-2xl backdrop-blur-md w-28 cursor-move active:scale-95 transition-transform"
+      >
         <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1">
           <span className={`w-1.5 h-1.5 rounded-full ${isPausedByFace ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`} />
           Live Cam
@@ -1356,7 +1394,7 @@ function LanguageExamViewer({
           )}
         </div>
         <span className="text-[8px] text-slate-400 text-center font-bold">Proctored Active</span>
-      </div>
+      </motion.div>
 
       {/* Paused Proctoring Overlays */}
       {(isPausedByTab || isPausedByFace) && (
@@ -1409,7 +1447,7 @@ function LanguageExamViewer({
 
 /* ─── Main Page ──────────────────────────────────────────────── */
 export default function LanguageModulesPage() {
-  const { user, isLoading, isGuest } = useAuth();
+  const { user, isLoading, isGuest, userProfile } = useAuth();
   const [activeLanguage, setActiveLanguage] = useState<string>(languageModules[0].id);
   const [completedLessons, setCompletedLessons] = useState<Record<string, Set<string>>>({});
   const [selectedLesson, setSelectedLesson] = useState<{ lesson: Lesson; index: number } | null>(null);
@@ -1426,7 +1464,7 @@ export default function LanguageModulesPage() {
     score: number;
   } | null>(null);
 
-  // Load progress on mount
+  // Load progress on mount / userProfile loaded
   useEffect(() => {
     try {
       const storedLessons = localStorage.getItem('lingoland_language_modules_completed_lessons');
@@ -1450,7 +1488,33 @@ export default function LanguageModulesPage() {
     } catch (e) {
       console.error('Failed to load passed exams from localStorage:', e);
     }
-  }, []);
+
+    if (userProfile) {
+      const firestoreLessons = (userProfile as any).languageModulesCompletedLessons;
+      if (firestoreLessons) {
+        const loaded: Record<string, Set<string>> = {};
+        Object.entries(firestoreLessons).forEach(([lang, lessons]) => {
+          loaded[lang] = new Set(lessons as string[]);
+        });
+        setCompletedLessons(loaded);
+        try {
+          localStorage.setItem('lingoland_language_modules_completed_lessons', JSON.stringify(firestoreLessons));
+        } catch (e) {
+          console.error('Failed to sync completed lessons to localStorage:', e);
+        }
+      }
+
+      const firestoreExams = (userProfile as any).languageModulesPassedExams;
+      if (firestoreExams) {
+        setPassedExams(firestoreExams);
+        try {
+          localStorage.setItem('lingoland_language_modules_passed_exams', JSON.stringify(firestoreExams));
+        } catch (e) {
+          console.error('Failed to sync passed exams to localStorage:', e);
+        }
+      }
+    }
+  }, [userProfile]);
 
   const currentModule = languageModules.find(m => m.id === activeLanguage)!;
   const completedForLang = completedLessons[activeLanguage] ?? new Set<string>();
@@ -1461,14 +1525,24 @@ export default function LanguageModulesPage() {
       const updated = new Set(prev[langId] ?? []);
       updated.add(lessonId);
       const next = { ...prev, [langId]: updated };
+      const serializable = Object.fromEntries(
+        Object.entries(next).map(([k, set]) => [k, Array.from(set)])
+      );
       try {
-        const serializable = Object.fromEntries(
-          Object.entries(next).map(([k, set]) => [k, Array.from(set)])
-        );
         localStorage.setItem('lingoland_language_modules_completed_lessons', JSON.stringify(serializable));
       } catch (e) {
         console.error('Failed to save completed lessons', e);
       }
+
+      // Sync to Firestore
+      if (user) {
+        import('@/lib/user').then(({ updateUserProfile }) => {
+          updateUserProfile(user.uid, {
+            languageModulesCompletedLessons: serializable
+          } as any).catch(e => console.error('Failed to sync completed lessons to Firestore', e));
+        });
+      }
+
       return next;
     });
   };
@@ -1481,6 +1555,16 @@ export default function LanguageModulesPage() {
       } catch (e) {
         console.error('Failed to save passed exams', e);
       }
+
+      // Sync to Firestore
+      if (user) {
+        import('@/lib/user').then(({ updateUserProfile }) => {
+          updateUserProfile(user.uid, {
+            languageModulesPassedExams: next
+          } as any).catch(e => console.error('Failed to sync passed exams to Firestore', e));
+        });
+      }
+
       return next;
     });
   };
