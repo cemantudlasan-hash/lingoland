@@ -17,6 +17,7 @@ interface TranslatedQuestion {
   question: string;
   options: string[];
   explanation: string;
+  answerIndex: number;
 }
 
 export default function ExamContainer({
@@ -54,7 +55,8 @@ export default function ExamContainer({
       const formatted = EXAM_QUESTIONS.map(q => ({
         question: q.question,
         options: q.options,
-        explanation: q.explanation
+        explanation: q.explanation,
+        answerIndex: q.answerIndex
       }));
       setQuestions(formatted);
       setExamState('taking');
@@ -85,7 +87,8 @@ export default function ExamContainer({
       const formatted = EXAM_QUESTIONS.map(q => ({
         question: q.question,
         options: q.options,
-        explanation: q.explanation
+        explanation: q.explanation,
+        answerIndex: q.answerIndex
       }));
       setQuestions(formatted);
       setExamState('taking');
@@ -100,14 +103,14 @@ export default function ExamContainer({
   };
 
   const handleNext = async () => {
-    if (currentQuestionIdx + 1 < EXAM_QUESTIONS.length) {
+    if (currentQuestionIdx + 1 < questions.length) {
       const nextIdx = currentQuestionIdx + 1;
       setCurrentQuestionIdx(nextIdx);
       setSelectedOption(answers[nextIdx] !== undefined ? answers[nextIdx] : null);
     } else {
       // Evaluate exam
       let correct = 0;
-      EXAM_QUESTIONS.forEach((q, idx) => {
+      questions.forEach((q, idx) => {
         if (answers[idx] === q.answerIndex) {
           correct++;
         }
@@ -133,10 +136,9 @@ export default function ExamContainer({
   const isPassed = stats.passedExams?.includes(currentLanguage.code) || false;
   const bestScore = attemptInfo ? attemptInfo.score : null;
 
-  const currentQuestion = EXAM_QUESTIONS[currentQuestionIdx];
   const translatedQuestion = questions[currentQuestionIdx];
 
-  const progressPct = Math.round(((currentQuestionIdx + 1) / EXAM_QUESTIONS.length) * 100);
+  const progressPct = Math.round(((currentQuestionIdx + 1) / (questions.length || 1)) * 100);
 
   // Helper to get formatted certificate credential hash
   const getCertId = () => {
@@ -347,7 +349,7 @@ export default function ExamContainer({
       )}
 
       {/* --- EXAM TAKING INTERFACE --- */}
-      {examState === 'taking' && currentQuestion && (
+      {examState === 'taking' && translatedQuestion && (
         <div className="grid md:grid-cols-3 gap-6">
           {/* LEFT: THE ACTIVE QUESTION CARD */}
           <div className="md:col-span-2 bg-white border-2 border-slate-900 rounded-2xl p-6 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] space-y-6">
@@ -357,7 +359,7 @@ export default function ExamContainer({
                 Assessment Sheet
               </span>
               <span className="text-[10px] text-slate-500 font-extrabold uppercase font-mono">
-                Progress: {currentQuestionIdx + 1}/30
+                Progress: {currentQuestionIdx + 1}/{questions.length}
               </span>
             </div>
 
@@ -372,23 +374,17 @@ export default function ExamContainer({
             {/* Question Text block */}
             <div className="space-y-4 py-2">
               <div className="bg-slate-50 border-2 border-slate-900 p-4 rounded-xl shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
-                <label className="text-[9px] font-black text-slate-550 uppercase tracking-widest block mb-1.5 font-display">English master</label>
-                <p className="text-slate-900 text-sm leading-relaxed font-extrabold">{currentQuestion.question}</p>
+                <label className="text-[9px] font-black text-slate-550 uppercase tracking-widest block mb-1.5 font-display">
+                  {currentLanguage.code === 'en' ? "English master" : `${currentLanguage.name} Exam`}
+                </label>
+                <p className="text-slate-900 text-sm leading-relaxed font-extrabold">{translatedQuestion.question}</p>
               </div>
-
-              {viewMode === 'bilingual' && translatedQuestion && currentLanguage.code !== 'en' && (
-                <div className="bg-indigo-50 border-2 border-slate-900 p-4 rounded-xl shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
-                  <label className="text-[9px] font-black text-indigo-600 uppercase tracking-widest block mb-1.5 font-display">{currentLanguage.name}</label>
-                  <p className="text-slate-900 text-sm leading-relaxed font-extrabold">{translatedQuestion.question}</p>
-                </div>
-              )}
             </div>
 
             {/* Options Button grid */}
             <div className="space-y-3.5">
-              {currentQuestion.options.map((opt, oIdx) => {
+              {translatedQuestion.options.map((opt, oIdx) => {
                 const isSelected = selectedOption === oIdx;
-                const translatedOpt = translatedQuestion?.options?.[oIdx];
 
                 return (
                   <button
@@ -396,7 +392,7 @@ export default function ExamContainer({
                     onClick={() => handleSelectOption(oIdx)}
                     className={`w-full text-left p-4 rounded-xl border-2 border-slate-900 text-xs font-bold leading-relaxed flex items-start gap-4 transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-indigo-600 text-white shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
+                        ? "bg-indigo-650 text-white shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]"
                         : "bg-white text-slate-900 hover:bg-slate-50 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-y-[1px]"
                     }`}
                   >
@@ -407,13 +403,6 @@ export default function ExamContainer({
                     </span>
                     <div className="space-y-1">
                       <span className="block">{opt}</span>
-                      {viewMode === 'bilingual' && translatedOpt && currentLanguage.code !== 'en' && (
-                        <span className={`text-[10px] italic font-sans block font-semibold leading-snug ${
-                          isSelected ? "text-indigo-200" : "text-indigo-600"
-                        }`}>
-                          {translatedOpt}
-                        </span>
-                      )}
                     </div>
                   </button>
                 );

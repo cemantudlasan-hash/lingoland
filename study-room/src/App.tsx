@@ -32,31 +32,41 @@ export default function App() {
   // Loading indicator states
   const [loading, setLoading] = useState(true);
 
-  // Mount API requests
+  // Fetch initial user progress stats on mount
   useEffect(() => {
-    const fetchInitialData = async () => {
-      setLoading(true);
+    const fetchStats = async () => {
       try {
-        const [lessRes, statsRes] = await Promise.all([
-          fetch("/api/lessons"),
-          fetch("/api/progress"),
-        ]);
-
-        if (lessRes.ok && statsRes.ok) {
-          const lessonsData = await lessRes.json();
+        const statsRes = await fetch("/api/progress");
+        if (statsRes.ok) {
           const statsData = await statsRes.json();
-          setLessons(lessonsData);
           setStats(statsData);
         }
       } catch (err) {
-        console.error("Failed fetching initial full-stack workspace data:", err);
+        console.error("Failed fetching user stats:", err);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  // Refetch lessons when selected language shifts
+  useEffect(() => {
+    const fetchLessons = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/lessons?lang=${currentLanguage.code}`);
+        if (res.ok) {
+          const lessonsData = await res.json();
+          setLessons(lessonsData);
+        }
+      } catch (err) {
+        console.error("Failed fetching lessons for language:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInitialData();
-  }, []);
+    fetchLessons();
+  }, [currentLanguage.code]);
 
   // Sync user completed lesson points
   const handleLessonCompleted = async (xpReward: number) => {

@@ -458,7 +458,7 @@ function LessonViewer({
   onComplete: () => void;
   isCompleted: boolean;
 }) {
-  const [tab, setTab] = useState<'content' | 'practice'>('content');
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   return (
     <div className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -498,74 +498,90 @@ function LessonViewer({
             </div>
             <span className="text-[11px] text-slate-500 shrink-0">Lesson {lessonIndex + 1} / {totalLessons}</span>
           </div>
+
+          {/* Lesson page steps indicator */}
+          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              {[1, 2, 3, 4].map(p => (
+                <button
+                  key={p}
+                  onClick={() => setCurrentPage(p)}
+                  className={`h-1.5 rounded-full cursor-pointer transition-all duration-300 ${
+                    p === currentPage
+                      ? 'w-6 bg-indigo-500'
+                      : p < currentPage
+                      ? 'w-2 bg-emerald-500'
+                      : 'w-2 bg-slate-700'
+                  }`}
+                  title={`Page ${p}`}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">
+              {currentPage === 1 && '1. Introduction'}
+              {currentPage === 2 && '2. Key Phrases'}
+              {currentPage === 3 && '3. Tips & Notes'}
+              {currentPage === 4 && '4. Practice'}
+            </span>
+          </div>
         </div>
 
         {/* Body */}
         <div className="p-6 space-y-6">
-          {/* Tabs */}
-          <div className="flex gap-2">
-            {(['content', 'practice'] as const).map(t => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${tab === t
-                  ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                  : 'text-slate-500 hover:text-slate-300'}`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-
-          {tab === 'content' && (
+          {currentPage === 1 && (
             <div className="space-y-6">
-              {/* Intro */}
-              <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4">
-                <p className="text-slate-300 text-sm leading-relaxed">{lesson.content.intro}</p>
-              </div>
-
-              {/* Key Phrases */}
-              <div>
-                <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Key Phrases</h4>
-                <div className="space-y-2">
-                  {lesson.content.keyPhrases.map((phrase, i) => (
-                    <div key={i} className="flex items-start gap-3 p-3.5 bg-slate-800/40 border border-slate-700/40 rounded-xl hover:border-indigo-500/30 transition-all">
-                      <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-xs font-black text-indigo-400 mt-0.5">
-                        {i + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          <span className="text-white font-bold text-base">{phrase.native}</span>
-                          {phrase.romanized && (
-                            <span className="text-indigo-300 text-xs font-mono italic">[{phrase.romanized}]</span>
-                          )}
-                        </div>
-                        <p className="text-slate-400 text-sm mt-0.5">{phrase.english}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tips */}
-              <div>
-                <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Tips & Notes</h4>
-                <div className="space-y-2">
-                  {lesson.content.tips.map((tip, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-sm text-slate-300">
-                      <Star className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                      <span>{tip}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
+                <h4 className="text-sm font-black text-indigo-400 uppercase tracking-wider mb-3">Introduction & Overview</h4>
+                <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{lesson.content.intro}</p>
               </div>
             </div>
           )}
 
-          {tab === 'practice' && (
-            <div className="space-y-4">
+          {currentPage === 2 && (
+            <div className="space-y-6">
+              <h4 className="text-sm font-black text-indigo-400 uppercase tracking-wider mb-3">Key Phrases / Vocabulary</h4>
+              <div className="space-y-2 max-h-[45vh] overflow-y-auto pr-1">
+                {lesson.content.keyPhrases.map((phrase, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3.5 bg-slate-800/40 border border-slate-700/40 rounded-xl hover:border-indigo-500/30 transition-all">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-xs font-black text-indigo-400 mt-0.5">
+                      {i + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <span className="text-white font-bold text-base">{phrase.native}</span>
+                        {phrase.romanized && (
+                          <span className="text-indigo-300 text-xs font-mono italic">[{phrase.romanized}]</span>
+                        )}
+                      </div>
+                      <p className="text-slate-400 text-sm mt-0.5">{phrase.english}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {currentPage === 3 && (
+            <div className="space-y-6">
+              <h4 className="text-sm font-black text-indigo-400 uppercase tracking-wider mb-3">Tips & Notes</h4>
+              <div className="space-y-3 bg-slate-800/30 border border-slate-700/40 rounded-2xl p-5">
+                {lesson.content.tips.map((tip, i) => (
+                  <div key={i} className="flex items-start gap-2.5 text-sm text-slate-300">
+                    <Star className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <span className="leading-relaxed">{tip}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {currentPage === 4 && (
+            <div className="space-y-6">
+              <h4 className="text-sm font-black text-indigo-400 uppercase tracking-wider mb-3">Practice Activity</h4>
               <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/5 border border-indigo-500/20 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Trophy className="w-5 h-5 text-indigo-400" />
-                  <h4 className="text-white font-black">Practice Activity</h4>
+                  <h4 className="text-white font-black">Practice Task</h4>
                 </div>
                 <p className="text-slate-300 text-sm leading-relaxed">{lesson.content.practice}</p>
               </div>
@@ -580,10 +596,30 @@ function LessonViewer({
 
         {/* Footer */}
         <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 px-6 py-4 rounded-b-3xl flex items-center justify-between gap-4">
-          <button onClick={onClose} className="flex items-center gap-1.5 text-slate-400 text-sm font-bold hover:text-white transition-colors">
-            <ChevronLeft className="w-4 h-4" /> Back
-          </button>
-          {isCompleted ? (
+          {currentPage > 1 ? (
+            <button
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              className="flex items-center gap-1.5 text-slate-400 text-sm font-bold hover:text-white transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" /> Previous
+            </button>
+          ) : (
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1.5 text-slate-400 text-sm font-bold hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" /> Close
+            </button>
+          )}
+
+          {currentPage < 4 ? (
+            <button
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-500 active:scale-[0.98] transition-all shadow-lg shadow-indigo-500/20"
+            >
+              Next <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : isCompleted ? (
             <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold">
               <CheckCircle className="w-5 h-5" /> Completed
             </div>
@@ -635,7 +671,7 @@ function LanguageExamViewer({
   const mod = languageModules.find(m => m.id === exam.languageId)!;
 
   if (exam.finished) {
-    const passed = exam.score >= 25;
+    const passed = exam.score >= 23;
     return (
       <div className="fixed inset-0 z-[500] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
         <motion.div
@@ -687,7 +723,7 @@ function LanguageExamViewer({
               ) : (
                 <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 max-w-md mx-auto">
                   <p className="text-rose-300 text-sm font-medium">
-                    You need at least <span className="text-white font-bold">25 correct answers</span> (83%) to pass and unlock the certificate. Keep studying and try again!
+                    You need at least <span className="text-white font-bold">23 correct answers</span> (77%) to pass and unlock the certificate. Keep studying and try again!
                   </p>
                 </div>
               )}
@@ -818,7 +854,7 @@ function LanguageExamViewer({
             <span className="text-3xl">{mod.flag}</span>
             <div>
               <h3 className="text-white font-black text-lg">{mod.language} Certification Exam</h3>
-              <p className="text-slate-400 text-xs">Answer 30 questions · Pass grade: 25/30</p>
+              <p className="text-slate-400 text-xs">Answer 30 questions · Pass grade: 23/30</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
@@ -1034,7 +1070,7 @@ export default function LanguageModulesPage() {
             <p className="text-sm text-indigo-300 font-semibold uppercase tracking-widest">Members Only</p>
           </div>
           <p className="text-sm text-slate-400 leading-relaxed">
-            Sign in to access all 7 language modules with 10 lessons each, track your progress, and earn completion certificates.
+            Sign in to access all {languageModules.length} language modules with {languageModules[0]?.lessons.length ?? 15} lessons each, track your progress, and earn completion certificates.
           </p>
           <Link href="/auth"
             className="flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-[0_0_24px_theme(colors.indigo.500/0.35)] transition-all hover:scale-105 active:scale-95">
@@ -1109,7 +1145,7 @@ export default function LanguageModulesPage() {
                 }
               });
               
-              const passed = score >= 25;
+              const passed = score >= 23;
               
               setActiveExam(prev => {
                 if (!prev) return null;
@@ -1186,7 +1222,7 @@ export default function LanguageModulesPage() {
               <GraduationCap className="h-7 w-7 text-indigo-400" />
               Language Modules
             </h1>
-            <p className="text-xs text-slate-400 mt-1">7 languages · 10 lessons each · Earn a certificate when you complete all lessons</p>
+            <p className="text-xs text-slate-400 mt-1">{languageModules.length} languages · {currentModule.lessons.length} lessons each · Earn a certificate when you complete all lessons</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1.5 rounded-full flex items-center gap-2">

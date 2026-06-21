@@ -70,6 +70,25 @@ export default function ContentViewer({
     setViewMode('bilingual');
 
     const handleFetchTranslation = async () => {
+      if (lesson.targetLang) {
+        setTranslation({
+          title: "",
+          description: "",
+          explanation: "",
+          introduction: "",
+          context: "",
+          howToProduce: "",
+          keyRules: [],
+          words: [],
+          transcript: [],
+          practiceSentences: [],
+          quiz: []
+        });
+        setViewMode('english');
+        setTranslating(false);
+        return;
+      }
+
       setTranslating(true);
       try {
         const res = await fetch("/api/translate-lesson", {
@@ -119,6 +138,33 @@ export default function ContentViewer({
       window.speechSynthesis.cancel();
     }
 
+    if (lesson.targetLang && 'speechSynthesis' in window) {
+      let textToSpeak = text;
+      const parts = text.split(/[\(\-\—]/);
+      if (parts[0]) {
+        textToSpeak = parts[0].trim();
+      }
+
+      const localeMap: Record<string, string> = {
+        th: "th-TH",
+        ko: "ko-KR",
+        ja: "ja-JP",
+        es: "es-ES",
+        fr: "fr-FR",
+        vi: "vi-VN",
+        zh: "zh-CN",
+        de: "de-DE",
+      };
+      
+      const u = new SpeechSynthesisUtterance(textToSpeak);
+      u.lang = localeMap[targetLanguage.code] || "en-US";
+      u.rate = 0.85;
+      u.onend = () => setPlayingLineIndex(null);
+      u.onerror = () => setPlayingLineIndex(null);
+      window.speechSynthesis.speak(u);
+      return;
+    }
+
     try {
       // Determine unique voice names for distinct baristas/sarah
       const voiceNameMap: Record<string, string> = {
@@ -165,8 +211,32 @@ export default function ContentViewer({
     setPlayingWord(word);
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(word);
-      u.lang = "en-US";
+      let textToSpeak = word;
+      if (lesson.targetLang) {
+        const parts = word.split(/[\(\-\—]/);
+        if (parts[0]) {
+          textToSpeak = parts[0].trim();
+        }
+      }
+
+      const u = new SpeechSynthesisUtterance(textToSpeak);
+
+      if (lesson.targetLang) {
+        const localeMap: Record<string, string> = {
+          th: "th-TH",
+          ko: "ko-KR",
+          ja: "ja-JP",
+          es: "es-ES",
+          fr: "fr-FR",
+          vi: "vi-VN",
+          zh: "zh-CN",
+          de: "de-DE",
+        };
+        u.lang = localeMap[targetLanguage.code] || "en-US";
+      } else {
+        u.lang = "en-US";
+      }
+
       u.rate = 0.8;
       u.onend = () => setPlayingWord(null);
       u.onerror = () => setPlayingWord(null);
