@@ -47,6 +47,8 @@ interface CertificateData {
   courseName: string;
   completionDate: string;
   additionalDetail: string;
+  showSeal?: boolean;
+  sealStyle?: 'logo' | 'star';
 }
 
 function LanguageCertificateGenerator({
@@ -65,6 +67,8 @@ function LanguageCertificateGenerator({
     courseName: `${language} Language Mastery`,
     completionDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
     additionalDetail: '',
+    showSeal: true,
+    sealStyle: 'logo',
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const certRef = useRef<HTMLDivElement>(null);
@@ -169,6 +173,36 @@ function LanguageCertificateGenerator({
                 onChange={e => setForm(p => ({ ...p, additionalDetail: e.target.value }))}
                 className="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
               />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5" /> Official Seal
+              </label>
+              <div className="flex items-center gap-4 h-[46px] bg-slate-800 border border-slate-700 rounded-xl px-4">
+                <label className="flex items-center gap-2.5 text-white text-sm cursor-pointer select-none w-full">
+                  <input
+                    type="checkbox"
+                    checked={form.showSeal !== false}
+                    onChange={e => setForm(p => ({ ...p, showSeal: e.target.checked }))}
+                    className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-indigo-600 focus:ring-indigo-500/30 accent-indigo-500 cursor-pointer"
+                  />
+                  <span>Show Official Seal</span>
+                </label>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" /> Seal Logo Style
+              </label>
+              <select
+                disabled={form.showSeal === false}
+                value={form.sealStyle || 'logo'}
+                onChange={e => setForm(p => ({ ...p, sealStyle: e.target.value as 'logo' | 'star' }))}
+                className="w-full h-[46px] bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <option value="logo">LingoLandVerse Logo (Default)</option>
+                <option value="star">Classic Gold Star</option>
+              </select>
             </div>
           </div>
 
@@ -304,17 +338,24 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
         {flag}
       </div>
 
-      {/* Content wrapper — centered column */}
+      {/* Content wrapper — absolute positioned children to prevent html2canvas flexbox layout collapsing */}
       <div style={{
         position: 'absolute', inset: 28,
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'space-between',
         textAlign: 'center',
-        padding: '18px 50px 12px',
         boxSizing: 'border-box',
       }}>
         {/* Top: Institution + flag */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+        <div style={{
+          position: 'absolute',
+          top: 15,
+          left: 0,
+          right: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+          textAlign: 'center',
+        }}>
           <div style={{ fontSize: 28 }}>{flag}</div>
           <div style={{
             fontFamily: "'Playfair Display', serif",
@@ -326,7 +367,17 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
         </div>
 
         {/* Certificate title */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+        <div style={{
+          position: 'absolute',
+          top: 110,
+          left: 0,
+          right: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 6,
+          textAlign: 'center',
+        }}>
           <div style={{
             fontFamily: "'Cinzel', serif",
             fontSize: 38, fontWeight: 900,
@@ -348,32 +399,63 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
             fontStyle: 'italic',
             fontSize: 13, color: '#92400e', opacity: 0.8,
             letterSpacing: '0.05em',
+            marginTop: 6,
           }}>
             This is to proudly certify that
           </div>
         </div>
 
-        {/* Recipient name */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-          <div style={{
-            fontFamily: "'Great Vibes', cursive",
-            fontSize: 58, color: '#1e3a5f',
-            lineHeight: 1.1,
-            letterSpacing: '0.01em',
-            maxWidth: 700,
-            wordBreak: 'break-word',
-          }}>
-            {data.fullName || 'Your Full Name'}
-          </div>
-          <div style={{
-            width: '70%', height: 1.5,
-            backgroundColor: gradFrom,
-            opacity: 0.25,
-          }} />
-        </div>
+        {/* Recipient name (dynamic sizing to prevent overflow) */}
+        {(() => {
+          const nameLength = data.fullName.length;
+          const nameFontSize = nameLength > 28 ? 32 : nameLength > 18 ? 44 : 56;
+          return (
+            <div style={{
+              position: 'absolute',
+              top: 245,
+              left: 0,
+              right: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+              textAlign: 'center',
+            }}>
+              <div style={{
+                fontFamily: "'Great Vibes', cursive",
+                fontSize: nameFontSize,
+                color: '#1e3a5f',
+                lineHeight: 1.1,
+                letterSpacing: '0.01em',
+                maxWidth: 700,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
+                {data.fullName || 'Your Full Name'}
+              </div>
+              <div style={{
+                width: '70%', height: 1.5,
+                backgroundColor: gradFrom,
+                opacity: 0.25,
+                marginTop: 4,
+              }} />
+            </div>
+          );
+        })()}
 
         {/* Body text */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+        <div style={{
+          position: 'absolute',
+          top: 350,
+          left: 0,
+          right: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 6,
+          textAlign: 'center',
+        }}>
           <div style={{
             fontFamily: "'Playfair Display', serif",
             fontStyle: 'italic', fontSize: 13,
@@ -400,6 +482,7 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
               fontSize: 11, color: '#92400e',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
+              marginTop: 4,
             }}>
               {data.additionalDetail}
             </div>
@@ -407,49 +490,90 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
         </div>
 
         {/* Footer: date + seal + signature */}
+        {/* Date */}
         <div style={{
-          width: '100%', display: 'flex',
-          alignItems: 'flex-end', justifyContent: 'space-between',
-          paddingTop: 4,
+          position: 'absolute',
+          bottom: 15,
+          left: 40,
+          width: 180,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 2,
+          textAlign: 'center',
         }}>
-          {/* Date */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 140 }}>
-            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 12, color: '#1e293b', fontWeight: 600 }}>
-              {data.completionDate}
-            </div>
-            <div style={{ width: 120, height: 1, background: '#94a3b8' }} />
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 9, color: '#64748b', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              Date Issued
-            </div>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 12, color: '#1e293b', fontWeight: 600 }}>
+            {data.completionDate}
           </div>
+          <div style={{ width: 120, height: 1, background: '#94a3b8' }} />
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 9, color: '#64748b', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            Date Issued
+          </div>
+        </div>
 
-          {/* Seal */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-            <div style={{
-              width: 72, height: 72, borderRadius: '50%',
-              background: `linear-gradient(135deg, #fbbf24 0%, #d97706 70%, #b45309 100%)`,
-              border: '3px solid #fde68a',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(180,83,9,0.4)',
-            }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
-                <path d="M12 .587l3.668 7.431 8.2 1.191-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.209l8.2-1.191L12 .587z" />
-              </svg>
-            </div>
+        {/* Seal */}
+        {data.showSeal !== false && (
+          <div style={{
+            position: 'absolute',
+            bottom: 5,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 180,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 3,
+            textAlign: 'center',
+          }}>
+            {data.sealStyle === 'star' ? (
+              <div style={{
+                width: 72, height: 72, borderRadius: '50%',
+                background: `linear-gradient(135deg, #fbbf24 0%, #d97706 70%, #b45309 100%)`,
+                border: '3px solid #fde68a',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(180,83,9,0.4)',
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+                  <path d="M12 .587l3.668 7.431 8.2 1.191-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.209l8.2-1.191L12 .587z" />
+                </svg>
+              </div>
+            ) : (
+              <div style={{
+                width: 72, height: 72, borderRadius: '50%',
+                backgroundColor: '#f8fafc',
+                border: '3px solid #fde68a',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(180,83,9,0.3)',
+                overflow: 'hidden',
+              }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.png" crossOrigin="anonymous" alt="LingoLandVerse Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
+              </div>
+            )}
             <div style={{ fontFamily: 'Georgia, serif', fontSize: 9, color: '#92400e', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
               Official Seal
             </div>
           </div>
+        )}
 
-          {/* Instructor signature */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, minWidth: 140 }}>
-            <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 16, color: '#1e293b', fontWeight: 600 }}>
-              LingoLandVerse
-            </div>
-            <div style={{ width: 120, height: 1, background: '#94a3b8' }} />
-            <div style={{ fontFamily: 'Georgia, serif', fontSize: 9, color: '#64748b', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              Language Director
-            </div>
+        {/* Instructor signature */}
+        <div style={{
+          position: 'absolute',
+          bottom: 15,
+          right: 40,
+          width: 180,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 2,
+          textAlign: 'center',
+        }}>
+          <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 16, color: '#1e293b', fontWeight: 600 }}>
+            LingoLandVerse
+          </div>
+          <div style={{ width: 120, height: 1, background: '#94a3b8' }} />
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 9, color: '#64748b', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            Language Director
           </div>
         </div>
       </div>
