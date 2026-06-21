@@ -663,6 +663,15 @@ function LanguageExamViewer({
   onClaimCertificate: () => void;
 }) {
   const [showReview, setShowReview] = useState(false);
+  const [cameraState, setCameraState] = useState<'prompt' | 'loading_model' | 'active' | 'denied'>('prompt');
+  const [isPausedByTab, setIsPausedByTab] = useState(false);
+  const [isPausedByFace, setIsPausedByFace] = useState(false);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const modelRef = useRef<any>(null);
+  const faceDetectionInterval = useRef<any>(null);
+
   const currentQ = exam.questions[exam.currentIdx];
   const totalQuestions = exam.questions.length;
   const answeredCount = Object.keys(exam.answers).length;
@@ -670,10 +679,153 @@ function LanguageExamViewer({
 
   const mod = languageModules.find(m => m.id === exam.languageId)!;
 
+  const loadProctoringScripts = () => {
+    return new Promise<void>((resolve, reject) => {
+      if ((window as any).tf && (window as any).blazeface) {
+        resolve();
+        return;
+      }
+      const tfScript = document.createElement('script');
+      tfScript.src = "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js";
+      tfScript.async = true;
+      tfScript.onload = () => {
+        const bfScript = document.createElement('script');
+        bfScript.src = "https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js";
+        bfScript.async = true;
+        bfScript.onload = () => {
+          resolve();
+        };
+        bfScript.onerror = (e) => reject(e);
+        document.body.appendChild(bfScript);
+      };
+      tfScript.onerror = (e) => reject(e);
+      document.body.appendChild(tfScript);
+    });
+  };
+
+  const cleanUpProctoring = () => {
+    if (faceDetectionInterval.current) {
+      clearInterval(faceDetectionInterval.current);
+      faceDetectionInterval.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setCameraState('prompt');
+    setIsPausedByTab(false);
+    setIsPausedByFace(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      cleanUpProctoring();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (exam.finished) {
+      cleanUpProctoring();
+    }
+  }, [exam.finished]);
+
+  const handleStartProctoring = async () => {
+    setCameraState('loading_model');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 320, height: 240, facingMode: 'user' }
+      });
+      streamRef.current = stream;
+
+      await loadProctoringScripts();
+      const loadedModel = await (window as any).blazeface.load();
+      modelRef.current = loadedModel;
+
+      setCameraState('active');
+      
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 200);
+    } catch (err) {
+      console.error('Proctoring initialization failed', err);
+      setCameraState('denied');
+    }
+  };
+
+  useEffect(() => {
+    if (cameraState !== 'active' || exam.finished) return;
+
+    const handleBlur = () => {
+      setIsPausedByTab(true);
+    };
+    const handleFocus = () => {
+      setIsPausedByTab(false);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        setIsPausedByTab(true);
+      }
+    };
+
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [cameraState, exam.finished]);
+
+  useEffect(() => {
+    if (cameraState !== 'active' || exam.finished || !modelRef.current) return;
+
+    let consecutiveNoFaceCount = 0;
+
+    faceDetectionInterval.current = setInterval(async () => {
+      if (!videoRef.current || !modelRef.current) return;
+      try {
+        const returnTensors = false;
+        const predictions = await modelRef.current.estimateFaces(videoRef.current, returnTensors);
+        
+        if (predictions.length === 0) {
+          consecutiveNoFaceCount++;
+          if (consecutiveNoFaceCount >= 2) {
+            setIsPausedByFace(true);
+          }
+        } else {
+          const face = predictions[0];
+          const probability = face.probability ? face.probability[0] : 1.0;
+          
+          if (probability < 0.85) {
+            consecutiveNoFaceCount++;
+            if (consecutiveNoFaceCount >= 2) {
+              setIsPausedByFace(true);
+            }
+          } else {
+            consecutiveNoFaceCount = 0;
+            setIsPausedByFace(false);
+          }
+        }
+      } catch (e) {
+        console.error('Face prediction error', e);
+      }
+    }, 800);
+
+    return () => {
+      if (faceDetectionInterval.current) {
+        clearInterval(faceDetectionInterval.current);
+      }
+    };
+  }, [cameraState, exam.finished]);
+
   if (exam.finished) {
     const passed = exam.score >= 23;
     return (
-      <div className="fixed inset-0 z-[500] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[500] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -799,12 +951,7 @@ function LanguageExamViewer({
             {passed ? (
               <>
                 <button
-                  onClick={() => {
-                    onClose();
-                    setTimeout(() => {
-                      onClaimCertificate();
-                    }, 300);
-                  }}
+                  onClick={onClose}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-sm hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-amber-500/20"
                 >
                   <Award className="w-4 h-4" />
@@ -820,7 +967,10 @@ function LanguageExamViewer({
             ) : (
               <>
                 <button
-                  onClick={onRetake}
+                  onClick={() => {
+                    cleanUpProctoring();
+                    onRetake();
+                  }}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black text-sm hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -840,128 +990,280 @@ function LanguageExamViewer({
     );
   }
 
-  return (
-    <div className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
-        className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-3xl max-h-[95vh] overflow-y-auto shadow-2xl flex flex-col"
-      >
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-slate-900 border-b border-slate-800 px-6 py-4 rounded-t-3xl flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{mod.flag}</span>
-            <div>
-              <h3 className="text-white font-black text-lg">{mod.language} Certification Exam</h3>
-              <p className="text-slate-400 text-xs">Answer 30 questions · Pass grade: 23/30</p>
+  if (cameraState !== 'active') {
+    return (
+      <div className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-md p-6 shadow-2xl flex flex-col gap-5 text-center"
+        >
+          <div className="flex flex-col items-center gap-3">
+            <span className="text-4xl">{mod.flag}</span>
+            <h3 className="text-white font-black text-xl">{mod.language} Exam Proctoring</h3>
+            <p className="text-slate-400 text-xs leading-relaxed">
+              To unlock the certificate of completion, this final exam uses automated camera monitoring to verify focus and prevent browser/tab swapping.
+            </p>
+          </div>
+
+          <div className="bg-slate-950/40 border border-slate-800 rounded-2xl p-4 text-left space-y-3">
+            <div className="flex gap-2.5 items-start">
+              <div className="w-5 h-5 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-xs font-black text-indigo-400 mt-0.5">
+                1
+              </div>
+              <p className="text-slate-350 text-xs leading-relaxed font-semibold">
+                <span className="text-white font-bold">Camera Access:</span> Grant camera permission so the face detector can track focus.
+              </p>
+            </div>
+            <div className="flex gap-2.5 items-start">
+              <div className="w-5 h-5 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-xs font-black text-indigo-400 mt-0.5">
+                2
+              </div>
+              <p className="text-slate-350 text-xs leading-relaxed font-semibold">
+                <span className="text-white font-bold">Tab Lock:</span> Alt-tabbing, switching tabs, or resizing the browser window will pause the exam.
+              </p>
+            </div>
+            <div className="flex gap-2.5 items-start">
+              <div className="w-5 h-5 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 text-xs font-black text-indigo-400 mt-0.5">
+                3
+              </div>
+              <p className="text-slate-350 text-xs leading-relaxed font-semibold">
+                <span className="text-white font-bold">Face Detection:</span> Looking away from the screen for more than 1 second will pause the exam.
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
-            <X className="w-5 h-5 text-slate-400" />
-          </button>
-        </div>
 
-        {/* Progress Bar */}
-        <div className="px-6 py-3 bg-slate-950/40 border-b border-slate-800/60 flex flex-col gap-2 shrink-0">
-          <div className="flex justify-between items-center text-xs">
-            <span className="font-bold text-indigo-400 uppercase tracking-wider">Question {exam.currentIdx + 1} of {totalQuestions}</span>
-            <span className="text-slate-500 font-medium">{answeredCount} of {totalQuestions} answered</span>
-          </div>
-          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-300"
-              style={{ width: `${((exam.currentIdx + 1) / totalQuestions) * 100}%` }} />
-          </div>
-        </div>
+          {cameraState === 'denied' && (
+            <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-3 text-left">
+              <p className="text-rose-400 text-xs font-semibold leading-relaxed animate-pulse">
+                ❌ Camera access was denied or failed. You must grant camera access to begin the certification exam.
+              </p>
+            </div>
+          )}
 
-        {/* Body content */}
-        <div className="p-6 space-y-6 flex-1">
-          <div className="bg-slate-850 border border-slate-800 rounded-2xl p-5 shadow-inner">
-            <p className="text-slate-100 font-extrabold text-base sm:text-lg leading-relaxed">{currentQ.question}</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {currentQ.options.map((option, optIdx) => {
-              const letter = String.fromCharCode(65 + optIdx);
-              const isSelected = exam.answers[exam.currentIdx] === optIdx;
-              return (
-                <button
-                  key={optIdx}
-                  onClick={() => onAnswer(exam.currentIdx, optIdx)}
-                  className={`text-left p-4 rounded-2xl border transition-all flex items-start gap-3 w-full group relative ${
-                    isSelected
-                      ? 'bg-indigo-500/15 border-indigo-500 text-white shadow-lg shadow-indigo-500/5'
-                      : 'bg-slate-950/40 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 transition-all ${
-                    isSelected
-                      ? 'bg-indigo-500 text-white'
-                      : 'bg-slate-800 text-slate-500 group-hover:bg-slate-750 group-hover:text-indigo-400'
-                  }`}>
-                    {letter}
-                  </span>
-                  <span className="text-sm font-semibold pt-0.5 leading-normal">{option}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Dot Navigation Panel */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/20 shrink-0">
-          <div className="flex flex-wrap gap-1.5 justify-center max-w-xl mx-auto">
-            {exam.questions.map((_, idx) => {
-              const isCurrent = exam.currentIdx === idx;
-              const isAnswered = exam.answers[idx] !== undefined;
-              return (
-                <button
-                  key={idx}
-                  onClick={() => onNavigate(idx)}
-                  className={`w-7 h-7 text-[10px] font-black rounded-lg transition-all border flex items-center justify-center shrink-0 ${
-                    isCurrent
-                      ? 'bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500'
-                      : isAnswered
-                      ? 'bg-indigo-950/40 border-indigo-900 text-indigo-400 hover:border-indigo-700'
-                      : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-350 hover:border-slate-700'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Footer controls */}
-        <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 px-6 py-4 rounded-b-3xl flex items-center justify-between gap-4 shrink-0">
-          <button
-            disabled={exam.currentIdx === 0}
-            onClick={() => onNavigate(exam.currentIdx - 1)}
-            className="flex items-center gap-1.5 text-slate-400 disabled:opacity-30 disabled:hover:text-slate-400 text-sm font-bold hover:text-white transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" /> Previous
-          </button>
-
-          {exam.currentIdx + 1 === totalQuestions ? (
+          <div className="flex gap-3 mt-1">
             <button
-              onClick={onSubmit}
-              disabled={!allAnswered}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-650 text-slate-950 hover:text-white disabled:text-slate-950 disabled:from-emerald-500/50 disabled:to-teal-600/50 disabled:cursor-not-allowed disabled:scale-100 font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+              onClick={onClose}
+              className="flex-1 px-4 py-3 rounded-xl border border-slate-700 text-slate-400 hover:text-white font-bold text-xs hover:bg-slate-800 transition-all"
             >
-              Submit Exam
+              Cancel
             </button>
-          ) : (
+            {cameraState === 'loading_model' ? (
+              <button
+                disabled
+                className="flex-1 px-4 py-3 rounded-xl bg-indigo-600/50 text-white/50 font-black text-xs cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                Initializing...
+              </button>
+            ) : (
+              <button
+                onClick={handleStartProctoring}
+                className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black text-xs hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+              >
+                Enable Cam & Start
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-3xl max-h-[95vh] overflow-y-auto shadow-2xl flex flex-col"
+        >
+          {/* Header */}
+          <div className="sticky top-0 z-10 bg-slate-900 border-b border-slate-800 px-6 py-4 rounded-t-3xl flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{mod.flag}</span>
+              <div>
+                <h3 className="text-white font-black text-lg">{mod.language} Certification Exam</h3>
+                <p className="text-slate-400 text-xs">Answer 30 questions · Pass grade: 23/30</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="px-6 py-3 bg-slate-950/40 border-b border-slate-800/60 flex flex-col gap-2 shrink-0">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-bold text-indigo-400 uppercase tracking-wider">Question {exam.currentIdx + 1} of {totalQuestions}</span>
+              <span className="text-slate-500 font-medium">{answeredCount} of {totalQuestions} answered</span>
+            </div>
+            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-300"
+                style={{ width: `${((exam.currentIdx + 1) / totalQuestions) * 100}%` }} />
+            </div>
+          </div>
+
+          {/* Body content */}
+          <div className="p-6 space-y-6 flex-1">
+            <div className="bg-slate-850 border border-slate-800 rounded-2xl p-5 shadow-inner">
+              <p className="text-slate-100 font-extrabold text-base sm:text-lg leading-relaxed">{currentQ.question}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {currentQ.options.map((option, optIdx) => {
+                const letter = String.fromCharCode(65 + optIdx);
+                const isSelected = exam.answers[exam.currentIdx] === optIdx;
+                return (
+                  <button
+                    key={optIdx}
+                    onClick={() => onAnswer(exam.currentIdx, optIdx)}
+                    className={`text-left p-4 rounded-2xl border transition-all flex items-start gap-3 w-full group relative ${
+                      isSelected
+                        ? 'bg-indigo-500/15 border-indigo-500 text-white shadow-lg shadow-indigo-500/5'
+                        : 'bg-slate-950/40 border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 transition-all ${
+                      isSelected
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-slate-800 text-slate-500 group-hover:bg-slate-750 group-hover:text-indigo-400'
+                    }`}>
+                      {letter}
+                    </span>
+                    <span className="text-sm font-semibold pt-0.5 leading-normal">{option}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Dot Navigation Panel */}
+          <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/20 shrink-0">
+            <div className="flex flex-wrap gap-1.5 justify-center max-w-xl mx-auto">
+              {exam.questions.map((_, idx) => {
+                const isCurrent = exam.currentIdx === idx;
+                const isAnswered = exam.answers[idx] !== undefined;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => onNavigate(idx)}
+                    className={`w-7 h-7 text-[10px] font-black rounded-lg transition-all border flex items-center justify-center shrink-0 ${
+                      isCurrent
+                        ? 'bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500'
+                        : isAnswered
+                        ? 'bg-indigo-950/40 border-indigo-900 text-indigo-400 hover:border-indigo-700'
+                        : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-350 hover:border-slate-700'
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Footer controls */}
+          <div className="sticky bottom-0 bg-slate-900 border-t border-slate-800 px-6 py-4 rounded-b-3xl flex items-center justify-between gap-4 shrink-0">
             <button
-              onClick={() => onNavigate(exam.currentIdx + 1)}
-              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white text-sm font-bold hover:bg-slate-800 transition-colors"
+              disabled={exam.currentIdx === 0}
+              onClick={() => onNavigate(exam.currentIdx - 1)}
+              className="flex items-center gap-1.5 text-slate-400 disabled:opacity-30 disabled:hover:text-slate-400 text-sm font-bold hover:text-white transition-colors"
             >
-              Next <ChevronRight className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4" /> Previous
             </button>
+
+            {exam.currentIdx + 1 === totalQuestions ? (
+              <button
+                onClick={onSubmit}
+                disabled={!allAnswered}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-650 text-slate-950 hover:text-white disabled:text-slate-950 disabled:from-emerald-500/50 disabled:to-teal-600/50 disabled:cursor-not-allowed disabled:scale-100 font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+              >
+                Submit Exam
+              </button>
+            ) : (
+              <button
+                onClick={() => onNavigate(exam.currentIdx + 1)}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:text-white text-sm font-bold hover:bg-slate-800 transition-colors"
+              >
+                Next <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Floating live video preview widget */}
+      <div className="fixed bottom-4 right-4 z-[550] bg-slate-900/90 border border-slate-700/80 rounded-2xl p-2.5 flex flex-col items-center gap-1.5 shadow-2xl backdrop-blur-md w-28">
+        <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1">
+          <span className={`w-1.5 h-1.5 rounded-full ${isPausedByFace ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`} />
+          Live Cam
+        </span>
+        <div className="relative w-24 h-18 rounded-lg overflow-hidden border border-slate-800 bg-black">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover scale-x-[-1]"
+          />
+          {isPausedByFace && (
+            <div className="absolute inset-0 bg-rose-950/60 flex items-center justify-center">
+              <Lock className="w-4 h-4 text-rose-400 animate-pulse" />
+            </div>
           )}
         </div>
-      </motion.div>
-    </div>
+        <span className="text-[8px] text-slate-400 text-center font-bold">Proctored Active</span>
+      </div>
+
+      {/* Paused Proctoring Overlays */}
+      {(isPausedByTab || isPausedByFace) && (
+        <div className="fixed inset-0 z-[600] bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-slate-900 border border-rose-500/30 rounded-3xl p-8 max-w-md shadow-2xl shadow-rose-950/20 flex flex-col items-center gap-5"
+          >
+            <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center animate-pulse">
+              <Lock className="w-8 h-8 text-rose-400" />
+            </div>
+            
+            {isPausedByTab ? (
+              <>
+                <h3 className="text-white font-black text-xl">Exam Paused: Tab Changed</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  You switched browser tabs or windows. Switching tabs, alt-tabbing, or clicking away is strictly prohibited during the certification exam.
+                </p>
+                <p className="text-indigo-400 text-xs font-semibold uppercase tracking-wider animate-pulse">
+                  Please click back inside this window to resume.
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-white font-black text-xl">Exam Paused: Focus Lost</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Please face only on the monitor screen or focus on the exam. Ensure your face is fully visible to the camera.
+                </p>
+                <div className="w-20 h-15 rounded-lg overflow-hidden border border-slate-700 bg-black">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover scale-x-[-1]"
+                  />
+                </div>
+                <p className="text-amber-400 text-xs font-semibold uppercase tracking-wider animate-pulse">
+                  Looking back at the screen will automatically resume the exam.
+                </p>
+              </>
+            )}
+          </motion.div>
+        </div>
+      )}
+    </>
   );
 }
 

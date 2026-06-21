@@ -1702,5 +1702,218 @@ export const languageExams: Record<string, ExamQuestion[]> = {
       answerIndex: 0,
       explanation: 'Kaffee und Kuchen (coffee and cake) is a traditional Sunday afternoon social ritual.'
     }
+  ],
+
+  filipino: [
+    {
+      id: 'fil-ex-01',
+      question: 'Which word represents community spirit and helping one another in Filipino culture?',
+      options: ['Fiesta', 'Bayanihan', 'Pasalubong', 'Bahala na'],
+      answerIndex: 1,
+      explanation: 'Bayanihan represents community unity and cooperative spirit, historically shown by carrying houses together.'
+    },
+    {
+      id: 'fil-ex-02',
+      question: 'What is the polite translation of "Good morning" in Filipino?',
+      options: ['Magandang hapon po', 'Magandang gabi po', 'Magandang umaga po', 'Kumusta po'],
+      answerIndex: 2,
+      explanation: 'Magandang umaga po translates to "Good morning (polite)".'
+    },
+    {
+      id: 'fil-ex-03',
+      question: 'How do you show respect to elders at the end of sentences?',
+      options: ['Using "ka"', 'Using "po" or "opo"', 'Using "ate"', 'Using "kuya"'],
+      answerIndex: 1,
+      explanation: 'Po and opo are respectful markers added to sentences when talking to elders or authorities.'
+    },
+    {
+      id: 'fil-ex-04',
+      question: 'What is the native Filipino number for "Five" (5)?',
+      options: ['Isa', 'Dalawa', 'Tatlo', 'Lima'],
+      answerIndex: 3,
+      explanation: 'Lima is the number 5.'
+    },
+    {
+      id: 'fil-ex-05',
+      question: 'What does the word "Salamat" mean?',
+      options: ['Goodbye', 'Please', 'Thank you', 'Yes'],
+      answerIndex: 2,
+      explanation: 'Salamat means "Thank you".'
+    },
+    {
+      id: 'fil-ex-06',
+      question: 'What does "Kuya" refer to in family relationships?',
+      options: ['Older brother', 'Older sister', 'Grandfather', 'Uncle'],
+      answerIndex: 0,
+      explanation: 'Kuya is the title for an older brother.'
+    },
+    {
+      id: 'fil-ex-07',
+      question: 'What does "Ate" refer to in family relationships?',
+      options: ['Older brother', 'Older sister', 'Grandmother', 'Aunt'],
+      answerIndex: 1,
+      explanation: 'Ate is the title for an older sister.'
+    },
+    {
+      id: 'fil-ex-08',
+      question: 'What does the dining phrase "Kain tayo!" translate to?',
+      options: ['Give me water', 'Let\'s eat!', 'I am full', 'I am hungry'],
+      answerIndex: 1,
+      explanation: 'Kain tayo! translates directly to "Let\'s eat!".'
+    },
+    {
+      id: 'fil-ex-09',
+      question: 'What is the Filipino word for "Delicious"?',
+      options: ['Masarap', 'Gutom', 'Busog', 'Ulam'],
+      answerIndex: 0,
+      explanation: 'Masarap means "Delicious".'
+    },
+    {
+      id: 'fil-ex-10',
+      question: 'What phrase do you call out to jeepney drivers to request a stop?',
+      options: ['Bayad po!', 'Pakiabot po!', 'Para po!', 'Sakay po!'],
+      answerIndex: 2,
+      explanation: 'Para po! is the standard signal used to tell drivers to stop and let passengers off.'
+    },
+    {
+      id: 'fil-ex-11',
+      question: 'Which number represents the word "Sampu"?',
+      options: ['1', '10', '20', '100'],
+      answerIndex: 1,
+      explanation: 'Sampu represents the number 10.'
+    },
+    {
+      id: 'fil-ex-12',
+      question: 'What is the Filipino word for the number "Twenty" (20)?',
+      options: ['Labing-isa', 'Tatlumpu', 'Sandaan', 'Dalawampu'],
+      answerIndex: 3,
+      explanation: 'Dalawampu is the number 20.'
+    },
+    {
+      id: 'fil-ex-13',
+      question: 'What is the Filipino word for "One hundred" (100)?',
+      options: ['Sandaan', 'Sampu', 'Dalawampu', 'Tatlumpu'],
+      answerIndex: 0,
+      explanation: 'Sandaan (from isang daan) is 100.'
+    },
+    {
+      id: 'fil-ex-14',
+      question: 'What is the standard title for "Mother" in a Filipino household?',
+      options: ['Tatay', 'Nanay', 'Kapatid', 'Tita'],
+      answerIndex: 1,
+      explanation: 'Nanay (or Ina) refers to mother.'
+    },
+    {
+      id: 'fil-ex-15',
+      question: 'What is the standard title for "Father"?',
+      options: ['Tatay', 'Nanay', 'Lolo', 'Tito'],
+      answerIndex: 0,
+      explanation: 'Tatay (or Ama) refers to father.'
+    },
+    {
+      id: 'fil-ex-16',
+      question: 'How do you say "Left" (direction) in Filipino?',
+      options: ['Kanan', 'Kaliwa', 'Diretso', 'Baba'],
+      answerIndex: 1,
+      explanation: 'Kaliwa means left.'
+    },
+    {
+      id: 'fil-ex-17',
+      question: 'How do you say "Right" (direction) in Filipino?',
+      options: ['Kanan', 'Kaliwa', 'Diretso', 'Para'],
+      answerIndex: 0,
+      explanation: 'Kanan means right.'
+    },
+    {
+      id: 'fil-ex-18',
+      question: 'How do you say "Go straight"?',
+      options: ['Kaliwa', 'Kanan', 'Diretso', 'Para po'],
+      answerIndex: 2,
+      explanation: 'Diretso means straight / go straight.'
+    },
+    {
+      id: 'fil-ex-19',
+      question: 'What is the base root verb for "To eat"?',
+      options: ['Inom', 'Kain', 'Punta', 'Tulog'],
+      answerIndex: 1,
+      explanation: 'Kain is the root word for eat.'
+    },
+    {
+      id: 'fil-ex-20',
+      question: 'What is the day of the week for Monday in Filipino?',
+      options: ['Martes', 'Huwebes', 'Lunes', 'Sabado'],
+      answerIndex: 2,
+      explanation: 'Lunes is Monday (borrowed from Spanish).'
+    },
+    {
+      id: 'fil-ex-21',
+      question: 'What day of the week is "Linggo"?',
+      options: ['Monday', 'Friday', 'Saturday', 'Sunday'],
+      answerIndex: 3,
+      explanation: 'Linggo means Sunday, and can also mean week depending on context.'
+    },
+    {
+      id: 'fil-ex-22',
+      question: 'What is the Filipino word for "Tomorrow"?',
+      options: ['Ngayon', 'Kahapon', 'Bukas', 'Kanina'],
+      answerIndex: 2,
+      explanation: 'Bukas means tomorrow.'
+    },
+    {
+      id: 'fil-ex-23',
+      question: 'What is the Filipino word for "Yesterday"?',
+      options: ['Ngayon', 'Kahapon', 'Bukas', 'Kanina'],
+      answerIndex: 1,
+      explanation: 'Kahapon means yesterday.'
+    },
+    {
+      id: 'fil-ex-24',
+      question: 'What does the question "Magkano ito?" mean?',
+      options: ['What is your name?', 'Where is the banyo?', 'How much is this?', 'Where do you live?'],
+      answerIndex: 2,
+      explanation: 'Magkano ito? translates to "How much is this?".'
+    },
+    {
+      id: 'fil-ex-25',
+      question: 'What common jeepney bargaining request means "Only loose change in the morning"?',
+      options: ['Para po sa kanto', 'Bayad po sa umaga', 'Pakiabot po ang barya', 'Barya lang po sa umaga'],
+      answerIndex: 3,
+      explanation: 'Barya lang po sa umaga is a standard notice asking passengers to pay with small change early in the day.'
+    },
+    {
+      id: 'fil-ex-26',
+      question: 'What season is referred to as "Tag-ulan"?',
+      options: ['Dry season', 'Rainy season', 'Winter', 'Spring'],
+      answerIndex: 1,
+      explanation: 'Tag-ulan literally translates to rainy/monsoon season.'
+    },
+    {
+      id: 'fil-ex-27',
+      question: 'What season is "Tag-init"?',
+      options: ['Rainy season', 'Stormy season', 'Dry / Hot season', 'Windy season'],
+      answerIndex: 2,
+      explanation: 'Tag-init (or Tag-araw) is the hot/dry season.'
+    },
+    {
+      id: 'fil-ex-28',
+      question: 'What does the adjective "Maganda" mean?',
+      options: ['Big', 'Beautiful', 'Kind', 'Fast'],
+      answerIndex: 1,
+      explanation: 'Maganda means beautiful.'
+    },
+    {
+      id: 'fil-ex-29',
+      question: 'What does "Mabait" mean when describing a person?',
+      options: ['Beautiful', 'Shameless', 'Kind / Good-natured', 'Born rich'],
+      answerIndex: 2,
+      explanation: 'Mabait means kind, friendly, or well-behaved.'
+    },
+    {
+      id: 'fil-ex-30',
+      question: 'What does the idiomatic expression "Bukas ang palad" mean?',
+      options: ['Sensitive', 'Shameless', 'Generous', 'Almost impossible'],
+      answerIndex: 2,
+      explanation: 'Bukas ang palad (lit. open palm) means generous or helpful.'
+    }
   ]
 };

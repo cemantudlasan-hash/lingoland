@@ -2548,5 +2548,319 @@ export const languageModules: LanguageModule[] = [
         },
       }
     ]
+  },
+
+  {
+    id: 'filipino',
+    language: 'Filipino',
+    flag: '🇵🇭',
+    color: '#0f766e',
+    gradient: 'from-teal-600 to-amber-500',
+    lessons: [
+      {
+        id: 'fil-01', title: 'Abakada: The Filipino Alphabet', description: 'Learn the sounds and basic phonetics of Filipino script', type: 'pronunciation', difficulty: 'beginner', duration: '15 min',
+        content: {
+          intro: 'Modern Filipino uses a 28-letter alphabet based on the Latin script, inheriting the original 20-letter Abakada alphabet. Let\'s study the alphabet sounds and basic phonetics.',
+          keyPhrases: [
+            { native: 'A', romanized: 'ah', english: 'sound like ah in "father"' },
+            { native: 'B', romanized: 'ba', english: 'sound like ba in "baby"' },
+            { native: 'K', romanized: 'ka', english: 'sound like ca in "cat"' },
+            { native: 'D', romanized: 'da', english: 'sound like da in "dog"' },
+            { native: 'E', romanized: 'eh', english: 'sound like e in "bet"' },
+            { native: 'G', romanized: 'ga', english: 'sound like ga in "game"' },
+            { native: 'H', romanized: 'ha', english: 'sound like ha in "house"' },
+            { native: 'I', romanized: 'ee', english: 'sound like ee in "meet"' },
+            { native: 'NG', romanized: 'nga', english: 'nasal sound like ng in "sing"' },
+            { native: 'O', romanized: 'oh', english: 'sound like o in "open"' }
+          ],
+          tips: ['Filipino is highly phonetic—it is written as it is spoken.', 'The digraph "NG" is considered a single letter and represents a nasal velar consonant sound.', 'Practice repeating the NG sound: say "sing-along" and isolate the transition.'],
+          practice: 'Write the 20 basic Abakada letters on a piece of paper and practice pronouncing them in order.'
+        }
+      },
+      {
+        id: 'fil-02', title: 'Essential Greetings', description: 'Learn common greetings and polite particles (po and opo)', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Learn basic greetings and polite terms in Filipino. Filipinos are incredibly warm and polite, frequently using "po" and "opo" to show respect to elders and strangers.',
+          keyPhrases: [
+            { native: 'Kumusta', romanized: 'koo-moos-tah', english: 'Hello / How are you?' },
+            { native: 'Magandang umaga', romanized: 'mah-gan-dang oo-mah-gah', english: 'Good morning' },
+            { native: 'Magandang hapon', romanized: 'mah-gan-dang hah-pon', english: 'Good afternoon' },
+            { native: 'Magandang gabi', romanized: 'mah-gan-dang gah-bee', english: 'Good evening' },
+            { native: 'Salamat', romanized: 'sah-lah-mat', english: 'Thank you' },
+            { native: 'Walang anuman', romanized: 'wah-lang ah-noo-man', english: 'You\'re welcome' },
+            { native: 'Paalam', romanized: 'pah-ah-lam', english: 'Goodbye' },
+            { native: 'Mag-ingat ka', romanized: 'mag-ee-ngat kah', english: 'Take care' },
+            { native: 'Pasensya na', romanized: 'pah-sen-syah nah', english: 'Sorry / Excuse me' },
+            { native: 'Oo / Hindi', romanized: 'oh-oh / hin-dee', english: 'Yes / No' }
+          ],
+          tips: ['Add "po" at the end of statements to show respect (e.g. "Salamat po").', 'Use "opo" instead of "oo" to say "yes" politely to elders.'],
+          practice: 'Greet a colleague politely: say "Magandang umaga po!" and practice responding "Opo".'
+        }
+      },
+      {
+        id: 'fil-03', title: 'Numbers 1–100', description: 'Count in Filipino using native cardinal numbers', type: 'vocabulary', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Count in Filipino completely. Learn the native cardinal numbers from one to one hundred.',
+          keyPhrases: [
+            { native: 'Isa', romanized: 'ee-sah', english: 'One (1)' },
+            { native: 'Dalawa', romanized: 'dah-lah-wah', english: 'Two (2)' },
+            { native: 'Tatlo', romanized: 'tat-loh', english: 'Three (3)' },
+            { native: 'Apat', romanized: 'ah-pat', english: 'Four (4)' },
+            { native: 'Lima', romanized: 'lee-mah', english: 'Five (5)' },
+            { native: 'Anim', romanized: 'ah-nim', english: 'Six (6)' },
+            { native: 'Pito', romanized: 'pee-toh', english: 'Seven (7)' },
+            { native: 'Walo', romanized: 'wah-loh', english: 'Eight (8)' },
+            { native: 'Siyam', romanized: 'see-yam', english: 'Nine (9)' },
+            { native: 'Sampu', romanized: 'sam-poo', english: 'Ten (10)' },
+            { native: 'Labing-isa', romanized: 'lah-bing ee-sah', english: 'Eleven (11)' },
+            { native: 'Dalawampu', romanized: 'dah-lah-wam-poo', english: 'Twenty (20)' },
+            { native: 'Tatlumpu', romanized: 'tat-loom-poo', english: 'Thirty (30)' },
+            { native: 'Sandaan', romanized: 'san-dah-an', english: 'One hundred (100)' }
+          ],
+          tips: ['Spanish-derived numbers are also commonly used in the Philippines, especially for prices and time, but native numbers are essential.', 'For numbers 11-19, prefix the unit with "labing-" (e.g. labing-dalawa for 12).'],
+          practice: 'Count aloud from 1 to 20 in Filipino using the native system.'
+        }
+      },
+      {
+        id: 'fil-04', title: 'Family & Kinship', description: 'Vocabulary for family members and respectful titles', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Filipino culture is centered on close family ties. Learn respect titles and kinship vocabulary.',
+          keyPhrases: [
+            { native: 'Nanay / Ina', romanized: 'nah-nay / ee-nah', english: 'Mother' },
+            { native: 'Tatay / Ama', romanized: 'tah-tay / ah-mah', english: 'Father' },
+            { native: 'Anak', romanized: 'ah-nak', english: 'Son / Daughter / Child' },
+            { native: 'Kapatid', romanized: 'kah-pah-tid', english: 'Sibling' },
+            { native: 'Kuya', romanized: 'koo-yah', english: 'Older brother' },
+            { native: 'Ate', romanized: 'ah-teh', english: 'Older sister' },
+            { native: 'Lolo', romanized: 'loh-loh', english: 'Grandfather' },
+            { native: 'Lola', romanized: 'loh-lah', english: 'Grandmother' },
+            { native: 'Tito', romanized: 'tee-toh', english: 'Uncle' },
+            { native: 'Tita', romanized: 'tee-tah', english: 'Aunt' }
+          ],
+          tips: ['"Kuya" and "Ate" are used not just for siblings but for older peers or service staff as a sign of respect.', 'The gesture "pagmamano" is showing respect by taking the hand of an elder and pressing it to your forehead.'],
+          practice: 'List your siblings and label them with "Kuya" or "Ate" based on age relative to you.'
+        }
+      },
+      {
+        id: 'fil-05', title: 'Food & Dining Etiquette', description: 'Order food and understand Filipino dining customs', type: 'conversation', difficulty: 'beginner', duration: '14 min',
+        content: {
+          intro: 'Filipino food is a fusion of Spanish, Chinese, and native flavors. Learn vocabulary to order food and talk about dining.',
+          keyPhrases: [
+            { native: 'Kain tayo!', romanized: 'kah-in tah-yoh', english: 'Let\'s eat!' },
+            { native: 'Gutom na ako', romanized: 'goo-tom nah ah-koh', english: 'I am hungry' },
+            { native: 'Masarap', romanized: 'mah-sah-rap', english: 'Delicious' },
+            { native: 'Busog na ako', romanized: 'boo-sog nah ah-koh', english: 'I am full' },
+            { native: 'Pahingi ng tubig', romanized: 'pah-hee-ngi ng too-big', english: 'Please give me water' },
+            { native: 'Magkano ito?', romanized: 'mah-kah-noh ee-toh', english: 'How much is this?' },
+            { native: 'Kanin', romanized: 'kah-nin', english: 'Cooked rice' },
+            { native: 'Ulam', romanized: 'oo-lahm', english: 'Viand / Side dish to go with rice' },
+            { native: 'Kutsara at tinidor', romanized: 'koot-sah-rah at tee-nee-dor', english: 'Spoon and fork' },
+            { native: 'Kamayan', romanized: 'kah-mah-yan', english: 'Eating with bare hands' }
+          ],
+          tips: ['Rice (kanin) is present in almost every meal in the Philippines.', 'Filipinos traditionally eat using a spoon in the right hand (to push/scoop rice) and a fork in the left.'],
+          practice: 'Roleplay ordering: ask for "kanin" and "tubig", then say "Masarap!" after eating.'
+        }
+      },
+      {
+        id: 'fil-06', title: 'Directions & Riding Public Transit', description: 'Ask for directions and navigate public vehicles', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Navigate Philippine streets and ask for directions using basic phrases.',
+          keyPhrases: [
+            { native: 'Saan ang banyo?', romanized: 'sah-an ang ban-yoh', english: 'Where is the restroom?' },
+            { native: 'Kaliwa', romanized: 'kah-lee-wah', english: 'Left' },
+            { native: 'Kanan', romanized: 'kah-nan', english: 'Right' },
+            { native: 'Diretso', romanized: 'dee-ret-soh', english: 'Straight' },
+            { native: 'Malapit', romanized: 'mah-lah-pit', english: 'Near' },
+            { native: 'Malayo', romanized: 'mah-lah-yoh', english: 'Far' },
+            { native: 'Para po!', romanized: 'pah-rah poh', english: 'Stop here! (used to signal drivers)' },
+            { native: 'Sakay / Baba', romanized: 'sah-kay / bah-bah', english: 'Ride / Get off' },
+            { native: 'Dito lang po', romanized: 'dee-toh lang poh', english: 'Just here, please' },
+            { native: 'Saan ang sakayan?', romanized: 'sah-an ang sah-kah-yan', english: 'Where is the terminal / boarding station?' }
+          ],
+          tips: ['When riding a jeepney, say "Para po!" to indicate you want to get off.', 'Say "Dito lang po" to request the driver to park at the current spot.'],
+          practice: 'Practice shouting "Para po! Dito lang po" to simulate getting off a public vehicle.'
+        }
+      },
+      {
+        id: 'fil-07', title: 'Common Action Verbs', description: 'Understand basic verbs and how to give commands', type: 'grammar', difficulty: 'intermediate', duration: '15 min',
+        content: {
+          intro: 'Filipino verbs conjugate heavily based on focus and aspect. Let\'s study key root verbs.',
+          keyPhrases: [
+            { native: 'Kumain', romanized: 'koo-mah-in', english: 'To eat' },
+            { native: 'Uminom', romanized: 'oo-mee-nom', english: 'To drink' },
+            { native: 'Pumunta', romanized: 'poo-moon-tah', english: 'To go' },
+            { native: 'Matulog', romanized: 'mah-too-log', english: 'To sleep' },
+            { native: 'Magbasa', romanized: 'mag-bah-sah', english: 'To read' },
+            { native: 'Magsulat', romanized: 'mag-soo-lat', english: 'To write' },
+            { native: 'Mag-aral', romanized: 'mag-ah-ral', english: 'To study' },
+            { native: 'Maglakad', romanized: 'mag-lah-kad', english: 'To walk' },
+            { native: 'Tumakbo', romanized: 'too-mak-boh', english: 'To run' },
+            { native: 'Magsalita', romanized: 'mag-sah-lee-tah', english: 'To speak' }
+          ],
+          tips: ['Many verbs use the "-um-" infix placed inside the root word (e.g. kain -> k-um-ain).', 'To form basic commands, the root or the "um" infinitive is typically used.'],
+          practice: 'Translate: "Eat!" (Kumain ka) and "Drink!" (Uminom ka) and recite them aloud.'
+        }
+      },
+      {
+        id: 'fil-08', title: 'Time & Days of the Week', description: 'Talk about days, tomorrow, yesterday and dates', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Learn how to refer to days and express timing. Days of the week are borrowed from Spanish.',
+          keyPhrases: [
+            { native: 'Lunes', romanized: 'loo-nes', english: 'Monday' },
+            { native: 'Martes', romanized: 'mar-tes', english: 'Tuesday' },
+            { native: 'Miyerkules', romanized: 'mee-yer-koo-les', english: 'Wednesday' },
+            { native: 'Huwebes', romanized: 'hweh-bes', english: 'Thursday' },
+            { native: 'Biyernes', romanized: 'bee-yer-nes', english: 'Friday' },
+            { native: 'Sabado', romanized: 'sah-bah-doh', english: 'Saturday' },
+            { native: 'Linggo', romanized: 'ling-goh', english: 'Sunday / Week' },
+            { native: 'Ngayon', romanized: 'ngah-yon', english: 'Today / Now' },
+            { native: 'Bukas', romanized: 'boo-kas', english: 'Tomorrow' },
+            { native: 'Kahapon', romanized: 'kah-hah-pon', english: 'Yesterday' }
+          ],
+          tips: ['"Linggo" means both Sunday and week depending on context.', 'Time indicators like "ngayon", "bukas", and "kahapon" clarify actions without altering verbs.'],
+          practice: 'Construct a timeline of your week: say what you did "kahapon" and what you will do "bukas".'
+        }
+      },
+      {
+        id: 'fil-09', title: 'Bargaining at the Market', description: 'Ask for prices and discounts at local shops', type: 'conversation', difficulty: 'intermediate', duration: '13 min',
+        content: {
+          intro: 'Learn how to bargain at a local market ("tiangge") where negotiating is common.',
+          keyPhrases: [
+            { native: 'Magkano ito?', romanized: 'mah-kah-noh ee-toh', english: 'How much is this?' },
+            { native: 'Ang mahal naman!', romanized: 'ang mah-hal nah-man', english: 'So expensive!' },
+            { native: 'May tawad ba?', romanized: 'may tah-wad bah', english: 'Is there a discount?' },
+            { native: 'Bibilhin ko ito', romanized: 'bee-bil-hin koh ee-toh', english: 'I will buy this' },
+            { native: 'Sukat', romanized: 'soo-kat', english: 'Size / Fit' },
+            { native: 'Maganda ito', romanized: 'mah-gan-dah ee-toh', english: 'This is beautiful' },
+            { native: 'Meron ba kayong barya?', romanized: 'meh-ron bah kah-yong bar-yah', english: 'Do you have loose change?' },
+            { native: 'Pera', romanized: 'peh-rah', english: 'Money' },
+            { native: 'Presyo', romanized: 'pres-yoh', english: 'Price' },
+            { native: 'Barya lang po sa umaga', romanized: 'bar-yah lang poh sah oo-mah-gah', english: 'Only loose change in the morning' }
+          ],
+          tips: ['"Barya lang po sa umaga" is a famous transport/shop request to pay in small coins early in the day.', 'Keep negotiations friendly and smile.'],
+          practice: 'Simulate bargaining: ask "Magkano ito?", say "Ang mahal naman! May tawad ba?", then agree to buy.'
+        }
+      },
+      {
+        id: 'fil-10', title: 'Cultural Icons: Jeepney & Bayanihan', description: 'Explore iconic Filipino symbols and values', type: 'culture', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Learn about primary cultural elements that represent the Filipino identity.',
+          keyPhrases: [
+            { native: 'Jeepney', romanized: '—', english: 'King of the Road public transit' },
+            { native: 'Bayanihan', romanized: 'bah-yah-nee-han', english: 'Community unity / helping neighbors' },
+            { native: 'Fiesta', romanized: '—', english: 'Town festival celebration' },
+            { native: 'Pasalubong', romanized: 'pah-sah-loo-bong', english: 'Homecoming gifts for family' },
+            { native: 'Bayad po', romanized: 'bah-yad poh', english: 'Here is my payment (passed to driver)' },
+            { native: 'Pakiabot po', romanized: 'pah-kee-ah-bot poh', english: 'Please pass this payment along' },
+            { native: 'Mano po', romanized: 'mah-noh poh', english: 'Blessing respect gesture' },
+            { native: 'Bahala na', romanized: 'bah-hah-lah nah', english: 'Come what may / trust in fate' },
+            { native: 'Kamusta ka', romanized: 'koo-moos-tah kah', english: 'How are you?' },
+            { native: 'Mabuhay!', romanized: 'mah-boo-hay', english: 'Welcome! / Long Live!' }
+          ],
+          tips: ['"Bayanihan" originally referred to moving a house on the shoulders of community members.', '"Mabuhay" is the ultimate Filipino greeting of welcome and celebration.'],
+          practice: 'Describe Simbang Gabi or Bayanihan to a friend using Filipino terms.'
+        }
+      },
+      {
+        id: 'fil-11', title: 'Weather & Seasons', description: 'Discuss the tropical climate and monsoons', type: 'vocabulary', difficulty: 'beginner', duration: '11 min',
+        content: {
+          intro: 'Philippines has a tropical maritime climate. Learn the terms for weather.',
+          keyPhrases: [
+            { native: 'Mainit', romanized: 'mah-ee-nit', english: 'Hot' },
+            { native: 'Malamig', romanized: 'mah-lah-mig', english: 'Cold' },
+            { native: 'Umuulan', romanized: 'oo-moo-oo-lan', english: 'Raining' },
+            { native: 'Bumabagyo', romanized: 'boo-mah-bag-yoh', english: 'Typhooning / Stormy' },
+            { native: 'Tag-init / Tag-araw', romanized: 'tag-ee-nit / tag-ah-raw', english: 'Dry season / Summer' },
+            { native: 'Tag-ulan', romanized: 'tag-oo-lan', english: 'Rainy season' },
+            { native: 'Mahangin', romanized: 'mah-hah-ngin', english: 'Windy' },
+            { native: 'Makulimlim', romanized: 'mah-koo-lim-lim', english: 'Cloudy' },
+            { native: 'Araw / Ulan', romanized: 'ah-raw / oo-lan', english: 'Sun / Rain' },
+            { native: 'Bagyo', romanized: 'bag-yoh', english: 'Typhoon' }
+          ],
+          tips: ['There are only two official seasons in the Philippines: dry and wet.', 'Typhoons (bagyo) are frequent between June and December.'],
+          practice: 'State today\'s weather condition: e.g. "Mainit ngayon" (It is hot today).'
+        }
+      },
+      {
+        id: 'fil-12', title: 'Useful Adjectives', description: 'Describe items, people and attributes', type: 'vocabulary', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Describe your surroundings. Most Filipino adjectives are formed with the "ma-" prefix.',
+          keyPhrases: [
+            { native: 'Maganda', romanized: 'mah-gan-dah', english: 'Beautiful' },
+            { native: 'Gwapo / Pogi', romanized: 'gwah-poh / poh-gee', english: 'Handsome' },
+            { native: 'Mabait', romanized: 'mah-bah-it', english: 'Kind / Good' },
+            { native: 'Maliit', romanized: 'mah-lee-it', english: 'Small' },
+            { native: 'Malaki', romanized: 'mah-lah-kee', english: 'Big' },
+            { native: 'Mabilis', romanized: 'mah-bee-lis', english: 'Fast' },
+            { native: 'Mabagal', romanized: 'mah-bah-gal', english: 'Slow' },
+            { native: 'Bagong', romanized: 'bah-gong', english: 'New' },
+            { native: 'Luma', romanized: 'loo-mah', english: 'Old (things)' },
+            { native: 'Matanda', romanized: 'mah-tan-dah', english: 'Old (people)' }
+          ],
+          tips: ['Repeat the root to intensify it: "Magandang-maganda" means very beautiful.', 'Use "napakaganda" to say "so beautiful!".'],
+          practice: 'Describe your favorite pet or item using two adjectives (e.g. "mabait at maliit").'
+        }
+      },
+      {
+        id: 'fil-13', title: 'Conversational Questions', description: 'Form questions and respond in dialogue', type: 'conversation', difficulty: 'intermediate', duration: '13 min',
+        content: {
+          intro: 'Learn standard questions to build connections and hold basic chats.',
+          keyPhrases: [
+            { native: 'Ano ang pangalan mo?', romanized: 'ah-noh ang pah-ngah-lan moh', english: 'What is your name?' },
+            { native: 'Ang pangalan ko ay...', romanized: 'ang pah-ngah-lan koh ay', english: 'My name is...' },
+            { native: 'Saan ka nakatira?', romanized: 'sah-an kah nah-kah-tee-rah', english: 'Where do you live?' },
+            { native: 'Taga-saan ka?', romanized: 'tah-gah-sah-an kah', english: 'Where are you from?' },
+            { native: 'Ilang taon ka na?', romanized: 'ee-lang tah-on kah nah', english: 'How old are you?' },
+            { native: 'Naiintindihan mo ba?', romanized: 'nah-ee-in-tin-dee-han moh bah', english: 'Do you understand?' },
+            { native: 'Hindi ko maintindihan', romanized: 'hin-dee koh mah-in-tin-dee-han', english: 'I do not understand' },
+            { native: 'Pakisabi ulit', romanized: 'pah-kee-sah-bee oo-lit', english: 'Please repeat / say it again' },
+            { native: 'Anong oras na?', romanized: 'ah-nong oh-ras nah', english: 'What time is it?' },
+            { native: 'Masaya ako', romanized: 'mah-sah-yah ah-koh', english: 'I am happy' }
+          ],
+          tips: ['Conversational Filipino often mixes Tagalog and English (Taglish), which is perfectly normal.', 'Ask questions with a rising intonation.'],
+          practice: 'Introduce yourself: say your name and where you live in Filipino.'
+        }
+      },
+      {
+        id: 'fil-14', title: 'Idioms & Sawikain', description: 'Understand standard colorful idiomatic phrases', type: 'culture', difficulty: 'advanced', duration: '12 min',
+        content: {
+          intro: 'Explore colourful Filipino idioms ("sawikain") to sound like a native speaker.',
+          keyPhrases: [
+            { native: 'Bukas ang palad', romanized: 'boo-kas ang pah-lad', english: 'Generous (lit. open palm)' },
+            { native: 'Ningas kugon', romanized: 'nee-ngas koo-gon', english: 'Starts strong but loses interest quickly (lit. grass fire)' },
+            { native: 'Balat-sibuyas', romanized: 'bah-lat see-boo-yas', english: 'Sensitive / touchy (lit. onion skin)' },
+            { native: 'Kapit-bisig', romanized: 'kah-pit bee-sig', english: 'Cooperating / united (lit. clinging elbows)' },
+            { native: 'Kusang-palo', romanized: 'koo-sang pah-loh', english: 'Initiative (lit. self strike)' },
+            { native: 'Mababaw ang luha', romanized: 'mah-bah-baw ang loo-hah', english: 'Easily cries (lit. shallow tears)' },
+            { native: 'Makapal ang mukha', romanized: 'mah-kah-pal ang moo-hah', english: 'Shameless (lit. thick face)' },
+            { native: 'May gintong kutsara', romanized: 'may gin-tong koot-sah-rah', english: 'Born rich (lit. golden spoon)' },
+            { native: 'Suntok sa buwan', romanized: 'soon-tok sah boo-wan', english: 'Almost impossible (lit. punch to the moon)' },
+            { native: 'Isang kahig, isang tuka', romanized: 'ee-sang kah-hig ee-sang too-kah', english: 'Barely surviving hand-to-mouth (lit. scratch and peck)' }
+          ],
+          tips: ['Idioms reflect local agricultural and community history (e.g. kugon grass).', 'Using them shows cultural fluency.'],
+          practice: 'Pick one idiom, write its literal meaning, and explain its real-world application.'
+        }
+      },
+      {
+        id: 'fil-15', title: 'Basic Grammatical Aspects', description: 'Master Completed, Uncompleted and Contemplated verbs', type: 'grammar', difficulty: 'intermediate', duration: '15 min',
+        content: {
+          intro: 'Filipino actions express aspect (completed/uncompleted/contemplated) rather than strict tense.',
+          keyPhrases: [
+            { native: 'Kumain ako kahapon', romanized: 'koo-mah-in ah-koh kah-hah-pon', english: 'I ate yesterday (Completed)' },
+            { native: 'Kumakain ako ngayon', romanized: 'koo-mah-kah-in ah-koh ngah-yon', english: 'I am eating now (Uncompleted)' },
+            { native: 'Kakain ako bukas', romanized: 'kah-kah-in ah-koh boo-kas', english: 'I will eat tomorrow (Contemplated)' },
+            { native: 'Nagbasa siya', romanized: 'nag-bah-sah shee-yah', english: 'He / She read (Completed)' },
+            { native: 'Nagbabasa siya', romanized: 'nag-bah-bah-sah shee-yah', english: 'He / She is reading (Uncompleted)' },
+            { native: 'Magbabasa siya', romanized: 'mag-bah-bah-sah shee-yah', english: 'He / She will read (Contemplated)' },
+            { native: 'Kanina', romanized: 'kah-nee-nah', english: 'A while ago / recently' },
+            { native: 'Bukas ng gabi', romanized: 'boo-kas ng gah-bee', english: 'Tomorrow night' },
+            { native: 'Nag-aral kami', romanized: 'nag-ah-ral kah-mee', english: 'We studied' },
+            { native: 'Mag-aaral kami', romanized: 'mag-ah-ah-ral kah-mee', english: 'We will study' }
+          ],
+          tips: ['Uncompleted actions often repeat the first syllable of the root word after an affix (e.g. k-um-a-kain).', 'Contemplated actions also use duplication of the initial root syllable.'],
+          practice: 'Conjugate the root verb "sulat" (write) into Completed, Uncompleted, and Contemplated forms.'
+        }
+      }
+    ]
   }
 ];
