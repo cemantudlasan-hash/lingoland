@@ -574,7 +574,7 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
                   crossOrigin="anonymous"
                   alt="LingoLandVerse Logo"
                   style={{
-                    height: 50,
+                    height: 64,
                     width: 'auto',
                   }}
                 />
