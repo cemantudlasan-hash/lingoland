@@ -568,19 +568,14 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/logo.png"
-                  crossOrigin="anonymous"
-                  alt="LingoLandVerse Logo"
-                  width={64}
-                  height={64}
-                  style={{
-                    height: 64,
-                    width: 64,
-                    objectFit: 'fill',
-                  }}
-                />
+                <div style={{
+                  width: 64,
+                  height: 64,
+                  backgroundImage: 'url("/logo.png")',
+                  backgroundSize: '100% 100%',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }} />
               </div>
             )}
             <div style={{ fontFamily: 'Georgia, serif', fontSize: 9, color: '#92400e', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
