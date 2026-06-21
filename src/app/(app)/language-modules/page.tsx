@@ -6,7 +6,7 @@ import {
   BookOpen, CheckCircle, Circle, ChevronRight, ChevronLeft,
   GraduationCap, Download, Award, Star, Globe, Clock,
   Volume2, BookMarked, Flame, Trophy, X, User, Building2,
-  Calendar, Sparkles, Lock, RefreshCw
+  Calendar, Sparkles, Lock, RefreshCw, Play
 } from 'lucide-react';
 import { languageModules, type Lesson, type LanguageModule } from '@/lib/language-modules';
 import { useAuth } from '@/context/auth-context';
@@ -836,6 +836,12 @@ function LanguageExamViewer({
   const [cameraState, setCameraState] = useState<'prompt' | 'loading_model' | 'active' | 'denied'>('prompt');
   const [isPausedByTab, setIsPausedByTab] = useState(false);
   const [isPausedByFace, setIsPausedByFace] = useState(false);
+  const [faceDetectedBack, setFaceDetectedBack] = useState(false);
+
+  const isPausedByFaceRef = useRef(isPausedByFace);
+  useEffect(() => {
+    isPausedByFaceRef.current = isPausedByFace;
+  }, [isPausedByFace]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -885,6 +891,7 @@ function LanguageExamViewer({
     setCameraState('prompt');
     setIsPausedByTab(false);
     setIsPausedByFace(false);
+    setFaceDetectedBack(false);
   };
 
   useEffect(() => {
@@ -965,6 +972,7 @@ function LanguageExamViewer({
           consecutiveNoFaceCount++;
           if (consecutiveNoFaceCount >= 2) {
             setIsPausedByFace(true);
+            setFaceDetectedBack(false);
           }
         } else {
           const face = predictions[0];
@@ -974,6 +982,7 @@ function LanguageExamViewer({
             consecutiveNoFaceCount++;
             if (consecutiveNoFaceCount >= 2) {
               setIsPausedByFace(true);
+              setFaceDetectedBack(false);
             }
           } else if (face.landmarks) {
             // Determine head rotation symmetry (nose relative to eyes)
@@ -992,14 +1001,25 @@ function LanguageExamViewer({
               consecutiveNoFaceCount++;
               if (consecutiveNoFaceCount >= 2) {
                 setIsPausedByFace(true);
+                setFaceDetectedBack(false);
               }
             } else {
               consecutiveNoFaceCount = 0;
-              setIsPausedByFace(false);
+              if (isPausedByFaceRef.current) {
+                setFaceDetectedBack(true);
+              } else {
+                setIsPausedByFace(false);
+                setFaceDetectedBack(false);
+              }
             }
           } else {
             consecutiveNoFaceCount = 0;
-            setIsPausedByFace(false);
+            if (isPausedByFaceRef.current) {
+              setFaceDetectedBack(true);
+            } else {
+              setIsPausedByFace(false);
+              setFaceDetectedBack(false);
+            }
           }
         }
       } catch (e) {
@@ -1451,9 +1471,27 @@ function LanguageExamViewer({
                     className="w-full h-full object-cover scale-x-[-1]"
                   />
                 </div>
-                <p className="text-amber-400 text-xs font-semibold uppercase tracking-wider animate-pulse">
-                  Looking back at the screen will automatically resume the exam.
-                </p>
+                {faceDetectedBack ? (
+                  <>
+                    <p className="text-emerald-400 text-xs font-semibold uppercase tracking-wider animate-pulse">
+                      Face detected! Click below to resume.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setIsPausedByFace(false);
+                        setFaceDetectedBack(false);
+                      }}
+                      className="w-full py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all shadow-lg hover:shadow-emerald-600/20 active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                      <Play className="w-4 h-4 fill-current" />
+                      Resume Exam
+                    </button>
+                  </>
+                ) : (
+                  <p className="text-amber-400 text-xs font-semibold uppercase tracking-wider animate-pulse">
+                    Please face the screen to enable the resume button.
+                  </p>
+                )}
               </>
             )}
           </motion.div>
