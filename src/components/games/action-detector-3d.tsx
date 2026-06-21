@@ -1349,7 +1349,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
   return (
     <div className={cn(
       "relative w-full flex flex-col bg-[#05060f] font-sans select-none text-slate-100 overflow-hidden",
-      isFullscreen ? "h-screen p-6" : "min-h-[650px] md:min-h-[780px] rounded-3xl p-4 md:p-6 border border-slate-800/80 shadow-2xl"
+      isFullscreen ? "h-screen p-6" : "min-h-[calc(100vh-100px)] rounded-t-3xl rounded-b-none p-4 md:p-6 border-t border-x border-slate-800/80 shadow-2xl"
     )} id="action-detector-game">
       {/* Dynamic particles background */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_center,#6b21a8_0%,transparent_70%)]" />
