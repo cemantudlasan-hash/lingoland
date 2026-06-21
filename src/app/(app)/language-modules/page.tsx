@@ -573,9 +573,12 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
                   src="/logo.png"
                   crossOrigin="anonymous"
                   alt="LingoLandVerse Logo"
+                  width={64}
+                  height={64}
                   style={{
                     height: 64,
                     width: 64,
+                    objectFit: 'fill',
                   }}
                 />
               </div>
