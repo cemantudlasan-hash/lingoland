@@ -814,6 +814,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       list.push(shuffled[i % shuffled.length]);
     }
     setActiveActions(list);
+    setGameMode('single');
     setCurrentRoundIdx(0);
     setScore(0);
     setGameState('playing');
@@ -866,6 +867,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       setRoomCode(code);
       setIsHost(true);
       setActiveActions(list);
+      setGameMode('multi');
       setMultiplayerState('lobby');
       setGameState('playing');
       sessionStorage.setItem("lingoland_active_roomCode_action-detector", code);
@@ -918,6 +920,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       await updateDoc(roomRef, { players: updatedPlayers });
       setRoomCode(cleanCode);
       setIsHost(false);
+      setGameMode('multi');
       setMultiplayerState('lobby');
       setGameState('playing');
       sessionStorage.setItem("lingoland_active_roomCode_action-detector", cleanCode);
@@ -964,6 +967,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
     setRoomData(null);
     setRoomPlayers([]);
     setCodeVal('');
+    setGameMode('single');
     setMultiplayerState('mode_select');
     setGameState('idle');
   };
