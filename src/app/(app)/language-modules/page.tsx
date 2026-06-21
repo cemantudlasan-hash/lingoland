@@ -250,11 +250,25 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
       {/* Google Fonts load */}
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Great+Vibes&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');`}</style>
 
-      {/* Outer border */}
+      {/* Outer border simulated with 4 absolute lines to avoid html2canvas border-image issue */}
       <div style={{
-        position: 'absolute', inset: 10,
-        border: `6px solid`,
-        borderImage: `linear-gradient(135deg, ${gradFrom}, #d97706, ${gradTo}) 1`,
+        position: 'absolute', top: 10, left: 10, right: 10, height: 6,
+        background: `linear-gradient(to right, ${gradFrom}, #d97706, ${gradTo})`,
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: 10, left: 10, right: 10, height: 6,
+        background: `linear-gradient(to right, ${gradFrom}, #d97706, ${gradTo})`,
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', top: 10, bottom: 10, left: 10, width: 6,
+        background: `linear-gradient(to bottom, ${gradFrom}, #d97706, ${gradTo})`,
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', top: 10, bottom: 10, right: 10, width: 6,
+        background: `linear-gradient(to bottom, ${gradFrom}, #d97706, ${gradTo})`,
         pointerEvents: 'none',
       }} />
       {/* Inner border */}
@@ -325,7 +339,8 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
           </div>
           <div style={{
             width: 120, height: 2,
-            background: `linear-gradient(to right, transparent, ${gradFrom}, transparent)`,
+            backgroundColor: gradFrom,
+            opacity: 0.35,
             marginTop: 4,
           }} />
           <div style={{
@@ -352,7 +367,8 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
           </div>
           <div style={{
             width: '70%', height: 1.5,
-            background: `linear-gradient(to right, transparent, ${gradFrom}aa, transparent)`,
+            backgroundColor: gradFrom,
+            opacity: 0.25,
           }} />
         </div>
 
@@ -411,7 +427,7 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             <div style={{
               width: 72, height: 72, borderRadius: '50%',
-              background: `radial-gradient(circle, #fbbf24 0%, #d97706 70%, #b45309 100%)`,
+              background: `linear-gradient(135deg, #fbbf24 0%, #d97706 70%, #b45309 100%)`,
               border: '3px solid #fde68a',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 4px 12px rgba(180,83,9,0.4)',
