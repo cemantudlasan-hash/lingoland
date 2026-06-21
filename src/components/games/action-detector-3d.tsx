@@ -911,9 +911,23 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
   }, [gameState, activeAction]);
 
   return (
-    <div className="relative w-full h-full min-h-[500px] flex flex-col bg-[#05060f] font-sans select-none text-slate-100 overflow-hidden" id="action-detector-game">
+    <div className={cn(
+      "relative w-full flex flex-col bg-[#05060f] font-sans select-none text-slate-100 overflow-hidden",
+      isFullscreen ? "h-screen p-6" : "min-h-[650px] md:min-h-[780px] rounded-3xl p-4 md:p-6 border border-slate-800/80 shadow-2xl"
+    )} id="action-detector-game">
       {/* Dynamic particles background */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_center,#6b21a8_0%,transparent_70%)]" />
+
+      {/* Universal Floating Fullscreen Button (visible when not playing) */}
+      {onToggleFullscreen && gameState !== 'playing' && (
+        <button
+          onClick={onToggleFullscreen}
+          className="absolute top-4 right-4 z-30 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 backdrop-blur-sm transition-all shadow-lg hover:scale-105 active:scale-95"
+          title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+        >
+          {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+        </button>
+      )}
 
       {/* ── MODE SELECT SCREEN ── */}
       {gameState === 'idle' && multiplayerState === 'mode_select' && (
@@ -1169,9 +1183,22 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           {/* Header HUD */}
           <div className="flex items-center justify-between gap-4 bg-slate-950/80 border border-slate-850 p-3 rounded-2xl backdrop-blur-md shadow-2xl">
             <div className="flex items-center gap-3">
-              <button onClick={exitGame} className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200">
+              <button 
+                onClick={exitGame} 
+                className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 hover:border-rose-900/50 transition-all duration-200"
+                title="Exit Game"
+              >
                 <LogOut className="h-4 w-4" />
               </button>
+              {onToggleFullscreen && (
+                <button 
+                  onClick={onToggleFullscreen} 
+                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-indigo-400 hover:bg-indigo-950/30 hover:border-indigo-900/50 transition-all duration-200"
+                  title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                >
+                  {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                </button>
+              )}
               <div>
                 <h2 className="font-mono text-[9px] text-purple-400 font-black uppercase tracking-widest">
                   {gameMode === 'single' ? 'Solo Mode' : `Battle Duel • Room ${roomCode}`}
@@ -1242,9 +1269,9 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           </div>
 
           {/* Dual Panel Split: Camera + 3D puppet */}
-          <div className="grid md:grid-cols-2 gap-4 flex-grow relative min-h-[300px]">
+          <div className="grid md:grid-cols-2 gap-6 flex-grow relative min-h-[320px]">
             {/* 3D Puppet viewport */}
-            <div className="relative rounded-3xl overflow-hidden border border-slate-850 flex flex-col justify-end min-h-[220px]">
+            <div className="relative rounded-3xl overflow-hidden border border-slate-850 flex flex-col justify-end aspect-[4/3] w-full h-full min-h-[260px] md:min-h-[360px] shadow-lg">
               <div ref={mountRef} className="absolute inset-0 z-0 w-full h-full" />
               <div className="relative z-10 bg-slate-950/80 border-t border-slate-850/40 p-3 flex justify-between items-center text-xs">
                 <span className="font-mono text-slate-500 font-bold uppercase tracking-wider">3D Mimic Instructions</span>
@@ -1253,7 +1280,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
             </div>
 
             {/* Camera input viewport */}
-            <div className="relative rounded-3xl overflow-hidden border border-slate-850 bg-slate-950 flex items-center justify-center min-h-[220px]">
+            <div className="relative rounded-3xl overflow-hidden border border-slate-850 bg-slate-950 flex items-center justify-center aspect-[4/3] w-full h-full min-h-[260px] md:min-h-[360px] shadow-lg">
               {cameraError ? (
                 <div className="p-6 text-center space-y-3">
                   <AlertTriangle className="h-10 w-10 text-rose-500 mx-auto animate-bounce" />
