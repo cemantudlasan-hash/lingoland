@@ -46,7 +46,7 @@ interface CertificateData {
   fullName: string;
   courseName: string;
   completionDate: string;
-  additionalDetail: string;
+  score: string;
   showSeal?: boolean;
   sealStyle?: 'logo' | 'star';
 }
@@ -56,17 +56,19 @@ function LanguageCertificateGenerator({
   flag,
   gradient,
   onClose,
+  score,
 }: {
   language: string;
   flag: string;
   gradient: string;
   onClose: () => void;
+  score?: number;
 }) {
   const [form, setForm] = useState<CertificateData>({
     fullName: '',
     courseName: `${language} Language Mastery`,
     completionDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-    additionalDetail: '',
+    score: score !== undefined ? `Score: ${score}/30` : 'Score: 30/30',
     showSeal: true,
     sealStyle: 'logo',
   });
@@ -165,13 +167,13 @@ function LanguageCertificateGenerator({
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" /> Additional Detail (optional)
+                <Sparkles className="w-3.5 h-3.5" /> Test Score
               </label>
               <input
                 type="text"
-                placeholder="e.g. with distinction, Level B1"
-                value={form.additionalDetail}
-                onChange={e => setForm(p => ({ ...p, additionalDetail: e.target.value }))}
+                placeholder="e.g. Score: 27/30"
+                value={form.score}
+                onChange={e => setForm(p => ({ ...p, score: e.target.value }))}
                 className="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
               />
             </div>
@@ -332,7 +334,7 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
         { bottom: 14, right: 14, rotate: 180 },
       ].map(({ rotate, ...pos }, i) => (
         <svg key={i} width="36" height="36" viewBox="0 0 100 100"
-          style={{ position: 'absolute', ...pos, transform: `rotate(${rotate}deg)`, opacity: 0.65 }}>
+           style={{ position: 'absolute', ...pos, transform: `rotate(${rotate}deg)`, opacity: 0.65 }}>
           <path d="M0,0 L30,0 Q10,10 0,30 Z" fill={gradFrom} />
           <rect x="6" y="6" width="2" height="36" fill={gradFrom} />
           <rect x="6" y="6" width="36" height="2" fill={gradFrom} />
@@ -417,14 +419,14 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
           </div>
         </div>
 
-        {/* Recipient name (dynamic sizing to prevent overflow) */}
+        {/* Recipient name (dynamic sizing + styling fixes to prevent vertical clipping) */}
         {(() => {
           const nameLength = data.fullName.length;
           const nameFontSize = nameLength > 28 ? 32 : nameLength > 18 ? 44 : 56;
           return (
             <div style={{
               position: 'absolute',
-              top: 245,
+              top: 235,
               left: 0,
               right: 0,
               display: 'flex',
@@ -437,12 +439,10 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
                 fontFamily: "'Great Vibes', cursive",
                 fontSize: nameFontSize,
                 color: '#1e3a5f',
-                lineHeight: 1.1,
+                lineHeight: 1.4,
                 letterSpacing: '0.01em',
                 maxWidth: 700,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
+                textAlign: 'center'
               }}>
                 {data.fullName || 'Your Full Name'}
               </div>
@@ -486,7 +486,7 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
           }}>
             {data.courseName}
           </div>
-          {data.additionalDetail && (
+          {data.score && (
             <div style={{
               padding: '2px 20px', border: `1px dashed ${gradFrom}66`,
               borderRadius: 999,
@@ -494,9 +494,9 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
               fontSize: 11, color: '#92400e',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              marginTop: 4,
+              marginTop: 6,
             }}>
-              {data.additionalDetail}
+              {data.score}
             </div>
           )}
         </div>
@@ -551,15 +551,29 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
               </div>
             ) : (
               <div style={{
-                width: 72, height: 72, borderRadius: '50%',
+                position: 'relative',
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
                 backgroundColor: '#f8fafc',
                 border: '3px solid #fde68a',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(180,83,9,0.3)',
                 overflow: 'hidden',
+                boxSizing: 'border-box',
               }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" crossOrigin="anonymous" alt="LingoLandVerse Logo" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
+                <img
+                  src="/logo.png"
+                  crossOrigin="anonymous"
+                  alt="LingoLandVerse Logo"
+                  style={{
+                    position: 'absolute',
+                    top: 8,
+                    left: 8,
+                    width: 50,
+                    height: 50,
+                  }}
+                />
               </div>
             )}
             <div style={{ fontFamily: 'Georgia, serif', fontSize: 9, color: '#92400e', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
@@ -1454,7 +1468,7 @@ export default function LanguageModulesPage() {
   const [showCertificate, setShowCertificate] = useState<string | null>(null);
 
   // Exams states
-  const [passedExams, setPassedExams] = useState<Record<string, boolean>>({});
+  const [passedExams, setPassedExams] = useState<Record<string, boolean | { passed: boolean; score: number }>>({});
   const [activeExam, setActiveExam] = useState<{
     languageId: string;
     questions: ExamQuestion[];
@@ -1547,9 +1561,9 @@ export default function LanguageModulesPage() {
     });
   };
 
-  const handlePassExam = (langId: string) => {
+  const handlePassExam = (langId: string, score: number) => {
     setPassedExams(prev => {
-      const next = { ...prev, [langId]: true };
+      const next = { ...prev, [langId]: { passed: true, score } };
       try {
         localStorage.setItem('lingoland_language_modules_passed_exams', JSON.stringify(next));
       } catch (e) {
@@ -1627,12 +1641,15 @@ export default function LanguageModulesPage() {
       <AnimatePresence>
         {showCertificate && (() => {
           const mod = languageModules.find(m => m.id === showCertificate)!;
+          const examInfo = passedExams[showCertificate];
+          const examScore = (examInfo && typeof examInfo === 'object') ? examInfo.score : undefined;
           return (
             <LanguageCertificateGenerator
               language={mod.language}
               flag={mod.flag}
               gradient={mod.gradient}
               onClose={() => setShowCertificate(null)}
+              score={examScore}
             />
           );
         })()}
@@ -1679,7 +1696,7 @@ export default function LanguageModulesPage() {
               });
 
               if (passed) {
-                handlePassExam(activeExam.languageId);
+                handlePassExam(activeExam.languageId, score);
                 // Reward XP to the user's pet profile!
                 if (user) {
                   try {
