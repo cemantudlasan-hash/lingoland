@@ -167,14 +167,14 @@ function LanguageCertificateGenerator({
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" /> Test Score
+                <Lock className="w-3.5 h-3.5 text-amber-500" /> Test Score (Locked to Exam Result)
               </label>
               <input
                 type="text"
-                placeholder="e.g. Score: 27/30"
                 value={form.score}
-                onChange={e => setForm(p => ({ ...p, score: e.target.value }))}
-                className="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
+                readOnly
+                disabled
+                className="w-full bg-slate-800/40 border border-slate-700/50 text-slate-400 rounded-xl px-4 py-3 text-sm cursor-not-allowed focus:outline-none"
               />
             </div>
             <div className="space-y-2">
@@ -488,13 +488,19 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
           </div>
           {data.score && (
             <div style={{
-              padding: '2px 20px', border: `1px dashed ${gradFrom}66`,
-              borderRadius: 999,
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 11, color: '#92400e',
+              display: 'inline-block',
+              padding: '4px 20px',
+              border: `1px solid ${gradFrom}33`,
+              borderRadius: 20,
+              backgroundColor: '#fffbeb',
+              fontFamily: "'Cinzel', serif",
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#b45309',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              marginTop: 6,
+              marginTop: 8,
+              textAlign: 'center',
             }}>
               {data.score}
             </div>
@@ -551,15 +557,16 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
               </div>
             ) : (
               <div style={{
-                position: 'relative',
                 width: 72,
                 height: 72,
                 borderRadius: '50%',
                 backgroundColor: '#f8fafc',
                 border: '3px solid #fde68a',
                 boxShadow: '0 4px 12px rgba(180,83,9,0.3)',
-                overflow: 'hidden',
                 boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -567,11 +574,8 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
                   crossOrigin="anonymous"
                   alt="LingoLandVerse Logo"
                   style={{
-                    position: 'absolute',
-                    top: 8,
-                    left: 8,
-                    width: 50,
                     height: 50,
+                    width: 'auto',
                   }}
                 />
               </div>
@@ -1459,6 +1463,15 @@ function LanguageExamViewer({
   );
 }
 
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 /* ─── Main Page ──────────────────────────────────────────────── */
 export default function LanguageModulesPage() {
   const { user, isLoading, isGuest, userProfile } = useAuth();
@@ -1744,9 +1757,10 @@ export default function LanguageModulesPage() {
             }}
             onRetake={() => {
               const questions = languageExams[activeExam.languageId] || [];
+              const shuffledQuestions = shuffleArray(questions);
               setActiveExam({
                 languageId: activeExam.languageId,
-                questions: questions,
+                questions: shuffledQuestions,
                 currentIdx: 0,
                 answers: {},
                 finished: false,
@@ -1860,9 +1874,10 @@ export default function LanguageModulesPage() {
                     <button
                       onClick={() => {
                         const questions = languageExams[activeLanguage] || [];
+                        const shuffledQuestions = shuffleArray(questions);
                         setActiveExam({
                           languageId: activeLanguage,
-                          questions: questions,
+                          questions: shuffledQuestions,
                           currentIdx: 0,
                           answers: {},
                           finished: false,

@@ -341,7 +341,21 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
           <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: 13, color: "#78350f", opacity: 0.8 }}>has successfully completed all modules in</div>
           <div style={{ fontFamily: "'Cinzel', serif", fontSize: 19, fontWeight: 700, color: "#7c2d12", letterSpacing: "0.06em", textDecoration: "underline", textDecorationColor: `${gradFrom}66`, textUnderlineOffset: 4 }}>{data.courseName}</div>
           {data.score && (
-            <div style={{ padding: "2px 20px", border: `1px dashed ${gradFrom}66`, borderRadius: 999, fontFamily: "'Playfair Display', serif", fontSize: 11, color: "#92400e", letterSpacing: "0.08em", textTransform: "uppercase", marginTop: 6 }}>
+            <div style={{
+              display: 'inline-block',
+              padding: '4px 20px',
+              border: `1px solid ${gradFrom}33`,
+              borderRadius: 20,
+              backgroundColor: '#fffbeb',
+              fontFamily: "'Cinzel', serif",
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#b45309',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginTop: 8,
+              textAlign: 'center',
+            }}>
               {data.score}
             </div>
           )}
@@ -390,26 +404,24 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
               </div>
             ) : (
               <div style={{
-                position: "relative",
                 width: 72,
                 height: 72,
                 borderRadius: "50%",
                 backgroundColor: "#f8fafc",
                 border: "3px solid #fde68a",
                 boxShadow: "0 4px 12px rgba(180,83,9,0.3)",
-                overflow: "hidden",
-                boxSizing: "border-box"
+                boxSizing: "border-box",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}>
                 <img
                   src="/logo.png"
                   crossOrigin="anonymous"
                   alt="LingoLandVerse Logo"
                   style={{
-                    position: "absolute",
-                    top: 8,
-                    left: 8,
-                    width: 50,
                     height: 50,
+                    width: "auto",
                   }}
                 />
               </div>
