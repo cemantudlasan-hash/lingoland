@@ -217,6 +217,76 @@ export const languageExams: Record<string, ExamQuestion[]> = {
       options: ['แพงไป (Phaeng pai)', 'ราคาเท่าไร (Raka thao rai)', 'ลดได้ไหม (Lot dai mai)', 'มีสีอื่นไหม (Mi si uen mai)'],
       answerIndex: 2,
       explanation: 'ลดได้ไหม (Lot dai mai) literally translates to "Reduce can?" or "Can you discount?".'
+    },
+    {
+      id: 'th-ex-31',
+      question: "What does the slang 'กล้วยๆ' (Kluai kluai) mean?",
+      options: ["Very easy / Piece of cake", "Very spicy", "Expensive", "Slowly"],
+      answerIndex: 0,
+      explanation: "กล้วยๆ (Kluai kluai) literally means 'bananas' but is used as slang for 'piece of cake' or 'very easy'."
+    },
+    {
+      id: 'th-ex-32',
+      question: "Which Thai slang is used when you are in trouble or unexpected work piles up?",
+      options: ["ชิวๆ (Chill chill)", "งานเข้า (Ngan khao)", "ไปเที่ยว (Pai thiao)", "สบายดี (Sabai dee)"],
+      answerIndex: 1,
+      explanation: "งานเข้า (Ngan khao) literally means 'work enters' but is slang for 'in trouble' or having unexpected problems."
+    },
+    {
+      id: 'th-ex-33',
+      question: "What is the meaning of the proverb 'น้ำขึ้นให้รีบตัก' (Nam khun hai reep tak)?",
+      options: ["Save water for dry season", "Strike while the iron is hot", "Do not catch a big fish", "Respect your parents"],
+      answerIndex: 1,
+      explanation: "น้ำขึ้นให้รีบตัก translates to 'when the water rises, quickly scoop it up', meaning to seize opportunities / strike while the iron is hot."
+    },
+    {
+      id: 'th-ex-34',
+      question: "What does the proverb 'หัวล้านได้หวี' (Hua lan dai wee) refer to?",
+      options: ["A very useful tool", "Getting a gift you cannot use", "Being wise and smart", "A hairy person"],
+      answerIndex: 1,
+      explanation: "หัวล้านได้หวี means 'a bald person getting a comb', which refers to receiving a gift that is of no use to you."
+    },
+    {
+      id: 'th-ex-35',
+      question: "In a business context, how do you say 'meeting' or 'conference' in Thai?",
+      options: ["สัญญา (Sanya)", "การประชุม (Kan prachum)", "ติดต่อ (Tit tor)", "ผู้จัดการ (Phu chat kan)"],
+      answerIndex: 1,
+      explanation: "การประชุม (Kan prachum) means 'meeting' or 'conference' in Thai."
+    },
+    {
+      id: 'th-ex-36',
+      question: "What is the formal closing phrase in a Thai business email/letter meaning 'Respectfully yours'?",
+      options: ["สวัสดีครับ (Sawasdee krap)", "ขอแสดงความนับถือ (Kho sadaeng khwam nap thue)", "ขอบคุณมาก (Khob khun mak)", "ยินดีด้วย (Yin dee duai)"],
+      answerIndex: 1,
+      explanation: "ขอแสดงความนับถือ is the standard formal sign-off equivalent to 'Respectfully yours' or 'Sincerely'."
+    },
+    {
+      id: 'th-ex-37',
+      question: "What does 'จองห้องพัก' (Chong hong phak) mean in travel?",
+      options: ["Book a room", "Buy a ticket", "Find a guide", "Order food"],
+      answerIndex: 0,
+      explanation: "จองห้องพัก (Chong hong phak) means 'to book/reserve a room' in Thai."
+    },
+    {
+      id: 'th-ex-38',
+      question: "What is the Thai word for 'map'?",
+      options: ["แผนที่ (Phaenthi)", "ผู้นำเที่ยว (Phu nam thiao)", "โรงพยาบาล (Rong phayaban)", "สัญญา (Sanya)"],
+      answerIndex: 0,
+      explanation: "แผนที่ (Phaenthi) is the Thai word for 'map'."
+    },
+    {
+      id: 'th-ex-39',
+      question: "How do you shout 'Help!' in an emergency in Thailand?",
+      options: ["ขอโทษ (Kho thot)", "ช่วยด้วย (Chuai duai)", "หาหมอ (Ha mor)", "ไม่เป็นไร (Mai pen rai)"],
+      answerIndex: 1,
+      explanation: "ช่วยด้วย (Chuai duai) means 'Help!' or 'Help me!' and is used in emergencies."
+    },
+    {
+      id: 'th-ex-40',
+      question: "What does 'เจ็บตรงนี้' (Chep trong ni) mean in a medical context?",
+      options: ["It is far away", "It hurts here", "I need medicine", "Call the police"],
+      answerIndex: 1,
+      explanation: "เจ็บตรงนี้ (Chep trong ni) translates to 'it hurts here'."
     }
   ],
   korean: [
@@ -429,6 +499,76 @@ export const languageExams: Record<string, ExamQuestion[]> = {
       options: ['김치 (Kimchi)', '비빔밥 (Bibimbap)', '삼겹살 (Samgyeopsal)', '불고기 (Bulgogi)'],
       answerIndex: 1,
       explanation: '비빔밥 (Bibimbap) translates literally to "mixed rice".'
+    },
+    {
+      id: 'ko-ex-31',
+      question: "What does the idiom '식은 죽 먹기' (Sigeun juk meokgi) translate to in English?",
+      options: ["Piece of cake", "Spill the beans", "Barking up the wrong tree", "Once in a blue moon"],
+      answerIndex: 0,
+      explanation: "식은 죽 먹기 literally means 'eating cold porridge', which is the Korean idiom for 'a piece of cake' or 'extremely easy'."
+    },
+    {
+      id: 'ko-ex-32',
+      question: "What does the slang '심쿵' (Simkung) mean?",
+      options: ["Heartthrob / Heart skip a beat", "Headache", "Very boring", "Stomachache"],
+      answerIndex: 0,
+      explanation: "심쿵 (Simkung) is a blend of 'simjang' (heart) and 'kung' (thud), meaning heartthrob or making one's heart skip a beat."
+    },
+    {
+      id: 'ko-ex-33',
+      question: "What is the meaning of the proverb '시작이 반이다' (Sijagi banida)?",
+      options: ["Starting is half the battle", "A bad workman blames his tools", "Money cannot buy happiness", "Honesty is the best policy"],
+      answerIndex: 0,
+      explanation: "시작이 반이다 translates to 'starting is half', meaning starting a task is already half of the accomplishment."
+    },
+    {
+      id: 'ko-ex-34',
+      question: "Which proverb highlights that even experts make mistakes by referring to an animal falling from a tree?",
+      options: ["금강산도 식후경", "원숭이도 나무에서 떨어진다", "티끌 모아 태산", "백지장도 맞들면 낫다"],
+      answerIndex: 1,
+      explanation: "원숭이도 나무에서 떨어진다 means 'even monkeys fall from trees', meaning even experts make mistakes."
+    },
+    {
+      id: 'ko-ex-35',
+      question: "When leaving work before your colleagues, what is the polite phrase to say?",
+      options: ["안녕하세요 (Annyeonghaseyo)", "수고하셨습니다 (Sugohashyeosseumnida)", "죄송합니다 (Joesonghamnida)", "괜찮아요 (Gwenchanayo)"],
+      answerIndex: 1,
+      explanation: "수고하셨습니다 (Sugohashyeosseumnida) means 'Thank you for your hard work/effort'."
+    },
+    {
+      id: 'ko-ex-36',
+      question: "What does '부장님' (Bujangnim) mean in a Korean corporate setting?",
+      options: ["Intern", "Department Manager", "CEO", "Client"],
+      answerIndex: 1,
+      explanation: "부장님 (Bujangnim) means Department Manager/Director in Korean workplaces."
+    },
+    {
+      id: 'ko-ex-37',
+      question: "How do you say 'Please recommend' in Korean?",
+      options: ["예약했습니다 (Yeyakhaesseumnida)", "추천해 주세요 (Chucheonhae juseyo)", "체크인 (Chekeuin)", "지도 (Jido)"],
+      answerIndex: 1,
+      explanation: "추천해 주세요 (Chucheonhae juseyo) means 'Please recommend'."
+    },
+    {
+      id: 'ko-ex-38',
+      question: "What is the Korean word for 'Tourist attraction'?",
+      options: ["관광지 (Gwangwangji)", "병원 (Byeongwon)", "약국 (Yakguk)", "지도 (Jido)"],
+      answerIndex: 0,
+      explanation: "관광지 (Gwangwangji) means tourist attraction or sightseeing spot."
+    },
+    {
+      id: 'ko-ex-39',
+      question: "How do you shout 'Help!' in Korean?",
+      options: ["아파요 (Apayo)", "도와주세요! (Dowajuseyo!)", "안녕하세요 (Annyeonghaseyo)", "실례합니다 (Sillyehamnida)"],
+      answerIndex: 1,
+      explanation: "도와주세요! (Dowajuseyo!) means 'Help me/please help!'."
+    },
+    {
+      id: 'ko-ex-40',
+      question: "What does '아파요' (Apayo) mean in a medical context?",
+      options: ["I am hungry", "It hurts / I am sick", "Call the police", "I am lost"],
+      answerIndex: 1,
+      explanation: "아파요 (Apayo) means 'it hurts' or 'I am sick/painful'."
     }
   ],
   japanese: [
@@ -641,6 +781,76 @@ export const languageExams: Record<string, ExamQuestion[]> = {
       options: ['Katakana', 'Hiragana', 'Kanji', 'Romaji'],
       answerIndex: 2,
       explanation: 'Kanji (漢字) are the logographic Chinese characters used in Japanese.'
+    },
+    {
+      id: 'ja-ex-31',
+      question: "What does the idiom '朝飯前' (Asameshimae) mean?",
+      options: ["Before breakfast", "Piece of cake", "Very early", "Eating sushi"],
+      answerIndex: 1,
+      explanation: "朝飯前 (Asameshimae) literally means 'before breakfast', which is the idiom for 'a piece of cake' or 'very easy'."
+    },
+    {
+      id: 'ja-ex-32',
+      question: "Which Japanese expression is used when you are extremely busy and need any help you can get?",
+      options: ["口が軽い (Kuchi ga karui)", "猫の手も借りたい (Neko no te mo karitai)", "腹が立つ (Hara ga tatsu)", "相槌を打つ (Aiduchi wo utsu)"],
+      answerIndex: 1,
+      explanation: "猫の手も借りたい literally means 'wanting to borrow even a cat's paw', referring to being extremely busy."
+    },
+    {
+      id: 'ja-ex-33',
+      question: "What is the meaning of the proverb '七転び八起き' (Nanakorobi yaoki)?",
+      options: ["Fall seven times, stand up eight (resilience)", "Monkeys are good at climbing", "A frog in a well knows nothing", "Every little bit counts"],
+      answerIndex: 0,
+      explanation: "七転び八起き means 'falling seven times, standing up eight', which represents resilience and perseverance."
+    },
+    {
+      id: 'ja-ex-34',
+      question: "What does '一期一会' (Ichigo ichie) translate to?",
+      options: ["Once-in-a-lifetime encounter", "Strawberries are delicious", "A mountain of dust", "A meeting of enemies"],
+      answerIndex: 0,
+      explanation: "一期一会 (Ichigo ichie) translates to a 'once-in-a-lifetime encounter/experience'."
+    },
+    {
+      id: 'ja-ex-35',
+      question: "In Japanese business culture, how do you refer to 'our company' humbly?",
+      options: ["御社 (Onsha)", "弊社 (Heisha)", "お世話 (Osewa)", "承知 (Shouchi)"],
+      answerIndex: 1,
+      explanation: "弊社 (Heisha) is the humble term used to refer to one's own company in Japanese business."
+    },
+    {
+      id: 'ja-ex-36',
+      question: "What does '承知いたしました' (Shouchi itashimashita) mean in business contexts?",
+      options: ["Humbly requesting your favor", "Thank you for your support", "Understood / I have understood", "Excuse me"],
+      answerIndex: 2,
+      explanation: "承知いたしました (Shouchi itashimashita) is a formal business phrase meaning 'I have understood' or 'Understood'."
+    },
+    {
+      id: 'ja-ex-37',
+      question: "How do you say 'I have a reservation' in Japanese?",
+      options: ["地図 (Chizu)", "おすすめ (Osusume)", "予約しています (Yoyaku shite imasu)", "切符 (Kippu)"],
+      answerIndex: 2,
+      explanation: "予約しています (Yoyaku shite imasu) means 'I have a reservation'."
+    },
+    {
+      id: 'ja-ex-38',
+      question: "What is the Japanese word for 'Map'?",
+      options: ["観光地 (Kankouchi)", "切符 (Kippu)", "地図 (Chizu)", "おすすめ (Osusume)"],
+      answerIndex: 2,
+      explanation: "地図 (Chizu) is the Japanese word for map."
+    },
+    {
+      id: 'ja-ex-39',
+      question: "How do you say 'Help me please!' in Japanese?",
+      options: ["痛いです (Itai desu)", "助けてください！ (Tasukete kudasai!)", "救急車 (Kyuukyuusha)", "病院 (Byouin)"],
+      answerIndex: 1,
+      explanation: "助けてください！ (Tasukete kudasai!) means 'Help me, please!'."
+    },
+    {
+      id: 'ja-ex-40',
+      question: "What does '救急車를呼んでください' (Kyuukyuusha wo yonde kudasai) mean?",
+      options: ["Where is the hospital?", "Please call an ambulance", "Please bring medicine", "Please take me home"],
+      answerIndex: 1,
+      explanation: "救急車를呼んでください means 'Please call an ambulance' in Japanese."
     }
   ],
   french: [
@@ -853,6 +1063,76 @@ export const languageExams: Record<string, ExamQuestion[]> = {
       options: ['-ir', '-re', '-er', '-oir'],
       answerIndex: 2,
       explanation: 'parler is a regular -er verb class.'
+    },
+    {
+      id: 'fr-ex-31',
+      question: "What does the French idiom 'Les doigts dans le nez' translate to in English?",
+      options: ["Fingers in the nose", "Piece of cake", "Very dirty", "Never mind"],
+      answerIndex: 1,
+      explanation: "Les doigts dans le nez literally means 'fingers in the nose', which is the idiom for 'a piece of cake' or 'very easy'."
+    },
+    {
+      id: 'fr-ex-32',
+      question: "What is the meaning of 'Tomber dans les pommes'?",
+      options: ["To fall in the apples", "To eat too much", "To faint", "To be happy"],
+      answerIndex: 2,
+      explanation: "Tomber dans les pommes literally means 'to fall in the apples', which means to faint."
+    },
+    {
+      id: 'fr-ex-33',
+      question: "What is the meaning of the proverb 'Petit à petit, l\\'oiseau fait son nid'?",
+      options: ["Little by little, the bird builds its nest", "A bird in the hand is worth two in the bush", "Birds of a feather flock together", "Do not count your chickens"],
+      answerIndex: 0,
+      explanation: "Petit à petit, l'oiseau fait son nid means 'little by little, the bird builds its nest', showing that persistence and patience lead to success."
+    },
+    {
+      id: 'fr-ex-34',
+      question: "Translate 'Mieux vaut tard que jamais'.",
+      options: ["Time will tell", "Every cloud has a silver lining", "Better late than never", "Slow and steady wins the race"],
+      answerIndex: 2,
+      explanation: "Mieux vaut tard que jamais translates to 'better late than never'."
+    },
+    {
+      id: 'fr-ex-35',
+      question: "In a professional French email, which sign-off means 'Cordial regards' or 'Sincerely'?",
+      options: ["Veuillez agréer", "Cordialement", "Pardon", "Bon appétit"],
+      answerIndex: 1,
+      explanation: "Cordialement is a common formal/semi-formal email closing meaning 'Cordial regards' or 'Sincerely'."
+    },
+    {
+      id: 'fr-ex-36',
+      question: "What does 'Pièce jointe' refer to in business emails?",
+      options: ["Meeting room", "Contract signature", "Attachment / attached document", "Manager"],
+      answerIndex: 2,
+      explanation: "Pièce jointe is the French term for email attachment or attached document."
+    },
+    {
+      id: 'fr-ex-37',
+      question: "How do you say 'I have a reservation' in French?",
+      options: ["J'ai une réservation", "Où est le métro?", "Billet de train", "Plan de la ville"],
+      answerIndex: 0,
+      explanation: "J'ai une réservation means 'I have a reservation'."
+    },
+    {
+      id: 'fr-ex-38',
+      question: "What is the French word for 'Train ticket'?",
+      options: ["Office de tourisme", "Billet de train", "Plan de la ville", "Recommander"],
+      answerIndex: 1,
+      explanation: "Billet de train is a train ticket in French."
+    },
+    {
+      id: 'fr-ex-39',
+      question: "How do you shout 'Help!' in French?",
+      options: ["Au secours!", "J'ai mal ici", "Hôpital", "Appelez un médecin"],
+      answerIndex: 0,
+      explanation: "Au secours! is the standard cry for 'Help!' in French."
+    },
+    {
+      id: 'fr-ex-40',
+      question: "What does 'J'ai mal ici' mean?",
+      options: ["I am lost", "It hurts here", "I need medicine", "Call the doctor"],
+      answerIndex: 1,
+      explanation: "J'ai mal ici translates to 'It hurts here'."
     }
   ],
   spanish: [
@@ -1065,6 +1345,76 @@ export const languageExams: Record<string, ExamQuestion[]> = {
       options: ['como', 'comes', 'come', 'comemos'],
       answerIndex: 0,
       explanation: 'Yo conjugation of comer is como.'
+    },
+    {
+      id: 'es-ex-31',
+      question: "What does the Spanish idiom 'Pan comido' translate to in English?",
+      options: ["Eaten bread", "Piece of cake", "Very poor", "Never mind"],
+      answerIndex: 1,
+      explanation: "Pan comido literally means 'eaten bread', which is the idiom for 'a piece of cake' or 'extremely easy'."
+    },
+    {
+      id: 'es-ex-32',
+      question: "What does 'Ponerse las pilas' mean?",
+      options: ["To buy batteries", "To get organized / work hard", "To go to sleep", "To be angry"],
+      answerIndex: 1,
+      explanation: "Ponerse las pilas literally means 'to put in the batteries', meaning to get organized or work hard."
+    },
+    {
+      id: 'es-ex-33',
+      question: "What is the meaning of the proverb 'A mal tiempo, buena cara'?",
+      options: ["In bad times, stay positive", "Time heals all wounds", "Better safe than sorry", "Every dog has its day"],
+      answerIndex: 0,
+      explanation: "A mal tiempo, buena cara means 'to bad weather, a good face', encouraging a positive attitude during difficult times."
+    },
+    {
+      id: 'es-ex-34',
+      question: "Translate 'Más vale tarde que nunca'.",
+      options: ["Better late than never", "Slow and steady", "Like father like son", "Out of sight, out of mind"],
+      answerIndex: 0,
+      explanation: "Más vale tarde que nunca translates to 'better late than never'."
+    },
+    {
+      id: 'es-ex-35',
+      question: "In formal business Spanish emails, which sign-off means 'Sincerely' or 'Yours faithfully'?",
+      options: ["Atentamente", "Estimado", "Adjunto", "Gracias"],
+      answerIndex: 0,
+      explanation: "Atentamente is a standard professional Spanish sign-off for emails and letters."
+    },
+    {
+      id: 'es-ex-36',
+      question: "What does 'Quedo a su disposición' mean?",
+      options: ["I remain at your disposal", "I am leaving now", "Please sign the contract", "I attach the document"],
+      answerIndex: 0,
+      explanation: "Quedo a su disposición means 'I remain at your disposal' or 'I am at your service'."
+    },
+    {
+      id: 'es-ex-37',
+      question: "How do you say 'I have a reservation' in Spanish?",
+      options: ["Tengo una reserva", "¿Dónde está la parada?", "Boleto por favor", "Mapa de la ciudad"],
+      answerIndex: 0,
+      explanation: "Tengo una reserva means 'I have a reservation' in Spanish."
+    },
+    {
+      id: 'es-ex-38',
+      question: "What is the Spanish word for 'Ticket'?",
+      options: ["Atracción", "Boleto / Billete", "Mapa", "Reserva"],
+      answerIndex: 1,
+      explanation: "Boleto or Billete means ticket in Spanish."
+    },
+    {
+      id: 'es-ex-39',
+      question: "How do you shout 'Help!' in Spanish?",
+      options: ["¡Ayuda! / ¡Auxilio!", "Farmacia", "Hospital", "Me duele aquí"],
+      answerIndex: 0,
+      explanation: "¡Ayuda! or ¡Auxilio! means 'Help!' in Spanish."
+    },
+    {
+      id: 'es-ex-40',
+      question: "What does 'Me duele aquí' mean?",
+      options: ["I am lost", "It hurts here", "Call a doctor", "Give me medicine"],
+      answerIndex: 1,
+      explanation: "Me duele aquí translates to 'It hurts here'."
     }
   ],
   chinese: [
@@ -1277,6 +1627,76 @@ export const languageExams: Record<string, ExamQuestion[]> = {
       options: ['Water', 'Fire', 'Wood / Tree', 'Metal'],
       answerIndex: 2,
       explanation: '木 (mù) represents wood or tree.'
+    },
+    {
+      id: 'zh-ex-31',
+      question: "What does the Chengyu '马马虎虎' (Mǎmahǔhǔ) mean?",
+      options: ["So-so / Careless", "Very busy", "Extremely angry", "Fast as a horse"],
+      answerIndex: 0,
+      explanation: "马马虎虎 (Mǎmahǔhǔ) literally means 'horse horse tiger tiger', meaning 'so-so' or 'careless'."
+    },
+    {
+      id: 'zh-ex-32',
+      question: "Which Chengyu translates to 'drawing legs on a snake' (overdoing it)?",
+      options: ["七上八下", "对牛弹琴", "画蛇添足", "乱七八糟"],
+      answerIndex: 2,
+      explanation: "画蛇添足 (Huàshétiānzú) literally means 'draw legs on a snake', which means overdoing something or ruining it by adding unnecessary details."
+    },
+    {
+      id: 'zh-ex-33',
+      question: "What is the meaning of the proverb '失败是成功之母' (Shībài shì chénggōng zhī mǔ)?",
+      options: ["Failure is the mother of success", "Time will tell", "Patience is a virtue", "Rome wasn't built in a day"],
+      answerIndex: 0,
+      explanation: "失败是成功之母 means 'failure is the mother of success', emphasizing that we learn from failures to achieve success."
+    },
+    {
+      id: 'zh-ex-34',
+      question: "Translate '入乡随俗' (Rùxiāngsuísú).",
+      options: ["Failure is success", "Rome wasn't built in a day", "When in Rome, do as the Romans do", "A journey of a thousand miles"],
+      answerIndex: 2,
+      explanation: "入乡随俗 (Rùxiāngsuísú) means 'enter village, follow customs', which is the Chinese equivalent of 'When in Rome, do as the Romans do'."
+    },
+    {
+      id: 'zh-ex-35',
+      question: "In Chinese business communication, how do you politely refer to 'your company'?",
+      options: ["贵公司 (Guì gōngsī)", "经理 (Jīnglǐ)", "合作 (Hézuò)", "附件 (Fùjiàn)"],
+      answerIndex: 0,
+      explanation: "贵公司 (Guì gōngsī) is the polite formal term for 'your company' in Chinese business."
+    },
+    {
+      id: 'zh-ex-36',
+      question: "What does '请查收附件' (Qǐng cháshōu fùjiàn) mean in business emails?",
+      options: ["Please check the attachment", "I look forward to working with you", "Please sign the agreement", "Where is the manager?"],
+      answerIndex: 0,
+      explanation: "请查收附件 (Qǐng cháshōu fùjiàn) means 'Please find/check the attachment'."
+    },
+    {
+      id: 'zh-ex-37',
+      question: "How do you say 'I booked a room' in Chinese?",
+      options: ["我预订了房间 (Wǒ yùdìng le fángjiān)", "我要买票 (Wǒ yào mǎi piào)", "地铁站在哪里?", "推荐 (Tuījiàn)"],
+      answerIndex: 0,
+      explanation: "我预订了房间 (Wǒ yùdìng le fángjiān) means 'I have booked/reserved a room'."
+    },
+    {
+      id: 'zh-ex-38',
+      question: "What is the Chinese word for 'Map'?",
+      options: ["门票 (Ménpiào)", "地图 (Dìtú)", "房间 (Fángjiān)", "景点 (Jǐngdiǎn)"],
+      answerIndex: 1,
+      explanation: "地图 (Dìtú) is the Chinese word for map."
+    },
+    {
+      id: 'zh-ex-39',
+      question: "How do you shout 'Help!' in Chinese?",
+      options: ["救命！ (Jiùmìng!)", "请叫医生 (Qǐng jiào yīshēng)", "我这里疼 (Wǒ zhèlǐ téng)", "医院 (Yīyuàn)"],
+      answerIndex: 0,
+      explanation: "救命！ (Jiùmìng!) is the urgent cry for 'Help!' or 'Save life!' in Chinese."
+    },
+    {
+      id: 'zh-ex-40',
+      question: "What does '我这里疼' (Wǒ zhèlǐ téng) mean?",
+      options: ["I am lost", "It hurts here", "Call the doctor", "I need medicine"],
+      answerIndex: 1,
+      explanation: "我这里疼 (Wǒ zhèlǐ téng) translates to 'It hurts here' in Chinese."
     }
   ],
   vietnamese: [
@@ -1489,6 +1909,76 @@ export const languageExams: Record<string, ExamQuestion[]> = {
       options: ['Xin chào', 'Cám ơn', 'Tạm biệt', 'Xin lỗi'],
       answerIndex: 1,
       explanation: 'Cám ơn means "Thank you".'
+    },
+    {
+      id: 'vi-ex-31',
+      question: "What does the slang 'Dễ như ăn kẹo' mean?",
+      options: ["As easy as eating candy / Extremely easy", "Too spicy to eat", "Very expensive", "Slow down"],
+      answerIndex: 0,
+      explanation: "Dễ như ăn kẹo literally means 'as easy as eating candy', representing something very easy."
+    },
+    {
+      id: 'vi-ex-32',
+      question: "What is the meaning of the colloquial term 'Chém gió'?",
+      options: ["Slashing the wind / Boasting / Chatting casually", "Cutting paper", "Going to bed", "Being angry"],
+      answerIndex: 0,
+      explanation: "Chém gió literally means 'slashing the wind', used colloquially to mean boasting or chatting casually with friends."
+    },
+    {
+      id: 'vi-ex-33',
+      question: "What is the meaning of the proverb 'Ăn quả nhớ kẻ trồng cây'?",
+      options: ["Gratitude (Eat fruit, remember the planter)", "Unity makes strength", "Rome wasn't built in a day", "Environment influences character"],
+      answerIndex: 0,
+      explanation: "Ăn quả nhớ kẻ trồng cây means 'eat fruit, remember the planter', which emphasizes gratitude."
+    },
+    {
+      id: 'vi-ex-34',
+      question: "Translate the proverb 'Có công mài sắt, có ngày nên kim'.",
+      options: ["Persistence pays off", "Time will tell", "Slow and steady", "Every cloud has a silver lining"],
+      answerIndex: 0,
+      explanation: "Có công mài sắt, có ngày nên kim means 'with effort grinding iron, it will become a needle', representing persistence pays off."
+    },
+    {
+      id: 'vi-ex-35',
+      question: "In formal Vietnamese business correspondence, which opening phrase is used for 'Dear'?",
+      options: ["Kính gửi", "Trân trọng", "Về việc", "Hợp tác"],
+      answerIndex: 0,
+      explanation: "Kính gửi is the standard formal opening salutation for letters or emails."
+    },
+    {
+      id: 'vi-ex-36',
+      question: "What does 'Vui lòng kiểm tra file đính kèm' mean?",
+      options: ["Please check the attached file", "I am writing to you", "Thank you for cooperating", "Where is the manager?"],
+      answerIndex: 0,
+      explanation: "Vui lòng kiểm tra file đính kèm translates to 'Please check the attached file' in Vietnamese."
+    },
+    {
+      id: 'vi-ex-37',
+      question: "How do you say 'I have a room reservation' in Vietnamese?",
+      options: ["Tôi đã đặt phòng", "Điểm du lịch", "Bản đồ", "Vé"],
+      answerIndex: 0,
+      explanation: "Tôi đã đặt phòng means 'I have booked/reserved a room'."
+    },
+    {
+      id: 'vi-ex-38',
+      question: "What is the Vietnamese word for 'Ticket'?",
+      options: ["Vé", "Bản đồ", "Điểm", "Khuyên"],
+      answerIndex: 0,
+      explanation: "Vé is the Vietnamese word for ticket."
+    },
+    {
+      id: 'vi-ex-39',
+      question: "How do you shout 'Help me!' in Vietnamese?",
+      options: ["Cứu tôi với!", "Tôi bị đau ở đây", "Bệnh viện", "Hiệu thuốc"],
+      answerIndex: 0,
+      explanation: "Cứu tôi với! means 'Help me!' or 'Rescue me!' in Vietnamese."
+    },
+    {
+      id: 'vi-ex-40',
+      question: "What does 'Tôi bị đau ở đây' mean?",
+      options: ["I am lost", "I hurt here", "Call a doctor", "Give me medicine"],
+      answerIndex: 1,
+      explanation: "Tôi bị đau ở đây means 'I hurt here' or 'I have pain here'."
     }
   ],
   german: [
@@ -1701,6 +2191,76 @@ export const languageExams: Record<string, ExamQuestion[]> = {
       options: ['Kaffee und Kuchen', 'Bäckerei', 'Schwarzbrot', 'Brötchen'],
       answerIndex: 0,
       explanation: 'Kaffee und Kuchen (coffee and cake) is a traditional Sunday afternoon social ritual.'
+    },
+    {
+      id: 'de-ex-31',
+      question: "What does the German idiom 'Das ist ein Kinderspiel' translate to?",
+      options: ["That is a child's play / Piece of cake", "That is dangerous", "That is a bad game", "That is too expensive"],
+      answerIndex: 0,
+      explanation: "Kinderspiel literally means 'child's play', which represents something extremely easy or a piece of cake."
+    },
+    {
+      id: 'de-ex-32',
+      question: "What is the meaning of 'Jemandem die Daumen drücken'?",
+      options: ["To wish someone luck (press thumbs)", "To hurt someone's hands", "To get angry", "To do something pointless"],
+      answerIndex: 0,
+      explanation: "Daumen drücken literally means 'to press thumbs', which is the German gesture/expression for wishing someone good luck."
+    },
+    {
+      id: 'de-ex-33',
+      question: "What is the meaning of the proverb 'Übung macht den Meister'?",
+      options: ["Practice makes perfect", "Time will tell", "Every cloud has a silver lining", "Better late than never"],
+      answerIndex: 0,
+      explanation: "Übung macht den Meister translates to 'practice makes the master', which is the equivalent of 'Practice makes perfect'."
+    },
+    {
+      id: 'de-ex-34',
+      question: "Translate 'Aller Anfang ist schwer'.",
+      options: ["Every beginning is hard", "Practice makes perfect", "No pain, no gain", "Better late than never"],
+      answerIndex: 0,
+      explanation: "Aller Anfang ist schwer translates to 'every beginning is difficult'."
+    },
+    {
+      id: 'de-ex-35',
+      question: "In a professional German business email, which greeting means 'Dear Sir or Madam'?",
+      options: ["Sehr geehrte Damen und Herren", "Mit freundlichen Grüßen", "Bezugnehmend auf", "Anhang"],
+      answerIndex: 0,
+      explanation: "Sehr geehrte Damen und Herren is the standard formal salutation for 'Dear Sir or Madam'."
+    },
+    {
+      id: 'de-ex-36',
+      question: "What does 'Mit freundlichen Grüßen' mean?",
+      options: ["Sincerely / With friendly greetings", "Refering to", "I look forward to your reply", "Please check attachment"],
+      answerIndex: 0,
+      explanation: "Mit freundlichen Grüßen is the formal German closing corresponding to 'Sincerely' or 'Kind regards'."
+    },
+    {
+      id: 'de-ex-37',
+      question: "How do you say 'I have a reservation' in German?",
+      options: ["Ich habe eine Reservierung", "Sehenswürdigkeit", "Fahrkarte", "Stadtplan"],
+      answerIndex: 0,
+      explanation: "Ich habe eine Reservierung means 'I have a reservation'."
+    },
+    {
+      id: 'de-ex-38',
+      question: "What is the German word for 'Train ticket'?",
+      options: ["Sehenswürdigkeit", "Fahrkarte", "Stadtplan", "Reservierung"],
+      answerIndex: 1,
+      explanation: "Fahrkarte is the German word for travel ticket (train/bus)."
+    },
+    {
+      id: 'de-ex-39',
+      question: "How do you shout 'Help!' in German?",
+      options: ["Hilfe!", "Apotheke", "Es tut hier weh", "Krankenhaus"],
+      answerIndex: 0,
+      explanation: "Hilfe! is the German word for 'Help!'."
+    },
+    {
+      id: 'de-ex-40',
+      question: "What does 'Es tut hier weh' mean?",
+      options: ["I am lost", "It hurts here", "Call a doctor", "Give me medicine"],
+      answerIndex: 1,
+      explanation: "Es tut hier weh translates to 'It hurts here'."
     }
   ]
 };

@@ -211,6 +211,96 @@ export const languageModules: LanguageModule[] = [
           practice: 'List 3 rules you must follow when visiting a Thai temple.',
         },
       },
+{
+        id: 'th-13', title: 'Directions: Taking a Taxi', description: 'Interact with taxi drivers and navigate routes', type: 'conversation', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Get to destinations by taxi or rideshare using direct conversational phrases.',
+          keyPhrases: [
+            { native: 'ไปโรงพยาบาล', romanized: 'Pai rong phayaban', english: 'Go to the hospital' },
+            { native: 'ไปโรงแรม', romanized: 'Pai rong raem', english: 'Go to the hotel' },
+            { native: 'จอดตรงนี้', romanized: 'Chot trong ni', english: 'Park / stop here' },
+            { native: 'เปิดมิเตอร์ด้วย', romanized: 'Poet meter duai', english: 'Please turn on the meter' },
+            { native: 'ไม่ต้องทอน', romanized: 'Mai tong thon', english: 'Keep the change' },
+            { native: 'ขึ้นทางด่วนไหม', romanized: 'Khun thang duan mai', english: 'Take the tollway?' },
+            { native: 'ตรงไปเรื่อยๆ', romanized: 'Trong pai reuay reuay', english: 'Keep going straight' },
+            { native: 'เลี้ยวซ้ายข้างหน้า', romanized: 'Liao sai khang na', english: 'Turn left ahead' },
+            { native: 'เลี้ยวขวาที่ไฟแดง', romanized: 'Liao kwa thi fai daeng', english: 'Turn right at the red light' },
+            { native: 'ขอบคุณครับ/ค่ะ', romanized: 'Khob khun krap/ka', english: 'Thank you (polite)' }
+          ],
+          tips: ['Always ask to turn on the meter ("Poet meter duai")', 'Ridesharing apps like Grab are highly popular and safe'],
+          practice: 'Simulate a taxi ride asking to go to the airport and requesting the meter.',
+        },
+      },
+{
+        id: 'th-14', title: 'Thai Body Language & Respect', description: 'Learn social gestures and taboos in Thailand', type: 'culture', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Body language in Thailand carries cultural values. Read about the head, feet, and general posturing.',
+          keyPhrases: [
+            { native: 'ไหว้', romanized: 'Wai', english: 'Polite greeting gesture' },
+            { native: 'หัว', romanized: 'Hua', english: 'Head (sacred part of the body)' },
+            { native: 'เท้า', romanized: 'Thao', english: 'Feet (lowest / unclean part)' },
+            { native: 'ก้มหัว', romanized: 'Kom hua', english: 'Lower your head when passing elders' },
+            { native: 'ยิ้ม', romanized: 'Yim', english: 'Smile (conveys multiple emotions)' },
+            { native: 'เกรงใจ', romanized: 'Kreng jai', english: 'Considerateness / not wanting to burden' },
+            { native: 'สุภาพ', romanized: 'Suphap', english: 'Polite / soft-spoken' },
+            { native: 'ไม่สุภาพ', romanized: 'Mai suphap', english: 'Impolite' },
+            { native: 'ให้เกียรti', romanized: 'Hai kiat', english: 'Show respect / give honor' },
+            { native: 'ชี้', romanized: 'Chi', english: 'Pointing (avoid pointing feet at objects)' }
+          ],
+          tips: ['Never touch anyone on the head', 'Avoid pointing your foot at people or objects'],
+          practice: 'Practice walking past a colleague while slightly lowering your head as a sign of respect.',
+        },
+      },
+{
+        id: 'th-15', title: 'Simple Past & Future Tenses', description: 'Express timing using tense markers', type: 'grammar', difficulty: 'intermediate', duration: '15 min',
+        content: {
+          intro: 'Understand past and future timeline structures using indicator particles.',
+          keyPhrases: [
+            { native: 'แล้ว', romanized: 'Laeo', english: 'Already (past marker)' },
+            { native: 'จะ', romanized: 'Cha', english: 'Will (future marker)' },
+            { native: 'เมื่อวานนี้', romanized: 'Muea wan ni', english: 'Yesterday' },
+            { native: 'พรุ่งนี้', romanized: 'Phrung ni', english: 'Tomorrow' },
+            { native: 'กินข้าวแล้ว', romanized: 'Gin khao laeo', english: 'Ate rice already' },
+            { native: 'จะไปกรุงเทพฯ', romanized: 'Cha pai krung-thep', english: 'Will go to Bangkok' },
+            { native: 'เคย', romanized: 'Khoey', english: 'Used to / Ever' },
+            { native: 'ยังไม่ได้', romanized: 'Yang mai dai', english: 'Not yet' },
+            { native: 'ปีที่แล้ว', romanized: 'Pee thi laeo', english: 'Last year' },
+            { native: 'ปีหน้า', romanized: 'Pee na', english: 'Next year' }
+          ],
+          tips: ['"Laeo" goes at the end of the sentence to show completion', '"Cha" goes before the verb to show intent/future'],
+          practice: 'Translate "I will eat pad thai tomorrow" and "I visited Chiang Mai last year".',
+        },
+      },
+{
+        id: 'th-16', title: 'Thai Idioms & Slang', description: 'Learn colorful expressions and slang used in daily Thai conversations', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Thai slang is widely used in informal settings. Master these popular terms.',
+          keyPhrases: [
+            { native: 'กล้วยๆ', romanized: 'Kluai kluai', english: 'Piece of cake / Very easy' },
+            { native: 'เทน้ำเทท่า', romanized: 'The nam the tha', english: 'Selling like hot cakes' },
+            { native: 'ชิวๆ', romanized: 'Chill chill', english: 'Relaxed / Taking it easy' },
+            { native: 'งานเข้า', romanized: 'Ngan khao', english: 'In trouble / Work has entered' },
+            { native: 'ทางใครทางมัน', romanized: 'Thang khrai thang man', english: 'Go our separate ways' }
+          ],
+          tips: ['Doubling a word often intensifies or makes it casual', '"Ngan khao" is very common when unexpected trouble happens'],
+          practice: 'Use "Chill chill" and "Ngan khao" in a short role-play.'
+        }
+      },
+{
+        id: 'th-17', title: 'Thai Proverbs & Sayings', description: 'Explore traditional Thai proverbs and wise sayings', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Thai proverbs reflect Buddhist values, agricultural history, and social rules.',
+          keyPhrases: [
+            { native: 'น้ำขึ้นให้รีบตัก', romanized: 'Nam khun hai reep tak', english: 'Strike while the iron is hot' },
+            { native: 'ช้างตายทั้งตัวเอาใบบัวปิด', romanized: 'Chang tai tang tua ao bai bua pit', english: 'You cannot hide a massive misdeed with a small cover-up' },
+            { native: 'ข้าวใหม่ปลามัน', romanized: 'Khao mai pla man', english: 'Honeymoon period / New love' },
+            { native: 'หัวล้านได้หวี', romanized: 'Hua lan dai wee', english: 'Getting a gift you cannot use' },
+            { native: 'รักวัวให้ผูกรักลูกให้ตี', romanized: 'Rak wua hai phuk rak luk hai tee', english: 'Spare the rod, spoil the child' }
+          ],
+          tips: ['Proverbs often rhyme in Thai', 'Many refer to animals like elephants, cows, and fish'],
+          practice: 'Explain the meaning of "Nam khun hai reep tak" in your own words.'
+        }
+      },
     ],
   },
   {
@@ -399,6 +489,96 @@ export const languageModules: LanguageModule[] = [
           tips: ['Street foods are usually cheap and served with hot broth (odeng guk) for free', 'Pojangmacha are street tents that also serve alcohol', 'Gimbap is a popular lunchbox picnic food'],
           practice: 'Imagine you are ordering food at a Pojangmacha. List your choices.',
         },
+      },
+{
+        id: 'ko-13', title: 'Asking for Help & Directions', description: 'Request help and clarify locations', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Ask for assistance in public settings or ask passersby for directory help.',
+          keyPhrases: [
+            { native: '도와주세요', romanized: 'Dowajuseyo', english: 'Please help me' },
+            { native: '길을 잃었어요', romanized: 'Gireul ireosseoyo', english: 'I am lost' },
+            { native: '화장실이 어디예요?', romanized: 'Hwajangsiri eodiyeyo?', english: 'Where is the restroom?' },
+            { native: '여기가 어디예요?', romanized: 'Yeogiga eodiyeyo?', english: 'Where is this place?' },
+            { native: '다시 말씀해 주세요', romanized: 'Dasi malsseumhae juseyo', english: 'Please say it again' },
+            { native: '천천히 말해 주세요', romanized: 'Cheoncheonhi malhae juseyo', english: 'Please speak slowly' },
+            { native: '영어를 할 수 있어요?', romanized: 'Yeongheoreul hal su isseyo?', english: 'Can you speak English?' },
+            { native: '경찰서', romanized: 'Gyeongchalseo', english: 'Police station' },
+            { native: '병원', romanized: 'Byeongwon', english: 'Hospital' },
+            { native: '도와주셔서 감사합니다', romanized: 'Dowajusyeoseo gamsahamnida', english: 'Thank you for helping' }
+          ],
+          tips: ['If you need assistance, politely approach someone and say "Sillyehamnida" first'],
+          practice: 'Practice telling someone you are lost and asking for the restroom.',
+        },
+      },
+{
+        id: 'ko-14', title: 'Korean Bowing & Gift Etiquette', description: 'Social manners and gifting customs', type: 'culture', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Study bowing, receiving items with two hands, and housewarming gifts.',
+          keyPhrases: [
+            { native: '절', romanized: 'Jeol', english: 'Traditional deep bow' },
+            { native: '두 손으로', romanized: 'Du soneuro', english: 'With both hands' },
+            { native: '선물', romanized: 'Seonmul', english: 'Gift / Present' },
+            { native: '집들이', romanized: 'Jipdeuri', english: 'Housewarming party' },
+            { native: '세제 / 화장지', romanized: 'Seje / Hwajangji', english: 'Detergent / Toilet paper' },
+            { native: '예의', romanized: 'Yeeui', english: 'Manners / Etiquette' },
+            { native: '인사', romanized: 'Insa', english: 'Greeting / Bowing' },
+            { native: '존중', romanized: 'Jonjung', english: 'Respect' },
+            { native: '거절하다', romanized: 'Geojeolhada', english: 'To decline (politely)' },
+            { native: '감사', romanized: 'Gamsa', english: 'Gratitude' }
+          ],
+          tips: ['Always pass and receive drinks, business cards, or gifts with two hands'],
+          practice: 'Simulate handing a package to an elder using both hands.',
+        },
+      },
+{
+        id: 'ko-15', title: 'Past Tense Sentences', description: 'Conjugate verbs into past tense timelines', type: 'grammar', difficulty: 'intermediate', duration: '15 min',
+        content: {
+          intro: 'Learn how to form past tense statements ending in -asseoyo / -eosseoyo.',
+          keyPhrases: [
+            { native: '갔어요', romanized: 'Gasseoyo', english: 'Went (past of 가다)' },
+            { native: '먹었어요', romanized: 'Meogeosseoyo', english: 'Ate (past of 먹다)' },
+            { native: '공부했어요', romanized: 'Gongbuhaesseoyo', english: 'Studied (past of 공부하다)' },
+            { native: '어제', romanized: 'Eoje', english: 'Yesterday' },
+            { native: '지난주', romanized: 'Jinanju', english: 'Last week' },
+            { native: '받았어요', romanized: 'Badasseoyo', english: 'Received (past of 받다)' },
+            { native: '봤어요', romanized: 'Bwasseoyo', english: 'Saw / Watched (past of 보다)' },
+            { native: '했어요', romanized: 'Haesseoyo', english: 'Did (past of 하다)' },
+            { native: '재미있었어요', romanized: 'Jaemi-isseosseoyo', english: 'It was fun' },
+            { native: '어제 영화를 봤어요', romanized: 'Eoje yeonghwareul bwasseoyo', english: 'I watched a movie yesterday' }
+          ],
+          tips: ['Verb roots with "ㅏ" or "ㅗ" add "-았어요", others add "-었어요"; "-하다" verbs become "-했어요"'],
+          practice: 'Change the sentence "김치를 먹어요" (I eat kimchi) to past tense.',
+        },
+      },
+{
+        id: 'ko-16', title: 'Korean Idioms & Slang', description: 'Learn popular idiomatic expressions and modern slang in South Korea', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Korean idioms (Gwanyonggu) and modern slangs reflect daily life, food, and feelings.',
+          keyPhrases: [
+            { native: '식은 죽 먹기', romanized: 'Sigeun juk meokgi', english: 'Piece of cake (lit. eating cold porridge)' },
+            { native: '누워서 떡 먹기', romanized: 'Nuwoseo tteok meokgi', english: 'Extremely easy (lit. eating rice cakes while lying down)' },
+            { native: '심쿵', romanized: 'Simkung', english: 'Heartthrob / Heart skip a beat' },
+            { native: '밀당', romanized: 'Mildang', english: 'Push and pull in relationships' },
+            { native: '피가 되고 살이 된다', romanized: 'Piga doego sari doenda', english: 'Highly beneficial (lit. becomes blood and flesh)' }
+          ],
+          tips: ['Food-related metaphors are extremely common in Korean expressions', '"Simkung" is widely used by younger generations'],
+          practice: 'Create a sentence about a test or chore using "식은 죽 먹기".'
+        }
+      },
+{
+        id: 'ko-17', title: 'Korean Proverbs (Sokdam)', description: 'Understand traditional Korean wisdom and cultural proverbs', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Proverbs (Sokdam) offer a glimpse into traditional Korean lifestyles and advice.',
+          keyPhrases: [
+            { native: '티끌 모아 태산', romanized: 'Tiggle moa taesan', english: 'Dust gathered becomes a mountain' },
+            { native: '시작이 반이다', romanized: 'Sijagi banida', english: 'Starting is half the battle' },
+            { native: '금강산도 식후경', romanized: 'Geumgangsando sikhugyeong', english: 'Even at Mt. Geumgang, eat first' },
+            { native: '원숭이도 나무에서 떨어진다', romanized: 'Wonsungido namueseo tteoreojinda', english: 'Even monkeys fall from trees (experts make mistakes)' },
+            { native: '백지장도 맞들면 낫다', romanized: 'Baekjijangdo matdeulmyeon natda', english: 'Two heads are better than one' }
+          ],
+          tips: ['"Geumgangsando sikhugyeong" highlights the importance of eating before doing activities', 'Many proverbs emphasize diligence and cooperation'],
+          practice: 'Explain the meaning of "시작이 반이다" in English.'
+        }
       },
     ],
   },
@@ -589,6 +769,96 @@ export const languageModules: LanguageModule[] = [
           practice: 'List three steps you should follow when visiting an Onsen.',
         },
       },
+{
+        id: 'ja-13', title: 'Asking for Directions in Tokyo', description: 'Navigate Tokyo stations and streets', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Get lost and find landmarks in metropolitan Tokyo with confidence.',
+          keyPhrases: [
+            { native: '駅はどこですか', romanized: 'Eki wa doko desu ka', english: 'Where is the station?' },
+            { native: 'まっすぐ行ってください', romanized: 'Massugu itte kudasai', english: 'Please go straight' },
+            { native: '左に曲がってください', romanized: 'Hidari ni magatte kudasai', english: 'Please turn left' },
+            { native: '右に曲がってください', romanized: 'Migi ni magatte kudasai', english: 'Please turn right' },
+            { native: '交番', romanized: 'Kooban', english: 'Police box' },
+            { native: '切符売り場', romanized: 'Kippu uriba', english: 'Ticket office' },
+            { native: '改札口', romanized: 'Kaisatsuguchi', english: 'Ticket gate' },
+            { native: '出口 / 入口', romanized: 'Deguchi / Iriguchi', english: 'Exit / Entrance' },
+            { native: 'ここから遠いですか', romanized: 'Koko kara tooi desu ka', english: 'Is it far from here?' },
+            { native: 'ありがとうございます', romanized: 'Arigatou gozaimasu', english: 'Thank you very much' }
+          ],
+          tips: ['Find the nearest "Kooban" (police box) if you get completely lost'],
+          practice: 'Ask someone where Shinjuku station is: "Shinjuku eki wa doko desu ka?".',
+        },
+      },
+{
+        id: 'ja-14', title: 'Gift Giving & Omiyage', description: 'Learn Japanese gifting culture and etiquette', type: 'culture', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Learn about Omiyage (souvenirs) and how to give/receive gifts.',
+          keyPhrases: [
+            { native: 'お土産', romanized: 'Omiyage', english: 'Souvenir / regional gift' },
+            { native: 'つまらないものですが', romanized: 'Tsumaranai mono desu ga', english: 'It\'s nothing special, but... (humble)' },
+            { native: 'どうぞ', romanized: 'Douzo', english: 'Here you go' },
+            { native: '手土産', romanized: 'Temiyage', english: 'Thank-you gift brought to a house visit' },
+            { native: '熨斗', romanized: 'Noshi', english: 'Decorative gift wrapping paper' },
+            { native: 'お返し', romanized: 'Okaeshi', english: 'Return gift (obligatory thank-you gift)' },
+            { native: '遠慮', romanized: 'Enryo', english: 'Hesitation / polite declining' },
+            { native: '贈り物', romanized: 'Okurimono', english: 'Gift / Present' },
+            { native: '両手で渡す', romanized: 'Ryoute de watasu', english: 'Hand over with both hands' },
+            { native: 'ありがとうございました', romanized: 'Arigatou gozaimashita', english: 'Thank you for what you did' }
+          ],
+          tips: ['Never open a gift immediately after receiving it unless invited to do so'],
+          practice: 'Simulate presenting a gift saying "Douzo" with both hands.',
+        },
+      },
+{
+        id: 'ja-15', title: 'Past Tense: Ta-form', description: 'Conjugate verbs into past tense forms', type: 'grammar', difficulty: 'intermediate', duration: '18 min',
+        content: {
+          intro: 'Convert verbs into past tense using the Ta-form (informal past).',
+          keyPhrases: [
+            { native: '食べた', romanized: 'Tabeta', english: 'Ate (past of taberu)' },
+            { native: '行った', romanized: 'Itta', english: 'Went (past of iku)' },
+            { native: '読んだ', romanized: 'Yonda', english: 'Read (past of yomu)' },
+            { native: 'しました', romanized: 'Shimashita', english: 'Did (formal past of suru)' },
+            { native: '食べました', romanized: 'Tabemashita', english: 'Ate (formal past of taberu)' },
+            { native: '昨日', romanized: 'Kinou', english: 'Yesterday' },
+            { native: '先週', romanized: 'Senshuu', english: 'Last week' },
+            { native: '買った', romanized: 'Katta', english: 'Bought (past of kau)' },
+            { native: '見た', romanized: 'Mita', english: 'Saw / Watched (past of miru)' },
+            { native: '映画を見た', romanized: 'Eiga wo mita', english: 'I watched a movie' }
+          ],
+          tips: ['Ta-form conjugates exactly like Te-form, just substitute "ta/da" for "te/de"'],
+          practice: 'Convert "hon wo yomimasu" (I read a book) into formal past tense.',
+        },
+      },
+{
+        id: 'ja-16', title: 'Japanese Idioms & Colloquialisms', description: 'Learn everyday idiomatic phrases and popular colloquial Japanese', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Japanese colloquialisms add natural flavor to your speech. Study these common idioms.',
+          keyPhrases: [
+            { native: '朝飯前', romanized: 'Asameshimae', english: 'Piece of cake (lit. before breakfast)' },
+            { native: '猫の手も借りたい', romanized: 'Neko no te mo karitai', english: 'Extremely busy (lit. wanting to borrow even a cat\'s paw)' },
+            { native: '相槌を打つ', romanized: 'Aiduchi wo utsu', english: 'Nodding in agreement (backchanneling)' },
+            { native: '口が軽い', romanized: 'Kuchi ga karui', english: 'Having a loose tongue (cannot keep secrets)' },
+            { native: '腹が立つ', romanized: 'Hara ga tatsu', english: 'To get angry (lit. stomach stands up)' }
+          ],
+          tips: ['Conversational backchannels ("Aiduchi") like "Un", "Hee", or "Soudesu ne" show active listening', 'Many idioms refer to body parts (stomach, mouth, eyes)'],
+          practice: 'Describe a busy schedule using "Neko no te mo karitai".'
+        }
+      },
+{
+        id: 'ja-17', title: 'Japanese Kotowaza (Proverbs)', description: 'Learn traditional Japanese proverbs and life advice', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Proverbs (Kotowaza) embody centuries of Japanese philosophies on life, nature, and resilience.',
+          keyPhrases: [
+            { native: '猿も木から落ちる', romanized: 'Saru mo ki kara ochiru', english: 'Even monkeys fall from trees (experts make mistakes)' },
+            { native: '七転び八起き', romanized: 'Nanakorobi yaoki', english: 'Fall seven times, stand up eight (resilience)' },
+            { native: '一期一会', romanized: 'Ichigo ichie', english: 'Once-in-a-lifetime encounter' },
+            { native: 'ちりも積もれば山となる', romanized: 'Chiri mo tsumoreba yama to naru', english: 'Dust piled up becomes a mountain (every bit counts)' },
+            { native: '井の中の蛙大海を知らず', romanized: 'I no naka no kawazu taikai wo shirazu', english: 'A frog in a well knows nothing of the great ocean' }
+          ],
+          tips: ['Four-character idioms (Yojijukugo) like "Ichigo ichie" are highly valued', '"Nanakorobi yaoki" is a core tenet of Japanese perseverance'],
+          practice: 'Explain the meaning of "Ichigo ichie" in your own words.'
+        }
+      },
     ],
   },
   {
@@ -777,6 +1047,96 @@ export const languageModules: LanguageModule[] = [
           tips: ['Ordering "un café" in France gets you a small, strong black espresso', 'Always start your order with "Bonjour" to be polite', 'Waiters are called "Monsieur", do not shout "Garçon"'],
           practice: 'Create a short roleplay dialogue ordering a coffee and croissant.',
         },
+      },
+{
+        id: 'fr-13', title: 'Directions: Asking on the Street', description: 'Navigate Parisian neighborhoods', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Locate monuments and train stations using standard navigational phrasing.',
+          keyPhrases: [
+            { native: 'Où est la station de métro?', romanized: '—', english: 'Where is the subway station?' },
+            { native: 'Tournez à gauche', romanized: '—', english: 'Turn left' },
+            { native: 'Tournez à droite', romanized: '—', english: 'Turn right' },
+            { native: 'Allez tout droit', romanized: '—', english: 'Go straight ahead' },
+            { native: 'C\'est près d\'ici?', romanized: '—', english: 'Is it near here?' },
+            { native: 'C\'est loin?', romanized: '—', english: 'Is it far?' },
+            { native: 'Le plan', romanized: '—', english: 'The map' },
+            { native: 'Pardon, je cherche...', romanized: '—', english: 'Excuse me, I am looking for...' },
+            { native: 'Où se trouve...?', romanized: '—', english: 'Where is [located]...?' },
+            { native: 'Merci beaucoup', romanized: '—', english: 'Thank you very much' }
+          ],
+          tips: ['Start street questions with "Pardon" (excuse me) to show courtesy'],
+          practice: 'Practice asking for the Louvre museum and asking if it is far.',
+        },
+      },
+{
+        id: 'fr-14', title: 'French Social Manners & dinner', description: 'Master social customs and dining protocol', type: 'culture', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Study French social rules, checking cheek kisses, and hosting manners.',
+          keyPhrases: [
+            { native: 'La bise', romanized: '—', english: 'Greeting cheek kisses' },
+            { native: 'Bon appétit', romanized: '—', english: 'Enjoy your meal' },
+            { native: 'Santé !', romanized: 'sahn-tay', english: 'Cheers! (Health)' },
+            { native: 'Madame / Monsieur', romanized: '—', english: 'Mrs. / Mr. (essential titles)' },
+            { native: 'Chaleureux', romanized: '—', english: 'Warm / welcoming' },
+            { native: 'Le dîner', romanized: '—', english: 'Dinner' },
+            { native: 'Le pain', romanized: '—', english: 'Bread (served with all dinners)' },
+            { native: 'Politesse', romanized: '—', english: 'Politeness' },
+            { native: 'Inviter', romanized: '—', english: 'To invite / host' },
+            { native: 'Faire la bise', romanized: '—', english: 'Perform cheek kisses' }
+          ],
+          tips: ['Always wait for the host to say "Bon appétit" before starting to eat'],
+          practice: 'List key differences between greetings in France vs. your native country.',
+        },
+      },
+{
+        id: 'fr-15', title: 'Future Tense: Futur Proche', description: 'Express future actions with aller', type: 'grammar', difficulty: 'intermediate', duration: '15 min',
+        content: {
+          intro: 'Form near future timelines using the verb "aller" plus an infinitive verb.',
+          keyPhrases: [
+            { native: 'Je vais manger', romanized: '—', english: 'I am going to eat' },
+            { native: 'Tu vas faire', romanized: '—', english: 'You are going to do' },
+            { native: 'Il va partir', romanized: '—', english: 'He is going to leave' },
+            { native: 'Nous allons voyager', romanized: '—', english: 'We are going to travel' },
+            { native: 'Vous allez voir', romanized: '—', english: 'You all are going to see' },
+            { native: 'Ils vont acheter', romanized: '—', english: 'They are going to buy' },
+            { native: 'Demain', romanized: 'deh-mɛ̃', english: 'Tomorrow' },
+            { native: 'Ce soir', romanized: 'suh swahr', english: 'Tonight' },
+            { native: 'Bientôt', romanized: '—', english: 'Soon' },
+            { native: 'Je vais étudier le français', romanized: '—', english: 'I am going to study French' }
+          ],
+          tips: ['Futur Proche is highly common in spoken French for plan actions'],
+          practice: 'Translate "I am going to order a croissant tonight" into French.',
+        },
+      },
+{
+        id: 'fr-16', title: 'French Slang & Idioms', description: 'Master colloquial expressions and common French idioms', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Informal French is filled with colorful expressions. Master these widely-used slangs.',
+          keyPhrases: [
+            { native: 'Les doigts dans le nez', romanized: '—', english: 'Piece of cake (lit. fingers in the nose)' },
+            { native: 'Tomber dans les pommes', romanized: '—', english: 'To faint (lit. to fall in the apples)' },
+            { native: 'C\'est simple comme bonjour', romanized: '—', english: 'Very simple (lit. simple as hello)' },
+            { native: 'Avoir le cafard', romanized: '—', english: 'To feel blue / depressed (lit. to have the cockroach)' },
+            { native: 'Raconter des salades', romanized: '—', english: 'To tell lies / tall stories (lit. to tell salads)' }
+          ],
+          tips: ['French slang features "Verlan" (syllable inversion), e.g., "louche" becomes "chelou"', '"Avoir le cafard" is used casually to express sadness'],
+          practice: 'Write a sentence describing a test you found extremely easy using "Les doigts dans le nez".'
+        }
+      },
+{
+        id: 'fr-17', title: 'French Proverbs & Wisdom', description: 'Explore traditional French sayings and cultural wisdom', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'French proverbs offer insights into patience, life observations, and history.',
+          keyPhrases: [
+            { native: 'Petit à petit, l\'oiseau fait son nid', romanized: '—', english: 'Little by little, the bird builds its nest' },
+            { native: 'Qui vivra verra', romanized: '—', english: 'Time will tell (lit. he who lives will see)' },
+            { native: 'Mieux vaut tard que jamais', romanized: '—', english: 'Better late than never' },
+            { native: 'Après la pluie, le beau temps', romanized: '—', english: 'Every cloud has a silver lining (lit. after rain, good weather)' },
+            { native: 'Rien ne sert de courir; il faut partir à point', romanized: '—', english: 'Slow and steady wins the race' }
+          ],
+          tips: ['Many French proverbs focus on nature, animals, and agricultural timelines', '"Qui vivra verra" is used when the outcome of a situation is uncertain'],
+          practice: 'Translate "Petit à petit, l\'oiseau fait son nid" and explain its moral meaning.'
+        }
       },
     ],
   },
@@ -967,6 +1327,96 @@ export const languageModules: LanguageModule[] = [
           practice: 'Create a list of 3 tapas dishes you would order in a Spanish bar.',
         },
       },
+{
+        id: 'es-13', title: 'Directions: Taking a Bus', description: 'Navigate bus routes and ticket payments', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Interact with bus drivers and find bus stops in cities.',
+          keyPhrases: [
+            { native: '¿Dónde está la parada de autobús?', romanized: '—', english: 'Where is the bus stop?' },
+            { native: '¿Este autobús va a...?', romanized: '—', english: 'Does this bus go to...?' },
+            { native: 'Un billete, por favor', romanized: '—', english: 'One ticket, please' },
+            { native: '¿Tengo que transbordar?', romanized: '—', english: 'Do I have to transfer?' },
+            { native: 'Bajar en la próxima', romanized: '—', english: 'Get off at the next one' },
+            { native: 'El conductor', romanized: '—', english: 'The driver' },
+            { native: '¿Cuánto cuesta el pasaje?', romanized: '—', english: 'How much is the fare?' },
+            { native: '¿Cuál es la línea...?', romanized: '—', english: 'Which line is...?' },
+            { native: '¿Dónde me bajo?', romanized: '—', english: 'Where do I get off?' },
+            { native: '¡Gracias por su ayuda!', romanized: '—', english: 'Thanks for your help!' }
+          ],
+          tips: ['Tickets are usually bought from the driver or validated inside using a card'],
+          practice: 'Ask if the bus goes to the center: "¿Este autobús va al centro?".',
+        },
+      },
+{
+        id: 'es-14', title: 'Spanish Festivals & Traditions', description: 'Explore celebrations in Spanish countries', type: 'culture', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Study historical celebrations like La Tomatina, San Fermín, and Semana Santa.',
+          keyPhrases: [
+            { native: 'La Tomatina', romanized: '—', english: 'Tomato throwing festival in Buñol' },
+            { native: 'San Fermín', romanized: '—', english: 'Running of the bulls in Pamplona' },
+            { native: 'Semana Santa', romanized: '—', english: 'Holy Week' },
+            { native: 'Fiesta', romanized: '—', english: 'Celebration / Party' },
+            { native: 'Los Reyes Magos', romanized: '—', english: 'The Three Wise Men (Jan 6th gift day)' },
+            { native: 'Las Fallas', romanized: '—', english: 'Valencian puppet burning festival' },
+            { native: 'El carnaval', romanized: '—', english: 'Carnival' },
+            { native: 'Fuegos artificiales', romanized: '—', english: 'Fireworks' },
+            { native: 'Tradición', romanized: '—', english: 'Tradition' },
+            { native: 'Feliz Navidad', romanized: '—', english: 'Merry Christmas' }
+          ],
+          tips: ['Children in Spanish countries traditionally get gifts on Three Kings Day (Jan 6) instead of Christmas'],
+          practice: 'List 3 details about your favorite Spanish cultural tradition.',
+        },
+      },
+{
+        id: 'es-15', title: 'Future Tense: Ir + a + Infinitive', description: 'Talk about future plans simply', type: 'grammar', difficulty: 'intermediate', duration: '15 min',
+        content: {
+          intro: 'Form future plans easily using "ir" (conjugation) + a + infinitive verb.',
+          keyPhrases: [
+            { native: 'Voy a comer', romanized: '—', english: 'I am going to eat' },
+            { native: 'Vas a viajar', romanized: '—', english: 'You are going to travel' },
+            { native: 'Va a estudiar', romanized: '—', english: 'He is going to study' },
+            { native: 'Vamos a salir', romanized: '—', english: 'We are going to go out' },
+            { native: 'Vais a comprar', romanized: '—', english: 'You all are going to buy' },
+            { native: 'Van a jugar', romanized: '—', english: 'They are going to play' },
+            { native: 'Mañana', romanized: 'man-yana', english: 'Tomorrow' },
+            { native: 'Esta noche', romanized: '—', english: 'Tonight' },
+            { native: 'El año que viene', romanized: '—', english: 'Next year' },
+            { native: 'Voy a hablar español', romanized: '—', english: 'I am going to speak Spanish' }
+          ],
+          tips: ['"Ir + a + Infinitive" is highly conversational; conjugate "ir" for person and leave the second verb unchanged'],
+          practice: 'Translate "We are going to eat tapas tomorrow" into Spanish.',
+        },
+      },
+{
+        id: 'es-16', title: 'Spanish Idioms & Expressions', description: 'Learn colorful idioms and common colloquial phrases in Spanish', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Spaniards and Latin Americans use unique idioms daily. Learn these essential expressions.',
+          keyPhrases: [
+            { native: 'Pan comido', romanized: '—', english: 'Piece of cake (lit. eaten bread)' },
+            { native: 'Tomar el pelo', romanized: '—', english: 'To pull someone\'s leg / kid (lit. to take the hair)' },
+            { native: 'Estar en las nubes', romanized: '—', english: 'To be daydreaming (lit. to be in the clouds)' },
+            { native: 'Echar agua al mar', romanized: '—', english: 'To do something pointless (lit. to throw water into the sea)' },
+            { native: 'Ponerse las pilas', romanized: '—', english: 'To get organized / work hard (lit. to put in the batteries)' }
+          ],
+          tips: ['"Pan comido" describes tasks, not food', 'Use "tomar el pelo" when a friend tells a joke that sounds serious'],
+          practice: 'Write a sentence telling a classmate to study using "ponerte las pilas".'
+        }
+      },
+{
+        id: 'es-17', title: 'Spanish Refranes (Proverbs)', description: 'Explore traditional Spanish proverbs and sayings', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Proverbs (Refranes) are highly valued in Spanish culture for conveying life lessons.',
+          keyPhrases: [
+            { native: 'Más vale tarde que nunca', romanized: '—', english: 'Better late than never' },
+            { native: 'A mal tiempo, buena cara', romanized: '—', english: 'In bad times, stay positive (lit. to bad weather, a good face)' },
+            { native: 'No por mucho madrugar amanece más temprano', romanized: '—', english: 'Things take their own time (lit. rising early won\'t make dawn come faster)' },
+            { native: 'Dime con quién andas, y te diré quién eres', romanized: '—', english: 'You are judged by the company you keep' },
+            { native: 'Perro que ladra no muerde', romanized: '—', english: 'His bark is worse than his bite (lit. dog that barks doesn\'t bite)' }
+          ],
+          tips: ['Proverbs often feature animals, weather, and agricultural schedules', '"A mal tiempo, buena cara" is used to motivate others during setbacks'],
+          practice: 'Explain the moral meaning of "Más vale tarde que nunca" in Spanish.'
+        }
+      },
     ],
   },
   {
@@ -1155,6 +1605,96 @@ export const languageModules: LanguageModule[] = [
           tips: ['Tap two fingers on the table to show gratitude when someone pours tea for you (finger kowtow)', 'The first brew of tea is often poured away to wash the leaves', 'Never point the spout of the teapot towards guests'],
           practice: 'List three types of Chinese tea and describe the finger tapping custom.',
         },
+      },
+{
+        id: 'zh-13', title: 'Directions: Subway Navigation', description: 'Navigate metropolitan subway lines', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Travel on China\'s subway networks using key location vocabulary.',
+          keyPhrases: [
+            { native: '地铁站在哪里?', romanized: 'Dìtiě zhàn zài nǎlǐ?', english: 'Where is the subway station?' },
+            { native: '我要买票', romanized: 'Wǒ yào mǎi piào', english: 'I want to buy a ticket' },
+            { native: '几号线?', romanized: 'Jǐ hào xiàn?', english: 'Which line number?' },
+            { native: '换乘', romanized: 'Huànchéng', english: 'Transfer lines' },
+            { native: '出口', romanized: 'Chūkǒu', english: 'Exit' },
+            { native: '入口', romanized: 'Rùkǒu', english: 'Entrance' },
+            { native: '单程票', romanized: 'Dānchéngpiào', english: 'One-way ticket' },
+            { native: '乘车卡', romanized: 'Chéngchēkǎ', english: 'Transit card' },
+            { native: '下一站', romanized: 'Xià yí zhàn', english: 'Next stop' },
+            { native: '安检', romanized: 'Ānjiǎn', english: 'Security check' }
+          ],
+          tips: ['All Chinese subways require passing bags through security scanners (安检) before entering'],
+          practice: 'Simulate asking for subway Line 1 ("一号线") and looking for Exit A ("A出口").',
+        },
+      },
+{
+        id: 'zh-14', title: 'Chinese Table Manners & Banquets', description: 'Understand dinner seating and protocol', type: 'culture', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Study seating orders, guest positions, and toast procedures at banquets.',
+          keyPhrases: [
+            { native: '主人', romanized: 'Zhǔrén', english: 'Host' },
+            { native: '主宾', romanized: 'Zhǔbīn', english: 'Guest of honor' },
+            { native: '转盘', romanized: 'Zhuànpán', english: 'Lazy Susan (spinning center glass)' },
+            { native: '敬酒', romanized: 'Jìngjiǔ', english: 'To toast' },
+            { native: '长辈', romanized: 'Zhǎngbèi', english: 'Elders' },
+            { native: '客气', romanized: 'Kèqì', english: 'Polite / courteous' },
+            { native: '座次', romanized: 'Zuòcì', english: 'Seating order' },
+            { native: '公筷', romanized: 'Gōngkuài', english: 'Serving chopsticks' },
+            { native: '倒酒', romanized: 'dào jiǔ', english: 'Pour wine / alcohol' },
+            { native: '干杯', romanized: 'Gānbēi', english: 'Cheers / empty glass' }
+          ],
+          tips: ['Keep your glass lower than that of elders/superiors when clinking glasses to toast'],
+          practice: 'List two rules regarding serving chopsticks and toasting elders.',
+        },
+      },
+{
+        id: 'zh-15', title: 'Past Actions with le (了)', description: 'Indicate completed actions simply', type: 'grammar', difficulty: 'intermediate', duration: '15 min',
+        content: {
+          intro: 'Learn how to place the particle "了" (le) to show that an action is finished.',
+          keyPhrases: [
+            { native: '我吃了饭', romanized: 'Wǒ chī le fàn', english: 'I ate rice (ate meal)' },
+            { native: '他去了北京', romanized: 'Tā qù le Běijīng', english: 'He went to Beijing' },
+            { native: '我们买了票', romanized: 'Wǒmen mǎi le piào', english: 'We bought tickets' },
+            { native: '她学了中文', romanized: 'Tā xué le Zhōngwén', english: 'She studied Chinese' },
+            { native: '我看见了他', romanized: 'Wǒ kànjiàn le tā', english: 'I saw him' },
+            { native: '昨天', romanized: 'Zuótiān', english: 'Yesterday' },
+            { native: '去年', romanized: 'Qùnián', english: 'Last year' },
+            { native: '已经', romanized: 'Yǐjīng', english: 'Already' },
+            { native: '还没', romanized: 'hái méi', english: 'Not yet' },
+            { native: '我看见了', romanized: 'Wǒ kànjiàn le', english: 'I saw it' }
+          ],
+          tips: ['"了" goes directly after the verb to emphasize completion, or at the end for a change of status'],
+          practice: 'Convert "我喝茶" (I drink tea) into past completion: "I drank tea".',
+        },
+      },
+{
+        id: 'zh-16', title: 'Chinese Chengyu & Idioms', description: 'Learn the rich 4-character idioms (Chengyu) and modern expressions', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Chengyu are classical four-character idioms that reflect history and philosophical lessons.',
+          keyPhrases: [
+            { native: '马马虎虎', romanized: 'Mǎmahǔhǔ', english: 'So-so / Careless (lit. horse horse tiger tiger)' },
+            { native: '七上八下', romanized: 'Qīshàngbāxià', english: 'Feeling anxious / unsettled (lit. seven up eight down)' },
+            { native: '画蛇添足', romanized: 'Huàshétiānzú', english: 'Overdoing it (lit. drawing legs on a snake)' },
+            { native: '乱七八糟', romanized: 'Luànqībāzāo', english: 'In a mess / chaotic (lit. messy seven eight chaotic)' },
+            { native: '对牛弹琴', romanized: 'Duìniútánqín', english: 'Addressing the wrong audience (lit. playing lute to a cow)' }
+          ],
+          tips: ['"Mǎmahǔhǔ" can describe work or feelings, meaning average or careless', 'Chengyu are frequently used in Chinese writing to show education'],
+          practice: 'Write down a scenario where someone did a task "Mǎmahǔhǔ".'
+        }
+      },
+{
+        id: 'zh-17', title: 'Chinese Proverbs (Yanyu)', description: 'Understand traditional Chinese wisdom and common proverbs', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Chinese proverbs (Yanyu) provide timeless guidance on learning, perseverance, and relationships.',
+          keyPhrases: [
+            { native: '失败是成功之母', romanized: 'Shībài shì chénggōng zhī mǔ', english: 'Failure is the mother of success' },
+            { native: '千里之行，始于足下', romanized: 'Qiānlǐ zhī xíng, shǐ yú zú xià', english: 'A journey of a thousand miles begins with a single step' },
+            { native: '读书破万卷，下笔如有神', romanized: 'Dúshū pò wàn juàn, xiàbǐ rú yǒu shén', english: 'Reading widely makes writing powerful' },
+            { native: '冰冻三尺，非一日之寒', romanized: 'Bīngdòng sān chǐ, fēi yī rì zhī hán', english: 'Rome wasn\'t built in a day (lit. three feet of ice doesn\'t freeze in a day)' },
+            { native: '入乡随俗', romanized: 'Rùxiāngsuísú', english: 'When in Rome, do as the Romans do' }
+          ],
+          tips: ['Many Chinese proverbs encourage continuous self-cultivation and persistence', '"Rùxiāngsuísú" is essential advice when traveling across China\'s regions'],
+          practice: 'Translate "失败是成功之母" and explain its value to a student.'
+        }
       },
     ],
   },
@@ -1345,6 +1885,96 @@ export const languageModules: LanguageModule[] = [
           practice: 'List the key ingredients and filter name for standard Vietnamese iced coffee.',
         },
       },
+{
+        id: 'vi-13', title: 'Directions: Riding a Xe Om', description: 'Communicate with motorbike taxi drivers', type: 'conversation', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Use motorbikes to navigate traffic. Study keys directions and warnings.',
+          keyPhrases: [
+            { native: 'Cho tôi đi đến chợ', romanized: '—', english: 'Please take me to the market' },
+            { native: 'Đội mũ bảo hiểm', romanized: 'doy mu bao hyem', english: 'Wear a helmet' },
+            { native: 'Bật bản đồ lên', romanized: '—', english: 'Turn on the map' },
+            { native: 'Ngã tư', romanized: 'nga tu', english: 'Intersection / crossroad' },
+            { native: 'Đèn đỏ', romanized: 'den do', english: 'Red light' },
+            { native: 'Cẩn thận !', romanized: 'can than', english: 'Be careful!' },
+            { native: 'Dừng lại ở đây', romanized: '—', english: 'Stop here' },
+            { native: 'Đi lối này', romanized: '—', english: 'Go this way' },
+            { native: 'Bao nhiêu một lượt?', romanized: '—', english: 'How much for a ride?' },
+            { native: 'Cảm ơn bác', romanized: '—', english: 'Thank you, uncle (driver)' }
+          ],
+          tips: ['Always check that you are wearing a strapped helmet when boarding a Xe Om'],
+          practice: 'Simulate putting on a helmet, giving direction to the driver, and telling them to stop.',
+        },
+      },
+{
+        id: 'vi-14', title: 'Vietnamese Ao Dai & Dress', description: 'Understand traditional garments and symbols', type: 'culture', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Ao Dai is the national garment worn on formal occasions. Study its history.',
+          keyPhrases: [
+            { native: 'Áo dài', romanized: 'ow zai', english: 'National tunic garment' },
+            { native: 'Nón lá', romanized: 'nohn la', english: 'Conical palm-leaf hat' },
+            { native: 'Lụa', romanized: 'lua', english: 'Silk fabric' },
+            { native: 'Trang phục truyền thống', romanized: '—', english: 'Traditional costume' },
+            { native: 'Tà áo', romanized: '—', english: 'Dress panels' },
+            { native: 'Quần', romanized: 'kwan', english: 'Trousers / pants' },
+            { native: 'Đám cưới', romanized: '—', english: 'Wedding ceremony' },
+            { native: 'Lễ hội', romanized: '—', english: 'Festival' },
+            { native: 'May đo', romanized: '—', english: 'Custom tailored' },
+            { native: 'Kín đáo', romanized: '—', english: 'Modest / elegant design' }
+          ],
+          tips: ['Ao Dai literally translates to "Long Shirt", split into two side flaps worn over trousers'],
+          practice: 'List two events where Vietnamese citizens traditionally wear the Ao Dai.',
+        },
+      },
+{
+        id: 'vi-15', title: 'Past & Future Tenses: Đã/Sẽ', description: 'Express timelines using simple markers', type: 'grammar', difficulty: 'intermediate', duration: '15 min',
+        content: {
+          intro: 'Place tense particles "đã" (past) and "sẽ" (future) before main verbs.',
+          keyPhrases: [
+            { native: 'Tôi đã ăn', romanized: '—', english: 'I ate (already)' },
+            { native: 'Tôi sẽ đi', romanized: '—', english: 'I will go' },
+            { native: 'Hôm qua', romanized: 'hom kwa', english: 'Yesterday' },
+            { native: 'Ngày mai', romanized: 'ngay mai', english: 'Tomorrow' },
+            { native: 'Đã hoàn thành', romanized: '—', english: 'Finished / Completed' },
+            { native: 'Đang làm', romanized: 'dang lam', english: 'Doing (ongoing)' },
+            { native: 'Tháng trước', romanized: '—', english: 'Last month' },
+            { native: 'Tháng sau', romanized: '—', english: 'Next month' },
+            { native: 'Sẽ gặp lại', romanized: '—', english: 'Will meet again' },
+            { native: 'Tôi đã học tiếng Việt', romanized: '—', english: 'I studied Vietnamese' }
+          ],
+          tips: ['Tense particles are optional if context time-words (e.g. yesterday) clarify the timeframe'],
+          practice: 'Translate "I will eat Pho tomorrow" and "I studied Vietnamese last month" into Vietnamese.',
+        },
+      },
+{
+        id: 'vi-16', title: 'Vietnamese Idioms & Slang', description: 'Learn standard idioms and colloquial expressions in Vietnamese', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Vietnamese slang and idioms make your conversation sound natural. Learn these key terms.',
+          keyPhrases: [
+            { native: 'Dễ như ăn kẹo', romanized: '—', english: 'Extremely easy (lit. as easy as eating candy)' },
+            { native: 'Chém gió', romanized: '—', english: 'To boast / chat casually (lit. slashing the wind)' },
+            { native: 'Vẽ đường cho hươu chạy', romanized: '—', english: 'Encouraging bad behavior (lit. drawing a path for deer to run)' },
+            { native: 'Ăn cháo đá bát', romanized: '—', english: 'Being ungrateful (lit. eating porridge and kicking the bowl)' },
+            { native: 'Thả thính', romanized: '—', english: 'Flirting (lit. throwing roasted rice bran / bait)' }
+          ],
+          tips: ['"Chém gió" is very common among friends in cafes', '"Thả thính" is used extensively in social media contexts'],
+          practice: 'Describe a fun hangout session using "chém gió".'
+        }
+      },
+{
+        id: 'vi-17', title: 'Vietnamese Proverbs (Tục Ngữ)', description: 'Explore traditional Vietnamese proverbs and wisdom', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Vietnamese proverbs reflect centuries of agricultural lifestyle, moral advice, and family values.',
+          keyPhrases: [
+            { native: 'Có công mài sắt, có ngày nên kim', romanized: '—', english: 'Persistence pays off (lit. with effort grinding iron, it becomes a needle)' },
+            { native: 'Gần mực thì đen, gần đèn thì rạng', romanized: '—', english: 'Environment influences character (lit. near ink black, near lamp bright)' },
+            { native: 'Ăn quả nhớ kẻ trồng cây', romanized: '—', english: 'Gratitude (lit. eat fruit, remember the planter)' },
+            { native: 'Một cây làm chẳng nên non', romanized: '—', english: 'Unity makes strength (lit. one tree doesn\'t make a mountain)' },
+            { native: 'Đi một ngày đàng, học một sàng khôn', romanized: '—', english: 'Travel broadens the mind' }
+          ],
+          tips: ['Rhyme is heavily used in Vietnamese tục ngữ', '"Ăn quả nhớ kẻ trồng cây" is a cornerstone of Vietnamese moral values'],
+          practice: 'Explain the meaning of "Có công mài sắt, có ngày nên kim" in English.'
+        }
+      },
     ],
   },
   {
@@ -1533,6 +2163,96 @@ export const languageModules: LanguageModule[] = [
           tips: ['"Kaffee und Kuchen" is a traditional Sunday afternoon social ritual', 'German bakeries offer dozens of varieties of fresh bread and rolls every morning', 'Specify "Zum Mitnehmen" if you want your pastry to go'],
           practice: 'Write a dialogue ordering breakfast at a German bakery.',
         },
+      },
+{
+        id: 'de-13', title: 'Directions: Asking for Platform', description: 'Find platform locations and check transit plans', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Navigate German central stations (Hauptbahnhof) using train vocab.',
+          keyPhrases: [
+            { native: 'Entschuldigung, wo ist Gleis 3?', romanized: '—', english: 'Excuse me, where is platform 3?' },
+            { native: 'Fahrplan', romanized: '—', english: 'Time table / schedule' },
+            { native: 'Verspätung', romanized: '—', english: 'Delay' },
+            { native: 'Der Zug', romanized: '—', english: 'The train' },
+            { native: 'Abfahrt / Ankunft', romanized: '—', english: 'Departure / Arrival' },
+            { native: 'Auf welchem Gleis?', romanized: '—', english: 'On which platform?' },
+            { native: 'Fahrkartenautomat', romanized: '—', english: 'Ticket machine' },
+            { native: 'Sitzplatzreservierung', romanized: '—', english: 'Seat reservation' },
+            { native: 'Gute Reise !', romanized: '—', english: 'Have a good trip!' },
+            { native: 'Der Anschlusszug', romanized: '—', english: 'Connecting train' }
+          ],
+          tips: ['Check the "Fahrplan" board for "Verspätung" notices showing train delays'],
+          practice: 'Simulate asking: "Wo fährt der Zug nach Berlin ab?" (Where does the train to Berlin depart?).',
+        },
+      },
+{
+        id: 'de-14', title: 'German Punctuality & Rules', description: 'Social etiquette and recycling procedures', type: 'culture', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Study German community standards, focusing on punctuality and recycling categories.',
+          keyPhrases: [
+            { native: 'Pünktlichkeit', romanized: '—', english: 'Punctuality (arriving exactly on time)' },
+            { native: 'Mülltrennung', romanized: '—', english: 'Waste sorting / recycling' },
+            { native: 'Pfandflasche', romanized: '—', english: 'Returnable bottle with deposit' },
+            { native: 'Ruhezeit', romanized: '—', english: 'Quiet hours (Sundays/nights)' },
+            { native: 'Ordnung', romanized: '—', english: 'Order / neatness' },
+            { native: 'Altpapier', romanized: '—', english: 'Recycled paper bin' },
+            { native: 'Biomüll', romanized: '—', english: 'Organic waste' },
+            { native: 'Restmüll', romanized: '—', english: 'General non-recyclable waste' },
+            { native: 'Pfandautomat', romanized: '—', english: 'Bottle return machine' },
+            { native: 'Pünktlich sein', romanized: '—', english: 'Be on time' }
+          ],
+          tips: ['Quiet hours (Ruhezeit) are legally enforced on Sundays; do not run loud machines'],
+          practice: 'List the 4 main recycling categories and describe "Pfand" bottle return.',
+        },
+      },
+{
+        id: 'de-15', title: 'Simple Past Tense: Präteritum', description: 'Talk about past times using simple forms', type: 'grammar', difficulty: 'intermediate', duration: '15 min',
+        content: {
+          intro: 'Learn simple past forms (Präteritum) for auxiliary verbs (haben, sein).',
+          keyPhrases: [
+            { native: 'ich war / du warst', romanized: '—', english: 'I was / you were (sein past)' },
+            { native: 'er war / wir waren', romanized: '—', english: 'he was / we were' },
+            { native: 'ich hatte / du hattest', romanized: '—', english: 'I had / you had (haben past)' },
+            { native: 'er hatte / wir hatten', romanized: '—', english: 'he had / we had' },
+            { native: 'gestern', romanized: 'ges-tern', english: 'yesterday' },
+            { native: 'letztes Jahr', romanized: '—', english: 'last year' },
+            { native: 'Es war einmal', romanized: '—', english: 'Once upon a time' },
+            { native: 'Ich hatte keine Zeit', romanized: '—', english: 'I had no time' },
+            { native: 'Wo warst du gestern?', romanized: '—', english: 'Where were you yesterday?' },
+            { native: 'Wir hatten ein Auto', romanized: '—', english: 'We had a car' }
+          ],
+          tips: ['Präteritum is primarily used in written stories and reports, but "war" and "hatte" are common in speech'],
+          practice: 'Translate "I was tired yesterday and I had no time" into German.',
+        },
+      },
+{
+        id: 'de-16', title: 'German Idioms & Colloquialisms', description: 'Learn common colloquial phrases and funny German idioms', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'German idioms add color to your spoken language. Learn these widely used expressions.',
+          keyPhrases: [
+            { native: 'Das ist ein Kinderspiel', romanized: '—', english: 'Child\'s play / Piece of cake' },
+            { native: 'Tomaten auf den Augen haben', romanized: '—', english: 'Being oblivious (lit. having tomatoes on one\'s eyes)' },
+            { native: 'Jemandem die Daumen drücken', romanized: '—', english: 'To wish someone luck (lit. to press the thumbs for someone)' },
+            { native: 'Die Kirche im Dorf lassen', romanized: '—', english: 'To not get carried away (lit. to leave the church in the village)' },
+            { native: 'Um den heißen Brei herumreden', romanized: '—', english: 'To beat around the bush (lit. to talk around hot porridge)' }
+          ],
+          tips: ['Instead of crossing fingers, Germans "press thumbs" (Daumen drücken) for luck', '"Kinderspiel" is used to describe easy tests or tasks'],
+          practice: 'Write a sentence wishing a friend luck using "Daumen drücken".'
+        }
+      },
+{
+        id: 'de-17', title: 'German Proverbs (Sprichwörter)', description: 'Understand traditional German proverbs and wisdom', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Proverbs (Sprichwörter) are common in German literature and reflect historical wisdom.',
+          keyPhrases: [
+            { native: 'Übung macht den Meister', romanized: '—', english: 'Practice makes perfect' },
+            { native: 'Wer rastet, der rostet', romanized: '—', english: 'He who rests, rusts (stay active)' },
+            { native: 'Ohne Fleiß kein Preis', romanized: '—', english: 'No pain, no gain (lit. without diligence, no prize)' },
+            { native: 'Aller Anfang ist schwer', romanized: '—', english: 'Every beginning is hard' },
+            { native: 'Morgenstund hat Gold im Mund', romanized: '—', english: 'The early bird catches the worm (lit. morning hour has gold in mouth)' }
+          ],
+          tips: ['Many German proverbs focus on discipline, hard work, and persistence', '"Übung macht den Meister" is commonly used to motivate learners'],
+          practice: 'Translate "Übung macht den Meister" and explain its value to a language learner.'
+        }
       },
     ],
   }

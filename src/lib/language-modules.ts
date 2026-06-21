@@ -369,6 +369,81 @@ export const languageModules: LanguageModule[] = [
           tips: ['"Laeo" goes at the end of the sentence to show completion', '"Cha" goes before the verb to show intent/future'],
           practice: 'Translate "I will eat pad thai tomorrow" and "I visited Chiang Mai last year".',
         },
+      },
+      {
+        id: 'th-16', title: 'Thai Idioms & Slang', description: 'Learn colorful expressions and slang used in daily Thai conversations', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Thai slang is widely used in informal settings. Master these popular terms.',
+          keyPhrases: [
+            { native: 'กล้วยๆ', romanized: 'Kluai kluai', english: 'Piece of cake / Very easy' },
+            { native: 'เทน้ำเทท่า', romanized: 'The nam the tha', english: 'Selling like hot cakes' },
+            { native: 'ชิวๆ', romanized: 'Chill chill', english: 'Relaxed / Taking it easy' },
+            { native: 'งานเข้า', romanized: 'Ngan khao', english: 'In trouble / Work has entered' },
+            { native: 'ทางใครทางมัน', romanized: 'Thang khrai thang man', english: 'Go our separate ways' }
+          ],
+          tips: ['Doubling a word often intensifies or makes it casual', '"Ngan khao" is very common when unexpected trouble happens'],
+          practice: 'Use "Chill chill" and "Ngan khao" in a short role-play.'
+        }
+      },
+      {
+        id: 'th-17', title: 'Thai Proverbs & Sayings', description: 'Explore traditional Thai proverbs and wise sayings', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Thai proverbs reflect Buddhist values, agricultural history, and social rules.',
+          keyPhrases: [
+            { native: 'น้ำขึ้นให้รีบตัก', romanized: 'Nam khun hai reep tak', english: 'Strike while the iron is hot' },
+            { native: 'ช้างตายทั้งตัวเอาใบบัวปิด', romanized: 'Chang tai tang tua ao bai bua pit', english: 'You cannot hide a massive misdeed with a small cover-up' },
+            { native: 'ข้าวใหม่ปลามัน', romanized: 'Khao mai pla man', english: 'Honeymoon period / New love' },
+            { native: 'หัวล้านได้หวี', romanized: 'Hua lan dai wee', english: 'Getting a gift you cannot use' },
+            { native: 'รักวัวให้ผูกรักลูกให้ตี', romanized: 'Rak wua hai phuk rak luk hai tee', english: 'Spare the rod, spoil the child' }
+          ],
+          tips: ['Proverbs often rhyme in Thai', 'Many refer to animals like elephants, cows, and fish'],
+          practice: 'Explain the meaning of "Nam khun hai reep tak" in your own words.'
+        }
+      },
+      {
+        id: 'th-18', title: 'Thai Business & Formal Communication', description: 'Navigate business meetings and formal correspondence', type: 'conversation', difficulty: 'advanced', duration: '15 min',
+        content: {
+          intro: 'Professional Thai requires formal vocabulary and appropriate honorific titles.',
+          keyPhrases: [
+            { native: 'ขอแสดงความนับถือ', romanized: 'Kho sadaeng khwam nap thue', english: 'Respectfully yours' },
+            { native: 'ติดต่อ', romanized: 'Tit tor', english: 'To contact / communicate' },
+            { native: 'การประชุม', romanized: 'Kan prachum', english: 'Meeting / conference' },
+            { native: 'สัญญา', romanized: 'Sanya', english: 'Contract / agreement' },
+            { native: 'ผู้จัดการ', romanized: 'Phu chat kan', english: 'Manager' }
+          ],
+          tips: ['Always use formal particles like "krap" and "ka"', 'Address business partners as "Khun" followed by their first name'],
+          practice: 'Write a short formal request asking for a meeting.'
+        }
+      },
+      {
+        id: 'th-19', title: 'Travel & Sightseeing', description: 'Key phrases for sightseeing and hotel reservations', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Explore Thailand\'s landmarks and check into accommodations with ease.',
+          keyPhrases: [
+            { native: 'ไปเที่ยว', romanized: 'Pai thiao', english: 'To go on a trip / travel' },
+            { native: 'จองห้องพัก', romanized: 'Chong hong phak', english: 'Book a room' },
+            { native: 'สถานที่ท่องเที่ยว', romanized: 'Sathanthi thiao', english: 'Tourist attraction' },
+            { native: 'ผู้นำเที่ยว', romanized: 'Phu nam thiao', english: 'Tour guide' },
+            { native: 'แผนที่', romanized: 'Phaenthi', english: 'Map' }
+          ],
+          tips: ['Use "Pai thiao" for any leisure outing', 'Keep hotel booking receipts printed or on your phone'],
+          practice: 'Role-play checking into a hotel and asking for a local map.'
+        }
+      },
+      {
+        id: 'th-20', title: 'Emergency & Health', description: 'Essential phrases for medical and safety emergencies', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Be prepared for any emergency by learning these safety and health phrases.',
+          keyPhrases: [
+            { native: 'ช่วยด้วย', romanized: 'Chuai duai', english: 'Help!' },
+            { native: 'โรงพยาบาล', romanized: 'Rong phayaban', english: 'Hospital' },
+            { native: 'ยา', romanized: 'Ya', english: 'Medicine' },
+            { native: 'เจ็บตรงนี้', romanized: 'Chep trong ni', english: 'It hurts here' },
+            { native: 'หาหมอ', romanized: 'Ha mor', english: 'See a doctor' }
+          ],
+          tips: ['Call 191 for police emergencies in Thailand', 'Tourist police can be reached at 1155'],
+          practice: 'Practice shouting "Chuai duai" and describing where it hurts.'
+        }
       }
     ]
   },
@@ -691,6 +766,81 @@ export const languageModules: LanguageModule[] = [
           tips: ['Verb roots with "ㅏ" or "ㅗ" add "-았어요", others add "-었어요"; "-하다" verbs become "-했어요"'],
           practice: 'Change the sentence "김치를 먹어요" (I eat kimchi) to past tense.',
         },
+      },
+      {
+        id: 'ko-16', title: 'Korean Idioms & Slang', description: 'Learn popular idiomatic expressions and modern slang in South Korea', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Korean idioms (Gwanyonggu) and modern slangs reflect daily life, food, and feelings.',
+          keyPhrases: [
+            { native: '식은 죽 먹기', romanized: 'Sigeun juk meokgi', english: 'Piece of cake (lit. eating cold porridge)' },
+            { native: '누워서 떡 먹기', romanized: 'Nuwoseo tteok meokgi', english: 'Extremely easy (lit. eating rice cakes while lying down)' },
+            { native: '심쿵', romanized: 'Simkung', english: 'Heartthrob / Heart skip a beat' },
+            { native: '밀당', romanized: 'Mildang', english: 'Push and pull in relationships' },
+            { native: '피가 되고 살이 된다', romanized: 'Piga doego sari doenda', english: 'Highly beneficial (lit. becomes blood and flesh)' }
+          ],
+          tips: ['Food-related metaphors are extremely common in Korean expressions', '"Simkung" is widely used by younger generations'],
+          practice: 'Create a sentence about a test or chore using "식은 죽 먹기".'
+        }
+      },
+      {
+        id: 'ko-17', title: 'Korean Proverbs (Sokdam)', description: 'Understand traditional Korean wisdom and cultural proverbs', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Proverbs (Sokdam) offer a glimpse into traditional Korean lifestyles and advice.',
+          keyPhrases: [
+            { native: '티끌 모아 태산', romanized: 'Tiggle moa taesan', english: 'Dust gathered becomes a mountain' },
+            { native: '시작이 반이다', romanized: 'Sijagi banida', english: 'Starting is half the battle' },
+            { native: '금강산도 식후경', romanized: 'Geumgangsando sikhugyeong', english: 'Even at Mt. Geumgang, eat first' },
+            { native: '원숭이도 나무에서 떨어진다', romanized: 'Wonsungido namueseo tteoreojinda', english: 'Even monkeys fall from trees (experts make mistakes)' },
+            { native: '백지장도 맞들면 낫다', romanized: 'Baekjijangdo matdeulmyeon natda', english: 'Two heads are better than one' }
+          ],
+          tips: ['"Geumgangsando sikhugyeong" highlights the importance of eating before doing activities', 'Many proverbs emphasize diligence and cooperation'],
+          practice: 'Explain the meaning of "시작이 반이다" in English.'
+        }
+      },
+      {
+        id: 'ko-18', title: 'Korean Business Etiquette & Honorifics', description: 'Learn workplace communication and formal greetings', type: 'conversation', difficulty: 'advanced', duration: '15 min',
+        content: {
+          intro: 'Navigate South Korean corporate environments using proper honorifics and email templates.',
+          keyPhrases: [
+            { native: '귀사', romanized: 'Gwisa', english: 'Your esteemed company' },
+            { native: '수고하셨습니다', romanized: 'Sugohashyeosseumnida', english: 'Thank you for your hard work' },
+            { native: '부장님', romanized: 'Bujangnim', english: 'Department Manager' },
+            { native: '이메일 드립니다', romanized: 'Imeil deurimnida', english: 'I am sending this email' },
+            { native: '검토 부탁드립니다', romanized: 'Geomto butakdeurimnida', english: 'Please review / check' }
+          ],
+          tips: ['Always address superiors by their title followed by "-nim" (e.g., Bujangnim)', 'Say "Sugohashyeosseumnida" when leaving work before colleagues'],
+          practice: 'Write a brief email introduction requesting a project review.'
+        }
+      },
+      {
+        id: 'ko-19', title: 'Travel & Sightseeing', description: 'Navigate hotels, sightseeing, and tourist hotspots', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Get the most out of your trip to Korea by learning sightseeing and booking terms.',
+          keyPhrases: [
+            { native: '관광지', romanized: 'Gwangwangji', english: 'Tourist attraction' },
+            { native: '예약했습니다', romanized: 'Yeyakhaesseumnida', english: 'I have a reservation' },
+            { native: '체크인', romanized: 'Chekeuin', english: 'Check-in' },
+            { native: '지도', romanized: 'Jido', english: 'Map' },
+            { native: '추천해 주세요', romanized: 'Chucheonhae juseyo', english: 'Please recommend' }
+          ],
+          tips: ['Keep your passport ready during check-in', 'Use "Chucheonhae juseyo" to ask locals for food or spots'],
+          practice: 'Practice checking in at a hotel and asking for recommendations.'
+        }
+      },
+      {
+        id: 'ko-20', title: 'Emergency & Health', description: 'Vocabulary for medical situations and calling for help', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Safety first. Memorize these phrases for medical needs or police assistance.',
+          keyPhrases: [
+            { native: '도와주세요!', romanized: 'Dowajuseyo!', english: 'Help!' },
+            { native: '병원', romanized: 'Byeongwon', english: 'Hospital' },
+            { native: '약국', romanized: 'Yakguk', english: 'Pharmacy' },
+            { native: '아파요', romanized: 'Apayo', english: 'It hurts / I am sick' },
+            { native: '의사를 불러주세요', romanized: 'Uisareul bulleojuseyo', english: 'Please call a doctor' }
+          ],
+          tips: ['Dial 119 for fire and medical emergencies, and 112 for police in Korea'],
+          practice: 'Shout "Dowajuseyo" and describe where you feel pain.'
+        }
       }
     ]
   },
@@ -1000,6 +1150,81 @@ export const languageModules: LanguageModule[] = [
           tips: ['Ta-form conjugates exactly like Te-form, just substitute "ta/da" for "te/de"'],
           practice: 'Convert "hon wo yomimasu" (I read a book) into formal past tense.',
         },
+      },
+      {
+        id: 'ja-16', title: 'Japanese Idioms & Colloquialisms', description: 'Learn everyday idiomatic phrases and popular colloquial Japanese', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Japanese colloquialisms add natural flavor to your speech. Study these common idioms.',
+          keyPhrases: [
+            { native: '朝飯前', romanized: 'Asameshimae', english: 'Piece of cake (lit. before breakfast)' },
+            { native: '猫の手も借りたい', romanized: 'Neko no te mo karitai', english: 'Extremely busy (lit. wanting to borrow even a cat\'s paw)' },
+            { native: '相槌を打つ', romanized: 'Aiduchi wo utsu', english: 'Nodding in agreement (backchanneling)' },
+            { native: '口が軽い', romanized: 'Kuchi ga karui', english: 'Having a loose tongue (cannot keep secrets)' },
+            { native: '腹が立つ', romanized: 'Hara ga tatsu', english: 'To get angry (lit. stomach stands up)' }
+          ],
+          tips: ['Conversational backchannels ("Aiduchi") like "Un", "Hee", or "Soudesu ne" show active listening', 'Many idioms refer to body parts (stomach, mouth, eyes)'],
+          practice: 'Describe a busy schedule using "Neko no te mo karitai".'
+        }
+      },
+      {
+        id: 'ja-17', title: 'Japanese Kotowaza (Proverbs)', description: 'Learn traditional Japanese proverbs and life advice', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Proverbs (Kotowaza) embody centuries of Japanese philosophies on life, nature, and resilience.',
+          keyPhrases: [
+            { native: '猿も木から落ちる', romanized: 'Saru mo ki kara ochiru', english: 'Even monkeys fall from trees (experts make mistakes)' },
+            { native: '七転び八起き', romanized: 'Nanakorobi yaoki', english: 'Fall seven times, stand up eight (resilience)' },
+            { native: '一期一会', romanized: 'Ichigo ichie', english: 'Once-in-a-lifetime encounter' },
+            { native: 'ちりも積もれば山となる', romanized: 'Chiri mo tsumoreba yama to naru', english: 'Dust piled up becomes a mountain (every bit counts)' },
+            { native: '井の中の蛙大海を知らず', romanized: 'I no naka no kawazu taikai wo shirazu', english: 'A frog in a well knows nothing of the great ocean' }
+          ],
+          tips: ['Four-character idioms (Yojijukugo) like "Ichigo ichie" are highly valued', '"Nanakorobi yaoki" is a core tenet of Japanese perseverance'],
+          practice: 'Explain the meaning of "Ichigo ichie" in your own words.'
+        }
+      },
+      {
+        id: 'ja-18', title: 'Keigo: Japanese Business Honorifics', description: 'Master formal business Japanese (Keigo)', type: 'conversation', difficulty: 'advanced', duration: '15 min',
+        content: {
+          intro: 'Navigate Japanese office and client communication using formal honorific structures.',
+          keyPhrases: [
+            { native: '弊社', romanized: 'Heisha', english: 'Our company (humble)' },
+            { native: '御社', romanized: 'Onsha', english: 'Your company (respectful)' },
+            { native: 'よろしくお願い申し上げます', romanized: 'Yoroshiku onegai moushiagemasu', english: 'I humbly request your favor' },
+            { native: '承知いたしました', romanized: 'Shouchi itashimashita', english: 'I have understood / Understood' },
+            { native: 'お世話になっております', romanized: 'Osewa ni natte orimasu', english: 'Thank you for your ongoing support / relationship' }
+          ],
+          tips: ['Always exchange business cards (Meishi) with both hands', 'Use humble language (Kenjougo) for yourself and respectful language (Sonkeigo) for clients'],
+          practice: 'Practice introducing yourself in business Japanese using "Heisha" and "Yoroshiku".'
+        }
+      },
+      {
+        id: 'ja-19', title: 'Travel & Sightseeing', description: 'Navigate trains, accommodations, and historic landmarks', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Get directions and check into historic ryokans using tourist Japanese.',
+          keyPhrases: [
+            { native: '観光地', romanized: 'Kankouchi', english: 'Sightseeing spot' },
+            { native: '予約しています', romanized: 'Yoyaku shite imasu', english: 'I have a reservation' },
+            { native: '切符', romanized: 'Kippu', english: 'Ticket' },
+            { native: '地図', romanized: 'Chizu', english: 'Map' },
+            { native: 'おすすめ', romanized: 'Osusume', english: 'Recommendation' }
+          ],
+          tips: ['Purchase a JR Pass or local IC card (Suica/Pasmo) for seamless train travel', 'Keep Ryokan check-in rules in mind (remove shoes at entrance)'],
+          practice: 'Ask a local resident where the nearest train station is.'
+        }
+      },
+      {
+        id: 'ja-20', title: 'Emergency & Health', description: 'Communicate medical problems and emergency requests', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Be prepared for emergencies. Study these vocabulary words to get prompt help.',
+          keyPhrases: [
+            { native: '助けてください！', romanized: 'Tasukete kudasai!', english: 'Help me please!' },
+            { native: '病院', romanized: 'Byouin', english: 'Hospital' },
+            { native: '薬局', romanized: 'Yakkyoku', english: 'Pharmacy' },
+            { native: '痛いです', romanized: 'Itai desu', english: 'It hurts / painful' },
+            { native: '救急車を呼んでください', romanized: 'Kyuukyuusha wo yonde kudasai', english: 'Please call an ambulance' }
+          ],
+          tips: ['Dial 119 for ambulance and fire emergencies, and 110 for police in Japan'],
+          practice: 'Practice asking for an ambulance and describing pain.'
+        }
       }
     ]
   },
@@ -1304,12 +1529,87 @@ export const languageModules: LanguageModule[] = [
             { native: 'Ils vont acheter', romanized: '—', english: 'They are going to buy' },
             { native: 'Demain', romanized: 'deh-mɛ̃', english: 'Tomorrow' },
             { native: 'Ce soir', romanized: 'suh swahr', english: 'Tonight' },
-            { native: 'Bientôt', py: '—', english: 'Soon' },
+            { native: 'Bientôt', romanized: '—', english: 'Soon' },
             { native: 'Je vais étudier le français', romanized: '—', english: 'I am going to study French' }
           ],
           tips: ['Futur Proche is highly common in spoken French for plan actions'],
           practice: 'Translate "I am going to order a croissant tonight" into French.',
         },
+      },
+      {
+        id: 'fr-16', title: 'French Slang & Idioms', description: 'Master colloquial expressions and common French idioms', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Informal French is filled with colorful expressions. Master these widely-used slangs.',
+          keyPhrases: [
+            { native: 'Les doigts dans le nez', romanized: '—', english: 'Piece of cake (lit. fingers in the nose)' },
+            { native: 'Tomber dans les pommes', romanized: '—', english: 'To faint (lit. to fall in the apples)' },
+            { native: 'C\'est simple comme bonjour', romanized: '—', english: 'Very simple (lit. simple as hello)' },
+            { native: 'Avoir le cafard', romanized: '—', english: 'To feel blue / depressed (lit. to have the cockroach)' },
+            { native: 'Raconter des salades', romanized: '—', english: 'To tell lies / tall stories (lit. to tell salads)' }
+          ],
+          tips: ['French slang features "Verlan" (syllable inversion), e.g., "louche" becomes "chelou"', '"Avoir le cafard" is used casually to express sadness'],
+          practice: 'Write a sentence describing a test you found extremely easy using "Les doigts dans le nez".'
+        }
+      },
+      {
+        id: 'fr-17', title: 'French Proverbs & Wisdom', description: 'Explore traditional French sayings and cultural wisdom', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'French proverbs offer insights into patience, life observations, and history.',
+          keyPhrases: [
+            { native: 'Petit à petit, l\'oiseau fait son nid', romanized: '—', english: 'Little by little, the bird builds its nest' },
+            { native: 'Qui vivra verra', romanized: '—', english: 'Time will tell (lit. he who lives will see)' },
+            { native: 'Mieux vaut tard que jamais', romanized: '—', english: 'Better late than never' },
+            { native: 'Après la pluie, le beau temps', romanized: '—', english: 'Every cloud has a silver lining (lit. after rain, good weather)' },
+            { native: 'Rien ne sert de courir; il faut partir à point', romanized: '—', english: 'Slow and steady wins the race' }
+          ],
+          tips: ['Many French proverbs focus on nature, animals, and agricultural timelines', '"Qui vivra verra" is used when the outcome of a situation is uncertain'],
+          practice: 'Translate "Petit à petit, l\'oiseau fait son nid" and explain its moral meaning.'
+        }
+      },
+      {
+        id: 'fr-18', title: 'French Business & Professional Communication', description: 'Write formal emails and master workplace dialogue', type: 'conversation', difficulty: 'advanced', duration: '15 min',
+        content: {
+          intro: 'Formal French requires specific greetings, polite formulas, and email endings.',
+          keyPhrases: [
+            { native: 'Veuillez agréer', romanized: '—', english: 'Please accept (formal sign-off)' },
+            { native: 'Cordialement', romanized: '—', english: 'Cordial regards / Sincerely' },
+            { native: 'Suite à notre entretien', romanized: '—', english: 'Following our discussion' },
+            { native: 'Je vous prie de bien vouloir', romanized: '—', english: 'I kindly request you to' },
+            { native: 'Pièce jointe', romanized: '—', english: 'Attachment / attached document' }
+          ],
+          tips: ['Always address professional contacts as "Monsieur" or "Madame" unless instructed otherwise', 'The formula "Veuillez agréer..." is standard for letters but too formal for daily emails (use "Cordialement" instead)'],
+          practice: 'Draft a short email attaching your CV to a prospective employer.'
+        }
+      },
+      {
+        id: 'fr-19', title: 'Travel & Tourism', description: 'Navigate French train stations, hotels and sights', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Dine in Paris and book your TGV train tickets with essential travel phrases.',
+          keyPhrases: [
+            { native: 'Office de tourisme', romanized: '—', english: 'Tourism office' },
+            { native: 'J\'ai une réservation', romanized: '—', english: 'I have a reservation' },
+            { native: 'Billet de train', romanized: '—', english: 'Train ticket' },
+            { native: 'Plan de la ville', romanized: '—', english: 'City map' },
+            { native: 'Qu\'est-ce que vous recommandez?', romanized: '—', english: 'What do you recommend?' }
+          ],
+          tips: ['Validated tickets are required before boarding French trains ("composter son billet")', 'Always greet shopkeepers with "Bonjour" when entering'],
+          practice: 'Ask a museum official for a map of the city.'
+        }
+      },
+      {
+        id: 'fr-20', title: 'Emergency & Health', description: 'Get medical help and call emergency services', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Learn vital medical terms to handle health problems or accidents in France.',
+          keyPhrases: [
+            { native: 'Au secours!', romanized: '—', english: 'Help!' },
+            { native: 'Hôpital', romanized: '—', english: 'Hospital' },
+            { native: 'Pharmacie', romanized: '—', english: 'Pharmacy' },
+            { native: 'J\'ai mal ici', romanized: '—', english: 'It hurts here' },
+            { native: 'Appelez un médecin', romanized: '—', english: 'Call a doctor' }
+          ],
+          tips: ['Dial 112 for general emergencies in the EU, 15 for medical (SAMU), and 17 for police'],
+          practice: 'Practice calling emergency services and explaining where you feel pain.'
+        }
       }
     ]
   },
@@ -1619,6 +1919,81 @@ export const languageModules: LanguageModule[] = [
           tips: ['"Ir + a + Infinitive" is highly conversational; conjugate "ir" for person and leave the second verb unchanged'],
           practice: 'Translate "We are going to eat tapas tomorrow" into Spanish.',
         },
+      },
+      {
+        id: 'es-16', title: 'Spanish Idioms & Expressions', description: 'Learn colorful idioms and common colloquial phrases in Spanish', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Spaniards and Latin Americans use unique idioms daily. Learn these essential expressions.',
+          keyPhrases: [
+            { native: 'Pan comido', romanized: '—', english: 'Piece of cake (lit. eaten bread)' },
+            { native: 'Tomar el pelo', romanized: '—', english: 'To pull someone\'s leg / kid (lit. to take the hair)' },
+            { native: 'Estar en las nubes', romanized: '—', english: 'To be daydreaming (lit. to be in the clouds)' },
+            { native: 'Echar agua al mar', romanized: '—', english: 'To do something pointless (lit. to throw water into the sea)' },
+            { native: 'Ponerse las pilas', romanized: '—', english: 'To get organized / work hard (lit. to put in the batteries)' }
+          ],
+          tips: ['"Pan comido" describes tasks, not food', 'Use "tomar el pelo" when a friend tells a joke that sounds serious'],
+          practice: 'Write a sentence telling a classmate to study using "ponerte las pilas".'
+        }
+      },
+      {
+        id: 'es-17', title: 'Spanish Refranes (Proverbs)', description: 'Explore traditional Spanish proverbs and sayings', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Proverbs (Refranes) are highly valued in Spanish culture for conveying life lessons.',
+          keyPhrases: [
+            { native: 'Más vale tarde que nunca', romanized: '—', english: 'Better late than never' },
+            { native: 'A mal tiempo, buena cara', romanized: '—', english: 'In bad times, stay positive (lit. to bad weather, a good face)' },
+            { native: 'No por mucho madrugar amanece más temprano', romanized: '—', english: 'Things take their own time (lit. rising early won\'t make dawn come faster)' },
+            { native: 'Dime con quién andas, y te diré quién eres', romanized: '—', english: 'You are judged by the company you keep' },
+            { native: 'Perro que ladra no muerde', romanized: '—', english: 'His bark is worse than his bite (lit. dog that barks doesn\'t bite)' }
+          ],
+          tips: ['Proverbs often feature animals, weather, and agricultural schedules', '"A mal tiempo, buena cara" is used to motivate others during setbacks'],
+          practice: 'Explain the moral meaning of "Más vale tarde que nunca" in Spanish.'
+        }
+      },
+      {
+        id: 'es-18', title: 'Spanish Business & Correspondence', description: 'Write formal emails and master business conversations', type: 'conversation', difficulty: 'advanced', duration: '15 min',
+        content: {
+          intro: 'Learn professional Spanish for corporate correspondence and business meetings.',
+          keyPhrases: [
+            { native: 'Estimado/a', romanized: '—', english: 'Dear (formal greeting)' },
+            { native: 'Atentamente', romanized: '—', english: 'Sincerely / Yours faithfully' },
+            { native: 'En relación con', romanized: '—', english: 'In relation to / Regarding' },
+            { native: 'Quedo a su disposición', romanized: '—', english: 'I remain at your disposal' },
+            { native: 'Adjunto el documento', romanized: '—', english: 'I attach the document' }
+          ],
+          tips: ['Address colleagues formally using "Usted" until a closer relationship is established', 'Begin formal business emails with "Estimado Sr./Sra." followed by their last name'],
+          practice: 'Draft a short email requesting a copy of the monthly report.'
+        }
+      },
+      {
+        id: 'es-19', title: 'Travel & Tourism', description: 'Navigate hotels, check-in, and tourist spots', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Travel Spanish is essential for checking in and getting sightseeing recommendations.',
+          keyPhrases: [
+            { native: 'Atracción turística', romanized: '—', english: 'Tourist attraction' },
+            { native: 'Tengo una reserva', romanized: '—', english: 'I have a reservation' },
+            { native: 'Boleto / Billete', romanized: '—', english: 'Ticket' },
+            { native: 'Mapa de la ciudad', romanized: '—', english: 'City map' },
+            { native: '¿Qué me recomienda?', romanized: '—', english: 'What do you recommend?' }
+          ],
+          tips: ['Use "¿Qué me recomienda?" to ask waiters for local food specialties', 'Show booking confirmations on your phone to hotel staff'],
+          practice: 'Practice booking a room and asking for recommendations at the front desk.'
+        }
+      },
+      {
+        id: 'es-20', title: 'Emergency & Health', description: 'Get medical help and call emergency services in Spanish', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Learn safety terms to explain medical problems or call for assistance in Spanish.',
+          keyPhrases: [
+            { native: '¡Ayuda! / ¡Auxilio!', romanized: '—', english: 'Help!' },
+            { native: 'Hospital', romanized: '—', english: 'Hospital' },
+            { native: 'Farmacia', romanized: '—', english: 'Pharmacy' },
+            { native: 'Me duele aquí', romanized: '—', english: 'It hurts here' },
+            { native: 'Llamen a un médico', romanized: '—', english: 'Call a doctor' }
+          ],
+          tips: ['Dial 112 for general emergencies in Spain, and 911 in many Latin American countries'],
+          practice: 'Shout "Ayuda" and describe where you feel pain in Spanish.'
+        }
       }
     ]
   },
@@ -1928,6 +2303,81 @@ export const languageModules: LanguageModule[] = [
           tips: ['"了" goes directly after the verb to emphasize completion, or at the end for a change of status'],
           practice: 'Convert "我喝茶" (I drink tea) into past completion: "I drank tea".',
         },
+      },
+      {
+        id: 'zh-16', title: 'Chinese Chengyu & Idioms', description: 'Learn the rich 4-character idioms (Chengyu) and modern expressions', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Chengyu are classical four-character idioms that reflect history and philosophical lessons.',
+          keyPhrases: [
+            { native: '马马虎虎', romanized: 'Mǎmahǔhǔ', english: 'So-so / Careless (lit. horse horse tiger tiger)' },
+            { native: '七上八下', romanized: 'Qīshàngbāxià', english: 'Feeling anxious / unsettled (lit. seven up eight down)' },
+            { native: '画蛇添足', romanized: 'Huàshétiānzú', english: 'Overdoing it (lit. drawing legs on a snake)' },
+            { native: '乱七八糟', romanized: 'Luànqībāzāo', english: 'In a mess / chaotic (lit. messy seven eight chaotic)' },
+            { native: '对牛弹琴', romanized: 'Duìniútánqín', english: 'Addressing the wrong audience (lit. playing lute to a cow)' }
+          ],
+          tips: ['"Mǎmahǔhǔ" can describe work or feelings, meaning average or careless', 'Chengyu are frequently used in Chinese writing to show education'],
+          practice: 'Write down a scenario where someone did a task "Mǎmahǔhǔ".'
+        }
+      },
+      {
+        id: 'zh-17', title: 'Chinese Proverbs (Yanyu)', description: 'Understand traditional Chinese wisdom and common proverbs', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Chinese proverbs (Yanyu) provide timeless guidance on learning, perseverance, and relationships.',
+          keyPhrases: [
+            { native: '失败是成功之母', romanized: 'Shībài shì chénggōng zhī mǔ', english: 'Failure is the mother of success' },
+            { native: '千里之行，始于足下', romanized: 'Qiānlǐ zhī xíng, shǐ yú zú xià', english: 'A journey of a thousand miles begins with a single step' },
+            { native: '读书破万卷，下笔如有神', romanized: 'Dúshū pò wàn juàn, xiàbǐ rú yǒu shén', english: 'Reading widely makes writing powerful' },
+            { native: '冰冻三尺，非一日之寒', romanized: 'Bīngdòng sān chǐ, fēi yī rì zhī hán', english: 'Rome wasn\'t built in a day (lit. three feet of ice doesn\'t freeze in a day)' },
+            { native: '入乡随俗', romanized: 'Rùxiāngsuísú', english: 'When in Rome, do as the Romans do' }
+          ],
+          tips: ['Many Chinese proverbs encourage continuous self-cultivation and persistence', '"Rùxiāngsuísú" is essential advice when traveling across China\'s regions'],
+          practice: 'Translate "失败是成功之母" and explain its value to a student.'
+        }
+      },
+      {
+        id: 'zh-18', title: 'Chinese Business Etiquette', description: 'Navigate office dynamics and professional communication', type: 'conversation', difficulty: 'advanced', duration: '15 min',
+        content: {
+          intro: 'Professional Chinese requires formal business terminology, polite titles, and email templates.',
+          keyPhrases: [
+            { native: '贵公司', romanized: 'Guì gōngsī', english: 'Your esteemed company' },
+            { native: '请多关照', romanized: 'Qǐng duō guānzhào', english: 'Please look after me / I look forward to working with you' },
+            { native: '经理', romanized: 'Jīnglǐ', english: 'Manager' },
+            { native: '合作', romanized: 'Hézuò', english: 'Cooperation / partnership' },
+            { native: '请查收附件', romanized: 'Qǐng cháshōu fùjiàn', english: 'Please check the attachment' }
+          ],
+          tips: ['Exchange business cards (Mingpian) with both hands, showing the Chinese side up', 'Address contacts by their surname followed by title (e.g. Wang Jīnglǐ)'],
+          practice: 'Draft a short business email requesting cooperation.'
+        }
+      },
+      {
+        id: 'zh-19', title: 'Travel & Sightseeing', description: 'Navigate accommodations, tickets, and tourist landmarks', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Travel China with ease. Book hotel rooms and buy tickets to the Great Wall.',
+          keyPhrases: [
+            { native: '旅游景点', romanized: 'Lǚyóu jǐngdiǎn', english: 'Tourist attraction' },
+            { native: '我预订了房间', romanized: 'Wǒ yùdìng le fángjiān', english: 'I booked a room' },
+            { native: '门票', romanized: 'Ménpiào', english: 'Entrance ticket' },
+            { native: '地图', romanized: 'Dìtú', english: 'Map' },
+            { native: '推荐', romanized: 'Tuījiàn', english: 'Recommendation' }
+          ],
+          tips: ['Most travel payments in China are digital (WeChat Pay / Alipay); ensure you have these set up', 'Keep hotel addresses in Chinese characters for taxi drivers'],
+          practice: 'Practice booking a room and asking for recommendations in Chinese.'
+        }
+      },
+      {
+        id: 'zh-20', title: 'Emergency & Health', description: 'Essential vocabulary for medical situations and requesting help', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Learn crucial phrases to get medical assistance or report emergencies in Chinese.',
+          keyPhrases: [
+            { native: '救命！', romanized: 'Jiùmìng!', english: 'Help!' },
+            { native: '医院', romanized: 'Yīyuàn', english: 'Hospital' },
+            { native: '药店', romanized: 'Yàodiàn', english: 'Pharmacy' },
+            { native: '我这里疼', romanized: 'Wǒ zhèlǐ téng', english: 'It hurts here' },
+            { native: '请叫医生', romanized: 'Qǐng jiào yīshēng', english: 'Please call a doctor' }
+          ],
+          tips: ['Dial 120 for medical ambulance emergencies, 119 for fire, and 110 for police in China'],
+          practice: 'Shout "Jiùmìng" and describe where you feel pain.'
+        }
       }
     ]
   },
@@ -2237,6 +2687,81 @@ export const languageModules: LanguageModule[] = [
           tips: ['Tense particles are optional if context time-words (e.g. yesterday) clarify the timeframe'],
           practice: 'Translate "I will eat Pho tomorrow" and "I studied Vietnamese last month" into Vietnamese.',
         },
+      },
+      {
+        id: 'vi-16', title: 'Vietnamese Idioms & Slang', description: 'Learn standard idioms and colloquial expressions in Vietnamese', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Vietnamese slang and idioms make your conversation sound natural. Learn these key terms.',
+          keyPhrases: [
+            { native: 'Dễ như ăn kẹo', romanized: '—', english: 'Extremely easy (lit. as easy as eating candy)' },
+            { native: 'Chém gió', romanized: '—', english: 'To boast / chat casually (lit. slashing the wind)' },
+            { native: 'Vẽ đường cho hươu chạy', romanized: '—', english: 'Encouraging bad behavior (lit. drawing a path for deer to run)' },
+            { native: 'Ăn cháo đá bát', romanized: '—', english: 'Being ungrateful (lit. eating porridge and kicking the bowl)' },
+            { native: 'Thả thính', romanized: '—', english: 'Flirting (lit. throwing roasted rice bran / bait)' }
+          ],
+          tips: ['"Chém gió" is very common among friends in cafes', '"Thả thính" is used extensively in social media contexts'],
+          practice: 'Describe a fun hangout session using "chém gió".'
+        }
+      },
+      {
+        id: 'vi-17', title: 'Vietnamese Proverbs (Tục Ngữ)', description: 'Explore traditional Vietnamese proverbs and wisdom', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Vietnamese proverbs reflect centuries of agricultural lifestyle, moral advice, and family values.',
+          keyPhrases: [
+            { native: 'Có công mài sắt, có ngày nên kim', romanized: '—', english: 'Persistence pays off (lit. with effort grinding iron, it becomes a needle)' },
+            { native: 'Gần mực thì đen, gần đèn thì rạng', romanized: '—', english: 'Environment influences character (lit. near ink black, near lamp bright)' },
+            { native: 'Ăn quả nhớ kẻ trồng cây', romanized: '—', english: 'Gratitude (lit. eat fruit, remember the planter)' },
+            { native: 'Một cây làm chẳng nên non', romanized: '—', english: 'Unity makes strength (lit. one tree doesn\'t make a mountain)' },
+            { native: 'Đi một ngày đàng, học một sàng khôn', romanized: '—', english: 'Travel broadens the mind' }
+          ],
+          tips: ['Rhyme is heavily used in Vietnamese tục ngữ', '"Ăn quả nhớ kẻ trồng cây" is a cornerstone of Vietnamese moral values'],
+          practice: 'Explain the meaning of "Có công mài sắt, có ngày nên kim" in English.'
+        }
+      },
+      {
+        id: 'vi-18', title: 'Vietnamese Formal & Business Communication', description: 'Navigate office dynamics and professional writing', type: 'conversation', difficulty: 'advanced', duration: '15 min',
+        content: {
+          intro: 'Learn professional Vietnamese structures, formal greetings, and document terms.',
+          keyPhrases: [
+            { native: 'Kính gửi', romanized: '—', english: 'Dear / To (highly formal greeting)' },
+            { native: 'Trân trọng', romanized: '—', english: 'Respectfully / Sincerely' },
+            { native: 'Về việc', romanized: '—', english: 'Subject / Regarding' },
+            { native: 'Vui lòng kiểm tra file đính kèm', romanized: '—', english: 'Please check the attached file' },
+            { native: 'Hợp tác', romanized: '—', english: 'Cooperation / partnership' }
+          ],
+          tips: ['Always address business contacts with proper age-appropriate pronouns (e.g. Anh, Chị) to show respect', 'Begin formal correspondence with "Kính gửi Ban giám đốc" or similar titles'],
+          practice: 'Draft a short business email requesting a file review.'
+        }
+      },
+      {
+        id: 'vi-19', title: 'Travel & Tourism', description: 'Book hotel rooms and visit scenic spots in Vietnam', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Book accommodations and plan sightseeing trips in Ha Long Bay or Hanoi.',
+          keyPhrases: [
+            { native: 'Điểm du lịch', romanized: '—', english: 'Tourist attraction' },
+            { native: 'Tôi đã đặt phòng', romanized: '—', english: 'I have a room reservation' },
+            { native: 'Vé', romanized: 've', english: 'Ticket' },
+            { native: 'Bản đồ', romanized: '—', english: 'Map' },
+            { native: 'Gợi ý / Khuyên', romanized: '—', english: 'Recommend / advice' }
+          ],
+          tips: ['Keep digital booking codes handy on your phone', 'Use rideshare apps like Grab for easy navigation in cities'],
+          practice: 'Practice booking a room and asking for recommendations at a Vietnamese hotel.'
+        }
+      },
+      {
+        id: 'vi-20', title: 'Emergency & Health', description: 'Call for help and describe medical symptoms', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Safety first. Memorize emergency phrases to get medical assistance in Vietnam.',
+          keyPhrases: [
+            { native: 'Cứu tôi với!', romanized: '—', english: 'Help me!' },
+            { native: 'Bệnh viện', romanized: '—', english: 'Hospital' },
+            { native: 'Hiệu thuốc', romanized: '—', english: 'Pharmacy / Drugstore' },
+            { native: 'Tôi bị đau ở đây', romanized: '—', english: 'I hurt here' },
+            { native: 'Gọi bác sĩ giúp tôi', romanized: '—', english: 'Call a doctor for me' }
+          ],
+          tips: ['Dial 115 for medical emergencies, 114 for fire, and 113 for police in Vietnam'],
+          practice: 'Practice shouting "Cứu tôi với" and explaining where you feel pain.'
+        }
       }
     ]
   },
@@ -2546,6 +3071,81 @@ export const languageModules: LanguageModule[] = [
           tips: ['Präteritum is primarily used in written stories and reports, but "war" and "hatte" are common in speech'],
           practice: 'Translate "I was tired yesterday and I had no time" into German.',
         },
+      },
+      {
+        id: 'de-16', title: 'German Idioms & Colloquialisms', description: 'Learn common colloquial phrases and funny German idioms', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'German idioms add color to your spoken language. Learn these widely used expressions.',
+          keyPhrases: [
+            { native: 'Das ist ein Kinderspiel', romanized: '—', english: 'Child\'s play / Piece of cake' },
+            { native: 'Tomaten auf den Augen haben', romanized: '—', english: 'Being oblivious (lit. having tomatoes on one\'s eyes)' },
+            { native: 'Jemandem die Daumen drücken', romanized: '—', english: 'To wish someone luck (lit. to press the thumbs for someone)' },
+            { native: 'Die Kirche im Dorf lassen', romanized: '—', english: 'To not get carried away (lit. to leave the church in the village)' },
+            { native: 'Um den heißen Brei herumreden', romanized: '—', english: 'To beat around the bush (lit. to talk around hot porridge)' }
+          ],
+          tips: ['Instead of crossing fingers, Germans "press thumbs" (Daumen drücken) for luck', '"Kinderspiel" is used to describe easy tests or tasks'],
+          practice: 'Write a sentence wishing a friend luck using "Daumen drücken".'
+        }
+      },
+      {
+        id: 'de-17', title: 'German Proverbs (Sprichwörter)', description: 'Understand traditional German proverbs and wisdom', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Proverbs (Sprichwörter) are common in German literature and reflect historical wisdom.',
+          keyPhrases: [
+            { native: 'Übung macht den Meister', romanized: '—', english: 'Practice makes perfect' },
+            { native: 'Wer rastet, der rostet', romanized: '—', english: 'He who rests, rusts (stay active)' },
+            { native: 'Ohne Fleiß kein Preis', romanized: '—', english: 'No pain, no gain (lit. without diligence, no prize)' },
+            { native: 'Aller Anfang ist schwer', romanized: '—', english: 'Every beginning is hard' },
+            { native: 'Morgenstund hat Gold im Mund', romanized: '—', english: 'The early bird catches the worm (lit. morning hour has gold in mouth)' }
+          ],
+          tips: ['Many German proverbs focus on discipline, hard work, and persistence', '"Übung macht den Meister" is commonly used to motivate learners'],
+          practice: 'Translate "Übung macht den Meister" and explain its value to a language learner.'
+        }
+      },
+      {
+        id: 'de-18', title: 'German Business Communication', description: 'Write professional emails and master office conversation', type: 'conversation', difficulty: 'advanced', duration: '15 min',
+        content: {
+          intro: 'Learn formal business vocabulary, email greetings, and document layouts.',
+          keyPhrases: [
+            { native: 'Sehr geehrte Damen und Herren', romanized: '—', english: 'Dear Sir or Madam (formal letter greeting)' },
+            { native: 'Mit freundlichen Grüßen', romanized: '—', english: 'Sincerely / With friendly greetings' },
+            { native: 'Bezugnehmend auf', romanized: '—', english: 'Referring to / Regarding' },
+            { native: 'Ich freue mich auf Ihre Antwort', romanized: '—', english: 'I look forward to your reply' },
+            { native: 'Anhang', romanized: '—', english: 'Attachment / attached document' }
+          ],
+          tips: ['Always use formal pronouns ("Sie") in business settings until invited to use "du"', '"Sehr geehrte Damen und Herren" is the standard greeting when you do not know the recipient\'s name'],
+          practice: 'Draft a short email attaching your invoice to a client.'
+        }
+      },
+      {
+        id: 'de-19', title: 'Travel & Tourism', description: 'Navigate German railways, hotels, and tourist attractions', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Travel Germany with ease. Order train tickets and check into hotels.',
+          keyPhrases: [
+            { native: 'Sehenswürdigkeit', romanized: '—', english: 'Tourist attraction' },
+            { native: 'Ich habe eine Reservierung', romanized: '—', english: 'I have a reservation' },
+            { native: 'Fahrkarte', romanized: '—', english: 'Train ticket' },
+            { native: 'Stadtplan', romanized: '—', english: 'City map' },
+            { native: 'Was können Sie empfehlen?', romanized: '—', english: 'What can you recommend?' }
+          ],
+          tips: ['Purchase tickets online via DB Navigator app for trains', 'Verify if your train ticket requires validation before boarding'],
+          practice: 'Practice booking a room and asking for recommendations in German.'
+        }
+      },
+      {
+        id: 'de-20', title: 'Emergency & Health', description: 'Ask for medical assistance and call emergency services', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Learn critical safety and medical terms in German to manage unexpected health issues.',
+          keyPhrases: [
+            { native: 'Hilfe!', romanized: '—', english: 'Help!' },
+            { native: 'Krankenhaus', romanized: '—', english: 'Hospital' },
+            { native: 'Apotheke', romanized: '—', english: 'Pharmacy' },
+            { native: 'Es tut hier weh', romanized: '—', english: 'It hurts here' },
+            { native: 'Rufen Sie einen Arzt', romanized: '—', english: 'Call a doctor' }
+          ],
+          tips: ['Dial 112 for fire and ambulance emergencies, and 110 for police in Germany'],
+          practice: 'Shout "Hilfe" and explain where you feel pain.'
+        }
       }
     ]
   },
@@ -2859,6 +3459,81 @@ export const languageModules: LanguageModule[] = [
           ],
           tips: ['Uncompleted actions often repeat the first syllable of the root word after an affix (e.g. k-um-a-kain).', 'Contemplated actions also use duplication of the initial root syllable.'],
           practice: 'Conjugate the root verb "sulat" (write) into Completed, Uncompleted, and Contemplated forms.'
+        },
+      },
+      {
+        id: 'fil-16', title: 'Filipino Idioms & Colloquial Expressions', description: 'Learn native idiomatic expressions (Sawikain) and common Filipino slang', type: 'vocabulary', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Sawikain (idioms) reflect traditional Filipino values and culture. Learn these standard phrases.',
+          keyPhrases: [
+            { native: 'Sisiw lang', romanized: 'see-see-ooh lang', english: 'Piece of cake / Very easy' },
+            { native: 'Balat-sibuyas', romanized: 'bah-lat see-boo-yas', english: 'Oversensitive (lit. onion-skinned)' },
+            { native: 'Magdilang-anghel', romanized: 'mag-dee-lang ang-hel', english: 'To speak a prophecy that comes true (lit. to have an angel\'s tongue)' },
+            { native: 'Ningas-kugon', romanized: 'nee-ngas koo-gon', english: 'Leaving tasks unfinished after an enthusiastic start (lit. cogon grass fire)' },
+            { native: 'Bukas-palad', romanized: 'boo-kas pah-lad', english: 'Generous (lit. open-handed)' }
+          ],
+          tips: ['"Ningas-kugon" describes starting projects eagerly but losing interest quickly', '"Sisiw lang" is the most common colloquial equivalent to "piece of cake"'],
+          practice: 'Write a sentence about a task that is "sisiw lang" for you.'
+        }
+      },
+      {
+        id: 'fil-17', title: 'Filipino Proverbs (Salawikain)', description: 'Understand Filipino proverbs and cultural wisdom', type: 'culture', difficulty: 'intermediate', duration: '12 min',
+        content: {
+          intro: 'Proverbs (Salawikain) are traditional sayings that convey advice and Filipino values.',
+          keyPhrases: [
+            { native: 'Pag may tiyaga, may nilaga', romanized: 'pag may tee-yah-gah may nee-lah-gah', english: 'If there is perseverance, there is stew (hard work brings reward)' },
+            { native: 'Habang maikli ang kumot, matutong mamaluktot', romanized: 'hah-bang mah-ik-lee ang koo-mot mah-too-tong mah-mah-look-tot', english: 'While the blanket is short, learn to bend (adapt to circumstances)' },
+            { native: 'Aanhin pa ang damo kung patay na ang kabayo', romanized: 'ah-ahn-hin pah ang dah-moh koong pah-tay nah ang kah-bah-yoh', english: 'What use is the grass if the horse is already dead' },
+            { native: 'Ang hindi lumingon sa pinanggalingan ay hindi makakarating sa paroroonan', romanized: 'ang hin-dee loo-ming-on sah pee-nang-gah-lee-ngan ay hin-dee mah-kah-kah-rah-ting sah pah-roh-roo-nan', english: 'He who does not look back at his origins will not reach his destination' },
+            { native: 'Kung ano ang itinanim, siyang aanihin', romanized: 'koong ah-noh ang ee-tee-nah-nim shee-yang ah-ah-nee-hin', english: 'You reap what you sow' }
+          ],
+          tips: ['Salawikain are often passed down orally and emphasize community and patience', '"Habang maikli ang kumot..." encourages resourcefulness during hard times'],
+          practice: 'Explain the meaning of "Pag may tiyaga, may nilaga" in your own words.'
+        }
+      },
+      {
+        id: 'fil-18', title: 'Filipino Formal & Business Correspondence', description: 'Write formal letters and navigate professional settings', type: 'conversation', difficulty: 'advanced', duration: '15 min',
+        content: {
+          intro: 'Learn formal Filipino terms used in writing letters, corporate emails, and addressing officials.',
+          keyPhrases: [
+            { native: 'Kagalang-galang', romanized: 'kah-gah-lang gah-lang', english: 'Honorable (formal title)' },
+            { native: 'Lubos na gumagalang', romanized: 'loo-bos nah goo-mah-gah-lang', english: 'Respectfully yours' },
+            { native: 'Paksa', romanized: 'pak-sah', english: 'Subject / Topic' },
+            { native: 'Ipinababatid ko po', romanized: 'ee-pee-nah-bah-bah-tid koh poh', english: 'I am informing you' },
+            { native: 'Kalakip', romanized: 'kah-lah-kip', english: 'Attachment / attached' }
+          ],
+          tips: ['Always use respectful particles like "po" and "opo" in formal business interactions', 'Use "Kagalang-galang" to address government officials or high-ranking executives'],
+          practice: 'Draft a short formal request asking for permission to use a venue.'
+        }
+      },
+      {
+        id: 'fil-19', title: 'Travel & Tourism', description: 'Navigate booking accommodations and sightseeing in the Philippines', type: 'conversation', difficulty: 'beginner', duration: '12 min',
+        content: {
+          intro: 'Plan your trip to Boracay or Intramuros and book hotel rooms in Filipino.',
+          keyPhrases: [
+            { native: 'Pasyalan', romanized: 'pah-shah-lahn', english: 'Sightseeing spot' },
+            { native: 'Mayroon akong reserbasyon', romanized: 'may-roh-on ah-kong reh-ser-bah-shon', english: 'I have a reservation' },
+            { native: 'Tiket', romanized: 'tee-ket', english: 'Ticket' },
+            { native: 'Mapa', romanized: 'mah-pah', english: 'Map' },
+            { native: 'Ano ang mairerekomenda mo?', romanized: 'ah-noh ang mah-ee-reh-reh-koh-men-dah moh', english: 'What can you recommend?' }
+          ],
+          tips: ['Show booking confirmations on your phone during check-in', 'Keep your travel documents and IDs secure'],
+          practice: 'Practice booking a room and asking for recommendations in Filipino.'
+        }
+      },
+      {
+        id: 'fil-20', title: 'Emergency & Health', description: 'Ask for medical assistance and call emergency services in Filipino', type: 'vocabulary', difficulty: 'beginner', duration: '10 min',
+        content: {
+          intro: 'Learn safety terms to explain medical problems or call for help in Filipino.',
+          keyPhrases: [
+            { native: 'Saklolo! / Tulong!', romanized: 'sak-loh-loh / too-long', english: 'Help!' },
+            { native: 'Ospital', romanized: 'os-pee-tal', english: 'Hospital' },
+            { native: 'Botika', romanized: 'boh-tee-kah', english: 'Pharmacy' },
+            { native: 'Masakit dito', romanized: 'mah-sah-kit dee-toh', english: 'It hurts here' },
+            { native: 'Tumawag ng doktor', romanized: 'too-mah-wag ng dok-tor', english: 'Call a doctor' }
+          ],
+          tips: ['Dial 911 for general emergencies and medical/police services in the Philippines'],
+          practice: 'Shout "Tulong" and describe where you feel pain in Filipino.'
         }
       }
     ]

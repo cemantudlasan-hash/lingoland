@@ -1757,7 +1757,7 @@ export default function LanguageModulesPage() {
             }}
             onRetake={() => {
               const questions = languageExams[activeExam.languageId] || [];
-              const shuffledQuestions = shuffleArray(questions);
+              const shuffledQuestions = shuffleArray(questions).slice(0, 30);
               setActiveExam({
                 languageId: activeExam.languageId,
                 questions: shuffledQuestions,
@@ -1874,7 +1874,7 @@ export default function LanguageModulesPage() {
                     <button
                       onClick={() => {
                         const questions = languageExams[activeLanguage] || [];
-                        const shuffledQuestions = shuffleArray(questions);
+                        const shuffledQuestions = shuffleArray(questions).slice(0, 30);
                         setActiveExam({
                           languageId: activeLanguage,
                           questions: shuffledQuestions,

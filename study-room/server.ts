@@ -429,7 +429,9 @@ app.post("/api/translate-exam", async (req, res) => {
     const questions = languageExams[examKey];
 
     if (questions) {
-      const formatted = questions.map(q => ({
+      const shuffled = [...questions].sort(() => 0.5 - Math.random());
+      const sliced = shuffled.slice(0, 30);
+      const formatted = sliced.map(q => ({
         question: q.question,
         options: q.options,
         explanation: q.explanation,
