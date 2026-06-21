@@ -421,7 +421,7 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
                   alt="LingoLandVerse Logo"
                   style={{
                     height: 64,
-                    width: "auto",
+                    width: 64,
                   }}
                 />
               </div>
