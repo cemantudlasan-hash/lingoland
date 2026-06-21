@@ -1,6 +1,8 @@
+import { LANGUAGE_LESSONS } from './languageModulesData';
 import { Lesson } from './types';
 
 export const DEFAULT_LESSONS: Lesson[] = [
+  ...LANGUAGE_LESSONS,
   // --- GRAMMAR ---
   {
     id: 'g-1',

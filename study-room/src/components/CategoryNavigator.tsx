@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BookOpen, Brain, Headphones, Mic, Sparkles, CheckCircle2, ChevronRight, Search, Globe, MessageCircle } from "lucide-react";
 import { Lesson, LC_Category, LC_Level, UserStats, TargetLang } from "../types";
+import LanguageCertificate from "./LanguageCertificate";
 
 interface CategoryNavigatorProps {
   lessons: Lesson[];
@@ -20,6 +21,7 @@ const LANG_META: Record<TargetLang, { flag: string; name: string; color: string;
   spanish:    { flag: "🇪🇸", name: "Spanish",    color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-700" },
   chinese:    { flag: "🇨🇳", name: "Chinese",    color: "text-orange-700", bg: "bg-orange-50 border-orange-700" },
   vietnamese: { flag: "🇻🇳", name: "Vietnamese", color: "text-emerald-700",bg: "bg-emerald-50 border-emerald-700" },
+  german:     { flag: "🇩🇪", name: "German",     color: "text-violet-750", bg: "bg-violet-50 border-violet-700" },
 };
 
 export default function CategoryNavigator({
@@ -34,6 +36,7 @@ export default function CategoryNavigator({
   const [searchQuery, setSearchQuery] = useState("");
   const [mainTab, setMainTab] = useState<"syllabus" | "languages">("syllabus");
   const [activeLang, setActiveLang] = useState<TargetLang | "all">("all");
+  const [certLang, setCertLang] = useState<TargetLang | null>(null);
 
   const categories: Array<{ id: LC_Category | "all"; label: string; icon: any }> = [
     { id: "all", label: "All Lessons", icon: Sparkles },
@@ -337,9 +340,20 @@ export default function CategoryNavigator({
                         <span className="text-2xl leading-none">{meta.flag}</span>
                         {meta.name} Language Modules
                       </h3>
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider bg-white border-2 border-slate-900 px-2 py-1 rounded-lg shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
-                        {completedCount}/{group.length} completed
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {completedCount === group.length && group.length > 0 && (
+                          <button
+                            onClick={() => setCertLang(code as TargetLang)}
+                            className="bg-amber-400 hover:bg-amber-300 text-slate-900 border-2 border-slate-900 px-3 py-1 text-xs font-black uppercase tracking-wider rounded-lg shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            Get Certificate
+                          </button>
+                        )}
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider bg-white border-2 border-slate-900 px-2 py-1 rounded-lg shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
+                          {completedCount}/{group.length} completed
+                        </span>
+                      </div>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       {group.map(renderLessonCard)}
@@ -364,6 +378,15 @@ export default function CategoryNavigator({
             </div>
           )}
         </div>
+      )}
+
+      {certLang && (
+        <LanguageCertificate
+          language={LANG_META[certLang].name}
+          flag={LANG_META[certLang].flag}
+          onClose={() => setCertLang(null)}
+          score={stats.examAttempts?.[certLang]?.score}
+        />
       )}
     </div>
   );
