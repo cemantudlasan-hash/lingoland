@@ -585,8 +585,8 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
         // Show winner toast for the round
         if (data.lastRoundWinner && data.currentRound !== currentRoundIdx) {
           toast({
-            title: `Round Complete! 🎉`,
-            description: `${data.lastRoundWinner} completed the action first!`,
+            title: data.lastRoundWinner === 'Skipped' ? `Round Skipped ⏩` : `Round Complete! 🎉`,
+            description: data.lastRoundWinner === 'Skipped' ? `The action was skipped by players.` : `${data.lastRoundWinner} completed the action first!`,
             duration: 3000
           });
         }
@@ -800,6 +800,43 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
         }
       } catch (err) {
         console.error("Multiplayer round update failed:", err);
+      }
+    }
+  };
+
+  const handleSkipAction = async () => {
+    audioEngine.playCorrect();
+    if (gameMode === 'single') {
+      const nextRound = currentRoundIdx + 1;
+      if (nextRound >= roundsCount) {
+        setGameState('finished');
+        audioEngine.playLevelSuccess();
+        stopCamera();
+      } else {
+        setCurrentRoundIdx(nextRound);
+        setDetectionProgress(0);
+      }
+    } else {
+      if (!firestore || !roomCode) return;
+      const roomRef = doc(firestore, "stats", "am_room_" + roomCode);
+      try {
+        const snap = await getDoc(roomRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.currentRound === currentRoundIdx && data.status === 'playing') {
+            const nextRound = currentRoundIdx + 1;
+            const isLastRound = nextRound >= roundsCount;
+
+            await updateDoc(roomRef, {
+              currentRound: isLastRound ? currentRoundIdx : nextRound,
+              lastRoundWinner: 'Skipped',
+              status: isLastRound ? 'finished' : 'playing'
+            });
+            setDetectionProgress(0);
+          }
+        }
+      } catch (err) {
+        console.error("Multiplayer skip failed:", err);
       }
     }
   };
@@ -1346,6 +1383,16 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
     }
   }, [gameState, activeAction]);
 
+  const getWinnerInfo = () => {
+    if (roomPlayers.length === 0) return { name: '', isTie: false };
+    const sorted = [...roomPlayers].sort((a, b) => b.score - a.score);
+    if (sorted.length > 1 && sorted[0].score === sorted[1].score) {
+      return { name: '', isTie: true };
+    }
+    return { name: sorted[0].name, isTie: false, uid: sorted[0].uid };
+  };
+  const winnerInfo = getWinnerInfo();
+
   return (
     <div className={cn(
       "relative w-full flex flex-col bg-[#05060f] font-sans select-none text-slate-100 overflow-hidden",
@@ -1617,31 +1664,33 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
         <div className="relative z-10 w-full h-full flex flex-col flex-grow p-4 gap-4">
           
           {/* Header HUD */}
-          <div className="flex items-center justify-between gap-4 bg-slate-950/80 border border-slate-850 p-3 rounded-2xl backdrop-blur-md shadow-2xl">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={exitGame} 
-                className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 hover:border-rose-900/50 transition-all duration-200"
-                title="Exit Game"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-              {onToggleFullscreen && (
+          <div className="flex flex-col gap-3 md:flex-row md:items-center justify-between bg-slate-950/80 border border-slate-850 p-3 rounded-2xl backdrop-blur-md shadow-2xl">
+            <div className="flex items-center gap-2.5 md:gap-3 justify-between md:justify-start w-full md:w-auto">
+              <div className="flex items-center gap-2">
                 <button 
-                  onClick={onToggleFullscreen} 
-                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-indigo-400 hover:bg-indigo-950/30 hover:border-indigo-900/50 transition-all duration-200"
-                  title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                  onClick={exitGame} 
+                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 hover:border-rose-900/50 transition-all duration-200"
+                  title="Exit Game"
                 >
-                  {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                  <LogOut className="h-4 w-4" />
                 </button>
-              )}
-              <div>
-                <h2 className="font-mono text-[9px] text-purple-400 font-black uppercase tracking-widest">
-                  {gameMode === 'single' ? 'Solo Mode' : `Battle Duel • Room ${roomCode}`}
+                {onToggleFullscreen && (
+                  <button 
+                    onClick={onToggleFullscreen} 
+                    className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-indigo-400 hover:bg-indigo-950/30 hover:border-indigo-900/50 transition-all duration-200"
+                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                  >
+                    {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                  </button>
+                )}
+              </div>
+              <div className="text-right md:text-left">
+                <h2 className="font-mono text-[9px] text-purple-400 font-black uppercase tracking-widest truncate max-w-[150px] md:max-w-none">
+                  {gameMode === 'single' ? 'Solo Mode' : `Room ${roomCode}`}
                 </h2>
-                <div className="text-sm font-bold flex items-center gap-2">
-                  <span>Round {currentRoundIdx + 1} of {roundsCount}</span>
-                  <Badge variant="outline" className="text-[9px] uppercase px-1.5 py-0 border-slate-800 text-slate-400">
+                <div className="text-xs md:text-sm font-bold flex items-center gap-1.5 md:gap-2 justify-end md:justify-start">
+                  <span>Round {currentRoundIdx + 1}/{roundsCount}</span>
+                  <Badge variant="outline" className="text-[8px] md:text-[9px] uppercase px-1.5 py-0 border-slate-800 text-slate-400">
                     {difficulty}
                   </Badge>
                 </div>
@@ -1649,11 +1698,12 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
             </div>
 
             {/* Scoreboard HUD */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto border-t border-slate-900 md:border-none pt-2 md:pt-0">
+              <span className="text-[9px] font-mono text-slate-500 uppercase font-black md:hidden">Scoreboard</span>
               {gameMode === 'single' ? (
-                <div className="text-right">
-                  <span className="text-[9px] font-mono text-slate-500 uppercase font-black">Score</span>
-                  <p className="text-lg font-black text-indigo-400 font-mono tabular-nums leading-none">{score.toLocaleString()}</p>
+                <div className="text-right flex items-center gap-2 md:block">
+                  <span className="text-[9px] font-mono text-slate-500 uppercase font-black hidden md:inline">Score</span>
+                  <p className="text-base md:text-lg font-black text-indigo-400 font-mono tabular-nums leading-none">{score.toLocaleString()}</p>
                 </div>
               ) : (
                 <div className="flex gap-4">
@@ -1663,7 +1713,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
                         {p.name} {p.uid === myUid && ' (You)'}
                       </span>
                       <p className={cn(
-                        "text-sm font-black font-mono tabular-nums leading-none",
+                        "text-xs md:text-sm font-black font-mono tabular-nums leading-none mt-1",
                         p.uid === myUid ? "text-purple-300" : "text-slate-400"
                       )}>{p.score || 0} pts</p>
                     </div>
@@ -1684,23 +1734,33 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
               <p className="text-xs text-slate-400 max-w-xl">{activeAction?.desc}</p>
             </div>
 
-            {/* Progress Circle overlay */}
-            <div className="relative shrink-0 flex items-center justify-center w-20 h-20 bg-slate-900 rounded-full border border-slate-800">
-              <svg className="w-16 h-16 transform -rotate-90">
-                <circle cx="32" cy="32" r="28" stroke="rgba(147, 51, 234, 0.1)" strokeWidth="4" fill="transparent" />
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  stroke="#a855f7"
-                  strokeWidth="4"
-                  fill="transparent"
-                  strokeDasharray={176}
-                  strokeDashoffset={176 - (176 * detectionProgress) / 100}
-                  className="transition-all duration-200"
-                />
-              </svg>
-              <div className="absolute font-black text-xs font-mono">{Math.floor(detectionProgress)}%</div>
+            <div className="flex items-center gap-4 shrink-0 w-full md:w-auto justify-between md:justify-end">
+              <Button 
+                onClick={handleSkipAction}
+                variant="outline"
+                className="bg-slate-900 border-slate-800 text-slate-400 hover:text-amber-400 hover:bg-amber-950/20 hover:border-amber-900/40 text-xs font-bold uppercase rounded-xl py-3 px-4 flex items-center gap-1.5 transition-all duration-200"
+              >
+                <ArrowRight className="h-3.5 w-3.5" /> Skip Pose
+              </Button>
+
+              {/* Progress Circle overlay */}
+              <div className="relative shrink-0 flex items-center justify-center w-20 h-20 bg-slate-900 rounded-full border border-slate-800">
+                <svg className="w-16 h-16 transform -rotate-90">
+                  <circle cx="32" cy="32" r="28" stroke="rgba(147, 51, 234, 0.1)" strokeWidth="4" fill="transparent" />
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="28"
+                    stroke="#a855f7"
+                    strokeWidth="4"
+                    fill="transparent"
+                    strokeDasharray={176}
+                    strokeDashoffset={176 - (176 * detectionProgress) / 100}
+                    className="transition-all duration-200"
+                  />
+                </svg>
+                <div className="absolute font-black text-xs font-mono">{Math.floor(detectionProgress)}%</div>
+              </div>
             </div>
           </div>
 
@@ -1829,8 +1889,29 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
             <Trophy className="h-16 w-16 text-amber-400 animate-bounce" />
             
             <div className="space-y-1">
-              <h2 className="text-2xl font-black uppercase text-slate-100">Battle Finished!</h2>
-              <p className="text-xs text-slate-400">All rounds completed. High score registered.</p>
+              {gameMode === 'single' ? (
+                <>
+                  <h2 className="text-3xl font-black uppercase bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent tracking-tight">
+                    Session Complete!
+                  </h2>
+                  <p className="text-xs text-slate-400">You successfully finished all {roundsCount} rounds.</p>
+                </>
+              ) : (
+                <>
+                  {winnerInfo.isTie ? (
+                    <h2 className="text-3xl font-black uppercase bg-gradient-to-r from-slate-400 to-slate-200 bg-clip-text text-transparent tracking-tight">
+                      It's a Tie! 🤝
+                    </h2>
+                  ) : (
+                    <h2 className="text-3xl font-black uppercase bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 bg-clip-text text-transparent tracking-tight">
+                      Winner: {winnerInfo.name} 🏆
+                    </h2>
+                  )}
+                  <p className="text-xs text-slate-400">
+                    {winnerInfo.isTie ? "Both players scored the exact same points!" : `${winnerInfo.name} completed the most actions!`}
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Score summary panel */}
