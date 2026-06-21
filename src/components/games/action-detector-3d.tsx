@@ -53,24 +53,19 @@ interface ActionItem {
   tip: string;
   regions: ('top_left' | 'top_right' | 'bottom_mid' | 'center' | 'mid_left' | 'mid_right')[];
   animation: string;
+  difficulty: Difficulty[];
 }
 
 const ACTION_DATABASE: ActionItem[] = [
-  {
-    id: 'wave_hands',
-    name: 'Wave Both Hands',
-    desc: 'Raise both hands above your head and wave them!',
-    tip: 'Place both of your hands in the top corners and move them back and forth.',
-    regions: ['top_left', 'top_right'],
-    animation: 'wave'
-  },
+  // --- BEGINNER ACTIONS (also in Intermediate and Hard) ---
   {
     id: 'raise_right',
     name: 'Raise Right Hand',
     desc: 'Raise your right hand straight up!',
     tip: 'Lift your right hand into the highlighted upper-left box (webcam is mirrored).',
     regions: ['top_left'],
-    animation: 'raise_right'
+    animation: 'raise_right',
+    difficulty: ['beginner', 'intermediate', 'hard']
   },
   {
     id: 'raise_left',
@@ -78,23 +73,8 @@ const ACTION_DATABASE: ActionItem[] = [
     desc: 'Raise your left hand straight up!',
     tip: 'Lift your left hand into the highlighted upper-right box (webcam is mirrored).',
     regions: ['top_right'],
-    animation: 'raise_left'
-  },
-  {
-    id: 'squat',
-    name: 'Squat / Crouch Down',
-    desc: 'Lower your body into a squat position!',
-    tip: 'Bend your knees and lower your entire body so your torso enters the lower region.',
-    regions: ['bottom_mid'],
-    animation: 'squat'
-  },
-  {
-    id: 't_pose',
-    name: 'T-Pose / Arms Wide',
-    desc: 'Extend both arms straight out to the sides!',
-    tip: 'Keep your torso centered and stretch both arms horizontally into the left and right boxes.',
-    regions: ['mid_left', 'mid_right'],
-    animation: 't_pose'
+    animation: 'raise_left',
+    difficulty: ['beginner', 'intermediate', 'hard']
   },
   {
     id: 'lean_left',
@@ -102,7 +82,8 @@ const ACTION_DATABASE: ActionItem[] = [
     desc: 'Tilt your upper body to the left side!',
     tip: 'Keep your lower body still and shift your shoulders into the left box.',
     regions: ['mid_left'],
-    animation: 'lean_left'
+    animation: 'lean_left',
+    difficulty: ['beginner', 'intermediate', 'hard']
   },
   {
     id: 'lean_right',
@@ -110,15 +91,309 @@ const ACTION_DATABASE: ActionItem[] = [
     desc: 'Tilt your upper body to the right side!',
     tip: 'Keep your lower body still and shift your shoulders into the right box.',
     regions: ['mid_right'],
-    animation: 'lean_right'
+    animation: 'lean_right',
+    difficulty: ['beginner', 'intermediate', 'hard']
   },
+  {
+    id: 't_pose',
+    name: 'T-Pose / Arms Wide',
+    desc: 'Extend both arms straight out to the sides!',
+    tip: 'Keep your torso centered and stretch both arms horizontally into the left and right boxes.',
+    regions: ['mid_left', 'mid_right'],
+    animation: 't_pose',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
+  {
+    id: 'hands_on_hips',
+    name: 'Hands on Hips',
+    desc: 'Stand straight with hands on your hips!',
+    tip: 'Keep your torso in the center and position your arms down and out.',
+    regions: ['mid_left', 'mid_right'],
+    animation: 'hands_on_hips',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
+  {
+    id: 'look_up',
+    name: 'Look Up High',
+    desc: 'Tilt your head up towards the ceiling!',
+    tip: 'Tilt your head up while keeping your body in the center region.',
+    regions: ['center'],
+    animation: 'look_up',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
+  {
+    id: 'salute_right',
+    name: 'Right Hand Salute',
+    desc: 'Salute with your right hand near your head!',
+    tip: 'Bring your right hand up near the upper-left of your head.',
+    regions: ['top_left'],
+    animation: 'salute_right',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
+  {
+    id: 'salute_left',
+    name: 'Left Hand Salute',
+    desc: 'Salute with your left hand near your head!',
+    tip: 'Bring your left hand up near the upper-right of your head.',
+    regions: ['top_right'],
+    animation: 'salute_left',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
+  {
+    id: 'right_hand_out',
+    name: 'Right Arm Out',
+    desc: 'Point your right arm straight to the side!',
+    tip: 'Extend your right arm into the mid-left box.',
+    regions: ['mid_left'],
+    animation: 'right_hand_out',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
+  {
+    id: 'left_hand_out',
+    name: 'Left Arm Out',
+    desc: 'Point your left arm straight to the side!',
+    tip: 'Extend your left arm into the mid-right box.',
+    regions: ['mid_right'],
+    animation: 'left_hand_out',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
+  {
+    id: 'stand_still',
+    name: 'Stand Attention',
+    desc: 'Stand perfectly centered and still!',
+    tip: 'Align your body in the central active zone with arms down.',
+    regions: ['center'],
+    animation: 'idle',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
+
+  // --- INTERMEDIATE ACTIONS (also in Hard) ---
+  {
+    id: 'wave_hands',
+    name: 'Wave Both Hands',
+    desc: 'Raise both hands above your head and wave them!',
+    tip: 'Place both of your hands in the top corners and move them back and forth.',
+    regions: ['top_left', 'top_right'],
+    animation: 'wave_hands',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'squat',
+    name: 'Squat / Crouch Down',
+    desc: 'Lower your body into a squat position!',
+    tip: 'Bend your knees and lower your entire body so your torso enters the lower region.',
+    regions: ['bottom_mid'],
+    animation: 'squat',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'high_v',
+    name: 'High V Pose',
+    desc: 'Raise both arms diagonally up in a V shape!',
+    tip: 'Hold both hands high and wide in the top-left and top-right zones.',
+    regions: ['top_left', 'top_right'],
+    animation: 'high_v',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'low_v',
+    name: 'Low V Pose',
+    desc: 'Extend both arms diagonally down in an inverted V!',
+    tip: 'Keep your hands wide in the mid-left and mid-right regions.',
+    regions: ['mid_left', 'mid_right'],
+    animation: 'low_v',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'boxer_defense',
+    name: 'Boxer Defense Guard',
+    desc: 'Bring your fists up to guard your face!',
+    tip: 'Keep your body and hands tight in the center region.',
+    regions: ['center'],
+    animation: 'boxer_defense',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'raise_left_lean_right',
+    name: 'Raise Left, Lean Right',
+    desc: 'Tilt your body to the right while raising your left hand!',
+    tip: 'Tilt your shoulders to the right and lift your left hand high.',
+    regions: ['top_right', 'mid_right'],
+    animation: 'raise_left_lean_right',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'raise_right_lean_left',
+    name: 'Raise Right, Lean Left',
+    desc: 'Tilt your body to the left while raising your right hand!',
+    tip: 'Tilt your shoulders to the left and lift your right hand high.',
+    regions: ['top_left', 'mid_left'],
+    animation: 'raise_right_lean_left',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'right_kick',
+    name: 'Right Leg Kick',
+    desc: 'Balance on one leg and lift your right leg!',
+    tip: 'Stand on your left leg and lift your right leg into the lower center region.',
+    regions: ['bottom_mid'],
+    animation: 'right_kick',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'left_kick',
+    name: 'Left Leg Kick',
+    desc: 'Balance on one leg and lift your left leg!',
+    tip: 'Stand on your right leg and lift your left leg into the lower center region.',
+    regions: ['bottom_mid'],
+    animation: 'left_kick',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'funky_chicken_right',
+    name: 'Right Wing Pose',
+    desc: 'Bent elbow up with your hand on your hip!',
+    tip: 'Form a wing shape with your right arm pointing into the mid-left zone.',
+    regions: ['mid_left'],
+    animation: 'funky_chicken_right',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'funky_chicken_left',
+    name: 'Left Wing Pose',
+    desc: 'Bent elbow up with your hand on your hip!',
+    tip: 'Form a wing shape with your left arm pointing into the mid-right zone.',
+    regions: ['mid_right'],
+    animation: 'funky_chicken_left',
+    difficulty: ['intermediate', 'hard']
+  },
+
+  // --- HARD ACTIONS ONLY ---
   {
     id: 'star_jump',
     name: 'Star Jump',
     desc: 'Jump up high with arms and legs spread!',
     tip: 'Leap dynamically in the center of the camera frame.',
     regions: ['center', 'top_left', 'top_right'],
-    animation: 'jump'
+    animation: 'star_jump',
+    difficulty: ['hard']
+  },
+  {
+    id: 'dab_left',
+    name: 'Dabbing Left',
+    desc: 'Strike a dab pose pointing to the left!',
+    tip: 'Point both arms diagonally up to the left (your top-left region).',
+    regions: ['top_left', 'mid_right'],
+    animation: 'dab_left',
+    difficulty: ['hard']
+  },
+  {
+    id: 'dab_right',
+    name: 'Dabbing Right',
+    desc: 'Strike a dab pose pointing to the right!',
+    tip: 'Point both arms diagonally up to the right (your top-right region).',
+    regions: ['top_right', 'mid_left'],
+    animation: 'dab_right',
+    difficulty: ['hard']
+  },
+  {
+    id: 'lunge_left',
+    name: 'Lunge Left',
+    desc: 'Take a deep side lunge to the left!',
+    tip: 'Shift your entire body weight into the left lower region.',
+    regions: ['bottom_mid', 'mid_left'],
+    animation: 'lunge_left',
+    difficulty: ['hard']
+  },
+  {
+    id: 'lunge_right',
+    name: 'Lunge Right',
+    desc: 'Take a deep side lunge to the right!',
+    tip: 'Shift your entire body weight into the right lower region.',
+    regions: ['bottom_mid', 'mid_right'],
+    animation: 'lunge_right',
+    difficulty: ['hard']
+  },
+  {
+    id: 'crossover_left',
+    name: 'Left Knee Tap',
+    desc: 'Cross your right hand down to touch your left knee!',
+    tip: 'Bend forward and move your right hand into the lower-right side.',
+    regions: ['mid_left', 'bottom_mid'],
+    animation: 'crossover_left',
+    difficulty: ['hard']
+  },
+  {
+    id: 'crossover_right',
+    name: 'Right Knee Tap',
+    desc: 'Cross your left hand down to touch your right knee!',
+    tip: 'Bend forward and move your left hand into the lower-left side.',
+    regions: ['mid_right', 'bottom_mid'],
+    animation: 'crossover_right',
+    difficulty: ['hard']
+  },
+  {
+    id: 'helicopter',
+    name: 'Helicopter Twist',
+    desc: 'Twist your torso with arms wide open!',
+    tip: 'Extend arms horizontally and rotate your torso back and forth.',
+    regions: ['mid_left', 'mid_right', 'center'],
+    animation: 'helicopter',
+    difficulty: ['hard']
+  },
+  {
+    id: 'ninja_stance',
+    name: 'Ninja Crouch Stance',
+    desc: 'Crouch down low with one arm guarding high!',
+    tip: 'Get low in the center-bottom and raise one hand to the top corner.',
+    regions: ['bottom_mid', 'top_left'],
+    animation: 'ninja_stance',
+    difficulty: ['hard']
+  },
+  {
+    id: 'power_up',
+    name: 'Power Up Charge',
+    desc: 'Crouch down with both arms raised high!',
+    tip: 'Squat low in the center while keeping both hands in the upper corners.',
+    regions: ['bottom_mid', 'top_left', 'top_right'],
+    animation: 'power_up',
+    difficulty: ['hard']
+  },
+  {
+    id: 'weightlifter',
+    name: 'Olympic Barbell Lift',
+    desc: 'Hold a deep squat with arms fully locked high!',
+    tip: 'Perform a clean squat while holding both hands straight up.',
+    regions: ['bottom_mid', 'top_left', 'top_right'],
+    animation: 'weightlifter',
+    difficulty: ['hard']
+  },
+  {
+    id: 'disco_left',
+    name: 'Disco Finger Left',
+    desc: 'Point diagonally up-left while leaning right!',
+    tip: 'Keep your feet centered and point your right hand to the top-left.',
+    regions: ['top_left', 'bottom_mid'],
+    animation: 'disco_left',
+    difficulty: ['hard']
+  },
+  {
+    id: 'disco_right',
+    name: 'Disco Finger Right',
+    desc: 'Point diagonally up-right while leaning left!',
+    tip: 'Keep your feet centered and point your left hand to the top-right.',
+    regions: ['top_right', 'bottom_mid'],
+    animation: 'disco_right',
+    difficulty: ['hard']
+  },
+  {
+    id: 'matrix_lean',
+    name: 'Matrix Bullet Dodge',
+    desc: 'Lean your upper body back while bending your knees!',
+    tip: 'Bend your knees slightly and lean your torso back into the center zone.',
+    regions: ['center', 'bottom_mid'],
+    animation: 'matrix_lean',
+    difficulty: ['hard']
   }
 ];
 
@@ -531,8 +806,9 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
 
   // ── Start / Stop Game Triggers ──────────────────────────────────────
   const startGameSingle = () => {
-    // Shuffle and pick actions based on rounds count
-    const shuffled = [...ACTION_DATABASE].sort(() => Math.random() - 0.5);
+    // Shuffle and pick actions based on difficulty and rounds count
+    const filtered = ACTION_DATABASE.filter(act => act.difficulty.includes(difficulty));
+    const shuffled = [...filtered].sort(() => Math.random() - 0.5);
     const list: ActionItem[] = [];
     for (let i = 0; i < roundsCount; i++) {
       list.push(shuffled[i % shuffled.length]);
@@ -563,8 +839,9 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       }
     };
 
-    // Prepare action queue
-    const shuffled = [...ACTION_DATABASE].sort(() => Math.random() - 0.5);
+    // Prepare action queue based on difficulty
+    const filtered = ACTION_DATABASE.filter(act => act.difficulty.includes(difficulty));
+    const shuffled = [...filtered].sort(() => Math.random() - 0.5);
     const list: ActionItem[] = [];
     for (let i = 0; i < roundsCount; i++) {
       list.push(shuffled[i % shuffled.length]);
@@ -842,7 +1119,6 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           rightArm.rotation.z = -0.1;
           break;
         case 'squat':
-          // Lower torso and rotate thighs/calves
           puppet.position.y = -0.3 + Math.sin(time * 2) * 0.1;
           leftArm.rotation.x = -Math.PI * 0.3;
           rightArm.rotation.x = -Math.PI * 0.3;
@@ -863,6 +1139,77 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           head.rotation.z = -0.1;
           rightArm.rotation.z = -Math.PI * 0.2;
           break;
+        case 'hands_on_hips':
+          leftArm.rotation.z = Math.PI * 0.15;
+          leftArm.rotation.x = -Math.PI * 0.1;
+          rightArm.rotation.z = -Math.PI * 0.15;
+          rightArm.rotation.x = -Math.PI * 0.1;
+          break;
+        case 'look_up':
+          head.rotation.x = -0.4;
+          leftArm.rotation.z = 0.1;
+          rightArm.rotation.z = -0.1;
+          break;
+        case 'salute_right':
+          rightArm.rotation.z = -Math.PI * 0.8;
+          rightArm.rotation.y = -Math.PI * 0.35;
+          leftArm.rotation.z = 0.1;
+          break;
+        case 'salute_left':
+          leftArm.rotation.z = Math.PI * 0.8;
+          leftArm.rotation.y = Math.PI * 0.35;
+          rightArm.rotation.z = -0.1;
+          break;
+        case 'right_hand_out':
+          rightArm.rotation.z = -Math.PI * 0.45;
+          leftArm.rotation.z = 0.1;
+          break;
+        case 'left_hand_out':
+          leftArm.rotation.z = Math.PI * 0.45;
+          rightArm.rotation.z = -0.1;
+          break;
+        case 'high_v':
+          leftArm.rotation.z = Math.PI * 0.7;
+          rightArm.rotation.z = -Math.PI * 0.7;
+          break;
+        case 'low_v':
+          leftArm.rotation.z = Math.PI * 0.25;
+          rightArm.rotation.z = -Math.PI * 0.25;
+          break;
+        case 'boxer_defense':
+          leftArm.rotation.x = -Math.PI * 0.4;
+          leftArm.rotation.y = Math.PI * 0.2;
+          rightArm.rotation.x = -Math.PI * 0.4;
+          rightArm.rotation.y = -Math.PI * 0.2;
+          break;
+        case 'raise_left_lean_right':
+          torso.rotation.z = -0.2;
+          leftArm.rotation.z = Math.PI * 0.85;
+          rightArm.rotation.z = -0.1;
+          break;
+        case 'raise_right_lean_left':
+          torso.rotation.z = 0.2;
+          rightArm.rotation.z = -Math.PI * 0.85;
+          leftArm.rotation.z = 0.1;
+          break;
+        case 'right_kick':
+          rightLeg.rotation.x = -Math.PI * 0.35;
+          leftLeg.rotation.x = 0.05;
+          puppet.position.y = 0.05;
+          break;
+        case 'left_kick':
+          leftLeg.rotation.x = -Math.PI * 0.35;
+          rightLeg.rotation.x = 0.05;
+          puppet.position.y = 0.05;
+          break;
+        case 'funky_chicken_right':
+          rightArm.rotation.z = -Math.PI * 0.35;
+          rightArm.rotation.x = -Math.PI * 0.2;
+          break;
+        case 'funky_chicken_left':
+          leftArm.rotation.z = Math.PI * 0.35;
+          leftArm.rotation.x = -Math.PI * 0.2;
+          break;
         case 'star_jump':
           const jumpVal = Math.max(0, Math.sin(time * 5));
           puppet.position.y = jumpVal * 0.8;
@@ -870,6 +1217,91 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           rightArm.rotation.z = -Math.PI * 0.25 - jumpVal * (Math.PI * 0.3);
           leftLeg.rotation.z = jumpVal * 0.25;
           rightLeg.rotation.z = -jumpVal * 0.25;
+          break;
+        case 'dab_left':
+          torso.rotation.y = Math.PI * 0.15;
+          torso.rotation.z = 0.1;
+          leftArm.rotation.z = Math.PI * 0.75;
+          leftArm.rotation.y = -Math.PI * 0.1;
+          rightArm.rotation.z = -Math.PI * 0.15;
+          rightArm.rotation.x = -Math.PI * 0.35;
+          head.rotation.y = Math.PI * 0.25;
+          break;
+        case 'dab_right':
+          torso.rotation.y = -Math.PI * 0.15;
+          torso.rotation.z = -0.1;
+          rightArm.rotation.z = -Math.PI * 0.75;
+          rightArm.rotation.y = Math.PI * 0.1;
+          leftArm.rotation.z = Math.PI * 0.15;
+          leftArm.rotation.x = -Math.PI * 0.35;
+          head.rotation.y = -Math.PI * 0.25;
+          break;
+        case 'lunge_left':
+          puppet.position.y = -0.2;
+          puppet.position.x = -0.3;
+          leftLeg.rotation.z = Math.PI * 0.15;
+          rightLeg.rotation.z = Math.PI * 0.25;
+          break;
+        case 'lunge_right':
+          puppet.position.y = -0.2;
+          puppet.position.x = 0.3;
+          rightLeg.rotation.z = -Math.PI * 0.15;
+          leftLeg.rotation.z = -Math.PI * 0.25;
+          break;
+        case 'crossover_left':
+          torso.rotation.x = Math.PI * 0.2;
+          torso.rotation.y = Math.PI * 0.15;
+          rightArm.rotation.x = -Math.PI * 0.45;
+          rightArm.rotation.y = Math.PI * 0.35;
+          break;
+        case 'crossover_right':
+          torso.rotation.x = Math.PI * 0.2;
+          torso.rotation.y = -Math.PI * 0.15;
+          leftArm.rotation.x = -Math.PI * 0.45;
+          leftArm.rotation.y = -Math.PI * 0.35;
+          break;
+        case 'helicopter':
+          torso.rotation.y = Math.sin(time * 6) * 0.6;
+          leftArm.rotation.z = Math.PI * 0.5;
+          rightArm.rotation.z = -Math.PI * 0.5;
+          break;
+        case 'ninja_stance':
+          puppet.position.y = -0.25;
+          torso.rotation.y = Math.PI * 0.25;
+          rightArm.rotation.z = -Math.PI * 0.85;
+          leftArm.rotation.z = Math.PI * 0.15;
+          leftLeg.rotation.x = -Math.PI * 0.3;
+          rightLeg.rotation.x = -Math.PI * 0.1;
+          break;
+        case 'power_up':
+          puppet.position.y = -0.15 + Math.sin(time * 15) * 0.03;
+          leftArm.rotation.z = Math.PI * 0.75;
+          rightArm.rotation.z = -Math.PI * 0.75;
+          leftLeg.rotation.x = -Math.PI * 0.15;
+          rightLeg.rotation.x = -Math.PI * 0.15;
+          break;
+        case 'weightlifter':
+          puppet.position.y = -0.35;
+          leftArm.rotation.z = Math.PI * 0.9;
+          rightArm.rotation.z = -Math.PI * 0.9;
+          leftLeg.rotation.x = -Math.PI * 0.25;
+          rightLeg.rotation.x = -Math.PI * 0.25;
+          break;
+        case 'disco_left':
+          torso.rotation.z = 0.15;
+          rightArm.rotation.z = -Math.PI * 0.75;
+          leftArm.rotation.z = 0.15;
+          break;
+        case 'disco_right':
+          torso.rotation.z = -0.15;
+          leftArm.rotation.z = Math.PI * 0.75;
+          rightArm.rotation.z = -0.15;
+          break;
+        case 'matrix_lean':
+          torso.rotation.x = Math.PI * 0.3;
+          puppet.position.y = -0.2;
+          leftArm.rotation.x = -Math.PI * 0.2;
+          rightArm.rotation.x = -Math.PI * 0.2;
           break;
         default:
           // Idle breathing
