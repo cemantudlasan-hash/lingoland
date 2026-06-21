@@ -1531,8 +1531,18 @@ export default function LanguageModulesPage() {
 
   // Load progress on mount / userProfile loaded
   useEffect(() => {
+    if (!user) {
+      setCompletedLessons({});
+      setPassedExams({});
+      return;
+    }
+
+    const userId = user.uid;
+    const lessonsKey = `lingoland_${userId}_completed_lessons`;
+    const examsKey = `lingoland_${userId}_passed_exams`;
+
     try {
-      const storedLessons = localStorage.getItem('lingoland_language_modules_completed_lessons');
+      const storedLessons = localStorage.getItem(lessonsKey);
       if (storedLessons) {
         const parsed = JSON.parse(storedLessons);
         const loaded: Record<string, Set<string>> = {};
@@ -1540,18 +1550,24 @@ export default function LanguageModulesPage() {
           loaded[lang] = new Set(lessons as string[]);
         });
         setCompletedLessons(loaded);
+      } else {
+        setCompletedLessons({});
       }
     } catch (e) {
       console.error('Failed to load completed lessons from localStorage:', e);
+      setCompletedLessons({});
     }
 
     try {
-      const storedExams = localStorage.getItem('lingoland_language_modules_passed_exams');
+      const storedExams = localStorage.getItem(examsKey);
       if (storedExams) {
         setPassedExams(JSON.parse(storedExams));
+      } else {
+        setPassedExams({});
       }
     } catch (e) {
       console.error('Failed to load passed exams from localStorage:', e);
+      setPassedExams({});
     }
 
     if (userProfile) {
@@ -1563,7 +1579,7 @@ export default function LanguageModulesPage() {
         });
         setCompletedLessons(loaded);
         try {
-          localStorage.setItem('lingoland_language_modules_completed_lessons', JSON.stringify(firestoreLessons));
+          localStorage.setItem(lessonsKey, JSON.stringify(firestoreLessons));
         } catch (e) {
           console.error('Failed to sync completed lessons to localStorage:', e);
         }
@@ -1573,19 +1589,23 @@ export default function LanguageModulesPage() {
       if (firestoreExams) {
         setPassedExams(firestoreExams);
         try {
-          localStorage.setItem('lingoland_language_modules_passed_exams', JSON.stringify(firestoreExams));
+          localStorage.setItem(examsKey, JSON.stringify(firestoreExams));
         } catch (e) {
           console.error('Failed to sync passed exams to localStorage:', e);
         }
       }
     }
-  }, [userProfile]);
+  }, [user, userProfile]);
 
   const currentModule = languageModules.find(m => m.id === activeLanguage)!;
   const completedForLang = completedLessons[activeLanguage] ?? new Set<string>();
   const allComplete = currentModule.lessons.every(l => completedForLang.has(l.id));
 
   const handleComplete = (langId: string, lessonId: string) => {
+    if (!user) return;
+    const userId = user.uid;
+    const lessonsKey = `lingoland_${userId}_completed_lessons`;
+
     setCompletedLessons(prev => {
       const updated = new Set(prev[langId] ?? []);
       updated.add(lessonId);
@@ -1594,41 +1614,41 @@ export default function LanguageModulesPage() {
         Object.entries(next).map(([k, set]) => [k, Array.from(set)])
       );
       try {
-        localStorage.setItem('lingoland_language_modules_completed_lessons', JSON.stringify(serializable));
+        localStorage.setItem(lessonsKey, JSON.stringify(serializable));
       } catch (e) {
         console.error('Failed to save completed lessons', e);
       }
 
       // Sync to Firestore
-      if (user) {
-        import('@/lib/user').then(({ updateUserProfile }) => {
-          updateUserProfile(user.uid, {
-            languageModulesCompletedLessons: serializable
-          } as any).catch(e => console.error('Failed to sync completed lessons to Firestore', e));
-        });
-      }
+      import('@/lib/user').then(({ updateUserProfile }) => {
+        updateUserProfile(userId, {
+          languageModulesCompletedLessons: serializable
+        } as any).catch(e => console.error('Failed to sync completed lessons to Firestore', e));
+      });
 
       return next;
     });
   };
 
   const handlePassExam = (langId: string, score: number) => {
+    if (!user) return;
+    const userId = user.uid;
+    const examsKey = `lingoland_${userId}_passed_exams`;
+
     setPassedExams(prev => {
       const next = { ...prev, [langId]: { passed: true, score } };
       try {
-        localStorage.setItem('lingoland_language_modules_passed_exams', JSON.stringify(next));
+        localStorage.setItem(examsKey, JSON.stringify(next));
       } catch (e) {
         console.error('Failed to save passed exams', e);
       }
 
       // Sync to Firestore
-      if (user) {
-        import('@/lib/user').then(({ updateUserProfile }) => {
-          updateUserProfile(user.uid, {
-            languageModulesPassedExams: next
-          } as any).catch(e => console.error('Failed to sync passed exams to Firestore', e));
-        });
-      }
+      import('@/lib/user').then(({ updateUserProfile }) => {
+        updateUserProfile(userId, {
+          languageModulesPassedExams: next
+        } as any).catch(e => console.error('Failed to sync passed exams to Firestore', e));
+      });
 
       return next;
     });

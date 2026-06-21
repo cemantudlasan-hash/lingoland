@@ -93,7 +93,7 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
           const cloudData = statsSnap.data();
           
           // If Firestore has higher or newer statistics, update local React state
-          if (cloudData.points > stats.points || cloudData.completedLessons.length > stats.completedLessons.length) {
+          if (cloudData.points > stats.points || (cloudData.completedLessons || []).length > stats.completedLessons.length) {
             if (active) {
               const updatedLocalStats: UserStats = {
                 completedLessons: cloudData.completedLessons || [],
@@ -101,7 +101,9 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
                 lastActiveDate: cloudData.lastActiveDate || "",
                 points: cloudData.points || 0,
                 timeSpentMinutes: cloudData.timeSpentMinutes || 0,
-                history: cloudData.history || []
+                history: cloudData.history || [],
+                passedExams: cloudData.passedExams || [],
+                examAttempts: cloudData.examAttempts || {}
               };
               onStatsSynced(updatedLocalStats);
             }
@@ -115,6 +117,8 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
               timeSpentMinutes: stats.timeSpentMinutes,
               completedLessons: stats.completedLessons,
               history: stats.history,
+              passedExams: stats.passedExams || [],
+              examAttempts: stats.examAttempts || {},
               updatedAt: serverTimestamp()
             }, { merge: true });
           }
@@ -129,6 +133,8 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
             timeSpentMinutes: stats.timeSpentMinutes,
             completedLessons: stats.completedLessons,
             history: stats.history,
+            passedExams: stats.passedExams || [],
+            examAttempts: stats.examAttempts || {},
             updatedAt: serverTimestamp()
           });
           if (active) setSyncStatus("synced");

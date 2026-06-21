@@ -7,10 +7,13 @@ import CategoryNavigator from "./components/CategoryNavigator";
 import ContentViewer from "./components/ContentViewer";
 import StudyRoom from "./components/StudyRoom";
 import ExamContainer from "./components/ExamContainer";
+import { auth } from "./lib/firebase";
+import { User as FirebaseUser } from "firebase/auth";
 
 export default function App() {
   // Lessons and State lists
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [stats, setStats] = useState<UserStats>({
     completedLessons: [],
     streakCount: 0,
@@ -18,6 +21,8 @@ export default function App() {
     points: 0,
     timeSpentMinutes: 0,
     history: [],
+    passedExams: [],
+    examAttempts: {},
   });
   const [currentLanguage, setCurrentLanguage] = useState<TargetLanguage>(LANGUAGES[0]); // default Thai
 
@@ -32,21 +37,37 @@ export default function App() {
   // Loading indicator states
   const [loading, setLoading] = useState(true);
 
-  // Fetch initial user progress stats on mount
+  // Subscribe to Firebase Auth state shifts
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const statsRes = await fetch("/api/progress");
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setStats(statsData);
-        }
-      } catch (err) {
-        console.error("Failed fetching user stats:", err);
-      }
-    };
-    fetchStats();
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return () => unsubscribe();
   }, []);
+
+  // Fetch initial user progress stats on mount / user shift
+  useEffect(() => {
+    const userKey = user ? `study_room_${user.uid}_stats` : "study_room_guest_stats";
+    try {
+      const stored = localStorage.getItem(userKey);
+      if (stored) {
+        setStats(JSON.parse(stored));
+      } else {
+        setStats({
+          completedLessons: [],
+          streakCount: 0,
+          lastActiveDate: "",
+          points: 0,
+          timeSpentMinutes: 0,
+          history: [],
+          passedExams: [],
+          examAttempts: {},
+        });
+      }
+    } catch (err) {
+      console.error("Failed loading user stats from localStorage:", err);
+    }
+  }, [user]);
 
   // Refetch lessons when selected language shifts
   useEffect(() => {
@@ -68,65 +89,131 @@ export default function App() {
     fetchLessons();
   }, [currentLanguage.code]);
 
-  // Sync user completed lesson points
+  // Sync user completed lesson points locally
   const handleLessonCompleted = async (xpReward: number) => {
     if (!selectedLesson) return;
-    try {
-      const res = await fetch("/api/progress/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    const userKey = user ? `study_room_${user.uid}_stats` : "study_room_guest_stats";
+
+    setStats(prev => {
+      const completedLessons = prev.completedLessons.includes(selectedLesson.id)
+        ? prev.completedLessons
+        : [...prev.completedLessons, selectedLesson.id];
+
+      const points = prev.points + (xpReward || 100);
+      const timeSpentMinutes = prev.timeSpentMinutes + (selectedLesson.estimatedMinutes || 5);
+
+      // Manage Streak count
+      const todayStr = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+      const lastActiveStr = prev.lastActiveDate;
+      let streakCount = prev.streakCount;
+
+      if (lastActiveStr === "") {
+        streakCount = 1;
+      } else if (lastActiveStr !== todayStr) {
+        const lastActive = new Date(lastActiveStr);
+        const today = new Date(todayStr);
+        const diffTime = Math.abs(today.getTime() - lastActive.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          streakCount += 1;
+        } else if (diffDays > 1) {
+          streakCount = 1;
+        }
+      }
+
+      const history = [
+        ...prev.history,
+        {
           lessonId: selectedLesson.id,
+          completedAt: new Date().toISOString(),
           score: 100,
-          xpEarned: xpReward,
-          timeSpent: selectedLesson.estimatedMinutes,
-        }),
-      });
+          xpEarned: xpReward || 100,
+        }
+      ];
 
-      if (res.ok) {
-        const updatedStats = await res.json();
-        setStats(updatedStats);
+      const nextStats = {
+        ...prev,
+        completedLessons,
+        points,
+        timeSpentMinutes,
+        streakCount,
+        lastActiveDate: todayStr,
+        history,
+      };
+
+      try {
+        localStorage.setItem(userKey, JSON.stringify(nextStats));
+      } catch (err) {
+        console.error("Failed saving stats to localStorage:", err);
       }
-    } catch (err) {
-      console.error("Failed logging lesson completion on server:", err);
-    }
+
+      return nextStats;
+    });
   };
 
-  // Sync user completed exam points and status
+  // Sync user completed exam points and status locally
   const handleExamCompleted = async (langCode: string, score: number, passed: boolean) => {
-    try {
-      const res = await fetch("/api/progress/complete-exam", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          langCode,
-          score,
-          passed
-        }),
-      });
+    const userKey = user ? `study_room_${user.uid}_stats` : "study_room_guest_stats";
 
-      if (res.ok) {
-        const updatedStats = await res.json();
-        setStats(updatedStats);
+    setStats(prev => {
+      const passedExams = prev.passedExams ? [...prev.passedExams] : [];
+      const examAttempts = prev.examAttempts ? { ...prev.examAttempts } : {};
+
+      const todayStr = new Date().toISOString().split("T")[0];
+
+      // Update best attempt or add attempt record
+      const prevAttempt = examAttempts[langCode];
+      if (!prevAttempt || score > prevAttempt.score) {
+        examAttempts[langCode] = {
+          score,
+          passed,
+          date: todayStr
+        };
       }
-    } catch (err) {
-      console.error("Failed logging exam completion on server:", err);
-    }
+
+      let points = prev.points;
+      if (passed && !passedExams.includes(langCode)) {
+        passedExams.push(langCode);
+        points += 500; // Credit 500 XP bonus for passing the exam!
+      }
+
+      const nextStats = {
+        ...prev,
+        passedExams,
+        examAttempts,
+        points
+      };
+
+      try {
+        localStorage.setItem(userKey, JSON.stringify(nextStats));
+      } catch (err) {
+        console.error("Failed saving stats to localStorage:", err);
+      }
+
+      return nextStats;
+    });
   };
 
-  // Reset progress stats entirely
+  // Reset progress stats entirely locally
   const handleResetStats = async () => {
+    const userKey = user ? `study_room_${user.uid}_stats` : "study_room_guest_stats";
+    const defaultStats = {
+      completedLessons: [],
+      streakCount: 0,
+      lastActiveDate: "",
+      points: 0,
+      timeSpentMinutes: 0,
+      history: [],
+      passedExams: [],
+      examAttempts: {},
+    };
     try {
-      const res = await fetch("/api/progress/reset", {
-        method: "POST",
-      });
-      if (res.ok) {
-        const updatedStats = await res.json();
-        setStats(updatedStats);
-      }
+      localStorage.setItem(userKey, JSON.stringify(defaultStats));
     } catch (err) {
-      console.error("Failed resetting stats on backend:", err);
+      console.error("Failed saving reset stats to localStorage:", err);
     }
+    setStats(defaultStats);
   };
 
   return (
