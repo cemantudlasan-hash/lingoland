@@ -53,6 +53,7 @@ import {
   Grid3X3,
   Newspaper,
   Rotate3d,
+  Camera,
 } from "lucide-react";
 
 export const allGames: Game[] = [
@@ -775,6 +776,15 @@ export const allGames: Game[] = [
     focus: "grammar",
     subject: "english",
     icon: Compass,
+  },
+  {
+    title: "Action Detector 3D",
+    slug: "action-detector-3d",
+    description: "Do physical actions in front of your camera matching the 3D robot instructions to score points in solo or duel mode.",
+    level: "intermediate",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Camera,
   },
 ];
 

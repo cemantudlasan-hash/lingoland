@@ -105,6 +105,7 @@ export const gameComponentMap = {
       'math-dash-3d': dynamic(() => import('@/components/games/math-dash-3d').then(mod => mod.MathDash3D), { ssr: false }),
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
       'three-corridor-speed': dynamic(() => import('@/components/games/three-corridor-speed'), { ssr: false }),
+      'action-detector-3d': dynamic(() => import('@/components/games/action-detector-3d').then(mod => mod.ActionDetector3D), { ssr: false }),
 };
 
 export default function GamesPage() {
