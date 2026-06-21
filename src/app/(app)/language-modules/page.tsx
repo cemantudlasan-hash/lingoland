@@ -575,7 +575,7 @@ const CertificateCanvas = React.forwardRef<HTMLDivElement, {
                   style={{ display: 'block' }}
                 >
                   <image
-                    href="/logo.png"
+                    href="/logo-square.png"
                     x="0"
                     y="0"
                     width="64"
