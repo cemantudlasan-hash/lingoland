@@ -22,6 +22,7 @@ import placeholderData from "@/app/lib/placeholder-images.json";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { getBackdropStyle } from "@/lib/backdrop";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "Display name must be at least 2 characters."),
@@ -331,6 +332,11 @@ function ProfilePageComponent() {
   const avatarFrame = watch("avatarFrame");
   const coverPhotoHint = watch("coverPhotoHint") || placeholderData.profileCover.hint;
   const coverPhotoUrl = watch("coverPhotoUrl");
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [coverPhotoUrl, coverPhotoHint, randomSeed]);
   
   const loadProfile = useCallback(async () => {
     if (user) {
@@ -427,7 +433,8 @@ function ProfilePageComponent() {
     );
   }
 
-  const currentCover = coverPhotoUrl || `https://picsum.photos/seed/${coverPhotoHint.replace(/\s+/g, '-')}-${randomSeed}/1200/400`;
+  const backdropStyle = getBackdropStyle(coverPhotoHint, randomSeed);
+  const showImage = coverPhotoUrl && !imageError;
   const currentFrameClass = AVATAR_FRAMES.find(f => f.id === avatarFrame)?.class || 'frame-none';
 
   return (
@@ -445,23 +452,30 @@ function ProfilePageComponent() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-indigo-500/10 blur-[100px] pointer-events-none z-10" />
 
                 {/* Header Cover */}
-                <div className="relative h-64 sm:h-80 w-full group overflow-hidden bg-zinc-900">
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 1.2 }}
-                        className="w-full h-full"
-                    >
-                        <Image 
-                            key={currentCover}
-                            src={currentCover} 
-                            alt="Cover" 
-                            fill 
-                            unoptimized
-                            className="object-cover transition-transform duration-[2s] group-hover:scale-105"
-                            data-ai-hint={coverPhotoUrl ? "" : coverPhotoHint}
-                        />
-                    </motion.div>
+                <div 
+                    className="relative h-64 sm:h-80 w-full group overflow-hidden"
+                    style={backdropStyle}
+                >
+                    {/* Futuristic Grid Overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none z-10 opacity-60" />
+
+                    {showImage && (
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 1.2 }}
+                            className="w-full h-full"
+                        >
+                            <Image 
+                                src={coverPhotoUrl} 
+                                alt="Cover" 
+                                fill 
+                                unoptimized
+                                className="object-cover transition-transform duration-[2s] group-hover:scale-105"
+                                onError={() => setImageError(true)}
+                            />
+                        </motion.div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent z-0" />
                     
                     <div className="absolute bottom-6 right-6 flex gap-3 z-20">

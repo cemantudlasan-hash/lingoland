@@ -22,6 +22,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 import { LingoPetVisual } from "@/components/games/lingo-pet-visual";
+import { getBackdropStyle } from "@/lib/backdrop";
 
 const AVATAR_FRAMES = [
     { id: 'none', label: 'No Frame', class: 'frame-none' },
@@ -50,6 +51,11 @@ export default function PublicProfilePage() {
     const [commentText, setCommentText] = useState("");
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [replyingTo, setReplyingTo] = useState<DailyPostComment | null>(null);
+    const [imageError, setImageError] = useState(false);
+
+    useEffect(() => {
+        setImageError(false);
+    }, [profile?.coverPhotoUrl, profile?.coverPhotoHint]);
     const [petData, setPetData] = useState<{
         petType: 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly';
         level: number;
@@ -287,7 +293,8 @@ export default function PublicProfilePage() {
     }
 
     const coverHint = profile.coverPhotoHint || placeholderData.profileCover.hint;
-    const coverPhoto = profile.coverPhotoUrl || `https://picsum.photos/seed/${coverHint.replace(/\s+/g, '-')}/1200/400`;
+    const backdropStyle = getBackdropStyle(coverHint, profile.uid);
+    const showImage = profile.coverPhotoUrl && !imageError;
     const currentFrameClass = AVATAR_FRAMES.find(f => f.id === profile.avatarFrame)?.class || 'frame-none';
 
     return (
@@ -297,15 +304,23 @@ export default function PublicProfilePage() {
             </Button>
 
             <Card className="overflow-hidden border-none shadow-2xl bg-card/50 backdrop-blur-md">
-                <div className="relative h-64 w-full">
-                    <Image 
-                        src={coverPhoto} 
-                        alt="Profile Cover" 
-                        fill 
-                        className="object-cover"
-                        unoptimized
-                        data-ai-hint={profile.coverPhotoUrl ? "" : coverHint}
-                    />
+                <div 
+                    className="relative h-64 w-full group overflow-hidden"
+                    style={backdropStyle}
+                >
+                    {/* Futuristic Grid Overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none z-10 opacity-60" />
+
+                    {showImage && (
+                        <Image 
+                            src={profile.coverPhotoUrl!} 
+                            alt="Profile Cover" 
+                            fill 
+                            className="object-cover transition-transform duration-[2s] group-hover:scale-105"
+                            unoptimized
+                            onError={() => setImageError(true)}
+                        />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 </div>
 
