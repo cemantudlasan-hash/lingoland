@@ -156,30 +156,73 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
   };
 
   const loadOfflineScenarios = () => {
-    let pool = [...CONVERSATION_DATA] as ConversationNode[];
-
-    // Filter by difficulty
+    // 1. Strict pool matches both category and difficulty filters
+    let strictPool = [...CONVERSATION_DATA] as ConversationNode[];
     if (selectedDifficulty !== 'all') {
-      pool = pool.filter(n => n.difficulty === selectedDifficulty);
+      strictPool = strictPool.filter(n => n.difficulty === selectedDifficulty);
     }
-
-    // Filter by category
     if (selectedCategory !== 'all') {
-      pool = pool.filter(n => n.category === selectedCategory);
+      strictPool = strictPool.filter(n => n.category === selectedCategory);
     }
 
-    if (pool.length === 0) {
+    // Shuffle strict pool
+    const selectedNodes: ConversationNode[] = strictPool.sort(() => 0.5 - Math.random());
+
+    // 2. If we need more nodes, get nodes matching category (any difficulty)
+    if (selectedNodes.length < roundsCount && selectedDifficulty !== 'all') {
+      let categoryPool = CONVERSATION_DATA.filter(n => 
+        (selectedCategory === 'all' || n.category === selectedCategory) &&
+        !selectedNodes.some(s => s.id === n.id)
+      );
+      categoryPool.sort(() => 0.5 - Math.random());
+      for (const node of categoryPool) {
+        if (selectedNodes.length >= roundsCount) break;
+        selectedNodes.push(node);
+      }
+    }
+
+    // 3. If we still need more nodes, get nodes matching difficulty (any category)
+    if (selectedNodes.length < roundsCount && selectedCategory !== 'all') {
+      let difficultyPool = CONVERSATION_DATA.filter(n => 
+        (selectedDifficulty === 'all' || n.difficulty === selectedDifficulty) &&
+        !selectedNodes.some(s => s.id === n.id)
+      );
+      difficultyPool.sort(() => 0.5 - Math.random());
+      for (const node of difficultyPool) {
+        if (selectedNodes.length >= roundsCount) break;
+        selectedNodes.push(node);
+      }
+    }
+
+    // 4. If we still need more nodes, pull from any remaining nodes
+    if (selectedNodes.length < roundsCount) {
+      let generalPool = CONVERSATION_DATA.filter(n => !selectedNodes.some(s => s.id === n.id));
+      generalPool.sort(() => 0.5 - Math.random());
+      for (const node of generalPool) {
+        if (selectedNodes.length >= roundsCount) break;
+        selectedNodes.push(node);
+      }
+    }
+
+    // 5. In the absolute fallback case (if total pool is extremely small and we must repeat), duplicate
+    let finalNodes = [...selectedNodes];
+    while (finalNodes.length < roundsCount && finalNodes.length > 0) {
+      finalNodes.push(finalNodes[Math.floor(Math.random() * finalNodes.length)]);
+    }
+
+    if (finalNodes.length === 0) {
       toast({
         variant: "destructive",
         title: "No scenarios found",
-        description: "Try widening your category or difficulty filters.",
+        description: "The database is empty.",
       });
       setGameState('idle');
       return;
     }
 
-    // Shuffle and slice
-    const shuffled = pool.sort(() => 0.5 - Math.random()).slice(0, roundsCount);
+    // Slice to exactly roundsCount just in case
+    const shuffled = finalNodes.slice(0, roundsCount);
+
     const mapped: DialogueNode[] = shuffled.map((n, idx) => ({
       id: n.id,
       scenario: `Topic: ${n.category} (${n.difficulty.toUpperCase()})`,
