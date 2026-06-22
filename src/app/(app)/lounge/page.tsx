@@ -162,7 +162,7 @@ export default function LoungePage() {
         const usersRef = collection(firestore, 'users');
         getDocs(usersRef).then(usersSnap => {
             const usersList: UserProfile[] = usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile));
-            setAllUsers(usersList.filter(p => p.displayName));
+            setAllUsers(usersList.filter(p => p.displayName && p.uid !== 'guest'));
         }).catch(error => {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 operation: 'list',
@@ -605,14 +605,14 @@ export default function LoungePage() {
                             {canViewProfile ? (
                                 <Link href={`/users/${suggestion.authorId}`} className="transition-transform hover:scale-110 active:scale-95">
                                     <Avatar className="h-12 w-12 border-2 border-primary/20 flex-shrink-0">
-                                        <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${authorProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
-                                        <AvatarFallback>{getInitials(authorProfile?.displayName || suggestion.authorName)}</AvatarFallback>
+                                        <AvatarImage src={authorProfile.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${authorProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
+                                        <AvatarFallback>{getInitials(authorProfile.displayName || suggestion.authorName)}</AvatarFallback>
                                     </Avatar>
                                 </Link>
                             ) : (
                                 <Avatar className="h-12 w-12 border-2 border-background flex-shrink-0">
-                                    <AvatarImage src={authorProfile?.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${authorProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
-                                    <AvatarFallback>{getInitials(authorProfile?.displayName || suggestion.authorName)}</AvatarFallback>
+                                    <AvatarImage src={`https://api.dicebear.com/8.x/initials/svg?seed=${suggestion.authorName}`} alt={suggestion.authorName || ''} />
+                                    <AvatarFallback>{getInitials(suggestion.authorName)}</AvatarFallback>
                                 </Avatar>
                             )}
 

@@ -105,7 +105,7 @@ export function AddEditJobDialog({ isOpen, onOpenChange, onJobSave, job }: AddEd
                 const usersSnapshot = await getDocs(collection(firestore, 'users'));
                 const batch = writeBatch(firestore);
                 usersSnapshot.forEach(userDoc => {
-                    if (userDoc.id !== user.uid) { // Don't notify the poster
+                    if (userDoc.id !== user.uid && userDoc.id !== 'guest') { // Don't notify the poster or guest
                         const notificationRef = doc(collection(firestore, `users/${userDoc.id}/notifications`));
                         batch.set(notificationRef, {
                             userId: userDoc.id,

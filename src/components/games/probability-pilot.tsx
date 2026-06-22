@@ -16,24 +16,34 @@ import {
 import { Button } from "../ui/button";
 import { generateProbabilityChallenge } from "@/ai/flows/generate-probability-challenge";
 import type { GenerateProbabilityChallengeOutput } from "@/ai/flows/schemas/probability-schema";
-import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, Plane, Info, Target } from "lucide-react";
+import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, Plane, Info, Target, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
 import type { SkillLevel } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
+import { useAuth } from "@/context/auth-context";
+import { useFirestore } from "@/firebase";
+import { logAnalyticsEvent } from "@/lib/analytics";
+import { PROBABILITY_DATA } from "@/lib/game-data";
 
-type GameState = "idle" | "loading" | "playing" | "answered" | "instructions" | "selecting_difficulty";
+type GameState = "idle" | "loading" | "playing" | "answered" | "instructions" | "selecting_difficulty" | "selecting_rounds" | "finished";
 
 export function ProbabilityPilot({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const [gameState, setGameState] = React.useState<GameState>("idle");
   const [challenge, setChallenge] = React.useState<GenerateProbabilityChallengeOutput | null>(null);
   const [selectedOption, setSelectedOption] = React.useState<string | null>(null);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
+  const [usedAnswers, setUsedAnswers] = React.useState<string[]>([]);
   const [difficulty, setDifficulty] = React.useState<SkillLevel>("intermediate");
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [roundsChoice, setRoundsChoice] = React.useState<number>(10);
+  const [currentRound, setCurrentRound] = React.useState<number>(0);
+  const [score, setScore] = React.useState<number>(0);
   
+  const { user } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const game = getGameBySlug(slug);
 
@@ -45,27 +55,59 @@ export function ProbabilityPilot({ slug, onToggleFullscreen }: { slug: string; o
 
   if (!game) return <div>Game not found</div>;
 
-  const handleStartGame = async (level: SkillLevel) => {
+  const handleStartGame = (level: SkillLevel) => {
     setDifficulty(level);
+    setGameState("selecting_rounds");
+  };
+
+  const handleSelectRounds = (rounds: number) => {
+    setRoundsChoice(rounds);
+    setCurrentRound(0);
+    setScore(0);
+    const emptyAnswers: string[] = [];
+    setUsedAnswers(emptyAnswers);
+    handleLoadNextQuestion(difficulty, rounds, 0, emptyAnswers);
+  };
+
+  const handleLoadNextQuestion = async (level: SkillLevel, rounds: number, roundNum: number, currentUsedAnswers: string[]) => {
     setGameState("loading");
     setChallenge(null);
     setSelectedOption(null);
     setIsCorrect(null);
     try {
-      const result = await generateProbabilityChallenge({
-        difficulty: level,
-      });
-      setChallenge({
-        ...result,
-        options: shuffleArray([...result.options])
-      });
-      setGameState("playing");
+      const questions = PROBABILITY_DATA[level] || [];
+      const available = questions.filter(q => !currentUsedAnswers.includes(q.answer));
+
+      if (available.length > 0) {
+        const randomIndex = Math.floor(Math.random() * available.length);
+        const selectedQuestion = available[randomIndex];
+
+        setChallenge({
+          scenario: "Flight parameters loaded. Determine the probability of the path anomaly.",
+          question: selectedQuestion.scenario,
+          answer: selectedQuestion.answer,
+          options: shuffleArray([...selectedQuestion.options]),
+          explanation: selectedQuestion.explanation
+        });
+        setUsedAnswers(prev => [...prev, selectedQuestion.answer]);
+        setGameState("playing");
+      } else {
+        const result = await generateProbabilityChallenge({
+          difficulty: level,
+        });
+        setChallenge({
+          ...result,
+          options: shuffleArray([...result.options])
+        });
+        setUsedAnswers(prev => [...prev, result.answer]);
+        setGameState("playing");
+      }
     } catch (error) {
-      console.error("Failed to generate challenge:", error);
+      console.error("Failed to load question:", error);
       toast({
         variant: "destructive",
         title: "Flight Computer Error...",
-        description: "Could not calculate mission trajectory. Please try again.",
+        description: "Could not load the next trajectory assessment. Please try again.",
       });
       setGameState("selecting_difficulty");
     }
@@ -75,7 +117,27 @@ export function ProbabilityPilot({ slug, onToggleFullscreen }: { slug: string; o
     if (!challenge || !selectedOption) return;
     const correct = selectedOption === challenge.answer;
     setIsCorrect(correct);
+    if (correct) {
+      setScore(prev => prev + 1);
+    }
     setGameState("answered");
+
+    if (firestore && game) {
+        logAnalyticsEvent(firestore, user?.uid || 'guest', {
+            type: 'game_played',
+            details: { slug: game.slug, title: game.title, correct }
+        });
+    }
+  };
+
+  const handleNextStep = () => {
+    const nextRound = currentRound + 1;
+    if (nextRound >= roundsChoice) {
+      setGameState("finished");
+    } else {
+      setCurrentRound(nextRound);
+      handleLoadNextQuestion(difficulty, roundsChoice, nextRound, usedAnswers);
+    }
   };
 
   const getButtonVariant = (option: string) => {
@@ -133,6 +195,19 @@ export function ProbabilityPilot({ slug, onToggleFullscreen }: { slug: string; o
                     </div>
                 </div>
               );
+          case 'selecting_rounds':
+              return (
+                <div className="flex flex-col items-center gap-8 w-full max-w-md">
+                    <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-sm")}>Select Flight Segments</p>
+                    <div className="grid grid-cols-1 gap-4 w-full">
+                        {[10, 20, 30].map((rounds) => (
+                            <Button key={rounds} onClick={() => handleSelectRounds(rounds)} size={isFullscreen ? "lg" : "default"} variant="outline" className={cn("h-20 text-2xl font-black uppercase border-4 transition-all hover:scale-105 hover:bg-emerald-500/10 hover:border-emerald-500/50", isFullscreen && "h-24 rounded-3xl")}>
+                                {rounds} Legs
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+              );
           case 'loading':
               return (
                 <div className="flex flex-col items-center justify-center gap-6">
@@ -147,6 +222,11 @@ export function ProbabilityPilot({ slug, onToggleFullscreen }: { slug: string; o
               if (!challenge) return null;
               return (
                 <div className="space-y-8 w-full max-w-5xl animate-in fade-in duration-500">
+                    <div className="flex justify-between items-center w-full text-sm font-bold text-muted-foreground uppercase mb-2">
+                        <span>Leg: {currentRound + 1} / {roundsChoice}</span>
+                        <span>Score: {score}</span>
+                    </div>
+
                     <div className={cn(
                         "p-12 rounded-[2.5rem] bg-emerald-500/5 border-4 border-emerald-500/20 text-left shadow-inner",
                         isFullscreen ? "p-16 min-h-[350px]" : "p-8"
@@ -194,6 +274,54 @@ export function ProbabilityPilot({ slug, onToggleFullscreen }: { slug: string; o
                     )}
                 </div>
               );
+          case 'finished':
+              const accuracy = Math.round((score / roundsChoice) * 100);
+              let title = "MISSION CRASHED";
+              let evaluation = "Flight mechanics compromised. Study probability laws and start a new flight.";
+              if (accuracy === 100) {
+                title = "LEGENDARY ACE";
+                evaluation = "Flawless piloting! You bypassed all navigational hazards perfectly.";
+              } else if (accuracy >= 80) {
+                title = "SENIOR PILOT";
+                evaluation = "Superb flight stats! Your navigational logic is highly reliable.";
+              } else if (accuracy >= 50) {
+                title = "FLIGHT CADET";
+                evaluation = "Decent navigation path, but keep practicing secondary calculations.";
+              }
+
+              return (
+                <div className="flex flex-col items-center gap-6 w-full max-w-md animate-in zoom-in-95 duration-500">
+                    <div className="h-24 w-24 rounded-full bg-emerald-500/10 border-4 border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+                        <Trophy className={cn(isFullscreen ? "h-16 w-16" : "h-10 w-10")} />
+                    </div>
+                    <div className="text-center space-y-2">
+                        <h3 className={cn("font-black tracking-widest text-emerald-400 uppercase", isFullscreen ? "text-5xl" : "text-2xl")}>{title}</h3>
+                        <p className={cn("text-muted-foreground font-medium", isFullscreen ? "text-2xl" : "text-base")}>{evaluation}</p>
+                    </div>
+
+                    <div className="w-full bg-emerald-950/20 rounded-3xl p-6 border border-emerald-500/10 shadow-inner text-center space-y-4">
+                        <div>
+                            <p className="text-muted-foreground text-xs font-black uppercase tracking-widest">Accuracy</p>
+                            <p className={cn("font-black text-emerald-400", isFullscreen ? "text-6xl" : "text-4xl")}>{accuracy}%</p>
+                        </div>
+                        <div className="w-full bg-zinc-800 h-3 rounded-full overflow-hidden">
+                            <div className="bg-emerald-500 h-full rounded-full transition-all duration-1000" style={{ width: `${accuracy}%` }} />
+                        </div>
+                        <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase pt-2">
+                            <span>Legs: {roundsChoice}</span>
+                            <span>Correct: {score}</span>
+                        </div>
+                    </div>
+
+                    <Button 
+                        onClick={() => setGameState('selecting_difficulty')} 
+                        size={isFullscreen ? "lg" : "default"} 
+                        className={cn("w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black shadow-xl", isFullscreen && "h-20 text-2xl rounded-2xl")}
+                    >
+                        Restart Flight Control
+                    </Button>
+                </div>
+              );
           default:
               return null;
       }
@@ -239,8 +367,16 @@ export function ProbabilityPilot({ slug, onToggleFullscreen }: { slug: string; o
         </Button>
         <div className="flex gap-4">
             {gameState === 'playing' && <Button onClick={handleCheckAnswer} disabled={!selectedOption} size={isFullscreen ? "lg" : "default"} className={cn("bg-emerald-600 hover:bg-emerald-700 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}>Verify Path</Button>}
-            {gameState === 'answered' && <Button onClick={() => handleStartGame(difficulty)} size={isFullscreen ? "lg" : "default"} className={cn("bg-emerald-600 hover:bg-emerald-700 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}><Repeat className={cn("mr-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")}/>Next Leg</Button>}
-            {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty' && (
+            {gameState === 'answered' && (
+              <Button 
+                onClick={handleNextStep} 
+                size={isFullscreen ? "lg" : "default"} 
+                className={cn("bg-emerald-600 hover:bg-emerald-700 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}
+              >
+                {currentRound + 1 >= roundsChoice ? "Finish Mission" : "Next Leg"}
+              </Button>
+            )}
+            {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty' && gameState !== 'selecting_rounds' && (
                 <Button variant="secondary" onClick={() => setGameState('selecting_difficulty')} size={isFullscreen ? "lg" : "default"} className={cn("bg-emerald-100 text-emerald-700 hover:bg-emerald-200", isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>New Route</Button>
             )}
         </div>

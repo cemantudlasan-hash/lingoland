@@ -16,24 +16,34 @@ import {
 import { Button } from "../ui/button";
 import { generateAtmosphereChallenge } from "@/ai/flows/generate-atmosphere-challenge";
 import type { GenerateAtmosphereChallengeOutput } from "@/ai/flows/schemas/atmosphere-schema";
-import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, CloudRain, Wind, Radar } from "lucide-react";
+import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, CloudRain, Wind, Radar, Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
 import type { SkillLevel } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import Link from "next/link";
+import { useAuth } from "@/context/auth-context";
+import { useFirestore } from "@/firebase";
+import { logAnalyticsEvent } from "@/lib/analytics";
+import { ATMOSPHERE_DATA } from "@/lib/game-data";
 
-type GameState = "idle" | "loading" | "playing" | "answered" | "instructions" | "selecting_difficulty";
+type GameState = "idle" | "loading" | "playing" | "answered" | "instructions" | "selecting_difficulty" | "selecting_rounds" | "finished";
 
 export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const [gameState, setGameState] = React.useState<GameState>("idle");
   const [challenge, setChallenge] = React.useState<GenerateAtmosphereChallengeOutput | null>(null);
   const [selectedOption, setSelectedOption] = React.useState<string | null>(null);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
+  const [usedAnswers, setUsedAnswers] = React.useState<string[]>([]);
   const [difficulty, setDifficulty] = React.useState<SkillLevel>("intermediate");
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [roundsChoice, setRoundsChoice] = React.useState<number>(10);
+  const [currentRound, setCurrentRound] = React.useState<number>(0);
+  const [score, setScore] = React.useState<number>(0);
   
+  const { user } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const game = getGameBySlug(slug);
 
@@ -45,27 +55,58 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
 
   if (!game) return <div>Game not found</div>;
 
-  const handleStartGame = async (level: SkillLevel) => {
+  const handleStartGame = (level: SkillLevel) => {
     setDifficulty(level);
+    setGameState("selecting_rounds");
+  };
+
+  const handleSelectRounds = (rounds: number) => {
+    setRoundsChoice(rounds);
+    setCurrentRound(0);
+    setScore(0);
+    const emptyAnswers: string[] = [];
+    setUsedAnswers(emptyAnswers);
+    handleLoadNextQuestion(difficulty, rounds, 0, emptyAnswers);
+  };
+
+  const handleLoadNextQuestion = async (level: SkillLevel, rounds: number, roundNum: number, currentUsedAnswers: string[]) => {
     setGameState("loading");
     setChallenge(null);
     setSelectedOption(null);
     setIsCorrect(null);
     try {
-      const result = await generateAtmosphereChallenge({
-        difficulty: level,
-      });
-      setChallenge({
-        ...result,
-        options: shuffleArray([...result.options])
-      });
-      setGameState("playing");
+      const questions = ATMOSPHERE_DATA[level] || [];
+      const available = questions.filter(q => !currentUsedAnswers.includes(q.targetName));
+
+      if (available.length > 0) {
+        const randomIndex = Math.floor(Math.random() * available.length);
+        const selectedQuestion = available[randomIndex];
+
+        setChallenge({
+          description: selectedQuestion.description,
+          targetName: selectedQuestion.targetName,
+          options: shuffleArray([...selectedQuestion.options]),
+          explanation: selectedQuestion.explanation
+        });
+        setUsedAnswers(prev => [...prev, selectedQuestion.targetName]);
+        setGameState("playing");
+      } else {
+        const result = await generateAtmosphereChallenge({
+          difficulty: level,
+        });
+        setChallenge({
+          ...result,
+          options: shuffleArray([...result.options])
+        });
+        setUsedAnswers(prev => [...prev, result.targetName]);
+        setGameState("playing");
+      }
     } catch (error) {
-      console.error("Failed to generate challenge:", error);
+      console.error("Failed to load question:", error);
       toast({
         variant: "destructive",
         title: "Radar Interference...",
-        description: "Could not fetch mission data. Please try again.",
+        description: "Could not load the next sector telemetry. Please try again.",
       });
       setGameState("selecting_difficulty");
     }
@@ -75,7 +116,27 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
     if (!challenge || !selectedOption) return;
     const correct = selectedOption === challenge.targetName;
     setIsCorrect(correct);
+    if (correct) {
+      setScore(prev => prev + 1);
+    }
     setGameState("answered");
+
+    if (firestore && game) {
+        logAnalyticsEvent(firestore, user?.uid || 'guest', {
+            type: 'game_played',
+            details: { slug: game.slug, title: game.title, correct }
+        });
+    }
+  };
+
+  const handleNextStep = () => {
+    const nextRound = currentRound + 1;
+    if (nextRound >= roundsChoice) {
+      setGameState("finished");
+    } else {
+      setCurrentRound(nextRound);
+      handleLoadNextQuestion(difficulty, roundsChoice, nextRound, usedAnswers);
+    }
   };
 
   const getButtonVariant = (option: string) => {
@@ -133,6 +194,19 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
                     </div>
                 </div>
               );
+          case 'selecting_rounds':
+              return (
+                <div className="flex flex-col items-center gap-8 w-full max-w-md">
+                    <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-sm")}>Select Sector Telemetry Rounds</p>
+                    <div className="grid grid-cols-1 gap-4 w-full">
+                        {[10, 20, 30].map((rounds) => (
+                            <Button key={rounds} onClick={() => handleSelectRounds(rounds)} size={isFullscreen ? "lg" : "default"} variant="outline" className={cn("h-20 text-2xl font-black uppercase border-4 transition-all hover:scale-105 hover:bg-sky-500/10 hover:border-sky-500/50", isFullscreen && "h-24 rounded-3xl")}>
+                                {rounds} Sectors
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+              );
           case 'loading':
               return (
                 <div className="flex flex-col items-center justify-center gap-6">
@@ -148,6 +222,11 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
               if (!challenge) return null;
               return (
                 <div className="space-y-8 w-full max-w-5xl animate-in fade-in duration-500">
+                    <div className="flex justify-between items-center w-full text-sm font-bold text-muted-foreground uppercase mb-2">
+                        <span>Sector: {currentRound + 1} / {roundsChoice}</span>
+                        <span>Score: {score}</span>
+                    </div>
+
                     <div className={cn(
                         "p-12 rounded-[2.5rem] bg-sky-500/5 border-4 border-sky-500/20 text-center shadow-inner",
                         isFullscreen ? "p-16 min-h-[350px]" : "p-8"
@@ -191,6 +270,54 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
                             </AlertDescription>
                         </Alert>
                     )}
+                </div>
+              );
+          case 'finished':
+              const accuracy = Math.round((score / roundsChoice) * 100);
+              let title = "ORBITAL DECAY";
+              let evaluation = "Telemetry lost in the clouds. Re-analyze atmospheric profiles.";
+              if (accuracy === 100) {
+                title = "METEOROLOGIST SUPREME";
+                evaluation = "Flawless telemetry! You possess perfect knowledge of Earth's atmosphere.";
+              } else if (accuracy >= 80) {
+                title = "CHIEF METEOROLOGIST";
+                evaluation = "Excellent accuracy! You easily bypassed radar clutter and interference.";
+              } else if (accuracy >= 50) {
+                title = "SATELLITE TECH";
+                evaluation = "Decent signal alignment, but watch out for atmospheric disturbances.";
+              }
+
+              return (
+                <div className="flex flex-col items-center gap-6 w-full max-w-md animate-in zoom-in-95 duration-500">
+                    <div className="h-24 w-24 rounded-full bg-sky-500/10 border-4 border-sky-500/30 flex items-center justify-center text-sky-400 shadow-inner">
+                        <Trophy className={cn(isFullscreen ? "h-16 w-16" : "h-10 w-10")} />
+                    </div>
+                    <div className="text-center space-y-2">
+                        <h3 className={cn("font-black tracking-widest text-sky-400 uppercase", isFullscreen ? "text-5xl" : "text-2xl")}>{title}</h3>
+                        <p className={cn("text-muted-foreground font-medium", isFullscreen ? "text-2xl" : "text-base")}>{evaluation}</p>
+                    </div>
+
+                    <div className="w-full bg-sky-950/20 rounded-3xl p-6 border border-sky-500/10 shadow-inner text-center space-y-4">
+                        <div>
+                            <p className="text-muted-foreground text-xs font-black uppercase tracking-widest">Accuracy</p>
+                            <p className={cn("font-black text-sky-400", isFullscreen ? "text-6xl" : "text-4xl")}>{accuracy}%</p>
+                        </div>
+                        <div className="w-full bg-zinc-800 h-3 rounded-full overflow-hidden">
+                            <div className="bg-sky-500 h-full rounded-full transition-all duration-1000" style={{ width: `${accuracy}%` }} />
+                        </div>
+                        <div className="flex justify-between text-xs font-bold text-muted-foreground uppercase pt-2">
+                            <span>Sectors: {roundsChoice}</span>
+                            <span>Correct: {score}</span>
+                        </div>
+                    </div>
+
+                    <Button 
+                        onClick={() => setGameState('selecting_difficulty')} 
+                        size={isFullscreen ? "lg" : "default"} 
+                        className={cn("w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 text-2xl rounded-2xl")}
+                    >
+                        Restart Satellite Stream
+                    </Button>
                 </div>
               );
           default:
@@ -238,8 +365,16 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
         </Button>
         <div className="flex gap-4">
             {gameState === 'playing' && <Button onClick={handleCheckAnswer} disabled={!selectedOption} size={isFullscreen ? "lg" : "default"} className={cn("bg-sky-600 hover:bg-sky-700 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}>Confirm Signal</Button>}
-            {gameState === 'answered' && <Button onClick={() => handleStartGame(difficulty)} size={isFullscreen ? "lg" : "default"} className={cn("bg-sky-600 hover:bg-sky-700 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}><Repeat className={cn("mr-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")}/>Next Sector</Button>}
-            {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty' && (
+            {gameState === 'answered' && (
+              <Button 
+                onClick={handleNextStep} 
+                size={isFullscreen ? "lg" : "default"} 
+                className={cn("bg-sky-600 hover:bg-sky-700 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}
+              >
+                {currentRound + 1 >= roundsChoice ? "Finish Mission" : "Next Sector"}
+              </Button>
+            )}
+            {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty' && gameState !== 'selecting_rounds' && (
                 <Button variant="secondary" onClick={() => setGameState('selecting_difficulty')} size={isFullscreen ? "lg" : "default"} className={cn("bg-sky-100 text-sky-700 hover:bg-sky-200", isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>Re-Deploy</Button>
             )}
         </div>
