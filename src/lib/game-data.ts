@@ -1429,3 +1429,510 @@ export const ATMOSPHERE_DATA: Record<"beginner" | "intermediate" | "advanced", A
     }
   ]
 };
+
+export interface ConversationNode {
+  id: number;
+  characterText: string;
+  expression: 'happy' | 'waving' | 'talking' | 'sad' | 'thinking';
+  options: {
+    text: string;
+    isCorrect: boolean;
+    feedback: string;
+  }[];
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  category: 'Restaurant' | 'Travel' | 'Work' | 'School' | 'Social' | 'Emergency' | 'Shopping' | 'Family' | 'Hobbies' | 'Technology';
+}
+
+export const CONVERSATION_DATA: ConversationNode[] = [
+  // 1. Restaurant
+  {
+    id: 1,
+    category: "Restaurant",
+    difficulty: "beginner",
+    characterText: "Hello! Welcome to Bistro Lingo. Are you ready to order, or do you need a few minutes?",
+    expression: "waving",
+    options: [
+      { text: "I'm ready! Can I have a cheese burger and a lemonade, please?", isCorrect: true, feedback: "Perfect! Polite and uses standard food ordering phrasing." },
+      { text: "Food now. Burger.", isCorrect: false, feedback: "A bit too blunt and impolite to the waiter." },
+      { text: "I would ordering later.", isCorrect: false, feedback: "Grammatically incorrect. Use 'I will order later' or 'I would like to order later'." }
+    ]
+  },
+  {
+    id: 2,
+    category: "Restaurant",
+    difficulty: "intermediate",
+    characterText: "Excuse me, I noticed you ordered the spicy pasta. Would you like that mild, medium, or extremely hot?",
+    expression: "talking",
+    options: [
+      { text: "Medium, please. I like a bit of kick, but not too overwhelming.", isCorrect: true, feedback: "Excellent! Expresses preference clearly and politely." },
+      { text: "Just make it hot.", isCorrect: false, feedback: "A bit abrupt and doesn't showcase conversational fluency." },
+      { text: "Make it hotness, please.", isCorrect: false, feedback: "Grammatically incorrect. 'Hotness' is a noun; you need the adjective 'hot'." }
+    ]
+  },
+  {
+    id: 3,
+    category: "Restaurant",
+    difficulty: "advanced",
+    characterText: "I apologize, but we seem to have run out of the truffle risotto you ordered. May I suggest the wild mushroom ravioli instead?",
+    expression: "sad",
+    options: [
+      { text: "That sounds like a wonderful alternative. I'll go with the ravioli, thank you.", isCorrect: true, feedback: "Superb! Graceful and polite way to accept a restaurant substitution." },
+      { text: "This is unacceptable! I want to speak to the manager.", isCorrect: false, feedback: "Too hostile for a simple ingredient shortage." },
+      { text: "I rather having nothing.", isCorrect: false, feedback: "Grammatically incorrect. Use 'I would rather have nothing' or 'I'd prefer nothing'." }
+    ]
+  },
+  {
+    id: 4,
+    category: "Restaurant",
+    difficulty: "intermediate",
+    characterText: "Are you paying together, or would you like to split the bill?",
+    expression: "thinking",
+    options: [
+      { text: "We'd like to split it, please. Can we pay for our own meals separately?", isCorrect: true, feedback: "Perfect! Clear, polite, and standard restaurant request." },
+      { text: "Separate us bills.", isCorrect: false, feedback: "Grammatically awkward phrasing." },
+      { text: "I pay for everything, you cheap waiters.", isCorrect: false, feedback: "Extremely rude and insulting." }
+    ]
+  },
+  // 2. Travel
+  {
+    id: 5,
+    category: "Travel",
+    difficulty: "beginner",
+    characterText: "Excuse me, traveler! Do you know where the nearest bus station is? I seem to be lost.",
+    expression: "thinking",
+    options: [
+      { text: "Yes! Walk down this street and turn left. It's next to the supermarket.", isCorrect: true, feedback: "Great! Simple, clear, and helpful directions." },
+      { text: "Station is there.", isCorrect: false, feedback: "Too vague and not helpful." },
+      { text: "Go to walking left side.", isCorrect: false, feedback: "Grammatically incorrect. Try 'Walk to the left'." }
+    ]
+  },
+  {
+    id: 6,
+    category: "Travel",
+    difficulty: "intermediate",
+    characterText: "Welcome to the Grand Horizon Hotel. I see your check-in is at 3:00 PM, but your room isn't ready yet. Would you like us to hold your bags?",
+    expression: "talking",
+    options: [
+      { text: "Yes, please. That would be very convenient so we can explore the city.", isCorrect: true, feedback: "Excellent! Shows polite acceptance and explains why." },
+      { text: "No. Keep my bags.", isCorrect: false, feedback: "Confusing and contradictory." },
+      { text: "Yes, holding the baggages.", isCorrect: false, feedback: "Grammatically incorrect. 'Baggage' is uncountable, so 'baggages' is incorrect." }
+    ]
+  },
+  {
+    id: 7,
+    category: "Travel",
+    difficulty: "advanced",
+    characterText: "I'm sorry, but your flight to London has been delayed by four hours due to severe weather conditions.",
+    expression: "sad",
+    options: [
+      { text: "I understand. Are there any meal vouchers or lounge access options available during the wait?", isCorrect: true, feedback: "Perfect! Assertive but polite negotiation for delay amenities." },
+      { text: "Fix the weather now! I have an important meeting!", isCorrect: false, feedback: "Completely unreasonable request." },
+      { text: "Are there any voucher for food?", isCorrect: false, feedback: "Grammatically incorrect. Should be 'Are there any vouchers for food?'" }
+    ]
+  },
+  {
+    id: 8,
+    category: "Travel",
+    difficulty: "beginner",
+    characterText: "Is this seat taken, or can I sit here?",
+    expression: "waving",
+    options: [
+      { text: "No, it's free. Please, go ahead and sit down!", isCorrect: true, feedback: "Friendly and welcoming response." },
+      { text: "Do not sit near me.", isCorrect: false, feedback: "Unnecessarily hostile." },
+      { text: "Yes, it is not taken.", isCorrect: false, feedback: "Slightly confusing double negative." }
+    ]
+  },
+  // 3. Work
+  {
+    id: 9,
+    category: "Work",
+    difficulty: "beginner",
+    characterText: "Hi there! I'm Sarah, the new graphic designer. Nice to meet you!",
+    expression: "waving",
+    options: [
+      { text: "Welcome to the team, Sarah! Nice to meet you too. I'm in marketing.", isCorrect: true, feedback: "Perfect! Professional, welcoming, and introduces yourself." },
+      { text: "Who are you?", isCorrect: false, feedback: "Too abrupt and sounds unwelcoming." },
+      { text: "Welcome on the team.", isCorrect: false, feedback: "Grammatically incorrect. Use 'Welcome to the team'." }
+    ]
+  },
+  {
+    id: 10,
+    category: "Work",
+    difficulty: "intermediate",
+    characterText: "We need to finish this report by Friday, but I'm still waiting on the financial figures. Can you help?",
+    expression: "thinking",
+    options: [
+      { text: "I'll follow up with the finance team right now and get those to you by noon.", isCorrect: true, feedback: "Great! Proactive, professional, and offers a concrete timeline." },
+      { text: "Not my job. Ask someone else.", isCorrect: false, feedback: "Unprofessional and uncollaborative." },
+      { text: "I will helper you with that.", isCorrect: false, feedback: "Grammatically incorrect. Use 'I will help you'." }
+    ]
+  },
+  {
+    id: 11,
+    category: "Work",
+    difficulty: "advanced",
+    characterText: "I know you're already swamped, but could you take on the coordination of the new marketing campaign next week?",
+    expression: "talking",
+    options: [
+      { text: "I'd love to help, but given my current workload with the Q3 reports, I won't be able to give it the attention it deserves. Could we delegate some of my tasks first?", isCorrect: true, feedback: "Outstanding! Highly professional way to decline extra work while explaining constraints." },
+      { text: "No way. I'm working too hard already.", isCorrect: false, feedback: "Too blunt and defensive." },
+      { text: "I will do it but I will complaining about it.", isCorrect: false, feedback: "Unprofessional attitude." }
+    ]
+  },
+  // 4. School
+  {
+    id: 12,
+    category: "School",
+    difficulty: "beginner",
+    characterText: "Hey! Do you have a spare pencil I could borrow for this exam?",
+    expression: "talking",
+    options: [
+      { text: "Sure, here you go! Just make sure to return it after class.", isCorrect: true, feedback: "Polite, helpful, and sets a clear expectation." },
+      { text: "No. Buy your own.", isCorrect: false, feedback: "Rude and unhelpful to a classmate." },
+      { text: "Yes, I have one pencil spare.", isCorrect: false, feedback: "Grammatically awkward. Use 'spare pencil'." }
+    ]
+  },
+  {
+    id: 13,
+    category: "School",
+    difficulty: "intermediate",
+    characterText: "We need to choose a topic for our history project. Do you want to do it on the Roman Empire or Ancient Egypt?",
+    expression: "thinking",
+    options: [
+      { text: "I prefer Ancient Egypt because we can research the pyramids and mummies.", isCorrect: true, feedback: "Excellent! States preference and gives a reason." },
+      { text: "Either is fine. I don't care.", isCorrect: false, feedback: "Shows a lack of enthusiasm and effort." },
+      { text: "I want Egypt because it is more interesting than Roman.", isCorrect: false, feedback: "Grammatically incorrect. Use 'more interesting than the Roman Empire'." }
+    ]
+  },
+  {
+    id: 14,
+    category: "School",
+    difficulty: "advanced",
+    characterText: "I'm really struggling with this calculus homework. The derivatives section makes no sense to me.",
+    expression: "sad",
+    options: [
+      { text: "Let's work through a few sample problems together. Sometimes breaking it down step-by-step makes the formulas click.", isCorrect: true, feedback: "Excellent! Empathetic, supportive, and offers practical study help." },
+      { text: "It's easy. You just aren't paying attention.", isCorrect: false, feedback: "Arrogant and discouraging." },
+      { text: "If you want, we can studying now.", isCorrect: false, feedback: "Grammatically incorrect. Should be 'we can study now'." }
+    ]
+  },
+  // 5. Social
+  {
+    id: 15,
+    category: "Social",
+    difficulty: "beginner",
+    characterText: "Hi! It's a beautiful day, isn't it?",
+    expression: "happy",
+    options: [
+      { text: "Yes, it is! The sun is shining and it's perfect for a walk.", isCorrect: true, feedback: "Great! Agrees and keeps the casual conversation going." },
+      { text: "I hate hot weather.", isCorrect: false, feedback: "A bit too negative for light small talk." },
+      { text: "Yes, it are very nice.", isCorrect: false, feedback: "Grammatically incorrect. 'It' takes the singular verb 'is'." }
+    ]
+  },
+  {
+    id: 16,
+    category: "Social",
+    difficulty: "intermediate",
+    characterText: "Hey, are you free this Saturday? I was thinking of going to see that new sci-fi movie.",
+    expression: "talking",
+    options: [
+      { text: "I'd love to! What time were you thinking of meeting?", isCorrect: true, feedback: "Perfect! Shows enthusiasm and asks for details to coordinate." },
+      { text: "I am busy.", isCorrect: false, feedback: "Too brief and dismissive." },
+      { text: "I would like going with you.", isCorrect: false, feedback: "Grammatically incorrect. Use 'I would like to go with you'." }
+    ]
+  },
+  {
+    id: 17,
+    category: "Social",
+    difficulty: "advanced",
+    characterText: "It was really nice chatting with you, but I need to go find my sister before she leaves the party.",
+    expression: "waving",
+    options: [
+      { text: "Of course! It was wonderful catching up. Let's grab coffee sometime next week.", isCorrect: true, feedback: "Perfect! Respectful, polite, and suggests future contact." },
+      { text: "Wait, don't go yet! I was enjoying this.", isCorrect: false, feedback: "Clingy and ignores their boundary." },
+      { text: "It was nice, see you next times.", isCorrect: false, feedback: "Grammatically incorrect. Should be 'see you next time' or 'see you'." }
+    ]
+  },
+  // 6. Emergency
+  {
+    id: 18,
+    category: "Emergency",
+    difficulty: "beginner",
+    characterText: "Oh no! That man just tripped and fell, and he can't get up. What should we do?",
+    expression: "sad",
+    options: [
+      { text: "Let's check if he's conscious and call for medical help immediately.", isCorrect: true, feedback: "Excellent! Calm, responsible, and focuses on safety." },
+      { text: "Just walk away, someone else will help.", isCorrect: false, feedback: "Socially irresponsible." },
+      { text: "We should to call 911.", isCorrect: false, feedback: "Grammatically incorrect. Should be 'We should call 911' (no 'to')." }
+    ]
+  },
+  {
+    id: 19,
+    category: "Emergency",
+    difficulty: "intermediate",
+    characterText: "I've developed a terrible rash on my arm after hiking. It's incredibly itchy. What do you suggest?",
+    expression: "thinking",
+    options: [
+      { text: "You should apply some hydrocortisone cream and avoid scratching it. If it spreads, consult a doctor.", isCorrect: true, feedback: "Great! Gives sensible, polite medical advice." },
+      { text: "It looks horrible. You might die.", isCorrect: false, feedback: "Unnecessarily alarming and dramatic." },
+      { text: "You must to go to the hospital.", isCorrect: false, feedback: "Grammatically incorrect. 'Must' is a modal verb and doesn't take 'to'." }
+    ]
+  },
+  {
+    id: 20,
+    category: "Emergency",
+    difficulty: "advanced",
+    characterText: "Someone just snatched my purse while I was ordering coffee! All my credit cards and passport were inside!",
+    expression: "sad",
+    options: [
+      { text: "Take a deep breath. Let's call the police right away, and then we need to freeze your credit cards through your mobile banking apps.", isCorrect: true, feedback: "Superb! Highly supportive, practical, and logical emergency assistance." },
+      { text: "You should have been more careful.", isCorrect: false, feedback: "Blames the victim during a crisis, which is impolite and unhelpful." },
+      { text: "We must calling the cop.", isCorrect: false, feedback: "Grammatically incorrect. Use 'We must call the police'." }
+    ]
+  },
+  // 7. Shopping
+  {
+    id: 21,
+    category: "Shopping",
+    difficulty: "beginner",
+    characterText: "Excuse me, how much is this woolen sweater?",
+    expression: "talking",
+    options: [
+      { text: "It's $45, but it is currently on sale for 20% off today.", isCorrect: true, feedback: "Perfect! Helpful customer service response." },
+      { text: "Look at the price tag.", isCorrect: false, feedback: "Rude and dismissive customer service." },
+      { text: "It cost $45.", isCorrect: false, feedback: "Grammatically incorrect. Should be 'It costs' or 'It is'." }
+    ]
+  },
+  {
+    id: 22,
+    category: "Shopping",
+    difficulty: "intermediate",
+    characterText: "I bought these shoes yesterday, but they are a bit too tight. Do you have them in a size 9?",
+    expression: "thinking",
+    options: [
+      { text: "Let me check our inventory system. If we don't have them in store, we can order them for you.", isCorrect: true, feedback: "Excellent! Polite, professional, and offers solutions." },
+      { text: "No, buy thinner socks.", isCorrect: false, feedback: "Rude and unprofessional customer service." },
+      { text: "We don't having size 9.", isCorrect: false, feedback: "Grammatically incorrect. Use 'We don't have' or 'We don't carry'." }
+    ]
+  },
+  {
+    id: 23,
+    category: "Shopping",
+    difficulty: "advanced",
+    characterText: "I'd like to return this toaster, but I seem to have misplaced the receipt. Can I still get a refund?",
+    expression: "talking",
+    options: [
+      { text: "Under our policy, we can't offer a cash refund without a receipt, but I can issue you store credit instead. Will that work?", isCorrect: true, feedback: "Outstanding! Explains store policy clearly and offers a helpful alternative." },
+      { text: "No receipt, no refund. Next customer, please!", isCorrect: false, feedback: "Too dismissive and impolite." },
+      { text: "We cannot refunding without receipt.", isCorrect: false, feedback: "Grammatically incorrect. Use 'We cannot refund'." }
+    ]
+  },
+  // 8. Family
+  {
+    id: 24,
+    category: "Family",
+    difficulty: "beginner",
+    characterText: "Hey! What are your plans for the weekend? Are you visiting your parents?",
+    expression: "happy",
+    options: [
+      { text: "Yes, I am! We're having a family dinner on Sunday evening.", isCorrect: true, feedback: "Great! Friendly, conversational, and shares details." },
+      { text: "Why do you care?", isCorrect: false, feedback: "Hostile response to a friendly question." },
+      { text: "Yes, I visiting my parents.", isCorrect: false, feedback: "Grammatically incorrect. Use 'I am visiting'." }
+    ]
+  },
+  {
+    id: 25,
+    category: "Family",
+    difficulty: "intermediate",
+    characterText: "Grandma's 80th birthday is coming up. Should we throw her a surprise party at a restaurant or at home?",
+    expression: "thinking",
+    options: [
+      { text: "I think a party at home would be much more cozy and comfortable for her and the guests.", isCorrect: true, feedback: "Excellent! States opinion and explains rationale." },
+      { text: "I don't care, do whatever.", isCorrect: false, feedback: "Dismissive of a family milestone." },
+      { text: "Home party is more better.", isCorrect: false, feedback: "Grammatically incorrect. 'More better' is a double comparative. Use 'much better' or 'better'." }
+    ]
+  },
+  {
+    id: 26,
+    category: "Family",
+    difficulty: "advanced",
+    characterText: "I feel like I'm doing all the chores around the house lately. Nobody else is helping with the dishes or the laundry!",
+    expression: "sad",
+    options: [
+      { text: "I'm sorry you feel overwhelmed. Let's sit down tonight and draw up a weekly chore schedule so we can divide the tasks fairly.", isCorrect: true, feedback: "Superb! Empathetic, de-escalating, and offers a structured solution." },
+      { text: "Stop complaining. I do plenty of work.", isCorrect: false, feedback: "Defensive and invalidating." },
+      { text: "I will helping you sometimes.", isCorrect: false, feedback: "Grammatically incorrect. Should be 'I will help you'." }
+    ]
+  },
+  // 9. Hobbies
+  {
+    id: 27,
+    category: "Hobbies",
+    difficulty: "beginner",
+    characterText: "Do you play any musical instruments?",
+    expression: "happy",
+    options: [
+      { text: "Yes, I play the guitar! I've been practicing for about two years.", isCorrect: true, feedback: "Perfect! Friendly, positive, and adds detail." },
+      { text: "Instruments are boring.", isCorrect: false, feedback: "Negative and shuts down the conversation." },
+      { text: "Yes, I playing piano.", isCorrect: false, feedback: "Grammatically incorrect. Use 'I play' or 'I am playing'." }
+    ]
+  },
+  {
+    id: 28,
+    category: "Hobbies",
+    difficulty: "intermediate",
+    characterText: "I'm looking for a new fiction book to read. Do you have any recommendations?",
+    expression: "thinking",
+    options: [
+      { text: "If you like mystery, you should read 'The Silent Patient'. It has a fantastic plot twist at the end.", isCorrect: true, feedback: "Excellent! Tailors recommendation to a genre and explains why." },
+      { text: "Read whatever is popular.", isCorrect: false, feedback: "Vague and unhelpful." },
+      { text: "I recommend to read fantasy books.", isCorrect: false, feedback: "Grammatically awkward. Should be 'I recommend reading fantasy books'." }
+    ]
+  },
+  {
+    id: 30,
+    category: "Hobbies",
+    difficulty: "advanced",
+    characterText: "I want to start running marathons, but I've never run more than 5 kilometers. How should I prepare?",
+    expression: "talking",
+    options: [
+      { text: "You should gradually increase your weekly mileage and incorporate structured interval runs. Consistency is key to building endurance without injury.", isCorrect: true, feedback: "Outstanding! Professional, encouraging, and provides structured advice." },
+      { text: "Just run until you collapse. You will get used to it.", isCorrect: false, feedback: "Dangerous advice." },
+      { text: "It is important to training slowly.", isCorrect: false, feedback: "Grammatically incorrect. Should be 'to train slowly' or 'that you train slowly'." }
+    ]
+  },
+  // 10. Technology
+  {
+    id: 31,
+    category: "Technology",
+    difficulty: "beginner",
+    characterText: "Oh no! My phone screen is completely frozen. What should I do?",
+    expression: "sad",
+    options: [
+      { text: "Try holding down the power button for 10 seconds to force a restart.", isCorrect: true, feedback: "Great! Simple and direct troubleshooting advice." },
+      { text: "Throw it away and buy a new one.", isCorrect: false, feedback: "Extremely impractical advice." },
+      { text: "You should restarting the phone.", isCorrect: false, feedback: "Grammatically incorrect. Use 'You should restart'." }
+    ]
+  },
+  {
+    id: 32,
+    category: "Technology",
+    difficulty: "intermediate",
+    characterText: "I'm thinking of buying a tablet for school, but I don't know if I should get an iPad or an Android tablet. Any thoughts?",
+    expression: "thinking",
+    options: [
+      { text: "An iPad generally offers better educational apps and stylus support, whereas Android tablets tend to be more customizable and affordable.", isCorrect: true, feedback: "Excellent! Balanced comparison highlighting pros and cons." },
+      { text: "Just buy the most expensive one.", isCorrect: false, feedback: "Unhelpful comparison." },
+      { text: "iPad is more better for drawing.", isCorrect: false, feedback: "Grammatically incorrect. Use 'much better' or 'better'." }
+    ]
+  },
+  {
+    id: 33,
+    category: "Technology",
+    difficulty: "advanced",
+    characterText: "Our database server keeps crashing during peak traffic hours, and our clients are experiencing severe timeouts.",
+    expression: "sad",
+    options: [
+      { text: "We need to analyze the slow query logs first, and then consider implementing a caching layer or vertically scaling the database instance.", isCorrect: true, feedback: "Outstanding! Deep technical knowledge expressed clearly and professionally." },
+      { text: "Just tell the users to stop visiting the site at the same time.", isCorrect: false, feedback: "Completely unprofessional solution." },
+      { text: "We should upgrading the servers immediately.", isCorrect: false, feedback: "Grammatically incorrect. Use 'We should upgrade'." }
+    ]
+  },
+  // 11. Extra Mix
+  {
+    id: 34,
+    category: "Social",
+    difficulty: "beginner",
+    characterText: "What do you like to do in your free time?",
+    expression: "waving",
+    options: [
+      { text: "I enjoy reading books and playing tennis with my friends.", isCorrect: true, feedback: "Polite and answers the prompt clearly." },
+      { text: "Nothing. I sleep.", isCorrect: false, feedback: "A bit dull and ends the conversation." },
+      { text: "I liking to watch movies.", isCorrect: false, feedback: "Grammatically incorrect. Use 'I like to watch' or 'I enjoy watching'." }
+    ]
+  },
+  {
+    id: 35,
+    category: "Restaurant",
+    difficulty: "advanced",
+    characterText: "Excuse me, but we found a hair in our salad. Can you resolve this?",
+    expression: "sad",
+    options: [
+      { text: "I am terribly sorry about that. Let me replace the salad immediately and take it off your bill.", isCorrect: true, feedback: "Outstanding service recovery response." },
+      { text: "It's not mine, it's probably yours.", isCorrect: false, feedback: "Rude and defensive." },
+      { text: "I will bringing you another one.", isCorrect: false, feedback: "Grammatically incorrect. Should be 'I will bring you'." }
+    ]
+  },
+  {
+    id: 36,
+    category: "Travel",
+    difficulty: "intermediate",
+    characterText: "Which platform does the express train to the airport depart from?",
+    expression: "thinking",
+    options: [
+      { text: "It departs from Platform 4. The next train is scheduled for 10:15 AM.", isCorrect: true, feedback: "Very clear and helpful." },
+      { text: "Find it on the display board.", isCorrect: false, feedback: "Dismissive and unhelpful." },
+      { text: "It depart from Platform 4.", isCorrect: false, feedback: "Grammatically incorrect. 'It' takes singular 'departs'." }
+    ]
+  },
+  {
+    id: 37,
+    category: "Work",
+    difficulty: "intermediate",
+    characterText: "Could you send me the presentation slides before the client meeting starts?",
+    expression: "talking",
+    options: [
+      { text: "Certainly! I'll email them to you right away as a PDF attachment.", isCorrect: true, feedback: "Professional and timely." },
+      { text: "Get them yourself from the drive.", isCorrect: false, feedback: "Unhelpful and rude." },
+      { text: "I will sending them soon.", isCorrect: false, feedback: "Grammatically incorrect. Use 'I will send them'." }
+    ]
+  },
+  {
+    id: 38,
+    category: "School",
+    difficulty: "advanced",
+    characterText: "Do you agree with the school's decision to ban smartphones during class hours?",
+    expression: "thinking",
+    options: [
+      { text: "I believe it minimizes classroom distractions, though it does limit access to digital research tools.", isCorrect: true, feedback: "Very articulate and balanced perspective." },
+      { text: "Phones are bad, ban them all.", isCorrect: false, feedback: "Simplistic and uncritical." },
+      { text: "I don't think it is a good decisions.", isCorrect: false, feedback: "Grammatically incorrect. Use singular 'decision' with 'a'." }
+    ]
+  },
+  {
+    id: 39,
+    category: "Emergency",
+    difficulty: "intermediate",
+    characterText: "My child has swallowed a coin! She is coughing but can still breathe.",
+    expression: "sad",
+    options: [
+      { text: "Keep her calm. Encourage her to cough, and take her to the emergency room immediately.", isCorrect: true, feedback: "Great! Safe, medical-first emergency response." },
+      { text: "Hit her on the back as hard as possible.", isCorrect: false, feedback: "Dangerous advice that could lodge the coin deeper." },
+      { text: "You should to go to hospital.", isCorrect: false, feedback: "Grammatically incorrect. Use 'should go' (no 'to')." }
+    ]
+  },
+  {
+    id: 40,
+    category: "Shopping",
+    difficulty: "beginner",
+    characterText: "Do you take credit cards, or is it cash only?",
+    expression: "talking",
+    options: [
+      { text: "We accept all major credit cards, as well as mobile payments.", isCorrect: true, feedback: "Polite and helpful customer service." },
+      { text: "Read the sign on the door.", isCorrect: false, feedback: "Unprofessional and rude." },
+      { text: "We accepting cards.", isCorrect: false, feedback: "Grammatically incorrect. Use 'We accept'." }
+    ]
+  },
+  {
+    id: 41,
+    category: "Technology",
+    difficulty: "advanced",
+    characterText: "How can we ensure our users' passwords are stored securely in our database?",
+    expression: "thinking",
+    options: [
+      { text: "We must hash them using a strong algorithm like bcrypt or Argon2 with a unique salt for each user.", isCorrect: true, feedback: "Outstanding! Perfect cryptographic safety advice." },
+      { text: "Encrypt them in a text file with a simple password.", isCorrect: false, feedback: "Insecure and dangerous." },
+      { text: "Passwords should to be hashed.", isCorrect: false, feedback: "Grammatically incorrect. Use 'should be hashed' (no 'to')." }
+    ]
+  }
+];
