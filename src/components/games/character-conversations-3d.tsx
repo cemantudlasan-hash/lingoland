@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 import { generateConversationChallenge } from "@/ai/flows/generate-conversation-challenge";
 import { CONVERSATION_DATA, type ConversationNode } from "@/lib/game-data";
+import { shuffleArray } from "@/lib/shuffle";
 
 interface DialogueNode {
   id: number;
@@ -52,6 +53,260 @@ interface HistoryItem {
 const CATEGORIES = [
   'Restaurant', 'Travel', 'Work', 'School', 'Social', 'Emergency', 'Shopping', 'Family', 'Hobbies', 'Technology'
 ] as const;
+
+function VisorEyes({ expression, speakActive }: { expression: string; speakActive: boolean }) {
+  if (expression === 'happy') {
+    return (
+      <svg className="w-14 h-7 text-cyan-400 drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]" viewBox="0 0 100 50" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round">
+        <path d="M20,32 Q30,12 40,32" />
+        <path d="M60,32 Q70,12 80,32" />
+      </svg>
+    );
+  }
+  if (expression === 'sad') {
+    return (
+      <svg className="w-14 h-7 text-blue-400 drop-shadow-[0_0_6px_rgba(96,165,250,0.8)]" viewBox="0 0 100 50" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round">
+        <path d="M20,18 Q30,38 40,18" />
+        <path d="M60,18 Q70,38 80,18" />
+      </svg>
+    );
+  }
+  if (expression === 'thinking') {
+    return (
+      <svg className="w-14 h-7 text-purple-400 drop-shadow-[0_0_6px_rgba(192,132,252,0.8)]" viewBox="0 0 100 50" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round">
+        <line x1="20" y1="25" x2="45" y2="25" />
+        <line x1="55" y1="25" x2="80" y2="25" />
+      </svg>
+    );
+  }
+  if (speakActive || expression === 'talking') {
+    return (
+      <svg className="w-14 h-7 text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.8)]" viewBox="0 0 100 50" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round">
+        <motion.line 
+          x1="25" y1="12" x2="25" y2="38" 
+          animate={{ y1: [12, 6, 18, 12], y2: [38, 44, 32, 38] }} 
+          transition={{ repeat: Infinity, duration: 0.35, ease: "easeInOut" }} 
+        />
+        <motion.line 
+          x1="42" y1="18" x2="42" y2="32" 
+          animate={{ y1: [18, 12, 22, 18], y2: [32, 38, 28, 32] }} 
+          transition={{ repeat: Infinity, duration: 0.35, ease: "easeInOut", delay: 0.08 }} 
+        />
+        <motion.line 
+          x1="58" y1="18" x2="58" y2="32" 
+          animate={{ y1: [18, 22, 12, 18], y2: [32, 28, 38, 32] }} 
+          transition={{ repeat: Infinity, duration: 0.35, ease: "easeInOut", delay: 0.15 }} 
+        />
+        <motion.line 
+          x1="75" y1="12" x2="75" y2="38" 
+          animate={{ y1: [12, 18, 6, 12], y2: [38, 32, 44, 38] }} 
+          transition={{ repeat: Infinity, duration: 0.35, ease: "easeInOut", delay: 0.22 }} 
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg className="w-14 h-7 text-cyan-400 drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]" viewBox="0 0 100 50">
+      <motion.ellipse 
+        cx="30" cy="25" rx="7" ry="7" 
+        fill="currentColor"
+        animate={{ scaleY: [1, 1, 0.1, 1, 1] }} 
+        transition={{ repeat: Infinity, duration: 4, times: [0, 0.9, 0.93, 0.96, 1] }}
+      />
+      <motion.ellipse 
+        cx="70" cy="25" rx="7" ry="7" 
+        fill="currentColor"
+        animate={{ scaleY: [1, 1, 0.1, 1, 1] }} 
+        transition={{ repeat: Infinity, duration: 4, times: [0, 0.9, 0.93, 0.96, 1], delay: 0.15 }}
+      />
+    </svg>
+  );
+}
+
+function ClefAvatar({ expression, speakActive }: { expression: string; speakActive: boolean }) {
+  const themeColor = React.useMemo(() => {
+    if (expression === 'sad') return { glow: 'rgba(96,165,250,0.4)', text: 'text-blue-400', border: 'border-blue-500/30', bg: 'bg-blue-500/10' };
+    if (expression === 'thinking') return { glow: 'rgba(192,132,252,0.4)', text: 'text-purple-400', border: 'border-purple-500/30', bg: 'bg-purple-500/10' };
+    if (speakActive || expression === 'talking') return { glow: 'rgba(52,211,153,0.4)', text: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10' };
+    return { glow: 'rgba(34,211,238,0.4)', text: 'text-cyan-400', border: 'border-cyan-500/30', bg: 'bg-cyan-500/10' };
+  }, [expression, speakActive]);
+
+  return (
+    <div className="relative w-full h-full flex flex-col items-center justify-center select-none">
+      <div className="absolute bottom-2 flex flex-col items-center pointer-events-none z-0">
+        <motion.div 
+          animate={{ scale: [1, 1.08, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+          style={{ boxShadow: `0 0 20px ${themeColor.glow}` }}
+          className={cn("w-36 h-10 rounded-full border-2 bg-slate-900/60 [transform:rotateX(75deg)] transition-colors duration-500", themeColor.border)}
+        />
+        <div className={cn("w-20 h-6 rounded-full border border-dashed -mt-8 [transform:rotateX(75deg)] opacity-40 transition-colors duration-500", themeColor.border)} />
+        <div className="w-48 h-56 bg-gradient-to-t from-cyan-500/10 via-cyan-500/5 to-transparent blur-md -mt-20 [clip-path:polygon(25%_0%,_75%_0%,_100%_100%,_0%_100%)] opacity-80" />
+      </div>
+
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <motion.div 
+          initial={{ y: 200, opacity: 0 }}
+          animate={{ y: -50, opacity: [0, 0.8, 0] }}
+          transition={{ repeat: Infinity, duration: 6, delay: 0.5 }}
+          className={cn("absolute left-10 text-[10px] font-mono", themeColor.text)}
+        >
+          {"{ }"}
+        </motion.div>
+        <motion.div 
+          initial={{ y: 180, opacity: 0 }}
+          animate={{ y: -20, opacity: [0, 0.7, 0] }}
+          transition={{ repeat: Infinity, duration: 5, delay: 2.2 }}
+          className={cn("absolute right-12 text-[9px] font-mono", themeColor.text)}
+        >
+          {"</>"}
+        </motion.div>
+        <motion.div 
+          initial={{ y: 190, opacity: 0 }}
+          animate={{ y: -40, opacity: [0, 0.5, 0] }}
+          transition={{ repeat: Infinity, duration: 7, delay: 4.1 }}
+          className={cn("absolute left-1/4 text-[8px] font-mono", themeColor.text)}
+        >
+          {"ai"}
+        </motion.div>
+      </div>
+
+      <div className="relative flex flex-col items-center justify-center [transform-style:preserve-3d] z-10">
+        <motion.div
+          animate={{
+            y: [-12, -18, -12],
+            rotateZ: [0, 360],
+            rotateX: [65, 65]
+          }}
+          transition={{
+            y: { repeat: Infinity, duration: 4, ease: "easeInOut" },
+            rotateZ: { repeat: Infinity, duration: 10, ease: "linear" }
+          }}
+          className={cn("absolute -top-6 w-20 h-20 rounded-full border border-dashed transition-colors duration-500", themeColor.border)}
+        />
+
+        <motion.div 
+          animate={{
+            y: [-6, 6, -6],
+            rotateZ: expression === 'waving' ? [-3, 3, -3] : [-1, 1, -1]
+          }}
+          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+          className="w-24 h-24 rounded-[36px] bg-slate-900 border-2 border-slate-700/80 relative flex flex-col items-center justify-center shadow-[0_15px_35px_rgba(0,0,0,0.5),_inset_0_2px_4px_rgba(255,255,255,0.05)] p-2"
+        >
+          <div className="absolute top-1 left-3 right-3 h-5 bg-gradient-to-b from-white/10 to-transparent rounded-t-[20px]" />
+          
+          <div className="absolute -top-3 w-1.5 h-4 bg-slate-800 border-r border-slate-700 rounded-full flex flex-col items-center">
+            <motion.div 
+              animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className={cn("w-3 h-3 rounded-full -mt-2.5 transition-colors duration-500", 
+                expression === 'sad' ? 'bg-blue-400' :
+                expression === 'thinking' ? 'bg-purple-400' :
+                speakActive || expression === 'talking' ? 'bg-emerald-400' : 'bg-cyan-400'
+              )}
+            />
+          </div>
+
+          <div className="absolute -left-2 w-2.5 h-8 rounded-l-xl bg-slate-800 border-l border-y border-slate-700 flex items-center justify-center">
+            <div className={cn("w-1 h-4 rounded-full transition-colors duration-500", 
+              expression === 'sad' ? 'bg-blue-500' :
+              expression === 'thinking' ? 'bg-purple-500' :
+              speakActive || expression === 'talking' ? 'bg-emerald-500' : 'bg-cyan-500'
+            )} />
+          </div>
+          <div className="absolute -right-2 w-2.5 h-8 rounded-r-xl bg-slate-800 border-r border-y border-slate-700 flex items-center justify-center">
+            <div className={cn("w-1 h-4 rounded-full transition-colors duration-500", 
+              expression === 'sad' ? 'bg-blue-500' :
+              expression === 'thinking' ? 'bg-purple-500' :
+              speakActive || expression === 'talking' ? 'bg-emerald-500' : 'bg-cyan-500'
+            )} />
+          </div>
+
+          <div className="w-full h-16 rounded-2xl bg-black border border-slate-850 flex flex-col items-center justify-center overflow-hidden relative shadow-inner">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.25)_50%)] bg-[size:100%_3px] pointer-events-none opacity-20" />
+            <VisorEyes expression={expression} speakActive={speakActive} />
+          </div>
+        </motion.div>
+
+        <div className="w-6 h-3 bg-slate-850 border-x border-slate-700/80 -mt-0.5 z-0" />
+
+        <motion.div
+          animate={{
+            y: [-3, 3, -3],
+          }}
+          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 0.15 }}
+          className="w-28 h-18 bg-slate-900 border-2 border-slate-700/80 rounded-b-[32px] rounded-t-[8px] relative flex items-center justify-center p-3 shadow-lg z-10"
+        >
+          <div className="absolute inset-1.5 rounded-b-[28px] rounded-t-[4px] border border-slate-880 bg-slate-950/40" />
+
+          <div className="relative w-9 h-9 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center shadow-inner overflow-hidden">
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+              className="absolute inset-0 border border-dotted border-cyan-500/10 rounded-full"
+            />
+            <motion.div
+              animate={{
+                scale: speakActive ? [0.95, 1.25, 0.95] : [0.9, 1.05, 0.9],
+                opacity: speakActive ? [0.8, 1, 0.8] : [0.5, 0.75, 0.5],
+              }}
+              transition={{ repeat: Infinity, duration: speakActive ? 0.75 : 2, ease: "easeInOut" }}
+              className={cn("w-5.5 h-5.5 rounded-full blur-[1px] transition-colors duration-500", 
+                expression === 'sad' ? 'bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.8)]' :
+                expression === 'thinking' ? 'bg-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.8)]' :
+                speakActive || expression === 'talking' ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]' :
+                'bg-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.8)]'
+              )}
+            />
+          </div>
+
+          <motion.div
+            animate={expression === 'waving' ? {
+              rotateZ: [-10, -50, -15, -50, -15, -10],
+              y: [-1, -2, -1]
+            } : {
+              rotateZ: [0, -4, 0]
+            }}
+            transition={{ repeat: Infinity, duration: expression === 'waving' ? 1.5 : 4 }}
+            style={{ originX: 0.9, originY: 0.1 }}
+            className="absolute -left-4 top-2.5 w-3.5 h-12 bg-slate-900 border border-slate-700/80 rounded-full flex flex-col justify-between py-1 px-0.5 shadow-md"
+          >
+            <div className={cn("w-full h-1.5 rounded-full transition-colors duration-500", 
+              expression === 'sad' ? 'bg-blue-500/40' :
+              expression === 'thinking' ? 'bg-purple-500/40' :
+              speakActive || expression === 'talking' ? 'bg-emerald-500/40' : 'bg-cyan-500/40'
+            )} />
+            <div className={cn("w-full h-1.5 rounded-full transition-colors duration-500", 
+              expression === 'sad' ? 'bg-blue-500/40' :
+              expression === 'thinking' ? 'bg-purple-500/40' :
+              speakActive || expression === 'talking' ? 'bg-emerald-500/40' : 'bg-cyan-500/40'
+            )} />
+          </motion.div>
+
+          <motion.div
+            animate={{
+              rotateZ: [0, 4, 0]
+            }}
+            transition={{ repeat: Infinity, duration: 4 }}
+            style={{ originX: 0.1, originY: 0.1 }}
+            className="absolute -right-4 top-2.5 w-3.5 h-12 bg-slate-900 border border-slate-700/80 rounded-full flex flex-col justify-between py-1 px-0.5 shadow-md"
+          >
+            <div className={cn("w-full h-1.5 rounded-full transition-colors duration-500", 
+              expression === 'sad' ? 'bg-blue-500/40' :
+              expression === 'thinking' ? 'bg-purple-500/40' :
+              speakActive || expression === 'talking' ? 'bg-emerald-500/40' : 'bg-cyan-500/40'
+            )} />
+            <div className={cn("w-full h-1.5 rounded-full transition-colors duration-500", 
+              expression === 'sad' ? 'bg-blue-500/40' :
+              expression === 'thinking' ? 'bg-purple-500/40' :
+              speakActive || expression === 'talking' ? 'bg-emerald-500/40' : 'bg-cyan-500/40'
+            )} />
+          </motion.div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 export function CharacterConversations3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -131,11 +386,11 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
             scenario: result.scenario,
             characterText: result.characterLine,
             expression: ['talking', 'thinking', 'waving'][Math.floor(Math.random() * 3)] as any,
-            options: result.options.map(opt => ({
+            options: shuffleArray(result.options.map(opt => ({
               text: opt.text,
               isCorrect: opt.isCorrect,
               feedback: opt.explanation
-            }))
+            })))
           });
         }
 
@@ -228,7 +483,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
       scenario: `Topic: ${n.category} (${n.difficulty.toUpperCase()})`,
       characterText: n.characterText,
       expression: n.expression,
-      options: n.options
+      options: shuffleArray(n.options)
     }));
 
     setActiveNodes(mapped);
@@ -323,7 +578,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
           </div>
           <div>
             <h2 className="text-xl font-black uppercase tracking-tight bg-gradient-to-r from-purple-300 via-indigo-300 to-pink-300 bg-clip-text text-transparent">Interactive Character Conversations</h2>
-            <p className="text-xs text-slate-400">Talk to Professor Lexi, learn conversational social cues and perfect phonetics!</p>
+            <p className="text-xs text-slate-400">Talk to Clef the AI, learn conversational social cues and perfect phonetics!</p>
           </div>
         </div>
 
@@ -381,11 +636,11 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
                 <div className="space-y-4 text-sm leading-relaxed text-slate-300">
                   <div className="flex gap-3">
                     <span className="h-6 w-6 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">1</span>
-                    <p><strong>Goal</strong>: professor Lexi will prompt you with conversational questions. Pick the response that showcases correct grammar, appropriate context, and polite social cues.</p>
+                    <p><strong>Goal</strong>: Clef will prompt you with conversational questions. Pick the response that showcases correct grammar, appropriate context, and polite social cues.</p>
                   </div>
                   <div className="flex gap-3">
                     <span className="h-6 w-6 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">2</span>
-                    <p><strong>Text-to-Speech</strong>: Press the speaker button <Volume2 className="h-3.5 w-3.5 inline text-indigo-400 mx-0.5" /> next to the character's name to hear Professor Lexi read the dialogue aloud. Great for practicing listening skills!</p>
+                    <p><strong>Text-to-Speech</strong>: Press the speaker button <Volume2 className="h-3.5 w-3.5 inline text-indigo-400 mx-0.5" /> next to the character's name to hear Clef read the dialogue aloud. Great for practicing listening skills!</p>
                   </div>
                   <div className="flex gap-3">
                     <span className="h-6 w-6 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">3</span>
@@ -522,7 +777,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
             </div>
             <div className="space-y-1.5 animate-pulse">
               <h4 className="text-sm font-black uppercase text-indigo-400 tracking-widest">Dojo Synthesis active</h4>
-              <p className="text-xs text-slate-500">Professor Lexi is configuring your speech prompts...</p>
+              <p className="text-xs text-slate-500">Clef is configuring your speech prompts...</p>
             </div>
           </motion.div>
         )}
@@ -569,83 +824,14 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
             )}
 
             <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 flex-grow">
-              {/* Left Side: 3D Character Avatar Stage */}
-              <div className="md:col-span-5 flex flex-col items-center justify-center bg-slate-950/60 border border-slate-900/60 rounded-3xl p-6 relative overflow-hidden min-h-[260px]">
-                {/* 3D Container */}
+              {/* Left Side: Modernized Clef AI Hologram Stage */}
+              <div className="md:col-span-5 flex flex-col items-center justify-center bg-slate-950/40 border border-slate-900/80 rounded-3xl p-6 relative overflow-hidden min-h-[300px] shadow-inner">
+                {/* 3D Stage Container */}
                 <div 
                   className="relative [transform-style:preserve-3d] w-full h-full flex flex-col items-center justify-center transition-all duration-500"
-                  style={{ transform: 'rotateY(-10deg) rotateX(10deg)' }}
+                  style={{ transform: 'rotateY(-12deg) rotateX(10deg)' }}
                 >
-                  <div className="absolute w-28 h-6 bg-slate-900/60 rounded-full blur-[2px] bottom-1" />
-
-                  {/* Character Skeletal Model */}
-                  <div className="w-full flex flex-col items-center justify-center relative [transform-style:preserve-3d]">
-                    {/* Head */}
-                    <motion.div 
-                      animate={
-                        currentExpression === 'waving' 
-                          ? { rotateZ: [-4, 4, -4], y: [0, -2, 0] } 
-                          : currentExpression === 'happy' 
-                          ? { y: [0, -6, 0] } 
-                          : { y: [0, -1, 0] }
-                      }
-                      transition={{ repeat: Infinity, duration: 2 }}
-                      className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 border border-purple-400/40 relative flex items-center justify-center shadow-lg"
-                    >
-                      {/* Glasses */}
-                      <div className="absolute top-6 w-14 h-4 flex justify-between px-1 z-10">
-                        <div className="w-5.5 h-4 border-2 border-slate-900 rounded-md bg-cyan-400/20" />
-                        <div className="w-1.5 h-1 border-b-2 border-slate-900 self-center" />
-                        <div className="w-5.5 h-4 border-2 border-slate-900 rounded-md bg-cyan-400/20" />
-                      </div>
-
-                      {/* Eyes */}
-                      <div className="absolute top-8 flex gap-5 z-20">
-                        <motion.div 
-                          animate={{ scaleY: [1, 0.1, 1] }} 
-                          transition={{ repeat: Infinity, duration: 4.5, delay: 0.5 }} 
-                          className="w-2 h-2 bg-white rounded-full flex items-center justify-center"
-                        >
-                          <div className="w-1 h-1 bg-black rounded-full" />
-                        </motion.div>
-                        <motion.div 
-                          animate={{ scaleY: [1, 0.1, 1] }} 
-                          transition={{ repeat: Infinity, duration: 4.5, delay: 0.5 }} 
-                          className="w-2 h-2 bg-white rounded-full flex items-center justify-center"
-                        >
-                          <div className="w-1 h-1 bg-black rounded-full" />
-                        </motion.div>
-                      </div>
-
-                      {/* Mouth */}
-                      <motion.div 
-                        animate={
-                          speakActive || currentExpression === 'talking'
-                            ? { scaleY: [0.3, 1.2, 0.3], borderRadius: ['2px', '50%', '2px'] }
-                            : currentExpression === 'happy'
-                            ? { scale: 1.1 }
-                            : {}
-                        }
-                        transition={{ repeat: Infinity, duration: 0.25 }}
-                        className={cn(
-                          "absolute bottom-4 w-4 h-1.5 bg-slate-950 transition-all rounded-full border-t border-red-500/30",
-                          currentExpression === 'happy' && "h-3 border-b-2 border-red-400 bg-slate-950",
-                          currentExpression === 'sad' && "h-1 border-t-2 border-slate-800 bg-transparent rounded-none"
-                        )}
-                      />
-                    </motion.div>
-
-                    {/* Waving Arm / Shoulders */}
-                    <div className="w-24 h-16 bg-indigo-950/80 border border-indigo-500/20 rounded-t-3xl mt-1.5 relative [transform-style:preserve-3d] flex justify-between px-2">
-                      <motion.div 
-                        animate={currentExpression === 'waving' ? { rotateZ: [-20, 45, -20] } : {}}
-                        transition={{ repeat: Infinity, duration: 1.2 }}
-                        style={{ originX: 0, originY: 0 }}
-                        className="w-4 h-12 bg-gradient-to-b from-purple-500 to-indigo-600 border border-purple-400/20 absolute -left-3 top-1.5 rounded-full"
-                      />
-                      <div className="w-4 h-12 bg-gradient-to-b from-purple-500 to-indigo-600 border border-purple-400/20 absolute -right-3 top-1.5 rounded-full" />
-                    </div>
-                  </div>
+                  <ClefAvatar expression={currentExpression} speakActive={speakActive} />
                 </div>
               </div>
 
@@ -657,7 +843,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
                     className="flex items-center gap-1.5 text-[9px] uppercase font-black tracking-widest text-purple-400 mb-1 cursor-pointer w-fit hover:text-purple-300 transition-colors" 
                     onClick={() => speakText(activeNode.characterText)}
                   >
-                    <span>Professor Lexi</span>
+                    <span>Clef</span>
                     <Volume2 className={cn("h-3.5 w-3.5", speakActive && "animate-bounce")} />
                   </div>
                   <p className="text-sm font-semibold leading-relaxed text-slate-100 italic">
@@ -746,7 +932,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
                 <Award className="h-10 w-10 text-indigo-400" />
               </div>
               <h3 className="text-2xl font-black text-slate-100 uppercase tracking-tight">Conversation Report</h3>
-              <p className="text-xs text-slate-400">Performance summary with Professor Lexi</p>
+              <p className="text-xs text-slate-400">Performance summary with Clef</p>
             </div>
 
             {/* Main Stats Grid */}
@@ -788,7 +974,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
                         </span>
                       )}
                       <p className="text-xs text-slate-450 italic leading-snug">
-                        Professor Lexi: "{item.characterText}"
+                        Clef: "{item.characterText}"
                       </p>
                       
                       <div className="space-y-1 pl-2 border-l-2 border-slate-800">
