@@ -26,7 +26,7 @@ const NATIVELY_TRACKED_GAMES = new Set([
   'states-of-matter', 'fraction-fusion', 'lexi-sphere', 'cellular-explorer-3d',
   'geometry-galaxy-3d', 'vocab-flipper-3d', 'math-vault-3d', 'math-dash-3d', 'action-detector-3d',
   'time-traveler', 'riddle-realm', 'probability-pilot', 'equation-alchemist',
-  'circuit-crafter', 'etymology-expedition'
+  'circuit-crafter', 'etymology-expedition', 'pronunciation-pro'
 ]);
 
 export default function GamePage() {

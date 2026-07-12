@@ -289,6 +289,107 @@ export const CIRCUIT_CRAFTER_LEVELS: CircuitLevel[] = [
     ],
     description: "Design a parallel circuit that routes current to both bulbs. Watch out for division of current!",
     hint: "In parallel, both branches get 12V if connected directly. Current in each branch: I = 12 / 10 = 1.2A (too high!). Place resistors before the branches split, or on each branch."
+  },
+  {
+    id: "cc-b4",
+    title: "Relay Power Route",
+    difficulty: "beginner",
+    gridSize: 3,
+    fixedComponents: [
+      { type: "battery", voltage: 12, x: 0, y: 0, isFixed: true },
+      { type: "bulb", resistance: 12, currentRange: [0.5, 1.5], x: 2, y: 2, isFixed: true }
+    ],
+    inventory: [
+      { type: "wire", count: 6 }
+    ],
+    description: "Route wires from the 12V battery to the 12 Ohm bulb around the edge of the system.",
+    hint: "Connect wires along the top-right-bottom edges of the grid."
+  },
+  {
+    id: "cc-i4",
+    title: "Bridge the Storm",
+    difficulty: "intermediate",
+    gridSize: 4,
+    fixedComponents: [
+      { type: "battery", voltage: 18, x: 0, y: 0, isFixed: true },
+      { type: "bulb", resistance: 6, currentRange: [0.8, 1.2], x: 3, y: 3, isFixed: true },
+      { type: "block", x: 1, y: 1, isFixed: true },
+      { type: "block", x: 2, y: 1, isFixed: true }
+    ],
+    inventory: [
+      { type: "wire", count: 8 },
+      { type: "resistor", resistance: 12, count: 1 }
+    ],
+    description: "The battery has a strong 18V output. You need to bridge the storm blockers and install a resistor to regulate the current.",
+    hint: "Target current is 1A. Total resistance needed: R = 18 / 1 = 18 Ohms. Bulb has 6 Ohms, so add the 12 Ohm resistor in series."
+  },
+  {
+    id: "cc-i5",
+    title: "Resistive Balance",
+    difficulty: "intermediate",
+    gridSize: 4,
+    fixedComponents: [
+      { type: "battery", voltage: 24, x: 0, y: 1, isFixed: true },
+      { type: "bulb", resistance: 10, currentRange: [0.7, 1.1], x: 3, y: 1, isFixed: true }
+    ],
+    inventory: [
+      { type: "wire", count: 8 },
+      { type: "resistor", resistance: 15, count: 1 },
+      { type: "resistor", resistance: 5, count: 1 }
+    ],
+    description: "Select the best resistor combination to deliver safe current to the 10 Ohm bulb.",
+    hint: "Target current is ~0.9A. Total resistance should be around 25 Ohms. The bulb has 10 Ohms, so add a 15 Ohm resistor."
+  },
+  {
+    id: "cc-a3",
+    title: "Relay Maze",
+    difficulty: "advanced",
+    gridSize: 4,
+    fixedComponents: [
+      { type: "battery", voltage: 24, x: 0, y: 0, isFixed: true },
+      { type: "bulb", resistance: 12, currentRange: [0.6, 0.9], x: 3, y: 3, isFixed: true }
+    ],
+    inventory: [
+      { type: "wire", count: 8 },
+      { type: "resistor", resistance: 18, count: 1 },
+      { type: "resistor", resistance: 12, count: 1 }
+    ],
+    description: "Keep the current below 0.9A using a 24V supply and correct series resistors.",
+    hint: "For current I = 0.8A, R_total = 24 / 0.8 = 30 Ohms. The bulb is 12 Ohms, so place the 18 Ohm resistor in series."
+  },
+  {
+    id: "cc-a4",
+    title: "Ohmic Portal",
+    difficulty: "advanced",
+    gridSize: 4,
+    fixedComponents: [
+      { type: "battery", voltage: 12, x: 0, y: 2, isFixed: true },
+      { type: "bulb", resistance: 4, currentRange: [1.0, 1.5], x: 3, y: 2, isFixed: true }
+    ],
+    inventory: [
+      { type: "wire", count: 8 },
+      { type: "resistor", resistance: 4, count: 1 },
+      { type: "resistor", resistance: 8, count: 1 }
+    ],
+    description: "Choose the proper series resistor to regulate current between 1.0A and 1.5A.",
+    hint: "For I = 1.2A, R_total = 12 / 1.2 = 10 Ohms. With 4 Ohm bulb, add a resistor close to 6 Ohms, or combine resistors."
+  },
+  {
+    id: "cc-a5",
+    title: "Subgrid Sync",
+    difficulty: "advanced",
+    gridSize: 4,
+    fixedComponents: [
+      { type: "battery", voltage: 9, x: 0, y: 0, isFixed: true },
+      { type: "bulb", resistance: 3, currentRange: [1.5, 2.5], x: 3, y: 3, isFixed: true }
+    ],
+    inventory: [
+      { type: "wire", count: 10 },
+      { type: "resistor", resistance: 1, count: 1 },
+      { type: "resistor", resistance: 2, count: 1 }
+    ],
+    description: "Align the current sync values to safely power the high-conductive subgrid bulb.",
+    hint: "Bulb requires ~2.0A. Total resistance should be 9 / 2.0 = 4.5 Ohms. With 3 Ohm bulb and wires, check if you need 1 Ohm or 2 Ohm."
   }
 ];
 
@@ -568,6 +669,182 @@ export const ETYMOLOGY_EXPEDITION_WORDS: EtymologyWord[] = [
     root: "able",
     suffix: "",
     definition: "Capable of being decomposed by bacteria or other living organisms.",
+    difficulty: "advanced"
+  },
+  {
+    word: "rewrite",
+    prefix: "re",
+    root: "write",
+    suffix: "",
+    definition: "To write something again, especially in a different or improved form.",
+    difficulty: "beginner"
+  },
+  {
+    word: "reading",
+    prefix: "",
+    root: "read",
+    suffix: "ing",
+    definition: "The action or skill of reading written or printed matter.",
+    difficulty: "beginner"
+  },
+  {
+    word: "careful",
+    prefix: "",
+    root: "care",
+    suffix: "ful",
+    definition: "Making sure of avoiding potential danger, mishap, or harm.",
+    difficulty: "beginner"
+  },
+  {
+    word: "untie",
+    prefix: "un",
+    root: "tie",
+    suffix: "",
+    definition: "To undo or loosen a knot or something tied.",
+    difficulty: "beginner"
+  },
+  {
+    word: "singer",
+    prefix: "",
+    root: "sing",
+    suffix: "er",
+    definition: "A person who sings, especially professionally.",
+    difficulty: "beginner"
+  },
+  {
+    word: "remix",
+    prefix: "re",
+    root: "mix",
+    suffix: "",
+    definition: "To mix again or combine differently, especially an audio recording.",
+    difficulty: "beginner"
+  },
+  {
+    word: "unsafe",
+    prefix: "un",
+    root: "safe",
+    suffix: "",
+    definition: "Not safe; dangerous or exposed to risk.",
+    difficulty: "beginner"
+  },
+  {
+    word: "projection",
+    prefix: "pro",
+    root: "ject",
+    suffix: "ion",
+    definition: "An estimate or forecast of a future situation based on study.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "rejection",
+    prefix: "re",
+    root: "ject",
+    suffix: "ion",
+    definition: "The dismissing or refusing of a proposal or idea.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "injection",
+    prefix: "in",
+    root: "ject",
+    suffix: "ion",
+    definition: "An instance of injecting a drug or medicine into the body.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "distract",
+    prefix: "dis",
+    root: "tract",
+    suffix: "",
+    definition: "To prevent someone from giving their full attention to something.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "subtract",
+    prefix: "sub",
+    root: "tract",
+    suffix: "",
+    definition: "To take away a number or amount from another.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "extract",
+    prefix: "ex",
+    root: "tract",
+    suffix: "",
+    definition: "To remove or take out, especially by effort or force.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "destruction",
+    prefix: "de",
+    root: "struct",
+    suffix: "ion",
+    definition: "The action or process of causing so much damage that something ceases to exist.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "instructor",
+    prefix: "in",
+    root: "struct",
+    suffix: "or",
+    definition: "A person who teaches something; a teacher or coach.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "disruption",
+    prefix: "dis",
+    root: "rupt",
+    suffix: "ion",
+    definition: "Disturbance or problems which interrupt an event, activity, or process.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "erupt",
+    prefix: "ex",
+    root: "rupt",
+    suffix: "",
+    definition: "To burst or break out suddenly and dramatically, especially a volcano.",
+    difficulty: "intermediate"
+  },
+  {
+    word: "telescopic",
+    prefix: "tele",
+    root: "scope",
+    suffix: "ic",
+    definition: "Relating to or made visible by a telescope; extending to see far.",
+    difficulty: "advanced"
+  },
+  {
+    word: "microscopic",
+    prefix: "micro",
+    root: "scope",
+    suffix: "ic",
+    definition: "So small as to be visible only with a microscope.",
+    difficulty: "advanced"
+  },
+  {
+    word: "geothermal",
+    prefix: "geo",
+    root: "therm",
+    suffix: "al",
+    definition: "Relating to or produced by the internal heat of the earth.",
+    difficulty: "advanced"
+  },
+  {
+    word: "thermometer",
+    prefix: "thermo",
+    root: "meter",
+    suffix: "",
+    definition: "An instrument for measuring and indicating temperature.",
+    difficulty: "advanced"
+  },
+  {
+    word: "antipathy",
+    prefix: "anti",
+    root: "path",
+    suffix: "y",
+    definition: "A deep-seated feeling of dislike; aversion.",
     difficulty: "advanced"
   }
 ];

@@ -96,6 +96,10 @@ export function PronunciationPro({ slug, onToggleFullscreen }: { slug: string; o
             });
             setFeedback(evaluationResult);
             setGameState("feedback");
+            window.dispatchEvent(new CustomEvent('lingoland_game_completed_hijack', {
+                detail: { state: 'finished' }
+            }));
+            window.dispatchEvent(new CustomEvent('lingoland_game_answered_hijack'));
         } catch (error) {
             console.error("Failed to evaluate pronunciation:", error);
             toast({ variant: "destructive", title: "Evaluation Error", description: "Could not evaluate your pronunciation."});
