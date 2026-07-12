@@ -106,6 +106,9 @@ export const gameComponentMap = {
       'game-placeholder': dynamic(() => import('@/components/game-placeholder').then(mod => mod.GamePlaceholder)),
       'three-corridor-speed': dynamic(() => import('@/components/games/three-corridor-speed'), { ssr: false }),
       'action-detector-3d': dynamic(() => import('@/components/games/action-detector-3d').then(mod => mod.ActionDetector3D), { ssr: false }),
+      'equation-alchemist': dynamic(() => import('@/components/games/equation-alchemist').then(mod => mod.EquationAlchemist)),
+      'circuit-crafter': dynamic(() => import('@/components/games/circuit-crafter').then(mod => mod.CircuitCrafter)),
+      'etymology-expedition': dynamic(() => import('@/components/games/etymology-expedition').then(mod => mod.EtymologyExpedition)),
 };
 
 export default function GamesPage() {

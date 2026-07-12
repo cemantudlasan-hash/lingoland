@@ -786,6 +786,33 @@ export const allGames: Game[] = [
     subject: "english",
     icon: Camera,
   },
+  {
+    title: "Equation Alchemist",
+    slug: "equation-alchemist",
+    description: "Brew mathematical solutions in the cyber-alchemy lab by structuring operators and reagents.",
+    level: "advanced",
+    focus: "geometry",
+    subject: "math",
+    icon: Flame,
+  },
+  {
+    title: "Circuit Crafter",
+    slug: "circuit-crafter",
+    description: "Balance voltage and resistance on a breadboard grid to power bulbs safely without blowing them.",
+    level: "advanced",
+    focus: "geometry",
+    subject: "science",
+    icon: Zap,
+  },
+  {
+    title: "Etymology Expedition",
+    slug: "etymology-expedition",
+    description: "Explore ancient tomb vaults and slide open gates by assembling words from prefixes, roots, and suffixes.",
+    level: "intermediate",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Compass,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {
