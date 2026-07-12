@@ -336,7 +336,7 @@ export function EquationAlchemist({ slug, onToggleFullscreen }: { slug: string; 
         "w-full flex flex-col justify-between relative overflow-hidden transition-all duration-500",
         isFullscreen
           ? "min-h-screen h-screen rounded-none border-none p-6 sm:p-8 bg-slate-950 text-white"
-          : "min-h-[calc(100vh-8rem)] lg:min-h-[580px] rounded-3xl p-6 border border-slate-800 shadow-2xl bg-slate-950 text-white"
+          : "min-h-[calc(100vh-112px)] rounded-3xl p-6 border border-slate-800 shadow-2xl bg-slate-950 text-white"
       )}
     >
       {/* Background Star field effects */}

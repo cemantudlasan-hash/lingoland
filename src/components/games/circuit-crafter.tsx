@@ -445,7 +445,7 @@ export function CircuitCrafter({ slug, onToggleFullscreen }: { slug: string; onT
         "w-full flex flex-col justify-between relative overflow-hidden transition-all duration-500",
         isFullscreen
           ? "min-h-screen h-screen rounded-none border-none p-6 sm:p-8 bg-[#0c1424] text-white"
-          : "min-h-[calc(100vh-8rem)] lg:min-h-[580px] rounded-3xl p-6 border border-blue-900/40 shadow-2xl bg-[#0c1424] text-white"
+          : "min-h-[calc(100vh-112px)] rounded-3xl p-6 border border-blue-900/40 shadow-2xl bg-[#0c1424] text-white"
       )}
     >
       <div className="absolute inset-0 pointer-events-none opacity-25 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.12),transparent)]" />
