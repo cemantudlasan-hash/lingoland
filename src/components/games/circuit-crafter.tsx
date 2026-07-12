@@ -9,6 +9,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { audioEngine } from "../AudioEngine";
 import { CIRCUIT_CRAFTER_LEVELS, CircuitLevel, CircuitComponent } from "@/lib/new-games-data";
+import { getDailyMissions, getDailyBonusGame } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 type CellState = Omit<CircuitComponent, "id"> & { id: string; isOpen?: boolean };
 
@@ -21,6 +23,21 @@ export function CircuitCrafter({ slug, onToggleFullscreen }: { slug: string; onT
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [inventory, setInventory] = useState<CircuitLevel["inventory"]>([]);
   const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDaily, setIsDaily] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  useEffect(() => {
+    const dailyMissions = getDailyMissions();
+    const { slug: dailyBonusSlug } = getDailyBonusGame();
+    const isDailyGame = dailyMissions.some(m => m.slug === slug) || dailyBonusSlug === slug;
+    setIsDaily(isDailyGame);
+  }, [slug]);
   const [showHint, setShowHint] = useState(false);
   const [simulationActive, setSimulationActive] = useState(false);
   const [simulationResult, setSimulationResult] = useState<{
@@ -398,7 +415,7 @@ export function CircuitCrafter({ slug, onToggleFullscreen }: { slug: string; onT
           audioEngine.playCorrect();
           setScore(prev => prev + 1);
 
-          const coinRewards = difficulty === "beginner" ? 2.0 : difficulty === "intermediate" ? 4.0 : 6.0;
+          const coinRewards = isDaily ? (difficulty === "beginner" ? 2.0 : difficulty === "intermediate" ? 4.0 : 6.0) : 0;
           setCoinsEarned(prev => prev + coinRewards);
           window.dispatchEvent(new CustomEvent('lingoland_game_answered_hijack'));
 
@@ -423,7 +440,14 @@ export function CircuitCrafter({ slug, onToggleFullscreen }: { slug: string; onT
   };
 
   return (
-    <div className="min-h-[580px] bg-[#0c1424] text-white rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between border border-blue-900/40 shadow-2xl">
+    <div
+      className={cn(
+        "w-full flex flex-col justify-between relative overflow-hidden transition-all duration-500",
+        isFullscreen
+          ? "min-h-screen h-screen rounded-none border-none p-6 sm:p-8 bg-[#0c1424] text-white"
+          : "min-h-[calc(100vh-8rem)] lg:min-h-[580px] rounded-3xl p-6 border border-blue-900/40 shadow-2xl bg-[#0c1424] text-white"
+      )}
+    >
       <div className="absolute inset-0 pointer-events-none opacity-25 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.12),transparent)]" />
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -552,18 +576,20 @@ export function CircuitCrafter({ slug, onToggleFullscreen }: { slug: string; onT
                 <p className="text-sm text-slate-400">All 5 subsystems have been successfully balanced and repowered.</p>
               </div>
 
-              <div className="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl grid grid-cols-2 gap-4">
-                <div className="text-center border-r border-slate-805">
+              <div className={cn("bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl grid gap-4", isDaily ? "grid-cols-2" : "grid-cols-1")}>
+                <div className={cn("text-center", isDaily && "border-r border-slate-800")}>
                   <span className="text-[10px] uppercase font-black text-blue-400">Subgrids Repaired</span>
                   <p className="text-3xl font-black text-slate-100">{score}/5</p>
                 </div>
-                <div className="text-center">
-                  <span className="text-[10px] uppercase font-black text-amber-400 font-mono">Coins Reward</span>
-                  <p className="text-3xl font-black text-amber-400 flex items-center justify-center gap-1">
-                    <Coins className="h-6 w-6 fill-amber-400 text-amber-500" />
-                    +{coinsEarned.toFixed(2)}
-                  </p>
-                </div>
+                {isDaily && (
+                  <div className="text-center">
+                    <span className="text-[10px] uppercase font-black text-amber-400 font-mono">Coins Reward</span>
+                    <p className="text-3xl font-black text-amber-400 flex items-center justify-center gap-1">
+                      <Coins className="h-6 w-6 fill-amber-400 text-amber-500" />
+                      +{coinsEarned.toFixed(2)}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3">
@@ -599,10 +625,14 @@ export function CircuitCrafter({ slug, onToggleFullscreen }: { slug: string; onT
                     </span>
                   </div>
                   <h3 className="text-xs font-black text-slate-200 truncate max-w-[150px]">{currentLevel?.title}</h3>
-                  <div className="flex items-center gap-1 text-amber-400">
-                    <Coins className="h-4 w-4 fill-amber-400 text-amber-500" />
-                    <span className="text-xs font-bold font-mono">+{coinsEarned.toFixed(2)}</span>
-                  </div>
+                  {isDaily ? (
+                    <div className="flex items-center gap-1 text-amber-400">
+                      <Coins className="h-4 w-4 fill-amber-400 text-amber-500" />
+                      <span className="text-xs font-bold font-mono">+{coinsEarned.toFixed(2)}</span>
+                    </div>
+                  ) : (
+                    <div className="w-12" />
+                  )}
                 </div>
 
                 {/* Circuit Grid Plate */}

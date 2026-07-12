@@ -9,12 +9,29 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { audioEngine } from "../AudioEngine";
 import { ETYMOLOGY_EXPEDITION_WORDS, EtymologyWord } from "@/lib/new-games-data";
+import { getDailyMissions, getDailyBonusGame } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 export function EtymologyExpedition({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const [difficulty, setDifficulty] = useState<"beginner" | "intermediate" | "advanced" | null>(null);
   const [score, setScore] = useState(0);
   const [levelIndex, setLevelIndex] = useState(0);
   const [currentWord, setCurrentWord] = useState<EtymologyWord | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDaily, setIsDaily] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  useEffect(() => {
+    const dailyMissions = getDailyMissions();
+    const { slug: dailyBonusSlug } = getDailyBonusGame();
+    const isDailyGame = dailyMissions.some(m => m.slug === slug) || dailyBonusSlug === slug;
+    setIsDaily(isDailyGame);
+  }, [slug]);
   
   // Selection slots
   const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
@@ -195,7 +212,7 @@ export function EtymologyExpedition({ slug, onToggleFullscreen }: { slug: string
       audioEngine.playCorrect();
       setScore(prev => prev + 1);
 
-      const reward = difficulty === "beginner" ? 1.5 : difficulty === "intermediate" ? 3.0 : 5.0;
+      const reward = isDaily ? (difficulty === "beginner" ? 1.5 : difficulty === "intermediate" ? 3.0 : 5.0) : 0;
       setCoinsEarned(prev => prev + reward);
       window.dispatchEvent(new CustomEvent('lingoland_game_answered_hijack'));
 
@@ -224,7 +241,14 @@ export function EtymologyExpedition({ slug, onToggleFullscreen }: { slug: string
   };
 
   return (
-    <div className="min-h-[580px] bg-[#1a120b] text-amber-100 rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between border border-amber-900/35 shadow-2xl">
+    <div
+      className={cn(
+        "w-full flex flex-col justify-between relative overflow-hidden transition-all duration-500",
+        isFullscreen
+          ? "min-h-screen h-screen rounded-none border-none p-6 sm:p-8 bg-[#1a120b] text-amber-100"
+          : "min-h-[calc(100vh-8rem)] lg:min-h-[580px] rounded-3xl p-6 border border-amber-900/35 shadow-2xl bg-[#1a120b] text-amber-100"
+      )}
+    >
       <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(ellipse_at_center,rgba(217,119,6,0.1),transparent)]" />
       <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -353,18 +377,20 @@ export function EtymologyExpedition({ slug, onToggleFullscreen }: { slug: string
                 <p className="text-sm text-amber-400/60 font-medium">All hieroglyphic doors solved. The treasure chamber is open!</p>
               </div>
 
-              <div className="bg-[#26180e] border border-amber-950 p-5 rounded-2xl grid grid-cols-2 gap-4">
-                <div className="text-center border-r border-amber-950/60">
+              <div className={cn("bg-[#26180e] border border-amber-950 p-5 rounded-2xl grid gap-4", isDaily ? "grid-cols-2" : "grid-cols-1")}>
+                <div className={cn("text-center", isDaily && "border-r border-amber-950/60")}>
                   <span className="text-[10px] uppercase font-black text-amber-400">Vaults Opened</span>
                   <p className="text-3xl font-black text-slate-100">{score}/5</p>
                 </div>
-                <div className="text-center">
-                  <span className="text-[10px] uppercase font-black text-amber-400 font-mono">Coins Claimed</span>
-                  <p className="text-3xl font-black text-amber-400 flex items-center justify-center gap-1">
-                    <Coins className="h-6 w-6 fill-amber-400 text-amber-500" />
-                    +{coinsEarned.toFixed(2)}
-                  </p>
-                </div>
+                {isDaily && (
+                  <div className="text-center">
+                    <span className="text-[10px] uppercase font-black text-amber-400 font-mono">Coins Claimed</span>
+                    <p className="text-3xl font-black text-amber-400 flex items-center justify-center gap-1">
+                      <Coins className="h-6 w-6 fill-amber-400 text-amber-500" />
+                      +{coinsEarned.toFixed(2)}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3">
@@ -399,10 +425,14 @@ export function EtymologyExpedition({ slug, onToggleFullscreen }: { slug: string
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1 text-amber-400">
-                  <Coins className="h-4 w-4 fill-amber-400 text-amber-500" />
-                  <span className="text-xs font-bold font-mono">+{coinsEarned.toFixed(2)}</span>
-                </div>
+                {isDaily ? (
+                  <div className="flex items-center gap-1 text-amber-400">
+                    <Coins className="h-4 w-4 fill-amber-400 text-amber-500" />
+                    <span className="text-xs font-bold font-mono">+{coinsEarned.toFixed(2)}</span>
+                  </div>
+                ) : (
+                  <div className="w-12" />
+                )}
               </div>
 
               {/* Temple Gate & Slate Canvas */}

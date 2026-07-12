@@ -9,6 +9,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { audioEngine } from "../AudioEngine";
 import { EQUATION_ALCHEMIST_DATA, AlchemistChallenge } from "@/lib/new-games-data";
+import { getDailyMissions, getDailyBonusGame } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 type Token = { type: 'number'; value: number } | { type: 'operator'; value: string };
 
@@ -18,6 +20,21 @@ export function EquationAlchemist({ slug, onToggleFullscreen }: { slug: string; 
   const [levelIndex, setLevelIndex] = useState(0);
   const [currentChallenge, setCurrentChallenge] = useState<AlchemistChallenge | null>(null);
   const [selectedTokens, setSelectedTokens] = useState<Token[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDaily, setIsDaily] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
+  useEffect(() => {
+    const dailyMissions = getDailyMissions();
+    const { slug: dailyBonusSlug } = getDailyBonusGame();
+    const isDailyGame = dailyMissions.some(m => m.slug === slug) || dailyBonusSlug === slug;
+    setIsDaily(isDailyGame);
+  }, [slug]);
   const [availableNumbers, setAvailableNumbers] = useState<{ id: string; value: number; used: boolean }[]>([]);
   const [availableOperators, setAvailableOperators] = useState<string[]>([]);
   const [isMuted, setIsMuted] = useState(false);
@@ -283,8 +300,8 @@ export function EquationAlchemist({ slug, onToggleFullscreen }: { slug: string; 
         audioEngine.playCorrect();
         setScore(prev => prev + 1);
 
-        // Add drops based on difficulty
-        const coinsReward = difficulty === "beginner" ? 1.5 : difficulty === "intermediate" ? 3.0 : 5.0;
+        // Add drops based on difficulty (only if it is daily mission)
+        const coinsReward = isDaily ? (difficulty === "beginner" ? 1.5 : difficulty === "intermediate" ? 3.0 : 5.0) : 0;
         setCoinsEarned(prev => prev + coinsReward);
 
         // Track answer event
@@ -314,7 +331,14 @@ export function EquationAlchemist({ slug, onToggleFullscreen }: { slug: string; 
   };
 
   return (
-    <div className="min-h-[580px] bg-slate-950 text-white rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between border border-slate-800 shadow-2xl">
+    <div
+      className={cn(
+        "w-full flex flex-col justify-between relative overflow-hidden transition-all duration-500",
+        isFullscreen
+          ? "min-h-screen h-screen rounded-none border-none p-6 sm:p-8 bg-slate-950 text-white"
+          : "min-h-[calc(100vh-8rem)] lg:min-h-[580px] rounded-3xl p-6 border border-slate-800 shadow-2xl bg-slate-950 text-white"
+      )}
+    >
       {/* Background Star field effects */}
       <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.15),transparent)]" />
       <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -387,7 +411,7 @@ export function EquationAlchemist({ slug, onToggleFullscreen }: { slug: string; 
               <div className="space-y-2">
                 <Flame className="h-12 w-12 text-indigo-400 mx-auto animate-pulse" />
                 <h2 className="text-2xl font-black tracking-tight">Select Transmutation Level</h2>
-                <p className="text-sm text-slate-400">Choose your difficulty level. Higher difficulties offer greater coin drops.</p>
+                <p className="text-sm text-slate-400">Choose your difficulty level.{isDaily && " Higher difficulties offer greater coin drops."}</p>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -444,18 +468,20 @@ export function EquationAlchemist({ slug, onToggleFullscreen }: { slug: string; 
                 <p className="text-sm text-slate-400">All cauldron potion goals solved with mathematical precision.</p>
               </div>
 
-              <div className="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl grid grid-cols-2 gap-4">
-                <div className="text-center border-r border-slate-805">
+              <div className={cn("bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl grid gap-4", isDaily ? "grid-cols-2" : "grid-cols-1")}>
+                <div className={cn("text-center", isDaily && "border-r border-slate-800")}>
                   <span className="text-[10px] uppercase font-black text-indigo-400">Potions Brewed</span>
                   <p className="text-3xl font-black text-slate-100">{score}/5</p>
                 </div>
-                <div className="text-center">
-                  <span className="text-[10px] uppercase font-black text-amber-400">Lingo Coins Drops</span>
-                  <p className="text-3xl font-black text-amber-400 flex items-center justify-center gap-1">
-                    <Coins className="h-6 w-6 fill-amber-400 text-amber-500" />
-                    +{coinsEarned.toFixed(2)}
-                  </p>
-                </div>
+                {isDaily && (
+                  <div className="text-center">
+                    <span className="text-[10px] uppercase font-black text-amber-400">Lingo Coins Drops</span>
+                    <p className="text-3xl font-black text-amber-400 flex items-center justify-center gap-1">
+                      <Coins className="h-6 w-6 fill-amber-400 text-amber-500" />
+                      +{coinsEarned.toFixed(2)}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3">
@@ -495,10 +521,14 @@ export function EquationAlchemist({ slug, onToggleFullscreen }: { slug: string; 
                   <span className="text-lg font-black text-indigo-400 font-mono">{currentChallenge?.target}</span>
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <Coins className="h-4 w-4 fill-amber-400 text-amber-500" />
-                  <span className="text-xs text-amber-400 font-bold">+{coinsEarned.toFixed(2)}</span>
-                </div>
+                {isDaily ? (
+                  <div className="flex items-center gap-1.5">
+                    <Coins className="h-4 w-4 fill-amber-400 text-amber-500" />
+                    <span className="text-xs text-amber-400 font-bold">+{coinsEarned.toFixed(2)}</span>
+                  </div>
+                ) : (
+                  <div className="w-16" />
+                )}
               </div>
 
               {/* Cauldron Visual Area */}
