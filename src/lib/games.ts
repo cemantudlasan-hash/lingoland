@@ -840,6 +840,15 @@ export const allGames: Game[] = [
     subject: "english",
     icon: Swords,
   },
+  {
+    title: "Draw the Word",
+    slug: "draw-the-word",
+    description: "Race with friends or draw solo to represent secret words! Can you beat the timer or get the teacher's approval?",
+    level: "intermediate",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Palette,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {

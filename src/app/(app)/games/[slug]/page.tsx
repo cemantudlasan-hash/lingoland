@@ -27,7 +27,8 @@ const NATIVELY_TRACKED_GAMES = new Set([
   'geometry-galaxy-3d', 'vocab-flipper-3d', 'math-vault-3d', 'math-dash-3d', 'action-detector-3d',
   'time-traveler', 'riddle-realm', 'probability-pilot', 'equation-alchemist',
   'circuit-crafter', 'etymology-expedition', 'pronunciation-pro',
-  'arena-showdown-math', 'arena-showdown-science', 'arena-showdown-english'
+  'arena-showdown-math', 'arena-showdown-science', 'arena-showdown-english',
+  'draw-the-word'
 ]);
 
 export default function GamePage() {
