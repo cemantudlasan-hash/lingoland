@@ -679,7 +679,41 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
   const renderSetup = () => {
     const activeCategory = getActiveCategory();
     return (
-      <div className="max-w-4xl mx-auto w-full space-y-8 select-none p-4">
+      <div className="max-w-4xl mx-auto w-full space-y-8 select-none p-4 relative">
+        {/* Top Control Bar in Setup */}
+        <div className="flex justify-between items-center gap-4 w-full border-b border-slate-800/80 pb-4 mb-2">
+          <Button
+            variant="ghost"
+            asChild
+            className="bg-slate-900 border border-slate-800 h-9 px-3 text-slate-400 hover:text-slate-200 text-xs font-bold rounded-xl"
+          >
+            <Link href="/games">Back to Games</Link>
+          </Button>
+
+          <div className="flex items-center gap-2">
+            {/* Audio Toggle */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+              className="bg-slate-900 border-slate-800 h-9 w-9 text-slate-400 hover:text-slate-200 rounded-xl"
+            >
+              {isAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+
+            {/* Fullscreen Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onToggleFullscreen}
+              className="bg-slate-900 border border-slate-800 h-9 px-3 gap-1.5 text-slate-400 hover:text-slate-200 rounded-xl"
+            >
+              {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize className="h-3.5 w-3.5" />}
+              <span className="text-[10px] font-black uppercase">{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
+            </Button>
+          </div>
+        </div>
+
         {/* Animated Background Gradiant elements */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -1462,16 +1496,10 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
     );
   };
 
-  // Main wrapper layout stretching background in fullscreen
+  // Main wrapper layout stretching background to cover all sides completely
   return (
     <div
-      className={cn(
-        "w-full flex flex-col transition-all duration-500 relative",
-        isFullscreen 
-          ? "h-screen w-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-6 justify-between select-none" 
-          : "max-w-7xl mx-auto bg-slate-950/80 backdrop-blur-md border border-slate-800 rounded-3xl p-6 shadow-2xl my-4"
-      )}
-      style={isFullscreen ? { zIndex: 9999 } : {}}
+      className="fixed inset-0 z-[80] flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-4 md:p-6 justify-between select-none overflow-y-auto"
     >
       {/* Floating particles effect in background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
