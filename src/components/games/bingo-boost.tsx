@@ -50,6 +50,8 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
   const [difficulty, setDifficulty] = React.useState<SkillLevel | null>(null);
   const [board, setBoard] = React.useState<BingoCell[][]>([]);
   const [definitions, setDefinitions] = React.useState<WordDefinitionPair[]>([]);
+  const [wordPool, setWordPool] = React.useState<WordDefinitionPair[]>([]);
+  const [autoPrint, setAutoPrint] = React.useState(false);
   const [currentDefinitionIndex, setCurrentDefinitionIndex] = React.useState(0);
   const [reviewList, setReviewList] = React.useState<WordDefinitionPair[]>([]);
   const [showAnswer, setShowAnswer] = React.useState(false);
@@ -68,11 +70,14 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
 
   if (!game) return <div>Game not found</div>;
 
-  const handleStartGame = async (level: SkillLevel) => {
+  const handleStartGame = async (level: SkillLevel, triggerAutoPrint = false) => {
     setDifficulty(level);
     setGameState("loading");
     setBingoLines(0);
     setReviewList([]);
+    if (triggerAutoPrint) {
+      setAutoPrint(true);
+    }
     try {
       let allPairs: WordDefinitionPair[] = [];
       
@@ -103,6 +108,8 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
       if (!allPairs || allPairs.length < 24) {
         throw new Error("Insufficient vocab words returned by AI");
       }
+
+      setWordPool(allPairs);
 
       // Populate 5x5 board with 24 random selections from this 50-word pool
       const boardPairs = shuffleArray(allPairs).slice(0, 24);
@@ -140,132 +147,363 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
     }
   };
   
-  const handlePrintCards = async (level: SkillLevel) => {
-    setGameState("generating_cards");
-    setDifficulty(level);
-     toast({
-        title: "Generating Cards...",
-        description: "Please wait while we create the classroom set.",
+  const handlePrintCurrentGameCards = () => {
+    if (!difficulty || definitions.length === 0 || wordPool.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Game data is not fully loaded yet. Please wait.",
+      });
+      return;
+    }
+
+    toast({
+      title: "Generating Cards...",
+      description: "Creating the classroom set with 2-3 guaranteed BINGO winners.",
     });
 
-    const generateAndPrint = async () => {
-        try {
-          const { pairs: wordPool } = await generateVocabExercise({
-            difficulty: level,
-            count: CLASSROOM_WORD_POOL_SIZE,
-            usedWords: [],
-          });
+    try {
+      const level = difficulty;
+      // Drawn words in this game
+      const drawnWords = definitions.map(p => p.word);
+      const drawnWordsLower = drawnWords.map(w => w.toLowerCase());
 
-          if (!wordPool || wordPool.length === 0) {
-            throw new Error("AI did not return any words.");
-          }
+      // Non-drawn words from the 50-word pool
+      const nonDrawnPairs = wordPool.filter(p => !drawnWordsLower.includes(p.word.toLowerCase()));
+      const nonDrawnWords = nonDrawnPairs.map(p => p.word);
 
-          // Persist the printed vocabulary pool so the screen game matches it perfectly
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(`lingoland_bingo_pool_${level}`, JSON.stringify(wordPool));
-          }
+      // Determine winning card indices (2-3 cards)
+      const numWinners = Math.floor(Math.random() * 2) + 2; // 2 or 3
+      const cardIndices = Array.from({ length: 30 }, (_, i) => i);
+      const shuffledIndices = shuffleArray(cardIndices);
+      const winnerIndices = new Set(shuffledIndices.slice(0, numWinners));
 
-          let htmlContent = `
-            <html>
-            <head>
-              <title>Bingo Cards - ${level}</title>
-              <style>
-                body { font-family: sans-serif; }
-                .page { page-break-after: always; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-                .bingo-card { border-collapse: collapse; margin: 20px; }
-                .bingo-card th, .bingo-card td { border: 2px solid black; width: 100px; height: 100px; text-align: center; font-size: 14px; word-break: break-word; vertical-align: middle; }
-                .bingo-card th { background-color: #eee; font-size: 24px; }
-                .bingo-card .free-space { background-color: #ccc; font-weight: bold; }
-                h1, h2 { text-align: center; }
-                .call-sheet { column-count: 2; column-gap: 20px; margin: 20px; }
-                .call-sheet-item { break-inside: avoid-column; margin-bottom: 10px; }
-                @media print {
-                    .no-print { display: none; }
-                }
-              </style>
-            </head>
-            <body>
-                <div class="page">
-                    <h1>Teacher's Call Sheet (${level})</h1>
-                    <div class="call-sheet">
-            `;
-
-          wordPool.forEach(pair => {
-            htmlContent += `<div class="call-sheet-item"><strong>${pair.word}:</strong> ${pair.definition}</div>`;
-          });
-          htmlContent += `</div><div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; text-align: center; font-size: 12px; color: #aaa;">www.lingolandverse.com</div></div>`;
-          
-          for (let i = 0; i < CLASSROOM_CARD_COUNT; i++) {
-            const cardWords = shuffleArray(wordPool).slice(0, 24);
-            htmlContent += `
-              <div class="page">
-                <h2>LingoLandVerse Bingo! (Card ${i + 1})</h2>
-                <table class="bingo-card">
-                  <thead>
-                    <tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>
-                  </thead>
-                  <tbody>
-            `;
-            for (let row = 0; row < BINGO_SIZE; row++) {
-              htmlContent += '<tr>';
-              for (let col = 0; col < BINGO_SIZE; col++) {
-                if (row === 2 && col === 2) {
-                  htmlContent += '<td class="free-space">FREE</td>';
-                } else {
-                  const index = row * BINGO_SIZE + col;
-                  const wordIndex = index > 12 ? index - 1 : index;
-                  htmlContent += `<td>${cardWords[wordIndex]?.word || ''}</td>`;
-                }
-              }
-              htmlContent += '</tr>';
+      let htmlContent = `
+        <html>
+        <head>
+          <title>Bingo Cards - ${level}</title>
+          <style>
+            body {
+              font-family: 'Inter', system-ui, sans-serif;
+              background-color: #ffffff;
+              color: #1e293b;
+              margin: 0;
+              padding: 0;
             }
-            htmlContent += `</tbody></table><div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 5px; text-align: center; font-size: 12px; color: #aaa; width: 500px;">www.lingolandverse.com</div></div>`;
-          }
-          
-          htmlContent += '</body></html>';
-          
-          const newWindow = window.open("", "_blank");
-          if (newWindow) {
-            newWindow.document.write(htmlContent);
-            newWindow.document.close();
-            newWindow.focus(); 
-            // Delay print slightly to allow content to render
-            setTimeout(() => {
-              newWindow.print();
-            }, 500);
-          } else {
-            toast({
-                variant: "destructive",
-                title: "Popup Blocked",
-                description: "Please allow popups for this site to print the bingo cards."
-            });
-          }
+            .page {
+              page-break-after: always;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              box-sizing: border-box;
+              padding: 40px;
+              position: relative;
+            }
+            /* Call sheet styles */
+            .teacher-header {
+              text-align: center;
+              margin-bottom: 20px;
+              border-bottom: 3px double #6366f1;
+              padding-bottom: 10px;
+              width: 100%;
+            }
+            .teacher-header h1 {
+              margin: 0;
+              font-size: 28px;
+              color: #4f46e5;
+            }
+            .teacher-header p {
+              margin: 5px 0 0 0;
+              font-size: 14px;
+              color: #64748b;
+            }
+            .winners-badge {
+              margin-top: 10px;
+              background-color: #fef3c7;
+              border: 1px solid #f59e0b;
+              color: #b45309;
+              padding: 6px 12px;
+              border-radius: 8px;
+              font-size: 12px;
+              font-weight: bold;
+              display: inline-block;
+            }
+            .call-sheet {
+              column-count: 2;
+              column-gap: 30px;
+              margin-top: 20px;
+              width: 100%;
+            }
+            .call-sheet-item {
+              break-inside: avoid-column;
+              margin-bottom: 12px;
+              padding: 8px;
+              background-color: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 6px;
+              font-size: 12px;
+            }
+            .call-sheet-item strong {
+              color: #4f46e5;
+              font-size: 13px;
+            }
+            /* Card styles */
+            .card-container {
+              border: 2px solid #e2e8f0;
+              border-radius: 20px;
+              padding: 24px;
+              background-color: #ffffff;
+              box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              max-width: 580px;
+              width: 100%;
+            }
+            .card-header-info {
+              display: flex;
+              justify-content: space-between;
+              width: 100%;
+              margin-bottom: 15px;
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 10px;
+            }
+            .card-header-info h2 {
+              margin: 0;
+              font-size: 22px;
+              color: #1e293b;
+              font-weight: 800;
+            }
+            .card-meta {
+              font-size: 12px;
+              color: #64748b;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            }
+            .bingo-card {
+               border-collapse: separate;
+               border-spacing: 8px;
+               width: 100%;
+               max-width: 500px;
+            }
+            .bingo-card th {
+              background-color: #4f46e5;
+              color: #ffffff;
+              font-size: 24px;
+              font-weight: 900;
+              width: 80px;
+              height: 50px;
+              text-align: center;
+              vertical-align: middle;
+              border-radius: 8px;
+              text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            }
+            .bingo-card td {
+              border: 2px solid #cbd5e1;
+              background-color: #f8fafc;
+              width: 80px;
+              height: 80px;
+              text-align: center;
+              font-size: 13px;
+              font-weight: 700;
+              color: #334155;
+              word-break: break-word;
+              vertical-align: middle;
+              border-radius: 12px;
+              padding: 6px;
+            }
+            .bingo-card .free-space {
+              background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+              border: 2px dashed #6366f1;
+              color: #4338ca;
+              font-weight: 900;
+              font-size: 14px;
+            }
+            .footer {
+              margin-top: 20px;
+              border-top: 1px solid #e2e8f0;
+              padding-top: 10px;
+              text-align: center;
+              font-size: 11px;
+              color: #94a3b8;
+              width: 100%;
+              max-width: 500px;
+              font-weight: 500;
+            }
+            @media print {
+              .no-print { display: none; }
+              body { background-color: #ffffff; }
+              .page { height: 100vh; page-break-after: always; }
+            }
+          </style>
+        </head>
+        <body>
+            <div class="page">
+                <div class="teacher-header">
+                    <h1>Teacher's Bingo Call Sheet</h1>
+                    <p>Difficulty: <strong>${level.toUpperCase()}</strong> | Words in Current Game Session</p>
+                    <div class="winners-badge">
+                      Winning Cards in this set: Card ${Array.from(winnerIndices).map(idx => idx + 1).join(', Card ')}
+                    </div>
+                </div>
+                <div class="call-sheet">
+        `;
 
-        } catch (error) {
-          console.error("Failed to generate cards:", error);
+      // Add the 24 drawn words in alphabetical order for the call sheet
+      const sortedDrawnPairs = [...definitions].sort((a, b) => a.word.localeCompare(b.word));
+      sortedDrawnPairs.forEach(pair => {
+        htmlContent += `
+          <div class="call-sheet-item">
+            <strong>${pair.word.toUpperCase()}</strong><br/>
+            ${pair.definition}
+          </div>
+        `;
+      });
+
+      htmlContent += `
+                </div>
+                <div class="footer">www.lingolandverse.com &bull; Teachers Guide &bull; Keep Secret from Students</div>
+            </div>
+      `;
+
+      // Helper to check if cell is blocking
+      const isBlockingCell = (row: number, col: number): boolean => {
+        return (row === 0 && col === 0) ||
+               (row === 1 && col === 1) ||
+               (row === 2 && col === 3) ||
+               (row === 3 && col === 4) ||
+               (row === 4 && col === 2) ||
+               (row === 4 && col === 0);
+      };
+
+      for (let i = 0; i < 30; i++) {
+        const isWinner = winnerIndices.has(i);
+        let cardWords: string[] = [];
+
+        if (isWinner) {
+          // Winning card: fill with all 24 drawn words
+          cardWords = shuffleArray(drawnWords);
+        } else {
+          // Losing card: fill blocking cells with non-drawn words, others with drawn words
+          const shuffledNonDrawn = shuffleArray(nonDrawnWords);
+          const shuffledDrawn = shuffleArray(drawnWords);
+          
+          let blockingIdx = 0;
+          let drawnIdx = 0;
+
+          for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+              if (r === 2 && c === 2) continue; // FREE space
+              if (isBlockingCell(r, c)) {
+                cardWords.push(shuffledNonDrawn[blockingIdx++] || "");
+              } else {
+                cardWords.push(shuffledDrawn[drawnIdx++] || "");
+              }
+            }
+          }
+        }
+
+        htmlContent += `
+          <div class="page">
+            <div class="card-container">
+              <div class="card-header-info">
+                <h2>LingoLand Bingo</h2>
+                <div class="card-meta">
+                  <span>Card ${i + 1} of 30</span>
+                  <span style="background-color: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 10px;">${level}</span>
+                </div>
+              </div>
+              <table class="bingo-card">
+                <thead>
+                  <tr>
+                    <th>B</th>
+                    <th>I</th>
+                    <th>N</th>
+                    <th>G</th>
+                    <th>O</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+
+        let wordIndex = 0;
+        for (let row = 0; row < 5; row++) {
+          htmlContent += '<tr>';
+          for (let col = 0; col < 5; col++) {
+            if (row === 2 && col === 2) {
+              htmlContent += '<td class="free-space">FREE SPACE</td>';
+            } else {
+              const word = cardWords[wordIndex++];
+              htmlContent += `<td>${word.toUpperCase()}</td>`;
+            }
+          }
+          htmlContent += '</tr>';
+        }
+
+        htmlContent += `
+                </tbody>
+              </table>
+              <div class="footer">www.lingolandverse.com &bull; Scan words carefully as they are read!</div>
+            </div>
+          </div>
+        `;
+      }
+
+      htmlContent += '</body></html>';
+
+      const generateAndPrint = () => {
+        const newWindow = window.open("", "_blank");
+        if (newWindow) {
+          newWindow.document.write(htmlContent);
+          newWindow.document.close();
+          newWindow.focus();
+          setTimeout(() => {
+            newWindow.print();
+          }, 500);
+        } else {
           toast({
             variant: "destructive",
-            title: "Error",
-            description: "Could not generate bingo cards. Please try again.",
+            title: "Popup Blocked",
+            description: "Please allow popups for this site to print the bingo cards."
           });
-        } finally {
-            setGameState("idle");
         }
-    };
+      };
 
-    if (document.fullscreenElement) {
+      if (document.fullscreenElement) {
         const onFullscreenChange = () => {
-            if (!document.fullscreenElement) {
-                document.removeEventListener('fullscreenchange', onFullscreenChange);
-                generateAndPrint();
-            }
+          if (!document.fullscreenElement) {
+            document.removeEventListener('fullscreenchange', onFullscreenChange);
+            generateAndPrint();
+          }
         };
         document.addEventListener('fullscreenchange', onFullscreenChange);
         document.exitFullscreen();
-    } else {
+      } else {
         generateAndPrint();
+      }
+
+    } catch (error) {
+      console.error("Failed to generate cards:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not generate bingo cards. Please try again.",
+      });
     }
   };
+
+  React.useEffect(() => {
+    if (gameState === "playing" && autoPrint) {
+      setAutoPrint(false);
+      handlePrintCurrentGameCards();
+    }
+  }, [gameState, autoPrint]);
 
   const speakDefinition = async (text: string) => {
     if (isSpeaking) return;
@@ -461,7 +699,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
                     {["beginner", "intermediate", "advanced"].map(level => (
                         <Button 
                           key={level} 
-                          onClick={() => handlePrintCards(level as SkillLevel)} 
+                          onClick={() => handleStartGame(level as SkillLevel, true)} 
                           variant="outline" 
                           className="font-black uppercase border-slate-800 text-slate-350 hover:bg-slate-850 hover:text-white rounded-xl h-12 px-6"
                         >
@@ -488,9 +726,20 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
               {/* Centered Question / Correct Answer Call Card - Enlarged & Longer */}
               <div className="p-10 md:p-12 rounded-[2rem] bg-slate-900/60 border border-slate-800 backdrop-blur-sm w-full text-center shadow-lg relative min-h-[280px] flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-center gap-1.5 text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-4">
-                    <BookOpen className="h-4 w-4" />
-                    <span>Drawn question {currentDefinitionIndex + 1} / {definitions.length}</span>
+                  <div className="flex items-center justify-between gap-1.5 text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-4 w-full">
+                    <div className="flex items-center gap-1.5">
+                      <BookOpen className="h-4 w-4" />
+                      <span>Drawn question {currentDefinitionIndex + 1} / {definitions.length}</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handlePrintCurrentGameCards}
+                      className="h-8 gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg flex items-center"
+                    >
+                      <Printer className="h-4 w-4" />
+                      <span>Print Cards</span>
+                    </Button>
                   </div>
                   <h4 className="font-extrabold text-white text-2xl md:text-3xl lg:text-4xl leading-relaxed italic px-4 min-h-[100px] flex items-center justify-center">
                     "{definitions[currentDefinitionIndex].definition}"
