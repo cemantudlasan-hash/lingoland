@@ -272,6 +272,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
   const [currentWord, setCurrentWord] = React.useState<string>("");
   const [usedWords, setUsedWords] = React.useState<string[]>([]);
   const [timer, setTimer] = React.useState<number>(30);
+  const [roundTimerConfig, setRoundTimerConfig] = React.useState<number>(30);
   const [timerActive, setTimerActive] = React.useState<boolean>(false);
   const [isAudioEnabled, setIsAudioEnabled] = React.useState<boolean>(true);
   
@@ -410,7 +411,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
     setUsedWords(prev => [...prev, chosenWord]);
     setCurrentWord(chosenWord);
     setCurrentRound(roundNumber);
-    setTimer(30);
+    setTimer(roundTimerConfig);
     setTimerActive(true);
     setActiveEvaluator("none");
     setTeacherTargetPlayerId(null);
@@ -511,7 +512,8 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
       // Award score to the player!
       sfx.playSuccess();
       const basePoints = 10;
-      const speedBonus = Math.round(targetPlayer.finishTimeRemaining * 0.5);
+      // Scale speed bonus to a max of 15 points based on the configured round timer
+      const speedBonus = Math.round((targetPlayer.finishTimeRemaining / roundTimerConfig) * 15);
       const totalRoundScore = basePoints + speedBonus;
 
       setPlayers(prev => prev.map(p => {
@@ -755,6 +757,27 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
                     )}
                   >
                     {r} Rounds
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Round Timer Selector */}
+            <div className="space-y-3">
+              <Label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Round Timer Limit</Label>
+              <div className="flex flex-wrap gap-2">
+                {[15, 30, 45, 60, 90].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => { sfx.playBeep(420, 0.05); setRoundTimerConfig(t); }}
+                    className={cn(
+                      "flex-1 py-3 px-4 rounded-xl border font-black text-xs transition-all uppercase tracking-wide min-w-[65px]",
+                      roundTimerConfig === t
+                        ? "bg-gradient-to-r from-purple-500 to-indigo-600 border-purple-400 text-white shadow-lg shadow-indigo-500/10 scale-102"
+                        : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200"
+                    )}
+                  >
+                    {t === 30 ? "30s (Default)" : `${t}s`}
                   </button>
                 ))}
               </div>
