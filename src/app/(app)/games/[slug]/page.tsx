@@ -5,7 +5,7 @@ import { allGames } from "@/lib/games";
 import dynamic from 'next/dynamic';
 import { LoadingPlaceholder } from "@/components/layout/loading-placeholder";
 import { useParams, useRouter } from "next/navigation";
-import { gameComponentMap } from "../page";
+import { gameComponentMap } from "@/lib/game-components";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore } from "@/firebase";
