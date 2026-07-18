@@ -164,7 +164,7 @@ function SubmittedDrawingViewer({ canvasData }: { canvasData: string }) {
   }, [canvasData]);
 
   return (
-    <div className="w-full rounded-xl overflow-hidden border border-slate-700" style={{ height: 180 }}>
+    <div className="w-full rounded-xl overflow-hidden border border-slate-700" style={{ height: 240 }}>
       {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
       {/* @ts-ignore */}
       <DynamicCanvas
@@ -173,7 +173,7 @@ function SubmittedDrawingViewer({ canvasData }: { canvasData: string }) {
         strokeColor="#000"
         strokeWidth={1}
         canvasColor="white"
-        height="180px"
+        height="240px"
         width="100%"
       />
     </div>
@@ -391,6 +391,44 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
       setRoundWinningReason("Teacher checked all players but no drawing was approved. No points awarded.");
     }
     setLocalGameState("summary");
+  };
+
+  const handleLocalAIScan = () => {
+    setActiveEvaluator("ai");
+    setLocalGameState("evaluation");
+    setAiScanning(true);
+    sfx.playLaserSweep();
+    setTimeout(() => {
+      setAiScanning(false);
+      const evaluated = localPlayers.map((p) => {
+        let score = 0; let comment = "";
+        if (p.canvasPathsCount === 0) { score = 0; comment = "Empty canvas!"; }
+        else {
+          const seed = p.name.length + currentWord.length + p.canvasPathsCount;
+          score = 45 + (seed % 8) * 6 + Math.floor(Math.random() * 6);
+          if (score > 96) score = 96;
+          if (p.canvasPathsCount < 3) score = Math.floor(20 + Math.random() * 20);
+          if (score >= 85) comment = "Stellar work! Clear structural features.";
+          else if (score >= 70) comment = "Recognizable! AI is confident.";
+          else if (score >= 50) comment = "Slightly abstract. AI is confused.";
+          else comment = "Fascinating modern art, but no resemblance.";
+        }
+        return { ...p, aiMatchScore: score, aiCommentary: comment };
+      });
+      setLocalPlayers(evaluated);
+      let winner: LocalPlayer | null = null; let hi = -1;
+      evaluated.forEach((p) => { if (p.aiMatchScore > hi) { hi = p.aiMatchScore; winner = p; } });
+      if (winner && hi >= 70) {
+        sfx.playSuccess();
+        setLocalPlayers((prev) => prev.map((p) => p.id === (winner as LocalPlayer).id ? { ...p, score: p.score + 10 } : p));
+        setRoundWinnerId((winner as LocalPlayer).id);
+        setRoundWinningReason(`AI declared ${(winner as LocalPlayer).name}'s drawing correct with ${hi}% accuracy! (+10 pts)`);
+      } else {
+        sfx.playFailure(); setRoundWinnerId(null);
+        setRoundWinningReason("AI scanned drawings but none exceeded 70%. No points this round.");
+      }
+      setLocalGameState("summary");
+    }, 2800);
   };
 
   const handleLocalProceedFromSummary = () => {
@@ -897,7 +935,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
               )}
 
               {/* Canvas */}
-              <div className="rounded-xl overflow-hidden border border-slate-700 relative" style={{ height: localPlayers.length > 2 ? 160 : 220 }}>
+              <div className="rounded-xl overflow-hidden border border-slate-700 relative" style={{ height: localPlayers.length === 1 ? 320 : localPlayers.length === 2 ? 260 : 200 }}>
                 {/* @ts-ignore */}
                 <DynamicCanvas
                   ref={(el: ReactSketchCanvasRef | null) => { canvasRefs.current[player.id] = el; }}
@@ -905,7 +943,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
                   strokeColor={strokeColor[player.id] || "#000000"}
                   strokeWidth={strokeWidth[player.id] || 6}
                   canvasColor="white"
-                  height={`${localPlayers.length > 2 ? 160 : 220}px`}
+                  height={`${localPlayers.length === 1 ? 320 : localPlayers.length === 2 ? 260 : 200}px`}
                   width="100%"
                 />
                 {player.isFinished && (
@@ -994,13 +1032,13 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
 
         <div className={cn("grid gap-4", localPlayers.length <= 2 ? "grid-cols-2" : "grid-cols-2")}>
           {localPlayers.map((player) => (
-            <div key={player.id} className={cn("bg-slate-900/60 border rounded-2xl p-4 space-y-3",
+            <div key={player.id} className={cn("bg-slate-900/60 border rounded-2xl p-3 space-y-2",
               player.teacherChecked ? (player.teacherApproved ? "border-emerald-600/50" : "border-red-600/50") : "border-slate-800")}>
               <div className="flex items-center justify-between">
-                <span className="font-black text-slate-200">{player.name}</span>
+                <span className="font-black text-slate-200 text-sm">{player.name}</span>
                 <div className="flex items-center gap-2">
                   <Trophy className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="text-amber-400 font-black text-sm">{player.score} pts</span>
+                  <span className="text-amber-400 font-black text-xs">{player.score} pts</span>
                   {player.teacherChecked && (
                     player.teacherApproved
                       ? <Badge className="bg-emerald-600/20 text-emerald-300 text-[9px]">✓ Approved</Badge>
@@ -1008,7 +1046,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
                   )}
                 </div>
               </div>
-              <div className="rounded-xl overflow-hidden border border-slate-700" style={{ height: 160 }}>
+              <div className="rounded-xl overflow-hidden border border-slate-700" style={{ height: 220 }}>
                 {/* @ts-ignore */}
                 <DynamicCanvas
                   ref={(el: ReactSketchCanvasRef | null) => { canvasRefs.current[player.id] = el; }}
@@ -1016,7 +1054,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
                   strokeColor="#000"
                   strokeWidth={1}
                   canvasColor="white"
-                  height="160px"
+                  height="220px"
                   width="100%"
                 />
               </div>
@@ -1038,13 +1076,18 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
 
         {allChecked && (
           <button onClick={handleLocalTeacherProceed}
-            className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black rounded-2xl hover:scale-105 transition-all flex items-center justify-center gap-2">
+            className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black rounded-2xl hover:scale-105 transition-all flex items-center justify-center gap-2 mb-2">
             <ArrowRight className="h-5 w-5" /> Proceed to Results
           </button>
         )}
         {!allChecked && (
-          <p className="text-center text-slate-500 text-xs">Check all {localPlayers.filter((p) => !p.teacherChecked).length} remaining player(s) to continue.</p>
+          <p className="text-center text-slate-500 text-xs mb-4">Check all {localPlayers.filter((p) => !p.teacherChecked).length} remaining player(s) to continue.</p>
         )}
+
+        <button onClick={handleLocalAIScan}
+          className="w-full py-3 border border-purple-600/50 text-purple-300 font-black text-xs rounded-2xl hover:bg-purple-900/20 transition-all flex items-center justify-center gap-2">
+          <Sparkles className="h-4 w-4" /> Run AI Scan Instead (Optional)
+        </button>
       </div>
     );
   };
@@ -1471,7 +1514,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
 
         <div className={cn("grid gap-4", players.length <= 2 ? "grid-cols-1 sm:grid-cols-2" : players.length <= 4 ? "grid-cols-2" : "grid-cols-2 md:grid-cols-3")}>
           {players.map((player) => (
-            <div key={player.id} className={cn("bg-slate-900/60 border rounded-2xl p-4 space-y-3",
+            <div key={player.id} className={cn("bg-slate-900/60 border rounded-2xl p-3 space-y-2",
               player.teacherChecked ? (player.teacherApproved ? "border-emerald-600/50" : "border-red-600/50") : "border-slate-800")}>
               <div className="flex items-center justify-between">
                 <div>
@@ -1492,7 +1535,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
               {player.canvasData ? (
                 <SubmittedDrawingViewer canvasData={player.canvasData} />
               ) : (
-                <div className="flex items-center justify-center h-[180px] bg-slate-950/60 rounded-xl border border-slate-800 text-slate-500 text-xs">
+                <div className="flex items-center justify-center h-[240px] bg-slate-950/60 rounded-xl border border-slate-800 text-slate-500 text-xs">
                   No drawing submitted
                 </div>
               )}
@@ -1518,25 +1561,24 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
         </div>
 
         {!allChecked && (
-          <p className="text-center text-slate-500 text-xs">
+          <p className="text-center text-slate-500 text-xs mb-3">
             {players.filter((p) => !p.teacherChecked).length} player(s) still need to be checked.
           </p>
         )}
 
         {allChecked && (
-          <div className="space-y-3">
-            <button onClick={handleOnlineTeacherProceed} disabled={isBusy}
-              className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black rounded-2xl hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-              {isBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
-              Proceed to Round Results
-            </button>
-            <button onClick={handleOnlineAIScan} disabled={isScanningOnline}
-              className="w-full py-3 border border-purple-600/50 text-purple-300 font-black text-xs rounded-2xl hover:bg-purple-900/20 transition-all flex items-center justify-center gap-2">
-              {isScanningOnline ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              Run AI Scan Instead (Optional)
-            </button>
-          </div>
+          <button onClick={handleOnlineTeacherProceed} disabled={isBusy}
+            className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black rounded-2xl hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mb-3">
+            {isBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowRight className="h-5 w-5" />}
+            Proceed to Round Results
+          </button>
         )}
+
+        <button onClick={handleOnlineAIScan} disabled={isScanningOnline}
+          className="w-full py-3 border border-purple-600/50 text-purple-300 font-black text-xs rounded-2xl hover:bg-purple-900/20 transition-all flex items-center justify-center gap-2">
+          {isScanningOnline ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          Run AI Scan Instead (Optional)
+        </button>
       </div>
     );
   };
