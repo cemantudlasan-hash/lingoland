@@ -447,8 +447,8 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
   return (
     <div
       className={cn(
-        "w-full min-h-[85vh] bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.18),rgba(255,255,255,0))] text-white flex flex-col items-center justify-center p-4 md:p-8 transition-all duration-500",
-        isFullscreen && "min-h-screen p-8 rounded-none border-none"
+        "w-full min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.18),rgba(255,255,255,0))] text-white flex flex-col items-center justify-center p-4 md:p-8 transition-all duration-500",
+        isFullscreen && "p-8 rounded-none border-none"
       )}
     >
       <Card
