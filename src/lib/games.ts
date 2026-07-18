@@ -813,6 +813,33 @@ export const allGames: Game[] = [
     subject: "english",
     icon: Compass,
   },
+  {
+    title: "Math Arena Showdown",
+    slug: "arena-showdown-math",
+    description: "A fast-paced arena battle of mathematical wits. Play solo against LingoBot or local 2-player mode.",
+    level: "intermediate",
+    focus: "geometry",
+    subject: "math",
+    icon: Swords,
+  },
+  {
+    title: "Science Arena Showdown",
+    slug: "arena-showdown-science",
+    description: "Battle it out in the science arena! Answer chemistry, physics, and biology questions in solo or local co-op mode.",
+    level: "intermediate",
+    focus: "vocabulary",
+    subject: "science",
+    icon: Swords,
+  },
+  {
+    title: "English Arena Showdown",
+    slug: "arena-showdown-english",
+    description: "An epic vocabulary and grammar arena duel. Test your syntax knowledge in single or local multiplayer modes.",
+    level: "intermediate",
+    focus: "grammar",
+    subject: "english",
+    icon: Swords,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {
