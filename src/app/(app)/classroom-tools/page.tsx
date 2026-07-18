@@ -10,11 +10,12 @@ import { Scoreboard } from './scoreboard';
 import { MorningDashboard } from './morning-dashboard';
 import { CommentGenerator } from './comment-generator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote, Volume2, Newspaper, Award, Scan } from 'lucide-react';
+import { Timer, Users, User, Trophy, Maximize, Minimize, Monitor, MessageSquareQuote, StickyNote, Volume2, Newspaper, Award, Scan, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MemorandumTool } from './memorandum-tool';
 import { NoiseMeter } from './noise-meter';
 import { DailyVerse } from '@/components/games/daily-verse';
+import { PlanboardTool } from './planboard-tool';
 import dynamic from 'next/dynamic';
 
 const CertificateGenerator = dynamic(() => import('./certificate-generator').then(mod => mod.CertificateGenerator), { ssr: false });
@@ -31,7 +32,7 @@ export default function ClassroomToolsPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab && ['morning-dashboard', 'timer', 'noise-meter', 'random-name-picker', 'group-maker', 'scoreboard', 'comment-generator', 'memorandum', 'daily-verse', 'certificate-generator', 'worksheet-scanner'].includes(tab)) {
+      if (tab && ['morning-dashboard', 'timer', 'noise-meter', 'random-name-picker', 'group-maker', 'scoreboard', 'comment-generator', 'memorandum', 'daily-verse', 'certificate-generator', 'worksheet-scanner', 'planboard'].includes(tab)) {
         setActiveTab(tab);
       }
     }
@@ -70,6 +71,7 @@ export default function ClassroomToolsPage() {
     { value: 'daily-verse', label: 'Daily Verse', icon: Newspaper },
     { value: 'certificate-generator', label: 'Certificates', icon: Award },
     { value: 'worksheet-scanner', label: 'Scanner', icon: Scan },
+    { value: 'planboard', label: 'Planboard', icon: Calendar },
   ];
 
   return (
@@ -234,6 +236,14 @@ export default function ClassroomToolsPage() {
                     </CardHeader>
                     <CardContent className="flex-grow overflow-y-auto min-h-0">
                         <WorksheetScanner />
+                    </CardContent>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="planboard" className="flex-grow mt-0 h-full min-h-0">
+                <Card className="h-full flex flex-col min-h-0">
+                    <CardContent className="flex-grow overflow-y-auto min-h-0 p-3 md:p-6">
+                        <PlanboardTool />
                     </CardContent>
                 </Card>
             </TabsContent>
