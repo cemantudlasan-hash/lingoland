@@ -122,34 +122,32 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
       setAutoPrint(true);
     }
     try {
-      let allPairs: WordDefinitionPair[] = [];
-      
-      // Load the printed classroom word pool from localStorage if available
+      let seenWords: string[] = [];
       if (typeof window !== 'undefined') {
-        const savedPool = localStorage.getItem(`lingoland_bingo_pool_${level}`);
-        if (savedPool) {
-          try {
-            allPairs = JSON.parse(savedPool);
-          } catch (e) {}
-        }
+        try {
+          const stored = localStorage.getItem("lingoland_bingo_seen_words");
+          if (stored) {
+            seenWords = JSON.parse(stored);
+          }
+        } catch (e) {}
       }
 
-      // Fallback: Generate a rich vocabulary pool of 50 words if no printed card set exists
-      if (!allPairs || allPairs.length < 24) {
-        const result = await generateVocabExercise({
-          difficulty: level,
-          count: GAMEPLAY_WORD_POOL_SIZE,
-          usedWords: [],
-        });
-        allPairs = result.pairs;
-        
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`lingoland_bingo_pool_${level}`, JSON.stringify(allPairs));
-        }
-      }
+      const result = await generateVocabExercise({
+        difficulty: level,
+        count: GAMEPLAY_WORD_POOL_SIZE,
+        usedWords: seenWords,
+      });
+      const allPairs = result.pairs;
 
       if (!allPairs || allPairs.length < 24) {
         throw new Error("Insufficient vocab words returned by AI");
+      }
+
+      if (typeof window !== 'undefined') {
+        try {
+          const newSeen = Array.from(new Set([...seenWords, ...allPairs.map(p => p.word)]));
+          localStorage.setItem("lingoland_bingo_seen_words", JSON.stringify(newSeen.slice(-150)));
+        } catch (e) {}
       }
 
       setWordPool(allPairs);
