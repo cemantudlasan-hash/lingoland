@@ -68,6 +68,49 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
+  // Load session from localStorage on mount
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedSession = localStorage.getItem("lingoland_bingo_active_session");
+      if (savedSession) {
+        try {
+          const session = JSON.parse(savedSession);
+          if (session.gameState) setGameState(session.gameState);
+          if (session.difficulty) setDifficulty(session.difficulty);
+          if (session.board) setBoard(session.board);
+          if (session.definitions) setDefinitions(session.definitions);
+          if (session.wordPool) setWordPool(session.wordPool);
+          if (typeof session.currentDefinitionIndex === 'number') setCurrentDefinitionIndex(session.currentDefinitionIndex);
+          if (session.reviewList) setReviewList(session.reviewList);
+          if (typeof session.showAnswer === 'boolean') setShowAnswer(session.showAnswer);
+          if (typeof session.bingoLines === 'number') setBingoLines(session.bingoLines);
+        } catch (e) {
+          console.error("Failed to restore saved bingo session:", e);
+        }
+      }
+    }
+  }, []);
+
+  // Save session to localStorage when states change
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (gameState !== "idle" && gameState !== "loading" && gameState !== "generating_cards") {
+        const session = {
+          gameState,
+          difficulty,
+          board,
+          definitions,
+          wordPool,
+          currentDefinitionIndex,
+          reviewList,
+          showAnswer,
+          bingoLines,
+        };
+        localStorage.setItem("lingoland_bingo_active_session", JSON.stringify(session));
+      }
+    }
+  }, [gameState, difficulty, board, definitions, wordPool, currentDefinitionIndex, reviewList, showAnswer, bingoLines]);
+
   if (!game) return <div>Game not found</div>;
 
   const handleStartGame = async (level: SkillLevel, triggerAutoPrint = false) => {
@@ -580,7 +623,16 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
   const resetGame = () => {
     setGameState("idle");
     setDifficulty(null);
+    setBoard([]);
+    setDefinitions([]);
+    setWordPool([]);
+    setCurrentDefinitionIndex(0);
     setReviewList([]);
+    setShowAnswer(false);
+    setBingoLines(0);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem("lingoland_bingo_active_session");
+    }
   };
 
   const Icon = game.icon;
