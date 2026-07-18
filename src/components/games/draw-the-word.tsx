@@ -764,7 +764,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
 
             {/* Round Timer Selector */}
             <div className="space-y-3">
-              <Label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Round Timer Limit</Label>
+              <Label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Round Timer Limit <span className="text-[10px] text-indigo-400 lowercase font-medium ml-1">(default: 30s)</span></Label>
               <div className="flex flex-wrap gap-2">
                 {[15, 30, 45, 60, 90].map((t) => (
                   <button
@@ -777,7 +777,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
                         : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200"
                     )}
                   >
-                    {t === 30 ? "30s (Default)" : `${t}s`}
+                    {t}s
                   </button>
                 ))}
               </div>
