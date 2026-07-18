@@ -453,7 +453,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
     >
       <Card
         className={cn(
-          "w-full max-w-4xl bg-slate-900/60 border border-slate-800 backdrop-blur-md shadow-2xl relative overflow-hidden transition-all duration-500 flex flex-col",
+          "w-full max-w-6xl bg-slate-900/60 border border-slate-800 backdrop-blur-md shadow-2xl relative overflow-hidden transition-all duration-500 flex flex-col",
           isFullscreen ? "min-h-[90vh] rounded-2xl" : "rounded-3xl"
         )}
       >
@@ -495,7 +495,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-8 max-w-md mx-auto w-full py-6"
+                className="space-y-8 max-w-2xl mx-auto w-full py-6"
               >
                 {/* Select Mode */}
                 <div className="space-y-3">
@@ -572,7 +572,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                 className="space-y-6 w-full"
               >
                 {/* Scoreboard */}
-                <div className="grid grid-cols-2 gap-4 max-w-md mx-auto bg-slate-950/40 border border-slate-850 rounded-2xl p-4">
+                <div className="grid grid-cols-2 gap-4 max-w-3xl mx-auto bg-slate-950/40 border border-slate-850 rounded-2xl p-4">
                   <div className="flex items-center gap-3 justify-center">
                     <User className="w-6 h-6 text-indigo-400" />
                     <div>
@@ -612,7 +612,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                 </div>
 
                 {/* Timer Bar */}
-                <div className="max-w-md mx-auto space-y-1">
+                <div className="max-w-3xl mx-auto space-y-1">
                   <div className="flex justify-between text-[10px] font-bold text-slate-500">
                     <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Time Left</span>
                     <span className={cn(timer <= 5 ? "text-rose-500 font-black animate-pulse" : "text-slate-400")}>{timer}s</span>
@@ -629,7 +629,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                 </div>
 
                 {/* Question Box */}
-                <div className="p-8 rounded-[2rem] bg-slate-950/60 border border-slate-850/80 shadow-lg text-center max-w-xl mx-auto space-y-6">
+                <div className="p-8 rounded-[2rem] bg-slate-950/60 border border-slate-850/80 shadow-lg text-center max-w-4xl mx-auto space-y-6">
                   <h4 className="font-extrabold text-white text-xl md:text-2xl leading-relaxed italic">
                     "{activeQuestion.question}"
                   </h4>
@@ -689,7 +689,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="text-center space-y-6 max-w-md mx-auto py-8"
+                className="text-center space-y-6 max-w-xl mx-auto py-8"
               >
                 <Swords className="w-16 h-16 text-indigo-400 mx-auto animate-pulse" />
                 <div className="space-y-2">
@@ -725,7 +725,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-center space-y-8 max-w-md mx-auto py-6"
+                className="text-center space-y-8 max-w-xl mx-auto py-6"
               >
                 <div className="relative">
                   <div className="absolute -inset-4 rounded-full bg-amber-500/10 blur-xl animate-pulse" />
