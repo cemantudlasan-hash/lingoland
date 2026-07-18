@@ -206,6 +206,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
   const [mode, setMode] = React.useState<GameMode>("single");
   const [difficulty, setDifficulty] = React.useState<SkillLevel>("beginner");
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [roundsCount, setRoundsCount] = React.useState<number>(5);
 
   // Gameplay variables
   const [questions, setQuestions] = React.useState<Question[]>([]);
@@ -264,21 +265,34 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
     // Filter pool for unseen questions
     let available = pool.map((q, idx) => ({ q, idx })).filter(item => !seenIndices.includes(item.idx));
 
-    // If we have fewer than 5 unseen questions left, reset history
-    if (available.length < 5) {
+    // If we have fewer than the requested rounds count of unseen questions left, reset history
+    const roundsToLoad = mode === "multiplayer" ? roundsCount : 5;
+    if (available.length < roundsToLoad) {
       seenIndices = [];
       available = pool.map((q, idx) => ({ q, idx }));
     }
 
-    // Shuffle available questions and select 5
-    const selected = available.sort(() => Math.random() - 0.5).slice(0, 5);
-
-    // Save selected question indices to history
-    const newlySeen = [...seenIndices, ...selected.map(item => item.idx)];
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(historyKey, JSON.stringify(newlySeen));
-      } catch (e) {}
+    // Shuffle available questions and select roundsToLoad
+    let selected: typeof available = [];
+    if (available.length >= roundsToLoad) {
+      selected = available.sort(() => Math.random() - 0.5).slice(0, roundsToLoad);
+      const newlySeen = [...seenIndices, ...selected.map(item => item.idx)];
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(historyKey, JSON.stringify(newlySeen));
+        } catch (e) {}
+      }
+    } else {
+      // Fallback: If pool size is smaller than roundsToLoad, select all and pad with duplicates
+      selected = [...available];
+      const remaining = roundsToLoad - selected.length;
+      const extras = pool.map((q, idx) => ({ q, idx })).sort(() => Math.random() - 0.5);
+      selected = [...selected, ...extras.slice(0, remaining)];
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(historyKey, JSON.stringify([]));
+        } catch (e) {}
+      }
     }
 
     setQuestions(selected.map(item => item.q));
@@ -504,7 +518,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                   </span>
                   <div className="grid grid-cols-2 gap-4">
                     <button
-                      onClick={() => setMode("single")}
+                      onClick={() => { setMode("single"); setRoundsCount(5); }}
                       className={cn(
                         "p-4 rounded-2xl border transition-all text-center flex flex-col items-center gap-2",
                         mode === "single"
@@ -553,6 +567,32 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                   </div>
                 </div>
 
+                {/* Select Rounds (Only for Multiplayer Mode) */}
+                {mode === "multiplayer" && (
+                  <div className="space-y-3">
+                    <span className="text-[11px] font-black uppercase tracking-widest text-indigo-400">
+                      3. Customize Rounds
+                    </span>
+                    <div className="grid grid-cols-3 gap-3">
+                      {([5, 10, 20] as number[]).map((count) => (
+                        <button
+                          key={count}
+                          type="button"
+                          onClick={() => setRoundsCount(count)}
+                          className={cn(
+                            "py-2.5 rounded-xl border font-bold uppercase text-[10px] tracking-wider transition-all",
+                            roundsCount === count
+                              ? "bg-amber-600/20 border-amber-500 text-white shadow-lg shadow-amber-500/10"
+                              : "bg-slate-950/40 border-slate-850 text-slate-400 hover:text-white"
+                          )}
+                        >
+                          {count} Rounds
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Start Game Button */}
                 <Button
                   onClick={handleStartGame}
@@ -600,7 +640,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                 {/* Turn Header */}
                 <div className="text-center space-y-1">
                   <Badge variant="outline" className="bg-indigo-500/10 border-indigo-500/20 text-indigo-300 font-extrabold uppercase text-[9px] tracking-widest">
-                    Round {questionIndex + 1} of 5
+                    Round {questionIndex + 1} of {questions.length}
                   </Badge>
                   <h3 className="text-xl font-black uppercase text-white tracking-tight flex items-center justify-center gap-2">
                     {mode === "single" ? (
