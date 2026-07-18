@@ -25,6 +25,11 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/auth-context';
+import { useFirestore } from '@/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 type LessonTemplate = 'standard' | '5e' | 'inquiry' | 'custom';
 
@@ -124,7 +129,12 @@ const INITIAL_LESSONS: Lesson[] = [
 ];
 
 export function PlanboardTool() {
-  const [lessons, setLessons] = React.useState<Lesson[]>(INITIAL_LESSONS);
+  const db = useFirestore();
+  const { user, isGuest, isLoading: isAuthLoading } = useAuth();
+  const { toast } = useToast();
+
+  const [lessons, setLessons] = React.useState<Lesson[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = React.useState(true);
   const [selectedDay, setSelectedDay] = React.useState<'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday'>('Monday');
   const [selectedSlot, setSelectedSlot] = React.useState<string>(PERIOD_SLOTS[0]);
   const [isAdding, setIsAdding] = React.useState(false);
@@ -141,6 +151,59 @@ export function PlanboardTool() {
   const [newMaterialName, setNewMaterialName] = React.useState('');
   const [isMobileMode, setIsMobileMode] = React.useState(false);
   const [sharingCode, setSharingCode] = React.useState<string | null>(null);
+
+  // Load lessons from Firestore
+  React.useEffect(() => {
+    if (!user || isGuest) {
+      setIsLoadingPlans(false);
+      return;
+    }
+
+    const loadLessons = async () => {
+      setIsLoadingPlans(true);
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          if (data && data.planboardLessons) {
+            setLessons(data.planboardLessons);
+          } else {
+            // First time load: initialize with INITIAL_LESSONS and save to Firestore
+            setLessons(INITIAL_LESSONS);
+            await setDoc(userRef, { planboardLessons: INITIAL_LESSONS }, { merge: true });
+          }
+        } else {
+          setLessons(INITIAL_LESSONS);
+          await setDoc(userRef, { planboardLessons: INITIAL_LESSONS }, { merge: true });
+        }
+      } catch (e) {
+        console.error('Error loading planboard lessons:', e);
+        setLessons(INITIAL_LESSONS);
+      } finally {
+        setIsLoadingPlans(false);
+      }
+    };
+
+    loadLessons();
+  }, [user, isGuest, db]);
+
+  // Save lessons to Firestore
+  const saveLessons = async (newLessons: Lesson[]) => {
+    setLessons(newLessons);
+    if (!user || isGuest) return;
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, { planboardLessons: newLessons }, { merge: true });
+    } catch (e) {
+      console.error('Error saving planboard lessons:', e);
+      toast({
+        variant: 'destructive',
+        title: 'Error saving plan',
+        description: 'Your changes could not be saved to the database. Please try again.',
+      });
+    }
+  };
 
   // Handle template change to populate procedure skeleton
   React.useEffect(() => {
@@ -177,7 +240,7 @@ export function PlanboardTool() {
     setIsAdding(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formTitle.trim()) return;
 
     const lessonData: Lesson = {
@@ -194,16 +257,19 @@ export function PlanboardTool() {
       shared: editingLessonId ? (lessons.find((l) => l.id === editingLessonId)?.shared ?? false) : false,
     };
 
+    let updated: Lesson[] = [];
     if (editingLessonId) {
-      setLessons(lessons.map((l) => (l.id === editingLessonId ? lessonData : l)));
+      updated = lessons.map((l) => (l.id === editingLessonId ? lessonData : l));
     } else {
-      setLessons([...lessons, lessonData]);
+      updated = [...lessons, lessonData];
     }
+    await saveLessons(updated);
     setIsAdding(false);
   };
 
-  const handleDelete = (id: string) => {
-    setLessons(lessons.filter((l) => l.id !== id));
+  const handleDelete = async (id: string) => {
+    const updated = lessons.filter((l) => l.id !== id);
+    await saveLessons(updated);
     setIsAdding(false);
   };
 
@@ -218,27 +284,64 @@ export function PlanboardTool() {
     setFormMaterials(formMaterials.filter((_, idx) => idx !== index));
   };
 
-  const handleToggleShare = (id: string) => {
-    setLessons(
-      lessons.map((l) => {
-        if (l.id === id) {
-          const newShared = !l.shared;
-          if (newShared) {
-            setSharingCode(`PLAN-${Math.floor(1000 + Math.random() * 9000)}`);
-          } else {
-            setSharingCode(null);
-          }
-          return { ...l, shared: newShared };
+  const handleToggleShare = async (id: string) => {
+    const updated = lessons.map((l) => {
+      if (l.id === id) {
+        const newShared = !l.shared;
+        if (newShared) {
+          setSharingCode(`PLAN-${Math.floor(1000 + Math.random() * 9000)}`);
+        } else {
+          setSharingCode(null);
         }
-        return l;
-      })
-    );
+        return { ...l, shared: newShared };
+      }
+      return l;
+    });
+    await saveLessons(updated);
   };
 
   // Find lesson by Day and Period Slot
   const getLessonAt = (day: string, slot: string) => {
     return lessons.find((l) => l.day === day && l.slot === slot);
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex justify-center items-center h-[50vh]">
+        <div className="animate-spin h-10 w-10 text-indigo-500 rounded-full border-4 border-indigo-500/20 border-t-indigo-500" />
+      </div>
+    );
+  }
+
+  if (!user || isGuest) {
+    return (
+      <div className="relative flex flex-col items-center justify-center min-h-[50vh] text-center p-8 overflow-hidden rounded-3xl bg-slate-950/40 border border-slate-850/80 backdrop-blur-lg shadow-xl">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="relative z-10 space-y-6 max-w-md">
+          <div className="inline-flex p-5 bg-indigo-500/10 rounded-full border border-indigo-500/20 text-indigo-400">
+            <Layout className="h-12 w-12" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black uppercase tracking-widest text-slate-200">Planboard is Restricted</h2>
+            <p className="text-slate-400 text-xs leading-relaxed max-w-xs mx-auto">
+              Planboard digital lesson planner is only available for registered teacher accounts. Please sign up or sign in to plan, schedule, and share lessons.
+            </p>
+          </div>
+          <Button asChild size="sm" className="h-10 px-6 text-xs font-bold uppercase tracking-wider rounded-xl bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-550 hover:to-indigo-550 text-white shadow-lg active:scale-95 transition-all">
+            <Link href="/auth">Sign In / Create Account</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoadingPlans) {
+    return (
+      <div className="flex justify-center items-center h-[50vh]">
+        <div className="animate-spin h-10 w-10 text-indigo-500 rounded-full border-4 border-indigo-500/20 border-t-indigo-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full flex flex-col space-y-6">
