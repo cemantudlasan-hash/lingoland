@@ -18,6 +18,7 @@ import {
   BookOpen,
   ArrowRight,
   ShieldAlert,
+  Play,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
@@ -26,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getDailyMissions, getDailyBonusGame } from "@/lib/analytics";
 import Link from "next/link";
 import type { SkillLevel } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type Subject = "math" | "science" | "english";
 type GameMode = "single" | "multiplayer";
