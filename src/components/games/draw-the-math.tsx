@@ -971,6 +971,10 @@ export function DrawTheMath({ slug, onToggleFullscreen }: { slug: string; onTogg
         {/* Header */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={() => { sfx.playBeep(380, 0.1); setLocalGameState("setup"); setTopScreen("modeSelect"); }}
+              className="bg-slate-900 border border-slate-800 h-8 px-2.5 text-slate-400 hover:text-slate-200 text-[10px] font-black uppercase rounded-lg">
+              Exit to Menu
+            </Button>
             <Badge className="bg-indigo-600/20 text-indigo-300 border-indigo-500/30 font-black text-xs px-3">
               Round {currentRound}/{roundsConfig}
             </Badge>
@@ -1034,7 +1038,7 @@ export function DrawTheMath({ slug, onToggleFullscreen }: { slug: string; onTogg
               )}
 
               {/* Canvas */}
-              <div className="rounded-xl overflow-hidden border border-slate-700 relative" style={{ height: localPlayers.length === 1 ? 320 : localPlayers.length === 2 ? 260 : 200 }}>
+              <div className="rounded-xl overflow-hidden border border-slate-700 relative" style={{ height: localPlayers.length === 1 ? 520 : localPlayers.length === 2 ? 380 : 300 }}>
                 {/* @ts-ignore */}
                 <DynamicCanvas
                   ref={(el: ReactSketchCanvasRef | null) => { canvasRefs.current[player.id] = el; }}
@@ -1042,7 +1046,7 @@ export function DrawTheMath({ slug, onToggleFullscreen }: { slug: string; onTogg
                   strokeColor={strokeColor[player.id] || "#000000"}
                   strokeWidth={strokeWidth[player.id] || 6}
                   canvasColor="white"
-                  height={`${localPlayers.length === 1 ? 320 : localPlayers.length === 2 ? 260 : 200}px`}
+                  height={`${localPlayers.length === 1 ? 520 : localPlayers.length === 2 ? 380 : 300}px`}
                   width="100%"
                 />
                 {player.isFinished && (
@@ -1516,11 +1520,17 @@ export function DrawTheMath({ slug, onToggleFullscreen }: { slug: string; onTogg
       <div className="max-w-2xl mx-auto w-full space-y-4 p-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-col">
-            <Badge className="bg-indigo-600/20 text-indigo-300 border-indigo-500/30 font-black text-xs w-fit">
-              Round {room.currentRound}/{room.config.rounds}
-            </Badge>
-            <span className="text-slate-500 text-[10px] mt-1">{Object.values(room.players).filter((p) => p.isFinished).length}/{Object.keys(room.players).length} submitted</span>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={async () => { await handleLeaveOnline(); setTopScreen("modeSelect"); }}
+              className="bg-slate-900 border border-slate-800 h-8 px-2.5 text-slate-400 hover:text-slate-200 text-[10px] font-black uppercase rounded-lg">
+              Exit to Menu
+            </Button>
+            <div className="flex flex-col">
+              <Badge className="bg-indigo-600/20 text-indigo-300 border-indigo-500/30 font-black text-xs w-fit">
+                Round {room.currentRound}/{room.config.rounds}
+              </Badge>
+              <span className="text-slate-500 text-[10px] mt-1">{Object.values(room.players).filter((p) => p.isFinished).length}/{Object.keys(room.players).length} submitted</span>
+            </div>
           </div>
           <div className={cn("text-4xl font-black tabular-nums", timerColor(onlineTimer, timerLimit))}>
             {onlineTimer}s
@@ -1560,13 +1570,13 @@ export function DrawTheMath({ slug, onToggleFullscreen }: { slug: string; onTogg
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-slate-700" style={{ height: 320 }}>
+            <div className="rounded-2xl overflow-hidden border border-slate-700" style={{ height: 520 }}>
               <DynamicCanvas
                 ref={onlineCanvasRef}
                 strokeColor={onlineStrokeColor}
                 strokeWidth={onlineStrokeWidth}
                 canvasColor="white"
-                height="320px"
+                height="520px"
                 width="100%"
               />
             </div>
