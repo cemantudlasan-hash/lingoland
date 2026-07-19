@@ -849,6 +849,15 @@ export const allGames: Game[] = [
     subject: "english",
     icon: Palette,
   },
+  {
+    title: "Draw the Math",
+    slug: "draw-the-math",
+    description: "Solve math problems and write your solutions and answers on the interactive board! Test your math skills with friends.",
+    level: "intermediate",
+    focus: "geometry",
+    subject: "math",
+    icon: Palette,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {

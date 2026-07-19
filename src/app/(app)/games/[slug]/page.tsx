@@ -28,7 +28,7 @@ const NATIVELY_TRACKED_GAMES = new Set([
   'time-traveler', 'riddle-realm', 'probability-pilot', 'equation-alchemist',
   'circuit-crafter', 'etymology-expedition', 'pronunciation-pro',
   'arena-showdown-math', 'arena-showdown-science', 'arena-showdown-english',
-  'draw-the-word'
+  'draw-the-word', 'draw-the-math'
 ]);
 
 export default function GamePage() {

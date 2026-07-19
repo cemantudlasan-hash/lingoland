@@ -187,6 +187,23 @@ service cloud.firestore {
         resource.data.creatorId == request.auth.uid || isAdmin()
       );
     }
+
+    match /math_draw_rooms/{roomCode} {
+      // Public read: needed so players can look up a room by invite code
+      allow read: if true;
+
+      // Public create: anyone can create a new room (app generates unique codes)
+      allow create: if true;
+
+      // Public update: players need to update their own sub-fields (drawing
+      // submission, ready status, scores). App-level logic enforces limits.
+      allow update: if true;
+
+      // Restricted delete: only the room creator or an admin may delete the doc
+      allow delete: if request.auth != null && (
+        resource.data.creatorId == request.auth.uid || isAdmin()
+      );
+    }
   }
 }
 

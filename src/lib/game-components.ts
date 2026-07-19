@@ -149,4 +149,5 @@ export const gameComponentMap = {
     import("@/components/games/etymology-expedition").then((mod) => mod.EtymologyExpedition)
   ),
   "draw-the-word": dynamic(() => import("@/components/games/draw-the-word").then((mod) => mod.DrawTheWord), { ssr: false }),
+  "draw-the-math": dynamic(() => import("@/components/games/draw-the-math").then((mod) => mod.DrawTheMath), { ssr: false }),
 };
