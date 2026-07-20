@@ -9,7 +9,7 @@ import { Input } from "../ui/input";
 import {
   Trophy, Play, UserPlus, Sparkles, Volume2, VolumeX, Maximize,
   UserCheck, Award, ArrowRight, Wifi, WifiOff, Users, Copy,
-  CheckCircle2, Loader2, RefreshCw, LogOut, Swords, Timer, Check, X, Shield, Zap, AlertCircle
+  CheckCircle2, Loader2, RefreshCw, LogOut, Swords, Timer, Check, X, Shield, Zap, AlertCircle, BookOpen
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -578,7 +578,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
       }
 
       // Check rounds limit
-      if (localRound >= localRoundsLimit) {
+      if (localRoundsLimit > 0 && localRound >= localRoundsLimit) {
         setTimerActive(false);
         sfx.playCheer();
         sfx.playFanfare();
@@ -651,7 +651,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
     setRopePosition(nextPos);
 
     // Check rounds limit
-    if (localRound >= localRoundsLimit) {
+    if (localRoundsLimit > 0 && localRound >= localRoundsLimit) {
       setTimerActive(false);
       sfx.playCheer();
       sfx.playFanfare();
@@ -751,6 +751,10 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
 
   const handleOnlineNextRound = async () => {
     if (!room || !myRoomCode || !isCreator) return;
+    if (room.config.rounds > 0 && room.currentRound >= room.config.rounds) {
+      await endOnlineGameByScore(myRoomCode);
+      return;
+    }
     const prob = generateTugProblem(room.config.categoryId, room.config.difficulty);
     await startNextRound(myRoomCode, prob, room.currentRound + 1);
   };
@@ -811,6 +815,34 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
             </div>
             <ArrowRight className="h-6 w-6 text-slate-500 ml-auto group-hover:text-purple-400 transition-colors" />
           </button>
+        </div>
+
+        {/* Game Mechanics Description / How to Play */}
+        <div className="p-6 bg-slate-900/40 border border-slate-900 rounded-3xl text-left space-y-4 max-w-2xl mx-auto mt-6">
+          <h3 className="font-extrabold text-white text-lg flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-indigo-400" /> Game Mechanics & How to Play
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
+            <div className="space-y-1.5">
+              <p className="font-black text-slate-200">🚩 The Objective</p>
+              <p className="leading-relaxed">Pull the rope to your side! Each correct answer pulls the rope 1 step closer to your team. The team wins when their opponent's boundary marker crosses the RED LINE in the middle, or when they have more points at the round limit.</p>
+            </div>
+            <div className="space-y-1.5">
+              <p className="font-black text-slate-200">⚡ Penalties & Lockouts</p>
+              <p className="leading-relaxed">Answering incorrectly locks you or your team out for 2.5 seconds, giving the opposing team an advantage to pull the rope towards their side. Solve carefully but quickly!</p>
+            </div>
+            <div className="space-y-1.5">
+              <p className="font-black text-slate-200">🕹️ Local Hotkeys</p>
+              <p className="leading-relaxed">
+                • <span className="font-mono text-cyan-400">Blue Team (Left)</span>: keys <kbd className="bg-slate-950 px-1 py-0.5 rounded border border-slate-850">Q</kbd> <kbd className="bg-slate-950 px-1 py-0.5 rounded border border-slate-850">W</kbd> <kbd className="bg-slate-950 px-1 py-0.5 rounded border border-slate-850">E</kbd> <kbd className="bg-slate-950 px-1 py-0.5 rounded border border-slate-850">R</kbd><br />
+                • <span className="font-mono text-rose-400">Red Team (Right)</span>: keys <kbd className="bg-slate-950 px-1 py-0.5 rounded border border-slate-850">U</kbd> <kbd className="bg-slate-950 px-1 py-0.5 rounded border border-slate-850">I</kbd> <kbd className="bg-slate-950 px-1 py-0.5 rounded border border-slate-850">O</kbd> <kbd className="bg-slate-950 px-1 py-0.5 rounded border border-slate-850">P</kbd>
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <p className="font-black text-slate-200">🌐 Online Play</p>
+              <p className="leading-relaxed">Join or create rooms. Every correct answer from any teammate adds pulls for your team. Synchronize live timers and win as a team!</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -902,10 +934,19 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="text-sm font-black text-slate-200">Total Rounds</Label>
-              <input type="number" min={1} max={100} value={localRoundsLimit} 
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-black text-slate-200">Total Rounds</Label>
+                <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                  <input type="checkbox" id="localUnlimitedRounds" checked={localRoundsLimit === 0}
+                    onChange={(e) => setLocalRoundsLimit(e.target.checked ? 0 : 10)}
+                    className="rounded border-slate-800 bg-slate-900 text-indigo-600" />
+                  <label htmlFor="localUnlimitedRounds" className="cursor-pointer font-bold select-none">Unlimited</label>
+                </div>
+              </div>
+              <input type="number" min={1} max={100} value={localRoundsLimit === 0 ? "" : localRoundsLimit} disabled={localRoundsLimit === 0}
                 onChange={(e) => setLocalRoundsLimit(Math.max(1, Math.min(100, parseInt(e.target.value) || 10)))}
-                className="w-full bg-slate-900 border border-slate-800 text-sm text-white p-3 px-4 rounded-xl focus:border-indigo-500 outline-none font-bold text-center h-[52px]" />
+                placeholder="Unlimited"
+                className="w-full bg-slate-900 border border-slate-800 text-sm text-white p-3 px-4 rounded-xl focus:border-indigo-500 outline-none font-bold text-center h-[52px] disabled:opacity-50 disabled:cursor-not-allowed" />
             </div>
 
             <div className="space-y-2" />
@@ -1204,9 +1245,19 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
                   className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none" />
               </div>
               <div className="space-y-2">
-                <span className="text-xs font-black text-slate-400">Total Rounds</span>
-                <input type="number" min={1} max={100} value={onlineRoundsLimit} onChange={(e) => setOnlineRoundsLimit(Math.max(1, Math.min(100, parseInt(e.target.value) || 10)))}
-                  className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none" />
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-slate-400">Total Rounds</span>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <input type="checkbox" id="onlineUnlimitedRounds" checked={onlineRoundsLimit === 0}
+                      onChange={(e) => setOnlineRoundsLimit(e.target.checked ? 0 : 10)}
+                      className="rounded border-slate-800 bg-slate-900 text-purple-650" />
+                    <label htmlFor="onlineUnlimitedRounds" className="cursor-pointer font-bold select-none">Unlimited</label>
+                  </div>
+                </div>
+                <input type="number" min={1} max={100} value={onlineRoundsLimit === 0 ? "" : onlineRoundsLimit} disabled={onlineRoundsLimit === 0}
+                  onChange={(e) => setOnlineRoundsLimit(Math.max(1, Math.min(100, parseInt(e.target.value) || 10)))}
+                  placeholder="Unlimited"
+                  className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed" />
               </div>
             </div>
             <Button onClick={handleCreateRoom} disabled={isBusy || !myPlayerName.trim()}
@@ -1536,7 +1587,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
             </div>
 
             {isCreator && (
-              room.currentRound >= room.config.rounds ? (
+              room.config.rounds > 0 && room.currentRound >= room.config.rounds ? (
                 <Button onClick={() => endOnlineGameByScore(myRoomCode)}
                   className="w-full max-w-md mx-auto py-5 bg-gradient-to-r from-amber-500 to-red-600 text-white font-black uppercase text-xs rounded-xl tracking-wider hover:scale-[1.03] transition-all mt-6 flex items-center justify-center gap-2 shadow-lg">
                   <Trophy className="h-4 w-4" /> View Verdict
@@ -1549,7 +1600,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
               )
             )}
             {!isCreator && (
-              room.currentRound >= room.config.rounds ? (
+              room.config.rounds > 0 && room.currentRound >= room.config.rounds ? (
                 <p className="text-xs font-bold text-slate-400 mt-6">Waiting for host to reveal the final verdict...</p>
               ) : (
                 <p className="text-xs font-bold text-slate-400 mt-6">Waiting for host to start the next round...</p>
