@@ -401,6 +401,8 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
   const [localDifficulty, setLocalDifficulty] = React.useState<TugRoomConfig['difficulty']>("easy");
   const [localWinPulls, setLocalWinPulls] = React.useState(5);
   const [localTimerLimit, setLocalTimerLimit] = React.useState(15);
+  const [localRoundsLimit, setLocalRoundsLimit] = React.useState(10);
+  const [localRound, setLocalRound] = React.useState(1);
 
   const [blueTeam, setBlueTeam] = React.useState<LocalTeamState>({ name: "Team Blue", score: 0, playersCount: 1, streak: 0 });
   const [redTeam, setRedTeam] = React.useState<LocalTeamState>({ name: "Team Red", score: 0, playersCount: 1, streak: 0 });
@@ -422,7 +424,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
   // -------------------------------------------------------
   // ONLINE GAME STATE
   // -------------------------------------------------------
-  const { createRoom, joinRoom, selectTeam, setPlayerReady, startGame, submitAnswer, handleTimeout, startNextRound, resetRoom, closeRoom, leaveRoom } = useTugRoom();
+  const { createRoom, joinRoom, selectTeam, setPlayerReady, startGame, submitAnswer, handleTimeout, startNextRound, resetRoom, closeRoom, leaveRoom, endOnlineGameByScore } = useTugRoom();
   const [myRoomCode, setMyRoomCode] = React.useState<string | null>(null);
   const [myPlayerId] = React.useState(() => getOrCreateTugPlayerId());
   const [myPlayerName, setMyPlayerName] = React.useState("Player");
@@ -434,6 +436,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
   const [onlineDifficulty, setOnlineDifficulty] = React.useState<TugRoomConfig['difficulty']>("easy");
   const [onlineWinPulls, setOnlineWinPulls] = React.useState(5);
   const [onlineTimerLimit, setOnlineTimerLimit] = React.useState(15);
+  const [onlineRoundsLimit, setOnlineRoundsLimit] = React.useState(10);
   const [onlineTimer, setOnlineTimer] = React.useState(15);
 
   const { room, loading: roomLoading, error: roomError } = useTugRoomListener(myRoomCode);
@@ -523,6 +526,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
     setBlueTeam({ name: localMode === "pvp" ? "Player Blue" : "Team Blue", score: 0, playersCount: 1, streak: 0 });
     setRedTeam({ name: localMode === "pvp" ? "Player Red" : "Team Red", score: 0, playersCount: 1, streak: 0 });
     setRopePosition(0);
+    setLocalRound(1);
     setBlueLocked(false);
     setRedLocked(false);
 
@@ -572,6 +576,17 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
         setScreen("gameOver");
         return;
       }
+
+      // Check rounds limit
+      if (localRound >= localRoundsLimit) {
+        setTimerActive(false);
+        sfx.playCheer();
+        sfx.playFanfare();
+        setScreen("gameOver");
+        return;
+      }
+
+      setLocalRound((r) => r + 1);
 
       // Load next problem
       const prob = generateTugProblem(localCategory, localDifficulty);
@@ -630,8 +645,21 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
     toast({ title: "⏰ Time is up!", description: "Rope shifts slightly towards center.", duration: 2500 });
     
     // Shift rope slightly back to center
-    if (ropePosition > 0) setRopePosition((p) => Math.max(0, p - 0.5));
-    else if (ropePosition < 0) setRopePosition((p) => Math.min(0, p + 0.5));
+    let nextPos = ropePosition;
+    if (ropePosition > 0) nextPos = Math.max(0, ropePosition - 0.5);
+    else if (ropePosition < 0) nextPos = Math.min(0, ropePosition + 0.5);
+    setRopePosition(nextPos);
+
+    // Check rounds limit
+    if (localRound >= localRoundsLimit) {
+      setTimerActive(false);
+      sfx.playCheer();
+      sfx.playFanfare();
+      setScreen("gameOver");
+      return;
+    }
+
+    setLocalRound((r) => r + 1);
 
     // Next round
     const prob = generateTugProblem(localCategory, localDifficulty);
@@ -649,7 +677,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
     setIsBusy(true); setOnlineError("");
     try {
       const config: TugRoomConfig = {
-        rounds: 10,
+        rounds: onlineRoundsLimit,
         timerLimit: onlineTimerLimit,
         categoryId: onlineCategory,
         difficulty: onlineDifficulty,
@@ -871,6 +899,17 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
               </div>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-black text-slate-200">Total Rounds</Label>
+              <input type="number" min={1} max={100} value={localRoundsLimit} 
+                onChange={(e) => setLocalRoundsLimit(Math.max(1, Math.min(100, parseInt(e.target.value) || 10)))}
+                className="w-full bg-slate-900 border border-slate-800 text-sm text-white p-3 px-4 rounded-xl focus:border-indigo-500 outline-none font-bold text-center h-[52px]" />
+            </div>
+
+            <div className="space-y-2" />
+          </div>
         </div>
 
         <div className="flex gap-4 pt-4 border-t border-slate-900">
@@ -889,8 +928,9 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
   // RENDER TUG OF WAR ANIMATED ARENA
   // -------------------------------------------------------
   const renderArena = (position: number, winTarget: number) => {
-    // calculate shift percentage (max win offset)
-    const offset = (position / winTarget) * 45; // Shifts from -45% to +45%
+    // calculate shift pixels (max win offset in pixels)
+    const maxShiftPx = 140;
+    const offsetPx = -(position / winTarget) * maxShiftPx; // Shifts left for positive (Blue), right for negative (Red)
 
     return (
       <div className={cn("relative w-full h-64 rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden transition-all duration-300 shadow-inner",
@@ -905,10 +945,10 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
           <div className="w-[300px] h-[300px] rounded-full border-2 border-slate-100" />
         </div>
 
-        {/* Center line */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-amber-500/40 -translate-x-1/2 flex flex-col justify-between items-center text-xs text-amber-500/80 font-black py-2">
-          <span className="bg-slate-950 px-2 py-0.5 border border-amber-500/30 rounded-md">CENTER</span>
-          <span className="bg-slate-950 px-2 py-0.5 border border-amber-500/30 rounded-md">LINE</span>
+        {/* Center line (Red Line on the ground) */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-[3px] bg-red-600 -translate-x-1/2 flex flex-col justify-between items-center text-xs text-red-500 font-black py-2 z-10">
+          <span className="bg-slate-950 px-2 py-0.5 border border-red-500/30 rounded-md">RED</span>
+          <span className="bg-slate-950 px-2 py-0.5 border border-red-550/30 rounded-md">LINE</span>
         </div>
 
         {/* Win Zones */}
@@ -925,9 +965,9 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
             style={{ left: `${p.x}%`, top: `${p.y}%`, background: p.color }} />
         ))}
 
-        {/* The Rope System (including characters) */}
+        {/* The Rope System (including characters and markers) */}
         <div className="absolute inset-x-0 top-1/2 h-16 -translate-y-1/2 flex items-center transition-transform duration-700 ease-out"
-          style={{ transform: `translateX(${offset}%)` }}>
+          style={{ transform: `translateX(${offsetPx}px)` }}>
           
           {/* Rope line */}
           <div className="absolute inset-x-0 top-1/2 h-4.5 -translate-y-1/2 bg-[repeating-linear-gradient(45deg,#78350f,#78350f_15px,#b45309_15px,#b45309_30px)] border-2 border-yellow-950 shadow-lg shadow-black/60" />
@@ -942,11 +982,17 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
             <div className="text-xs bg-blue-600 text-white font-black px-2.5 py-1 rounded-xl uppercase tracking-wider select-none animate-bounce shadow-md">Blue Team</div>
           </div>
 
-          {/* Center Flag on Rope */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-16 flex flex-col items-center justify-center">
+          {/* Blue Boundary Marker (on rope) */}
+          <div className="absolute left-[calc(50%-140px)] top-1/2 -translate-y-1/2 w-4 h-10 bg-cyan-400 border-2 border-white rounded shadow-lg shadow-cyan-500/50 animate-pulse z-20" title="Blue Team Boundary Marker" />
+
+          {/* Center Flag on Rope (Yellow Pointer) */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-16 flex flex-col items-center justify-center z-20">
             <div className="w-1.5 bg-black h-12" />
-            <div className="w-6 h-6 bg-red-600 rounded-full border-2 border-white -mt-7 animate-pulse shadow-lg shadow-red-500/80" />
+            <div className="w-6 h-6 bg-yellow-400 rounded-full border-2 border-white -mt-7 animate-pulse shadow-lg shadow-yellow-500/80" />
           </div>
+
+          {/* Red Boundary Marker (on rope) */}
+          <div className="absolute left-[calc(50%+140px)] top-1/2 -translate-y-1/2 w-4 h-10 bg-rose-500 border-2 border-white rounded shadow-lg shadow-rose-500/50 animate-pulse z-20" title="Red Team Boundary Marker" />
 
           {/* Right pulling team (Red) */}
           <div className="absolute left-[53%] flex items-center gap-3 pl-4">
@@ -966,9 +1012,9 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
           <div className="flex-1 max-w-md mx-6 h-3.5 bg-slate-950 rounded-full overflow-hidden flex relative">
             <div className="absolute inset-y-0 left-1/2 right-1/2 h-full bg-slate-850" />
             {/* Dynamic offset filling */}
-            <div className={cn("h-full transition-all duration-500", position >= 0 ? "bg-blue-500 ml-[50%]" : "bg-red-500 mr-[50%] ml-auto")}
+            <div className={cn("h-full transition-all duration-500", position >= 0 ? "bg-blue-500 mr-[50%] ml-auto" : "bg-red-500 ml-[50%]")}
               style={{ width: `${Math.abs(position / winTarget) * 50}%` }} />
-            <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-amber-500" />
+            <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-red-600" />
           </div>
           <span>RED TEAM</span>
         </div>
@@ -1146,15 +1192,20 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
               <div className="space-y-2">
                 <span className="text-xs font-black text-slate-400">Winning Pulls (3-8)</span>
                 <input type="number" min={3} max={8} value={onlineWinPulls} onChange={(e) => setOnlineWinPulls(Math.max(3, Math.min(8, parseInt(e.target.value) || 5)))}
                   className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none" />
               </div>
               <div className="space-y-2">
-                <span className="text-xs font-black text-slate-400">Timer Limit</span>
+                <span className="text-xs font-black text-slate-400">Timer Limit (10-30s)</span>
                 <input type="number" min={10} max={30} value={onlineTimerLimit} onChange={(e) => setOnlineTimerLimit(Math.max(10, Math.min(30, parseInt(e.target.value) || 15)))}
+                  className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none" />
+              </div>
+              <div className="space-y-2">
+                <span className="text-xs font-black text-slate-400">Total Rounds</span>
+                <input type="number" min={1} max={100} value={onlineRoundsLimit} onChange={(e) => setOnlineRoundsLimit(Math.max(1, Math.min(100, parseInt(e.target.value) || 10)))}
                   className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none" />
               </div>
             </div>
@@ -1485,12 +1536,25 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
             </div>
 
             {isCreator && (
-              <Button onClick={handleOnlineNextRound}
-                className="w-full max-w-md mx-auto py-5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black uppercase text-xs rounded-xl tracking-wider hover:scale-[1.03] transition-all mt-6 flex items-center justify-center gap-2 shadow-lg">
-                <ArrowRight className="h-4 w-4" /> Next Round
-              </Button>
+              room.currentRound >= room.config.rounds ? (
+                <Button onClick={() => endOnlineGameByScore(myRoomCode)}
+                  className="w-full max-w-md mx-auto py-5 bg-gradient-to-r from-amber-500 to-red-600 text-white font-black uppercase text-xs rounded-xl tracking-wider hover:scale-[1.03] transition-all mt-6 flex items-center justify-center gap-2 shadow-lg">
+                  <Trophy className="h-4 w-4" /> View Verdict
+                </Button>
+              ) : (
+                <Button onClick={handleOnlineNextRound}
+                  className="w-full max-w-md mx-auto py-5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black uppercase text-xs rounded-xl tracking-wider hover:scale-[1.03] transition-all mt-6 flex items-center justify-center gap-2 shadow-lg">
+                  <ArrowRight className="h-4 w-4" /> Next Round
+                </Button>
+              )
             )}
-            {!isCreator && <p className="text-xs font-bold text-slate-400 mt-6">Waiting for host to start the next round...</p>}
+            {!isCreator && (
+              room.currentRound >= room.config.rounds ? (
+                <p className="text-xs font-bold text-slate-400 mt-6">Waiting for host to reveal the final verdict...</p>
+              ) : (
+                <p className="text-xs font-bold text-slate-400 mt-6">Waiting for host to start the next round...</p>
+              )
+            )}
           </div>
         </div>
       );
@@ -1516,7 +1580,11 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
           <div className="space-y-2">
             <Trophy className="h-14 w-14 text-amber-400 mx-auto animate-bounce drop-shadow-[0_4px_12px_rgba(250,204,21,0.4)]" />
             <h2 className="text-3xl font-black text-white font-display uppercase tracking-tight">🏆 {winningTeamName} Wins the Battle!</h2>
-            <p className="text-slate-400 text-xs">The rope was pulled into the victory zone.</p>
+            <p className="text-slate-400 text-xs">
+              {Math.abs(room.ropePosition) >= room.config.winPullsRequired
+                ? "The boundary marker crossed the red line!"
+                : "Battle ended by rounds limit. Winner decided by team points!"}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1572,7 +1640,25 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
   // RENDER GAME OVER (LOCAL SCREEN)
   // -------------------------------------------------------
   const renderLocalGameOver = () => {
-    const isBlueWin = ropePosition > 0;
+    let isBlueWin = false;
+    let winReason = "The boundary marker crossed the red line!";
+    
+    if (Math.abs(ropePosition) >= localWinPulls) {
+      isBlueWin = ropePosition > 0;
+    } else {
+      if (blueTeam.score > redTeam.score) {
+        isBlueWin = true;
+        winReason = `Winner decided by higher points (${blueTeam.score} vs ${redTeam.score})!`;
+      } else if (redTeam.score > blueTeam.score) {
+        isBlueWin = false;
+        winReason = `Winner decided by higher points (${redTeam.score} vs ${blueTeam.score})!`;
+      } else {
+        isBlueWin = ropePosition >= 0;
+        winReason = isBlueWin 
+          ? "Points were tied! Blue team wins by rope position advantage." 
+          : "Points were tied! Red team wins by rope position advantage.";
+      }
+    }
     const winnerName = isBlueWin ? blueTeam.name : redTeam.name;
 
     return (
@@ -1580,7 +1666,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
         <div className="space-y-2">
           <Trophy className="h-16 w-16 text-amber-400 mx-auto animate-bounce drop-shadow-[0_4px_12px_rgba(250,204,21,0.4)]" />
           <h2 className="text-3xl font-black text-white font-display tracking-tight uppercase">🏆 {winnerName} Wins!</h2>
-          <p className="text-slate-400 text-xs">The rope was pulled into the victory zone.</p>
+          <p className="text-slate-400 text-xs">{winReason}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

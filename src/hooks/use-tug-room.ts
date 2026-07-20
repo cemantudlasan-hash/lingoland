@@ -405,6 +405,43 @@ export function useTugRoom() {
     []
   );
 
+  const endOnlineGameByScore = useCallback(
+    async (roomCode: string) => {
+      const db = getDb();
+      const roomRef = doc(db, 'math_tug_rooms', roomCode);
+      try {
+        await runTransaction(db, async (transaction) => {
+          const sfDoc = await transaction.get(roomRef);
+          if (!sfDoc.exists()) return;
+          const data = sfDoc.data() as TugRoom;
+          
+          // Calculate blue team score and red team score
+          const players = Object.values(data.players || {});
+          const blueScore = players.filter((p) => p.team === 'blue').reduce((acc, p) => acc + p.score, 0);
+          const redScore = players.filter((p) => p.team === 'red').reduce((acc, p) => acc + p.score, 0);
+
+          let winnerTeam: 'blue' | 'red' | null = null;
+          if (blueScore > redScore) {
+            winnerTeam = 'blue';
+          } else if (redScore > blueScore) {
+            winnerTeam = 'red';
+          } else {
+            // Tie breaker: rope position
+            winnerTeam = data.ropePosition >= 0 ? 'blue' : 'red';
+          }
+
+          transaction.update(roomRef, {
+            status: 'game_over',
+            winnerTeam,
+          });
+        });
+      } catch (err) {
+        console.error('End game by score transaction failed:', err);
+      }
+    },
+    []
+  );
+
   return {
     createRoom,
     joinRoom,
@@ -417,6 +454,7 @@ export function useTugRoom() {
     resetRoom,
     closeRoom,
     leaveRoom,
+    endOnlineGameByScore,
   };
 }
 
