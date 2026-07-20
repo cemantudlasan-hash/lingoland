@@ -867,6 +867,15 @@ export const allGames: Game[] = [
     subject: "math",
     icon: Swords,
   },
+  {
+    title: "English Tug of War",
+    slug: "english-tug-of-war",
+    description: "Compete in a battle of vocabulary, spelling, and grammar! Answer correctly to pull the rope to your side and win the tug of war!",
+    level: "intermediate",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Swords,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {

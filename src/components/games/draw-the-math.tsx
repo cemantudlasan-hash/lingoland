@@ -11,7 +11,7 @@ import {
   Palette, Undo, Trash2, Maximize, Minimize, Timer, Check, X,
   Trophy, Play, UserPlus, Sparkles, RotateCcw, Volume2, VolumeX,
   UserCheck, Award, ArrowRight, Wifi, WifiOff, Users, Copy,
-  CheckCircle2, Loader2, Monitor, Globe, Lock, Unlock, HelpCircle
+  CheckCircle2, Loader2, Monitor, Globe, Lock, Unlock, HelpCircle, BookOpen
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -872,6 +872,31 @@ export function DrawTheMath({ slug, onToggleFullscreen }: { slug: string; onTogg
             ))}
           </div>
         </button>
+      </div>
+
+      {/* Game Mechanics Description / How to Play */}
+      <div className="p-6 bg-slate-900/40 border border-slate-900 rounded-3xl text-left space-y-4 max-w-2xl mx-auto mt-6">
+        <h3 className="font-extrabold text-white text-lg flex items-center gap-2">
+          <BookOpen className="h-5 w-5 text-indigo-400" /> Game Mechanics & How to Play
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
+          <div className="space-y-1.5">
+            <p className="font-black text-slate-200">🚩 The Objective</p>
+            <p className="leading-relaxed">Solve math problems and draw your solution on the whiteboard! Use the canvas to illustrate your steps, then write the final answer in the box.</p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-black text-slate-200">👨‍🏫 Teacher vs. AI Checker</p>
+            <p className="leading-relaxed">Choose manual Teacher Evaluation to let the teacher judge drawings on the screen, or AI Checker to instantly evaluate mathematical answers.</p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-black text-slate-200">🎨 Interactive Canvas</p>
+            <p className="leading-relaxed">Draft, write formulas, or sketch shapes using different brush colors, brush sizes, and undo/clear controls on the canvas.</p>
+          </div>
+          <div className="space-y-1.5">
+            <p className="font-black text-slate-200">🌐 Multiplayer Rooms</p>
+            <p className="leading-relaxed">Invite other students with a room code. Every player receives equations, draws their solutions, and submits answers synchronously.</p>
+          </div>
+        </div>
       </div>
     </div>
   );

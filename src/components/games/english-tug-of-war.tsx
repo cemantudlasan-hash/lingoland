@@ -14,13 +14,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
-  useTugRoom,
-  useTugRoomListener,
+  useEnglishTugRoom as useTugRoom,
+  useEnglishTugRoomListener as useTugRoomListener,
   getOrCreateTugPlayerId,
   type TugRoom,
   type TugPlayer,
   type TugRoomConfig,
-} from "@/hooks/use-tug-room";
+} from "@/hooks/use-english-tug-room";
 
 // ---------------------------------------------------------
 // SOUND SYNTHESIS (Web Audio API)
@@ -137,17 +137,126 @@ interface TugProblem {
 }
 
 const CATEGORIES = [
-  { id: "addition", name: "Addition", emoji: "➕", desc: "Basic to multi-step addition" },
-  { id: "subtraction", name: "Subtraction", emoji: "➖", desc: "Basic to multi-step subtraction" },
-  { id: "multiplication", name: "Multiplication", emoji: "✖️", desc: "Multiplication practice" },
-  { id: "division", name: "Division", emoji: "➗", desc: "Integer division & remainders" },
-  { id: "fractions", name: "Fractions", emoji: "🍕", desc: "Fraction addition, subtraction & conversion" },
-  { id: "decimals", name: "Decimals", emoji: "🪙", desc: "Decimal math and comparison" },
-  { id: "percentages", name: "Percentages", emoji: "📊", desc: "Percentage calculations" },
-  { id: "algebra", name: "Algebraic Equations", emoji: "📐", desc: "Solve for variables like x" },
-  { id: "geometry", name: "Geometry Basics", emoji: "🛑", desc: "Perimeter, area, and shape angles" },
-  { id: "mixed", name: "Mixed Mathematics", emoji: "🎲", desc: "All categories combined" },
+  { id: "vocabulary", name: "Vocabulary", emoji: "📖", desc: "Synonyms, antonyms, and word meanings" },
+  { id: "grammar", name: "Grammar & Syntax", emoji: "✍️", desc: "Tenses, pronouns, and sentence structures" },
+  { id: "spelling", name: "Spelling Bee", emoji: "🐝", desc: "Common spelling traps and homophones" },
+  { id: "idioms", name: "Idioms & Sayings", emoji: "💡", desc: "Fill in the blank for common expressions" },
+  { id: "mixed", name: "Mixed English", emoji: "🎲", desc: "All categories combined" },
 ];
+
+interface RawProblem {
+  question: string;
+  answer: string;
+  wrong: string[];
+  hint: string;
+}
+
+const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; hard: RawProblem[] } } = {
+  vocabulary: {
+    easy: [
+      { question: "What is a synonym for 'happy'?", answer: "Joyful", wrong: ["Sad", "Angry", "Tired"], hint: "It means filled with joy." },
+      { question: "What is an antonym for 'hot'?", answer: "Cold", wrong: ["Warm", "Dry", "Sun"], hint: "The opposite of hot temperature." },
+      { question: "Choose the synonym of 'quick'.", answer: "Fast", wrong: ["Slow", "Heavy", "Quiet"], hint: "Rapid movement." },
+      { question: "What is the opposite of 'large'?", answer: "Small", wrong: ["Big", "Huge", "Wide"], hint: "Little in size." },
+      { question: "What does 'begin' mean?", answer: "Start", wrong: ["Finish", "Stop", "Pause"], hint: "To commence something." },
+      { question: "Choose the synonym of 'silent'.", answer: "Quiet", wrong: ["Loud", "Noisy", "Active"], hint: "Without noise." }
+    ],
+    medium: [
+      { question: "What is the synonym of 'enormous'?", answer: "Huge", wrong: ["Tiny", "Weak", "Bright"], hint: "Extremely large in size." },
+      { question: "What is the meaning of 'benevolent'?", answer: "Kind", wrong: ["Cruel", "Lazy", "Rich"], hint: "Showing goodwill or charity." },
+      { question: "What is an antonym of 'assemble'?", answer: "Disperse", wrong: ["Gather", "Create", "Hold"], hint: "To scatter or spread apart." },
+      { question: "Choose the synonym of 'abundant'.", answer: "Plentiful", wrong: ["Scarce", "Few", "Empty"], hint: "Existing in large quantities." },
+      { question: "What is the antonym of 'brave'?", answer: "Cowardly", wrong: ["Bold", "Fearless", "Strong"], hint: "Lacking courage." },
+      { question: "What does 'reluctant' mean?", answer: "Unwilling", wrong: ["Eager", "Ready", "Excited"], hint: "Hesitant or not wanting to do something." }
+    ],
+    hard: [
+      { question: "Select the synonym of 'ephemeral'.", answer: "Short-lived", wrong: ["Eternal", "Beautiful", "Scary"], hint: "Lasting for a very short time." },
+      { question: "What is the meaning of 'loquacious'?", answer: "Talkative", wrong: ["Silent", "Smart", "Shy"], hint: "Tending to talk a great deal." },
+      { question: "What is an antonym of 'cacophony'?", answer: "Harmony", wrong: ["Noise", "Chaos", "Disorder"], hint: "A pleasing combination of sounds." },
+      { question: "What does 'capricious' mean?", answer: "Fickle", wrong: ["Stable", "Generous", "Angry"], hint: "Given to sudden changes of mood." },
+      { question: "Choose the synonym of 'pernicious'.", answer: "Harmful", wrong: ["Beneficial", "Pleasant", "Innocent"], hint: "Having a harmful effect." },
+      { question: "What is the antonym of 'nadir'?", answer: "Zenith", wrong: ["Bottom", "Lowest", "Center"], hint: "The highest point." }
+    ]
+  },
+  grammar: {
+    easy: [
+      { question: "Choose the correct verb: She ___ to school every day.", answer: "walks", wrong: ["walk", "walking", "walked"], hint: "Present tense third-person singular." },
+      { question: "Identify the noun: 'The blue car drove fast.'", answer: "car", wrong: ["blue", "drove", "fast"], hint: "A person, place, or thing." },
+      { question: "Choose the correct pronoun: ___ went to the park.", answer: "They", wrong: ["Us", "Them", "Me"], hint: "Subject pronoun plural." },
+      { question: "Select the adjective: 'The sweet apple fell.'", answer: "sweet", wrong: ["apple", "fell", "the"], hint: "Describes a noun." },
+      { question: "Choose the correct verb: The dogs ___ in the yard.", answer: "are playing", wrong: ["is playing", "plays", "was playing"], hint: "Plural subject takes a plural verb." },
+      { question: "Which is a proper noun?", answer: "London", wrong: ["city", "country", "river"], hint: "The specific name of a place." }
+    ],
+    medium: [
+      { question: "Choose the correct tense: By this time tomorrow, we ___ our exams.", answer: "will have finished", wrong: ["will finish", "finish", "are finishing"], hint: "Future perfect tense for actions completed in the future." },
+      { question: "Fill in the blank: Neither the teacher nor the students ___ present.", answer: "were", wrong: ["was", "is", "am"], hint: "In 'neither/nor', the verb agrees with the closer subject." },
+      { question: "Choose the correct preposition: She is good ___ drawing.", answer: "at", wrong: ["in", "on", "with"], hint: "Expresses ability in an activity." },
+      { question: "Choose the correct pronoun: This book belongs to Jack and ___.", answer: "me", wrong: ["I", "myself", "we"], hint: "Use the object pronoun." },
+      { question: "Select the correct form: He runs ___ than his brother.", answer: "faster", wrong: ["more fast", "fastest", "more faster"], hint: "Comparative form of fast." },
+      { question: "Identify the conjunction: 'I like milk, but she prefers juice.'", answer: "but", wrong: ["like", "she", "prefers"], hint: "Connects two independent clauses." }
+    ],
+    hard: [
+      { question: "Identify the subjunctive mood statement:", answer: "If I were rich, I would travel.", wrong: ["If I was rich, I would travel.", "I am rich and I travel.", "I wish to travel."], hint: "Hypothetical situations use 'were' instead of 'was'." },
+      { question: "Identify the dangling modifier sentence:", answer: "Walking down the street, the trees looked beautiful.", wrong: ["As I walked down the street, the trees looked beautiful.", "Walking down the street, I admired the beautiful trees.", "The trees looked beautiful while walking down the street."], hint: "The modifier lacks a clear subject to describe." },
+      { question: "Choose the correct word: To ___ did you send the letter?", answer: "whom", wrong: ["who", "whose", "which"], hint: "Object of the preposition 'to'." },
+      { question: "Identify the passive voice sentence:", answer: "The cake was baked by Sarah.", wrong: ["Sarah baked the cake.", "Sarah was baking a cake.", "The cake is delicious."], hint: "Subject receives the action." },
+      { question: "Select the correct word: The weather will ___ our plans.", answer: "affect", wrong: ["effect", "affects", "effected"], hint: "Verb meaning to influence." },
+      { question: "Choose the correct punctuation mark for a sudden break in thought:", answer: "Em dash (—)", wrong: ["Semicolon (;)", "Comma (,)", "Hyphen (-)"], hint: "Used to indicate an abrupt change." }
+    ]
+  },
+  spelling: {
+    easy: [
+      { question: "Which word is spelled correctly?", answer: "Receive", wrong: ["Recieve", "Receve", "Receivee"], hint: "Remember: 'I before E except after C'." },
+      { question: "Identify the correct spelling:", answer: "Definitely", wrong: ["Definately", "Definitly", "Defenitely"], hint: "Derived from 'definite'." },
+      { question: "Which of the following is correct?", answer: "Tomorrow", wrong: ["Tommorow", "Tomorow", "Tommorrow"], hint: "One 'm' and two 'r's." },
+      { question: "Choose the correct spelling:", answer: "Friend", wrong: ["Freind", "Frind", "Friende"], hint: "F-R-I-E-N-D." },
+      { question: "Find the correctly spelled homophone: Look over ___!", answer: "there", wrong: ["their", "they're", "thare"], hint: "Refers to a place." },
+      { question: "Select the correct spelling:", answer: "Until", wrong: ["Untill", "Untel", "Unetil"], hint: "Only ends with one 'l'." }
+    ],
+    medium: [
+      { question: "Find the correct spelling:", answer: "Occurred", wrong: ["Ocured", "Occured", "Ocurred"], hint: "Double 'c' and double 'r'." },
+      { question: "Which word is spelled correctly?", answer: "Accommodate", wrong: ["Accomodate", "Acomodate", "Acommodate"], hint: "Double 'c' and double 'm'." },
+      { question: "Select the correct spelling:", answer: "Calendar", wrong: ["Calender", "Colendar", "Calandar"], hint: "Ends with '-ar'." },
+      { question: "Find the correct spelling:", answer: "Separate", wrong: ["Seperate", "Saparate", "Seprate"], hint: "There is 'a rat' in separate." },
+      { question: "Which spelling is correct?", answer: "Dilemma", wrong: ["Dilema", "Dylemma", "Dillema"], hint: "D-I-L-E-M-M-A." },
+      { question: "Find the correct spelling:", answer: "Foreign", wrong: ["Foriegn", "Forign", "Forein"], hint: "F-O-R-E-I-G-N." }
+    ],
+    hard: [
+      { question: "Which spelling is correct?", answer: "Supersede", wrong: ["Supercede", "Superceed", "Superseed"], hint: "Ends with '-sede', meaning to take the place of." },
+      { question: "Select the correct spelling:", answer: "Mischievous", wrong: ["Mischevious", "Mischivous", "Mischievious"], hint: "Three syllables: mis-chiev-ous." },
+      { question: "Which word is spelled correctly?", answer: "Conscientious", wrong: ["Consciencious", "Consientious", "Conscientous"], hint: "Contains 'science'." },
+      { question: "Select the correct spelling:", answer: "Pharaoh", wrong: ["Pharoah", "Phaorah", "Pharaohs"], hint: "Ends with '-aoh'." },
+      { question: "Find the correct spelling:", answer: "Liaison", wrong: ["Liason", "Liaisonn", "Liasion"], hint: "L-I-A-I-S-O-N." },
+      { question: "Which spelling is correct?", answer: "Maintenance", wrong: ["Maintainance", "Maintenence", "Maintenanse"], hint: "Derived from maintain, but spelled with '-ten-'" }
+    ]
+  },
+  idioms: {
+    easy: [
+      { question: "What does 'break a leg' mean?", answer: "Good luck", wrong: ["Get hurt", "Dance well", "Stop playing"], hint: "Often said to actors before a show." },
+      { question: "What does 'a piece of cake' mean?", answer: "Very easy", wrong: ["Delicious food", "A birthday gift", "A small portion"], hint: "Something simple to do." },
+      { question: "What does 'under the weather' mean?", answer: "Sick", wrong: ["Raining", "Happy", "Cold"], hint: "Feeling slightly unwell." },
+      { question: "What does 'once in a blue moon' mean?", answer: "Very rarely", wrong: ["Every month", "At night", "Frequently"], hint: "An event that happens very seldom." },
+      { question: "What does 'cost an arm and a leg' mean?", answer: "Very expensive", wrong: ["Cheap", "Painful", "Fair price"], hint: "A very high price." },
+      { question: "What does 'let the cat out of the bag' mean?", answer: "Reveal a secret", wrong: ["Free a pet", "Be quiet", "Get angry"], hint: "Accidentally sharing information." }
+    ],
+    medium: [
+      { question: "What does 'spill the beans' mean?", answer: "Reveal a secret", wrong: ["Drop food", "Cook dinner", "Make a mess"], hint: "Letting info slip." },
+      { question: "What does 'burn the midnight oil' mean?", answer: "Work late into the night", wrong: ["Waste energy", "Light a candle", "Start a fire"], hint: "Studying or working late." },
+      { question: "What does 'bite the bullet' mean?", answer: "Face a difficult situation with courage", wrong: ["Eat something hard", "Shoot a gun", "Get angry"], hint: "Getting an inevitable painful task over with." },
+      { question: "What does 'hit the nail on the head' mean?", answer: "Describe exactly what is causing a situation", wrong: ["Do carpentry", "Make a mistake", "Hurt yourself"], hint: "Being completely correct." },
+      { question: "What does 'call it a day' mean?", answer: "Stop working on something", wrong: ["Name the day", "Start working", "Go to sleep"], hint: "Deciding to end an activity." },
+      { question: "What does 'blessing in disguise' mean?", answer: "A good thing that seemed bad at first", wrong: ["A secret gift", "A magical spell", "A religious ceremony"], hint: "Something positive coming from a negative event." }
+    ],
+    hard: [
+      { question: "What does 'barking up the wrong tree' mean?", answer: "Looking in the wrong place", wrong: ["Chasing a dog", "Climbing trees", "Shouting at someone"], hint: "Pursuing a mistaken line of thought." },
+      { question: "What does 'throw in the towel' mean?", answer: "Give up or surrender", wrong: ["Clean up", "Start a fight", "Go swimming"], hint: "Admitting defeat." },
+      { question: "What does 'hear it on the grapevine' mean?", answer: "Hear a rumor or gossip", wrong: ["Listen to music", "Eat grapes", "Talk on the phone"], hint: "Learning news informally." },
+      { question: "What does 'take with a grain of salt' mean?", answer: "Do not take too seriously or literally", wrong: ["Add seasoning", "Be skeptical of food", "Believe completely"], hint: "Accepting with healthy doubt." },
+      { question: "What does 'devil's advocate' mean?", answer: "Presenting an opposing opinion for debate", wrong: ["An evil lawyer", "A bad friend", "A supporter of rules"], hint: "Arguing the counterpoint." },
+      { question: "What does 'cut corners' mean?", answer: "Do something badly or cheaply to save time/money", wrong: ["Trim paper", "Take a shortcut while walking", "Drive fast around curves"], hint: "Compromising quality for speed." }
+    ]
+  }
+};
 
 function generateTugProblem(categoryId: string, difficulty: TugRoomConfig['difficulty']): TugProblem {
   let cat = categoryId;
@@ -156,214 +265,33 @@ function generateTugProblem(categoryId: string, difficulty: TugRoomConfig['diffi
     cat = list[Math.floor(Math.random() * list.length)].id;
   }
 
-  let question = "";
-  let answerVal = 0;
-  let answerStr = "";
-  let hint = "";
+  const catPool = PROBLEMS[cat] || PROBLEMS.vocabulary;
+  const diff = (difficulty === "adaptive" ? "medium" : difficulty) as 'easy' | 'medium' | 'hard';
+  const pool = catPool[diff] || catPool.easy;
 
-  // Helper ranges based on difficulty
-  const easyMax = 12;
-  const medMax = 50;
-  const hardMax = 100;
+  const raw = pool[Math.floor(Math.random() * pool.length)];
 
-  switch (cat) {
-    case "addition": {
-      let a = 0, b = 0;
-      if (difficulty === "easy") {
-        a = 3 + Math.floor(Math.random() * 15);
-        b = 3 + Math.floor(Math.random() * 15);
-      } else if (difficulty === "medium" || difficulty === "adaptive") {
-        a = 15 + Math.floor(Math.random() * 85);
-        b = 15 + Math.floor(Math.random() * 85);
-      } else {
-        a = 100 + Math.floor(Math.random() * 900);
-        b = 100 + Math.floor(Math.random() * 900);
-      }
-      answerVal = a + b;
-      question = `${a} + ${b}`;
-      hint = `Line up the digits: ${a} + ${b} = ${answerVal}`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "subtraction": {
-      let a = 0, b = 0;
-      if (difficulty === "easy") {
-        a = 10 + Math.floor(Math.random() * 20);
-        b = 1 + Math.floor(Math.random() * a);
-      } else if (difficulty === "medium" || difficulty === "adaptive") {
-        a = 50 + Math.floor(Math.random() * 150);
-        b = 10 + Math.floor(Math.random() * (a - 10));
-      } else {
-        a = 300 + Math.floor(Math.random() * 700);
-        b = 100 + Math.floor(Math.random() * (a - 100));
-      }
-      answerVal = a - b;
-      question = `${a} - ${b}`;
-      hint = `Subtract digits carefully: ${a} - ${b} = ${answerVal}`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "multiplication": {
-      let a = 0, b = 0;
-      if (difficulty === "easy") {
-        a = 2 + Math.floor(Math.random() * 8);
-        b = 2 + Math.floor(Math.random() * 10);
-      } else if (difficulty === "medium" || difficulty === "adaptive") {
-        a = 6 + Math.floor(Math.random() * 14);
-        b = 4 + Math.floor(Math.random() * 12);
-      } else {
-        a = 12 + Math.floor(Math.random() * 38);
-        b = 6 + Math.floor(Math.random() * 20);
-      }
-      answerVal = a * b;
-      question = `${a} × ${b}`;
-      hint = `Multiply ${a} by ${b} to get ${answerVal}`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "division": {
-      let divisor = 0, quotient = 0;
-      if (difficulty === "easy") {
-        divisor = 2 + Math.floor(Math.random() * 5);
-        quotient = 2 + Math.floor(Math.random() * 8);
-      } else if (difficulty === "medium" || difficulty === "adaptive") {
-        divisor = 4 + Math.floor(Math.random() * 9);
-        quotient = 8 + Math.floor(Math.random() * 12);
-      } else {
-        divisor = 11 + Math.floor(Math.random() * 15);
-        quotient = 12 + Math.floor(Math.random() * 38);
-      }
-      const dividend = divisor * quotient;
-      answerVal = quotient;
-      question = `${dividend} ÷ ${divisor}`;
-      hint = `What number multiplied by ${divisor} equals ${dividend}? (${divisor} × ${quotient} = ${dividend})`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "fractions": {
-      // Return fractions with same denominators for simplicity
-      const d = 4 + Math.ceil(Math.random() * 8) * 2; // e.g. 6, 8, 10
-      const a = 1 + Math.floor(Math.random() * (d / 2 - 1));
-      const b = 1 + Math.floor(Math.random() * (d / 2 - 1));
-      question = `${a}/${d} + ${b}/${d}`;
-      const sumNum = a + b;
-      // simplify if possible
-      const gcd = (x: number, y: number): number => (y === 0 ? x : gcd(y, x % y));
-      const common = gcd(sumNum, d);
-      answerStr = `${sumNum / common}/${d / common}`;
-      if (sumNum / common === d / common) answerStr = "1";
-      hint = `Add the numerators together and simplify: (${a} + ${b})/${d} = ${sumNum}/${d}`;
-      break;
-    }
-    case "decimals": {
-      let a = 0, b = 0;
-      if (difficulty === "easy") {
-        a = 1 + Math.floor(Math.random() * 9);
-        b = 1 + Math.floor(Math.random() * 9);
-        question = `${(a / 10).toFixed(1)} + ${(b / 10).toFixed(1)}`;
-        answerStr = ((a + b) / 10).toFixed(1);
-      } else {
-        a = 10 + Math.floor(Math.random() * 90);
-        b = 10 + Math.floor(Math.random() * 90);
-        question = `${(a / 100).toFixed(2)} + ${(b / 100).toFixed(2)}`;
-        answerStr = ((a + b) / 100).toFixed(2);
-      }
-      hint = `Add decimals just like whole numbers, keeping the decimal point aligned.`;
-      break;
-    }
-    case "percentages": {
-      const bases = [40, 50, 60, 80, 100, 120, 150, 200, 300, 500];
-      const percents = [10, 20, 25, 30, 40, 50, 75, 90];
-      const base = bases[Math.floor(Math.random() * bases.length)];
-      const pct = percents[Math.floor(Math.random() * percents.length)];
-      answerVal = (base * pct) / 100;
-      question = `${pct}% of ${base}`;
-      hint = `${pct}% is the same as ${pct}/100 or ${pct/100}. ${pct/100} × ${base} = ${answerVal}`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "algebra": {
-      const x = 3 + Math.floor(Math.random() * 12);
-      const coeff = 2 + Math.floor(Math.random() * 5);
-      const constant = 2 + Math.floor(Math.random() * 20);
-      const right = coeff * x + constant;
-      question = `Solve for x: ${coeff}x + ${constant} = ${right}`;
-      answerStr = `x = ${x}`;
-      hint = `Subtract ${constant} from both sides: ${coeff}x = ${right - constant}. Divide by ${coeff}: x = ${x}`;
-      break;
-    }
-    case "geometry": {
-      const types = ["rectangle", "square", "triangle"];
-      const type = types[Math.floor(Math.random() * types.length)];
-      if (type === "rectangle") {
-        const w = 4 + Math.floor(Math.random() * 8);
-        const l = w + 2 + Math.floor(Math.random() * 6);
-        question = `Area of rectangle: length = ${l}, width = ${w}`;
-        answerVal = l * w;
-        hint = `Area = length × width = ${l} × ${w} = ${answerVal}`;
-      } else if (type === "square") {
-        const s = 4 + Math.floor(Math.random() * 10);
-        question = `Perimeter of square: side = ${s}`;
-        answerVal = s * 4;
-        hint = `Perimeter = 4 × side = 4 × ${s} = ${answerVal}`;
-      } else {
-        const base = 6 + Math.floor(Math.random() * 12);
-        const height = 4 + Math.floor(Math.random() * 6);
-        question = `Area of triangle: base = ${base}, height = ${height}`;
-        answerVal = 0.5 * base * height;
-        hint = `Area = 0.5 × base × height = 0.5 × ${base} × ${height} = ${answerVal}`;
-      }
-      answerStr = answerVal.toString();
-      break;
-    }
-    default: {
-      question = "2 + 2";
-      answerStr = "4";
-      break;
-    }
-  }
-
-  // Generate 3 incorrect distractors
   const optionsSet = new Set<string>();
-  optionsSet.add(answerStr);
+  optionsSet.add(raw.answer);
+  raw.wrong.forEach((w) => optionsSet.add(w));
 
-  const numAns = parseFloat(answerStr);
-  const isFraction = answerStr.includes("/");
-  const isAlgebra = answerStr.startsWith("x = ");
-
-  while (optionsSet.size < 4) {
-    if (isAlgebra) {
-      const wrongX = Math.max(1, Math.round(numAns + (-3 + Math.floor(Math.random() * 7))));
-      optionsSet.add(`x = ${wrongX}`);
-    } else if (isFraction) {
-      const [num, den] = answerStr.split("/").map(Number);
-      const wrongNum = Math.max(1, num + (-2 + Math.floor(Math.random() * 5)));
-      optionsSet.add(`${wrongNum}/${den}`);
-    } else if (isNaN(numAns)) {
-      optionsSet.add(answerStr + Math.floor(Math.random() * 10));
-    } else {
-      // Whole numbers or decimals
-      let offset = -15 + Math.floor(Math.random() * 31);
-      if (offset === 0) offset = Math.random() > 0.5 ? 5 : -5;
-      const wrongVal = Math.round((numAns + offset) * 10) / 10;
-      if (wrongVal > 0) {
-        optionsSet.add(wrongVal.toString());
-      }
-    }
+  const fallbackWrong = ["None of these", "All of these", "Something else", "N/A"];
+  let padIdx = 0;
+  while (optionsSet.size < 4 && padIdx < fallbackWrong.length) {
+    optionsSet.add(fallbackWrong[padIdx++]);
   }
 
   const options = Array.from(optionsSet);
-  // Shuffle options
   for (let i = options.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [options[i], options[j]] = [options[j], options[i]];
   }
 
   return {
-    question,
-    answer: answerStr,
+    question: raw.question,
+    answer: raw.answer,
     options,
-    solutionHint: hint,
+    solutionHint: raw.hint,
   };
 }
 
@@ -380,7 +308,7 @@ interface LocalTeamState {
 // ---------------------------------------------------------
 // MAIN COMPONENT
 // ---------------------------------------------------------
-export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () => void }) {
+export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () => void }) {
   const { toast } = useToast();
 
   // Screen states
@@ -397,7 +325,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
   // LOCAL GAME STATE
   // -------------------------------------------------------
   const [localMode, setLocalMode] = React.useState<"pvp" | "team">("pvp");
-  const [localCategory, setLocalCategory] = React.useState("addition");
+  const [localCategory, setLocalCategory] = React.useState("vocabulary");
   const [localDifficulty, setLocalDifficulty] = React.useState<TugRoomConfig['difficulty']>("easy");
   const [localWinPulls, setLocalWinPulls] = React.useState(5);
   const [localTimerLimit, setLocalTimerLimit] = React.useState(15);
@@ -432,7 +360,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
   const [isCreator, setIsCreator] = React.useState(false);
   const [isBusy, setIsBusy] = React.useState(false);
   const [onlineError, setOnlineError] = React.useState("");
-  const [onlineCategory, setOnlineCategory] = React.useState("addition");
+  const [onlineCategory, setOnlineCategory] = React.useState("vocabulary");
   const [onlineDifficulty, setOnlineDifficulty] = React.useState<TugRoomConfig['difficulty']>("easy");
   const [onlineWinPulls, setOnlineWinPulls] = React.useState(5);
   const [onlineTimerLimit, setOnlineTimerLimit] = React.useState(15);
@@ -787,8 +715,8 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
           <div className="mx-auto w-24 h-24 rounded-3xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-xl shadow-indigo-500/5">
             <Swords className="h-12 w-12" />
           </div>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white font-display">Tug of War Math</h2>
-          <p className="text-slate-400 text-sm sm:text-base max-w-md mx-auto">Knowledge is power! Pull the rope to your side and claim victory by solving math equations faster than your opponent.</p>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white font-display">English Tug of War</h2>
+          <p className="text-slate-400 text-sm sm:text-base max-w-md mx-auto">Knowledge is power! Pull the rope to your side and claim victory by answering English questions faster than your opponent.</p>
         </div>
 
         <div className="grid gap-4 pt-2">
@@ -861,7 +789,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
 
         <div className="space-y-6">
           <div className="space-y-3">
-            <Label className="text-sm font-black text-slate-200">Choose Math Category</Label>
+            <Label className="text-sm font-black text-slate-200">Choose English Category</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {CATEGORIES.map((c) => (
                 <button key={c.id} onClick={() => { sfx.playBeep(380, 0.05); setLocalCategory(c.id); }}
@@ -1215,7 +1143,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
             <Label className="text-sm font-black uppercase text-purple-400 tracking-wider">Host a Room</Label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <span className="text-xs font-black text-slate-400">Math Topic</span>
+                <span className="text-xs font-black text-slate-400">English Topic</span>
                 <select value={onlineCategory} onChange={(e) => setOnlineCategory(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none">
                   {CATEGORIES.map((c) => (
@@ -1761,8 +1689,8 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
             <Swords className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-base font-black tracking-tight text-white font-display">MATH TUG OF WAR</h1>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Battle of the Brains</p>
+            <h1 className="text-base font-black tracking-tight text-white font-display">ENGLISH TUG OF WAR</h1>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Battle of the Words</p>
           </div>
         </div>
 
