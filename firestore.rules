@@ -204,6 +204,15 @@ service cloud.firestore {
         resource.data.creatorId == request.auth.uid || isAdmin()
       );
     }
+
+    match /math_tug_rooms/{roomCode} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if request.auth != null && (
+        resource.data.creatorId == request.auth.uid || isAdmin()
+      );
+    }
   }
 }
 

@@ -858,6 +858,15 @@ export const allGames: Game[] = [
     subject: "math",
     icon: Palette,
   },
+  {
+    title: "Math Tug of War",
+    slug: "math-tug-of-war",
+    description: "Compete in a battle of brains! Answer equations correctly to pull the rope to your side and win the tug of war!",
+    level: "intermediate",
+    focus: "geometry",
+    subject: "math",
+    icon: Swords,
+  },
 ];
 
 export const getGameBySlug = (slug: string) => {
