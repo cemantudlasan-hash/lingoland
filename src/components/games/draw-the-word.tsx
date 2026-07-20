@@ -147,6 +147,7 @@ interface LocalPlayer {
   isFinished: boolean; finishTimeRemaining: number;
   canvasPathsCount: number; teacherChecked: boolean; teacherApproved: boolean | null;
   aiMatchScore: number; aiCommentary: string;
+  canvasData: string;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -262,13 +263,20 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [timer, timerActive]);
 
+  // Pause timer when all local players submit their solutions
+  React.useEffect(() => {
+    if (localGameState === "playing" && localPlayers.length > 0 && localPlayers.every((p) => p.isFinished) && timerActive) {
+      setTimerActive(false);
+    }
+  }, [localPlayers, timerActive, localGameState]);
+
   const clearAllCanvases = async (pList: LocalPlayer[]) => {
     for (const p of pList) { try { await canvasRefs.current[p.id]?.clearCanvas(); } catch {} }
   };
 
   const startLocalRound = (roundNum: number, activePlayers = localPlayers) => {
     const { word, newUsed } = pickWord(selectedCategoryId, usedWords);
-    const reset = activePlayers.map((p) => ({ ...p, isFinished: false, finishTimeRemaining: 0, canvasPathsCount: 0, teacherChecked: false, teacherApproved: null, aiMatchScore: 0, aiCommentary: "" }));
+    const reset = activePlayers.map((p) => ({ ...p, isFinished: false, finishTimeRemaining: 0, canvasPathsCount: 0, canvasData: "", teacherChecked: false, teacherApproved: null, aiMatchScore: 0, aiCommentary: "" }));
     setLocalPlayers(reset);
     setUsedWords(newUsed);
     setCurrentWord(word);
@@ -289,6 +297,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
       id: i + 1, name: playerNames[i]?.trim() || `Player ${i + 1}`, score: 0,
       isFinished: false, finishTimeRemaining: 0, canvasPathsCount: 0,
       teacherChecked: false, teacherApproved: null, aiMatchScore: 0, aiCommentary: "",
+      canvasData: "",
     }));
     setLocalPlayers(initial);
     setUsedWords([]);
@@ -301,8 +310,13 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
   const handleLocalPlayerFinished = async (playerId: number) => {
     sfx.playBeep(480, 0.08);
     let pathsCount = 0;
-    try { const paths = await canvasRefs.current[playerId]?.exportPaths(); pathsCount = paths?.length ?? 0; } catch {}
-    setLocalPlayers((prev) => prev.map((p) => p.id === playerId ? { ...p, isFinished: true, finishTimeRemaining: timer, canvasPathsCount: pathsCount } : p));
+    let canvasDataStr = "";
+    try {
+      const paths = await canvasRefs.current[playerId]?.exportPaths();
+      pathsCount = paths?.length ?? 0;
+      canvasDataStr = JSON.stringify(paths || []);
+    } catch {}
+    setLocalPlayers((prev) => prev.map((p) => p.id === playerId ? { ...p, isFinished: true, finishTimeRemaining: timer, canvasPathsCount: pathsCount, canvasData: canvasDataStr } : p));
     toast({ title: `${localPlayers.find((p) => p.id === playerId)?.name} finished! 🏁`, duration: 2000 });
   };
 
@@ -314,8 +328,13 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
       for (let i = 0; i < updated.length; i++) {
         if (!updated[i].isFinished) {
           let pc = 0;
-          try { const paths = await canvasRefs.current[updated[i].id]?.exportPaths(); pc = paths?.length ?? 0; } catch {}
-          updated[i] = { ...updated[i], isFinished: true, finishTimeRemaining: 0, canvasPathsCount: pc };
+          let canvasDataStr = "";
+          try {
+            const paths = await canvasRefs.current[updated[i].id]?.exportPaths();
+            pc = paths?.length ?? 0;
+            canvasDataStr = JSON.stringify(paths || []);
+          } catch {}
+          updated[i] = { ...updated[i], isFinished: true, finishTimeRemaining: 0, canvasPathsCount: pc, canvasData: canvasDataStr };
         }
       }
       setLocalPlayers(updated);
@@ -1047,16 +1066,7 @@ export function DrawTheWord({ slug, onToggleFullscreen }: { slug: string; onTogg
                 </div>
               </div>
               <div className="rounded-xl overflow-hidden border border-slate-700" style={{ height: 220 }}>
-                {/* @ts-ignore */}
-                <DynamicCanvas
-                  ref={(el: ReactSketchCanvasRef | null) => { canvasRefs.current[player.id] = el; }}
-                  readOnly
-                  strokeColor="#000"
-                  strokeWidth={1}
-                  canvasColor="white"
-                  height="220px"
-                  width="100%"
-                />
+                <SubmittedDrawingViewer canvasData={player.canvasData} />
               </div>
               {!player.teacherChecked && (
                 <div className="flex gap-2">
