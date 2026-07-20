@@ -138,8 +138,12 @@ interface TugProblem {
 
 const CATEGORIES = [
   { id: "vocabulary", name: "Vocabulary", emoji: "📖", desc: "Synonyms, antonyms, and word meanings" },
-  { id: "grammar", name: "Grammar & Syntax", emoji: "✍️", desc: "Tenses, pronouns, and sentence structures" },
-  { id: "spelling", name: "Spelling Bee", emoji: "🐝", desc: "Common spelling traps and homophones" },
+  { id: "verb_to_be", name: "Verb to Be", emoji: "🐝", desc: "Am, is, are, was, were and agreement" },
+  { id: "past_simple", name: "Past Simple", emoji: "⏰", desc: "Past simple tense regular and irregular verbs" },
+  { id: "past_perfect", name: "Past Perfect", emoji: "⏳", desc: "Actions completed before another past action (had + V3)" },
+  { id: "future_tense", name: "Future Tense", emoji: "🔮", desc: "Future predictions & plans (will / going to)" },
+  { id: "parts_of_speech", name: "Parts of Speech", emoji: "🏷️", desc: "Nouns, verbs, adjectives, prepositions and pronouns" },
+  { id: "spelling", name: "Spelling Bee", emoji: "🔤", desc: "Common spelling traps and homophones" },
   { id: "idioms", name: "Idioms & Sayings", emoji: "💡", desc: "Fill in the blank for common expressions" },
   { id: "mixed", name: "Mixed English", emoji: "🎲", desc: "All categories combined" },
 ];
@@ -159,7 +163,16 @@ const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; h
       { question: "Choose the synonym of 'quick'.", answer: "Fast", wrong: ["Slow", "Heavy", "Quiet"], hint: "Rapid movement." },
       { question: "What is the opposite of 'large'?", answer: "Small", wrong: ["Big", "Huge", "Wide"], hint: "Little in size." },
       { question: "What does 'begin' mean?", answer: "Start", wrong: ["Finish", "Stop", "Pause"], hint: "To commence something." },
-      { question: "Choose the synonym of 'silent'.", answer: "Quiet", wrong: ["Loud", "Noisy", "Active"], hint: "Without noise." }
+      { question: "Choose the synonym of 'silent'.", answer: "Quiet", wrong: ["Loud", "Noisy", "Active"], hint: "Without noise." },
+      { question: "What is the antonym of 'easy'?", answer: "Hard", wrong: ["Soft", "Light", "Simple"], hint: "Difficult to do." },
+      { question: "Choose the synonym of 'angry'.", answer: "Mad", wrong: ["Glad", "Sad", "Silly"], hint: "Feeling annoyed or displeased." },
+      { question: "What is the opposite of 'always'?", answer: "Never", wrong: ["Often", "Sometimes", "Usually"], hint: "At no time." },
+      { question: "What is a synonym for 'neat'?", answer: "Tidy", wrong: ["Messy", "Dirty", "Rough"], hint: "Organized and clean." },
+      { question: "What is the opposite of 'sweet'?", answer: "Sour", wrong: ["Sugar", "Tasty", "Soft"], hint: "Tasting like lemon or vinegar." },
+      { question: "Choose the synonym of 'intelligent'.", answer: "Smart", wrong: ["Dull", "Lazy", "Slow"], hint: "Having quick learning ability." },
+      { question: "What does 'purchase' mean?", answer: "Buy", wrong: ["Sell", "Give", "Keep"], hint: "To acquire by paying money." },
+      { question: "What is the antonym of 'heavy'?", answer: "Light", wrong: ["Hard", "Dark", "Strong"], hint: "Not weighing much." },
+      { question: "Choose the synonym of 'gift'.", answer: "Present", wrong: ["Box", "Reward", "Task"], hint: "Something given voluntarily." }
     ],
     medium: [
       { question: "What is the synonym of 'enormous'?", answer: "Huge", wrong: ["Tiny", "Weak", "Bright"], hint: "Extremely large in size." },
@@ -167,7 +180,16 @@ const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; h
       { question: "What is an antonym of 'assemble'?", answer: "Disperse", wrong: ["Gather", "Create", "Hold"], hint: "To scatter or spread apart." },
       { question: "Choose the synonym of 'abundant'.", answer: "Plentiful", wrong: ["Scarce", "Few", "Empty"], hint: "Existing in large quantities." },
       { question: "What is the antonym of 'brave'?", answer: "Cowardly", wrong: ["Bold", "Fearless", "Strong"], hint: "Lacking courage." },
-      { question: "What does 'reluctant' mean?", answer: "Unwilling", wrong: ["Eager", "Ready", "Excited"], hint: "Hesitant or not wanting to do something." }
+      { question: "What does 'reluctant' mean?", answer: "Unwilling", wrong: ["Eager", "Ready", "Excited"], hint: "Hesitant or not wanting to do something." },
+      { question: "What does 'cease' mean?", answer: "Stop", wrong: ["Start", "Continue", "Prolong"], hint: "To bring or come to an end." },
+      { question: "Choose the synonym of 'generous'.", answer: "Giving", wrong: ["Greedy", "Selfish", "Mean"], hint: "Willing to give money or help." },
+      { question: "What does 'fragile' mean?", answer: "Delicate", wrong: ["Strong", "Heavy", "Rough"], hint: "Easily broken or damaged." },
+      { question: "What is the antonym of 'hostile'?", answer: "Friendly", wrong: ["Angry", "Mean", "Silent"], hint: "Opposite of showing opposition or dislike." },
+      { question: "Select the synonym of 'obvious'.", answer: "Clear", wrong: ["Hidden", "Difficult", "Vague"], hint: "Easy to see or understand." },
+      { question: "What does 'initial' mean?", answer: "First", wrong: ["Last", "Middle", "Final"], hint: "Existing or occurring at the beginning." },
+      { question: "Choose the synonym of 'constant'.", answer: "Steady", wrong: ["Changing", "Rare", "Quick"], hint: "Occurring continuously over time." },
+      { question: "What is the antonym of 'ancient'?", answer: "Modern", wrong: ["Old", "Dirty", "Broken"], hint: "Opposite of belonging to the very distant past." },
+      { question: "Choose the synonym of 'valiant'.", answer: "Brave", wrong: ["Fearful", "Weak", "Lazy"], hint: "Showing courage or determination." }
     ],
     hard: [
       { question: "Select the synonym of 'ephemeral'.", answer: "Short-lived", wrong: ["Eternal", "Beautiful", "Scary"], hint: "Lasting for a very short time." },
@@ -175,33 +197,281 @@ const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; h
       { question: "What is an antonym of 'cacophony'?", answer: "Harmony", wrong: ["Noise", "Chaos", "Disorder"], hint: "A pleasing combination of sounds." },
       { question: "What does 'capricious' mean?", answer: "Fickle", wrong: ["Stable", "Generous", "Angry"], hint: "Given to sudden changes of mood." },
       { question: "Choose the synonym of 'pernicious'.", answer: "Harmful", wrong: ["Beneficial", "Pleasant", "Innocent"], hint: "Having a harmful effect." },
-      { question: "What is the antonym of 'nadir'?", answer: "Zenith", wrong: ["Bottom", "Lowest", "Center"], hint: "The highest point." }
+      { question: "What is the antonym of 'nadir'?", answer: "Zenith", wrong: ["Bottom", "Lowest", "Center"], hint: "The highest point." },
+      { question: "Choose the synonym of 'alacrity'.", answer: "Eagerness", wrong: ["Apathy", "Sadness", "Fear"], hint: "Brisk and cheerful readiness." },
+      { question: "What is the meaning of 'taciturn'?", answer: "Silent", wrong: ["Talkative", "Loud", "Happy"], hint: "Reserved or uncommunicative in speech." },
+      { question: "Choose the synonym of 'mitigate'.", answer: "Lessen", wrong: ["Increase", "Worsen", "Create"], hint: "To make less severe, serious, or painful." },
+      { question: "Select the synonym of 'voracious'.", answer: "Greedy", wrong: ["Full", "Generous", "Satisfied"], hint: "Wanting or devouring great quantities of food or information." },
+      { question: "What does 'equivocal' mean?", answer: "Vague", wrong: ["Clear", "Direct", "Certain"], hint: "Open to more than one interpretation." },
+      { question: "Choose the synonym of 'gregarious'.", answer: "Sociable", wrong: ["Shy", "Quiet", "Hostile"], hint: "Fond of company." },
+      { question: "What does 'ubiquitous' mean?", answer: "Everywhere", wrong: ["Rare", "Unique", "Nowhere"], hint: "Present, appearing, or found everywhere." },
+      { question: "Choose the synonym of 'transient'.", answer: "Temporary", wrong: ["Permanent", "Long", "Sturdy"], hint: "Lasting only for a short time." },
+      { question: "What is the antonym of 'lethargic'?", answer: "Energetic", wrong: ["Lazy", "Tired", "Slow"], hint: "Opposite of sluggish and apathetic." }
     ]
   },
-  grammar: {
+  verb_to_be: {
     easy: [
-      { question: "Choose the correct verb: She ___ to school every day.", answer: "walks", wrong: ["walk", "walking", "walked"], hint: "Present tense third-person singular." },
-      { question: "Identify the noun: 'The blue car drove fast.'", answer: "car", wrong: ["blue", "drove", "fast"], hint: "A person, place, or thing." },
-      { question: "Choose the correct pronoun: ___ went to the park.", answer: "They", wrong: ["Us", "Them", "Me"], hint: "Subject pronoun plural." },
-      { question: "Select the adjective: 'The sweet apple fell.'", answer: "sweet", wrong: ["apple", "fell", "the"], hint: "Describes a noun." },
-      { question: "Choose the correct verb: The dogs ___ in the yard.", answer: "are playing", wrong: ["is playing", "plays", "was playing"], hint: "Plural subject takes a plural verb." },
-      { question: "Which is a proper noun?", answer: "London", wrong: ["city", "country", "river"], hint: "The specific name of a place." }
+      { question: "Choose the correct form: I ___ a student.", answer: "am", wrong: ["is", "are", "be"], hint: "First-person singular pronoun takes 'am'." },
+      { question: "Choose the correct form: She ___ my friend.", answer: "is", wrong: ["am", "are", "were"], hint: "Third-person singular takes 'is'." },
+      { question: "Choose the correct form: They ___ playing soccer.", answer: "are", wrong: ["is", "am", "was"], hint: "Plural pronoun takes 'are' in present." },
+      { question: "Choose the correct form: Yesterday, it ___ raining.", answer: "was", wrong: ["is", "am", "were"], hint: "Past singular form for 'it'." },
+      { question: "Choose the correct form: We ___ at school now.", answer: "are", wrong: ["is", "am", "was"], hint: "First-person plural takes 'are'." },
+      { question: "Choose the correct form: You ___ very kind.", answer: "are", wrong: ["is", "am", "be"], hint: "Second-person takes 'are' in present." },
+      { question: "Choose the correct form: He ___ not here today.", answer: "is", wrong: ["am", "are", "be"], hint: "Third-person singular negative." },
+      { question: "Choose the correct form: The dog ___ barking.", answer: "is", wrong: ["are", "am", "were"], hint: "Singular noun takes 'is'." },
+      { question: "Choose the correct form: Last year, they ___ in Grade 5.", answer: "were", wrong: ["was", "are", "is"], hint: "Past plural form for 'they'." },
+      { question: "Choose the correct form: The cat and dog ___ sleeping.", answer: "are", wrong: ["is", "was", "am"], hint: "Compound subject joined by 'and' is plural." },
+      { question: "Choose the correct form: It ___ a sunny day.", answer: "is", wrong: ["am", "are", "be"], hint: "Singular 'it' present tense." },
+      { question: "Choose the correct form: Who ___ you?", answer: "are", wrong: ["is", "am", "was"], hint: "Subject 'you' takes 'are'." },
+      { question: "Choose the correct form: ___ she coming?", answer: "Is", wrong: ["Are", "Am", "Be"], hint: "Question form for singular she." },
+      { question: "Choose the correct form: I ___ tired yesterday.", answer: "was", wrong: ["am", "were", "are"], hint: "Past tense first-person singular." },
+      { question: "Choose the correct form: We ___ happy to help.", answer: "are", wrong: ["is", "am", "was"], hint: "Plural subject takes 'are'." }
     ],
     medium: [
-      { question: "Choose the correct tense: By this time tomorrow, we ___ our exams.", answer: "will have finished", wrong: ["will finish", "finish", "are finishing"], hint: "Future perfect tense for actions completed in the future." },
-      { question: "Fill in the blank: Neither the teacher nor the students ___ present.", answer: "were", wrong: ["was", "is", "am"], hint: "In 'neither/nor', the verb agrees with the closer subject." },
-      { question: "Choose the correct preposition: She is good ___ drawing.", answer: "at", wrong: ["in", "on", "with"], hint: "Expresses ability in an activity." },
-      { question: "Choose the correct pronoun: This book belongs to Jack and ___.", answer: "me", wrong: ["I", "myself", "we"], hint: "Use the object pronoun." },
-      { question: "Select the correct form: He runs ___ than his brother.", answer: "faster", wrong: ["more fast", "fastest", "more faster"], hint: "Comparative form of fast." },
-      { question: "Identify the conjunction: 'I like milk, but she prefers juice.'", answer: "but", wrong: ["like", "she", "prefers"], hint: "Connects two independent clauses." }
+      { question: "Choose the correct form: Neither of the books ___ interesting.", answer: "is", wrong: ["are", "were", "been"], hint: "The subject is 'neither', which is singular." },
+      { question: "Choose the correct form: Each of the students ___ given a pen.", answer: "was", wrong: ["were", "are", "been"], hint: "Subject 'each' takes a singular verb." },
+      { question: "Choose the correct form: The committee ___ meeting tomorrow.", answer: "is", wrong: ["are", "were", "am"], hint: "Collective noun acting as a single unit." },
+      { question: "Choose the correct form: There ___ many reasons to study.", answer: "are", wrong: ["is", "was", "be"], hint: "The real subject 'reasons' is plural." },
+      { question: "Choose the correct form: Either you or he ___ responsible.", answer: "is", wrong: ["are", "am", "were"], hint: "With 'either/or', verb agrees with the closer subject 'he'." },
+      { question: "Choose the correct form: Mathematics ___ my favorite subject.", answer: "is", wrong: ["are", "were", "be"], hint: "Subjects ending in -ics are usually singular." },
+      { question: "Choose the correct form: Ten dollars ___ a lot of money.", answer: "is", wrong: ["are", "were", "be"], hint: "A specific sum of money takes a singular verb." },
+      { question: "Choose the correct form: Both of my brothers ___ doctors.", answer: "are", wrong: ["is", "was", "been"], hint: "'Both' is plural." },
+      { question: "Choose the correct form: One of the cars ___ red.", answer: "is", wrong: ["are", "were", "be"], hint: "The subject 'one' is singular." },
+      { question: "Choose the correct form: The news ___ shocking.", answer: "is", wrong: ["are", "were", "been"], hint: "The noun 'news' is uncountable and singular." },
+      { question: "Choose the correct form: There ___ some water in the glass.", answer: "is", wrong: ["are", "were", "be"], hint: "'Water' is uncountable and singular." },
+      { question: "Choose the correct form: A pack of wolves ___ howling.", answer: "is", wrong: ["are", "were", "be"], hint: "Collective noun 'pack' is singular." },
+      { question: "Choose the correct form: A number of students ___ absent.", answer: "are", wrong: ["is", "was", "been"], hint: "The phrase 'a number of' acts as plural." },
+      { question: "Choose the correct form: None of the milk ___ spoiled.", answer: "is", wrong: ["are", "were", "be"], hint: "'Milk' is uncountable and singular." },
+      { question: "Choose the correct form: Every boy and girl ___ ready.", answer: "is", wrong: ["are", "were", "be"], hint: "Subjects preceded by 'every' take singular verbs." }
     ],
     hard: [
-      { question: "Identify the subjunctive mood statement:", answer: "If I were rich, I would travel.", wrong: ["If I was rich, I would travel.", "I am rich and I travel.", "I wish to travel."], hint: "Hypothetical situations use 'were' instead of 'was'." },
-      { question: "Identify the dangling modifier sentence:", answer: "Walking down the street, the trees looked beautiful.", wrong: ["As I walked down the street, the trees looked beautiful.", "Walking down the street, I admired the beautiful trees.", "The trees looked beautiful while walking down the street."], hint: "The modifier lacks a clear subject to describe." },
-      { question: "Choose the correct word: To ___ did you send the letter?", answer: "whom", wrong: ["who", "whose", "which"], hint: "Object of the preposition 'to'." },
-      { question: "Identify the passive voice sentence:", answer: "The cake was baked by Sarah.", wrong: ["Sarah baked the cake.", "Sarah was baking a cake.", "The cake is delicious."], hint: "Subject receives the action." },
-      { question: "Select the correct word: The weather will ___ our plans.", answer: "affect", wrong: ["effect", "affects", "effected"], hint: "Verb meaning to influence." },
-      { question: "Choose the correct punctuation mark for a sudden break in thought:", answer: "Em dash (—)", wrong: ["Semicolon (;)", "Comma (,)", "Hyphen (-)"], hint: "Used to indicate an abrupt change." }
+      { question: "Choose the correct form: If I ___ you, I would study hard.", answer: "were", wrong: ["was", "am", "be"], hint: "Subjunctive mood for hypothetical statements." },
+      { question: "Choose the correct form: The team members ___ debating the rules.", answer: "are", wrong: ["is", "was", "been"], hint: "Focus is on individual members, which is plural." },
+      { question: "Choose the correct form: Not only the students but also the teacher ___ laughing.", answer: "is", wrong: ["are", "were", "been"], hint: "Agrees with the closer subject 'teacher'." },
+      { question: "Choose the correct form: Economics ___ studied by many.", answer: "is", wrong: ["are", "were", "be"], hint: "'Economics' is a singular subject field." },
+      { question: "Choose the correct form: Fifty miles ___ a long distance.", answer: "is", wrong: ["are", "were", "be"], hint: "Distance is treated as a singular unit." },
+      { question: "Choose the correct form: The jury ___ divided in their opinions.", answer: "were", wrong: ["was", "is", "been"], hint: "Jury members act individually, plural." },
+      { question: "Choose the correct form: Many a student ___ failed this test.", answer: "has been", wrong: ["have been", "is", "are"], hint: "'Many a' singular construction." },
+      { question: "Choose the correct form: A series of lectures ___ scheduled.", answer: "is", wrong: ["are", "were", "been"], hint: "The singular subject is 'series'." },
+      { question: "Choose the correct form: Either the supervisor or the employees ___ blamed.", answer: "are", wrong: ["is", "was", "be"], hint: "Agrees with plural closer subject 'employees'." },
+      { question: "Choose the correct form: All of the cake ___ eaten.", answer: "was", wrong: ["were", "are", "been"], hint: "'All' of uncountable singular 'cake' is singular." },
+      { question: "Choose the correct form: He acts as if he ___ the boss.", answer: "were", wrong: ["was", "is", "am"], hint: "Subjunctive mood for unreal situations." },
+      { question: "Choose the correct form: The majority of the voters ___ in favor.", answer: "are", wrong: ["is", "was", "been"], hint: "Voters are countable plural." },
+      { question: "Choose the correct form: Every one of the boxes ___ heavy.", answer: "is", wrong: ["are", "were", "be"], hint: "The subject 'every one' is singular." },
+      { question: "Choose the correct form: Physics ___ considered difficult.", answer: "is", wrong: ["are", "were", "be"], hint: "Singular academic subject." },
+      { question: "Choose the correct form: The logistics ___ handled by a firm.", answer: "are", wrong: ["is", "was", "been"], hint: "'Logistics' is treated as plural here." }
+    ]
+  },
+  past_simple: {
+    easy: [
+      { question: "Choose the correct form: Yesterday, I ___ a book.", answer: "read", wrong: ["reads", "reading", "will read"], hint: "Past tense of read (spelled the same, sounds like 'red')." },
+      { question: "Choose the correct form: She ___ to the park last Sunday.", answer: "went", wrong: ["go", "goes", "gone"], hint: "Past tense of irregular verb 'go'." },
+      { question: "Choose the correct form: They ___ a new house last year.", answer: "bought", wrong: ["buy", "buys", "buying"], hint: "Past tense of irregular verb 'buy'." },
+      { question: "Choose the correct form: We ___ soccer after school.", answer: "played", wrong: ["play", "plays", "playing"], hint: "Past tense of regular verb 'play'." },
+      { question: "Choose the correct form: I ___ my keys this morning.", answer: "lost", wrong: ["lose", "loses", "losing"], hint: "Past tense of irregular verb 'lose'." },
+      { question: "Choose the correct form: He ___ a delicious cake.", answer: "made", wrong: ["make", "makes", "making"], hint: "Past tense of irregular verb 'make'." },
+      { question: "Choose the correct form: They ___ to music yesterday.", answer: "listened", wrong: ["listen", "listens", "listening"], hint: "Past tense of regular verb 'listen'." },
+      { question: "Choose the correct form: We ___ a movie last night.", answer: "watched", wrong: ["watch", "watches", "watching"], hint: "Past tense of regular verb 'watch'." },
+      { question: "Choose the correct form: She ___ her homework early.", answer: "did", wrong: ["do", "does", "done"], hint: "Past tense of irregular verb 'do'." },
+      { question: "Choose the correct form: The cat ___ on the mat.", answer: "sat", wrong: ["sit", "sits", "sitting"], hint: "Past tense of irregular verb 'sit'." },
+      { question: "Choose the correct form: I ___ my lunch at noon.", answer: "ate", wrong: ["eat", "eats", "eating"], hint: "Past tense of irregular verb 'eat'." },
+      { question: "Choose the correct form: They ___ the test on time.", answer: "finished", wrong: ["finish", "finishes", "finishing"], hint: "Past tense of regular verb 'finish'." },
+      { question: "Choose the correct form: He ___ a letter to his penpal.", answer: "wrote", wrong: ["write", "writes", "writing"], hint: "Past tense of irregular verb 'write'." },
+      { question: "Choose the correct form: We ___ the match last week.", answer: "won", wrong: ["win", "wins", "winning"], hint: "Past tense of irregular verb 'win'." },
+      { question: "Choose the correct form: She ___ the question easily.", answer: "answered", wrong: ["answer", "answers", "answering"], hint: "Past tense of regular verb 'answer'." }
+    ],
+    medium: [
+      { question: "Choose the correct form: The wind ___ strongly last night.", answer: "blew", wrong: ["blowed", "blown", "blows"], hint: "Past tense of irregular verb 'blow'." },
+      { question: "Choose the correct form: They ___ the truth to the judge.", answer: "spoke", wrong: ["speaked", "spoken", "speaks"], hint: "Past tense of irregular verb 'speak'." },
+      { question: "Choose the correct form: He ___ a deep hole in the garden.", answer: "dug", wrong: ["digged", "digs", "digging"], hint: "Past tense of irregular verb 'dig'." },
+      { question: "Choose the correct form: She ___ the bird fly away.", answer: "saw", wrong: ["seen", "seed", "sees"], hint: "Past tense of irregular verb 'see'." },
+      { question: "Choose the correct form: We ___ the bell ring.", answer: "heard", wrong: ["heared", "hear", "hears"], hint: "Past tense of irregular verb 'hear'." },
+      { question: "Choose the correct form: He ___ the heavy box on the table.", answer: "laid", wrong: ["lay", "lied", "lain"], hint: "Past tense of transitive verb 'lay'." },
+      { question: "Choose the correct form: They ___ from the high tower.", answer: "dove", wrong: ["dived", "diven", "divs"], hint: "Past tense of 'dive' is dove or dived." },
+      { question: "Choose the correct form: She ___ a warm sweater.", answer: "wore", wrong: ["weared", "worn", "wears"], hint: "Past tense of irregular verb 'wear'." },
+      { question: "Choose the correct form: We ___ the cold water.", answer: "drank", wrong: ["drunk", "drinked", "drinks"], hint: "Past tense of irregular verb 'drink'." },
+      { question: "Choose the correct form: The thief ___ the gold watch.", answer: "stole", wrong: ["stealed", "stolen", "steals"], hint: "Past tense of irregular verb 'steal'." },
+      { question: "Choose the correct form: He ___ from the horse.", answer: "fell", wrong: ["fallen", "felled", "falls"], hint: "Past tense of irregular verb 'fall'." },
+      { question: "Choose the correct form: The children ___ in the pool.", answer: "swam", wrong: ["swum", "swimmed", "swims"], hint: "Past tense of irregular verb 'swim'." },
+      { question: "Choose the correct form: They ___ a song together.", answer: "sang", wrong: ["sung", "singed", "sings"], hint: "Past tense of irregular verb 'sing'." },
+      { question: "Choose the correct form: She ___ her keys in the drawer.", answer: "hid", wrong: ["hidden", "hided", "hides"], hint: "Past tense of irregular verb 'hide'." },
+      { question: "Choose the correct form: We ___ the secret for weeks.", answer: "kept", wrong: ["keeped", "keep", "keeping"], hint: "Past tense of irregular verb 'keep'." }
+    ],
+    hard: [
+      { question: "Choose the correct form: The snake ___ him on the ankle.", answer: "bit", wrong: ["bitten", "bited", "bite"], hint: "Past tense of irregular verb 'bite'." },
+      { question: "Choose the correct form: The pipe ___ during the freeze.", answer: "burst", wrong: ["bursted", "bursts", "bursting"], hint: "'Burst' has the same form in past simple." },
+      { question: "Choose the correct form: He ___ the table with cloth.", answer: "clad", wrong: ["clothed", "cladded", "clothes"], hint: "Past tense of 'clothe' is clad or clothed." },
+      { question: "Choose the correct form: The price ___ by ten percent.", answer: "shrank", wrong: ["shrunk", "shrinked", "shrinks"], hint: "Past tense of irregular verb 'shrink'." },
+      { question: "Choose the correct form: She ___ the seeds on the ground.", answer: "strewed", wrong: ["strewn", "strew", "strews"], hint: "Past tense of irregular verb 'strew'." },
+      { question: "Choose the correct form: They ___ under oath.", answer: "swore", wrong: ["swared", "sworn", "swears"], hint: "Past tense of irregular verb 'swear'." },
+      { question: "Choose the correct form: He ___ the metal together.", answer: "welded", wrong: ["weld", "welding", "welds"], hint: "Past tense of regular verb 'weld'." },
+      { question: "Choose the correct form: The ship ___ quickly after hit.", answer: "sank", wrong: ["sunk", "sinked", "sinks"], hint: "Past tense of irregular verb 'sink'." },
+      { question: "Choose the correct form: She ___ the thread in the needle.", answer: "threaded", wrong: ["thread", "threads", "threading"], hint: "Past tense of regular verb 'thread'." },
+      { question: "Choose the correct form: The alarm ___ at 6 AM.", answer: "rang", wrong: ["rung", "ringed", "rings"], hint: "Past tense of irregular verb 'ring'." },
+      { question: "Choose the correct form: He ___ all his money away.", answer: "flung", wrong: ["flinged", "flang", "flings"], hint: "Past tense of irregular verb 'fling'." },
+      { question: "Choose the correct form: They ___ in the muddy ground.", answer: "sank", wrong: ["sunk", "sinked", "sinks"], hint: "Past tense of irregular verb 'sink'." },
+      { question: "Choose the correct form: The plane ___ over the mountains.", answer: "flew", wrong: ["flied", "flown", "fly"], hint: "Past tense of irregular verb 'fly'." },
+      { question: "Choose the correct form: The fire ___ all night.", answer: "glowed", wrong: ["glow", "glowing", "glows"], hint: "Past tense of regular verb 'glow'." },
+      { question: "Choose the correct form: He ___ a heavy blow to the enemy.", answer: "dealt", wrong: ["dealed", "deals", "dealing"], hint: "Past tense of irregular verb 'deal'." }
+    ]
+  },
+  past_perfect: {
+    easy: [
+      { question: "Choose the correct form: She ___ her lunch before the meeting.", answer: "had eaten", wrong: ["has eaten", "ate", "eating"], hint: "Use had + V3 for past perfect." },
+      { question: "Choose the correct form: They ___ the game before it rained.", answer: "had started", wrong: ["have started", "started", "starting"], hint: "Use had + V3." },
+      { question: "Choose the correct form: I realized I ___ my keys.", answer: "had lost", wrong: ["have lost", "lost", "losing"], hint: "Use had + V3." },
+      { question: "Choose the correct form: He ___ home before we arrived.", answer: "had gone", wrong: ["has gone", "went", "goes"], hint: "Use had + V3." },
+      { question: "Choose the correct form: By the time we got there, the movie ___.", answer: "had begun", wrong: ["has begun", "began", "beginning"], hint: "Use had + V3." },
+      { question: "Choose the correct form: She ___ her homework before dinner.", answer: "had done", wrong: ["has done", "did", "doing"], hint: "Use had + V3." },
+      { question: "Choose the correct form: They ___ the house before selling.", answer: "had painted", wrong: ["have painted", "painted", "painting"], hint: "Use had + V3." },
+      { question: "Choose the correct form: We ___ each other for years.", answer: "had known", wrong: ["have known", "knew", "knowing"], hint: "Use had + V3." },
+      { question: "Choose the correct form: He ___ the letter before leaving.", answer: "had written", wrong: ["has written", "wrote", "writing"], hint: "Use had + V3." },
+      { question: "Choose the correct form: The train ___ before they reached.", answer: "had left", wrong: ["has left", "left", "leaving"], hint: "Use had + V3." },
+      { question: "Choose the correct form: I ___ the film already.", answer: "had seen", wrong: ["have seen", "saw", "seeing"], hint: "Use had + V3." },
+      { question: "Choose the correct form: They ___ their goals early.", answer: "had achieved", wrong: ["have achieved", "achieved", "achieving"], hint: "Use had + V3." },
+      { question: "Choose the correct form: She ___ a map before walking.", answer: "had bought", wrong: ["has bought", "bought", "buying"], hint: "Use had + V3." },
+      { question: "Choose the correct form: We ___ the bills before due.", answer: "had paid", wrong: ["have paid", "paid", "paying"], hint: "Use had + V3." },
+      { question: "Choose the correct form: He ___ the window before sleep.", answer: "had closed", wrong: ["has closed", "closed", "closing"], hint: "Use had + V3." }
+    ],
+    medium: [
+      { question: "Choose the correct form: By the time the police arrived, the thief ___.", answer: "had escaped", wrong: ["has escaped", "escaped", "escapes"], hint: "Use had + V3." },
+      { question: "Choose the correct form: She was tired because she ___ all day.", answer: "had worked", wrong: ["has worked", "worked", "is working"], hint: "Use had + V3." },
+      { question: "Choose the correct form: He ___ the book before taking the test.", answer: "had read", wrong: ["has read", "read", "reads"], hint: "Use had + V3." },
+      { question: "Choose the correct form: They ___ the project before the deadline.", answer: "had finished", wrong: ["have finished", "finished", "finishing"], hint: "Use had + V3." },
+      { question: "Choose the correct form: The grass was wet because it ___.", answer: "had rained", wrong: ["has rained", "rained", "rains"], hint: "Use had + V3." },
+      { question: "Choose the correct form: She was sad because she ___ her dog.", answer: "had lost", wrong: ["has lost", "lost", "loses"], hint: "Use had + V3." },
+      { question: "Choose the correct form: We ___ the match before the power cut.", answer: "had won", wrong: ["have won", "won", "wins"], hint: "Use had + V3." },
+      { question: "Choose the correct form: He realized he ___ his password.", answer: "had forgotten", wrong: ["has forgotten", "forgot", "forgets"], hint: "Use had + V3." },
+      { question: "Choose the correct form: They ___ the table before guests came.", answer: "had set", wrong: ["have set", "set", "sets"], hint: "Use had + V3." },
+      { question: "Choose the correct form: By age ten, she ___ three languages.", answer: "had learned", wrong: ["has learned", "learned", "learns"], hint: "Use had + V3." },
+      { question: "Choose the correct form: I ___ my dinner when you called.", answer: "had eaten", wrong: ["have eaten", "ate", "eats"], hint: "Use had + V3." },
+      { question: "Choose the correct form: They ___ the song before performing.", answer: "had practiced", wrong: ["have practiced", "practiced", "practices"], hint: "Use had + V3." },
+      { question: "Choose the correct form: She ___ the car before driving.", answer: "had washed", wrong: ["has washed", "washed", "washes"], hint: "Use had + V3." },
+      { question: "Choose the correct form: He ___ the building before the fire.", answer: "had exited", wrong: ["has exited", "exited", "exits"], hint: "Use had + V3." },
+      { question: "Choose the correct form: We ___ the report before submission.", answer: "had typed", wrong: ["have typed", "typed", "types"], hint: "Use had + V3." }
+    ],
+    hard: [
+      { question: "Choose the correct form: Scarcely ___ the sun set when the storm began.", answer: "had", wrong: ["has", "did", "was"], hint: "Inversion construction with 'scarcely'." },
+      { question: "Choose the correct form: If they ___ harder, they would have won.", answer: "had tried", wrong: ["have tried", "tried", "would try"], hint: "Third conditional uses past perfect in if-clause." },
+      { question: "Choose the correct form: She wished she ___ the ticket.", answer: "had bought", wrong: ["has bought", "bought", "would buy"], hint: "Past wishes take past perfect." },
+      { question: "Choose the correct form: No sooner ___ we arrived than the phone rang.", answer: "had", wrong: ["has", "did", "were"], hint: "Inversion construction with 'no sooner'." },
+      { question: "Choose the correct form: He behaved as if he ___ nothing.", answer: "had seen", wrong: ["has seen", "saw", "was seeing"], hint: "Unreal past situation takes past perfect." },
+      { question: "Choose the correct form: She denied that she ___ the money.", answer: "had stolen", wrong: ["has stolen", "stole", "steals"], hint: "Past action prior to the denial." },
+      { question: "Choose the correct form: I ___ the book three times before understanding it.", answer: "had read", wrong: ["have read", "read", "was reading"], hint: "Use had + V3." },
+      { question: "Choose the correct form: They ___ the node before the server crashed.", answer: "had backed up", wrong: ["have backed up", "backed up", "back up"], hint: "Use had + V3." },
+      { question: "Choose the correct form: We wished you ___ us earlier.", answer: "had told", wrong: ["have told", "told", "tell"], hint: "Past wishes take past perfect." },
+      { question: "Choose the correct form: The flowers died because they ___ water.", answer: "had lacked", wrong: ["have lacked", "lacked", "lack"], hint: "Use had + V3." },
+      { question: "Choose the correct form: If he ___ the truth, he would be safe.", answer: "had told", wrong: ["have told", "told", "tells"], hint: "Conditional clause for past regret." },
+      { question: "Choose the correct form: By 2020, they ___ the structure.", answer: "had demolished", wrong: ["have demolished", "demolished", "demolish"], hint: "Past perfect for actions completed before a past year." },
+      { question: "Choose the correct form: She was pleased she ___ her exams.", answer: "had passed", wrong: ["has passed", "passed", "passes"], hint: "Action completed prior to being pleased." },
+      { question: "Choose the correct form: He was upset because they ___ him.", answer: "had rejected", wrong: ["have rejected", "rejected", "reject"], hint: "Action completed prior to being upset." },
+      { question: "Choose the correct form: We ___ the base before the launch.", answer: "had secured", wrong: ["have secured", "secured", "secure"], hint: "Use had + V3." }
+    ]
+  },
+  future_tense: {
+    easy: [
+      { question: "Choose the correct form: Tomorrow, I ___ to the beach.", answer: "will go", wrong: ["go", "went", "going"], hint: "Simple future prediction." },
+      { question: "Choose the correct form: She ___ a doctor when she grows up.", answer: "is going to be", wrong: ["is being", "will been", "was"], hint: "Future plan/intention." },
+      { question: "Choose the correct form: They ___ soccer this afternoon.", answer: "are going to play", wrong: ["will played", "played", "playing"], hint: "Planned future event." },
+      { question: "Choose the correct form: Look at the clouds! It ___.", answer: "is going to rain", wrong: ["will rained", "rained", "rains"], hint: "Future prediction based on present evidence." },
+      { question: "Choose the correct form: I promise I ___ you later.", answer: "will call", wrong: ["am calling", "called", "calls"], hint: "Promises take 'will'." },
+      { question: "Choose the correct form: He ___ a new car next week.", answer: "is going to buy", wrong: ["will bought", "bought", "buying"], hint: "Prior plan/decision." },
+      { question: "Choose the correct form: We ___ a movie tonight.", answer: "are going to watch", wrong: ["watched", "watching", "watch"], hint: "Prior plan/intention." },
+      { question: "Choose the correct form: I think they ___ the game.", answer: "will win", wrong: ["are winning", "won", "wins"], hint: "Opinion prediction." },
+      { question: "Choose the correct form: She ___ her bedroom tomorrow.", answer: "is going to clean", wrong: ["will cleaned", "cleaned", "cleans"], hint: "Intended future action." },
+      { question: "Choose the correct form: Wait! I ___ you carry that.", answer: "will help", wrong: ["am helping", "helped", "helps"], hint: "Instant offer takes 'will'." },
+      { question: "Choose the correct form: They ___ to London next summer.", answer: "are going to travel", wrong: ["travelled", "travels", "travelling"], hint: "Prior plan/intention." },
+      { question: "Choose the correct form: He ___ lunch in ten minutes.", answer: "will have", wrong: ["had", "having", "has"], hint: "Future event prediction." },
+      { question: "Choose the correct form: We ___ a party next Saturday.", answer: "are going to host", wrong: ["hosted", "hosting", "hosts"], hint: "Planned future event." },
+      { question: "Choose the correct form: I think the weather ___ nice.", answer: "will be", wrong: ["is going to", "was", "been"], hint: "Simple future prediction." },
+      { question: "Choose the correct form: She ___ a letter tonight.", answer: "is going to write", wrong: ["will wrote", "wrote", "writing"], hint: "Intended future action." }
+    ],
+    medium: [
+      { question: "Choose the correct form: This time next year, we ___ in college.", answer: "will be studying", wrong: ["will study", "will have studied", "are studying"], hint: "Action in progress at a specific time in the future." },
+      { question: "Choose the correct form: They ___ their project by Friday.", answer: "will have finished", wrong: ["will finish", "are finishing", "finish"], hint: "Action completed before a future deadline (future perfect)." },
+      { question: "Choose the correct form: I ___ my grandparents this weekend.", answer: "am going to visit", wrong: ["will visited", "visited", "visiting"], hint: "Prior arrangement/plan." },
+      { question: "Choose the correct form: By the time you arrive, the train ___.", answer: "will have left", wrong: ["will leave", "is leaving", "leaves"], hint: "Action completed before a future point." },
+      { question: "Choose the correct form: He ___ his exams next month.", answer: "is going to take", wrong: ["will taken", "took", "takes"], hint: "Intention/arrangement." },
+      { question: "Choose the correct form: We ___ the house tomorrow morning.", answer: "are going to paint", wrong: ["will painted", "painted", "painting"], hint: "Prior plan." },
+      { question: "Choose the correct form: I believe he ___ the president.", answer: "will become", wrong: ["is going to", "became", "becomes"], hint: "Belief prediction." },
+      { question: "Choose the correct form: They ___ for two hours by noon.", answer: "will have been running", wrong: ["will run", "will be running", "ran"], hint: "Duration up to a future point (future perfect continuous)." },
+      { question: "Choose the correct form: She ___ a new cake recipe tonight.", answer: "is going to try", wrong: ["will tried", "tried", "tries"], hint: "Intended plan." },
+      { question: "Choose the correct form: The movie ___ at 8 PM.", answer: "is going to start", wrong: ["will started", "started", "starts"], hint: "Planned schedule." },
+      { question: "Choose the correct form: I ___ you if you need assistance.", answer: "will assist", wrong: ["am assisting", "assisted", "assists"], hint: "Instant offer/promise." },
+      { question: "Choose the correct form: We ___ a conference next Monday.", answer: "are going to attend", wrong: ["attended", "attending", "attends"], hint: "Prior plan." },
+      { question: "Choose the correct form: By next month, I ___ here for a year.", answer: "will have lived", wrong: ["will live", "am living", "lived"], hint: "Action completed before a future point." },
+      { question: "Choose the correct form: He ___ his homework after dinner.", answer: "is going to do", wrong: ["will did", "did", "does"], hint: "Intended action." },
+      { question: "Choose the correct form: I think they ___ the invitation.", answer: "will accept", wrong: ["are accepting", "accepted", "accepts"], hint: "Opinion prediction." }
+    ],
+    hard: [
+      { question: "Choose the correct form: By this time tomorrow, she ___ her flight.", answer: "will have boarded", wrong: ["will board", "is boarding", "boards"], hint: "Action completed by a future time." },
+      { question: "Choose the correct form: I ___ the reports before you ask.", answer: "will have compiled", wrong: ["will compile", "compiling", "compile"], hint: "Action completed prior to another future action." },
+      { question: "Choose the correct form: They ___ for hours by the time we arrive.", answer: "will have been waiting", wrong: ["will wait", "will be waiting", "waited"], hint: "Continuous action up to a future point." },
+      { question: "Choose the correct form: If you do that, you ___ yourself.", answer: "will hurt", wrong: ["are going to hurt", "hurt", "hurts"], hint: "Conditional prediction." },
+      { question: "Choose the correct form: We ___ our business by 2028.", answer: "will have expanded", wrong: ["will expand", "are expanding", "expand"], hint: "Completion before a future year." },
+      { question: "Choose the correct form: He ___ for the team by next season.", answer: "will have been playing", wrong: ["will play", "will be playing", "played"], hint: "Duration of action up to a future point." },
+      { question: "Choose the correct form: I ___ the contract by tomorrow noon.", answer: "will have signed", wrong: ["will sign", "signing", "sign"], hint: "Completion by a future deadline." },
+      { question: "Choose the correct form: They ___ the bridge by next winter.", answer: "will have constructed", wrong: ["will construct", "constructing", "construct"], hint: "Completion by a future season." },
+      { question: "Choose the correct form: By next week, she ___ for ten years.", answer: "will have been teaching", wrong: ["will teach", "will be teaching", "taught"], hint: "Continuous duration up to next week." },
+      { question: "Choose the correct form: I promise I ___ the secret.", answer: "will not reveal", wrong: ["am not going to reveal", "revealed", "reveals"], hint: "Promises take 'will'." },
+      { question: "Choose the correct form: We ___ the final details tonight.", answer: "will have finalized", wrong: ["will finalize", "finalizing", "finalize"], hint: "Completion tonight." },
+      { question: "Choose the correct form: He ___ his degree before summer.", answer: "will have earned", wrong: ["will earn", "earning", "earns"], hint: "Completion prior to summer." },
+      { question: "Choose the correct form: They ___ the region by tomorrow.", answer: "will have evacuated", wrong: ["will evacuate", "evacuating", "evacuate"], hint: "Completion by tomorrow." },
+      { question: "Choose the correct form: By tonight, I ___ for twelve hours.", answer: "will have been working", wrong: ["will work", "will be working", "worked"], hint: "Duration up to tonight." },
+      { question: "Choose the correct form: She ___ the results by Friday.", answer: "will have published", wrong: ["will publish", "publishing", "publish"], hint: "Completion by Friday." }
+    ]
+  },
+  parts_of_speech: {
+    easy: [
+      { question: "Identify the noun: The cat ran.", answer: "cat", wrong: ["The", "ran", "fast"], hint: "A noun is a person, place, or thing." },
+      { question: "Identify the verb: She sang loudly.", answer: "sang", wrong: ["She", "loudly", "sweet"], hint: "A verb expresses action." },
+      { question: "Identify the adjective: The green leaf fell.", answer: "green", wrong: ["leaf", "fell", "The"], hint: "An adjective describes a noun." },
+      { question: "Identify the pronoun: They went home.", answer: "They", wrong: ["went", "home", "back"], hint: "A pronoun replaces a noun." },
+      { question: "Identify the adverb: He walked slowly.", answer: "slowly", wrong: ["walked", "He", "road"], hint: "An adverb describes a verb, often ending in -ly." },
+      { question: "Identify the preposition: The key is in the box.", answer: "in", wrong: ["key", "box", "the"], hint: "A preposition shows location or direction." },
+      { question: "Identify the noun: London is beautiful.", answer: "London", wrong: ["is", "beautiful", "very"], hint: "Proper noun naming a city." },
+      { question: "Identify the verb: We played games.", answer: "played", wrong: ["We", "games", "fun"], hint: "Action word." },
+      { question: "Identify the adjective: I saw a tall building.", answer: "tall", wrong: ["building", "saw", "I"], hint: "Describes the height of the building." },
+      { question: "Identify the pronoun: She called me.", answer: "She", wrong: ["called", "phone", "yes"], hint: "Replaces a female name." },
+      { question: "Identify the adverb: She smiled happily.", answer: "happily", wrong: ["smiled", "She", "nice"], hint: "Describes how she smiled." },
+      { question: "Identify the preposition: Stand under the tree.", answer: "under", wrong: ["tree", "the", "Stand"], hint: "Shows position relative to the tree." },
+      { question: "Identify the noun: Honesty is good.", answer: "Honesty", wrong: ["is", "good", "very"], hint: "Abstract noun representing a quality." },
+      { question: "Identify the verb: Read this letter.", answer: "Read", wrong: ["this", "letter", "now"], hint: "Action to perform." },
+      { question: "Identify the adjective: We drank cold water.", answer: "cold", wrong: ["water", "drank", "We"], hint: "Describes the temperature of the water." }
+    ],
+    medium: [
+      { question: "Identify the conjunction: I like tea and coffee.", answer: "and", wrong: ["like", "tea", "coffee"], hint: "Connects words or clauses." },
+      { question: "Identify the pronoun: This is mine.", answer: "mine", wrong: ["This", "is", "belong"], hint: "Possessive pronoun." },
+      { question: "Identify the adverb: The project is almost finished.", answer: "almost", wrong: ["finished", "project", "is"], hint: "Adverb of degree modifying 'finished'." },
+      { question: "Identify the preposition: Walk along the path.", answer: "along", wrong: ["Walk", "path", "the"], hint: "Shows direction of movement." },
+      { question: "Identify the noun: Friendship is precious.", answer: "Friendship", wrong: ["precious", "is", "very"], hint: "Abstract noun." },
+      { question: "Identify the verb: She seems tired.", answer: "seems", wrong: ["tired", "She", "sleepy"], hint: "Linking verb connecting subject and description." },
+      { question: "Identify the adjective: That is an amazing story.", answer: "amazing", wrong: ["story", "That", "is"], hint: "Describes the story." },
+      { question: "Identify the conjunction: I went but he stayed.", answer: "but", wrong: ["went", "he", "stayed"], hint: "Coordinating conjunction showing contrast." },
+      { question: "Identify the pronoun: Who called you?", answer: "Who", wrong: ["called", "you", "phone"], hint: "Interrogative pronoun." },
+      { question: "Identify the adverb: He is very tall.", answer: "very", wrong: ["tall", "He", "is"], hint: "Modifies adjective 'tall'." },
+      { question: "Identify the preposition: She stood behind him.", answer: "behind", wrong: ["stood", "him", "She"], hint: "Shows relative position." },
+      { question: "Identify the noun: The decision was hard.", answer: "decision", wrong: ["hard", "was", "The"], hint: "Noun representing an outcome." },
+      { question: "Identify the verb: We must decide now.", answer: "decide", wrong: ["must", "now", "We"], hint: "Action verb after modal 'must'." },
+      { question: "Identify the adjective: This is a golden chance.", answer: "golden", wrong: ["chance", "This", "is"], hint: "Describes the quality of the chance." },
+      { question: "Identify the conjunction: Stay here until I return.", answer: "until", wrong: ["Stay", "here", "return"], hint: "Subordinating conjunction of time." }
+    ],
+    hard: [
+      { question: "Identify the gerund acting as noun: Swimming is fun.", answer: "Swimming", wrong: ["is", "fun", "good"], hint: "Verb ending in -ing acting as subject noun." },
+      { question: "Identify the relative pronoun: The man who left is my uncle.", answer: "who", wrong: ["man", "left", "uncle"], hint: "Connects modifying clause to 'man'." },
+      { question: "Identify the preposition: Despite the rain, we went out.", answer: "Despite", wrong: ["rain", "went", "out"], hint: "Preposition showing concession." },
+      { question: "Identify the conjunctive adverb: Therefore, we must leave.", answer: "Therefore", wrong: ["must", "leave", "we"], hint: "Connects thoughts and shows consequence." },
+      { question: "Identify the participle acting as adjective: The crying baby slept.", answer: "crying", wrong: ["baby", "slept", "little"], hint: "Verb form modifying noun 'baby'." },
+      { question: "Identify the reflexive pronoun: He did it himself.", answer: "himself", wrong: ["did", "it", "He"], hint: "Refers back to subject 'He'." },
+      { question: "Identify the adverb: She ran upstairs.", answer: "upstairs", wrong: ["ran", "She", "fast"], hint: "Adverb of place showing where she ran." },
+      { question: "Identify the preposition: He stood among the crowd.", answer: "among", wrong: ["stood", "crowd", "the"], hint: "Preposition meaning in the middle of." },
+      { question: "Identify the noun clause: What you said is true.", answer: "What you said", wrong: ["is true", "true", "said"], hint: "A whole clause acting as the subject." },
+      { question: "Identify the auxiliary verb: We have completed it.", answer: "have", wrong: ["completed", "it", "We"], hint: "Helping verb forming present perfect." },
+      { question: "Identify the adjective: This is an idle talk.", answer: "idle", wrong: ["talk", "This", "is"], hint: "Describes the talk." },
+      { question: "Identify the conjunction: Neither he nor she came.", answer: "Neither...nor", wrong: ["he", "she", "came"], hint: "Correlative conjunctions." },
+      { question: "Identify the pronoun: Either will do.", answer: "Either", wrong: ["will", "do", "N/A"], hint: "Indefinite pronoun acting as subject." },
+      { question: "Identify the adverb: He is somewhat better.", answer: "somewhat", wrong: ["better", "He", "is"], hint: "Modifies adjective 'better'." },
+      { question: "Identify the preposition: Look through the window.", answer: "through", wrong: ["Look", "window", "the"], hint: "Shows path of looking." }
     ]
   },
   spelling: {
@@ -211,7 +481,16 @@ const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; h
       { question: "Which of the following is correct?", answer: "Tomorrow", wrong: ["Tommorow", "Tomorow", "Tommorrow"], hint: "One 'm' and two 'r's." },
       { question: "Choose the correct spelling:", answer: "Friend", wrong: ["Freind", "Frind", "Friende"], hint: "F-R-I-E-N-D." },
       { question: "Find the correctly spelled homophone: Look over ___!", answer: "there", wrong: ["their", "they're", "thare"], hint: "Refers to a place." },
-      { question: "Select the correct spelling:", answer: "Until", wrong: ["Untill", "Untel", "Unetil"], hint: "Only ends with one 'l'." }
+      { question: "Select the correct spelling:", answer: "Until", wrong: ["Untill", "Untel", "Unetil"], hint: "Only ends with one 'l'." },
+      { question: "Which spelling is correct?", answer: "Believe", wrong: ["Beleive", "Belive", "Believee"], hint: "'I before E except after C'." },
+      { question: "Choose the correct spelling:", answer: "Beautiful", wrong: ["Beatiful", "Beutiful", "Beatifuls"], hint: "B-E-A-U-tiful." },
+      { question: "Find the correct spelling:", answer: "Because", wrong: ["Becouse", "Becauses", "Becasue"], hint: "B-E-C-A-U-S-E." },
+      { question: "Choose the correct spelling:", answer: "Library", wrong: ["Libary", "Librery", "Libery"], hint: "Contains the word 'bra'." },
+      { question: "Which of these is correct?", answer: "People", wrong: ["Poeple", "Peaple", "Peoples"], hint: "P-E-O-P-L-E." },
+      { question: "Choose the correct spelling:", answer: "Running", wrong: ["Runing", "Runnig", "Runnings"], hint: "Double the 'n' in present participle." },
+      { question: "Identify the correct spelling:", answer: "Different", wrong: ["Diferent", "Differant", "Diferant"], hint: "Double 'f' and ends in '-ent'." },
+      { question: "Which word is correct?", answer: "School", wrong: ["Schoole", "Shool", "Scool"], hint: "S-C-H-O-O-L." },
+      { question: "Select the correct spelling:", answer: "Animal", wrong: ["Anemal", "Animle", "Anamle"], hint: "A-N-I-M-A-L." }
     ],
     medium: [
       { question: "Find the correct spelling:", answer: "Occurred", wrong: ["Ocured", "Occured", "Ocurred"], hint: "Double 'c' and double 'r'." },
@@ -219,7 +498,16 @@ const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; h
       { question: "Select the correct spelling:", answer: "Calendar", wrong: ["Calender", "Colendar", "Calandar"], hint: "Ends with '-ar'." },
       { question: "Find the correct spelling:", answer: "Separate", wrong: ["Seperate", "Saparate", "Seprate"], hint: "There is 'a rat' in separate." },
       { question: "Which spelling is correct?", answer: "Dilemma", wrong: ["Dilema", "Dylemma", "Dillema"], hint: "D-I-L-E-M-M-A." },
-      { question: "Find the correct spelling:", answer: "Foreign", wrong: ["Foriegn", "Forign", "Forein"], hint: "F-O-R-E-I-G-N." }
+      { question: "Find the correct spelling:", answer: "Foreign", wrong: ["Foriegn", "Forign", "Forein"], hint: "F-O-R-E-I-G-N." },
+      { question: "Which word is spelled correctly?", answer: "Restaurant", wrong: ["Resturant", "Restaraunt", "Restoront"], hint: "Has 'taur' in the middle." },
+      { question: "Choose the correct spelling:", answer: "Necessary", wrong: ["Neccessary", "Necesary", "Neccesary"], hint: "One collar (c), two sleeves (s)." },
+      { question: "Identify the correct spelling:", answer: "Guarantee", wrong: ["Garantee", "Guarante", "Garantie"], hint: "Starts with G-U-A." },
+      { question: "Which spelling is correct?", answer: "Embarrass", wrong: ["Embaras", "Embarass", "Embbarrass"], hint: "Double 'r' and double 's'." },
+      { question: "Choose the correct spelling:", answer: "Receipt", wrong: ["Reciept", "Receipts", "Receipte"], hint: "'I before E except after C'." },
+      { question: "Select the correct spelling:", answer: "Argument", wrong: ["Arguement", "Argumant", "Argumint"], hint: "Drop the 'e' from argue." },
+      { question: "Find the correct spelling:", answer: "Foreigner", wrong: ["Foriegner", "Forigner", "Foreiner"], hint: "Derived from foreign." },
+      { question: "Which word is correct?", answer: "Language", wrong: ["Langage", "Languge", "Lenguage"], hint: "L-A-N-G-U-A-G-E." },
+      { question: "Select the correct spelling:", answer: "Privilege", wrong: ["Privelege", "Priviledge", "Privileges"], hint: "P-R-I-V-I-L-E-G-E." }
     ],
     hard: [
       { question: "Which spelling is correct?", answer: "Supersede", wrong: ["Supercede", "Superceed", "Superseed"], hint: "Ends with '-sede', meaning to take the place of." },
@@ -227,7 +515,16 @@ const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; h
       { question: "Which word is spelled correctly?", answer: "Conscientious", wrong: ["Consciencious", "Consientious", "Conscientous"], hint: "Contains 'science'." },
       { question: "Select the correct spelling:", answer: "Pharaoh", wrong: ["Pharoah", "Phaorah", "Pharaohs"], hint: "Ends with '-aoh'." },
       { question: "Find the correct spelling:", answer: "Liaison", wrong: ["Liason", "Liaisonn", "Liasion"], hint: "L-I-A-I-S-O-N." },
-      { question: "Which spelling is correct?", answer: "Maintenance", wrong: ["Maintainance", "Maintenence", "Maintenanse"], hint: "Derived from maintain, but spelled with '-ten-'" }
+      { question: "Which spelling is correct?", answer: "Maintenance", wrong: ["Maintainance", "Maintenence", "Maintenanse"], hint: "Derived from maintain, but spelled with '-ten-'" },
+      { question: "Find the correct spelling:", answer: "Acquiesce", wrong: ["Acquese", "Acquiesc", "Aquesse"], hint: "A-C-Q-U-I-E-S-C-E." },
+      { question: "Choose the correct spelling:", answer: "Idiosyncrasy", wrong: ["Idiosyncrazy", "Idiosyncrasie", "Idiosyncracy"], hint: "Ends with '-sy'." },
+      { question: "Which spelling is correct?", answer: "Occurrence", wrong: ["Occurence", "Ocurence", "Ocurrence"], hint: "Double 'c', double 'r', double 'e'." },
+      { question: "Select the correct spelling:", answer: "Playwright", wrong: ["Playwrite", "Playright", "Playwrights"], hint: "Ends in 'wright' (maker)." },
+      { question: "Choose the correct spelling:", answer: "Sacrilegious", wrong: ["Sacreligious", "Sacriligious", "Sacrilegiouss"], hint: "Opposite of religious in letters order." },
+      { question: "Select the correct spelling:", answer: "Pronunciation", wrong: ["Pronounciation", "Pronuncation", "Pronounciate"], hint: "No 'o' in the middle syllable." },
+      { question: "Which spelling is correct?", answer: "Fuchsia", wrong: ["Fuschia", "Fushia", "Fucsia"], hint: "F-U-C-H-S-I-A." },
+      { question: "Find the correct spelling:", answer: "Anaesthetist", wrong: ["Anesthetist", "Anaesthetistt", "Anesthetiste"], hint: "A-N-A-E-S-T-H-E-T-I-S-T." },
+      { question: "Choose the correct spelling:", answer: "Hierarchy", wrong: ["Heirarchy", "Hierarky", "Hierachy"], hint: "H-I-E-R-A-R-C-H-Y." }
     ]
   },
   idioms: {
@@ -237,7 +534,16 @@ const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; h
       { question: "What does 'under the weather' mean?", answer: "Sick", wrong: ["Raining", "Happy", "Cold"], hint: "Feeling slightly unwell." },
       { question: "What does 'once in a blue moon' mean?", answer: "Very rarely", wrong: ["Every month", "At night", "Frequently"], hint: "An event that happens very seldom." },
       { question: "What does 'cost an arm and a leg' mean?", answer: "Very expensive", wrong: ["Cheap", "Painful", "Fair price"], hint: "A very high price." },
-      { question: "What does 'let the cat out of the bag' mean?", answer: "Reveal a secret", wrong: ["Free a pet", "Be quiet", "Get angry"], hint: "Accidentally sharing information." }
+      { question: "What does 'let the cat out of the bag' mean?", answer: "Reveal a secret", wrong: ["Free a pet", "Be quiet", "Get angry"], hint: "Accidentally sharing information." },
+      { question: "What does 'hit the sack' mean?", answer: "Go to sleep", wrong: ["Play punch", "Clean up", "Get fired"], hint: "To go to bed." },
+      { question: "What does 'miss the boat' mean?", answer: "Too late", wrong: ["Get lost", "Travel slow", "Drown"], hint: "Missing an opportunity." },
+      { question: "What does 'no pain, no gain' mean?", answer: "You must work for success", wrong: ["Hurting is bad", "No rewards", "Be lazy"], hint: "Need effort to succeed." },
+      { question: "What does 'see eye to eye' mean?", answer: "Agree completely", wrong: ["Stare closely", "Be enemies", "Cry together"], hint: "Sharing the same opinion." },
+      { question: "What does 'so far so good' mean?", answer: "Progress is fine up to now", wrong: ["Very distant", "It is bad", "Travel well"], hint: "Things are going well currently." },
+      { question: "What does 'speak of the devil' mean?", answer: "The person we were discussing just arrived", wrong: ["Speak badly", "Pray", "Get scared"], hint: "An expected person appears." },
+      { question: "What does 'the best of both worlds' mean?", answer: "An ideal situation", wrong: ["Two planets", "Travel far", "Mixed feelings"], hint: "Enjoying two different opportunities." },
+      { question: "What does 'time flies' mean?", answer: "Time passes quickly", wrong: ["Clock breaks", "Bugs on clock", "Late"], hint: "Time goes by fast." },
+      { question: "What does 'add insult to injury' mean?", answer: "Make a bad situation worse", wrong: ["Call an ambulance", "Say sorry", "Fight back"], hint: "To double the damage." }
     ],
     medium: [
       { question: "What does 'spill the beans' mean?", answer: "Reveal a secret", wrong: ["Drop food", "Cook dinner", "Make a mess"], hint: "Letting info slip." },
@@ -245,7 +551,16 @@ const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; h
       { question: "What does 'bite the bullet' mean?", answer: "Face a difficult situation with courage", wrong: ["Eat something hard", "Shoot a gun", "Get angry"], hint: "Getting an inevitable painful task over with." },
       { question: "What does 'hit the nail on the head' mean?", answer: "Describe exactly what is causing a situation", wrong: ["Do carpentry", "Make a mistake", "Hurt yourself"], hint: "Being completely correct." },
       { question: "What does 'call it a day' mean?", answer: "Stop working on something", wrong: ["Name the day", "Start working", "Go to sleep"], hint: "Deciding to end an activity." },
-      { question: "What does 'blessing in disguise' mean?", answer: "A good thing that seemed bad at first", wrong: ["A secret gift", "A magical spell", "A religious ceremony"], hint: "Something positive coming from a negative event." }
+      { question: "What does 'blessing in disguise' mean?", answer: "A good thing that seemed bad at first", wrong: ["A secret gift", "A magical spell", "A religious ceremony"], hint: "Something positive coming from a negative event." },
+      { question: "What does 'a penny for your thoughts' mean?", answer: "Ask someone what they are thinking", wrong: ["Pay for info", "Think slow", "Buy coins"], hint: "Asking for an opinion." },
+      { question: "What does 'actions speak louder than words' mean?", answer: "What you do matters more than what you say", wrong: ["Shouting is good", "Silent play", "No talking"], hint: "Deeds count." },
+      { question: "What does 'back to the drawing board' mean?", answer: "Start over from the beginning", wrong: ["Draw a sketch", "Clean board", "Fail completely"], hint: "A plan failed, need a new one." },
+      { question: "What does 'comparing apples to oranges' mean?", answer: "Comparing two incomparable things", wrong: ["Fruit shopping", "Fruit salad", "Healthy eating"], hint: "Things are totally different." },
+      { question: "What does 'cry over spilt milk' mean?", answer: "Complain about something that can't be undone", wrong: ["Drop milk", "Get hungry", "Wash kitchen"], hint: "Useless regrets." },
+      { question: "What does 'do unto others' mean?", answer: "Treat others how you want to be treated", wrong: ["Fight back", "Be selfish", "Do nothing"], hint: "The Golden Rule." },
+      { question: "What does 'every cloud has a silver lining' mean?", answer: "Good things come after bad times", wrong: ["Rainy weather", "Rich clouds", "Fly high"], hint: "Optimism in difficulties." },
+      { question: "What does 'haste makes waste' mean?", answer: "Slowing down saves mistakes", wrong: ["Run fast", "Throw trash", "Be quick"], hint: "Don't rush." },
+      { question: "What does 'keep something at bay' mean?", answer: "Keep something at a distance", wrong: ["Go to sea", "Hold tight", "Buy dogs"], hint: "Preventing something from harming you." }
     ],
     hard: [
       { question: "What does 'barking up the wrong tree' mean?", answer: "Looking in the wrong place", wrong: ["Chasing a dog", "Climbing trees", "Shouting at someone"], hint: "Pursuing a mistaken line of thought." },
@@ -253,12 +568,21 @@ const PROBLEMS: { [catId: string]: { easy: RawProblem[]; medium: RawProblem[]; h
       { question: "What does 'hear it on the grapevine' mean?", answer: "Hear a rumor or gossip", wrong: ["Listen to music", "Eat grapes", "Talk on the phone"], hint: "Learning news informally." },
       { question: "What does 'take with a grain of salt' mean?", answer: "Do not take too seriously or literally", wrong: ["Add seasoning", "Be skeptical of food", "Believe completely"], hint: "Accepting with healthy doubt." },
       { question: "What does 'devil's advocate' mean?", answer: "Presenting an opposing opinion for debate", wrong: ["An evil lawyer", "A bad friend", "A supporter of rules"], hint: "Arguing the counterpoint." },
-      { question: "What does 'cut corners' mean?", answer: "Do something badly or cheaply to save time/money", wrong: ["Trim paper", "Take a shortcut while walking", "Drive fast around curves"], hint: "Compromising quality for speed." }
+      { question: "What does 'cut corners' mean?", answer: "Do something badly or cheaply to save time/money", wrong: ["Trim paper", "Take a shortcut while walking", "Drive fast around curves"], hint: "Compromising quality for speed." },
+      { question: "What does 'beat around the bush' mean?", answer: "Avoid saying what you mean directly", wrong: ["Hit plants", "Trim garden", "Run circles"], hint: "Not speaking directly." },
+      { question: "What does 'burn bridges' mean?", answer: "Destroy relations or paths permanently", wrong: ["Set fire", "Cross river", "Make friends"], hint: "Cannot return to previous state." },
+      { question: "What does 'on the ball' mean?", answer: "Alert and doing a good job", wrong: ["Stand on ball", "Play soccer", "Bounce"], hint: "Attentive and quick." },
+      { question: "What does 'pull someone's leg' mean?", answer: "Joke with someone", wrong: ["Trip someone", "Stretch body", "Fight"], hint: "Teasing or fooling someone." },
+      { question: "What does 'wrap your head around' mean?", answer: "Understand something complicated", wrong: ["Tie bandage", "Think simple", "Sleep"], hint: "Succeeding in understanding." },
+      { question: "What does 'straight from the horse's mouth' mean?", answer: "From the highest authority or source", wrong: ["Talk to pets", "Eat grass", "Whisper"], hint: "Direct original source." },
+      { question: "What does 'steal someone's thunder' mean?", answer: "Take credit for someone else's achievement", wrong: ["Rain cloud", "Make noise", "Rob gold"], hint: "Pre-empting someone's credit." },
+      { question: "What does 'blessing in disguise' mean?", answer: "A good thing that seemed bad at first", wrong: ["Secret gift", "Magic spell", "Good luck"], hint: "Unexpected benefit." },
+      { question: "What does 'ignorance is bliss' mean?", answer: "You are happier not knowing the facts", wrong: ["Being smart", "Sad truth", "Ignore rules"], hint: "Better to remain unaware." }
     ]
   }
 };
 
-function generateTugProblem(categoryId: string, difficulty: TugRoomConfig['difficulty']): TugProblem {
+function generateTugProblem(categoryId: string, difficulty: TugRoomConfig['difficulty'], askedSet?: Set<string>): TugProblem {
   let cat = categoryId;
   if (cat === "mixed") {
     const list = CATEGORIES.filter((c) => c.id !== "mixed");
@@ -269,7 +593,19 @@ function generateTugProblem(categoryId: string, difficulty: TugRoomConfig['diffi
   const diff = (difficulty === "adaptive" ? "medium" : difficulty) as 'easy' | 'medium' | 'hard';
   const pool = catPool[diff] || catPool.easy;
 
-  const raw = pool[Math.floor(Math.random() * pool.length)];
+  let eligible = pool;
+  if (askedSet) {
+    eligible = pool.filter((p) => !askedSet.has(p.question));
+    if (eligible.length === 0) {
+      pool.forEach((p) => askedSet.delete(p.question));
+      eligible = pool;
+    }
+  }
+
+  const raw = eligible[Math.floor(Math.random() * eligible.length)];
+  if (askedSet) {
+    askedSet.add(raw.question);
+  }
 
   const optionsSet = new Set<string>();
   optionsSet.add(raw.answer);
@@ -348,6 +684,10 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
 
   // Dust particles for rope pulling
   const [particles, setParticles] = React.useState<{ id: number; x: number; y: number; color: string }[]>([]);
+
+  // Session asked question history tracking (to prevent repetition)
+  const localAskedQuestionsRef = React.useRef<Set<string>>(new Set());
+  const onlineAskedQuestionsRef = React.useRef<Set<string>>(new Set());
 
   // -------------------------------------------------------
   // ONLINE GAME STATE
@@ -451,6 +791,7 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
 
   const handleStartLocalGame = () => {
     sfx.playBeep(440, 0.1);
+    localAskedQuestionsRef.current.clear();
     setBlueTeam({ name: localMode === "pvp" ? "Player Blue" : "Team Blue", score: 0, playersCount: 1, streak: 0 });
     setRedTeam({ name: localMode === "pvp" ? "Player Red" : "Team Red", score: 0, playersCount: 1, streak: 0 });
     setRopePosition(0);
@@ -459,7 +800,7 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
     setRedLocked(false);
 
     // Initial problem
-    const prob = generateTugProblem(localCategory, localDifficulty);
+    const prob = generateTugProblem(localCategory, localDifficulty, localAskedQuestionsRef.current);
     setCurrentProblem(prob);
 
     setTimer(localTimerLimit);
@@ -517,7 +858,7 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
       setLocalRound((r) => r + 1);
 
       // Load next problem
-      const prob = generateTugProblem(localCategory, localDifficulty);
+      const prob = generateTugProblem(localCategory, localDifficulty, localAskedQuestionsRef.current);
       setCurrentProblem(prob);
       setTimer(localTimerLimit);
       setBlueLocked(false);
@@ -590,7 +931,7 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
     setLocalRound((r) => r + 1);
 
     // Next round
-    const prob = generateTugProblem(localCategory, localDifficulty);
+    const prob = generateTugProblem(localCategory, localDifficulty, localAskedQuestionsRef.current);
     setCurrentProblem(prob);
     setTimer(localTimerLimit);
     setTimerActive(true);
@@ -656,7 +997,8 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
 
   const handleStartOnlineGame = async () => {
     if (!room || !myRoomCode || !isCreator) return;
-    const prob = generateTugProblem(room.config.categoryId, room.config.difficulty);
+    onlineAskedQuestionsRef.current.clear();
+    const prob = generateTugProblem(room.config.categoryId, room.config.difficulty, onlineAskedQuestionsRef.current);
     await startGame(myRoomCode, prob);
     sfx.playFanfare();
   };
@@ -683,12 +1025,13 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
       await endOnlineGameByScore(myRoomCode);
       return;
     }
-    const prob = generateTugProblem(room.config.categoryId, room.config.difficulty);
+    const prob = generateTugProblem(room.config.categoryId, room.config.difficulty, onlineAskedQuestionsRef.current);
     await startNextRound(myRoomCode, prob, room.currentRound + 1);
   };
 
   const handleOnlineRestart = async () => {
     if (!room || !myRoomCode || !isCreator) return;
+    onlineAskedQuestionsRef.current.clear();
     await resetRoom(myRoomCode);
   };
 

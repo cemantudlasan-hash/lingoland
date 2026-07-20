@@ -149,7 +149,7 @@ const CATEGORIES = [
   { id: "mixed", name: "Mixed Mathematics", emoji: "🎲", desc: "All categories combined" },
 ];
 
-function generateTugProblem(categoryId: string, difficulty: TugRoomConfig['difficulty']): TugProblem {
+function generateTugProblem(categoryId: string, difficulty: TugRoomConfig['difficulty'], askedSet?: Set<string>): TugProblem {
   let cat = categoryId;
   if (cat === "mixed") {
     const list = CATEGORIES.filter((c) => c.id !== "mixed");
@@ -166,161 +166,181 @@ function generateTugProblem(categoryId: string, difficulty: TugRoomConfig['diffi
   const medMax = 50;
   const hardMax = 100;
 
-  switch (cat) {
-    case "addition": {
-      let a = 0, b = 0;
-      if (difficulty === "easy") {
-        a = 3 + Math.floor(Math.random() * 15);
-        b = 3 + Math.floor(Math.random() * 15);
-      } else if (difficulty === "medium" || difficulty === "adaptive") {
-        a = 15 + Math.floor(Math.random() * 85);
-        b = 15 + Math.floor(Math.random() * 85);
-      } else {
-        a = 100 + Math.floor(Math.random() * 900);
-        b = 100 + Math.floor(Math.random() * 900);
+  let attempts = 0;
+  do {
+    attempts++;
+    switch (cat) {
+      case "addition": {
+        let a = 0, b = 0;
+        if (difficulty === "easy") {
+          a = 3 + Math.floor(Math.random() * 15);
+          b = 3 + Math.floor(Math.random() * 15);
+        } else if (difficulty === "medium" || difficulty === "adaptive") {
+          a = 15 + Math.floor(Math.random() * 85);
+          b = 15 + Math.floor(Math.random() * 85);
+        } else {
+          a = 100 + Math.floor(Math.random() * 900);
+          b = 100 + Math.floor(Math.random() * 900);
+        }
+        answerVal = a + b;
+        question = `${a} + ${b}`;
+        hint = `Line up the digits: ${a} + ${b} = ${answerVal}`;
+        answerStr = answerVal.toString();
+        break;
       }
-      answerVal = a + b;
-      question = `${a} + ${b}`;
-      hint = `Line up the digits: ${a} + ${b} = ${answerVal}`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "subtraction": {
-      let a = 0, b = 0;
-      if (difficulty === "easy") {
-        a = 10 + Math.floor(Math.random() * 20);
-        b = 1 + Math.floor(Math.random() * a);
-      } else if (difficulty === "medium" || difficulty === "adaptive") {
-        a = 50 + Math.floor(Math.random() * 150);
-        b = 10 + Math.floor(Math.random() * (a - 10));
-      } else {
-        a = 300 + Math.floor(Math.random() * 700);
-        b = 100 + Math.floor(Math.random() * (a - 100));
+      case "subtraction": {
+        let a = 0, b = 0;
+        if (difficulty === "easy") {
+          a = 10 + Math.floor(Math.random() * 20);
+          b = 1 + Math.floor(Math.random() * a);
+        } else if (difficulty === "medium" || difficulty === "adaptive") {
+          a = 50 + Math.floor(Math.random() * 150);
+          b = 10 + Math.floor(Math.random() * (a - 10));
+        } else {
+          a = 300 + Math.floor(Math.random() * 700);
+          b = 100 + Math.floor(Math.random() * (a - 100));
+        }
+        answerVal = a - b;
+        question = `${a} - ${b}`;
+        hint = `Subtract digits carefully: ${a} - ${b} = ${answerVal}`;
+        answerStr = answerVal.toString();
+        break;
       }
-      answerVal = a - b;
-      question = `${a} - ${b}`;
-      hint = `Subtract digits carefully: ${a} - ${b} = ${answerVal}`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "multiplication": {
-      let a = 0, b = 0;
-      if (difficulty === "easy") {
-        a = 2 + Math.floor(Math.random() * 8);
-        b = 2 + Math.floor(Math.random() * 10);
-      } else if (difficulty === "medium" || difficulty === "adaptive") {
-        a = 6 + Math.floor(Math.random() * 14);
-        b = 4 + Math.floor(Math.random() * 12);
-      } else {
-        a = 12 + Math.floor(Math.random() * 38);
-        b = 6 + Math.floor(Math.random() * 20);
+      case "multiplication": {
+        let a = 0, b = 0;
+        if (difficulty === "easy") {
+          a = 2 + Math.floor(Math.random() * 8);
+          b = 2 + Math.floor(Math.random() * 10);
+        } else if (difficulty === "medium" || difficulty === "adaptive") {
+          a = 6 + Math.floor(Math.random() * 14);
+          b = 4 + Math.floor(Math.random() * 12);
+        } else {
+          a = 12 + Math.floor(Math.random() * 38);
+          b = 6 + Math.floor(Math.random() * 20);
+        }
+        answerVal = a * b;
+        question = `${a} × ${b}`;
+        hint = `Multiply ${a} by ${b} to get ${answerVal}`;
+        answerStr = answerVal.toString();
+        break;
       }
-      answerVal = a * b;
-      question = `${a} × ${b}`;
-      hint = `Multiply ${a} by ${b} to get ${answerVal}`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "division": {
-      let divisor = 0, quotient = 0;
-      if (difficulty === "easy") {
-        divisor = 2 + Math.floor(Math.random() * 5);
-        quotient = 2 + Math.floor(Math.random() * 8);
-      } else if (difficulty === "medium" || difficulty === "adaptive") {
-        divisor = 4 + Math.floor(Math.random() * 9);
-        quotient = 8 + Math.floor(Math.random() * 12);
-      } else {
-        divisor = 11 + Math.floor(Math.random() * 15);
-        quotient = 12 + Math.floor(Math.random() * 38);
+      case "division": {
+        let divisor = 0, quotient = 0;
+        if (difficulty === "easy") {
+          divisor = 2 + Math.floor(Math.random() * 7);
+          quotient = 2 + Math.floor(Math.random() * 8);
+        } else if (difficulty === "medium" || difficulty === "adaptive") {
+          divisor = 4 + Math.floor(Math.random() * 9);
+          quotient = 5 + Math.floor(Math.random() * 12);
+        } else {
+          divisor = 6 + Math.floor(Math.random() * 19);
+          quotient = 12 + Math.floor(Math.random() * 28);
+        }
+        const dividend = divisor * quotient;
+        answerVal = quotient;
+        question = `${dividend} ÷ ${divisor}`;
+        hint = `Find how many times ${divisor} fits into ${dividend}: ${dividend} ÷ ${divisor} = ${quotient}`;
+        answerStr = answerVal.toString();
+        break;
       }
-      const dividend = divisor * quotient;
-      answerVal = quotient;
-      question = `${dividend} ÷ ${divisor}`;
-      hint = `What number multiplied by ${divisor} equals ${dividend}? (${divisor} × ${quotient} = ${dividend})`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "fractions": {
-      // Return fractions with same denominators for simplicity
-      const d = 4 + Math.ceil(Math.random() * 8) * 2; // e.g. 6, 8, 10
-      const a = 1 + Math.floor(Math.random() * (d / 2 - 1));
-      const b = 1 + Math.floor(Math.random() * (d / 2 - 1));
-      question = `${a}/${d} + ${b}/${d}`;
-      const sumNum = a + b;
-      // simplify if possible
-      const gcd = (x: number, y: number): number => (y === 0 ? x : gcd(y, x % y));
-      const common = gcd(sumNum, d);
-      answerStr = `${sumNum / common}/${d / common}`;
-      if (sumNum / common === d / common) answerStr = "1";
-      hint = `Add the numerators together and simplify: (${a} + ${b})/${d} = ${sumNum}/${d}`;
-      break;
-    }
-    case "decimals": {
-      let a = 0, b = 0;
-      if (difficulty === "easy") {
-        a = 1 + Math.floor(Math.random() * 9);
-        b = 1 + Math.floor(Math.random() * 9);
-        question = `${(a / 10).toFixed(1)} + ${(b / 10).toFixed(1)}`;
-        answerStr = ((a + b) / 10).toFixed(1);
-      } else {
-        a = 10 + Math.floor(Math.random() * 90);
-        b = 10 + Math.floor(Math.random() * 90);
-        question = `${(a / 100).toFixed(2)} + ${(b / 100).toFixed(2)}`;
-        answerStr = ((a + b) / 100).toFixed(2);
+      case "fractions": {
+        // Pick a denominator between 3 and 16
+        const d = 3 + Math.floor(Math.random() * 14);
+        // Pick numerators such that the sum is less than d
+        const a = 1 + Math.floor(Math.random() * (d - 2));
+        const b = 1 + Math.floor(Math.random() * (d - a - 1));
+        
+        const isSub = Math.random() > 0.5;
+        if (isSub && a > b) {
+          question = `${a}/${d} - ${b}/${d}`;
+          const diffNum = a - b;
+          const gcd = (x: number, y: number): number => (y === 0 ? x : gcd(y, x % y));
+          const common = gcd(diffNum, d);
+          answerStr = `${diffNum / common}/${d / common}`;
+          if (diffNum / common === d / common) answerStr = "1";
+          hint = `Subtract the numerators: (${a} - ${b})/${d} = ${diffNum}/${d}`;
+        } else {
+          question = `${a}/${d} + ${b}/${d}`;
+          const sumNum = a + b;
+          const gcd = (x: number, y: number): number => (y === 0 ? x : gcd(y, x % y));
+          const common = gcd(sumNum, d);
+          answerStr = `${sumNum / common}/${d / common}`;
+          if (sumNum / common === d / common) answerStr = "1";
+          hint = `Add the numerators: (${a} + ${b})/${d} = ${sumNum}/${d}`;
+        }
+        break;
       }
-      hint = `Add decimals just like whole numbers, keeping the decimal point aligned.`;
-      break;
-    }
-    case "percentages": {
-      const bases = [40, 50, 60, 80, 100, 120, 150, 200, 300, 500];
-      const percents = [10, 20, 25, 30, 40, 50, 75, 90];
-      const base = bases[Math.floor(Math.random() * bases.length)];
-      const pct = percents[Math.floor(Math.random() * percents.length)];
-      answerVal = (base * pct) / 100;
-      question = `${pct}% of ${base}`;
-      hint = `${pct}% is the same as ${pct}/100 or ${pct/100}. ${pct/100} × ${base} = ${answerVal}`;
-      answerStr = answerVal.toString();
-      break;
-    }
-    case "algebra": {
-      const x = 3 + Math.floor(Math.random() * 12);
-      const coeff = 2 + Math.floor(Math.random() * 5);
-      const constant = 2 + Math.floor(Math.random() * 20);
-      const right = coeff * x + constant;
-      question = `Solve for x: ${coeff}x + ${constant} = ${right}`;
-      answerStr = `x = ${x}`;
-      hint = `Subtract ${constant} from both sides: ${coeff}x = ${right - constant}. Divide by ${coeff}: x = ${x}`;
-      break;
-    }
-    case "geometry": {
-      const types = ["rectangle", "square", "triangle"];
-      const type = types[Math.floor(Math.random() * types.length)];
-      if (type === "rectangle") {
-        const w = 4 + Math.floor(Math.random() * 8);
-        const l = w + 2 + Math.floor(Math.random() * 6);
-        question = `Area of rectangle: length = ${l}, width = ${w}`;
-        answerVal = l * w;
-        hint = `Area = length × width = ${l} × ${w} = ${answerVal}`;
-      } else if (type === "square") {
-        const s = 4 + Math.floor(Math.random() * 10);
-        question = `Perimeter of square: side = ${s}`;
-        answerVal = s * 4;
-        hint = `Perimeter = 4 × side = 4 × ${s} = ${answerVal}`;
-      } else {
-        const base = 6 + Math.floor(Math.random() * 12);
-        const height = 4 + Math.floor(Math.random() * 6);
-        question = `Area of triangle: base = ${base}, height = ${height}`;
-        answerVal = 0.5 * base * height;
-        hint = `Area = 0.5 × base × height = 0.5 × ${base} × ${height} = ${answerVal}`;
+      case "decimals": {
+        let a = 0, b = 0;
+        if (difficulty === "easy") {
+          a = 1 + Math.floor(Math.random() * 9);
+          b = 1 + Math.floor(Math.random() * 9);
+          question = `${(a / 10).toFixed(1)} + ${(b / 10).toFixed(1)}`;
+          answerStr = ((a + b) / 10).toFixed(1);
+        } else {
+          a = 10 + Math.floor(Math.random() * 90);
+          b = 10 + Math.floor(Math.random() * 90);
+          question = `${(a / 100).toFixed(2)} + ${(b / 100).toFixed(2)}`;
+          answerStr = ((a + b) / 100).toFixed(2);
+        }
+        hint = `Add decimals just like whole numbers, keeping the decimal point aligned.`;
+        break;
       }
-      answerStr = answerVal.toString();
-      break;
+      case "percentages": {
+        const bases = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 180, 200, 220, 240, 250, 300, 350, 400, 450, 500, 600, 800, 1000];
+        const percents = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95];
+        const base = bases[Math.floor(Math.random() * bases.length)];
+        const pct = percents[Math.floor(Math.random() * percents.length)];
+        answerVal = (base * pct) / 100;
+        question = `${pct}% of ${base}`;
+        hint = `${pct}% is the same as ${pct}/100 or ${pct/100}. ${pct/100} × ${base} = ${answerVal}`;
+        answerStr = answerVal.toString();
+        break;
+      }
+      case "algebra": {
+        const x = 3 + Math.floor(Math.random() * 12);
+        const coeff = 2 + Math.floor(Math.random() * 5);
+        const constant = 2 + Math.floor(Math.random() * 20);
+        const right = coeff * x + constant;
+        question = `Solve for x: ${coeff}x + ${constant} = ${right}`;
+        answerStr = `x = ${x}`;
+        hint = `Subtract ${constant} from both sides: ${coeff}x = ${right - constant}. Divide by ${coeff}: x = ${x}`;
+        break;
+      }
+      case "geometry": {
+        const types = ["rectangle", "square", "triangle"];
+        const type = types[Math.floor(Math.random() * types.length)];
+        if (type === "rectangle") {
+          const w = 4 + Math.floor(Math.random() * 8);
+          const l = w + 2 + Math.floor(Math.random() * 6);
+          question = `Area of rectangle: length = ${l}, width = ${w}`;
+          answerVal = l * w;
+          hint = `Area = length × width = ${l} × ${w} = ${answerVal}`;
+        } else if (type === "square") {
+          const s = 4 + Math.floor(Math.random() * 10);
+          question = `Perimeter of square: side = ${s}`;
+          answerVal = s * 4;
+          hint = `Perimeter = 4 × side = 4 × ${s} = ${answerVal}`;
+        } else {
+          const base = 6 + Math.floor(Math.random() * 12);
+          const height = 4 + Math.floor(Math.random() * 6);
+          question = `Area of triangle: base = ${base}, height = ${height}`;
+          answerVal = 0.5 * base * height;
+          hint = `Area = 0.5 × base × height = 0.5 × ${base} × ${height} = ${answerVal}`;
+        }
+        answerStr = answerVal.toString();
+        break;
+      }
+      default: {
+        question = "2 + 2";
+        answerStr = "4";
+        break;
+      }
     }
-    default: {
-      question = "2 + 2";
-      answerStr = "4";
-      break;
-    }
+  } while (askedSet && askedSet.has(question) && attempts < 50);
+
+  if (askedSet) {
+    askedSet.add(question);
   }
 
   // Generate 3 incorrect distractors
@@ -420,6 +440,10 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
 
   // Dust particles for rope pulling
   const [particles, setParticles] = React.useState<{ id: number; x: number; y: number; color: string }[]>([]);
+
+  // Session asked question history tracking (to prevent repetition)
+  const localAskedQuestionsRef = React.useRef<Set<string>>(new Set());
+  const onlineAskedQuestionsRef = React.useRef<Set<string>>(new Set());
 
   // -------------------------------------------------------
   // ONLINE GAME STATE
@@ -523,6 +547,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
 
   const handleStartLocalGame = () => {
     sfx.playBeep(440, 0.1);
+    localAskedQuestionsRef.current.clear();
     setBlueTeam({ name: localMode === "pvp" ? "Player Blue" : "Team Blue", score: 0, playersCount: 1, streak: 0 });
     setRedTeam({ name: localMode === "pvp" ? "Player Red" : "Team Red", score: 0, playersCount: 1, streak: 0 });
     setRopePosition(0);
@@ -531,7 +556,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
     setRedLocked(false);
 
     // Initial problem
-    const prob = generateTugProblem(localCategory, localDifficulty);
+    const prob = generateTugProblem(localCategory, localDifficulty, localAskedQuestionsRef.current);
     setCurrentProblem(prob);
 
     setTimer(localTimerLimit);
@@ -589,7 +614,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
       setLocalRound((r) => r + 1);
 
       // Load next problem
-      const prob = generateTugProblem(localCategory, localDifficulty);
+      const prob = generateTugProblem(localCategory, localDifficulty, localAskedQuestionsRef.current);
       setCurrentProblem(prob);
       setTimer(localTimerLimit);
       setBlueLocked(false);
@@ -662,7 +687,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
     setLocalRound((r) => r + 1);
 
     // Next round
-    const prob = generateTugProblem(localCategory, localDifficulty);
+    const prob = generateTugProblem(localCategory, localDifficulty, localAskedQuestionsRef.current);
     setCurrentProblem(prob);
     setTimer(localTimerLimit);
     setTimerActive(true);
@@ -728,7 +753,8 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
 
   const handleStartOnlineGame = async () => {
     if (!room || !myRoomCode || !isCreator) return;
-    const prob = generateTugProblem(room.config.categoryId, room.config.difficulty);
+    onlineAskedQuestionsRef.current.clear();
+    const prob = generateTugProblem(room.config.categoryId, room.config.difficulty, onlineAskedQuestionsRef.current);
     await startGame(myRoomCode, prob);
     sfx.playFanfare();
   };
@@ -755,12 +781,13 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
       await endOnlineGameByScore(myRoomCode);
       return;
     }
-    const prob = generateTugProblem(room.config.categoryId, room.config.difficulty);
+    const prob = generateTugProblem(room.config.categoryId, room.config.difficulty, onlineAskedQuestionsRef.current);
     await startNextRound(myRoomCode, prob, room.currentRound + 1);
   };
 
   const handleOnlineRestart = async () => {
     if (!room || !myRoomCode || !isCreator) return;
+    onlineAskedQuestionsRef.current.clear();
     await resetRoom(myRoomCode);
   };
 
