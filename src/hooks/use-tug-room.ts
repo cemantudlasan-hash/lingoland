@@ -280,9 +280,23 @@ export function useTugRoom() {
               ...player,
               lastAnsweredCorrectly: false,
             };
-            transaction.update(roomRef, {
-              players: updatedPlayers,
-            });
+            
+            // Check if all players got it wrong
+            const playersArray = Object.values(updatedPlayers);
+            const allGotWrong = playersArray.length > 0 && playersArray.every((p) => p.lastAnsweredCorrectly === false);
+
+            if (allGotWrong) {
+              transaction.update(roomRef, {
+                status: 'round_end',
+                pullWinnerId: 'all_failed',
+                pullWinnerTeam: null,
+                players: updatedPlayers,
+              });
+            } else {
+              transaction.update(roomRef, {
+                players: updatedPlayers,
+              });
+            }
           }
         });
       } catch (err) {

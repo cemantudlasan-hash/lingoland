@@ -7,7 +7,7 @@ import { Badge } from "../ui/badge";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import {
-  Trophy, Play, UserPlus, Sparkles, Volume2, VolumeX,
+  Trophy, Play, UserPlus, Sparkles, Volume2, VolumeX, Maximize,
   UserCheck, Award, ArrowRight, Wifi, WifiOff, Users, Copy,
   CheckCircle2, Loader2, RefreshCw, LogOut, Swords, Timer, Check, X, Shield, Zap, AlertCircle
 } from "lucide-react";
@@ -380,7 +380,7 @@ interface LocalTeamState {
 // ---------------------------------------------------------
 // MAIN COMPONENT
 // ---------------------------------------------------------
-export function MathTugOfWar() {
+export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () => void }) {
   const { toast } = useToast();
 
   // Screen states
@@ -716,38 +716,38 @@ export function MathTugOfWar() {
   // -------------------------------------------------------
   const renderModeSelect = () => {
     return (
-      <div className="max-w-md mx-auto w-full p-4 space-y-6 text-center">
-        <div className="space-y-2">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-            <Swords className="h-9 w-9" />
+      <div className="max-w-3xl mx-auto w-full p-6 space-y-8 text-center bg-slate-950/40 border border-slate-900 rounded-3xl p-8 backdrop-blur-sm">
+        <div className="space-y-4">
+          <div className="mx-auto w-24 h-24 rounded-3xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-xl shadow-indigo-500/5">
+            <Swords className="h-12 w-12" />
           </div>
-          <h2 className="text-3xl font-black tracking-tight text-white font-display">Tug of War Mathematics</h2>
-          <p className="text-slate-400 text-xs">Knowledge is power. Pull your way to victory by solving equations!</p>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white font-display">Tug of War Math</h2>
+          <p className="text-slate-400 text-sm sm:text-base max-w-md mx-auto">Knowledge is power! Pull the rope to your side and claim victory by solving math equations faster than your opponent.</p>
         </div>
 
-        <div className="grid gap-3 pt-2">
+        <div className="grid gap-4 pt-2">
           <button onClick={() => { sfx.playBeep(440, 0.08); setScreen("localConfig"); }}
-            className="w-full py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/80 rounded-2xl flex items-center gap-4 px-6 text-left transition-all group hover:scale-105">
-            <div className="h-10 w-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-              <Play className="h-5 w-5" />
+            className="w-full py-6 bg-slate-900 border border-slate-800 hover:border-slate-750 hover:bg-slate-850/80 rounded-3xl flex items-center gap-5 px-8 text-left transition-all group hover:scale-[1.02] shadow-md">
+            <div className="h-14 w-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+              <Play className="h-7 w-7" />
             </div>
             <div>
-              <p className="font-extrabold text-white text-sm">Local Shared Screen</p>
-              <p className="text-[11px] text-slate-400">Play PVP on a single computer using hotkeys</p>
+              <p className="font-extrabold text-white text-lg sm:text-xl">Local Shared Screen</p>
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">Play PVP or Team vs Team on a single computer using hotkeys</p>
             </div>
-            <ArrowRight className="h-4 w-4 text-slate-500 ml-auto group-hover:text-cyan-400 transition-colors" />
+            <ArrowRight className="h-6 w-6 text-slate-500 ml-auto group-hover:text-cyan-400 transition-colors" />
           </button>
 
           <button onClick={() => { sfx.playBeep(440, 0.08); setScreen("onlineConfig"); }}
-            className="w-full py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/80 rounded-2xl flex items-center gap-4 px-6 text-left transition-all group hover:scale-105">
-            <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
-              <Users className="h-5 w-5" />
+            className="w-full py-6 bg-slate-900 border border-slate-800 hover:border-slate-750 hover:bg-slate-850/80 rounded-3xl flex items-center gap-5 px-8 text-left transition-all group hover:scale-[1.02] shadow-md">
+            <div className="h-14 w-14 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+              <Users className="h-7 w-7" />
             </div>
             <div>
-              <p className="font-extrabold text-white text-sm">Online Multiplayer</p>
-              <p className="text-[11px] text-slate-400">Create or join rooms to compete with classmates live</p>
+              <p className="font-extrabold text-white text-lg sm:text-xl">Online Multiplayer</p>
+              <p className="text-xs sm:text-sm text-slate-400 mt-0.5">Create or join rooms to compete with classmates live on separate screens</p>
             </div>
-            <ArrowRight className="h-4 w-4 text-slate-500 ml-auto group-hover:text-purple-400 transition-colors" />
+            <ArrowRight className="h-6 w-6 text-slate-500 ml-auto group-hover:text-purple-400 transition-colors" />
           </button>
         </div>
       </div>
@@ -759,36 +759,36 @@ export function MathTugOfWar() {
   // -------------------------------------------------------
   const renderLocalConfig = () => {
     return (
-      <div className="max-w-lg mx-auto w-full p-4 space-y-5 bg-slate-950/60 border border-slate-900 rounded-3xl backdrop-blur-md">
-        <div className="flex items-center gap-2 pb-3 border-b border-slate-900">
-          <Swords className="h-5 w-5 text-indigo-400" />
-          <h3 className="font-black text-white text-lg">Local Arena Setup</h3>
+      <div className="max-w-3xl mx-auto w-full p-8 space-y-6 bg-slate-950/60 border border-slate-900 rounded-3xl backdrop-blur-md shadow-2xl">
+        <div className="flex items-center gap-3 pb-4 border-b border-slate-900">
+          <Swords className="h-6 w-6 text-indigo-400" />
+          <h3 className="font-black text-white text-xl">Local Arena Setup</h3>
         </div>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-xs font-bold text-slate-300">Choose Math Category</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <Label className="text-sm font-black text-slate-200">Choose Math Category</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {CATEGORIES.map((c) => (
                 <button key={c.id} onClick={() => { sfx.playBeep(380, 0.05); setLocalCategory(c.id); }}
-                  className={cn("p-2 text-left border rounded-xl flex items-center gap-2 transition-all",
-                    localCategory === c.id ? "bg-indigo-600/20 border-indigo-500 text-white" : "bg-slate-900/60 border-slate-800 text-slate-400 hover:bg-slate-900")}>
-                  <span className="text-sm">{c.emoji}</span>
+                  className={cn("p-3.5 text-left border rounded-2xl flex items-center gap-3 transition-all",
+                    localCategory === c.id ? "bg-indigo-600/20 border-indigo-500 text-white shadow-lg" : "bg-slate-900/60 border-slate-800 text-slate-400 hover:bg-slate-900/90")}>
+                  <span className="text-xl">{c.emoji}</span>
                   <div className="truncate">
-                    <p className="text-xs font-extrabold">{c.name}</p>
+                    <p className="text-sm font-black">{c.name}</p>
                   </div>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-300">Difficulty</Label>
-              <div className="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-xl">
+              <Label className="text-sm font-black text-slate-200">Difficulty Level</Label>
+              <div className="grid grid-cols-3 gap-1 bg-slate-900 p-1.5 rounded-xl">
                 {["easy", "medium", "hard"].map((d) => (
                   <button key={d} onClick={() => { sfx.playBeep(380, 0.05); setLocalDifficulty(d as any); }}
-                    className={cn("py-1 text-xs font-bold capitalize rounded-lg transition-all",
+                    className={cn("py-2.5 text-xs font-black capitalize rounded-lg transition-all",
                       localDifficulty === d ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white")}>
                     {d}
                   </button>
@@ -797,11 +797,11 @@ export function MathTugOfWar() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-300">Pulls to Win</Label>
-              <div className="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-xl">
+              <Label className="text-sm font-black text-slate-200">Pulls to Win</Label>
+              <div className="grid grid-cols-3 gap-1 bg-slate-900 p-1.5 rounded-xl">
                 {[3, 5, 8].map((n) => (
                   <button key={n} onClick={() => { sfx.playBeep(380, 0.05); setLocalWinPulls(n); }}
-                    className={cn("py-1 text-xs font-bold rounded-lg transition-all",
+                    className={cn("py-2.5 text-xs font-black rounded-lg transition-all",
                       localWinPulls === n ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white")}>
                     {n}
                   </button>
@@ -810,13 +810,13 @@ export function MathTugOfWar() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-300">Question Timer</Label>
-              <div className="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-xl">
+              <Label className="text-sm font-black text-slate-200">Question Timer</Label>
+              <div className="grid grid-cols-3 gap-1 bg-slate-900 p-1.5 rounded-xl">
                 {[10, 15, 20].map((t) => (
                   <button key={t} onClick={() => { sfx.playBeep(380, 0.05); setLocalTimerLimit(t); }}
-                    className={cn("py-1 text-xs font-bold rounded-lg transition-all",
+                    className={cn("py-2.5 text-xs font-black rounded-lg transition-all",
                       localTimerLimit === t ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white")}>
                     {t}s
                   </button>
@@ -825,13 +825,13 @@ export function MathTugOfWar() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-300">Game Mode</Label>
-              <div className="grid grid-cols-2 gap-1 bg-slate-900 p-1 rounded-xl">
+              <Label className="text-sm font-black text-slate-200">Game Mode</Label>
+              <div className="grid grid-cols-2 gap-1 bg-slate-900 p-1.5 rounded-xl">
                 {["pvp", "team"].map((m) => (
                   <button key={m} onClick={() => { sfx.playBeep(380, 0.05); setLocalMode(m as any); }}
-                    className={cn("py-1 text-xs font-bold capitalize rounded-lg transition-all",
+                    className={cn("py-2.5 text-xs font-black capitalize rounded-lg transition-all",
                       localMode === m ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white")}>
-                    {m === "pvp" ? "PVP" : "Teams"}
+                    {m === "pvp" ? "Player vs Player" : "Teams"}
                   </button>
                 ))}
               </div>
@@ -839,11 +839,11 @@ export function MathTugOfWar() {
           </div>
         </div>
 
-        <div className="flex gap-3 pt-3 border-t border-slate-900">
-          <Button variant="ghost" onClick={() => { sfx.playBeep(380, 0.08); setScreen("modeSelect"); }} className="flex-1 py-5 border border-slate-800 text-slate-400 rounded-xl text-xs uppercase font-black">
+        <div className="flex gap-4 pt-4 border-t border-slate-900">
+          <Button variant="ghost" onClick={() => { sfx.playBeep(380, 0.08); setScreen("modeSelect"); }} className="flex-1 py-6 border border-slate-800 text-slate-300 rounded-2xl text-xs uppercase font-black tracking-wider">
             Back
           </Button>
-          <Button onClick={handleStartLocalGame} className="flex-1 py-5 bg-gradient-to-r from-cyan-500 to-indigo-600 text-white rounded-xl text-xs uppercase font-black hover:scale-105 transition-all">
+          <Button onClick={handleStartLocalGame} className="flex-1 py-6 bg-gradient-to-r from-cyan-500 to-indigo-600 text-white rounded-2xl text-xs uppercase font-black tracking-wider hover:scale-[1.03] transition-all shadow-lg">
             Enter Arena
           </Button>
         </div>
@@ -859,78 +859,78 @@ export function MathTugOfWar() {
     const offset = (position / winTarget) * 45; // Shifts from -45% to +45%
 
     return (
-      <div className={cn("relative w-full h-44 rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden transition-all duration-300",
+      <div className={cn("relative w-full h-64 rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden transition-all duration-300 shadow-inner",
         shake === "left" && "animate-[bounce_0.3s_infinite]",
         shake === "right" && "animate-[bounce_0.3s_infinite]",
         shake === "fail" && "animate-[ping_0.2s_1]")}>
         
         {/* Dirt ground background lines */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900/40 via-slate-950 to-slate-950" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950 to-slate-950" />
         <div className="absolute inset-0 flex items-center justify-center opacity-10">
-          <div className="w-[1px] h-full bg-slate-100" />
-          <div className="w-[200px] h-[200px] rounded-full border-2 border-slate-100" />
+          <div className="w-[2px] h-full bg-slate-100" />
+          <div className="w-[300px] h-[300px] rounded-full border-2 border-slate-100" />
         </div>
 
         {/* Center line */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-amber-500/40 -translate-x-1/2 flex flex-col justify-between items-center text-[10px] text-amber-500/80 font-black">
-          <span className="bg-slate-950 px-1 border border-amber-500/30 rounded">CTR</span>
-          <span className="bg-slate-950 px-1 border border-amber-500/30 rounded">LINE</span>
+        <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-amber-500/40 -translate-x-1/2 flex flex-col justify-between items-center text-xs text-amber-500/80 font-black py-2">
+          <span className="bg-slate-950 px-2 py-0.5 border border-amber-500/30 rounded-md">CENTER</span>
+          <span className="bg-slate-950 px-2 py-0.5 border border-amber-500/30 rounded-md">LINE</span>
         </div>
 
         {/* Win Zones */}
-        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-blue-600/20 to-transparent border-r border-blue-500/30 flex items-center justify-center">
-          <div className="text-[10px] text-blue-400 font-black origin-center -rotate-90 select-none uppercase tracking-widest">Blue Goal</div>
+        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-blue-600/30 to-transparent border-r-2 border-blue-500/30 flex items-center justify-center">
+          <div className="text-xs text-blue-400 font-black origin-center -rotate-90 select-none uppercase tracking-widest whitespace-nowrap">BLUE GOAL</div>
         </div>
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-red-600/20 to-transparent border-l border-red-500/30 flex items-center justify-center">
-          <div className="text-[10px] text-red-400 font-black origin-center rotate-90 select-none uppercase tracking-widest">Red Goal</div>
+        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-red-600/30 to-transparent border-l-2 border-red-500/30 flex items-center justify-center">
+          <div className="text-xs text-red-400 font-black origin-center rotate-90 select-none uppercase tracking-widest whitespace-nowrap">RED GOAL</div>
         </div>
 
         {/* Emitters (dust/smoke particles) */}
         {particles.map((p) => (
-          <div key={p.id} className="absolute w-2 h-2 rounded-full animate-ping opacity-60"
+          <div key={p.id} className="absolute w-4.5 h-4.5 rounded-full animate-ping opacity-60"
             style={{ left: `${p.x}%`, top: `${p.y}%`, background: p.color }} />
         ))}
 
         {/* The Rope System (including characters) */}
-        <div className="absolute inset-x-0 top-1/2 h-8 -translate-y-1/2 flex items-center transition-transform duration-700 ease-out"
+        <div className="absolute inset-x-0 top-1/2 h-16 -translate-y-1/2 flex items-center transition-transform duration-700 ease-out"
           style={{ transform: `translateX(${offset}%)` }}>
           
           {/* Rope line */}
-          <div className="absolute inset-x-0 top-1/2 h-2.5 -translate-y-1/2 bg-[repeating-linear-gradient(45deg,#78350f,#78350f_10px,#b45309_10px,#b45309_20px)] border border-yellow-950 shadow-md shadow-black/40" />
+          <div className="absolute inset-x-0 top-1/2 h-4.5 -translate-y-1/2 bg-[repeating-linear-gradient(45deg,#78350f,#78350f_15px,#b45309_15px,#b45309_30px)] border-2 border-yellow-950 shadow-lg shadow-black/60" />
 
           {/* Left pulling team (Blue) */}
-          <div className="absolute right-[53%] flex items-center gap-2 pr-4">
-            <div className="flex items-center gap-1.5 animate-[pulse_0.8s_infinite]">
-              <span className="text-3xl filter drop-shadow-[0_2px_8px_rgba(59,130,246,0.6)]">🏋️‍♂️</span>
-              <span className="text-2xl filter drop-shadow-[0_2px_8px_rgba(59,130,246,0.5)]">🏃‍♂️</span>
-              <span className="text-xl filter drop-shadow-[0_2px_8px_rgba(59,130,246,0.4)]">🧑‍💻</span>
+          <div className="absolute right-[53%] flex items-center gap-3 pr-4">
+            <div className="flex items-center gap-2.5 animate-[pulse_0.8s_infinite]">
+              <span className="text-5xl filter drop-shadow-[0_4px_10px_rgba(59,130,246,0.7)]">🏋️‍♂️</span>
+              <span className="text-[40px] filter drop-shadow-[0_3px_8px_rgba(59,130,246,0.6)]">🏃‍♂️</span>
+              <span className="text-[32px] filter drop-shadow-[0_2px_6px_rgba(59,130,246,0.5)]">🧑‍💻</span>
             </div>
-            <div className="text-[10px] bg-blue-600 text-white font-black px-1.5 rounded uppercase tracking-wider select-none animate-bounce">Blue Team</div>
+            <div className="text-xs bg-blue-600 text-white font-black px-2.5 py-1 rounded-xl uppercase tracking-wider select-none animate-bounce shadow-md">Blue Team</div>
           </div>
 
           {/* Center Flag on Rope */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-10 flex flex-col items-center justify-center">
-            <div className="w-1 bg-black h-8" />
-            <div className="w-3.5 h-3.5 bg-red-600 rounded-full border-2 border-white -mt-5 animate-pulse shadow-md shadow-red-500/50" />
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-16 flex flex-col items-center justify-center">
+            <div className="w-1.5 bg-black h-12" />
+            <div className="w-6 h-6 bg-red-600 rounded-full border-2 border-white -mt-7 animate-pulse shadow-lg shadow-red-500/80" />
           </div>
 
           {/* Right pulling team (Red) */}
-          <div className="absolute left-[53%] flex items-center gap-2 pl-4">
-            <div className="text-[10px] bg-red-600 text-white font-black px-1.5 rounded uppercase tracking-wider select-none animate-bounce">Red Team</div>
-            <div className="flex items-center gap-1.5 animate-[pulse_0.8s_infinite]">
-              <span className="text-xl filter drop-shadow-[0_2px_8px_rgba(239,68,68,0.4)]">🧑‍🔬</span>
-              <span className="text-2xl filter drop-shadow-[0_2px_8px_rgba(239,68,68,0.5)]">🏃‍♀️</span>
-              <span className="text-3xl filter drop-shadow-[0_2px_8px_rgba(239,68,68,0.6)]">🏋️‍♀️</span>
+          <div className="absolute left-[53%] flex items-center gap-3 pl-4">
+            <div className="text-xs bg-red-600 text-white font-black px-2.5 py-1 rounded-xl uppercase tracking-wider select-none animate-bounce shadow-md">Red Team</div>
+            <div className="flex items-center gap-2.5 animate-[pulse_0.8s_infinite]">
+              <span className="text-[32px] filter drop-shadow-[0_2px_6px_rgba(239,68,68,0.5)]">🧑‍🔬</span>
+              <span className="text-[40px] filter drop-shadow-[0_3px_8px_rgba(239,68,68,0.6)]">🏃‍♀️</span>
+              <span className="text-5xl filter drop-shadow-[0_4px_10px_rgba(239,68,68,0.7)]">🏋️‍♀️</span>
             </div>
           </div>
 
         </div>
 
         {/* Pull Force Indicator Bar (Top overlay) */}
-        <div className="absolute bottom-2 inset-x-12 h-6 flex items-center justify-between text-[10px] font-black tracking-wider text-slate-400 bg-slate-900/80 px-4 rounded-xl border border-slate-800">
+        <div className="absolute bottom-4 inset-x-16 h-10 flex items-center justify-between text-xs font-black tracking-wider text-slate-300 bg-slate-900/90 px-6 rounded-2xl border border-slate-800 shadow-md">
           <span>BLUE TEAM</span>
-          <div className="flex-1 max-w-sm mx-4 h-2 bg-slate-950 rounded-full overflow-hidden flex relative">
-            <div className="absolute inset-y-0 left-1/2 right-1/2 h-full bg-slate-800" />
+          <div className="flex-1 max-w-md mx-6 h-3.5 bg-slate-950 rounded-full overflow-hidden flex relative">
+            <div className="absolute inset-y-0 left-1/2 right-1/2 h-full bg-slate-850" />
             {/* Dynamic offset filling */}
             <div className={cn("h-full transition-all duration-500", position >= 0 ? "bg-blue-500 ml-[50%]" : "bg-red-500 mr-[50%] ml-auto")}
               style={{ width: `${Math.abs(position / winTarget) * 50}%` }} />
@@ -951,24 +951,24 @@ export function MathTugOfWar() {
     const timerPct = (timer / localTimerLimit) * 100;
 
     return (
-      <div className="max-w-5xl mx-auto w-full p-2 sm:p-4 space-y-4">
+      <div className="max-w-[98%] mx-auto w-full p-4 space-y-6">
         {/* Header toolbar */}
         <div className="flex items-center justify-between gap-4">
           <Button variant="ghost" onClick={() => { sfx.playBeep(380, 0.1); setTimerActive(false); setScreen("localConfig"); }}
-            className="bg-slate-950 border border-slate-900 text-slate-400 text-xs font-black uppercase rounded-xl">
+            className="bg-slate-950 border border-slate-900 text-slate-300 text-sm font-black uppercase rounded-2xl h-12 px-6">
             Exit Game
           </Button>
 
-          <div className="flex items-center gap-2">
-            <Badge className="bg-indigo-600/10 border-indigo-500/20 text-indigo-400 font-extrabold text-xs">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-indigo-600/10 border-indigo-500/30 text-indigo-400 font-extrabold text-sm px-4 py-1.5 rounded-xl">
               Category: {CATEGORIES.find((c) => c.id === localCategory)?.name}
             </Badge>
-            <Badge className="bg-cyan-500/10 border-cyan-500/20 text-cyan-400 font-extrabold text-xs capitalize">
+            <Badge className="bg-cyan-500/10 border-cyan-500/30 text-cyan-400 font-extrabold text-sm px-4 py-1.5 rounded-xl capitalize">
               {localDifficulty}
             </Badge>
           </div>
 
-          <div className={cn("text-3xl font-black tabular-nums",
+          <div className={cn("text-5xl font-black tabular-nums tracking-tight",
             timerPct > 50 ? "text-emerald-400" : timerPct > 20 ? "text-amber-400" : "text-red-500 animate-pulse")}>
             {timer}s
           </div>
@@ -978,45 +978,45 @@ export function MathTugOfWar() {
         {renderArena(ropePosition, localWinPulls)}
 
         {/* Central Question Display */}
-        <div className="bg-gradient-to-b from-indigo-950/20 to-slate-950 border border-indigo-500/10 rounded-2xl p-6 text-center shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
-          <span className="text-[10px] text-indigo-400 font-black uppercase tracking-widest block mb-1">Active Question</span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white">{currentProblem.question}</h2>
+        <div className="bg-gradient-to-b from-indigo-950/20 to-slate-950 border border-indigo-500/25 rounded-3xl p-10 text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+          <span className="text-xs text-indigo-400 font-black uppercase tracking-widest block mb-2">Active Question</span>
+          <h2 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight">{currentProblem.question}</h2>
         </div>
 
         {/* Control Areas for single screen PVP */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Blue Side Control */}
-          <Card className={cn("p-4 bg-blue-950/10 border-blue-500/20 flex flex-col justify-between space-y-4 relative",
+          <Card className={cn("p-6 bg-blue-950/10 border-blue-500/20 flex flex-col justify-between space-y-6 relative rounded-3xl",
             blueLocked && "opacity-40 pointer-events-none")}>
             {blueLocked && (
-              <div className="absolute inset-0 bg-slate-950/80 rounded-xl flex flex-col items-center justify-center text-center p-4">
-                <AlertCircle className="h-6 w-6 text-red-500 animate-bounce mb-1" />
-                <p className="text-xs font-black text-red-500 uppercase">Incorrect Penalty Lockout</p>
-                <p className="text-[10px] text-slate-400">Unlock in 2s...</p>
+              <div className="absolute inset-0 bg-slate-950/90 rounded-3xl flex flex-col items-center justify-center text-center p-6 z-20">
+                <AlertCircle className="h-8 w-8 text-red-500 animate-bounce mb-2" />
+                <p className="text-lg font-black text-red-500 uppercase">Incorrect Penalty Lockout</p>
+                <p className="text-sm text-slate-400 mt-1">Unlock in 2s...</p>
               </div>
             )}
             
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-blue-500/10 pb-3">
               <div>
-                <p className="text-xs font-black text-blue-400 uppercase tracking-widest">{blueTeam.name}</p>
-                <p className="text-[10px] text-slate-500">Pulls: {ropePosition > 0 ? ropePosition : 0}/{localWinPulls}</p>
+                <p className="text-lg font-black text-blue-400 uppercase tracking-widest">{blueTeam.name}</p>
+                <p className="text-xs text-slate-400 mt-0.5">Pulls: {ropePosition > 0 ? ropePosition : 0}/{localWinPulls}</p>
               </div>
-              <div className="flex gap-2">
-                <Badge className="bg-blue-500/20 text-blue-300 font-extrabold text-xs">Score: {blueTeam.score}</Badge>
-                {blueTeam.streak >= 3 && <Badge className="bg-amber-500/20 text-amber-300 text-[10px] font-black">🔥 {blueTeam.streak} Streak</Badge>}
+              <div className="flex items-center gap-3">
+                <Badge className="bg-blue-500/20 text-blue-300 font-extrabold text-sm px-3 py-1 rounded-lg">Score: {blueTeam.score}</Badge>
+                {blueTeam.streak >= 3 && <Badge className="bg-amber-500/20 text-amber-300 text-xs font-black px-2 py-1 rounded-lg">🔥 {blueTeam.streak} Streak</Badge>}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-2">
+            <div className="grid grid-cols-2 gap-4 pt-2">
               {currentProblem.options.map((option, idx) => {
                 const keys = ["Q", "W", "E", "R"];
                 return (
                   <Button key={option} onClick={() => handleLocalAnswer("blue", option)} variant="outline"
-                    className="h-14 border-slate-800 bg-slate-950/60 hover:bg-blue-600/10 hover:border-blue-500/30 text-white font-extrabold flex flex-col items-center justify-center p-1 group">
-                    <span className="text-xs font-black text-slate-300">{option}</span>
-                    <span className="text-[9px] text-blue-500 font-bold bg-blue-500/10 px-1.5 rounded mt-0.5 group-hover:bg-blue-500 group-hover:text-white transition-all">Key: {keys[idx]}</span>
+                    className="h-24 sm:h-28 border-slate-800 bg-slate-950/60 hover:bg-blue-600/10 hover:border-blue-500/35 text-white font-extrabold flex flex-col items-center justify-center p-3 group rounded-2xl shadow-sm transition-all hover:scale-[1.02]">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-100">{option}</span>
+                    <span className="text-xs text-blue-400 font-black bg-blue-500/10 px-3 py-1 rounded-md mt-2 group-hover:bg-blue-500 group-hover:text-white transition-all">Key: {keys[idx]}</span>
                   </Button>
                 );
               })}
@@ -1024,35 +1024,35 @@ export function MathTugOfWar() {
           </Card>
 
           {/* Red Side Control */}
-          <Card className={cn("p-4 bg-red-950/10 border-red-500/20 flex flex-col justify-between space-y-4 relative",
+          <Card className={cn("p-6 bg-red-950/10 border-red-500/20 flex flex-col justify-between space-y-6 relative rounded-3xl",
             redLocked && "opacity-40 pointer-events-none")}>
             {redLocked && (
-              <div className="absolute inset-0 bg-slate-950/80 rounded-xl flex flex-col items-center justify-center text-center p-4">
-                <AlertCircle className="h-6 w-6 text-red-500 animate-bounce mb-1" />
-                <p className="text-xs font-black text-red-500 uppercase">Incorrect Penalty Lockout</p>
-                <p className="text-[10px] text-slate-400">Unlock in 2s...</p>
+              <div className="absolute inset-0 bg-slate-950/90 rounded-3xl flex flex-col items-center justify-center text-center p-6 z-20">
+                <AlertCircle className="h-8 w-8 text-red-500 animate-bounce mb-2" />
+                <p className="text-lg font-black text-red-500 uppercase">Incorrect Penalty Lockout</p>
+                <p className="text-sm text-slate-400 mt-1">Unlock in 2s...</p>
               </div>
             )}
             
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-red-500/10 pb-3">
               <div>
-                <p className="text-xs font-black text-red-400 uppercase tracking-widest">{redTeam.name}</p>
-                <p className="text-[10px] text-slate-500">Pulls: {ropePosition < 0 ? Math.abs(ropePosition) : 0}/{localWinPulls}</p>
+                <p className="text-lg font-black text-red-400 uppercase tracking-widest">{redTeam.name}</p>
+                <p className="text-xs text-slate-400 mt-0.5">Pulls: {ropePosition < 0 ? Math.abs(ropePosition) : 0}/{localWinPulls}</p>
               </div>
-              <div className="flex gap-2">
-                <Badge className="bg-red-500/20 text-red-300 font-extrabold text-xs">Score: {redTeam.score}</Badge>
-                {redTeam.streak >= 3 && <Badge className="bg-amber-500/20 text-amber-300 text-[10px] font-black">🔥 {redTeam.streak} Streak</Badge>}
+              <div className="flex items-center gap-3">
+                <Badge className="bg-red-500/20 text-red-300 font-extrabold text-sm px-3 py-1 rounded-lg">Score: {redTeam.score}</Badge>
+                {redTeam.streak >= 3 && <Badge className="bg-amber-500/20 text-amber-300 text-xs font-black px-2 py-1 rounded-lg">🔥 {redTeam.streak} Streak</Badge>}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-2">
+            <div className="grid grid-cols-2 gap-4 pt-2">
               {currentProblem.options.map((option, idx) => {
                 const keys = ["U", "I", "O", "P"];
                 return (
                   <Button key={option} onClick={() => handleLocalAnswer("red", option)} variant="outline"
-                    className="h-14 border-slate-800 bg-slate-950/60 hover:bg-red-600/10 hover:border-red-500/30 text-white font-extrabold flex flex-col items-center justify-center p-1 group">
-                    <span className="text-xs font-black text-slate-300">{option}</span>
-                    <span className="text-[9px] text-red-500 font-bold bg-red-500/10 px-1.5 rounded mt-0.5 group-hover:bg-red-500 group-hover:text-white transition-all">Key: {keys[idx]}</span>
+                    className="h-24 sm:h-28 border-slate-800 bg-slate-950/60 hover:bg-red-600/10 hover:border-red-500/35 text-white font-extrabold flex flex-col items-center justify-center p-3 group rounded-2xl shadow-sm transition-all hover:scale-[1.02]">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-100">{option}</span>
+                    <span className="text-xs text-red-400 font-black bg-red-500/10 px-3 py-1 rounded-md mt-2 group-hover:bg-red-500 group-hover:text-white transition-all">Key: {keys[idx]}</span>
                   </Button>
                 );
               })}
@@ -1069,82 +1069,82 @@ export function MathTugOfWar() {
   // -------------------------------------------------------
   const renderOnlineConfig = () => {
     return (
-      <div className="max-w-md mx-auto w-full p-4 space-y-6 bg-slate-950/60 border border-slate-900 rounded-3xl backdrop-blur-md">
-        <div className="text-center space-y-1">
-          <Wifi className="h-7 w-7 text-purple-400 mx-auto animate-pulse" />
-          <h3 className="text-2xl font-black text-white font-display">Online Arena Setup</h3>
-          <p className="text-xs text-slate-400">Play with other players on the internet</p>
+      <div className="max-w-3xl mx-auto w-full p-8 space-y-6 bg-slate-950/60 border border-slate-900 rounded-3xl backdrop-blur-md shadow-2xl">
+        <div className="text-center space-y-2">
+          <Wifi className="h-10 w-10 text-purple-400 mx-auto animate-pulse" />
+          <h3 className="text-3xl font-black text-white font-display">Online Arena Setup</h3>
+          <p className="text-sm text-slate-400">Play with other players on the internet</p>
         </div>
 
         {onlineError && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-extrabold rounded-xl flex items-center gap-2">
+          <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-extrabold rounded-2xl flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             <span>{onlineError}</span>
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="space-y-2">
-            <Label className="text-xs font-bold text-slate-300">Your Nickname</Label>
+            <Label className="text-sm font-black text-slate-200">Your Nickname</Label>
             <Input value={myPlayerName} onChange={(e) => setMyPlayerName(e.target.value)} maxLength={15}
-              className="bg-slate-900 border-slate-800 text-white rounded-xl py-3 font-extrabold focus:border-purple-500" />
+              className="bg-slate-900 border-slate-800 text-white rounded-2xl py-6 px-4 text-lg font-black focus:border-purple-500" />
           </div>
 
-          <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-3">
-            <Label className="text-xs font-black uppercase text-purple-400 tracking-wider">Host a Room</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold text-slate-400">Math Topic</span>
+          <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl space-y-4">
+            <Label className="text-sm font-black uppercase text-purple-400 tracking-wider">Host a Room</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <span className="text-xs font-black text-slate-400">Math Topic</span>
                 <select value={onlineCategory} onChange={(e) => setOnlineCategory(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 text-xs text-white p-2 rounded-xl focus:border-purple-500 outline-none">
+                  className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none">
                   {CATEGORIES.map((c) => (
                     <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
                   ))}
                 </select>
               </div>
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold text-slate-400">Difficulty</span>
+              <div className="space-y-2">
+                <span className="text-xs font-black text-slate-400">Difficulty</span>
                 <select value={onlineDifficulty} onChange={(e) => setOnlineDifficulty(e.target.value as any)}
-                  className="w-full bg-slate-950 border border-slate-800 text-xs text-white p-2 rounded-xl focus:border-purple-500 outline-none">
+                  className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none">
                   <option value="easy">Easy</option>
                   <option value="medium">Medium</option>
                   <option value="hard">Hard</option>
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold text-slate-400">Winning Pulls (3-8)</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div className="space-y-2">
+                <span className="text-xs font-black text-slate-400">Winning Pulls (3-8)</span>
                 <input type="number" min={3} max={8} value={onlineWinPulls} onChange={(e) => setOnlineWinPulls(Math.max(3, Math.min(8, parseInt(e.target.value) || 5)))}
-                  className="w-full bg-slate-950 border border-slate-800 text-xs text-white p-2 rounded-xl focus:border-purple-500 outline-none" />
+                  className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none" />
               </div>
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold text-slate-400">Timer Limit</span>
+              <div className="space-y-2">
+                <span className="text-xs font-black text-slate-400">Timer Limit</span>
                 <input type="number" min={10} max={30} value={onlineTimerLimit} onChange={(e) => setOnlineTimerLimit(Math.max(10, Math.min(30, parseInt(e.target.value) || 15)))}
-                  className="w-full bg-slate-950 border border-slate-800 text-xs text-white p-2 rounded-xl focus:border-purple-500 outline-none" />
+                  className="w-full bg-slate-950 border border-slate-800 text-sm text-white p-3 rounded-xl focus:border-purple-500 outline-none" />
               </div>
             </div>
             <Button onClick={handleCreateRoom} disabled={isBusy || !myPlayerName.trim()}
-              className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs uppercase font-black tracking-wider flex items-center justify-center gap-2 mt-2">
+              className="w-full py-6 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl text-xs uppercase font-black tracking-wider flex items-center justify-center gap-2 mt-2 shadow-lg">
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} Create Room
             </Button>
           </div>
 
-          <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-3">
-            <Label className="text-xs font-black uppercase text-cyan-400 tracking-wider">Join Existing Room</Label>
-            <div className="flex gap-2">
-              <Input placeholder="INVITE CODE" value={joinCodeInput} onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase().slice(0, 6))}
-                className="bg-slate-950 border-slate-800 text-white rounded-xl font-black text-center tracking-widest placeholder:tracking-normal" />
+          <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-3xl space-y-4">
+            <Label className="text-sm font-black uppercase text-cyan-400 tracking-wider">Join Existing Room</Label>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Input placeholder="ENTER INVITE CODE" value={joinCodeInput} onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase().slice(0, 6))}
+                className="bg-slate-950 border-slate-800 text-white rounded-2xl py-6 px-4 text-center font-black text-lg tracking-widest placeholder:tracking-normal flex-1" />
               <Button onClick={handleJoinRoom} disabled={isBusy || !myPlayerName.trim() || joinCodeInput.length !== 6}
-                className="bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase text-xs rounded-xl px-6">
-                {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Join"}
+                className="bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase text-xs rounded-2xl py-6 px-8 tracking-wider shadow-lg">
+                {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Join Game"}
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="pt-2">
-          <Button variant="ghost" onClick={() => { sfx.playBeep(380, 0.08); setScreen("modeSelect"); }} className="w-full py-4 border border-slate-800 text-slate-400 rounded-xl text-xs uppercase font-black">
+        <div className="pt-4">
+          <Button variant="ghost" onClick={() => { sfx.playBeep(380, 0.08); setScreen("modeSelect"); }} className="w-full py-5 border border-slate-800 text-slate-300 rounded-2xl text-xs uppercase font-black tracking-wider">
             Back to mode selection
           </Button>
         </div>
@@ -1188,45 +1188,45 @@ export function MathTugOfWar() {
       const allReady = playerList.length >= 2 && playerList.every((p) => p.isReady);
 
       return (
-        <div className="max-w-3xl mx-auto w-full p-4 space-y-6">
+        <div className="max-w-5xl mx-auto w-full p-4 space-y-6">
           
           {/* Header */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 bg-slate-900/60 border border-slate-800 rounded-3xl">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-slate-900/60 border border-slate-800 rounded-3xl">
             <div>
-              <span className="text-[10px] font-black uppercase text-purple-400 tracking-wider">Online Lobby</span>
-              <h3 className="text-xl font-black text-white">Invite Code: <span className="text-purple-400 underline font-mono select-all ml-1">{room.roomCode}</span></h3>
-              <p className="text-xs text-slate-400">Share this code with teammates so they can join.</p>
+              <span className="text-xs font-black uppercase text-purple-400 tracking-wider">Online Lobby</span>
+              <h3 className="text-2xl font-black text-white">Invite Code: <span className="text-purple-400 underline font-mono select-all ml-1">{room.roomCode}</span></h3>
+              <p className="text-xs text-slate-400 mt-0.5">Share this code with teammates so they can join.</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button onClick={() => {
                 navigator.clipboard.writeText(room.roomCode);
                 toast({ title: "📋 Code Copied!", description: "Invite code copied to clipboard", duration: 1500 });
-              }} variant="outline" className="border-slate-800 text-slate-300 text-xs font-black uppercase rounded-xl">
-                <Copy className="h-3.5 w-3.5 mr-1" /> Copy Code
+              }} variant="outline" className="border-slate-800 text-slate-350 text-sm font-black uppercase rounded-2xl h-11 px-5">
+                <Copy className="h-4 w-4 mr-1.5" /> Copy Code
               </Button>
-              <Button onClick={handleLeaveRoom} variant="ghost" className="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-black uppercase rounded-xl">
-                <LogOut className="h-3.5 w-3.5 mr-1" /> Leave Room
+              <Button onClick={handleLeaveRoom} variant="ghost" className="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-black uppercase rounded-2xl h-11 px-5">
+                <LogOut className="h-4 w-4 mr-1.5" /> Leave Room
               </Button>
             </div>
           </div>
 
           {/* Config Summary Card */}
-          <Card className="p-4 bg-slate-900/40 border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center rounded-2xl">
+          <Card className="p-6 bg-slate-900/40 border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center rounded-3xl shadow-lg">
             <div>
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Category</span>
-              <span className="text-xs font-black text-white capitalize">{CATEGORIES.find((c) => c.id === room.config.categoryId)?.emoji} {room.config.categoryId}</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Category</span>
+              <span className="text-sm font-black text-white capitalize">{CATEGORIES.find((c) => c.id === room.config.categoryId)?.emoji} {room.config.categoryId}</span>
             </div>
             <div>
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Difficulty</span>
-              <span className="text-xs font-black text-white capitalize">{room.config.difficulty}</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Difficulty</span>
+              <span className="text-sm font-black text-white capitalize">{room.config.difficulty}</span>
             </div>
             <div>
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Target Pulls</span>
-              <span className="text-xs font-black text-white">{room.config.winPullsRequired} pulls</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Target Pulls</span>
+              <span className="text-sm font-black text-white">{room.config.winPullsRequired} pulls</span>
             </div>
             <div>
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Time Limit</span>
-              <span className="text-xs font-black text-white">{room.config.timerLimit}s</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Time Limit</span>
+              <span className="text-sm font-black text-white">{room.config.timerLimit}s</span>
             </div>
           </Card>
 
@@ -1234,83 +1234,83 @@ export function MathTugOfWar() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Team Blue Lobby */}
-            <div className="space-y-3 p-4 bg-blue-950/10 border border-blue-500/10 rounded-3xl">
-              <div className="flex items-center justify-between border-b border-blue-500/10 pb-2">
+            <div className="space-y-4 p-6 bg-blue-950/10 border border-blue-500/10 rounded-[2rem] shadow-sm">
+              <div className="flex items-center justify-between border-b border-blue-500/10 pb-3">
                 <div>
-                  <h4 className="font-black text-blue-400 text-sm uppercase tracking-widest">Team Blue ({blueTeamList.length})</h4>
-                  <p className="text-[10px] text-slate-500">Pulls Left (Left Side)</p>
+                  <h4 className="font-black text-blue-400 text-base uppercase tracking-widest">Team Blue ({blueTeamList.length})</h4>
+                  <p className="text-xs text-slate-500">Pulls Left (Left Side)</p>
                 </div>
                 {me?.team !== "blue" && (
-                  <Button onClick={() => handleSwitchTeam("blue")} size="sm" variant="outline" className="border-blue-500/20 text-blue-400 text-xs font-extrabold hover:bg-blue-600/10 rounded-lg">
+                  <Button onClick={() => handleSwitchTeam("blue")} size="sm" variant="outline" className="border-blue-500/30 text-blue-400 text-xs font-extrabold hover:bg-blue-600/10 rounded-xl px-4 py-2">
                     Join Team
                   </Button>
                 )}
               </div>
 
-              <div className="space-y-2 max-h-56 overflow-y-auto">
+              <div className="space-y-2 max-h-64 overflow-y-auto">
                 {blueTeamList.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between p-2.5 bg-slate-950/50 border border-slate-900 rounded-xl">
-                    <span className="text-xs text-slate-200 font-extrabold">{p.name} {p.id === room.creatorId && "👑"}</span>
+                  <div key={p.id} className="flex items-center justify-between p-3.5 bg-slate-950/50 border border-slate-900 rounded-2xl">
+                    <span className="text-sm text-slate-200 font-extrabold">{p.name} {p.id === room.creatorId && "👑"}</span>
                     {p.isReady ? (
-                      <Badge className="bg-emerald-500/20 text-emerald-300 text-[9px] font-black border-transparent">Ready</Badge>
+                      <Badge className="bg-emerald-500/20 text-emerald-300 text-xs font-black border-transparent px-3 py-1 rounded-md">Ready</Badge>
                     ) : (
-                      <Badge className="bg-slate-900 text-slate-500 text-[9px] font-bold border-transparent">Waiting</Badge>
+                      <Badge className="bg-slate-900 text-slate-500 text-xs font-bold border-transparent px-3 py-1 rounded-md">Waiting</Badge>
                     )}
                   </div>
                 ))}
-                {blueTeamList.length === 0 && <p className="text-center text-[11px] text-slate-500 py-4">No players on Team Blue yet.</p>}
+                {blueTeamList.length === 0 && <p className="text-center text-xs text-slate-500 py-6">No players on Team Blue yet.</p>}
               </div>
             </div>
 
             {/* Team Red Lobby */}
-            <div className="space-y-3 p-4 bg-red-950/10 border border-red-500/10 rounded-3xl">
-              <div className="flex items-center justify-between border-b border-red-500/10 pb-2">
+            <div className="space-y-4 p-6 bg-red-950/10 border border-red-500/10 rounded-[2rem] shadow-sm">
+              <div className="flex items-center justify-between border-b border-red-500/10 pb-3">
                 <div>
-                  <h4 className="font-black text-red-400 text-sm uppercase tracking-widest">Team Red ({redTeamList.length})</h4>
-                  <p className="text-[10px] text-slate-500">Pulls Right (Right Side)</p>
+                  <h4 className="font-black text-red-400 text-base uppercase tracking-widest">Team Red ({redTeamList.length})</h4>
+                  <p className="text-xs text-slate-500">Pulls Right (Right Side)</p>
                 </div>
                 {me?.team !== "red" && (
-                  <Button onClick={() => handleSwitchTeam("red")} size="sm" variant="outline" className="border-red-500/20 text-red-400 text-xs font-extrabold hover:bg-red-600/10 rounded-lg">
+                  <Button onClick={() => handleSwitchTeam("red")} size="sm" variant="outline" className="border-red-500/30 text-red-400 text-xs font-extrabold hover:bg-red-600/10 rounded-xl px-4 py-2">
                     Join Team
                   </Button>
                 )}
               </div>
 
-              <div className="space-y-2 max-h-56 overflow-y-auto">
+              <div className="space-y-2 max-h-64 overflow-y-auto">
                 {redTeamList.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between p-2.5 bg-slate-950/50 border border-slate-900 rounded-xl">
-                    <span className="text-xs text-slate-200 font-extrabold">{p.name} {p.id === room.creatorId && "👑"}</span>
+                  <div key={p.id} className="flex items-center justify-between p-3.5 bg-slate-950/50 border border-slate-900 rounded-2xl">
+                    <span className="text-sm text-slate-200 font-extrabold">{p.name} {p.id === room.creatorId && "👑"}</span>
                     {p.isReady ? (
-                      <Badge className="bg-emerald-500/20 text-emerald-300 text-[9px] font-black border-transparent">Ready</Badge>
+                      <Badge className="bg-emerald-500/20 text-emerald-300 text-xs font-black border-transparent px-3 py-1 rounded-md">Ready</Badge>
                     ) : (
-                      <Badge className="bg-slate-900 text-slate-500 text-[9px] font-bold border-transparent">Waiting</Badge>
+                      <Badge className="bg-slate-900 text-slate-500 text-xs font-bold border-transparent px-3 py-1 rounded-md">Waiting</Badge>
                     )}
                   </div>
                 ))}
-                {redTeamList.length === 0 && <p className="text-center text-[11px] text-slate-500 py-4">No players on Team Red yet.</p>}
+                {redTeamList.length === 0 && <p className="text-center text-xs text-slate-500 py-6">No players on Team Red yet.</p>}
               </div>
             </div>
 
           </div>
 
           {/* Action Row */}
-          <div className="text-center p-4 bg-slate-900/30 border border-slate-800/80 rounded-2xl space-y-3">
+          <div className="text-center p-6 bg-slate-900/30 border border-slate-800/80 rounded-3xl space-y-4 shadow-sm">
             <div className="flex justify-center gap-4">
               <Button onClick={handleToggleReady}
-                className={cn("px-8 py-4 font-black uppercase text-xs rounded-xl tracking-wider hover:scale-105 transition-all",
+                className={cn("px-10 py-5 font-black uppercase text-xs rounded-xl tracking-wider hover:scale-105 transition-all shadow-md",
                   me?.isReady ? "bg-amber-600 hover:bg-amber-500 text-white" : "bg-emerald-600 hover:bg-emerald-500 text-white")}>
                 {me?.isReady ? "Not Ready ❌" : "I am Ready! ✓"}
               </Button>
 
               {isCreator && (
                 <Button onClick={handleStartOnlineGame} disabled={!allReady}
-                  className="px-10 py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black uppercase text-xs rounded-xl tracking-wider hover:scale-105 transition-all disabled:opacity-40 disabled:scale-100 flex items-center gap-2">
+                  className="px-12 py-5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black uppercase text-xs rounded-xl tracking-wider hover:scale-105 transition-all disabled:opacity-40 disabled:scale-100 flex items-center gap-2 shadow-lg shadow-purple-500/20">
                   <Play className="h-4 w-4" /> Start Battle
                 </Button>
               )}
             </div>
-            {!isCreator && <p className="text-[10px] text-slate-500">Wait for the room creator to start once everyone is ready.</p>}
-            {isCreator && !allReady && <p className="text-[10px] text-amber-500 font-bold">Needs at least 2 players in the room, and all players must be Ready.</p>}
+            {!isCreator && <p className="text-xs text-slate-500">Wait for the room creator to start once everyone is ready.</p>}
+            {isCreator && !allReady && <p className="text-xs text-amber-500 font-bold">Needs at least 2 players in the room, and all players must be Ready.</p>}
           </div>
 
         </div>
@@ -1322,19 +1322,19 @@ export function MathTugOfWar() {
       const correctWinner = playerList.find((p) => p.id === room.pullWinnerId);
 
       return (
-        <div className="max-w-5xl mx-auto w-full p-2 sm:p-4 space-y-4">
+        <div className="max-w-[98%] mx-auto w-full p-4 space-y-6">
           
           {/* Header */}
           <div className="flex items-center justify-between gap-4">
-            <Button onClick={handleLeaveRoom} variant="ghost" className="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-black uppercase rounded-xl">
-              Leave
+            <Button onClick={handleLeaveRoom} variant="ghost" className="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-black uppercase rounded-2xl h-12 px-6">
+              Leave Game
             </Button>
-            <div className="flex items-center gap-2 text-xs font-extrabold text-slate-300">
-              <span className="bg-purple-600/20 text-purple-300 px-2.5 py-1 rounded-lg">Round {room.currentRound}</span>
-              <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">Invite Code: {room.roomCode}</span>
+            <div className="flex items-center gap-3 text-sm font-extrabold text-slate-300">
+              <span className="bg-purple-600/20 text-purple-300 px-4 py-1.5 rounded-xl border border-purple-500/20">Round {room.currentRound}</span>
+              <span className="bg-slate-900 border border-slate-800 px-4 py-1.5 rounded-xl">Invite Code: {room.roomCode}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-extrabold">
-              <Timer className="h-4 w-4" />
+            <div className="flex items-center gap-1.5 text-sm text-slate-400 font-extrabold">
+              <Timer className="h-5 w-5 text-purple-400 animate-pulse" />
               <span>Race!</span>
             </div>
           </div>
@@ -1343,35 +1343,35 @@ export function MathTugOfWar() {
           {renderArena(room.ropePosition, room.config.winPullsRequired)}
 
           {/* Problem Display */}
-          <div className="bg-slate-950 border border-slate-900 rounded-3xl p-6 text-center space-y-3 relative overflow-hidden">
-            <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
-            <span className="text-[9px] text-purple-400 font-black uppercase tracking-widest block">Topic: {room.config.categoryId}</span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white">{room.currentProblem.question}</h2>
+          <div className="bg-slate-950 border border-slate-900 rounded-3xl p-10 text-center space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
+            <span className="text-xs text-purple-400 font-black uppercase tracking-widest block">Topic: {room.config.categoryId}</span>
+            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight">{room.currentProblem.question}</h2>
           </div>
 
           {/* Answer Choice Panel */}
-          <div className="max-w-xl mx-auto w-full">
+          <div className="max-w-4xl mx-auto w-full">
             {me?.lastAnsweredCorrectly !== null ? (
-              <Card className="p-6 bg-slate-900/60 border-slate-800 text-center rounded-2xl space-y-3">
+              <Card className="p-8 bg-slate-900/60 border-slate-800 text-center rounded-3xl space-y-4 shadow-xl">
                 {me?.lastAnsweredCorrectly === true ? (
-                  <div className="space-y-1">
-                    <Check className="h-8 w-8 text-emerald-400 mx-auto animate-bounce" />
-                    <p className="text-sm font-black text-emerald-400">CORRECT!</p>
-                    <p className="text-[11px] text-slate-400">You pulled the rope! Waiting for opponents or host...</p>
+                  <div className="space-y-2">
+                    <Check className="h-12 w-12 text-emerald-400 mx-auto animate-bounce" />
+                    <p className="text-2xl font-black text-emerald-400 tracking-tight">CORRECT!</p>
+                    <p className="text-sm text-slate-400">You pulled the rope! Waiting for opponents or host...</p>
                   </div>
                 ) : (
-                  <div className="space-y-1">
-                    <X className="h-8 w-8 text-red-500 mx-auto animate-pulse" />
-                    <p className="text-sm font-black text-red-500">INCORRECT</p>
-                    <p className="text-[11px] text-slate-400">You are locked out for this round. Teammates can still answer!</p>
+                  <div className="space-y-2">
+                    <X className="h-12 w-12 text-red-500 mx-auto animate-pulse" />
+                    <p className="text-2xl font-black text-red-500 tracking-tight">INCORRECT</p>
+                    <p className="text-sm text-slate-400">You are locked out for this round. Teammates can still answer!</p>
                   </div>
                 )}
               </Card>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {room.currentProblem.options.map((option) => (
                   <Button key={option} onClick={() => handleOnlineAnswer(option)} variant="outline"
-                    className="h-16 border-slate-800 bg-slate-950/60 hover:bg-purple-600/10 hover:border-purple-500/30 text-white font-extrabold text-sm rounded-xl transition-all hover:scale-105">
+                    className="h-24 sm:h-28 border-slate-800 bg-slate-950/60 hover:bg-purple-600/10 hover:border-purple-500/35 text-white font-black text-2xl sm:text-3xl rounded-2xl transition-all hover:scale-[1.02] shadow-sm">
                     {option}
                   </Button>
                 ))}
@@ -1380,24 +1380,24 @@ export function MathTugOfWar() {
           </div>
 
           {/* Active players scores */}
-          <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto pt-2">
-            <div className="p-3 bg-blue-950/5 border border-blue-500/10 rounded-2xl space-y-2">
-              <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Blue Solvers</span>
-              <div className="space-y-1.5 max-h-32 overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto pt-4">
+            <div className="p-4 bg-blue-950/5 border border-blue-500/10 rounded-2xl space-y-3">
+              <span className="text-xs font-black text-blue-400 uppercase tracking-widest block">Blue Solvers</span>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
                 {blueTeamList.map((p) => (
-                  <div key={p.id} className="flex justify-between items-center text-[10px] font-bold text-slate-300">
-                    <span>{p.name} {p.id === myPlayerId && "(You)"}</span>
+                  <div key={p.id} className="flex justify-between items-center text-xs font-bold text-slate-300">
+                    <span>{p.name} {p.id === myPlayerId && "★"}</span>
                     <span>{p.score} pts</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="p-3 bg-red-950/5 border border-red-500/10 rounded-2xl space-y-2">
-              <span className="text-[9px] font-black text-red-400 uppercase tracking-widest">Red Solvers</span>
-              <div className="space-y-1.5 max-h-32 overflow-y-auto">
+            <div className="p-4 bg-red-950/5 border border-red-500/10 rounded-2xl space-y-3">
+              <span className="text-xs font-black text-red-400 uppercase tracking-widest block">Red Solvers</span>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
                 {redTeamList.map((p) => (
-                  <div key={p.id} className="flex justify-between items-center text-[10px] font-bold text-slate-300">
-                    <span>{p.name} {p.id === myPlayerId && "(You)"}</span>
+                  <div key={p.id} className="flex justify-between items-center text-xs font-bold text-slate-300">
+                    <span>{p.name} {p.id === myPlayerId && "★"}</span>
                     <span>{p.score} pts</span>
                   </div>
                 ))}
@@ -1414,43 +1414,48 @@ export function MathTugOfWar() {
       const pullWinner = playerList.find((p) => p.id === room.pullWinnerId);
 
       return (
-        <div className="max-w-2xl mx-auto w-full p-4 space-y-6 text-center">
+        <div className="max-w-4xl mx-auto w-full p-4 space-y-6 text-center">
           {renderArena(room.ropePosition, room.config.winPullsRequired)}
 
-          <div className="space-y-3 bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
-            <div className="text-4xl">💪</div>
-            {pullWinner ? (
-              <div className="space-y-1">
-                <h3 className="text-2xl font-black text-white font-display">
+          <div className="space-y-6 bg-slate-900/60 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+            <div className="text-5xl">💪</div>
+            {room.pullWinnerId === 'all_failed' ? (
+              <div className="space-y-2">
+                <h3 className="text-3xl font-black text-red-400 font-display">❌ All Players Failed!</h3>
+                <p className="text-base text-slate-300 max-w-md mx-auto">Every player submitted an incorrect answer. The rope remains in position.</p>
+              </div>
+            ) : pullWinner ? (
+              <div className="space-y-2">
+                <h3 className="text-3xl font-black text-white font-display">
                   <span className={cn(pullWinner.team === "blue" ? "text-blue-400" : "text-red-400")}>{pullWinner.name}</span> Answered Correctly!
                 </h3>
-                <p className="text-sm text-slate-300">
+                <p className="text-base text-slate-300 max-w-md mx-auto">
                   Rope pulled 1 segment towards the <span className={cn("font-black capitalize", pullWinner.team === "blue" ? "text-blue-400" : "text-red-400")}>{pullWinner.team}</span> team!
                 </p>
               </div>
             ) : (
-              <div className="space-y-1">
-                <h3 className="text-2xl font-black text-white font-display">⏰ Round Ended in Timeout</h3>
-                <p className="text-sm text-slate-300">Nobody answered correctly before the timer ran out. The rope remains in position.</p>
+              <div className="space-y-2">
+                <h3 className="text-3xl font-black text-white font-display">⏰ Round Ended in Timeout</h3>
+                <p className="text-base text-slate-300 max-w-md mx-auto">Nobody answered correctly before the timer ran out. The rope remains in position.</p>
               </div>
             )}
 
-            <div className="pt-3 border-t border-slate-800 max-w-sm mx-auto space-y-1.5 text-left">
-              <span className="text-[10px] font-black uppercase text-indigo-400 tracking-wider block">Solution details</span>
-              <p className="text-xs font-bold text-slate-200">Question: {room.currentProblem?.question}</p>
-              <p className="text-xs font-bold text-emerald-400">Answer: {room.currentProblem?.answer}</p>
+            <div className="pt-4 border-t border-slate-800 max-w-md mx-auto space-y-2.5 text-left">
+              <span className="text-xs font-black uppercase text-indigo-400 tracking-wider block">Solution details</span>
+              <p className="text-sm font-black text-slate-200">Question: <span className="font-mono ml-1">{room.currentProblem?.question}</span></p>
+              <p className="text-sm font-black text-emerald-400">Answer: <span className="font-mono ml-1">{room.currentProblem?.answer}</span></p>
               {room.currentProblem?.solutionHint && (
-                <p className="text-[11px] text-slate-400 font-medium">Hint: {room.currentProblem.solutionHint}</p>
+                <p className="text-xs text-slate-400 font-medium">Hint: {room.currentProblem.solutionHint}</p>
               )}
             </div>
 
             {isCreator && (
               <Button onClick={handleOnlineNextRound}
-                className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black uppercase text-xs rounded-xl tracking-wider hover:scale-105 transition-all mt-4 flex items-center justify-center gap-2">
+                className="w-full max-w-md mx-auto py-5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black uppercase text-xs rounded-xl tracking-wider hover:scale-[1.03] transition-all mt-6 flex items-center justify-center gap-2 shadow-lg">
                 <ArrowRight className="h-4 w-4" /> Next Round
               </Button>
             )}
-            {!isCreator && <p className="text-[10px] text-slate-500 mt-4">Waiting for host to start the next round...</p>}
+            {!isCreator && <p className="text-xs font-bold text-slate-400 mt-6">Waiting for host to start the next round...</p>}
           </div>
         </div>
       );
@@ -1578,26 +1583,38 @@ export function MathTugOfWar() {
     <div className="w-full min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-100 flex flex-col justify-between py-6">
       
       {/* Top Header Section */}
-      <div className="max-w-5xl mx-auto w-full px-4 flex items-center justify-between border-b border-slate-900 pb-4">
+      <div className="max-w-[95%] mx-auto w-full px-4 flex items-center justify-between border-b border-slate-900 pb-4">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
-            <Swords className="h-4 w-4" />
+          <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+            <Swords className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-sm font-black tracking-tight text-white font-display">MATH TUG OF WAR</h1>
+            <h1 className="text-base font-black tracking-tight text-white font-display">MATH TUG OF WAR</h1>
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Battle of the Brains</p>
           </div>
         </div>
 
-        {/* Audio Toggle */}
-        <button onClick={() => setIsAudioEnabled((p) => !p)}
-          className="h-8 w-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors">
-          {isAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Audio Toggle */}
+          <button onClick={() => setIsAudioEnabled((p) => !p)}
+            className="h-10 w-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors shadow-sm"
+            title="Toggle Audio">
+            {isAudioEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </button>
+
+          {/* Fullscreen Toggle */}
+          {onToggleFullscreen && (
+            <button onClick={onToggleFullscreen}
+              className="h-10 w-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors shadow-sm"
+              title="Toggle Fullscreen">
+              <Maximize className="h-5 w-5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Screen Content */}
-      <div className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 flex flex-col justify-center">
+      <div className="flex-1 max-w-[95%] mx-auto w-full px-4 py-8 flex flex-col justify-center">
         {screen === "modeSelect" && renderModeSelect()}
         {screen === "localConfig" && renderLocalConfig()}
         {screen === "localPlay" && renderLocalPlay()}
@@ -1607,7 +1624,7 @@ export function MathTugOfWar() {
       </div>
 
       {/* Footer Branding */}
-      <div className="max-w-5xl mx-auto w-full px-4 text-center border-t border-slate-900 pt-4 text-[10px] text-slate-600 font-black tracking-wider uppercase select-none">
+      <div className="max-w-[95%] mx-auto w-full px-4 text-center border-t border-slate-900 pt-4 text-[10px] text-slate-600 font-black tracking-wider uppercase select-none">
         LingoLand Interactive Arena Modules
       </div>
 
