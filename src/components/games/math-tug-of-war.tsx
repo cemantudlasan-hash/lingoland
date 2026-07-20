@@ -422,7 +422,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
   // -------------------------------------------------------
   // ONLINE GAME STATE
   // -------------------------------------------------------
-  const { createRoom, joinRoom, selectTeam, setPlayerReady, startGame, submitAnswer, handleTimeout, startNextRound, resetRoom, closeRoom } = useTugRoom();
+  const { createRoom, joinRoom, selectTeam, setPlayerReady, startGame, submitAnswer, handleTimeout, startNextRound, resetRoom, closeRoom, leaveRoom } = useTugRoom();
   const [myRoomCode, setMyRoomCode] = React.useState<string | null>(null);
   const [myPlayerId] = React.useState(() => getOrCreateTugPlayerId());
   const [myPlayerName, setMyPlayerName] = React.useState("Player");
@@ -434,6 +434,7 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
   const [onlineDifficulty, setOnlineDifficulty] = React.useState<TugRoomConfig['difficulty']>("easy");
   const [onlineWinPulls, setOnlineWinPulls] = React.useState(5);
   const [onlineTimerLimit, setOnlineTimerLimit] = React.useState(15);
+  const [onlineTimer, setOnlineTimer] = React.useState(15);
 
   const { room, loading: roomLoading, error: roomError } = useTugRoomListener(myRoomCode);
 
@@ -452,6 +453,37 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
     }
     lastRopePosRef.current = room.ropePosition;
   }, [room?.ropePosition]);
+
+  // Online timer countdown syncing with Firestore timestamp
+  React.useEffect(() => {
+    if (!room || room.status !== "playing" || !room.timerStartedAt) {
+      return;
+    }
+
+    const timerLimit = room.config.timerLimit || 15;
+    
+    // Firestore timestamp could be serverTimestamp (which resolves as null initially)
+    const timestamp = room.timerStartedAt as any;
+    const startMillis = (timestamp && typeof timestamp.toMillis === 'function') 
+      ? timestamp.toMillis() 
+      : Date.now();
+
+    const updateTimer = () => {
+      const elapsedSeconds = Math.floor((Date.now() - startMillis) / 1000);
+      const remaining = Math.max(0, timerLimit - elapsedSeconds);
+      setOnlineTimer(remaining);
+
+      if (remaining <= 0) {
+        // Any active client to notice timeout triggers handleTimeout in firestore
+        handleTimeout(room.roomCode);
+      }
+    };
+
+    updateTimer(); // Initial call
+    const interval = setInterval(updateTimer, 500);
+
+    return () => clearInterval(interval);
+  }, [room?.status, room?.timerStartedAt, room?.roomCode, handleTimeout]);
 
   // -------------------------------------------------------
   // LOCAL TIMER TICK
@@ -704,6 +736,8 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
     if (!myRoomCode) return;
     if (isCreator) {
       await closeRoom(myRoomCode);
+    } else {
+      await leaveRoom(myRoomCode, myPlayerId);
     }
     setMyRoomCode(null);
     setIsCreator(false);
@@ -1333,9 +1367,10 @@ export function MathTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: () =
               <span className="bg-purple-600/20 text-purple-300 px-4 py-1.5 rounded-xl border border-purple-500/20">Round {room.currentRound}</span>
               <span className="bg-slate-900 border border-slate-800 px-4 py-1.5 rounded-xl">Invite Code: {room.roomCode}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-sm text-slate-400 font-extrabold">
-              <Timer className="h-5 w-5 text-purple-400 animate-pulse" />
-              <span>Race!</span>
+            <div className={cn("flex items-center gap-1.5 text-2xl font-black tabular-nums",
+              onlineTimer > 5 ? "text-emerald-400" : "text-red-500 animate-pulse")}>
+              <Timer className="h-6 w-6 text-purple-400 animate-pulse" />
+              <span>{onlineTimer}s</span>
             </div>
           </div>
 

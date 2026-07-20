@@ -50,6 +50,7 @@ export interface TugRoom {
   pullWinnerTeam: 'blue' | 'red' | null;
   winnerTeam: 'blue' | 'red' | null;
   players: { [playerId: string]: TugPlayer };
+  timerStartedAt?: any;
 }
 
 // -------------------------------------------------------
@@ -204,8 +205,12 @@ export function useTugRoom() {
       const data = snapshot.data() as TugRoom;
       const updatedPlayers = { ...data.players };
       Object.keys(updatedPlayers).forEach((k) => {
-        updatedPlayers[k].score = 0;
-        updatedPlayers[k].lastAnsweredCorrectly = null;
+        if (!updatedPlayers[k].isReady) {
+          delete updatedPlayers[k];
+        } else {
+          updatedPlayers[k].score = 0;
+          updatedPlayers[k].lastAnsweredCorrectly = null;
+        }
       });
 
       await updateDoc(roomRef, {
@@ -378,6 +383,28 @@ export function useTugRoom() {
     []
   );
 
+  const leaveRoom = useCallback(
+    async (roomCode: string, playerId: string) => {
+      const db = getDb();
+      const roomRef = doc(db, 'math_tug_rooms', roomCode);
+      try {
+        await runTransaction(db, async (transaction) => {
+          const sfDoc = await transaction.get(roomRef);
+          if (!sfDoc.exists()) return;
+          const data = sfDoc.data() as TugRoom;
+          const updatedPlayers = { ...data.players };
+          delete updatedPlayers[playerId];
+          transaction.update(roomRef, {
+            players: updatedPlayers,
+          });
+        });
+      } catch (err) {
+        console.error('Leave room transaction failed:', err);
+      }
+    },
+    []
+  );
+
   return {
     createRoom,
     joinRoom,
@@ -389,6 +416,7 @@ export function useTugRoom() {
     startNextRound,
     resetRoom,
     closeRoom,
+    leaveRoom,
   };
 }
 
