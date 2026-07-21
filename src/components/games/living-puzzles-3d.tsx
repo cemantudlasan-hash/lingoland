@@ -302,18 +302,18 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
           >
             {/* Left HUD Information Box */}
             <div className="md:col-span-1 flex flex-col gap-4">
-              <div className="bg-slate-950/60 border border-slate-900 rounded-2xl p-4 flex flex-col justify-between h-full">
-                <div className="space-y-4">
+              <div className="bg-slate-950/60 border border-slate-900 rounded-3xl p-6 flex flex-col justify-between h-full shadow-lg">
+                <div className="space-y-6">
                   <div>
-                    <span className="text-[9px] uppercase font-black tracking-widest text-cyan-400">Object Guide</span>
-                    <h3 className="text-lg font-black text-white mt-1">???</h3>
-                    <p className="text-xs text-slate-400 italic">"{activePuzzle.description}"</p>
+                    <span className="text-xs sm:text-sm uppercase font-black tracking-widest text-cyan-400">Object Guide</span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-white mt-2">
+                      {gameState === 'playing' ? '???' : activePuzzle.name}
+                    </h3>
+                    <p className="text-sm sm:text-base text-slate-350 italic mt-3 leading-relaxed">"{activePuzzle.description}"</p>
                   </div>
-
-                  
                 </div>
 
-                <div className="border-t border-slate-900/60 pt-3 text-[10px] text-slate-500 leading-normal font-bold">
+                <div className="border-t border-slate-800 pt-4 text-xs sm:text-sm text-slate-400 leading-relaxed font-bold">
                   {gameState === 'playing' 
                     ? "Click the letter blocks in the correct spelling sequence to assemble the 3D outline!"
                     : "Spelling complete! Building is coming to life..."}
@@ -369,7 +369,7 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
                     {/* Outline Wireframe placeholder */}
                     {gameState === 'playing' && (
                       <div className="absolute inset-0 border border-dashed border-cyan-500/25 rounded-2xl bg-cyan-500/5 flex items-center justify-center select-none pointer-events-none">
-                        <span className="text-5xl font-extrabold opacity-15">{activePuzzle.emoji}</span>
+                        <span className="text-5xl font-extrabold opacity-15">❓</span>
                       </div>
                     )}
 
