@@ -878,6 +878,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
 
   const isTransitioningRef = React.useRef(false);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
+  const [countdownSec, setCountdownSec] = React.useState<number | null>(null);
   const progressValRef = React.useRef(0);
 
   const regionHoldRef = React.useRef({
@@ -896,6 +897,57 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
+  };
+
+  const triggerRoundTransitionCooldown = (durationSec = 3, onComplete?: () => void) => {
+    isTransitioningRef.current = true;
+    setIsTransitioning(true);
+    setCountdownSec(durationSec);
+
+    // Reset all region hold memory, frame delta history, and motion states
+    progressValRef.current = 0;
+    prevPixelsRef.current = null;
+    regionHoldRef.current = {
+      top_left: 0,
+      top_right: 0,
+      mid_left: 0,
+      mid_right: 0,
+      center: 0,
+      bottom_mid: 0
+    };
+    setActiveRegions({
+      top_left: false,
+      top_right: false,
+      mid_left: false,
+      mid_right: false,
+      center: false,
+      bottom_mid: false
+    });
+    setDetectionProgress(0);
+
+    let currentSec = durationSec;
+    const interval = setInterval(() => {
+      currentSec -= 1;
+      if (currentSec > 0) {
+        setCountdownSec(currentSec);
+      } else {
+        clearInterval(interval);
+        setCountdownSec(null);
+        progressValRef.current = 0;
+        prevPixelsRef.current = null;
+        regionHoldRef.current = {
+          top_left: 0,
+          top_right: 0,
+          mid_left: 0,
+          mid_right: 0,
+          center: 0,
+          bottom_mid: 0
+        };
+        isTransitioningRef.current = false;
+        setIsTransitioning(false);
+        if (onComplete) onComplete();
+      }
+    }, 1000);
   };
 
   // ── Custom Motion Detection Engine (Canvas Delta Tracker) ────────────
@@ -1035,28 +1087,6 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
   // ── Handling Action Success ────────────────────────────────────────
   const handleActionSuccess = async () => {
     if (isTransitioningRef.current) return;
-    isTransitioningRef.current = true;
-    setIsTransitioning(true);
-
-    // Wipe region hold memory and activity indicators immediately
-    progressValRef.current = 0;
-    regionHoldRef.current = {
-      top_left: 0,
-      top_right: 0,
-      mid_left: 0,
-      mid_right: 0,
-      center: 0,
-      bottom_mid: 0
-    };
-    setActiveRegions({
-      top_left: false,
-      top_right: false,
-      mid_left: false,
-      mid_right: false,
-      center: false,
-      bottom_mid: false
-    });
-    setDetectionProgress(0);
 
     audioEngine.playCorrect();
     confetti({ particleCount: 30, spread: 60 });
@@ -1073,18 +1103,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
         setIsTransitioning(false);
       } else {
         setCurrentRoundIdx(nextRound);
-        setTimeout(() => {
-          regionHoldRef.current = {
-            top_left: 0,
-            top_right: 0,
-            mid_left: 0,
-            mid_right: 0,
-            center: 0,
-            bottom_mid: 0
-          };
-          isTransitioningRef.current = false;
-          setIsTransitioning(false);
-        }, 1500);
+        triggerRoundTransitionCooldown(3);
       }
     } else {
       // Multiplayer progression via Firestore transaction/atomicity check
@@ -1116,44 +1135,13 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       } catch (err) {
         console.error("Multiplayer round update failed:", err);
       } finally {
-        setTimeout(() => {
-          regionHoldRef.current = {
-            top_left: 0,
-            top_right: 0,
-            mid_left: 0,
-            mid_right: 0,
-            center: 0,
-            bottom_mid: 0
-          };
-          isTransitioningRef.current = false;
-          setIsTransitioning(false);
-        }, 1500);
+        triggerRoundTransitionCooldown(3);
       }
     }
   };
 
   const handleSkipAction = async () => {
     if (isTransitioningRef.current) return;
-    isTransitioningRef.current = true;
-    setIsTransitioning(true);
-
-    regionHoldRef.current = {
-      top_left: 0,
-      top_right: 0,
-      mid_left: 0,
-      mid_right: 0,
-      center: 0,
-      bottom_mid: 0
-    };
-    setActiveRegions({
-      top_left: false,
-      top_right: false,
-      mid_left: false,
-      mid_right: false,
-      center: false,
-      bottom_mid: false
-    });
-    setDetectionProgress(0);
 
     audioEngine.playCorrect();
     if (gameMode === 'single') {
@@ -1166,18 +1154,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
         setIsTransitioning(false);
       } else {
         setCurrentRoundIdx(nextRound);
-        setTimeout(() => {
-          regionHoldRef.current = {
-            top_left: 0,
-            top_right: 0,
-            mid_left: 0,
-            mid_right: 0,
-            center: 0,
-            bottom_mid: 0
-          };
-          isTransitioningRef.current = false;
-          setIsTransitioning(false);
-        }, 1000);
+        triggerRoundTransitionCooldown(3);
       }
     } else {
       if (!firestore || !roomCode) {
@@ -1204,18 +1181,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       } catch (err) {
         console.error("Multiplayer skip failed:", err);
       } finally {
-        setTimeout(() => {
-          regionHoldRef.current = {
-            top_left: 0,
-            top_right: 0,
-            mid_left: 0,
-            mid_right: 0,
-            center: 0,
-            bottom_mid: 0
-          };
-          isTransitioningRef.current = false;
-          setIsTransitioning(false);
-        }, 1000);
+        triggerRoundTransitionCooldown(3);
       }
     }
   };
@@ -2431,20 +2397,36 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
             <div className="relative rounded-3xl overflow-hidden border border-slate-850 flex flex-col justify-end aspect-[4/3] w-full h-full min-h-[260px] md:min-h-[360px] shadow-lg">
               <div ref={mountRef} className="absolute inset-0 z-0 w-full h-full" />
               
-              {/* Round transition overlay banner */}
+              {/* Round transition overlay banner with 3-second countdown */}
               <AnimatePresence>
                 {isTransitioning && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute inset-0 z-30 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center"
+                    className="absolute inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center select-none"
                   >
-                    <div className="p-3.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 mb-2 animate-bounce">
-                      <CheckCircle className="h-8 w-8" />
+                    <div className="p-3 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 mb-2 animate-bounce">
+                      <CheckCircle className="h-7 w-7" />
                     </div>
                     <h3 className="text-xl font-black text-white uppercase tracking-wider">POSE COMPLETE! 🎉</h3>
-                    <p className="text-xs font-semibold text-emerald-300 mt-1">Get ready for the next action pose...</p>
+                    <p className="text-xs font-semibold text-emerald-300 mt-0.5 mb-3">Get into position for the next action pose...</p>
+                    
+                    {countdownSec !== null && (
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Next Pose Begins In</span>
+                        <motion.div
+                          key={countdownSec}
+                          initial={{ scale: 1.6, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0.8, opacity: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="text-6xl font-black font-mono bg-gradient-to-r from-purple-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+                        >
+                          {countdownSec}
+                        </motion.div>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
