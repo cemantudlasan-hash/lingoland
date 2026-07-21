@@ -1069,7 +1069,7 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [screen, timerActive, currentProblem, ropePosition]);
+  }, [screen, timerActive, currentProblem, ropePosition, blueLocked, redLocked, localRound]);
 
   const handleLocalTimeout = () => {
     sfx.playBuzz();
