@@ -166,6 +166,24 @@ const ACTION_DATABASE: ActionItem[] = [
     animation: 'idle',
     difficulty: ['beginner', 'intermediate', 'hard']
   },
+  {
+    id: 'reach_sky',
+    name: 'Reach for the Sky',
+    desc: 'Reach both arms up high towards the clouds!',
+    tip: 'Stretch both hands into the top-left and top-right zones.',
+    regions: ['top_left', 'top_right'],
+    animation: 'reach_sky',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
+  {
+    id: 'peace_out',
+    name: 'Peace Sign Pose',
+    desc: 'Hold your hand up in a victory peace sign!',
+    tip: 'Raise your right hand into the upper-left region.',
+    regions: ['top_left'],
+    animation: 'peace_out',
+    difficulty: ['beginner', 'intermediate', 'hard']
+  },
 
   // --- INTERMEDIATE ACTIONS (also in Hard) ---
   {
@@ -211,6 +229,87 @@ const ACTION_DATABASE: ActionItem[] = [
     tip: 'Keep your body and hands tight in the center region.',
     regions: ['center'],
     animation: 'boxer_defense',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'victory_v',
+    name: 'Victory V Pose',
+    desc: 'Raise both arms high in a proud V shape!',
+    tip: 'Extend arms diagonally up into top-left and top-right.',
+    regions: ['top_left', 'top_right'],
+    animation: 'victory_v',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'flex_biceps',
+    name: 'Double Bicep Flex',
+    desc: 'Flex both arms at 90 degrees like a champion!',
+    tip: 'Raise elbows to shoulder height and flex hands into the top zones.',
+    regions: ['top_left', 'top_right', 'center'],
+    animation: 'flex_biceps',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'cross_arms',
+    name: 'Crossed Arms Guard',
+    desc: 'Cross both arms tightly across your chest!',
+    tip: 'Keep your arms crossed over your chest in the center zone.',
+    regions: ['center'],
+    animation: 'cross_arms',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'hands_on_head',
+    name: 'Hands Behind Head',
+    desc: 'Place both hands behind your head!',
+    tip: 'Lift both elbows wide and place hands at top-left and top-right.',
+    regions: ['top_left', 'top_right', 'center'],
+    animation: 'hands_on_head',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'right_hand_chest',
+    name: 'Right Hand Over Heart',
+    desc: 'Place your right hand over your chest!',
+    tip: 'Move your right hand to your upper chest region.',
+    regions: ['center', 'mid_left'],
+    animation: 'right_hand_chest',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'left_hand_chest',
+    name: 'Left Hand Over Heart',
+    desc: 'Place your left hand over your chest!',
+    tip: 'Move your left hand to your upper chest region.',
+    regions: ['center', 'mid_right'],
+    animation: 'left_hand_chest',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'clapping_high',
+    name: 'High Overhead Clap',
+    desc: 'Clap both hands together high above your head!',
+    tip: 'Bring both hands together in the top-center zone.',
+    regions: ['top_left', 'top_right', 'center'],
+    animation: 'clapping_high',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'touch_shoulders',
+    name: 'Touch Shoulders',
+    desc: 'Touch your fingers to your shoulders!',
+    tip: 'Bend your elbows and place hands near shoulder level.',
+    regions: ['mid_left', 'mid_right', 'center'],
+    animation: 'touch_shoulders',
+    difficulty: ['intermediate', 'hard']
+  },
+  {
+    id: 'zombie_walk',
+    name: 'Zombie Arms Forward',
+    desc: 'Extend both arms straight out in front of you!',
+    tip: 'Hold both arms parallel forward into the center region.',
+    regions: ['center', 'mid_left', 'mid_right'],
+    animation: 'zombie_walk',
     difficulty: ['intermediate', 'hard']
   },
   {
@@ -276,6 +375,150 @@ const ACTION_DATABASE: ActionItem[] = [
     tip: 'Leap dynamically in the center of the camera frame.',
     regions: ['center', 'top_left', 'top_right'],
     animation: 'star_jump',
+    difficulty: ['hard']
+  },
+  {
+    id: 'superhero_landing',
+    name: 'Hero Crouch Stance',
+    desc: 'Crouch low with one arm guarding high!',
+    tip: 'Get low in the center-bottom and hold your guard.',
+    regions: ['bottom_mid', 'center'],
+    animation: 'superhero_landing',
+    difficulty: ['hard']
+  },
+  {
+    id: 'airplane_left',
+    name: 'Airplane Tilt Left',
+    desc: 'Extend arms wide and tilt your body to the left!',
+    tip: 'Keep arms parallel and lean your upper body into top-left.',
+    regions: ['mid_left', 'top_left', 'bottom_mid'],
+    animation: 'airplane_left',
+    difficulty: ['hard']
+  },
+  {
+    id: 'airplane_right',
+    name: 'Airplane Tilt Right',
+    desc: 'Extend arms wide and tilt your body to the right!',
+    tip: 'Keep arms parallel and lean your upper body into top-right.',
+    regions: ['mid_right', 'top_right', 'bottom_mid'],
+    animation: 'airplane_right',
+    difficulty: ['hard']
+  },
+  {
+    id: 'bow_down',
+    name: 'Respectful Bow',
+    desc: 'Bend forward at the waist in a deep bow!',
+    tip: 'Hinge forward into the lower center region.',
+    regions: ['center', 'bottom_mid'],
+    animation: 'bow_down',
+    difficulty: ['hard']
+  },
+  {
+    id: 'sumo_squat',
+    name: 'Sumo Squat Stance',
+    desc: 'Take a wide squat with elbows bent out!',
+    tip: 'Lower your hips wide into bottom-mid while holding elbows wide.',
+    regions: ['bottom_mid', 'mid_left', 'mid_right'],
+    animation: 'sumo_squat',
+    difficulty: ['hard']
+  },
+  {
+    id: 'archery_right',
+    name: 'Bow & Arrow Right',
+    desc: 'Pull back an imaginary bow pointing right!',
+    tip: 'Extend left hand into top-right and pull right elbow back.',
+    regions: ['mid_right', 'top_left'],
+    animation: 'archery_right',
+    difficulty: ['hard']
+  },
+  {
+    id: 'archery_left',
+    name: 'Bow & Arrow Left',
+    desc: 'Pull back an imaginary bow pointing left!',
+    tip: 'Extend right hand into top-left and pull left elbow back.',
+    regions: ['mid_left', 'top_right'],
+    animation: 'archery_left',
+    difficulty: ['hard']
+  },
+  {
+    id: 'tree_balance_left',
+    name: 'Tree Balance Left',
+    desc: 'Balance on your right leg with hands high!',
+    tip: 'Stand centered and hold hands overhead in top regions.',
+    regions: ['bottom_mid', 'center'],
+    animation: 'tree_balance_left',
+    difficulty: ['hard']
+  },
+  {
+    id: 'tree_balance_right',
+    name: 'Tree Balance Right',
+    desc: 'Balance on your left leg with hands high!',
+    tip: 'Stand centered and hold hands overhead in top regions.',
+    regions: ['bottom_mid', 'center'],
+    animation: 'tree_balance_right',
+    difficulty: ['hard']
+  },
+  {
+    id: 'cheerleader_t',
+    name: 'Touchdown High Arms',
+    desc: 'Raise both arms straight up in parallel!',
+    tip: 'Reach straight up into top-left and top-right.',
+    regions: ['top_left', 'top_right'],
+    animation: 'cheerleader_t',
+    difficulty: ['hard']
+  },
+  {
+    id: 'side_stretch_left',
+    name: 'Side Stretch Left',
+    desc: 'Reach your right arm overhead to the left side!',
+    tip: 'Reach right hand deep into the top-left region.',
+    regions: ['top_left', 'mid_left'],
+    animation: 'side_stretch_left',
+    difficulty: ['hard']
+  },
+  {
+    id: 'side_stretch_right',
+    name: 'Side Stretch Right',
+    desc: 'Reach your left arm overhead to the right side!',
+    tip: 'Reach left hand deep into the top-right region.',
+    regions: ['top_right', 'mid_right'],
+    animation: 'side_stretch_right',
+    difficulty: ['hard']
+  },
+  {
+    id: 'x_factor',
+    name: 'X Pose',
+    desc: 'Spread arms and legs out to form a giant X!',
+    tip: 'Extend hands into top-left & top-right and feet wide.',
+    regions: ['top_left', 'top_right', 'bottom_mid'],
+    animation: 'x_factor',
+    difficulty: ['hard']
+  },
+  {
+    id: 'thinker_pose',
+    name: 'The Thinker Pose',
+    desc: 'Rest your chin on your fist in deep thought!',
+    tip: 'Lean forward low in the center zone.',
+    regions: ['center', 'bottom_mid'],
+    animation: 'thinker_pose',
+    difficulty: ['hard']
+  },
+  {
+    id: 'ninja_kick',
+    name: 'Ninja Flying Kick',
+    desc: 'Kick one leg high into the side region!',
+    tip: 'Extend your kick into the lower and side region.',
+    regions: ['bottom_mid', 'mid_right'],
+    animation: 'ninja_kick',
+    difficulty: ['hard']
+  },
+  {
+    id: 'crown_pose',
+    name: 'Crown On Head',
+    desc: 'Place both hands above your head like a crown!',
+    tip: 'Join hands at the top center of your head.',
+    regions: ['top_left', 'top_right', 'center'],
+    animation: 'crown_pose',
     difficulty: ['hard']
   },
   {
@@ -633,9 +876,31 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
     return () => clearTimeout(timer);
   }, [currentRoundIdx, gameState, difficulty]);
 
+  const isTransitioningRef = React.useRef(false);
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
+  const progressValRef = React.useRef(0);
+
+  const regionHoldRef = React.useRef({
+    top_left: 0,
+    top_right: 0,
+    mid_left: 0,
+    mid_right: 0,
+    center: 0,
+    bottom_mid: 0
+  });
+
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
   // ── Custom Motion Detection Engine (Canvas Delta Tracker) ────────────
   const runMotionDetection = () => {
-    if (!canvasRef.current || !videoRef.current) return;
+    if (!canvasRef.current || !videoRef.current || isTransitioningRef.current) return;
     const canvas = canvasRef.current;
     const video = videoRef.current;
     const ctx = canvas.getContext('2d');
@@ -668,7 +933,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       bottom_mid: 0
     };
 
-    const threshold = difficulty === 'beginner' ? 12 : difficulty === 'intermediate' ? 18 : 25;
+    const threshold = difficulty === 'beginner' ? 10 : difficulty === 'intermediate' ? 15 : 22;
 
     if (prevPixelsRef.current) {
       for (let y = 0; y < ch; y++) {
@@ -706,22 +971,31 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
 
     prevPixelsRef.current = pixels;
 
-    // Apply scaling factor to normalize activity thresholds
-    const triggerLimit = difficulty === 'beginner' ? 180 : difficulty === 'intermediate' ? 240 : 320;
-    
+    // Apply scaling factor to normalize activity thresholds & pose-hold persistence
+    const triggerLimit = difficulty === 'beginner' ? 100 : difficulty === 'intermediate' ? 150 : 220;
+    const holdFrames = 25; // Maintain active status for ~1.25s while holding pose still
+
+    const hold = regionHoldRef.current;
+    if (motionScores.top_left > triggerLimit) hold.top_left = holdFrames; else hold.top_left = Math.max(0, hold.top_left - 1);
+    if (motionScores.top_right > triggerLimit) hold.top_right = holdFrames; else hold.top_right = Math.max(0, hold.top_right - 1);
+    if (motionScores.mid_left > triggerLimit) hold.mid_left = holdFrames; else hold.mid_left = Math.max(0, hold.mid_left - 1);
+    if (motionScores.mid_right > triggerLimit) hold.mid_right = holdFrames; else hold.mid_right = Math.max(0, hold.mid_right - 1);
+    if (motionScores.center > triggerLimit) hold.center = holdFrames; else hold.center = Math.max(0, hold.center - 1);
+    if (motionScores.bottom_mid > triggerLimit) hold.bottom_mid = holdFrames; else hold.bottom_mid = Math.max(0, hold.bottom_mid - 1);
+
     const activity = {
-      top_left: motionScores.top_left > triggerLimit,
-      top_right: motionScores.top_right > triggerLimit,
-      mid_left: motionScores.mid_left > triggerLimit,
-      mid_right: motionScores.mid_right > triggerLimit,
-      center: motionScores.center > triggerLimit,
-      bottom_mid: motionScores.bottom_mid > triggerLimit
+      top_left: hold.top_left > 0,
+      top_right: hold.top_right > 0,
+      mid_left: hold.mid_left > 0,
+      mid_right: hold.mid_right > 0,
+      center: hold.center > 0,
+      bottom_mid: hold.bottom_mid > 0
     };
 
     setActiveRegions(activity);
 
     // Validate the current action requirements
-    if (activeAction) {
+    if (activeAction && !isTransitioningRef.current) {
       let isActionValid = true;
       activeAction.regions.forEach(reg => {
         if (!activity[reg]) {
@@ -730,18 +1004,19 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       });
 
       if (isActionValid) {
-        // Increment progress (requires holding the pose/doing the action for a brief duration)
-        setDetectionProgress(prev => {
-          const next = prev + (difficulty === 'beginner' ? 8 : difficulty === 'intermediate' ? 5 : 3.5);
-          if (next >= 100) {
-            handleActionSuccess();
-            return 0;
-          }
-          return next;
-        });
+        const increment = difficulty === 'beginner' ? 12 : difficulty === 'intermediate' ? 8 : 5.5;
+        progressValRef.current += increment;
+
+        if (progressValRef.current >= 100) {
+          progressValRef.current = 0;
+          setDetectionProgress(0);
+          handleActionSuccess();
+        } else {
+          setDetectionProgress(progressValRef.current);
+        }
       } else {
-        // Slow decay of progress if pose is broken
-        setDetectionProgress(prev => Math.max(0, prev - 2));
+        progressValRef.current = Math.max(0, progressValRef.current - 1.5);
+        setDetectionProgress(progressValRef.current);
       }
     }
   };
@@ -759,6 +1034,30 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
 
   // ── Handling Action Success ────────────────────────────────────────
   const handleActionSuccess = async () => {
+    if (isTransitioningRef.current) return;
+    isTransitioningRef.current = true;
+    setIsTransitioning(true);
+
+    // Wipe region hold memory and activity indicators immediately
+    progressValRef.current = 0;
+    regionHoldRef.current = {
+      top_left: 0,
+      top_right: 0,
+      mid_left: 0,
+      mid_right: 0,
+      center: 0,
+      bottom_mid: 0
+    };
+    setActiveRegions({
+      top_left: false,
+      top_right: false,
+      mid_left: false,
+      mid_right: false,
+      center: false,
+      bottom_mid: false
+    });
+    setDetectionProgress(0);
+
     audioEngine.playCorrect();
     confetti({ particleCount: 30, spread: 60 });
 
@@ -770,13 +1069,30 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
         setGameState('finished');
         audioEngine.playLevelSuccess();
         stopCamera();
+        isTransitioningRef.current = false;
+        setIsTransitioning(false);
       } else {
         setCurrentRoundIdx(nextRound);
-        setDetectionProgress(0);
+        setTimeout(() => {
+          regionHoldRef.current = {
+            top_left: 0,
+            top_right: 0,
+            mid_left: 0,
+            mid_right: 0,
+            center: 0,
+            bottom_mid: 0
+          };
+          isTransitioningRef.current = false;
+          setIsTransitioning(false);
+        }, 1500);
       }
     } else {
       // Multiplayer progression via Firestore transaction/atomicity check
-      if (!firestore || !roomCode) return;
+      if (!firestore || !roomCode) {
+        isTransitioningRef.current = false;
+        setIsTransitioning(false);
+        return;
+      }
       const roomRef = doc(firestore, "stats", "am_room_" + roomCode);
       try {
         const snap = await getDoc(roomRef);
@@ -795,16 +1111,50 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
               players: updatedPlayers,
               status: isLastRound ? 'finished' : 'playing'
             });
-            setDetectionProgress(0);
           }
         }
       } catch (err) {
         console.error("Multiplayer round update failed:", err);
+      } finally {
+        setTimeout(() => {
+          regionHoldRef.current = {
+            top_left: 0,
+            top_right: 0,
+            mid_left: 0,
+            mid_right: 0,
+            center: 0,
+            bottom_mid: 0
+          };
+          isTransitioningRef.current = false;
+          setIsTransitioning(false);
+        }, 1500);
       }
     }
   };
 
   const handleSkipAction = async () => {
+    if (isTransitioningRef.current) return;
+    isTransitioningRef.current = true;
+    setIsTransitioning(true);
+
+    regionHoldRef.current = {
+      top_left: 0,
+      top_right: 0,
+      mid_left: 0,
+      mid_right: 0,
+      center: 0,
+      bottom_mid: 0
+    };
+    setActiveRegions({
+      top_left: false,
+      top_right: false,
+      mid_left: false,
+      mid_right: false,
+      center: false,
+      bottom_mid: false
+    });
+    setDetectionProgress(0);
+
     audioEngine.playCorrect();
     if (gameMode === 'single') {
       const nextRound = currentRoundIdx + 1;
@@ -812,12 +1162,29 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
         setGameState('finished');
         audioEngine.playLevelSuccess();
         stopCamera();
+        isTransitioningRef.current = false;
+        setIsTransitioning(false);
       } else {
         setCurrentRoundIdx(nextRound);
-        setDetectionProgress(0);
+        setTimeout(() => {
+          regionHoldRef.current = {
+            top_left: 0,
+            top_right: 0,
+            mid_left: 0,
+            mid_right: 0,
+            center: 0,
+            bottom_mid: 0
+          };
+          isTransitioningRef.current = false;
+          setIsTransitioning(false);
+        }, 1000);
       }
     } else {
-      if (!firestore || !roomCode) return;
+      if (!firestore || !roomCode) {
+        isTransitioningRef.current = false;
+        setIsTransitioning(false);
+        return;
+      }
       const roomRef = doc(firestore, "stats", "am_room_" + roomCode);
       try {
         const snap = await getDoc(roomRef);
@@ -832,11 +1199,23 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
               lastRoundWinner: 'Skipped',
               status: isLastRound ? 'finished' : 'playing'
             });
-            setDetectionProgress(0);
           }
         }
       } catch (err) {
         console.error("Multiplayer skip failed:", err);
+      } finally {
+        setTimeout(() => {
+          regionHoldRef.current = {
+            top_left: 0,
+            top_right: 0,
+            mid_left: 0,
+            mid_right: 0,
+            center: 0,
+            bottom_mid: 0
+          };
+          isTransitioningRef.current = false;
+          setIsTransitioning(false);
+        }, 1000);
       }
     }
   };
@@ -845,7 +1224,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
   const startGameSingle = () => {
     // Shuffle and pick actions based on difficulty and rounds count
     const filtered = ACTION_DATABASE.filter(act => act.difficulty.includes(difficulty));
-    const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+    const shuffled = shuffleArray(filtered);
     const list: ActionItem[] = [];
     for (let i = 0; i < roundsCount; i++) {
       list.push(shuffled[i % shuffled.length]);
@@ -879,7 +1258,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
 
     // Prepare action queue based on difficulty
     const filtered = ACTION_DATABASE.filter(act => act.difficulty.includes(difficulty));
-    const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+    const shuffled = shuffleArray(filtered);
     const list: ActionItem[] = [];
     for (let i = 0; i < roundsCount; i++) {
       list.push(shuffled[i % shuffled.length]);
@@ -1024,8 +1403,8 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
     const h = container.clientHeight || 300;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0c1a);
-    scene.fog = new THREE.FogExp2(0x0a0c1a, 0.045);
+    scene.background = new THREE.Color(0x050716);
+    scene.fog = new THREE.FogExp2(0x050716, 0.04);
     robotRef.current.scene = scene;
 
     const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
@@ -1036,98 +1415,220 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.innerHTML = "";
     container.appendChild(renderer.domElement);
     robotRef.current.renderer = renderer;
 
-    // Lights
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    dirLight.position.set(2, 6, 4);
+    // Advanced Lighting Setup
+    const hemiLight = new THREE.HemisphereLight(0xe0e7ff, 0x0f172a, 0.7);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    dirLight.position.set(3, 8, 5);
+    dirLight.castShadow = true;
     scene.add(dirLight);
 
-    const pointLight = new THREE.PointLight(0xa855f7, 3, 10);
-    pointLight.position.set(0, 1.5, 1.5);
-    scene.add(pointLight);
+    const purpleRimLight = new THREE.PointLight(0xc084fc, 4, 10);
+    purpleRimLight.position.set(-2, 3, -1);
+    scene.add(purpleRimLight);
 
-    // Floor Platform
+    const cyanRimLight = new THREE.PointLight(0x06b6d4, 3, 10);
+    cyanRimLight.position.set(2, 2, 2);
+    scene.add(cyanRimLight);
+
+    // Floor Platform & Grid
     const platform = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.5, 1.6, 0.2, 32),
-      new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.4, metalness: 0.8 })
+      new THREE.CylinderGeometry(1.6, 1.7, 0.15, 32),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.9 })
     );
-    platform.position.y = -0.1;
+    platform.position.y = -0.08;
     scene.add(platform);
 
-    const grid = new THREE.GridHelper(3, 12, 0xa855f7, 0x374151);
-    grid.position.y = 0.01;
+    const grid = new THREE.GridHelper(3.2, 14, 0xc084fc, 0x1e293b);
+    grid.position.y = 0.001;
     scene.add(grid);
 
-    // Humanoid Puppet Assembly
+    // Humanoid Puppet Assembly (Articulated High-Detail Model)
     const puppet = new THREE.Group();
     scene.add(puppet);
     robotRef.current.puppet = puppet;
 
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x3b82f6,
-      emissive: 0x1d4ed8,
-      emissiveIntensity: 0.15,
-      roughness: 0.2,
-      metalness: 0.8
+    // Materials
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x1d4ed8,
+      emissive: 0x1e3a8a,
+      emissiveIntensity: 0.2,
+      roughness: 0.25,
+      metalness: 0.75
     });
 
-    // Torso
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.4), material);
-    torso.position.y = 1.1;
-    puppet.add(torso);
-    robotRef.current.torso = torso;
+    const jointMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      roughness: 0.4,
+      metalness: 0.9
+    });
 
-    // Head
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), new THREE.MeshStandardMaterial({
-      color: 0xf3f4f6,
-      emissive: 0x8b5cf6,
-      emissiveIntensity: 0.3,
+    const glowMat = new THREE.MeshStandardMaterial({
+      color: 0xe0e7ff,
+      emissive: 0xa855f7,
+      emissiveIntensity: 0.9,
       roughness: 0.1
-    }));
-    head.position.set(0, 1.85, 0);
-    puppet.add(head);
-    robotRef.current.head = head;
+    });
 
-    // Shoulders / Limbs Pivot Points for natural rotation
+    // ── Torso (Chest & Waist Armor) ──
+    const torsoGroup = new THREE.Group();
+    torsoGroup.position.y = 1.1;
+    puppet.add(torsoGroup);
+    robotRef.current.torso = torsoGroup as any;
+
+    // Upper Chest Armor
+    const chest = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.55, 0.36), bodyMat);
+    chest.position.y = 0.25;
+    torsoGroup.add(chest);
+
+    // Chest Core Reactor Emblem
+    const reactor = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.04, 24), glowMat);
+    reactor.rotation.x = Math.PI * 0.5;
+    reactor.position.set(0, 0.28, 0.19);
+    torsoGroup.add(reactor);
+
+    // Lower Waist / Abdomen
+    const waist = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.25, 0.38, 16), jointMat);
+    waist.position.y = -0.15;
+    torsoGroup.add(waist);
+
+    // Pelvis Hip Armor
+    const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.2, 0.34), bodyMat);
+    pelvis.position.y = -0.38;
+    torsoGroup.add(pelvis);
+
+    // ── Head & Visor ──
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 1.85, 0);
+    puppet.add(headGroup);
+    robotRef.current.head = headGroup as any;
+
+    // Skull
+    const skull = new THREE.Mesh(new THREE.SphereGeometry(0.24, 24, 24), bodyMat);
+    headGroup.add(skull);
+
+    // Neck
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.16, 16), jointMat);
+    neck.position.y = -0.22;
+    headGroup.add(neck);
+
+    // Visor Mask (Glowing Arc)
+    const visor = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.23, 0.23, 0.14, 24, 1, false, -Math.PI * 0.4, Math.PI * 0.8),
+      glowMat
+    );
+    visor.rotation.y = Math.PI * 0.5;
+    visor.position.set(0, 0.02, 0.02);
+    headGroup.add(visor);
+
+    // ── Shoulders & Arms ──
+    // Right Arm Pivot
     const rightArm = new THREE.Group();
-    rightArm.position.set(-0.48, 1.5, 0);
+    rightArm.position.set(-0.44, 1.55, 0);
     puppet.add(rightArm);
     robotRef.current.rightArm = rightArm;
 
-    const rightArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.8, 8), material);
-    rightArmMesh.position.y = -0.4;
-    rightArm.add(rightArmMesh);
+    const rightShoulderPad = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), jointMat);
+    rightArm.add(rightShoulderPad);
 
+    const rightUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.075, 0.42, 16), bodyMat);
+    rightUpperArm.position.y = -0.24;
+    rightArm.add(rightUpperArm);
+
+    const rightElbow = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), jointMat);
+    rightElbow.position.y = -0.48;
+    rightArm.add(rightElbow);
+
+    const rightForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.065, 0.42, 16), bodyMat);
+    rightForearm.position.y = -0.72;
+    rightArm.add(rightForearm);
+
+    const rightHand = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.12, 0.06), jointMat);
+    rightHand.position.y = -0.96;
+    rightArm.add(rightHand);
+
+    // Left Arm Pivot
     const leftArm = new THREE.Group();
-    leftArm.position.set(0.48, 1.5, 0);
+    leftArm.position.set(0.44, 1.55, 0);
     puppet.add(leftArm);
     robotRef.current.leftArm = leftArm;
 
-    const leftArmMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.8, 8), material);
-    leftArmMesh.position.y = -0.4;
-    leftArm.add(leftArmMesh);
+    const leftShoulderPad = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), jointMat);
+    leftArm.add(leftShoulderPad);
 
+    const leftUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.075, 0.42, 16), bodyMat);
+    leftUpperArm.position.y = -0.24;
+    leftArm.add(leftUpperArm);
+
+    const leftElbow = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), jointMat);
+    leftElbow.position.y = -0.48;
+    leftArm.add(leftElbow);
+
+    const leftForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.065, 0.42, 16), bodyMat);
+    leftForearm.position.y = -0.72;
+    leftArm.add(leftForearm);
+
+    const leftHand = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.12, 0.06), jointMat);
+    leftHand.position.y = -0.96;
+    leftArm.add(leftHand);
+
+    // ── Hips & Legs ──
+    // Right Leg Pivot
     const rightLeg = new THREE.Group();
-    rightLeg.position.set(-0.24, 0.6, 0);
+    rightLeg.position.set(-0.22, 0.6, 0);
     puppet.add(rightLeg);
     robotRef.current.rightLeg = rightLeg;
 
-    const rightLegMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.7, 8), material);
-    rightLegMesh.position.y = -0.35;
-    rightLeg.add(rightLegMesh);
+    const rightHip = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 16), jointMat);
+    rightLeg.add(rightHip);
 
+    const rightThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.45, 16), bodyMat);
+    rightThigh.position.y = -0.26;
+    rightLeg.add(rightThigh);
+
+    const rightKnee = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16), jointMat);
+    rightKnee.position.y = -0.51;
+    rightLeg.add(rightKnee);
+
+    const rightCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.075, 0.42, 16), bodyMat);
+    rightCalf.position.y = -0.74;
+    rightLeg.add(rightCalf);
+
+    const rightFoot = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.09, 0.26), jointMat);
+    rightFoot.position.set(0, -0.98, 0.06);
+    rightLeg.add(rightFoot);
+
+    // Left Leg Pivot
     const leftLeg = new THREE.Group();
-    leftLeg.position.set(0.24, 0.6, 0);
+    leftLeg.position.set(0.22, 0.6, 0);
     puppet.add(leftLeg);
     robotRef.current.leftLeg = leftLeg;
 
-    const leftLegMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.7, 8), material);
-    leftLegMesh.position.y = -0.35;
-    leftLeg.add(leftLegMesh);
+    const leftHip = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 16), jointMat);
+    leftLeg.add(leftHip);
+
+    const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.45, 16), bodyMat);
+    leftThigh.position.y = -0.26;
+    leftLeg.add(leftThigh);
+
+    const leftKnee = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16), jointMat);
+    leftKnee.position.y = -0.51;
+    leftLeg.add(leftKnee);
+
+    const leftCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.075, 0.42, 16), bodyMat);
+    leftCalf.position.y = -0.74;
+    leftLeg.add(leftCalf);
+
+    const leftFoot = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.09, 0.26), jointMat);
+    leftFoot.position.set(0, -0.98, 0.06);
+    leftLeg.add(leftFoot);
 
     const clock = new THREE.Clock();
 
@@ -1137,9 +1638,9 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
       const actionId = activeAction?.id || 'idle';
 
       // Reset base poses
-      if (puppet) puppet.position.y = 0;
-      if (torso) { torso.rotation.set(0, 0, 0); torso.position.y = 1.1; }
-      if (head) head.rotation.set(0, 0, 0);
+      if (puppet) puppet.position.set(0, 0, 0);
+      if (torsoGroup) { torsoGroup.rotation.set(0, 0, 0); torsoGroup.position.set(0, 1.1, 0); }
+      if (headGroup) headGroup.rotation.set(0, 0, 0);
       if (leftArm) leftArm.rotation.set(0, 0, 0);
       if (rightArm) rightArm.rotation.set(0, 0, 0);
       if (leftLeg) leftLeg.rotation.set(0, 0, 0);
@@ -1171,13 +1672,13 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           rightArm.rotation.z = -Math.PI * 0.5;
           break;
         case 'lean_left':
-          torso.rotation.z = 0.25;
-          head.rotation.z = 0.1;
+          torsoGroup.rotation.z = 0.25;
+          headGroup.rotation.z = 0.1;
           leftArm.rotation.z = Math.PI * 0.2;
           break;
         case 'lean_right':
-          torso.rotation.z = -0.25;
-          head.rotation.z = -0.1;
+          torsoGroup.rotation.z = -0.25;
+          headGroup.rotation.z = -0.1;
           rightArm.rotation.z = -Math.PI * 0.2;
           break;
         case 'hands_on_hips':
@@ -1187,7 +1688,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           rightArm.rotation.x = -Math.PI * 0.1;
           break;
         case 'look_up':
-          head.rotation.x = -0.4;
+          headGroup.rotation.x = -0.4;
           leftArm.rotation.z = 0.1;
           rightArm.rotation.z = -0.1;
           break;
@@ -1209,6 +1710,68 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           leftArm.rotation.z = Math.PI * 0.45;
           rightArm.rotation.z = -0.1;
           break;
+        case 'reach_sky':
+          leftArm.rotation.z = Math.PI * 0.95;
+          rightArm.rotation.z = -Math.PI * 0.95;
+          puppet.position.y = 0.05 + Math.sin(time * 3) * 0.04;
+          break;
+        case 'peace_out':
+          rightArm.rotation.z = -Math.PI * 0.8;
+          rightArm.rotation.y = -Math.PI * 0.2;
+          headGroup.rotation.z = -0.1;
+          break;
+        case 'victory_v':
+          leftArm.rotation.z = Math.PI * 0.7;
+          rightArm.rotation.z = -Math.PI * 0.7;
+          torsoGroup.position.y = 1.15;
+          break;
+        case 'flex_biceps':
+          leftArm.rotation.z = Math.PI * 0.45;
+          leftArm.rotation.y = Math.PI * 0.4;
+          rightArm.rotation.z = -Math.PI * 0.45;
+          rightArm.rotation.y = -Math.PI * 0.4;
+          break;
+        case 'cross_arms':
+          leftArm.rotation.x = -Math.PI * 0.4;
+          leftArm.rotation.y = -Math.PI * 0.3;
+          rightArm.rotation.x = -Math.PI * 0.4;
+          rightArm.rotation.y = Math.PI * 0.3;
+          break;
+        case 'hands_on_head':
+          leftArm.rotation.z = Math.PI * 0.8;
+          leftArm.rotation.y = -Math.PI * 0.4;
+          rightArm.rotation.z = -Math.PI * 0.8;
+          rightArm.rotation.y = Math.PI * 0.4;
+          break;
+        case 'right_hand_chest':
+          rightArm.rotation.z = -Math.PI * 0.35;
+          rightArm.rotation.x = -Math.PI * 0.3;
+          rightArm.rotation.y = -Math.PI * 0.4;
+          leftArm.rotation.z = 0.1;
+          break;
+        case 'left_hand_chest':
+          leftArm.rotation.z = Math.PI * 0.35;
+          leftArm.rotation.x = -Math.PI * 0.3;
+          leftArm.rotation.y = Math.PI * 0.4;
+          rightArm.rotation.z = -0.1;
+          break;
+        case 'clapping_high':
+          leftArm.rotation.z = Math.PI * 0.8;
+          leftArm.rotation.y = -Math.PI * 0.2;
+          rightArm.rotation.z = -Math.PI * 0.8;
+          rightArm.rotation.y = Math.PI * 0.2;
+          break;
+        case 'touch_shoulders':
+          leftArm.rotation.z = Math.PI * 0.35;
+          leftArm.rotation.x = -Math.PI * 0.5;
+          rightArm.rotation.z = -Math.PI * 0.35;
+          rightArm.rotation.x = -Math.PI * 0.5;
+          break;
+        case 'zombie_walk':
+          leftArm.rotation.x = -Math.PI * 0.48;
+          rightArm.rotation.x = -Math.PI * 0.48;
+          headGroup.rotation.y = Math.sin(time * 3) * 0.15;
+          break;
         case 'high_v':
           leftArm.rotation.z = Math.PI * 0.7;
           rightArm.rotation.z = -Math.PI * 0.7;
@@ -1223,13 +1786,111 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           rightArm.rotation.x = -Math.PI * 0.4;
           rightArm.rotation.y = -Math.PI * 0.2;
           break;
+        case 'superhero_landing':
+          puppet.position.y = -0.3;
+          torsoGroup.rotation.x = Math.PI * 0.3;
+          rightArm.rotation.x = -Math.PI * 0.5;
+          leftArm.rotation.z = Math.PI * 0.3;
+          leftLeg.rotation.x = -Math.PI * 0.4;
+          rightLeg.rotation.x = -Math.PI * 0.1;
+          break;
+        case 'airplane_left':
+          torsoGroup.rotation.z = 0.35;
+          leftArm.rotation.z = Math.PI * 0.5;
+          rightArm.rotation.z = -Math.PI * 0.5;
+          headGroup.rotation.z = 0.1;
+          break;
+        case 'airplane_right':
+          torsoGroup.rotation.z = -0.35;
+          leftArm.rotation.z = Math.PI * 0.5;
+          rightArm.rotation.z = -Math.PI * 0.5;
+          headGroup.rotation.z = -0.1;
+          break;
+        case 'bow_down':
+          torsoGroup.rotation.x = Math.PI * 0.35;
+          headGroup.rotation.x = Math.PI * 0.1;
+          leftArm.rotation.x = -Math.PI * 0.15;
+          rightArm.rotation.x = -Math.PI * 0.15;
+          break;
+        case 'sumo_squat':
+          puppet.position.y = -0.25;
+          leftLeg.rotation.z = Math.PI * 0.25;
+          rightLeg.rotation.z = -Math.PI * 0.25;
+          leftArm.rotation.z = Math.PI * 0.35;
+          rightArm.rotation.z = -Math.PI * 0.35;
+          break;
+        case 'archery_right':
+          leftArm.rotation.z = Math.PI * 0.48;
+          rightArm.rotation.x = -Math.PI * 0.35;
+          rightArm.rotation.y = -Math.PI * 0.5;
+          torsoGroup.rotation.y = -Math.PI * 0.25;
+          break;
+        case 'archery_left':
+          rightArm.rotation.z = -Math.PI * 0.48;
+          leftArm.rotation.x = -Math.PI * 0.35;
+          leftArm.rotation.y = Math.PI * 0.5;
+          torsoGroup.rotation.y = Math.PI * 0.25;
+          break;
+        case 'tree_balance_left':
+          leftLeg.rotation.z = Math.PI * 0.25;
+          leftLeg.rotation.x = -Math.PI * 0.15;
+          leftArm.rotation.z = Math.PI * 0.6;
+          rightArm.rotation.z = -Math.PI * 0.6;
+          break;
+        case 'tree_balance_right':
+          rightLeg.rotation.z = -Math.PI * 0.25;
+          rightLeg.rotation.x = -Math.PI * 0.15;
+          leftArm.rotation.z = Math.PI * 0.6;
+          rightArm.rotation.z = -Math.PI * 0.6;
+          break;
+        case 'cheerleader_t':
+          leftArm.rotation.z = Math.PI * 0.9;
+          rightArm.rotation.z = -Math.PI * 0.9;
+          torsoGroup.position.y = 1.15;
+          break;
+        case 'side_stretch_left':
+          torsoGroup.rotation.z = 0.3;
+          rightArm.rotation.z = Math.PI * 0.75;
+          leftArm.rotation.z = 0.1;
+          break;
+        case 'side_stretch_right':
+          torsoGroup.rotation.z = -0.3;
+          leftArm.rotation.z = -Math.PI * 0.75;
+          rightArm.rotation.z = -0.1;
+          break;
+        case 'x_factor':
+          leftArm.rotation.z = Math.PI * 0.65;
+          rightArm.rotation.z = -Math.PI * 0.65;
+          leftLeg.rotation.z = Math.PI * 0.2;
+          rightLeg.rotation.z = -Math.PI * 0.2;
+          break;
+        case 'thinker_pose':
+          puppet.position.y = -0.2;
+          torsoGroup.rotation.x = Math.PI * 0.25;
+          rightArm.rotation.x = -Math.PI * 0.5;
+          rightArm.rotation.y = -Math.PI * 0.3;
+          headGroup.rotation.x = Math.PI * 0.2;
+          break;
+        case 'ninja_kick':
+          rightLeg.rotation.z = -Math.PI * 0.45;
+          leftLeg.rotation.z = Math.PI * 0.1;
+          puppet.position.y = 0.15;
+          leftArm.rotation.z = Math.PI * 0.3;
+          rightArm.rotation.z = -Math.PI * 0.5;
+          break;
+        case 'crown_pose':
+          leftArm.rotation.z = Math.PI * 0.85;
+          leftArm.rotation.y = -Math.PI * 0.3;
+          rightArm.rotation.z = -Math.PI * 0.85;
+          rightArm.rotation.y = Math.PI * 0.3;
+          break;
         case 'raise_left_lean_right':
-          torso.rotation.z = -0.2;
+          torsoGroup.rotation.z = -0.2;
           leftArm.rotation.z = Math.PI * 0.85;
           rightArm.rotation.z = -0.1;
           break;
         case 'raise_right_lean_left':
-          torso.rotation.z = 0.2;
+          torsoGroup.rotation.z = 0.2;
           rightArm.rotation.z = -Math.PI * 0.85;
           leftArm.rotation.z = 0.1;
           break;
@@ -1260,22 +1921,22 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           rightLeg.rotation.z = -jumpVal * 0.25;
           break;
         case 'dab_left':
-          torso.rotation.y = Math.PI * 0.15;
-          torso.rotation.z = 0.1;
+          torsoGroup.rotation.y = Math.PI * 0.15;
+          torsoGroup.rotation.z = 0.1;
           leftArm.rotation.z = Math.PI * 0.75;
           leftArm.rotation.y = -Math.PI * 0.1;
           rightArm.rotation.z = -Math.PI * 0.15;
           rightArm.rotation.x = -Math.PI * 0.35;
-          head.rotation.y = Math.PI * 0.25;
+          headGroup.rotation.y = Math.PI * 0.25;
           break;
         case 'dab_right':
-          torso.rotation.y = -Math.PI * 0.15;
-          torso.rotation.z = -0.1;
+          torsoGroup.rotation.y = -Math.PI * 0.15;
+          torsoGroup.rotation.z = -0.1;
           rightArm.rotation.z = -Math.PI * 0.75;
           rightArm.rotation.y = Math.PI * 0.1;
           leftArm.rotation.z = Math.PI * 0.15;
           leftArm.rotation.x = -Math.PI * 0.35;
-          head.rotation.y = -Math.PI * 0.25;
+          headGroup.rotation.y = -Math.PI * 0.25;
           break;
         case 'lunge_left':
           puppet.position.y = -0.2;
@@ -1290,25 +1951,25 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           leftLeg.rotation.z = -Math.PI * 0.25;
           break;
         case 'crossover_left':
-          torso.rotation.x = Math.PI * 0.2;
-          torso.rotation.y = Math.PI * 0.15;
+          torsoGroup.rotation.x = Math.PI * 0.2;
+          torsoGroup.rotation.y = Math.PI * 0.15;
           rightArm.rotation.x = -Math.PI * 0.45;
           rightArm.rotation.y = Math.PI * 0.35;
           break;
         case 'crossover_right':
-          torso.rotation.x = Math.PI * 0.2;
-          torso.rotation.y = -Math.PI * 0.15;
+          torsoGroup.rotation.x = Math.PI * 0.2;
+          torsoGroup.rotation.y = -Math.PI * 0.15;
           leftArm.rotation.x = -Math.PI * 0.45;
           leftArm.rotation.y = -Math.PI * 0.35;
           break;
         case 'helicopter':
-          torso.rotation.y = Math.sin(time * 6) * 0.6;
+          torsoGroup.rotation.y = Math.sin(time * 6) * 0.6;
           leftArm.rotation.z = Math.PI * 0.5;
           rightArm.rotation.z = -Math.PI * 0.5;
           break;
         case 'ninja_stance':
           puppet.position.y = -0.25;
-          torso.rotation.y = Math.PI * 0.25;
+          torsoGroup.rotation.y = Math.PI * 0.25;
           rightArm.rotation.z = -Math.PI * 0.85;
           leftArm.rotation.z = Math.PI * 0.15;
           leftLeg.rotation.x = -Math.PI * 0.3;
@@ -1329,17 +1990,17 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           rightLeg.rotation.x = -Math.PI * 0.25;
           break;
         case 'disco_left':
-          torso.rotation.z = 0.15;
+          torsoGroup.rotation.z = 0.15;
           rightArm.rotation.z = -Math.PI * 0.75;
           leftArm.rotation.z = 0.15;
           break;
         case 'disco_right':
-          torso.rotation.z = -0.15;
+          torsoGroup.rotation.z = -0.15;
           leftArm.rotation.z = Math.PI * 0.75;
           rightArm.rotation.z = -0.15;
           break;
         case 'matrix_lean':
-          torso.rotation.x = Math.PI * 0.3;
+          torsoGroup.rotation.x = Math.PI * 0.3;
           puppet.position.y = -0.2;
           leftArm.rotation.x = -Math.PI * 0.2;
           rightArm.rotation.x = -Math.PI * 0.2;
@@ -1348,7 +2009,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
           // Idle breathing
           leftArm.rotation.z = 0.1 + Math.sin(time * 2) * 0.04;
           rightArm.rotation.z = -0.1 - Math.sin(time * 2) * 0.04;
-          head.rotation.y = Math.sin(time * 1.5) * 0.1;
+          headGroup.rotation.y = Math.sin(time * 1.5) * 0.1;
           break;
       }
 
@@ -1769,6 +2430,25 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
             {/* 3D Puppet viewport */}
             <div className="relative rounded-3xl overflow-hidden border border-slate-850 flex flex-col justify-end aspect-[4/3] w-full h-full min-h-[260px] md:min-h-[360px] shadow-lg">
               <div ref={mountRef} className="absolute inset-0 z-0 w-full h-full" />
+              
+              {/* Round transition overlay banner */}
+              <AnimatePresence>
+                {isTransitioning && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="absolute inset-0 z-30 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center"
+                  >
+                    <div className="p-3.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 mb-2 animate-bounce">
+                      <CheckCircle className="h-8 w-8" />
+                    </div>
+                    <h3 className="text-xl font-black text-white uppercase tracking-wider">POSE COMPLETE! 🎉</h3>
+                    <p className="text-xs font-semibold text-emerald-300 mt-1">Get ready for the next action pose...</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="relative z-10 bg-slate-950/80 border-t border-slate-850/40 p-3 flex justify-between items-center text-xs">
                 <span className="font-mono text-slate-500 font-bold uppercase tracking-wider">3D Mimic Instructions</span>
                 <Badge variant="outline" className="bg-purple-950/30 border-purple-500/30 text-purple-300 font-black animate-pulse">Puppet Guidance</Badge>
