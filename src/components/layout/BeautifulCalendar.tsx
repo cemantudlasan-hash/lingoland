@@ -5,134 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Globe, Clock, ChevronLeft, ChevronRight, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { THAI_AND_INTERNATIONAL_HOLIDAYS } from '@/lib/holidays';
-
-// ─── Comprehensive Timezone → ISO 3166-1 alpha-2 Country Code ─────────────────
-const TIMEZONE_TO_COUNTRY: Record<string, string> = {
-  // Southeast Asia
-  'Asia/Bangkok': 'TH', 'Asia/Phnom_Penh': 'KH', 'Asia/Vientiane': 'LA',
-  'Asia/Yangon': 'MM', 'Asia/Rangoon': 'MM',
-  'Asia/Jakarta': 'ID', 'Asia/Makassar': 'ID', 'Asia/Jayapura': 'ID',
-  'Asia/Manila': 'PH', 'Asia/Singapore': 'SG',
-  'Asia/Kuala_Lumpur': 'MY', 'Asia/Kuching': 'MY',
-  'Asia/Ho_Chi_Minh': 'VN', 'Asia/Saigon': 'VN',
-  // East Asia
-  'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR',
-  'Asia/Shanghai': 'CN', 'Asia/Urumqi': 'CN', 'Asia/Chongqing': 'CN',
-  'Asia/Hong_Kong': 'HK', 'Asia/Taipei': 'TW', 'Asia/Macau': 'MO',
-  'Asia/Ulaanbaatar': 'MN',
-  // South Asia
-  'Asia/Kolkata': 'IN', 'Asia/Calcutta': 'IN',
-  'Asia/Karachi': 'PK', 'Asia/Dhaka': 'BD',
-  'Asia/Colombo': 'LK', 'Asia/Kathmandu': 'NP', 'Asia/Thimphu': 'BT',
-  // Central / West Asia
-  'Asia/Almaty': 'KZ', 'Asia/Tashkent': 'UZ', 'Asia/Kabul': 'AF',
-  'Asia/Tehran': 'IR', 'Asia/Dubai': 'AE', 'Asia/Muscat': 'OM',
-  'Asia/Riyadh': 'SA', 'Asia/Kuwait': 'KW', 'Asia/Baghdad': 'IQ',
-  'Asia/Beirut': 'LB', 'Asia/Damascus': 'SY', 'Asia/Amman': 'JO',
-  'Asia/Jerusalem': 'IL', 'Asia/Nicosia': 'CY',
-  // Europe
-  'Europe/London': 'GB', 'Europe/Paris': 'FR', 'Europe/Berlin': 'DE',
-  'Europe/Rome': 'IT', 'Europe/Madrid': 'ES', 'Europe/Amsterdam': 'NL',
-  'Europe/Brussels': 'BE', 'Europe/Zurich': 'CH', 'Europe/Vienna': 'AT',
-  'Europe/Warsaw': 'PL', 'Europe/Prague': 'CZ', 'Europe/Budapest': 'HU',
-  'Europe/Bucharest': 'RO', 'Europe/Sofia': 'BG', 'Europe/Athens': 'GR',
-  'Europe/Helsinki': 'FI', 'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO',
-  'Europe/Copenhagen': 'DK', 'Europe/Dublin': 'IE', 'Europe/Lisbon': 'PT',
-  'Europe/Moscow': 'RU', 'Europe/Kyiv': 'UA', 'Europe/Kiev': 'UA',
-  'Europe/Minsk': 'BY', 'Europe/Riga': 'LV', 'Europe/Tallinn': 'EE',
-  'Europe/Vilnius': 'LT', 'Europe/Bratislava': 'SK', 'Europe/Ljubljana': 'SI',
-  'Europe/Zagreb': 'HR', 'Europe/Belgrade': 'RS', 'Europe/Skopje': 'MK',
-  'Europe/Sarajevo': 'BA', 'Europe/Podgorica': 'ME', 'Europe/Tirane': 'AL',
-  'Europe/Reykjavik': 'IS', 'Europe/Luxembourg': 'LU', 'Europe/Valletta': 'MT',
-  // Americas
-  'America/New_York': 'US', 'America/Chicago': 'US', 'America/Denver': 'US',
-  'America/Los_Angeles': 'US', 'America/Phoenix': 'US', 'America/Anchorage': 'US',
-  'America/Honolulu': 'US', 'America/Detroit': 'US',
-  'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Montreal': 'CA',
-  'America/Winnipeg': 'CA', 'America/Halifax': 'CA', 'America/St_Johns': 'CA',
-  'America/Mexico_City': 'MX', 'America/Bogota': 'CO', 'America/Lima': 'PE',
-  'America/Santiago': 'CL', 'America/Argentina/Buenos_Aires': 'AR',
-  'America/Sao_Paulo': 'BR', 'America/Manaus': 'BR', 'America/Fortaleza': 'BR',
-  'America/Caracas': 'VE', 'America/Guayaquil': 'EC', 'America/La_Paz': 'BO',
-  'America/Asuncion': 'PY', 'America/Montevideo': 'UY', 'America/Havana': 'CU',
-  'America/Panama': 'PA', 'America/Costa_Rica': 'CR', 'America/Guatemala': 'GT',
-  'America/Belize': 'BZ', 'America/Tegucigalpa': 'HN', 'America/Managua': 'NI',
-  'America/El_Salvador': 'SV', 'America/Santo_Domingo': 'DO', 'America/Jamaica': 'JM',
-  'America/Port-au-Prince': 'HT', 'America/Nassau': 'BS', 'America/Barbados': 'BB',
-  'America/Trinidad': 'TT',
-  // Africa
-  'Africa/Cairo': 'EG', 'Africa/Lagos': 'NG', 'Africa/Nairobi': 'KE',
-  'Africa/Johannesburg': 'ZA', 'Africa/Accra': 'GH', 'Africa/Casablanca': 'MA',
-  'Africa/Tunis': 'TN', 'Africa/Algiers': 'DZ', 'Africa/Addis_Ababa': 'ET',
-  'Africa/Dar_es_Salaam': 'TZ', 'Africa/Kampala': 'UG', 'Africa/Khartoum': 'SD',
-  'Africa/Abidjan': 'CI', 'Africa/Dakar': 'SN', 'Africa/Kinshasa': 'CD',
-  'Africa/Lusaka': 'ZM', 'Africa/Harare': 'ZW', 'Africa/Maputo': 'MZ',
-  'Africa/Tripoli': 'LY', 'Africa/Kigali': 'RW', 'Africa/Libreville': 'GA',
-  // Pacific / Oceania
-  'Australia/Sydney': 'AU', 'Australia/Melbourne': 'AU', 'Australia/Brisbane': 'AU',
-  'Australia/Perth': 'AU', 'Australia/Adelaide': 'AU', 'Australia/Darwin': 'AU',
-  'Australia/Hobart': 'AU',
-  'Pacific/Auckland': 'NZ', 'Pacific/Fiji': 'FJ', 'Pacific/Port_Moresby': 'PG',
-  'Pacific/Guam': 'GU', 'Pacific/Apia': 'WS', 'Pacific/Tongatapu': 'TO',
-};
-
-// ─── Country Display Info (flag + name) ───────────────────────────────────────
-const COUNTRY_INFO: Record<string, { name: string; flag: string }> = {
-  TH: { name: 'Thailand', flag: '🇹🇭' }, PH: { name: 'Philippines', flag: '🇵🇭' },
-  ID: { name: 'Indonesia', flag: '🇮🇩' }, SG: { name: 'Singapore', flag: '🇸🇬' },
-  MY: { name: 'Malaysia', flag: '🇲🇾' }, VN: { name: 'Vietnam', flag: '🇻🇳' },
-  KH: { name: 'Cambodia', flag: '🇰🇭' }, LA: { name: 'Laos', flag: '🇱🇦' },
-  MM: { name: 'Myanmar', flag: '🇲🇲' }, BN: { name: 'Brunei', flag: '🇧🇳' },
-  JP: { name: 'Japan', flag: '🇯🇵' }, KR: { name: 'South Korea', flag: '🇰🇷' },
-  CN: { name: 'China', flag: '🇨🇳' }, HK: { name: 'Hong Kong', flag: '🇭🇰' },
-  TW: { name: 'Taiwan', flag: '🇹🇼' }, MN: { name: 'Mongolia', flag: '🇲🇳' },
-  MO: { name: 'Macau', flag: '🇲🇴' },
-  IN: { name: 'India', flag: '🇮🇳' }, PK: { name: 'Pakistan', flag: '🇵🇰' },
-  BD: { name: 'Bangladesh', flag: '🇧🇩' }, LK: { name: 'Sri Lanka', flag: '🇱🇰' },
-  NP: { name: 'Nepal', flag: '🇳🇵' }, BT: { name: 'Bhutan', flag: '🇧🇹' },
-  AU: { name: 'Australia', flag: '🇦🇺' }, NZ: { name: 'New Zealand', flag: '🇳🇿' },
-  PG: { name: 'Papua New Guinea', flag: '🇵🇬' }, FJ: { name: 'Fiji', flag: '🇫🇯' },
-  US: { name: 'United States', flag: '🇺🇸' }, CA: { name: 'Canada', flag: '🇨🇦' },
-  MX: { name: 'Mexico', flag: '🇲🇽' }, BR: { name: 'Brazil', flag: '🇧🇷' },
-  AR: { name: 'Argentina', flag: '🇦🇷' }, CL: { name: 'Chile', flag: '🇨🇱' },
-  CO: { name: 'Colombia', flag: '🇨🇴' }, PE: { name: 'Peru', flag: '🇵🇪' },
-  VE: { name: 'Venezuela', flag: '🇻🇪' }, EC: { name: 'Ecuador', flag: '🇪🇨' },
-  BO: { name: 'Bolivia', flag: '🇧🇴' }, PY: { name: 'Paraguay', flag: '🇵🇾' },
-  UY: { name: 'Uruguay', flag: '🇺🇾' }, CU: { name: 'Cuba', flag: '🇨🇺' },
-  GT: { name: 'Guatemala', flag: '🇬🇹' }, HN: { name: 'Honduras', flag: '🇭🇳' },
-  SV: { name: 'El Salvador', flag: '🇸🇻' }, NI: { name: 'Nicaragua', flag: '🇳🇮' },
-  CR: { name: 'Costa Rica', flag: '🇨🇷' }, PA: { name: 'Panama', flag: '🇵🇦' },
-  DO: { name: 'Dominican Rep.', flag: '🇩🇴' }, JM: { name: 'Jamaica', flag: '🇯🇲' },
-  GB: { name: 'United Kingdom', flag: '🇬🇧' }, FR: { name: 'France', flag: '🇫🇷' },
-  DE: { name: 'Germany', flag: '🇩🇪' }, IT: { name: 'Italy', flag: '🇮🇹' },
-  ES: { name: 'Spain', flag: '🇪🇸' }, NL: { name: 'Netherlands', flag: '🇳🇱' },
-  BE: { name: 'Belgium', flag: '🇧🇪' }, CH: { name: 'Switzerland', flag: '🇨🇭' },
-  AT: { name: 'Austria', flag: '🇦🇹' }, PL: { name: 'Poland', flag: '🇵🇱' },
-  PT: { name: 'Portugal', flag: '🇵🇹' }, SE: { name: 'Sweden', flag: '🇸🇪' },
-  NO: { name: 'Norway', flag: '🇳🇴' }, DK: { name: 'Denmark', flag: '🇩🇰' },
-  FI: { name: 'Finland', flag: '🇫🇮' }, IE: { name: 'Ireland', flag: '🇮🇪' },
-  RU: { name: 'Russia', flag: '🇷🇺' }, UA: { name: 'Ukraine', flag: '🇺🇦' },
-  GR: { name: 'Greece', flag: '🇬🇷' }, CZ: { name: 'Czechia', flag: '🇨🇿' },
-  HU: { name: 'Hungary', flag: '🇭🇺' }, RO: { name: 'Romania', flag: '🇷🇴' },
-  BG: { name: 'Bulgaria', flag: '🇧🇬' }, HR: { name: 'Croatia', flag: '🇭🇷' },
-  RS: { name: 'Serbia', flag: '🇷🇸' }, SK: { name: 'Slovakia', flag: '🇸🇰' },
-  SI: { name: 'Slovenia', flag: '🇸🇮' }, BY: { name: 'Belarus', flag: '🇧🇾' },
-  EE: { name: 'Estonia', flag: '🇪🇪' }, LV: { name: 'Latvia', flag: '🇱🇻' },
-  LT: { name: 'Lithuania', flag: '🇱🇹' }, IS: { name: 'Iceland', flag: '🇮🇸' },
-  LU: { name: 'Luxembourg', flag: '🇱🇺' }, MT: { name: 'Malta', flag: '🇲🇹' },
-  ZA: { name: 'South Africa', flag: '🇿🇦' }, NG: { name: 'Nigeria', flag: '🇳🇬' },
-  EG: { name: 'Egypt', flag: '🇪🇬' }, KE: { name: 'Kenya', flag: '🇰🇪' },
-  ET: { name: 'Ethiopia', flag: '🇪🇹' }, TZ: { name: 'Tanzania', flag: '🇹🇿' },
-  GH: { name: 'Ghana', flag: '🇬🇭' }, MA: { name: 'Morocco', flag: '🇲🇦' },
-  DZ: { name: 'Algeria', flag: '🇩🇿' }, TN: { name: 'Tunisia', flag: '🇹🇳' },
-  AE: { name: 'UAE', flag: '🇦🇪' }, SA: { name: 'Saudi Arabia', flag: '🇸🇦' },
-  IL: { name: 'Israel', flag: '🇮🇱' }, IQ: { name: 'Iraq', flag: '🇮🇶' },
-  IR: { name: 'Iran', flag: '🇮🇷' }, JO: { name: 'Jordan', flag: '🇯🇴' },
-};
-
-type ApiHolidayRaw = { date: string; name: string; localName: string; types: string[] };
-type HolidayEntry = { name: string; localName?: string };
+import {
+  THAI_AND_INTERNATIONAL_HOLIDAYS,
+  TIMEZONE_TO_COUNTRY,
+  COUNTRY_INFO,
+  type ApiHolidayRaw,
+  type HolidayEntry
+} from '@/lib/holidays';
 
 export function BeautifulCalendar() {
   const [today, setToday] = useState(new Date());
@@ -309,7 +188,6 @@ export function BeautifulCalendar() {
       const isThai = countryCode === 'TH' || userTimezone.includes('Bangkok');
       THAI_AND_INTERNATIONAL_HOLIDAYS.forEach(h => {
         const [hYear, hMonth, hDay] = h.date.split('-').map(Number);
-        // Match by exact year for 2024-2026; allow any year beyond for future-proofing
         if ((hMonth - 1) === month && hYear === year) {
           const isThaiOnly = h.type === 'thai_public';
           if (isThai || !isThaiOnly) {

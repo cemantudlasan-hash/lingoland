@@ -234,7 +234,7 @@ export default function AttendancePage() {
                     <StudentList
                         selectedStudent={selectedStudent}
                         setSelectedStudent={setSelectedStudent}
-                        students={students}
+                        students={students || undefined}
                         isLoading={isLoading || false}
                     />
                 </div>
