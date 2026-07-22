@@ -7,7 +7,7 @@ import {
   Sparkles, Play, RotateCcw, Trophy, Crown, Medal, ShieldAlert, Clock,
   Users, UserCheck, AlertTriangle, ArrowRight, Zap, CheckCircle2, XCircle,
   SkipForward, Lock, Info, Volume2, VolumeX, Eye, BookOpen, Flame, Hash, Copy, Check,
-  Maximize, Minimize, ArrowLeft, Home, UserPlus, LogIn
+  Maximize, Minimize, ArrowLeft, Home, UserPlus, LogIn, User
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
@@ -100,7 +100,6 @@ const DIFFICULTY_CONFIG = {
 interface Player {
   id: string;
   name: string;
-  isBot: boolean;
   score: number;
   wordCount: number;
   isPassed: boolean;
@@ -130,11 +129,11 @@ export function VocabSnake() {
 
   // ─── Setup & Lobby States ───
   const [gameState, setGameState] = useState<'lobby' | 'playing' | 'ended'>('lobby');
-  const [lobbyMode, setLobbyMode] = useState<'host' | 'join'>('host');
+  const [lobbyMode, setLobbyMode] = useState<'solo' | 'host' | 'join'>('solo');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [selectedTheme, setSelectedTheme] = useState<string>('general');
   const [totalMatchTime, setTotalMatchTime] = useState<number>(180); // 3 mins default
-  const [playerCount, setPlayerCount] = useState<number>(3);
+  const [playerCount, setPlayerCount] = useState<number>(2);
   const [roomCode, setRoomCode] = useState<string>('');
   const [copiedCode, setCopiedCode] = useState(false);
 
@@ -149,7 +148,6 @@ export function VocabSnake() {
   const [inputWord, setInputWord] = useState<string>('');
   const [matchTimeLeft, setMatchTimeLeft] = useState<number>(180);
   const [turnTimeLeft, setTurnTimeLeft] = useState<number>(20);
-  const [isBotThinking, setIsBotThinking] = useState<boolean>(false);
   const [usedWords, setUsedWords] = useState<Set<string>>(new Set());
 
   // Input & Anti-cheat Refs
@@ -239,27 +237,46 @@ export function VocabSnake() {
     } catch {}
   }, [soundEnabled]);
 
-  // ─── Initialize Game Session (Host) ───
+  // ─── Initialize Game Session (Solo or Host) ───
   const startNewGame = useCallback(() => {
-    const avatars = ['🦊', '🦉', '🦁', '🐯', '🤖', '🐲', '🦄', '🐼'];
-    const userName = user?.displayName || user?.email?.split('@')[0] || 'You (Host Player)';
+    const avatars = ['🦊', '🦉', '🦁', '🐯', '🦄', '🐼', '🐲'];
+    const userName = user?.displayName || user?.email?.split('@')[0] || 'Player 1';
 
-    const newPlayers: Player[] = [
-      { id: 'p1', name: userName, isBot: false, score: 0, wordCount: 0, isPassed: false, warningsCount: 0, avatar: '👑' }
-    ];
+    const newPlayers: Player[] = [];
 
-    for (let i = 2; i <= playerCount; i++) {
-      const botNames = ['SnakeBot Leo', 'Lexi Wizard', 'Word Master', 'Alpha Bot', 'Cipher Owl', 'Chrono AI', 'Star Lynx'];
+    if (lobbyMode === 'solo') {
       newPlayers.push({
-        id: `p${i}`,
-        name: botNames[i - 2] || `Player ${i}`,
-        isBot: true,
+        id: 'p-solo-1',
+        name: userName,
         score: 0,
         wordCount: 0,
         isPassed: false,
         warningsCount: 0,
-        avatar: avatars[(i - 1) % avatars.length]
+        avatar: '👤'
       });
+    } else {
+      // Host multiplayer room for human players
+      newPlayers.push({
+        id: 'p1',
+        name: `${userName} (Host)`,
+        score: 0,
+        wordCount: 0,
+        isPassed: false,
+        warningsCount: 0,
+        avatar: '👑'
+      });
+
+      for (let i = 2; i <= playerCount; i++) {
+        newPlayers.push({
+          id: `p${i}`,
+          name: `Player ${i}`,
+          score: 0,
+          wordCount: 0,
+          isPassed: false,
+          warningsCount: 0,
+          avatar: avatars[(i - 2) % avatars.length]
+        });
+      }
     }
 
     const themePool = THEME_CATEGORIES[selectedTheme]?.words || THEME_CATEGORIES.general.words;
@@ -282,14 +299,13 @@ export function VocabSnake() {
     setMatchTimeLeft(totalMatchTime);
     setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
     setInputWord('');
-    setIsBotThinking(false);
     setGameState('playing');
 
     toast({
-      title: `🐍 Room ${roomCode} Started!`,
+      title: lobbyMode === 'solo' ? '🐍 Solo Vocab Snake Started!' : `🐍 Room ${roomCode} Started!`,
       description: `First word is "${initialWord.toUpperCase()}". Next word must start with "${initialWord.slice(-1).toUpperCase()}"!`
     });
-  }, [user, playerCount, selectedTheme, totalMatchTime, difficulty, roomCode, toast]);
+  }, [user, lobbyMode, playerCount, selectedTheme, totalMatchTime, difficulty, roomCode, toast]);
 
   // ─── Join Game Room via Code ───
   const handleJoinRoom = () => {
@@ -308,7 +324,6 @@ export function VocabSnake() {
     const joinedPlayer: Player = {
       id: `p-joined-${Date.now()}`,
       name: `${name} (Joined)`,
-      isBot: false,
       score: 0,
       wordCount: 0,
       isPassed: false,
@@ -319,7 +334,6 @@ export function VocabSnake() {
     const hostPlayer: Player = {
       id: 'p-host-1',
       name: 'Room Host Teacher',
-      isBot: false,
       score: 0,
       wordCount: 0,
       isPassed: false,
@@ -327,18 +341,7 @@ export function VocabSnake() {
       avatar: '👑'
     };
 
-    const botPlayer: Player = {
-      id: 'p-bot-2',
-      name: 'SnakeBot Challenger',
-      isBot: true,
-      score: 0,
-      wordCount: 0,
-      isPassed: false,
-      warningsCount: 0,
-      avatar: '🤖'
-    };
-
-    const roomPlayers = [hostPlayer, joinedPlayer, botPlayer];
+    const roomPlayers = [hostPlayer, joinedPlayer];
 
     const themePool = THEME_CATEGORIES[selectedTheme]?.words || THEME_CATEGORIES.general.words;
     const initialWord = themePool[Math.floor(Math.random() * themePool.length)];
@@ -360,7 +363,6 @@ export function VocabSnake() {
     setMatchTimeLeft(totalMatchTime);
     setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
     setInputWord('');
-    setIsBotThinking(false);
     setGameState('playing');
 
     toast({
@@ -369,12 +371,37 @@ export function VocabSnake() {
     });
   };
 
-  // ─── Advance Turn Logic ───
+  // ─── Advance Turn / Pass Logic ───
   const advanceTurn = useCallback(() => {
     setInputWord('');
     setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
-    setCurrentTurnIndex(prev => (prev + 1) % players.length);
-  }, [difficulty, players.length]);
+
+    if (lobbyMode === 'solo') {
+      // In solo mode, passing or resetting draws a new random starting word for the player
+      const themePool = THEME_CATEGORIES[selectedTheme]?.words || THEME_CATEGORIES.general.words;
+      const availableWords = themePool.filter(w => !usedWords.has(w.toLowerCase()));
+      const newWord = (availableWords.length > 0 ? availableWords : themePool)[Math.floor(Math.random() * (availableWords.length || themePool.length))];
+
+      const newChainItem: ChainItem = {
+        id: `solo-reset-${Date.now()}`,
+        word: newWord,
+        playerId: 'system',
+        playerName: 'New Chain Start',
+        points: 0,
+        startLetter: newWord.charAt(0).toUpperCase(),
+        endLetter: newWord.charAt(newWord.length - 1).toUpperCase()
+      };
+
+      setWordChain(prev => [...prev, newChainItem]);
+      setUsedWords(prev => new Set([...prev, newWord.toLowerCase()]));
+      toast({
+        title: '🔀 New Starting Word Drawn!',
+        description: `New starting word is "${newWord.toUpperCase()}". Target letter: "${newWord.slice(-1).toUpperCase()}"`
+      });
+    } else {
+      setCurrentTurnIndex(prev => (prev + 1) % players.length);
+    }
+  }, [difficulty, lobbyMode, selectedTheme, usedWords, players.length, toast]);
 
   // ─── Handle Match & Turn Timers ───
   useEffect(() => {
@@ -408,8 +435,8 @@ export function VocabSnake() {
           playSoundEffect('pass');
           toast({
             variant: 'destructive',
-            title: `⏳ Turn Expired for ${activePlayer?.name}!`,
-            description: 'Passing turn to the next player.'
+            title: lobbyMode === 'solo' ? '⏳ Word Timer Expired!' : `⏳ Turn Expired for ${activePlayer?.name}!`,
+            description: lobbyMode === 'solo' ? 'Drawing new starting word...' : 'Passing turn to the next player.'
           });
           advanceTurn();
           return DIFFICULTY_CONFIG[difficulty].turnTime;
@@ -421,21 +448,21 @@ export function VocabSnake() {
     return () => {
       if (turnTimerRef.current) clearInterval(turnTimerRef.current);
     };
-  }, [gameState, activePlayer, advanceTurn, difficulty, playSoundEffect, toast]);
+  }, [gameState, activePlayer, advanceTurn, difficulty, lobbyMode, playSoundEffect, toast]);
 
   // ─── Anti-Cheat Detection ───
   useEffect(() => {
     if (gameState !== 'playing') return;
 
     const handleVisibilityChange = () => {
-      if (document.hidden && activePlayer && !activePlayer.isBot) {
+      if (document.hidden && activePlayer) {
         setPlayers(prev => prev.map((p, idx) =>
           idx === currentTurnIndex ? { ...p, warningsCount: p.warningsCount + 1 } : p
         ));
         toast({
           variant: 'destructive',
           title: '⚠️ Anti-Cheat Warning!',
-          description: 'Tab switching / leaving the game window is recorded in multiplayer mode.'
+          description: 'Tab switching / leaving the game window is recorded in your match stats.'
         });
       }
     };
@@ -522,46 +549,11 @@ export function VocabSnake() {
     playSoundEffect('correct');
     toast({
       title: `✨ +${wordPoints} Pts! (${rawWord.toUpperCase()})`,
-      description: `${activePlayer.name} connected "${rawWord.toUpperCase()}". Next letter: "${rawWord.slice(-1).toUpperCase()}"`
+      description: `Connected "${rawWord.toUpperCase()}". Next letter: "${rawWord.slice(-1).toUpperCase()}"`
     });
 
     advanceTurn();
   };
-
-  // ─── AI Bot Turn Handler ───
-  useEffect(() => {
-    if (gameState !== 'playing' || !activePlayer || !activePlayer.isBot || isBotThinking) return;
-
-    setIsBotThinking(true);
-
-    const thinkingTime = 1500 + Math.random() * 2000;
-    const lastWord = wordChain[wordChain.length - 1]?.word.toLowerCase() || '';
-    const targetLetter = lastWord.slice(-1);
-    const pool = THEME_CATEGORIES[selectedTheme]?.words || THEME_CATEGORIES.general.words;
-
-    const validBotWords = pool.filter(w =>
-      w.toLowerCase().startsWith(targetLetter) &&
-      !usedWords.has(w.toLowerCase()) &&
-      w.length >= DIFFICULTY_CONFIG[difficulty].minLength
-    );
-
-    const botTimer = setTimeout(() => {
-      if (validBotWords.length > 0) {
-        const chosen = validBotWords[Math.floor(Math.random() * validBotWords.length)];
-        handleWordSubmit(chosen);
-      } else {
-        playSoundEffect('pass');
-        toast({
-          title: `🤖 ${activePlayer.name} Passed!`,
-          description: 'No matching words found for bot.'
-        });
-        advanceTurn();
-      }
-      setIsBotThinking(false);
-    }, thinkingTime);
-
-    return () => clearTimeout(botTimer);
-  }, [gameState, activePlayer, isBotThinking, wordChain, usedWords, selectedTheme, difficulty, advanceTurn, playSoundEffect, toast]);
 
   const sortedLeaderboard = useMemo(() => {
     return [...players].sort((a, b) => b.score - a.score);
@@ -638,7 +630,7 @@ export function VocabSnake() {
           >
             <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-9xl pointer-events-none">🐍</div>
             <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 px-4 py-1.5 font-bold text-xs uppercase tracking-widest">
-              Multiplayer Word Chain Arena
+              Word Chain Arena
             </Badge>
             <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tight italic flex items-center justify-center gap-4">
               <span>🐍 Vocab Snake</span>
@@ -647,14 +639,25 @@ export function VocabSnake() {
               Take turns connecting words in an endless snake chain! Each new word must start with the final letter of the previous word.
             </p>
 
-            {/* Mode Switcher: Host vs Join Room */}
-            <div className="pt-4 flex justify-center gap-4">
+            {/* Mode Switcher: Solo vs Host vs Join Room */}
+            <div className="pt-4 flex justify-center gap-3 sm:gap-4 flex-wrap">
+              <button
+                onClick={() => setLobbyMode('solo')}
+                className={cn(
+                  "px-6 sm:px-8 py-3.5 rounded-2xl font-black text-sm tracking-wider uppercase transition-all border flex items-center gap-2 shadow-lg",
+                  lobbyMode === 'solo'
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-400 shadow-emerald-600/30 scale-105"
+                    : "bg-zinc-900/90 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white"
+                )}
+              >
+                👤 Solo Player Mode
+              </button>
               <button
                 onClick={() => setLobbyMode('host')}
                 className={cn(
-                  "px-8 py-3.5 rounded-2xl font-black text-sm tracking-wider uppercase transition-all border flex items-center gap-2 shadow-lg",
+                  "px-6 sm:px-8 py-3.5 rounded-2xl font-black text-sm tracking-wider uppercase transition-all border flex items-center gap-2 shadow-lg",
                   lobbyMode === 'host'
-                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-400 shadow-emerald-600/30 scale-105"
+                    ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white border-amber-400 shadow-amber-600/30 scale-105"
                     : "bg-zinc-900/90 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white"
                 )}
               >
@@ -663,7 +666,7 @@ export function VocabSnake() {
               <button
                 onClick={() => setLobbyMode('join')}
                 className={cn(
-                  "px-8 py-3.5 rounded-2xl font-black text-sm tracking-wider uppercase transition-all border flex items-center gap-2 shadow-lg",
+                  "px-6 sm:px-8 py-3.5 rounded-2xl font-black text-sm tracking-wider uppercase transition-all border flex items-center gap-2 shadow-lg",
                   lobbyMode === 'join'
                     ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-indigo-400 shadow-indigo-600/30 scale-105"
                     : "bg-zinc-900/90 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white"
@@ -674,19 +677,20 @@ export function VocabSnake() {
             </div>
           </motion.div>
 
-          {/* ── MODE 1: HOST / CREATE ROOM ── */}
-          {lobbyMode === 'host' && (
+          {/* ── MODE 1: SOLO PLAYER & MULTIPLAYER HOST SETUP ── */}
+          {(lobbyMode === 'solo' || lobbyMode === 'host') && (
             <>
-              {/* Room Code Badge */}
-              <div className="flex justify-center items-center">
-                <div className="bg-zinc-950/90 border border-emerald-500/40 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-xl">
-                  <span className="text-xs text-emerald-400 font-black uppercase tracking-wider">Generated Room Code:</span>
-                  <span className="text-2xl font-black tracking-widest text-emerald-200">{roomCode}</span>
-                  <Button size="icon" variant="ghost" onClick={copyRoomCode} className="h-9 w-9 text-emerald-400 hover:text-white hover:bg-emerald-500/20 rounded-xl">
-                    {copiedCode ? <Check className="h-5 w-5 text-emerald-400" /> : <Copy className="h-5 w-5" />}
-                  </Button>
+              {lobbyMode === 'host' && (
+                <div className="flex justify-center items-center">
+                  <div className="bg-zinc-950/90 border border-emerald-500/40 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-xl">
+                    <span className="text-xs text-emerald-400 font-black uppercase tracking-wider">Generated Room Code:</span>
+                    <span className="text-2xl font-black tracking-widest text-emerald-200">{roomCode}</span>
+                    <Button size="icon" variant="ghost" onClick={copyRoomCode} className="h-9 w-9 text-emerald-400 hover:text-white hover:bg-emerald-500/20 rounded-xl">
+                      {copiedCode ? <Check className="h-5 w-5 text-emerald-400" /> : <Copy className="h-5 w-5" />}
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Configuration Options */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -738,22 +742,24 @@ export function VocabSnake() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider">Total Players (Lobby / AI Bots)</label>
-                      <span className="font-black text-emerald-400 text-xl bg-emerald-950/80 px-4 py-1 rounded-xl border border-emerald-500/30">
-                        {playerCount} Players
-                      </span>
+                  {lobbyMode === 'host' && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider">Human Players (Multiplayer Roster)</label>
+                        <span className="font-black text-emerald-400 text-xl bg-emerald-950/80 px-4 py-1 rounded-xl border border-emerald-500/30">
+                          {playerCount} Players
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={2}
+                        max={8}
+                        value={playerCount}
+                        onChange={(e) => setPlayerCount(Number(e.target.value))}
+                        className="w-full accent-emerald-500 cursor-pointer h-3 rounded-lg bg-zinc-900"
+                      />
                     </div>
-                    <input
-                      type="range"
-                      min={2}
-                      max={8}
-                      value={playerCount}
-                      onChange={(e) => setPlayerCount(Number(e.target.value))}
-                      className="w-full accent-emerald-500 cursor-pointer h-3 rounded-lg bg-zinc-900"
-                    />
-                  </div>
+                  )}
                 </Card>
 
                 <Card className="lg:col-span-6 bg-zinc-950/80 border-zinc-800 backdrop-blur-2xl p-7 rounded-3xl space-y-5 shadow-2xl">
@@ -789,7 +795,8 @@ export function VocabSnake() {
                   onClick={startNewGame}
                   className="w-full sm:w-auto px-20 h-16 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-black text-xl rounded-2xl shadow-2xl shadow-emerald-500/30 transform transition duration-300 hover:scale-105"
                 >
-                  <Play className="h-6 w-6 fill-current mr-3" /> Start Vocab Snake Match
+                  <Play className="h-6 w-6 fill-current mr-3" />
+                  {lobbyMode === 'solo' ? 'Start Solo Game Match' : 'Start Vocab Snake Room Match'}
                 </Button>
               </div>
             </>
@@ -858,13 +865,15 @@ export function VocabSnake() {
               <Trophy className="h-14 w-14 animate-bounce" />
             </div>
             <h2 className="text-5xl font-black text-white italic tracking-tight uppercase">Game Over!</h2>
-            <p className="text-zinc-300 text-base">Match timer expired. Here are the top word snake champions!</p>
+            <p className="text-zinc-300 text-base">Match timer expired. Here are your final game results!</p>
 
             {/* Winner Banner */}
             {sortedLeaderboard[0] && (
               <div className="bg-gradient-to-r from-amber-500/30 via-amber-400/40 to-amber-500/30 border border-amber-400/50 p-6 rounded-3xl max-w-lg mx-auto shadow-xl">
                 <Crown className="h-10 w-10 text-amber-400 mx-auto mb-1 animate-pulse" />
-                <p className="text-xs font-black text-amber-300 uppercase tracking-widest">🏆 1st Place Winner</p>
+                <p className="text-xs font-black text-amber-300 uppercase tracking-widest">
+                  {lobbyMode === 'solo' ? '🏆 Solo Match Result' : '🏆 1st Place Winner'}
+                </p>
                 <h3 className="text-3xl font-black text-white">{sortedLeaderboard[0].name}</h3>
                 <p className="text-amber-200 font-extrabold text-xl mt-1">
                   {sortedLeaderboard[0].score} Pts · {sortedLeaderboard[0].wordCount} Words Played
@@ -946,6 +955,8 @@ export function VocabSnake() {
                   </Badge>
                   <span>•</span>
                   <span className="capitalize">{THEME_CATEGORIES[selectedTheme]?.label || 'General'}</span>
+                  <span>•</span>
+                  <span className="text-emerald-300 font-bold uppercase">{lobbyMode === 'solo' ? 'Solo Mode' : 'Multiplayer'}</span>
                 </div>
               </div>
             </div>
@@ -1043,23 +1054,8 @@ export function VocabSnake() {
                 </div>
               </Card>
 
-              {/* Turn Input & Anti-Cheat Controls */}
+              {/* Turn Input & Controls */}
               <Card className="bg-zinc-950/80 border-zinc-800 p-7 rounded-3xl space-y-4 relative overflow-hidden backdrop-blur-2xl shadow-xl">
-                {activePlayer?.isBot && (
-                  <div className="absolute inset-0 bg-zinc-950/85 backdrop-blur-sm z-20 flex items-center justify-center gap-3 text-zinc-200 font-bold text-base">
-                    <span className="animate-spin text-2xl">🤖</span>
-                    <span>{activePlayer.name} is thinking of a word starting with &quot;{currentTargetLetter}&quot;...</span>
-                  </div>
-                )}
-
-                {!activePlayer?.isBot && activePlayer?.id !== 'p1' && !activePlayer?.id.includes('joined') && (
-                  <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-2 text-zinc-400">
-                    <Lock className="h-8 w-8 text-amber-400" />
-                    <p className="font-black text-white text-base">🔒 Locked — Waiting for {activePlayer?.name}&apos;s turn</p>
-                    <p className="text-xs text-zinc-500">Only the active player can input words to keep turns fair.</p>
-                  </div>
-                )}
-
                 <div className="space-y-4">
                   <label className="text-xs font-extrabold text-zinc-300 uppercase tracking-wider flex items-center justify-between">
                     <span>Enter Next Word (Must Start With &quot;<span className="text-emerald-400 font-black">{currentTargetLetter}</span>&quot;)</span>
@@ -1095,12 +1091,11 @@ export function VocabSnake() {
                     <Button
                       onClick={() => {
                         playSoundEffect('pass');
-                        toast({ title: 'Turn Passed!', description: `${activePlayer?.name} skipped their turn.` });
                         advanceTurn();
                       }}
                       variant="outline"
                       className="h-16 px-5 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-2xl"
-                      title="Pass turn to next player"
+                      title={lobbyMode === 'solo' ? 'Draw new starting word' : 'Pass turn to next player'}
                     >
                       <SkipForward className="h-6 w-6" />
                     </Button>
@@ -1114,9 +1109,9 @@ export function VocabSnake() {
               <Card className="bg-zinc-950/80 border-zinc-800 p-6 rounded-3xl space-y-5 backdrop-blur-2xl shadow-xl">
                 <h3 className="text-sm font-extrabold text-white uppercase tracking-wider flex items-center justify-between border-b border-zinc-800 pb-3">
                   <span className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-amber-400" /> Live Match Leaderboard
+                    <Trophy className="h-5 w-5 text-amber-400" /> Match Leaderboard
                   </span>
-                  <span className="text-xs text-emerald-400 font-extrabold">{players.length} Players</span>
+                  <span className="text-xs text-emerald-400 font-extrabold">{players.length} Player{players.length > 1 ? 's' : ''}</span>
                 </h3>
 
                 {/* Leaderboard List */}
@@ -1169,6 +1164,7 @@ export function VocabSnake() {
                 <ul className="space-y-1.5 text-xs list-disc list-inside text-zinc-400 leading-relaxed">
                   <li>Next word must start with the final letter of the previous word.</li>
                   <li>No duplicate words allowed in a single session.</li>
+                  <li>In Solo mode, passing draws a new starting word to build on.</li>
                   <li>Tab switching / pasting triggers anti-cheat warning logs.</li>
                 </ul>
               </Card>
