@@ -7,7 +7,7 @@ import {
   Sparkles, Play, RotateCcw, Trophy, Crown, Medal, ShieldAlert, Clock,
   Users, UserCheck, AlertTriangle, ArrowRight, Zap, CheckCircle2, XCircle,
   SkipForward, Lock, Info, Volume2, VolumeX, Eye, BookOpen, Flame, Hash, Copy, Check,
-  Maximize, Minimize, ArrowLeft, Home, UserPlus, LogIn, User
+  Maximize, Minimize, ArrowLeft, Home, UserPlus, LogIn, User, ThumbsUp, Radio
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
@@ -105,6 +105,8 @@ interface Player {
   isPassed: boolean;
   warningsCount: number;
   avatar: string;
+  isReady: boolean;
+  isObserver?: boolean;
 }
 
 interface ChainItem {
@@ -128,18 +130,21 @@ export function VocabSnake() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // ─── Setup & Lobby States ───
-  const [gameState, setGameState] = useState<'lobby' | 'playing' | 'ended'>('lobby');
+  const [gameState, setGameState] = useState<'lobby' | 'waiting_room' | 'playing' | 'ended'>('lobby');
   const [lobbyMode, setLobbyMode] = useState<'solo' | 'host' | 'join'>('solo');
+  const [hostRole, setHostRole] = useState<'observer' | 'player'>('observer'); // Observer vs Playing Host
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [selectedTheme, setSelectedTheme] = useState<string>('general');
   const [totalMatchTime, setTotalMatchTime] = useState<number>(180); // 3 mins default
-  const [playerCount, setPlayerCount] = useState<number>(2);
+  const [playerCount, setPlayerCount] = useState<number>(3);
   const [roomCode, setRoomCode] = useState<string>('');
   const [copiedCode, setCopiedCode] = useState(false);
 
   // Join Room Form States
   const [joinInputCode, setJoinInputCode] = useState<string>('');
   const [joinPlayerName, setJoinPlayerName] = useState<string>('');
+  const [isCurrentPlayerHost, setIsCurrentPlayerHost] = useState<boolean>(false);
+  const [isCurrentPlayerObserver, setIsCurrentPlayerObserver] = useState<boolean>(false);
 
   // ─── Match States ───
   const [players, setPlayers] = useState<Player[]>([]);
@@ -188,7 +193,7 @@ export function VocabSnake() {
   const copyRoomCode = () => {
     navigator.clipboard.writeText(roomCode);
     setCopiedCode(true);
-    toast({ title: 'Room Code Copied!', description: `Shared ${roomCode} with your classmates.` });
+    toast({ title: 'Room Code Copied!', description: `Shared ${roomCode} with your players.` });
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
@@ -237,25 +242,52 @@ export function VocabSnake() {
     } catch {}
   }, [soundEnabled]);
 
-  // ─── Initialize Game Session (Solo or Host) ───
-  const startNewGame = useCallback(() => {
+  // ─── Create Waiting Room (Host or Solo) ───
+  const handleCreateRoom = useCallback(() => {
     const avatars = ['🦊', '🦉', '🦁', '🐯', '🦄', '🐼', '🐲'];
-    const userName = user?.displayName || user?.email?.split('@')[0] || 'Player 1';
-
-    const newPlayers: Player[] = [];
+    const userName = user?.displayName || user?.email?.split('@')[0] || 'Teacher / Host';
 
     if (lobbyMode === 'solo') {
-      newPlayers.push({
+      const soloPlayer: Player = {
         id: 'p-solo-1',
         name: userName,
         score: 0,
         wordCount: 0,
         isPassed: false,
         warningsCount: 0,
-        avatar: '👤'
-      });
+        avatar: '👤',
+        isReady: true,
+        isObserver: false
+      };
+      setPlayers([soloPlayer]);
+      setIsCurrentPlayerHost(true);
+      setIsCurrentPlayerObserver(false);
+      startMatchNow([soloPlayer]);
+      return;
+    }
+
+    // Host Multiplayer Room setup
+    setIsCurrentPlayerHost(true);
+    setIsCurrentPlayerObserver(hostRole === 'observer');
+
+    const newPlayers: Player[] = [];
+
+    if (hostRole === 'observer') {
+      // Teacher Observer (Spectator, not in playing turns)
+      for (let i = 1; i <= playerCount; i++) {
+        newPlayers.push({
+          id: `p${i}`,
+          name: `Player ${i}`,
+          score: 0,
+          wordCount: 0,
+          isPassed: false,
+          warningsCount: 0,
+          avatar: avatars[(i - 1) % avatars.length],
+          isReady: i === 1 // Player 1 ready by default
+        });
+      }
     } else {
-      // Host multiplayer room for human players
+      // Host plays
       newPlayers.push({
         id: 'p1',
         name: `${userName} (Host)`,
@@ -263,7 +295,8 @@ export function VocabSnake() {
         wordCount: 0,
         isPassed: false,
         warningsCount: 0,
-        avatar: '👑'
+        avatar: '👑',
+        isReady: true
       });
 
       for (let i = 2; i <= playerCount; i++) {
@@ -274,38 +307,20 @@ export function VocabSnake() {
           wordCount: 0,
           isPassed: false,
           warningsCount: 0,
-          avatar: avatars[(i - 2) % avatars.length]
+          avatar: avatars[(i - 1) % avatars.length],
+          isReady: false
         });
       }
     }
 
-    const themePool = THEME_CATEGORIES[selectedTheme]?.words || THEME_CATEGORIES.general.words;
-    const initialWord = themePool[Math.floor(Math.random() * themePool.length)];
-
-    const firstChainItem: ChainItem = {
-      id: 'initial-1',
-      word: initialWord,
-      playerId: 'system',
-      playerName: 'Starting Word',
-      points: 0,
-      startLetter: initialWord.charAt(0).toUpperCase(),
-      endLetter: initialWord.charAt(initialWord.length - 1).toUpperCase()
-    };
-
     setPlayers(newPlayers);
-    setCurrentTurnIndex(0);
-    setWordChain([firstChainItem]);
-    setUsedWords(new Set([initialWord.toLowerCase()]));
-    setMatchTimeLeft(totalMatchTime);
-    setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
-    setInputWord('');
-    setGameState('playing');
+    setGameState('waiting_room');
 
     toast({
-      title: lobbyMode === 'solo' ? '🐍 Solo Vocab Snake Started!' : `🐍 Room ${roomCode} Started!`,
-      description: `First word is "${initialWord.toUpperCase()}". Next word must start with "${initialWord.slice(-1).toUpperCase()}"!`
+      title: `🏰 Room ${roomCode} Created!`,
+      description: hostRole === 'observer' ? 'You are in Teacher Spectator mode. Waiting for players to ready up!' : 'Waiting for players to ready up!'
     });
-  }, [user, lobbyMode, playerCount, selectedTheme, totalMatchTime, difficulty, roomCode, toast]);
+  }, [user, lobbyMode, hostRole, playerCount, roomCode, toast]);
 
   // ─── Join Game Room via Code ───
   const handleJoinRoom = () => {
@@ -323,12 +338,13 @@ export function VocabSnake() {
     const avatars = ['🦊', '🦉', '🦁', '🐯', '🦄', '🐼'];
     const joinedPlayer: Player = {
       id: `p-joined-${Date.now()}`,
-      name: `${name} (Joined)`,
+      name: name,
       score: 0,
       wordCount: 0,
       isPassed: false,
       warningsCount: 0,
-      avatar: avatars[Math.floor(Math.random() * avatars.length)]
+      avatar: avatars[Math.floor(Math.random() * avatars.length)],
+      isReady: false
     };
 
     const hostPlayer: Player = {
@@ -338,16 +354,43 @@ export function VocabSnake() {
       wordCount: 0,
       isPassed: false,
       warningsCount: 0,
-      avatar: '👑'
+      avatar: '🎓',
+      isReady: true
     };
 
     const roomPlayers = [hostPlayer, joinedPlayer];
+
+    setIsCurrentPlayerHost(false);
+    setIsCurrentPlayerObserver(false);
+    setPlayers(roomPlayers);
+    setGameState('waiting_room');
+
+    toast({
+      title: `🎮 Joined Room ${formattedCode}!`,
+      description: `Welcome ${name}! Click 'Ready' when you're prepared to start.`
+    });
+  };
+
+  // ─── Toggle Player Ready Status ───
+  const togglePlayerReady = (playerId: string) => {
+    setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, isReady: !p.isReady } : p));
+    playSoundEffect('correct');
+  };
+
+  // ─── Start Match Now (Host Trigger) ───
+  const startMatchNow = (overridePlayers?: Player[]) => {
+    const activeRoster = overridePlayers || players.filter(p => !p.isObserver);
+
+    if (activeRoster.length === 0) {
+      toast({ variant: 'destructive', title: 'No Playing Players', description: 'At least 1 active player is required to start the match.' });
+      return;
+    }
 
     const themePool = THEME_CATEGORIES[selectedTheme]?.words || THEME_CATEGORIES.general.words;
     const initialWord = themePool[Math.floor(Math.random() * themePool.length)];
 
     const firstChainItem: ChainItem = {
-      id: 'initial-joined-1',
+      id: 'initial-1',
       word: initialWord,
       playerId: 'system',
       playerName: 'Starting Word',
@@ -356,7 +399,6 @@ export function VocabSnake() {
       endLetter: initialWord.charAt(initialWord.length - 1).toUpperCase()
     };
 
-    setPlayers(roomPlayers);
     setCurrentTurnIndex(0);
     setWordChain([firstChainItem]);
     setUsedWords(new Set([initialWord.toLowerCase()]));
@@ -365,9 +407,11 @@ export function VocabSnake() {
     setInputWord('');
     setGameState('playing');
 
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
     toast({
-      title: `🎮 Joined Room ${formattedCode}!`,
-      description: `Welcome ${name}! Starting word is "${initialWord.toUpperCase()}".`
+      title: `🚀 Vocab Snake Match Live!`,
+      description: `Starting word is "${initialWord.toUpperCase()}". Next word must start with "${initialWord.slice(-1).toUpperCase()}"!`
     });
   };
 
@@ -377,7 +421,6 @@ export function VocabSnake() {
     setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
 
     if (lobbyMode === 'solo') {
-      // In solo mode, passing or resetting draws a new random starting word for the player
       const themePool = THEME_CATEGORIES[selectedTheme]?.words || THEME_CATEGORIES.general.words;
       const availableWords = themePool.filter(w => !usedWords.has(w.toLowerCase()));
       const newWord = (availableWords.length > 0 ? availableWords : themePool)[Math.floor(Math.random() * (availableWords.length || themePool.length))];
@@ -399,9 +442,12 @@ export function VocabSnake() {
         description: `New starting word is "${newWord.toUpperCase()}". Target letter: "${newWord.slice(-1).toUpperCase()}"`
       });
     } else {
-      setCurrentTurnIndex(prev => (prev + 1) % players.length);
+      const activeRoster = players.filter(p => !p.isObserver);
+      if (activeRoster.length > 0) {
+        setCurrentTurnIndex(prev => (prev + 1) % activeRoster.length);
+      }
     }
-  }, [difficulty, lobbyMode, selectedTheme, usedWords, players.length, toast]);
+  }, [difficulty, lobbyMode, selectedTheme, usedWords, players, toast]);
 
   // ─── Handle Match & Turn Timers ───
   useEffect(() => {
@@ -452,7 +498,7 @@ export function VocabSnake() {
 
   // ─── Anti-Cheat Detection ───
   useEffect(() => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isCurrentPlayerObserver) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden && activePlayer) {
@@ -469,10 +515,15 @@ export function VocabSnake() {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [gameState, activePlayer, currentTurnIndex, toast]);
+  }, [gameState, activePlayer, currentTurnIndex, isCurrentPlayerObserver, toast]);
 
   // ─── Handle Word Submission ───
   const handleWordSubmit = (submittedWord?: string) => {
+    if (isCurrentPlayerObserver) {
+      toast({ variant: 'destructive', title: 'Observer Mode Active', description: 'Observers are spectating and cannot submit words.' });
+      return;
+    }
+
     const rawWord = (submittedWord || inputWord).trim().toLowerCase();
     if (!rawWord || !activePlayer || gameState !== 'playing') return;
 
@@ -556,7 +607,11 @@ export function VocabSnake() {
   };
 
   const sortedLeaderboard = useMemo(() => {
-    return [...players].sort((a, b) => b.score - a.score);
+    return [...players].filter(p => !p.isObserver).sort((a, b) => b.score - a.score);
+  }, [players]);
+
+  const readyPlayerCount = useMemo(() => {
+    return players.filter(p => p.isReady && !p.isObserver).length;
   }, [players]);
 
   return (
@@ -600,6 +655,12 @@ export function VocabSnake() {
         </div>
 
         <div className="flex items-center gap-3">
+          {isCurrentPlayerObserver && gameState === 'playing' && (
+            <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/50 px-4 py-2 font-black text-xs uppercase tracking-wider flex items-center gap-2 animate-pulse">
+              <Eye className="h-4 w-4 text-cyan-400" /> Teacher Spectator Mode
+            </Badge>
+          )}
+
           <Button
             onClick={() => setSoundEnabled(!soundEnabled)}
             variant="outline"
@@ -677,19 +738,53 @@ export function VocabSnake() {
             </div>
           </motion.div>
 
-          {/* ── MODE 1: SOLO PLAYER & MULTIPLAYER HOST SETUP ── */}
+          {/* ── MODE 1: SOLO & HOST SETUP ── */}
           {(lobbyMode === 'solo' || lobbyMode === 'host') && (
             <>
+              {/* Host Role Switcher: Teacher Observer vs Host Player */}
               {lobbyMode === 'host' && (
-                <div className="flex justify-center items-center">
-                  <div className="bg-zinc-950/90 border border-emerald-500/40 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-xl">
-                    <span className="text-xs text-emerald-400 font-black uppercase tracking-wider">Generated Room Code:</span>
-                    <span className="text-2xl font-black tracking-widest text-emerald-200">{roomCode}</span>
-                    <Button size="icon" variant="ghost" onClick={copyRoomCode} className="h-9 w-9 text-emerald-400 hover:text-white hover:bg-emerald-500/20 rounded-xl">
-                      {copiedCode ? <Check className="h-5 w-5 text-emerald-400" /> : <Copy className="h-5 w-5" />}
-                    </Button>
+                <Card className="bg-zinc-950/90 border-amber-500/40 p-6 rounded-3xl backdrop-blur-2xl space-y-4 shadow-xl">
+                  <h3 className="text-base font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                    🎓 Host Creator Role
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                      onClick={() => setHostRole('observer')}
+                      className={cn(
+                        'p-5 rounded-2xl border text-left transition-all flex items-start gap-4',
+                        hostRole === 'observer'
+                          ? 'bg-gradient-to-r from-amber-950/80 to-orange-950/80 border-amber-400 text-amber-100 shadow-lg shadow-amber-950/50'
+                          : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                      )}
+                    >
+                      <Eye className="h-8 w-8 text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-black text-base text-white">Teacher / Spectator Observer</p>
+                        <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                          You create the room and control the Start Game button. You spectate players live and monitor scores without participating in turns.
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setHostRole('player')}
+                      className={cn(
+                        'p-5 rounded-2xl border text-left transition-all flex items-start gap-4',
+                        hostRole === 'player'
+                          ? 'bg-gradient-to-r from-emerald-950/80 to-teal-950/80 border-emerald-400 text-emerald-100 shadow-lg shadow-emerald-950/50'
+                          : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                      )}
+                    >
+                      <Crown className="h-8 w-8 text-emerald-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-black text-base text-white">Host & Active Player</p>
+                        <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                          You create the room, control the Start Game button, and also take turns playing in the word chain.
+                        </p>
+                      </div>
+                    </button>
                   </div>
-                </div>
+                </Card>
               )}
 
               {/* Configuration Options */}
@@ -745,7 +840,7 @@ export function VocabSnake() {
                   {lobbyMode === 'host' && (
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider">Human Players (Multiplayer Roster)</label>
+                        <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider">Number of Student Players</label>
                         <span className="font-black text-emerald-400 text-xl bg-emerald-950/80 px-4 py-1 rounded-xl border border-emerald-500/30">
                           {playerCount} Players
                         </span>
@@ -792,11 +887,11 @@ export function VocabSnake() {
 
               <div className="pt-4 text-center">
                 <Button
-                  onClick={startNewGame}
+                  onClick={handleCreateRoom}
                   className="w-full sm:w-auto px-20 h-16 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-black text-xl rounded-2xl shadow-2xl shadow-emerald-500/30 transform transition duration-300 hover:scale-105"
                 >
                   <Play className="h-6 w-6 fill-current mr-3" />
-                  {lobbyMode === 'solo' ? 'Start Solo Game Match' : 'Start Vocab Snake Room Match'}
+                  {lobbyMode === 'solo' ? 'Start Solo Game Match' : 'Create Game Room & Open Lobby'}
                 </Button>
               </div>
             </>
@@ -844,12 +939,135 @@ export function VocabSnake() {
                   onClick={handleJoinRoom}
                   className="w-full h-16 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black text-xl rounded-2xl shadow-2xl shadow-indigo-500/30 transform transition duration-300 hover:scale-105"
                 >
-                  <UserPlus className="h-6 w-6 mr-3" /> Enter Room & Join Match
+                  <UserPlus className="h-6 w-6 mr-3" /> Enter Waiting Room
                 </Button>
               </div>
             </Card>
           )}
 
+        </div>
+      )}
+
+      {/* ─── WAITING ROOM LOBBY & PLAYER READY SCREEN ─── */}
+      {gameState === 'waiting_room' && (
+        <div className="w-full max-w-[1100px] mx-auto space-y-8 relative z-20">
+          <Card className="bg-zinc-950/90 border-emerald-500/40 p-8 sm:p-10 rounded-3xl space-y-8 shadow-2xl backdrop-blur-2xl text-center">
+            
+            <div className="space-y-3">
+              <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 px-4 py-1.5 font-bold text-xs uppercase tracking-widest">
+                Waiting Lobby
+              </Badge>
+              <h2 className="text-4xl font-black text-white italic tracking-tight">Room Waiting Lobby</h2>
+              
+              {/* Room Code Display */}
+              <div className="flex justify-center items-center gap-3 pt-2">
+                <div className="bg-zinc-900 border border-emerald-500/40 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-inner">
+                  <span className="text-xs text-emerald-400 font-black uppercase">Room Code:</span>
+                  <span className="text-3xl font-black tracking-widest text-emerald-200">{roomCode}</span>
+                  <Button size="icon" variant="ghost" onClick={copyRoomCode} className="h-9 w-9 text-emerald-400 hover:text-white hover:bg-emerald-500/20 rounded-xl">
+                    {copiedCode ? <Check className="h-5 w-5 text-emerald-400" /> : <Copy className="h-5 w-5" />}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Players Ready Status Roster */}
+            <div className="space-y-4 text-left max-w-2xl mx-auto">
+              <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 className="text-sm font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Users className="h-5 w-5 text-emerald-400" /> Joined Players ({players.length})
+                </h3>
+                <span className="text-xs font-black text-emerald-400 bg-emerald-950 px-3 py-1 rounded-xl border border-emerald-500/30">
+                  {readyPlayerCount} / {players.filter(p => !p.isObserver).length} Ready
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {players.map(player => (
+                  <div
+                    key={player.id}
+                    className={cn(
+                      "p-4 rounded-2xl border transition-all flex items-center justify-between",
+                      player.isObserver
+                        ? "bg-amber-950/40 border-amber-500/40 text-amber-200"
+                        : player.isReady
+                        ? "bg-emerald-950/50 border-emerald-500/60 text-white"
+                        : "bg-zinc-900/60 border-zinc-800 text-zinc-400"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{player.avatar}</span>
+                      <div>
+                        <p className="font-extrabold text-base text-white flex items-center gap-2">
+                          {player.name}
+                          {player.isObserver && (
+                            <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-[10px]">
+                              Teacher Observer (Host)
+                            </Badge>
+                          )}
+                        </p>
+                        <p className="text-xs text-zinc-400">
+                          {player.isObserver ? 'Spectating Live Match' : player.isReady ? 'Ready to play!' : 'Waiting for ready...'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {!player.isObserver && (
+                      <div className="flex items-center gap-3">
+                        <Badge className={cn(
+                          "px-4 py-1.5 text-xs font-black uppercase tracking-wider",
+                          player.isReady
+                            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50"
+                            : "bg-zinc-800 text-zinc-400 border-zinc-700"
+                        )}>
+                          {player.isReady ? 'Ready 👍' : 'Not Ready ⏳'}
+                        </Badge>
+
+                        <Button
+                          onClick={() => togglePlayerReady(player.id)}
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "rounded-xl font-extrabold text-xs h-9 px-4",
+                            player.isReady
+                              ? "border-emerald-500/50 text-emerald-300 hover:bg-emerald-950"
+                              : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                          )}
+                        >
+                          {player.isReady ? 'Unready' : 'Set Ready'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Start Game Controls */}
+            <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-4">
+              <Button
+                onClick={() => setGameState('lobby')}
+                variant="outline"
+                className="h-14 px-8 border-zinc-800 text-zinc-400 hover:text-white rounded-2xl font-bold"
+              >
+                Back to Settings
+              </Button>
+
+              {isCurrentPlayerHost ? (
+                <Button
+                  onClick={() => startMatchNow()}
+                  className="h-16 px-16 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-black text-xl rounded-2xl shadow-2xl shadow-emerald-500/30 transform transition duration-300 hover:scale-105"
+                >
+                  <Play className="h-6 w-6 fill-current mr-3" /> 🚀 Start Game Match (Host)
+                </Button>
+              ) : (
+                <div className="text-zinc-400 text-sm font-bold animate-pulse flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-amber-400" /> Waiting for Room Host to press Start...
+                </div>
+              )}
+            </div>
+
+          </Card>
         </div>
       )}
 
@@ -930,7 +1148,7 @@ export function VocabSnake() {
               <RotateCcw className="h-5 w-5 mr-2" /> Back to Lobby
             </Button>
             <Button
-              onClick={startNewGame}
+              onClick={handleCreateRoom}
               className="px-10 h-14 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-base"
             >
               <Play className="h-5 w-5 mr-2" /> Play Again
@@ -1054,54 +1272,66 @@ export function VocabSnake() {
                 </div>
               </Card>
 
-              {/* Turn Input & Controls */}
-              <Card className="bg-zinc-950/80 border-zinc-800 p-7 rounded-3xl space-y-4 relative overflow-hidden backdrop-blur-2xl shadow-xl">
-                <div className="space-y-4">
-                  <label className="text-xs font-extrabold text-zinc-300 uppercase tracking-wider flex items-center justify-between">
-                    <span>Enter Next Word (Must Start With &quot;<span className="text-emerald-400 font-black">{currentTargetLetter}</span>&quot;)</span>
-                    <span className="text-[11px] text-rose-400 flex items-center gap-1 font-bold">
-                      <ShieldAlert className="h-3.5 w-3.5" /> Anti-Cheat Active (No Paste / Tab Switch)
-                    </span>
-                  </label>
-
-                  <div className="flex gap-4">
-                    <Input
-                      ref={inputRef}
-                      value={inputWord}
-                      onChange={(e) => setInputWord(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleWordSubmit()}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        toast({
-                          variant: 'destructive',
-                          title: '⛔ Paste Blocked!',
-                          description: 'Copy-pasting is disabled in Vocab Snake.'
-                        });
-                      }}
-                      placeholder={`Type word starting with '${currentTargetLetter}'...`}
-                      className="h-16 bg-zinc-900 border-zinc-800 text-white text-xl font-mono font-bold focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl px-5"
-                      autoFocus
-                    />
-                    <Button
-                      onClick={() => handleWordSubmit()}
-                      className="h-16 px-8 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg rounded-2xl shadow-lg shadow-emerald-600/30"
-                    >
-                      Submit
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        playSoundEffect('pass');
-                        advanceTurn();
-                      }}
-                      variant="outline"
-                      className="h-16 px-5 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-2xl"
-                      title={lobbyMode === 'solo' ? 'Draw new starting word' : 'Pass turn to next player'}
-                    >
-                      <SkipForward className="h-6 w-6" />
-                    </Button>
+              {/* Turn Input Controls OR Spectator Banner */}
+              {isCurrentPlayerObserver ? (
+                <Card className="bg-zinc-950/90 border-cyan-500/40 p-8 rounded-3xl space-y-3 backdrop-blur-2xl shadow-xl text-center">
+                  <div className="inline-block p-4 bg-cyan-500/20 rounded-full border border-cyan-500/40 text-cyan-300 mb-1">
+                    <Eye className="h-10 w-10 animate-pulse" />
                   </div>
-                </div>
-              </Card>
+                  <h3 className="text-2xl font-black text-white italic tracking-tight">Teacher Spectator Dashboard Active</h3>
+                  <p className="text-cyan-200/90 text-sm max-w-xl mx-auto leading-relaxed">
+                    You are observing this match as the room host. Input controls are locked for observers so you can spectate student words, scores, and turn performance in real-time.
+                  </p>
+                </Card>
+              ) : (
+                <Card className="bg-zinc-950/80 border-zinc-800 p-7 rounded-3xl space-y-4 relative overflow-hidden backdrop-blur-2xl shadow-xl">
+                  <div className="space-y-4">
+                    <label className="text-xs font-extrabold text-zinc-300 uppercase tracking-wider flex items-center justify-between">
+                      <span>Enter Next Word (Must Start With &quot;<span className="text-emerald-400 font-black">{currentTargetLetter}</span>&quot;)</span>
+                      <span className="text-[11px] text-rose-400 flex items-center gap-1 font-bold">
+                        <ShieldAlert className="h-3.5 w-3.5" /> Anti-Cheat Active (No Paste / Tab Switch)
+                      </span>
+                    </label>
+
+                    <div className="flex gap-4">
+                      <Input
+                        ref={inputRef}
+                        value={inputWord}
+                        onChange={(e) => setInputWord(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleWordSubmit()}
+                        onPaste={(e) => {
+                          e.preventDefault();
+                          toast({
+                            variant: 'destructive',
+                            title: '⛔ Paste Blocked!',
+                            description: 'Copy-pasting is disabled in Vocab Snake.'
+                          });
+                        }}
+                        placeholder={`Type word starting with '${currentTargetLetter}'...`}
+                        className="h-16 bg-zinc-900 border-zinc-800 text-white text-xl font-mono font-bold focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl px-5"
+                        autoFocus
+                      />
+                      <Button
+                        onClick={() => handleWordSubmit()}
+                        className="h-16 px-8 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg rounded-2xl shadow-lg shadow-emerald-600/30"
+                      >
+                        Submit
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          playSoundEffect('pass');
+                          advanceTurn();
+                        }}
+                        variant="outline"
+                        className="h-16 px-5 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-2xl"
+                        title={lobbyMode === 'solo' ? 'Draw new starting word' : 'Pass turn to next player'}
+                      >
+                        <SkipForward className="h-6 w-6" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )}
             </div>
 
             {/* Right Column: Live Leaderboard & Player Monitor (4 cols) */}
@@ -1111,13 +1341,14 @@ export function VocabSnake() {
                   <span className="flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-amber-400" /> Match Leaderboard
                   </span>
-                  <span className="text-xs text-emerald-400 font-extrabold">{players.length} Player{players.length > 1 ? 's' : ''}</span>
+                  <span className="text-xs text-emerald-400 font-extrabold">{sortedLeaderboard.length} Player{sortedLeaderboard.length > 1 ? 's' : ''}</span>
                 </h3>
 
                 {/* Leaderboard List */}
                 <div className="space-y-3">
                   {sortedLeaderboard.map((player, idx) => {
-                    const isActiveTurn = players[currentTurnIndex]?.id === player.id;
+                    const activeRoster = players.filter(p => !p.isObserver);
+                    const isActiveTurn = activeRoster[currentTurnIndex]?.id === player.id;
                     return (
                       <div
                         key={player.id}
