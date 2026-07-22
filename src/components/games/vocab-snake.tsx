@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
-import { useFirestore } from '@/firebase';
+import { initializeFirebase } from '@/firebase';
 import { doc, setDoc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 // ─── Theme Dictionaries & Valid Word Lists ───────────────────────────────────
@@ -123,7 +123,6 @@ interface ChainItem {
 export function VocabSnake() {
   const router = useRouter();
   const { user } = useAuth();
-  const firestore = useFirestore();
   const { toast } = useToast();
 
   // Fullscreen Container Ref
@@ -201,27 +200,32 @@ export function VocabSnake() {
 
   // ─── REAL-TIME FIRESTORE ROOM SYNCHRONIZATION ───
   useEffect(() => {
-    if (!firestore || !roomCode || lobbyMode === 'solo') return;
+    if (!roomCode || lobbyMode === 'solo') return;
 
-    const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
-    const unsubscribe = onSnapshot(roomRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        if (data.gameState) setGameState(data.gameState);
-        if (data.players) setPlayers(data.players);
-        if (data.wordChain) setWordChain(data.wordChain);
-        if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
-        if (data.usedWords) setUsedWords(new Set(data.usedWords));
-        if (data.matchTimeLeft !== undefined) setMatchTimeLeft(data.matchTimeLeft);
-        if (data.difficulty) setDifficulty(data.difficulty);
-        if (data.selectedTheme) setSelectedTheme(data.selectedTheme);
-      }
-    }, (err) => {
-      console.warn('Firestore room sync fallback:', err);
-    });
+    try {
+      const { firestore } = initializeFirebase();
+      const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
+      const unsubscribe = onSnapshot(roomRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          if (data.gameState) setGameState(data.gameState);
+          if (data.players) setPlayers(data.players);
+          if (data.wordChain) setWordChain(data.wordChain);
+          if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
+          if (data.usedWords) setUsedWords(new Set(data.usedWords));
+          if (data.matchTimeLeft !== undefined) setMatchTimeLeft(data.matchTimeLeft);
+          if (data.difficulty) setDifficulty(data.difficulty);
+          if (data.selectedTheme) setSelectedTheme(data.selectedTheme);
+        }
+      }, (err) => {
+        console.warn('Firestore room sync warning:', err);
+      });
 
-    return () => unsubscribe();
-  }, [firestore, roomCode, lobbyMode]);
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('Firestore init warning:', e);
+    }
+  }, [roomCode, lobbyMode]);
 
   // Current target starting letter
   const currentTargetLetter = useMemo(() => {
@@ -334,45 +338,44 @@ export function VocabSnake() {
     setGameState('waiting_room');
 
     // Create Firestore Document for real-time multiplayer sync
-    if (firestore) {
-      try {
-        const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
-        await setDoc(roomRef, {
-          roomCode,
-          gameState: 'waiting_room',
-          hostRole,
-          difficulty,
-          selectedTheme,
-          totalMatchTime,
-          players: newPlayers,
-          currentTurnIndex: 0,
-          wordChain: [],
-          usedWords: [],
-          matchTimeLeft: totalMatchTime,
-          updatedAt: Date.now()
-        });
-      } catch (e) {
-        console.warn('Firestore room create error:', e);
-      }
+    try {
+      const { firestore } = initializeFirebase();
+      const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
+      await setDoc(roomRef, {
+        roomCode,
+        gameState: 'waiting_room',
+        hostRole,
+        difficulty,
+        selectedTheme,
+        totalMatchTime,
+        players: newPlayers,
+        currentTurnIndex: 0,
+        wordChain: [],
+        usedWords: [],
+        matchTimeLeft: totalMatchTime,
+        updatedAt: Date.now()
+      });
+    } catch (e) {
+      console.warn('Firestore room create error:', e);
     }
 
     toast({
       title: `🏰 Room ${roomCode} Created!`,
       description: hostRole === 'observer' ? 'You are in Teacher Spectator mode. Waiting for players to join and ready up!' : 'Waiting for players to join and ready up!'
     });
-  }, [user, lobbyMode, hostRole, roomCode, firestore, totalMatchTime, difficulty, selectedTheme, toast]);
+  }, [user, lobbyMode, hostRole, roomCode, totalMatchTime, difficulty, selectedTheme, toast]);
 
   // ─── Join Game Room via Code ───
   const handleJoinRoom = async () => {
-    const code = joinInputCode.trim().toUpperCase();
+    const rawInput = joinInputCode.trim().toUpperCase();
     const name = joinPlayerName.trim() || user?.displayName || 'Joined Student';
 
-    if (!code) {
+    if (!rawInput) {
       toast({ variant: 'destructive', title: 'Room Code Required', description: 'Please enter a valid room code (e.g. VS-9800).' });
       return;
     }
 
-    const formattedCode = code.startsWith('VS-') ? code : `VS-${code}`;
+    const formattedCode = rawInput.startsWith('VS-') ? rawInput : `VS-${rawInput}`;
     setRoomCode(formattedCode);
 
     const joinedId = `p-joined-${Date.now()}`;
@@ -394,58 +397,43 @@ export function VocabSnake() {
     setIsCurrentPlayerHost(false);
     setIsCurrentPlayerObserver(false);
 
-    if (firestore) {
-      try {
-        const roomRef = doc(firestore, 'vocab_snake_rooms', formattedCode);
-        const snap = await getDoc(roomRef);
-        if (snap.exists()) {
-          const roomData = snap.data();
-          const existingPlayers: Player[] = roomData.players || [];
-          const updatedPlayers = [...existingPlayers.filter(p => p.id !== joinedId), joinedPlayer];
+    try {
+      const { firestore } = initializeFirebase();
+      const roomRef = doc(firestore, 'vocab_snake_rooms', formattedCode);
+      const snap = await getDoc(roomRef);
 
-          await updateDoc(roomRef, {
-            players: updatedPlayers,
-            updatedAt: Date.now()
-          });
+      if (snap.exists()) {
+        const roomData = snap.data();
+        const existingPlayers: Player[] = roomData.players || [];
+        const updatedPlayers = [...existingPlayers.filter(p => p.id !== joinedId), joinedPlayer];
 
-          setPlayers(updatedPlayers);
-          setGameState(roomData.gameState || 'waiting_room');
-        } else {
-          // Document does not exist yet -> create local fallback room
-          const fallbackHost: Player = {
-            id: 'p-host-1',
-            name: 'Room Host Teacher',
-            score: 0,
-            wordCount: 0,
-            isPassed: false,
-            warningsCount: 0,
-            avatar: '🎓',
-            isReady: true,
-            isObserver: true
-          };
-          const fallbackPlayers = [fallbackHost, joinedPlayer];
-          setPlayers(fallbackPlayers);
-          setGameState('waiting_room');
+        await updateDoc(roomRef, {
+          players: updatedPlayers,
+          updatedAt: Date.now()
+        });
 
-          await setDoc(roomRef, {
-            roomCode: formattedCode,
-            gameState: 'waiting_room',
-            players: fallbackPlayers,
-            currentTurnIndex: 0,
-            wordChain: [],
-            usedWords: [],
-            updatedAt: Date.now()
-          });
-        }
-      } catch (e) {
-        console.warn('Firestore room join error:', e);
+        setPlayers(updatedPlayers);
+        setGameState(roomData.gameState || 'waiting_room');
+
+        toast({
+          title: `🎮 Joined Room ${formattedCode}!`,
+          description: `Welcome ${name}! Click 'Ready' when you are prepared to start.`
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Room Not Found!',
+          description: `Room code "${formattedCode}" does not exist. Please check the code with your teacher/host.`
+        });
       }
+    } catch (e) {
+      console.warn('Firestore room join error:', e);
+      toast({
+        variant: 'destructive',
+        title: 'Connection Error',
+        description: 'Failed to connect to room. Please check your connection.'
+      });
     }
-
-    toast({
-      title: `🎮 Joined Room ${formattedCode}!`,
-      description: `Welcome ${name}! Click 'Ready' when you're prepared to start.`
-    });
   };
 
   // ─── Toggle Player Ready Status ───
@@ -454,16 +442,17 @@ export function VocabSnake() {
     setPlayers(updatedPlayers);
     playSoundEffect('correct');
 
-    if (firestore && roomCode) {
-      try {
+    try {
+      const { firestore } = initializeFirebase();
+      if (roomCode) {
         const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
         await updateDoc(roomRef, {
           players: updatedPlayers,
           updatedAt: Date.now()
         });
-      } catch (e) {
-        console.warn('Firestore ready update error:', e);
       }
+    } catch (e) {
+      console.warn('Firestore ready update error:', e);
     }
   };
 
@@ -504,8 +493,9 @@ export function VocabSnake() {
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
     // Broadcast match start to all connected browsers in room via Firestore!
-    if (firestore && roomCode && lobbyMode !== 'solo') {
+    if (roomCode && lobbyMode !== 'solo') {
       try {
+        const { firestore } = initializeFirebase();
         const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
         await updateDoc(roomRef, {
           gameState: 'playing',
@@ -558,18 +548,19 @@ export function VocabSnake() {
         const nextTurn = (currentTurnIndex + 1) % activeRoster.length;
         setCurrentTurnIndex(nextTurn);
 
-        if (firestore && roomCode) {
-          try {
+        try {
+          const { firestore } = initializeFirebase();
+          if (roomCode) {
             const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
             await updateDoc(roomRef, {
               currentTurnIndex: nextTurn,
               updatedAt: Date.now()
             });
-          } catch (e) {}
-        }
+          }
+        } catch (e) {}
       }
     }
-  }, [difficulty, lobbyMode, selectedTheme, usedWords, players, currentTurnIndex, firestore, roomCode, toast]);
+  }, [difficulty, lobbyMode, selectedTheme, usedWords, players, currentTurnIndex, roomCode, toast]);
 
   // ─── Handle Match & Turn Timers ───
   useEffect(() => {
@@ -734,8 +725,9 @@ export function VocabSnake() {
     setInputWord('');
     setTurnTimeLeft(config.turnTime);
 
-    if (firestore && roomCode && lobbyMode !== 'solo') {
+    if (roomCode && lobbyMode !== 'solo') {
       try {
+        const { firestore } = initializeFirebase();
         const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
         await updateDoc(roomRef, {
           wordChain: updatedChain,
