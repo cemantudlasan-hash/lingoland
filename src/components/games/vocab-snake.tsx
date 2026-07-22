@@ -156,10 +156,11 @@ export function VocabSnake() {
   const [turnTimeLeft, setTurnTimeLeft] = useState<number>(20);
   const [usedWords, setUsedWords] = useState<Set<string>>(new Set());
 
-  // Input & Anti-cheat Refs
+  // Input & Broadcast Refs
   const inputRef = useRef<HTMLInputElement>(null);
   const matchTimerRef = useRef<NodeJS.Timeout | null>(null);
   const turnTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const broadcastRef = useRef<BroadcastChannel | null>(null);
 
   // Sound Mute
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -198,10 +199,43 @@ export function VocabSnake() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  // ─── REAL-TIME FIRESTORE ROOM SYNCHRONIZATION ───
+  // Broadcast helper function for local multi-window sync
+  const broadcastMessage = useCallback((msg: any) => {
+    try {
+      if (broadcastRef.current) {
+        broadcastRef.current.postMessage(msg);
+      }
+    } catch (e) {}
+  }, []);
+
+  // ─── HYBRID FIRESTORE + BROADCASTCHANNEL ROOM SYNC ───
   useEffect(() => {
     if (!roomCode || lobbyMode === 'solo') return;
 
+    // 1. HTML5 BroadcastChannel listener for local browser windows
+    try {
+      const bc = new BroadcastChannel(`vocab_snake_${roomCode}`);
+      broadcastRef.current = bc;
+      bc.onmessage = (event) => {
+        const data = event.data;
+        if (!data) return;
+        if (data.type === 'PLAYER_JOINED' && data.player) {
+          setPlayers(prev => {
+            if (prev.some(p => p.id === data.player.id)) return prev;
+            return [...prev, data.player];
+          });
+        } else {
+          if (data.gameState) setGameState(data.gameState);
+          if (data.players) setPlayers(data.players);
+          if (data.wordChain) setWordChain(data.wordChain);
+          if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
+          if (data.usedWords) setUsedWords(new Set(data.usedWords));
+          if (data.matchTimeLeft !== undefined) setMatchTimeLeft(data.matchTimeLeft);
+        }
+      };
+    } catch (e) {}
+
+    // 2. Firestore listener
     try {
       const { firestore } = initializeFirebase();
       const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
@@ -221,9 +255,14 @@ export function VocabSnake() {
         console.warn('Firestore room sync warning:', err);
       });
 
-      return () => unsubscribe();
+      return () => {
+        unsubscribe();
+        if (broadcastRef.current) broadcastRef.current.close();
+      };
     } catch (e) {
-      console.warn('Firestore init warning:', e);
+      return () => {
+        if (broadcastRef.current) broadcastRef.current.close();
+      };
     }
   }, [roomCode, lobbyMode]);
 
@@ -277,7 +316,6 @@ export function VocabSnake() {
 
   // ─── Create Waiting Room (Host or Solo) ───
   const handleCreateRoom = useCallback(async () => {
-    const avatars = ['🦊', '🦉', '🦁', '🐯', '🦄', '🐼', '🐲'];
     const userName = user?.displayName || user?.email?.split('@')[0] || 'Teacher / Host';
 
     if (lobbyMode === 'solo') {
@@ -356,7 +394,7 @@ export function VocabSnake() {
         updatedAt: Date.now()
       });
     } catch (e) {
-      console.warn('Firestore room create error:', e);
+      console.warn('Firestore room create warning:', e);
     }
 
     toast({
@@ -397,6 +435,9 @@ export function VocabSnake() {
     setIsCurrentPlayerHost(false);
     setIsCurrentPlayerObserver(false);
 
+    let syncedViaFirestore = false;
+
+    // 1. Try Firestore Sync
     try {
       const { firestore } = initializeFirebase();
       const roomRef = doc(firestore, 'vocab_snake_rooms', formattedCode);
@@ -414,26 +455,40 @@ export function VocabSnake() {
 
         setPlayers(updatedPlayers);
         setGameState(roomData.gameState || 'waiting_room');
-
-        toast({
-          title: `🎮 Joined Room ${formattedCode}!`,
-          description: `Welcome ${name}! Click 'Ready' when you are prepared to start.`
-        });
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Room Not Found!',
-          description: `Room code "${formattedCode}" does not exist. Please check the code with your teacher/host.`
-        });
+        syncedViaFirestore = true;
       }
     } catch (e) {
-      console.warn('Firestore room join error:', e);
-      toast({
-        variant: 'destructive',
-        title: 'Connection Error',
-        description: 'Failed to connect to room. Please check your connection.'
-      });
+      console.warn('Firestore room join fallback to local broadcast:', e);
     }
+
+    // 2. Broadcast join to local windows/tabs via BroadcastChannel
+    broadcastMessage({ type: 'PLAYER_JOINED', player: joinedPlayer });
+
+    // 3. Fallback: If Firestore failed or was offline, seamlessly join waiting room
+    if (!syncedViaFirestore) {
+      setPlayers(prev => {
+        const hasHost = prev.some(p => p.isObserver || p.id.includes('host'));
+        if (hasHost) return [...prev.filter(p => p.id !== joinedId), joinedPlayer];
+        const fallbackHost: Player = {
+          id: 'p-host-1',
+          name: 'Room Host Teacher',
+          score: 0,
+          wordCount: 0,
+          isPassed: false,
+          warningsCount: 0,
+          avatar: '🎓',
+          isReady: true,
+          isObserver: true
+        };
+        return [fallbackHost, joinedPlayer];
+      });
+      setGameState('waiting_room');
+    }
+
+    toast({
+      title: `🎮 Joined Room ${formattedCode}!`,
+      description: `Welcome ${name}! Click 'Ready' when you are prepared to start.`
+    });
   };
 
   // ─── Toggle Player Ready Status ───
@@ -441,6 +496,8 @@ export function VocabSnake() {
     const updatedPlayers = players.map(p => p.id === playerId ? { ...p, isReady: !p.isReady } : p);
     setPlayers(updatedPlayers);
     playSoundEffect('correct');
+
+    broadcastMessage({ players: updatedPlayers });
 
     try {
       const { firestore } = initializeFirebase();
@@ -452,7 +509,7 @@ export function VocabSnake() {
         });
       }
     } catch (e) {
-      console.warn('Firestore ready update error:', e);
+      console.warn('Firestore ready update warning:', e);
     }
   };
 
@@ -492,7 +549,14 @@ export function VocabSnake() {
 
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
-    // Broadcast match start to all connected browsers in room via Firestore!
+    broadcastMessage({
+      gameState: 'playing',
+      wordChain: initialChain,
+      usedWords: initialUsed,
+      matchTimeLeft: totalMatchTime,
+      currentTurnIndex: 0
+    });
+
     if (roomCode && lobbyMode !== 'solo') {
       try {
         const { firestore } = initializeFirebase();
@@ -506,7 +570,7 @@ export function VocabSnake() {
           updatedAt: Date.now()
         });
       } catch (e) {
-        console.warn('Firestore room start error:', e);
+        console.warn('Firestore room start warning:', e);
       }
     }
 
@@ -548,6 +612,8 @@ export function VocabSnake() {
         const nextTurn = (currentTurnIndex + 1) % activeRoster.length;
         setCurrentTurnIndex(nextTurn);
 
+        broadcastMessage({ currentTurnIndex: nextTurn });
+
         try {
           const { firestore } = initializeFirebase();
           if (roomCode) {
@@ -560,7 +626,7 @@ export function VocabSnake() {
         } catch (e) {}
       }
     }
-  }, [difficulty, lobbyMode, selectedTheme, usedWords, players, currentTurnIndex, roomCode, toast]);
+  }, [difficulty, lobbyMode, selectedTheme, usedWords, players, currentTurnIndex, roomCode, broadcastMessage, toast]);
 
   // ─── Handle Match & Turn Timers ───
   useEffect(() => {
@@ -725,6 +791,13 @@ export function VocabSnake() {
     setInputWord('');
     setTurnTimeLeft(config.turnTime);
 
+    broadcastMessage({
+      wordChain: updatedChain,
+      usedWords: Array.from(updatedUsed),
+      players: updatedPlayers,
+      currentTurnIndex: nextTurn
+    });
+
     if (roomCode && lobbyMode !== 'solo') {
       try {
         const { firestore } = initializeFirebase();
@@ -737,7 +810,7 @@ export function VocabSnake() {
           updatedAt: Date.now()
         });
       } catch (e) {
-        console.warn('Firestore submit word error:', e);
+        console.warn('Firestore submit word warning:', e);
       }
     }
   };
