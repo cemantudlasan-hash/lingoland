@@ -238,6 +238,15 @@ export const allGames: Game[] = [
     icon: Gift,
   },
   {
+    title: "Vocab Snake",
+    slug: "vocab-snake",
+    description: "Take turns building an endless chain of words where each word starts with the last letter of the previous word!",
+    level: "intermediate",
+    focus: "vocabulary",
+    subject: "english",
+    icon: Link,
+  },
+  {
     title: "Context Detective",
     slug: "context-detective",
     description: "Use context clues to guess the missing word in a short story.",

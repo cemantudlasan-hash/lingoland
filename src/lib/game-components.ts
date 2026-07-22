@@ -28,6 +28,7 @@ export const gameComponentMap = {
   "riddle-realm": dynamic(() => import("@/components/games/riddle-realm").then((mod) => mod.RiddleRealm)),
   "grammar-guru": dynamic(() => import("@/components/games/grammar-guru").then((mod) => mod.GrammarGuru)),
   "vocab-voyage": dynamic(() => import("@/components/games/vocab-voyage").then((mod) => mod.VocabVoyage)),
+  "vocab-snake": dynamic(() => import("@/components/games/vocab-snake").then((mod) => mod.VocabSnake)),
   "sentence-scramble": dynamic(() => import("@/components/games/sentence-scramble").then((mod) => mod.SentenceScramble)),
   "idiom-illumination": dynamic(() =>
     import("@/components/games/idiom-illumination").then((mod) => mod.IdiomIllumination)
