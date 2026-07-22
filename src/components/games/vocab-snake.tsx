@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { useFirestore } from '@/firebase';
+import { doc, setDoc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 // ─── Theme Dictionaries & Valid Word Lists ───────────────────────────────────
 const THEME_CATEGORIES: Record<string, { label: string; icon: string; words: string[] }> = {
@@ -143,6 +144,7 @@ export function VocabSnake() {
   // Join Room Form States
   const [joinInputCode, setJoinInputCode] = useState<string>('');
   const [joinPlayerName, setJoinPlayerName] = useState<string>('');
+  const [myPlayerId, setMyPlayerId] = useState<string>('');
   const [isCurrentPlayerHost, setIsCurrentPlayerHost] = useState<boolean>(false);
   const [isCurrentPlayerObserver, setIsCurrentPlayerObserver] = useState<boolean>(false);
 
@@ -197,6 +199,30 @@ export function VocabSnake() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
+  // ─── REAL-TIME FIRESTORE ROOM SYNCHRONIZATION ───
+  useEffect(() => {
+    if (!firestore || !roomCode || lobbyMode === 'solo') return;
+
+    const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
+    const unsubscribe = onSnapshot(roomRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.gameState) setGameState(data.gameState);
+        if (data.players) setPlayers(data.players);
+        if (data.wordChain) setWordChain(data.wordChain);
+        if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
+        if (data.usedWords) setUsedWords(new Set(data.usedWords));
+        if (data.matchTimeLeft !== undefined) setMatchTimeLeft(data.matchTimeLeft);
+        if (data.difficulty) setDifficulty(data.difficulty);
+        if (data.selectedTheme) setSelectedTheme(data.selectedTheme);
+      }
+    }, (err) => {
+      console.warn('Firestore room sync fallback:', err);
+    });
+
+    return () => unsubscribe();
+  }, [firestore, roomCode, lobbyMode]);
+
   // Current target starting letter
   const currentTargetLetter = useMemo(() => {
     if (wordChain.length === 0) return '';
@@ -204,7 +230,10 @@ export function VocabSnake() {
     return lastWord.charAt(lastWord.length - 1).toUpperCase();
   }, [wordChain]);
 
-  const activePlayer = useMemo(() => players[currentTurnIndex] || null, [players, currentTurnIndex]);
+  const activePlayer = useMemo(() => {
+    const activeRoster = players.filter(p => !p.isObserver);
+    return activeRoster[currentTurnIndex] || null;
+  }, [players, currentTurnIndex]);
 
   // ─── Play Sound Helper ───
   const playSoundEffect = useCallback((type: 'correct' | 'wrong' | 'pass' | 'win') => {
@@ -243,7 +272,7 @@ export function VocabSnake() {
   }, [soundEnabled]);
 
   // ─── Create Waiting Room (Host or Solo) ───
-  const handleCreateRoom = useCallback(() => {
+  const handleCreateRoom = useCallback(async () => {
     const avatars = ['🦊', '🦉', '🦁', '🐯', '🦄', '🐼', '🐲'];
     const userName = user?.displayName || user?.email?.split('@')[0] || 'Teacher / Host';
 
@@ -260,6 +289,7 @@ export function VocabSnake() {
         isObserver: false
       };
       setPlayers([soloPlayer]);
+      setMyPlayerId(soloPlayer.id);
       setIsCurrentPlayerHost(true);
       setIsCurrentPlayerObserver(false);
       startMatchNow([soloPlayer]);
@@ -267,63 +297,73 @@ export function VocabSnake() {
     }
 
     // Host Multiplayer Room setup
+    const hostId = `host-${Date.now()}`;
+    setMyPlayerId(hostId);
     setIsCurrentPlayerHost(true);
     setIsCurrentPlayerObserver(hostRole === 'observer');
 
     const newPlayers: Player[] = [];
 
     if (hostRole === 'observer') {
-      // Teacher Observer (Spectator, not in playing turns)
-      for (let i = 1; i <= playerCount; i++) {
-        newPlayers.push({
-          id: `p${i}`,
-          name: `Player ${i}`,
-          score: 0,
-          wordCount: 0,
-          isPassed: false,
-          warningsCount: 0,
-          avatar: avatars[(i - 1) % avatars.length],
-          isReady: i === 1 // Player 1 ready by default
-        });
-      }
-    } else {
-      // Host plays
       newPlayers.push({
-        id: 'p1',
+        id: hostId,
+        name: `${userName} (Observer Host)`,
+        score: 0,
+        wordCount: 0,
+        isPassed: false,
+        warningsCount: 0,
+        avatar: '🎓',
+        isReady: true,
+        isObserver: true
+      });
+    } else {
+      newPlayers.push({
+        id: hostId,
         name: `${userName} (Host)`,
         score: 0,
         wordCount: 0,
         isPassed: false,
         warningsCount: 0,
         avatar: '👑',
-        isReady: true
+        isReady: true,
+        isObserver: false
       });
-
-      for (let i = 2; i <= playerCount; i++) {
-        newPlayers.push({
-          id: `p${i}`,
-          name: `Player ${i}`,
-          score: 0,
-          wordCount: 0,
-          isPassed: false,
-          warningsCount: 0,
-          avatar: avatars[(i - 1) % avatars.length],
-          isReady: false
-        });
-      }
     }
 
     setPlayers(newPlayers);
     setGameState('waiting_room');
 
+    // Create Firestore Document for real-time multiplayer sync
+    if (firestore) {
+      try {
+        const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
+        await setDoc(roomRef, {
+          roomCode,
+          gameState: 'waiting_room',
+          hostRole,
+          difficulty,
+          selectedTheme,
+          totalMatchTime,
+          players: newPlayers,
+          currentTurnIndex: 0,
+          wordChain: [],
+          usedWords: [],
+          matchTimeLeft: totalMatchTime,
+          updatedAt: Date.now()
+        });
+      } catch (e) {
+        console.warn('Firestore room create error:', e);
+      }
+    }
+
     toast({
       title: `🏰 Room ${roomCode} Created!`,
-      description: hostRole === 'observer' ? 'You are in Teacher Spectator mode. Waiting for players to ready up!' : 'Waiting for players to ready up!'
+      description: hostRole === 'observer' ? 'You are in Teacher Spectator mode. Waiting for players to join and ready up!' : 'Waiting for players to join and ready up!'
     });
-  }, [user, lobbyMode, hostRole, playerCount, roomCode, toast]);
+  }, [user, lobbyMode, hostRole, roomCode, firestore, totalMatchTime, difficulty, selectedTheme, toast]);
 
   // ─── Join Game Room via Code ───
-  const handleJoinRoom = () => {
+  const handleJoinRoom = async () => {
     const code = joinInputCode.trim().toUpperCase();
     const name = joinPlayerName.trim() || user?.displayName || 'Joined Student';
 
@@ -335,35 +375,72 @@ export function VocabSnake() {
     const formattedCode = code.startsWith('VS-') ? code : `VS-${code}`;
     setRoomCode(formattedCode);
 
+    const joinedId = `p-joined-${Date.now()}`;
+    setMyPlayerId(joinedId);
+
     const avatars = ['🦊', '🦉', '🦁', '🐯', '🦄', '🐼'];
     const joinedPlayer: Player = {
-      id: `p-joined-${Date.now()}`,
+      id: joinedId,
       name: name,
       score: 0,
       wordCount: 0,
       isPassed: false,
       warningsCount: 0,
       avatar: avatars[Math.floor(Math.random() * avatars.length)],
-      isReady: false
+      isReady: false,
+      isObserver: false
     };
-
-    const hostPlayer: Player = {
-      id: 'p-host-1',
-      name: 'Room Host Teacher',
-      score: 0,
-      wordCount: 0,
-      isPassed: false,
-      warningsCount: 0,
-      avatar: '🎓',
-      isReady: true
-    };
-
-    const roomPlayers = [hostPlayer, joinedPlayer];
 
     setIsCurrentPlayerHost(false);
     setIsCurrentPlayerObserver(false);
-    setPlayers(roomPlayers);
-    setGameState('waiting_room');
+
+    if (firestore) {
+      try {
+        const roomRef = doc(firestore, 'vocab_snake_rooms', formattedCode);
+        const snap = await getDoc(roomRef);
+        if (snap.exists()) {
+          const roomData = snap.data();
+          const existingPlayers: Player[] = roomData.players || [];
+          const updatedPlayers = [...existingPlayers.filter(p => p.id !== joinedId), joinedPlayer];
+
+          await updateDoc(roomRef, {
+            players: updatedPlayers,
+            updatedAt: Date.now()
+          });
+
+          setPlayers(updatedPlayers);
+          setGameState(roomData.gameState || 'waiting_room');
+        } else {
+          // Document does not exist yet -> create local fallback room
+          const fallbackHost: Player = {
+            id: 'p-host-1',
+            name: 'Room Host Teacher',
+            score: 0,
+            wordCount: 0,
+            isPassed: false,
+            warningsCount: 0,
+            avatar: '🎓',
+            isReady: true,
+            isObserver: true
+          };
+          const fallbackPlayers = [fallbackHost, joinedPlayer];
+          setPlayers(fallbackPlayers);
+          setGameState('waiting_room');
+
+          await setDoc(roomRef, {
+            roomCode: formattedCode,
+            gameState: 'waiting_room',
+            players: fallbackPlayers,
+            currentTurnIndex: 0,
+            wordChain: [],
+            usedWords: [],
+            updatedAt: Date.now()
+          });
+        }
+      } catch (e) {
+        console.warn('Firestore room join error:', e);
+      }
+    }
 
     toast({
       title: `🎮 Joined Room ${formattedCode}!`,
@@ -372,17 +449,31 @@ export function VocabSnake() {
   };
 
   // ─── Toggle Player Ready Status ───
-  const togglePlayerReady = (playerId: string) => {
-    setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, isReady: !p.isReady } : p));
+  const togglePlayerReady = async (playerId: string) => {
+    const updatedPlayers = players.map(p => p.id === playerId ? { ...p, isReady: !p.isReady } : p);
+    setPlayers(updatedPlayers);
     playSoundEffect('correct');
+
+    if (firestore && roomCode) {
+      try {
+        const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
+        await updateDoc(roomRef, {
+          players: updatedPlayers,
+          updatedAt: Date.now()
+        });
+      } catch (e) {
+        console.warn('Firestore ready update error:', e);
+      }
+    }
   };
 
   // ─── Start Match Now (Host Trigger) ───
-  const startMatchNow = (overridePlayers?: Player[]) => {
-    const activeRoster = overridePlayers || players.filter(p => !p.isObserver);
+  const startMatchNow = async (overridePlayers?: Player[]) => {
+    const currentRoster = overridePlayers || players;
+    const activeRoster = currentRoster.filter(p => !p.isObserver);
 
     if (activeRoster.length === 0) {
-      toast({ variant: 'destructive', title: 'No Playing Players', description: 'At least 1 active player is required to start the match.' });
+      toast({ variant: 'destructive', title: 'No Playing Players', description: 'At least 1 active playing student is required to start the match.' });
       return;
     }
 
@@ -399,15 +490,35 @@ export function VocabSnake() {
       endLetter: initialWord.charAt(initialWord.length - 1).toUpperCase()
     };
 
+    const initialChain = [firstChainItem];
+    const initialUsed = [initialWord.toLowerCase()];
+
     setCurrentTurnIndex(0);
-    setWordChain([firstChainItem]);
-    setUsedWords(new Set([initialWord.toLowerCase()]));
+    setWordChain(initialChain);
+    setUsedWords(new Set(initialUsed));
     setMatchTimeLeft(totalMatchTime);
     setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
     setInputWord('');
     setGameState('playing');
 
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+    // Broadcast match start to all connected browsers in room via Firestore!
+    if (firestore && roomCode && lobbyMode !== 'solo') {
+      try {
+        const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
+        await updateDoc(roomRef, {
+          gameState: 'playing',
+          wordChain: initialChain,
+          usedWords: initialUsed,
+          matchTimeLeft: totalMatchTime,
+          currentTurnIndex: 0,
+          updatedAt: Date.now()
+        });
+      } catch (e) {
+        console.warn('Firestore room start error:', e);
+      }
+    }
 
     toast({
       title: `🚀 Vocab Snake Match Live!`,
@@ -416,7 +527,7 @@ export function VocabSnake() {
   };
 
   // ─── Advance Turn / Pass Logic ───
-  const advanceTurn = useCallback(() => {
+  const advanceTurn = useCallback(async () => {
     setInputWord('');
     setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
 
@@ -444,10 +555,21 @@ export function VocabSnake() {
     } else {
       const activeRoster = players.filter(p => !p.isObserver);
       if (activeRoster.length > 0) {
-        setCurrentTurnIndex(prev => (prev + 1) % activeRoster.length);
+        const nextTurn = (currentTurnIndex + 1) % activeRoster.length;
+        setCurrentTurnIndex(nextTurn);
+
+        if (firestore && roomCode) {
+          try {
+            const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
+            await updateDoc(roomRef, {
+              currentTurnIndex: nextTurn,
+              updatedAt: Date.now()
+            });
+          } catch (e) {}
+        }
       }
     }
-  }, [difficulty, lobbyMode, selectedTheme, usedWords, players, toast]);
+  }, [difficulty, lobbyMode, selectedTheme, usedWords, players, currentTurnIndex, firestore, roomCode, toast]);
 
   // ─── Handle Match & Turn Timers ───
   useEffect(() => {
@@ -518,7 +640,7 @@ export function VocabSnake() {
   }, [gameState, activePlayer, currentTurnIndex, isCurrentPlayerObserver, toast]);
 
   // ─── Handle Word Submission ───
-  const handleWordSubmit = (submittedWord?: string) => {
+  const handleWordSubmit = async (submittedWord?: string) => {
     if (isCurrentPlayerObserver) {
       toast({ variant: 'destructive', title: 'Observer Mode Active', description: 'Observers are spectating and cannot submit words.' });
       return;
@@ -588,14 +710,17 @@ export function VocabSnake() {
       endLetter: rawWord.charAt(rawWord.length - 1).toUpperCase()
     };
 
-    setWordChain(prev => [...prev, newChainItem]);
-    setUsedWords(prev => new Set([...prev, rawWord]));
-
-    setPlayers(prev => prev.map((p, idx) =>
-      idx === currentTurnIndex
+    const updatedChain = [...wordChain, newChainItem];
+    const updatedUsed = new Set([...Array.from(usedWords), rawWord]);
+    const updatedPlayers = players.map(p =>
+      p.id === activePlayer.id
         ? { ...p, score: p.score + wordPoints, wordCount: p.wordCount + 1 }
         : p
-    ));
+    );
+
+    setWordChain(updatedChain);
+    setUsedWords(updatedUsed);
+    setPlayers(updatedPlayers);
 
     playSoundEffect('correct');
     toast({
@@ -603,7 +728,26 @@ export function VocabSnake() {
       description: `Connected "${rawWord.toUpperCase()}". Next letter: "${rawWord.slice(-1).toUpperCase()}"`
     });
 
-    advanceTurn();
+    const activeRoster = updatedPlayers.filter(p => !p.isObserver);
+    const nextTurn = activeRoster.length > 0 ? (currentTurnIndex + 1) % activeRoster.length : 0;
+    setCurrentTurnIndex(nextTurn);
+    setInputWord('');
+    setTurnTimeLeft(config.turnTime);
+
+    if (firestore && roomCode && lobbyMode !== 'solo') {
+      try {
+        const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
+        await updateDoc(roomRef, {
+          wordChain: updatedChain,
+          usedWords: Array.from(updatedUsed),
+          players: updatedPlayers,
+          currentTurnIndex: nextTurn,
+          updatedAt: Date.now()
+        });
+      } catch (e) {
+        console.warn('Firestore submit word error:', e);
+      }
+    }
   };
 
   const sortedLeaderboard = useMemo(() => {
@@ -836,25 +980,6 @@ export function VocabSnake() {
                       ))}
                     </div>
                   </div>
-
-                  {lobbyMode === 'host' && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider">Number of Student Players</label>
-                        <span className="font-black text-emerald-400 text-xl bg-emerald-950/80 px-4 py-1 rounded-xl border border-emerald-500/30">
-                          {playerCount} Players
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={2}
-                        max={8}
-                        value={playerCount}
-                        onChange={(e) => setPlayerCount(Number(e.target.value))}
-                        className="w-full accent-emerald-500 cursor-pointer h-3 rounded-lg bg-zinc-900"
-                      />
-                    </div>
-                  )}
                 </Card>
 
                 <Card className="lg:col-span-6 bg-zinc-950/80 border-zinc-800 backdrop-blur-2xl p-7 rounded-3xl space-y-5 shadow-2xl">
@@ -955,7 +1080,7 @@ export function VocabSnake() {
             
             <div className="space-y-3">
               <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 px-4 py-1.5 font-bold text-xs uppercase tracking-widest">
-                Waiting Lobby
+                Real-Time Waiting Lobby
               </Badge>
               <h2 className="text-4xl font-black text-white italic tracking-tight">Room Waiting Lobby</h2>
               
@@ -1023,19 +1148,22 @@ export function VocabSnake() {
                           {player.isReady ? 'Ready 👍' : 'Not Ready ⏳'}
                         </Badge>
 
-                        <Button
-                          onClick={() => togglePlayerReady(player.id)}
-                          variant="outline"
-                          size="sm"
-                          className={cn(
-                            "rounded-xl font-extrabold text-xs h-9 px-4",
-                            player.isReady
-                              ? "border-emerald-500/50 text-emerald-300 hover:bg-emerald-950"
-                              : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                          )}
-                        >
-                          {player.isReady ? 'Unready' : 'Set Ready'}
-                        </Button>
+                        {/* Allow player to toggle their own ready status */}
+                        {(player.id === myPlayerId || isCurrentPlayerHost) && (
+                          <Button
+                            onClick={() => togglePlayerReady(player.id)}
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                              "rounded-xl font-extrabold text-xs h-9 px-4",
+                              player.isReady
+                                ? "border-emerald-500/50 text-emerald-300 hover:bg-emerald-950"
+                                : "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                            )}
+                          >
+                            {player.isReady ? 'Unready' : 'Set Ready'}
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1061,8 +1189,8 @@ export function VocabSnake() {
                   <Play className="h-6 w-6 fill-current mr-3" /> 🚀 Start Game Match (Host)
                 </Button>
               ) : (
-                <div className="text-zinc-400 text-sm font-bold animate-pulse flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-amber-400" /> Waiting for Room Host to press Start...
+                <div className="text-emerald-300 text-sm font-bold animate-pulse flex items-center gap-2 bg-emerald-950/80 px-6 py-3 rounded-2xl border border-emerald-500/30">
+                  <Radio className="h-5 w-5 text-emerald-400 animate-spin" /> Real-time synced: Waiting for Host to press Start Game Match...
                 </div>
               )}
             </div>
@@ -1285,6 +1413,15 @@ export function VocabSnake() {
                 </Card>
               ) : (
                 <Card className="bg-zinc-950/80 border-zinc-800 p-7 rounded-3xl space-y-4 relative overflow-hidden backdrop-blur-2xl shadow-xl">
+                  {/* Turn lockout for players when it's not their turn */}
+                  {activePlayer && activePlayer.id !== myPlayerId && lobbyMode !== 'solo' && (
+                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-2 text-zinc-400">
+                      <Lock className="h-8 w-8 text-amber-400" />
+                      <p className="font-black text-white text-base">🔒 Locked — Waiting for {activePlayer?.name}&apos;s turn</p>
+                      <p className="text-xs text-zinc-500">Only the active player can input words to keep turns fair.</p>
+                    </div>
+                  )}
+
                   <div className="space-y-4">
                     <label className="text-xs font-extrabold text-zinc-300 uppercase tracking-wider flex items-center justify-between">
                       <span>Enter Next Word (Must Start With &quot;<span className="text-emerald-400 font-black">{currentTargetLetter}</span>&quot;)</span>
