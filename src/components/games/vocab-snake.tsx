@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles, Play, RotateCcw, Trophy, Crown, Medal, ShieldAlert, Clock,
   Users, UserCheck, AlertTriangle, ArrowRight, Zap, CheckCircle2, XCircle,
   SkipForward, Lock, Info, Volume2, VolumeX, Eye, BookOpen, Flame, Hash, Copy, Check,
-  Maximize, Minimize
+  Maximize, Minimize, ArrowLeft, Home, UserPlus, LogIn
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
@@ -118,6 +119,7 @@ interface ChainItem {
 }
 
 export function VocabSnake() {
+  const router = useRouter();
   const { user } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -126,14 +128,19 @@ export function VocabSnake() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // ─── Setup States ───
+  // ─── Setup & Lobby States ───
   const [gameState, setGameState] = useState<'lobby' | 'playing' | 'ended'>('lobby');
+  const [lobbyMode, setLobbyMode] = useState<'host' | 'join'>('host');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [selectedTheme, setSelectedTheme] = useState<string>('general');
   const [totalMatchTime, setTotalMatchTime] = useState<number>(180); // 3 mins default
   const [playerCount, setPlayerCount] = useState<number>(3);
   const [roomCode, setRoomCode] = useState<string>('');
   const [copiedCode, setCopiedCode] = useState(false);
+
+  // Join Room Form States
+  const [joinInputCode, setJoinInputCode] = useState<string>('');
+  const [joinPlayerName, setJoinPlayerName] = useState<string>('');
 
   // ─── Match States ───
   const [players, setPlayers] = useState<Player[]>([]);
@@ -174,7 +181,7 @@ export function VocabSnake() {
     return () => document.removeEventListener('fullscreenchange', handleFSChange);
   }, []);
 
-  // Generate random room code
+  // Generate random room code on mount
   useEffect(() => {
     const code = 'VS-' + Math.floor(1000 + Math.random() * 9000);
     setRoomCode(code);
@@ -232,10 +239,10 @@ export function VocabSnake() {
     } catch {}
   }, [soundEnabled]);
 
-  // ─── Initialize Game Session ───
+  // ─── Initialize Game Session (Host) ───
   const startNewGame = useCallback(() => {
     const avatars = ['🦊', '🦉', '🦁', '🐯', '🤖', '🐲', '🦄', '🐼'];
-    const userName = user?.displayName || user?.email?.split('@')[0] || 'You (Teacher/Player)';
+    const userName = user?.displayName || user?.email?.split('@')[0] || 'You (Host Player)';
 
     const newPlayers: Player[] = [
       { id: 'p1', name: userName, isBot: false, score: 0, wordCount: 0, isPassed: false, warningsCount: 0, avatar: '👑' }
@@ -255,7 +262,6 @@ export function VocabSnake() {
       });
     }
 
-    // Pick random initial word from selected theme
     const themePool = THEME_CATEGORIES[selectedTheme]?.words || THEME_CATEGORIES.general.words;
     const initialWord = themePool[Math.floor(Math.random() * themePool.length)];
 
@@ -280,10 +286,88 @@ export function VocabSnake() {
     setGameState('playing');
 
     toast({
-      title: '🐍 Vocab Snake Started!',
+      title: `🐍 Room ${roomCode} Started!`,
       description: `First word is "${initialWord.toUpperCase()}". Next word must start with "${initialWord.slice(-1).toUpperCase()}"!`
     });
-  }, [user, playerCount, selectedTheme, totalMatchTime, difficulty, toast]);
+  }, [user, playerCount, selectedTheme, totalMatchTime, difficulty, roomCode, toast]);
+
+  // ─── Join Game Room via Code ───
+  const handleJoinRoom = () => {
+    const code = joinInputCode.trim().toUpperCase();
+    const name = joinPlayerName.trim() || user?.displayName || 'Joined Student';
+
+    if (!code) {
+      toast({ variant: 'destructive', title: 'Room Code Required', description: 'Please enter a valid room code (e.g. VS-9800).' });
+      return;
+    }
+
+    const formattedCode = code.startsWith('VS-') ? code : `VS-${code}`;
+    setRoomCode(formattedCode);
+
+    const avatars = ['🦊', '🦉', '🦁', '🐯', '🦄', '🐼'];
+    const joinedPlayer: Player = {
+      id: `p-joined-${Date.now()}`,
+      name: `${name} (Joined)`,
+      isBot: false,
+      score: 0,
+      wordCount: 0,
+      isPassed: false,
+      warningsCount: 0,
+      avatar: avatars[Math.floor(Math.random() * avatars.length)]
+    };
+
+    const hostPlayer: Player = {
+      id: 'p-host-1',
+      name: 'Room Host Teacher',
+      isBot: false,
+      score: 0,
+      wordCount: 0,
+      isPassed: false,
+      warningsCount: 0,
+      avatar: '👑'
+    };
+
+    const botPlayer: Player = {
+      id: 'p-bot-2',
+      name: 'SnakeBot Challenger',
+      isBot: true,
+      score: 0,
+      wordCount: 0,
+      isPassed: false,
+      warningsCount: 0,
+      avatar: '🤖'
+    };
+
+    const roomPlayers = [hostPlayer, joinedPlayer, botPlayer];
+
+    const themePool = THEME_CATEGORIES[selectedTheme]?.words || THEME_CATEGORIES.general.words;
+    const initialWord = themePool[Math.floor(Math.random() * themePool.length)];
+
+    const firstChainItem: ChainItem = {
+      id: 'initial-joined-1',
+      word: initialWord,
+      playerId: 'system',
+      playerName: 'Starting Word',
+      points: 0,
+      startLetter: initialWord.charAt(0).toUpperCase(),
+      endLetter: initialWord.charAt(initialWord.length - 1).toUpperCase()
+    };
+
+    setPlayers(roomPlayers);
+    setCurrentTurnIndex(0);
+    setWordChain([firstChainItem]);
+    setUsedWords(new Set([initialWord.toLowerCase()]));
+    setMatchTimeLeft(totalMatchTime);
+    setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
+    setInputWord('');
+    setIsBotThinking(false);
+    setGameState('playing');
+
+    toast({
+      title: `🎮 Joined Room ${formattedCode}!`,
+      description: `Welcome ${name}! Starting word is "${initialWord.toUpperCase()}".`
+    });
+  };
 
   // ─── Advance Turn Logic ───
   const advanceTurn = useCallback(() => {
@@ -296,7 +380,6 @@ export function VocabSnake() {
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    // Overall match timer
     matchTimerRef.current = setInterval(() => {
       setMatchTimeLeft(prev => {
         if (prev <= 1) {
@@ -322,7 +405,6 @@ export function VocabSnake() {
     turnTimerRef.current = setInterval(() => {
       setTurnTimeLeft(prev => {
         if (prev <= 1) {
-          // Turn timeout -> auto pass
           playSoundEffect('pass');
           toast({
             variant: 'destructive',
@@ -371,7 +453,6 @@ export function VocabSnake() {
     const lastWord = wordChain[wordChain.length - 1]?.word.toLowerCase() || '';
     const requiredStartLetter = lastWord.slice(-1);
 
-    // Rule 1: Check required starting letter
     if (rawWord.charAt(0) !== requiredStartLetter) {
       playSoundEffect('wrong');
       toast({
@@ -382,7 +463,6 @@ export function VocabSnake() {
       return;
     }
 
-    // Rule 2: Minimum length by difficulty
     if (rawWord.length < config.minLength) {
       playSoundEffect('wrong');
       toast({
@@ -393,7 +473,6 @@ export function VocabSnake() {
       return;
     }
 
-    // Rule 3: No repeats
     if (usedWords.has(rawWord)) {
       playSoundEffect('wrong');
       toast({
@@ -404,7 +483,6 @@ export function VocabSnake() {
       return;
     }
 
-    // Rule 4: Theme Validation
     const categoryInfo = THEME_CATEGORIES[selectedTheme];
     if (selectedTheme !== 'general' && categoryInfo) {
       const isThemeMatch = categoryInfo.words.some(w => w.toLowerCase() === rawWord);
@@ -419,7 +497,6 @@ export function VocabSnake() {
       }
     }
 
-    // Score calculation
     const timeBonus = Math.max(1, Math.floor(turnTimeLeft / 2));
     const wordPoints = Math.round((rawWord.length * 10 + timeBonus * 5) * config.bonusMult);
 
@@ -486,7 +563,6 @@ export function VocabSnake() {
     return () => clearTimeout(botTimer);
   }, [gameState, activePlayer, isBotThinking, wordChain, usedWords, selectedTheme, difficulty, advanceTurn, playSoundEffect, toast]);
 
-  // ─── Sorted Leaderboard ───
   const sortedLeaderboard = useMemo(() => {
     return [...players].sort((a, b) => b.score - a.score);
   }, [players]);
@@ -499,28 +575,55 @@ export function VocabSnake() {
         isFullscreen && "fixed inset-0 z-50 p-6 overflow-y-auto min-h-screen bg-zinc-950"
       )}
     >
-      {/* ── Rich Ambient Glow Backdrops ── */}
+      {/* Ambient Glow Backdrops */}
       <div className="absolute top-0 left-1/4 w-[700px] h-[700px] bg-emerald-500/10 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[700px] h-[700px] bg-teal-500/10 rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/20 via-zinc-950/80 to-zinc-950 pointer-events-none" />
 
-      {/* ── Global Fullscreen & Sound Header Toggle ── */}
-      <div className="w-full max-w-[1380px] flex justify-end items-center gap-3 mb-4 relative z-30">
-        <Button
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          variant="outline"
-          className="bg-zinc-900/80 border-zinc-800 text-zinc-300 hover:text-white rounded-2xl h-11 px-4 backdrop-blur-md"
-        >
-          {soundEnabled ? <Volume2 className="h-4 w-4 text-emerald-400 mr-2" /> : <VolumeX className="h-4 w-4 text-zinc-500 mr-2" />}
-          <span className="text-xs font-bold uppercase">{soundEnabled ? 'Sound On' : 'Muted'}</span>
-        </Button>
-        <Button
-          onClick={toggleFullscreen}
-          className="bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 font-extrabold rounded-2xl h-11 px-5 shadow-lg shadow-emerald-950/50 backdrop-blur-md transition-all hover:scale-105"
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4 text-emerald-400 mr-2" /> : <Maximize className="h-4 w-4 text-emerald-400 mr-2" />}
-          <span className="text-xs tracking-wider uppercase">{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Mode'}</span>
-        </Button>
+      {/* Navigation & Fullscreen Header Bar */}
+      <div className="w-full max-w-[1380px] flex justify-between items-center gap-4 mb-6 relative z-30 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => router.push('/games')}
+            variant="outline"
+            className="bg-zinc-900/90 border-zinc-800 text-zinc-300 hover:text-white rounded-2xl h-11 px-5 backdrop-blur-md transition-all hover:scale-105 shadow-md"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            <span className="text-xs font-bold uppercase tracking-wider">Back to Games Hub</span>
+          </Button>
+
+          {gameState === 'playing' && (
+            <Button
+              onClick={() => {
+                if (confirm('Are you sure you want to leave the active match and return to the lobby?')) {
+                  setGameState('lobby');
+                }
+              }}
+              variant="ghost"
+              className="bg-rose-950/50 border border-rose-500/40 text-rose-300 hover:bg-rose-900/70 rounded-2xl h-11 px-4 backdrop-blur-md text-xs font-bold uppercase"
+            >
+              <Home className="h-4 w-4 mr-2" /> Leave Match
+            </Button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            variant="outline"
+            className="bg-zinc-900/90 border-zinc-800 text-zinc-300 hover:text-white rounded-2xl h-11 px-4 backdrop-blur-md"
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4 text-emerald-400 mr-2" /> : <VolumeX className="h-4 w-4 text-zinc-500 mr-2" />}
+            <span className="text-xs font-bold uppercase">{soundEnabled ? 'Sound On' : 'Muted'}</span>
+          </Button>
+          <Button
+            onClick={toggleFullscreen}
+            className="bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 font-extrabold rounded-2xl h-11 px-5 shadow-lg shadow-emerald-950/50 backdrop-blur-md transition-all hover:scale-105"
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4 text-emerald-400 mr-2" /> : <Maximize className="h-4 w-4 text-emerald-400 mr-2" />}
+            <span className="text-xs tracking-wider uppercase">{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Mode'}</span>
+          </Button>
+        </div>
       </div>
 
       {/* ─── LOBBY VIEW ─── */}
@@ -544,126 +647,202 @@ export function VocabSnake() {
               Take turns connecting words in an endless snake chain! Each new word must start with the final letter of the previous word.
             </p>
 
-            {/* Room Code Badge */}
-            <div className="pt-2 flex justify-center items-center gap-2">
-              <div className="bg-zinc-950/80 border border-emerald-500/40 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-inner">
-                <span className="text-xs text-emerald-400 font-black uppercase tracking-wider">Room Code:</span>
-                <span className="text-2xl font-black tracking-widest text-emerald-200">{roomCode}</span>
-                <Button size="icon" variant="ghost" onClick={copyRoomCode} className="h-9 w-9 text-emerald-400 hover:text-white hover:bg-emerald-500/20 rounded-xl">
-                  {copiedCode ? <Check className="h-5 w-5 text-emerald-400" /> : <Copy className="h-5 w-5" />}
-                </Button>
-              </div>
+            {/* Mode Switcher: Host vs Join Room */}
+            <div className="pt-4 flex justify-center gap-4">
+              <button
+                onClick={() => setLobbyMode('host')}
+                className={cn(
+                  "px-8 py-3.5 rounded-2xl font-black text-sm tracking-wider uppercase transition-all border flex items-center gap-2 shadow-lg",
+                  lobbyMode === 'host'
+                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-400 shadow-emerald-600/30 scale-105"
+                    : "bg-zinc-900/90 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white"
+                )}
+              >
+                👑 Create Room (Host)
+              </button>
+              <button
+                onClick={() => setLobbyMode('join')}
+                className={cn(
+                  "px-8 py-3.5 rounded-2xl font-black text-sm tracking-wider uppercase transition-all border flex items-center gap-2 shadow-lg",
+                  lobbyMode === 'join'
+                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-indigo-400 shadow-indigo-600/30 scale-105"
+                    : "bg-zinc-900/90 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white"
+                )}
+              >
+                🎮 Join Room with Code
+              </button>
             </div>
           </motion.div>
 
-          {/* Configuration Options */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-            {/* Difficulty & Match Settings (6 cols) */}
-            <Card className="lg:col-span-6 bg-zinc-950/80 border-zinc-800 backdrop-blur-2xl p-7 rounded-3xl space-y-6 shadow-2xl">
-              <h3 className="text-xl font-black text-white flex items-center gap-2.5 border-b border-zinc-800 pb-3">
-                <Zap className="h-6 w-6 text-emerald-400" /> Difficulty & Match Settings
-              </h3>
-
-              <div className="space-y-2">
-                <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider block">Difficulty Level</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {(['easy', 'medium', 'hard'] as const).map(level => (
-                    <button
-                      key={level}
-                      onClick={() => setDifficulty(level)}
-                      className={cn(
-                        'py-4 px-3 rounded-2xl text-sm font-extrabold capitalize transition-all border text-center',
-                        difficulty === level
-                          ? 'bg-emerald-600 text-white border-emerald-400 shadow-xl shadow-emerald-600/30 scale-[1.02]'
-                          : 'bg-zinc-900/80 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white'
-                      )}
-                    >
-                      {level}
-                      <span className="block text-xs opacity-75 font-normal mt-1">
-                        {DIFFICULTY_CONFIG[level].minLength}+ letters ({DIFFICULTY_CONFIG[level].turnTime}s)
-                      </span>
-                    </button>
-                  ))}
+          {/* ── MODE 1: HOST / CREATE ROOM ── */}
+          {lobbyMode === 'host' && (
+            <>
+              {/* Room Code Badge */}
+              <div className="flex justify-center items-center">
+                <div className="bg-zinc-950/90 border border-emerald-500/40 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-xl">
+                  <span className="text-xs text-emerald-400 font-black uppercase tracking-wider">Generated Room Code:</span>
+                  <span className="text-2xl font-black tracking-widest text-emerald-200">{roomCode}</span>
+                  <Button size="icon" variant="ghost" onClick={copyRoomCode} className="h-9 w-9 text-emerald-400 hover:text-white hover:bg-emerald-500/20 rounded-xl">
+                    {copiedCode ? <Check className="h-5 w-5 text-emerald-400" /> : <Copy className="h-5 w-5" />}
+                  </Button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider block">Total Match Duration</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {[180, 240, 300].map(seconds => (
-                    <button
-                      key={seconds}
-                      onClick={() => setTotalMatchTime(seconds)}
-                      className={cn(
-                        'py-3.5 px-4 rounded-2xl text-sm font-extrabold transition-all border',
-                        totalMatchTime === seconds
-                          ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/30'
-                          : 'bg-zinc-900/80 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white'
-                      )}
-                    >
-                      {seconds / 60} Minutes
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Configuration Options */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <Card className="lg:col-span-6 bg-zinc-950/80 border-zinc-800 backdrop-blur-2xl p-7 rounded-3xl space-y-6 shadow-2xl">
+                  <h3 className="text-xl font-black text-white flex items-center gap-2.5 border-b border-zinc-800 pb-3">
+                    <Zap className="h-6 w-6 text-emerald-400" /> Difficulty & Match Settings
+                  </h3>
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider">Total Players (Lobby / AI Bots)</label>
-                  <span className="font-black text-emerald-400 text-xl bg-emerald-950/80 px-4 py-1 rounded-xl border border-emerald-500/30">
-                    {playerCount} Players
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={2}
-                  max={8}
-                  value={playerCount}
-                  onChange={(e) => setPlayerCount(Number(e.target.value))}
-                  className="w-full accent-emerald-500 cursor-pointer h-3 rounded-lg bg-zinc-900"
-                />
-              </div>
-            </Card>
-
-            {/* Theme Categories (6 cols) */}
-            <Card className="lg:col-span-6 bg-zinc-950/80 border-zinc-800 backdrop-blur-2xl p-7 rounded-3xl space-y-5 shadow-2xl">
-              <h3 className="text-xl font-black text-white flex items-center gap-2.5 border-b border-zinc-800 pb-3">
-                <BookOpen className="h-6 w-6 text-teal-400" /> Category & Theme Mode
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto pr-1">
-                {Object.entries(THEME_CATEGORIES).map(([key, item]) => (
-                  <button
-                    key={key}
-                    onClick={() => setSelectedTheme(key)}
-                    className={cn(
-                      'p-4 rounded-2xl border text-left transition-all flex items-center gap-4',
-                      selectedTheme === key
-                        ? 'bg-gradient-to-r from-emerald-600/30 to-teal-600/30 border-emerald-500 text-white shadow-lg'
-                        : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:bg-zinc-800/80 hover:text-white'
-                    )}
-                  >
-                    <span className="text-3xl">{item.icon}</span>
-                    <div>
-                      <p className="text-sm font-extrabold leading-tight">{item.label}</p>
-                      <p className="text-xs text-zinc-400 mt-0.5">{item.words.length} vocabulary words</p>
+                  <div className="space-y-2">
+                    <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider block">Difficulty Level</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {(['easy', 'medium', 'hard'] as const).map(level => (
+                        <button
+                          key={level}
+                          onClick={() => setDifficulty(level)}
+                          className={cn(
+                            'py-4 px-3 rounded-2xl text-sm font-extrabold capitalize transition-all border text-center',
+                            difficulty === level
+                              ? 'bg-emerald-600 text-white border-emerald-400 shadow-xl shadow-emerald-600/30 scale-[1.02]'
+                              : 'bg-zinc-900/80 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white'
+                          )}
+                        >
+                          {level}
+                          <span className="block text-xs opacity-75 font-normal mt-1">
+                            {DIFFICULTY_CONFIG[level].minLength}+ letters ({DIFFICULTY_CONFIG[level].turnTime}s)
+                          </span>
+                        </button>
+                      ))}
                     </div>
-                  </button>
-                ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider block">Total Match Duration</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[180, 240, 300].map(seconds => (
+                        <button
+                          key={seconds}
+                          onClick={() => setTotalMatchTime(seconds)}
+                          className={cn(
+                            'py-3.5 px-4 rounded-2xl text-sm font-extrabold transition-all border',
+                            totalMatchTime === seconds
+                              ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/30'
+                              : 'bg-zinc-900/80 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white'
+                          )}
+                        >
+                          {seconds / 60} Minutes
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs text-zinc-300 font-extrabold uppercase tracking-wider">Total Players (Lobby / AI Bots)</label>
+                      <span className="font-black text-emerald-400 text-xl bg-emerald-950/80 px-4 py-1 rounded-xl border border-emerald-500/30">
+                        {playerCount} Players
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={2}
+                      max={8}
+                      value={playerCount}
+                      onChange={(e) => setPlayerCount(Number(e.target.value))}
+                      className="w-full accent-emerald-500 cursor-pointer h-3 rounded-lg bg-zinc-900"
+                    />
+                  </div>
+                </Card>
+
+                <Card className="lg:col-span-6 bg-zinc-950/80 border-zinc-800 backdrop-blur-2xl p-7 rounded-3xl space-y-5 shadow-2xl">
+                  <h3 className="text-xl font-black text-white flex items-center gap-2.5 border-b border-zinc-800 pb-3">
+                    <BookOpen className="h-6 w-6 text-teal-400" /> Category & Theme Mode
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto pr-1">
+                    {Object.entries(THEME_CATEGORIES).map(([key, item]) => (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedTheme(key)}
+                        className={cn(
+                          'p-4 rounded-2xl border text-left transition-all flex items-center gap-4',
+                          selectedTheme === key
+                            ? 'bg-gradient-to-r from-emerald-600/30 to-teal-600/30 border-emerald-500 text-white shadow-lg'
+                            : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:bg-zinc-800/80 hover:text-white'
+                        )}
+                      >
+                        <span className="text-3xl">{item.icon}</span>
+                        <div>
+                          <p className="text-sm font-extrabold leading-tight">{item.label}</p>
+                          <p className="text-xs text-zinc-400 mt-0.5">{item.words.length} vocabulary words</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
+              <div className="pt-4 text-center">
+                <Button
+                  onClick={startNewGame}
+                  className="w-full sm:w-auto px-20 h-16 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-black text-xl rounded-2xl shadow-2xl shadow-emerald-500/30 transform transition duration-300 hover:scale-105"
+                >
+                  <Play className="h-6 w-6 fill-current mr-3" /> Start Vocab Snake Match
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* ── MODE 2: JOIN ROOM WITH CODE ── */}
+          {lobbyMode === 'join' && (
+            <Card className="max-w-2xl mx-auto bg-zinc-950/90 border-indigo-500/40 p-8 sm:p-10 rounded-3xl space-y-6 shadow-2xl backdrop-blur-2xl">
+              <div className="text-center space-y-2">
+                <div className="inline-block p-4 bg-indigo-500/20 rounded-full border border-indigo-500/40 text-indigo-300 mb-1">
+                  <LogIn className="h-10 w-10" />
+                </div>
+                <h3 className="text-2xl font-black text-white italic tracking-tight">Join Active Game Room</h3>
+                <p className="text-zinc-400 text-sm">Enter the Room Code generated by your teacher or classmate host.</p>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <div>
+                  <label className="text-xs font-extrabold text-indigo-300 uppercase tracking-wider block mb-2">
+                    Room Code (e.g. VS-9800)
+                  </label>
+                  <Input
+                    value={joinInputCode}
+                    onChange={(e) => setJoinInputCode(e.target.value.toUpperCase())}
+                    placeholder="VS-9800"
+                    className="h-16 bg-zinc-900 border-zinc-800 text-white font-mono text-2xl font-black tracking-widest text-center focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-2xl uppercase"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-extrabold text-indigo-300 uppercase tracking-wider block mb-2">
+                    Your Player Nickname
+                  </label>
+                  <Input
+                    value={joinPlayerName}
+                    onChange={(e) => setJoinPlayerName(e.target.value)}
+                    placeholder={user?.displayName || "Student Name"}
+                    className="h-14 bg-zinc-900 border-zinc-800 text-white font-bold text-lg rounded-2xl px-5"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 text-center">
+                <Button
+                  onClick={handleJoinRoom}
+                  className="w-full h-16 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black text-xl rounded-2xl shadow-2xl shadow-indigo-500/30 transform transition duration-300 hover:scale-105"
+                >
+                  <UserPlus className="h-6 w-6 mr-3" /> Enter Room & Join Match
+                </Button>
               </div>
             </Card>
-          </div>
+          )}
 
-          {/* Start Game Button */}
-          <div className="pt-4 text-center">
-            <Button
-              onClick={startNewGame}
-              className="w-full sm:w-auto px-20 h-16 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-black text-xl rounded-2xl shadow-2xl shadow-emerald-500/30 transform transition duration-300 hover:scale-105"
-            >
-              <Play className="h-6 w-6 fill-current mr-3" /> Start Vocab Snake Match
-            </Button>
-          </div>
         </div>
       )}
 
@@ -873,7 +1052,7 @@ export function VocabSnake() {
                   </div>
                 )}
 
-                {!activePlayer?.isBot && activePlayer?.id !== 'p1' && (
+                {!activePlayer?.isBot && activePlayer?.id !== 'p1' && !activePlayer?.id.includes('joined') && (
                   <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-2 text-zinc-400">
                     <Lock className="h-8 w-8 text-amber-400" />
                     <p className="font-black text-white text-base">🔒 Locked — Waiting for {activePlayer?.name}&apos;s turn</p>
