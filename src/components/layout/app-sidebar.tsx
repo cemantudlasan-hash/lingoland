@@ -219,11 +219,11 @@ export function AppSidebar() {
         <SidebarContent className="bg-card/10">
           <SidebarMenu>
             {menuItems.map((item) => (
-              <SidebarMenuItem key={item.href}>
+              <SidebarMenuItem key={item.href} className="relative overflow-visible my-0.5">
                 {pathname === item.href && (
                     <motion.div
                         layoutId="active-pill"
-                        className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg shadow-[0_0_20px_theme(colors.purple.500)]"
+                        className="folder-tab-active"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                 )}
@@ -231,9 +231,15 @@ export function AppSidebar() {
                   asChild
                   isActive={pathname === item.href}
                   tooltip={{ children: item.label }}
+                  className={cn(
+                    "relative z-10 transition-all duration-300 font-extrabold hover:translate-x-1.5",
+                    pathname === item.href 
+                      ? "text-white pl-4" 
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+                  )}
                 >
                   <Link href={item.href}>
-                    <item.icon />
+                    <item.icon className="h-5 w-5 shrink-0" />
                     <span>{item.label}</span>
                      {item.href === '/lounge' && hasNewLoungeMessages && (
                         <AlertCircle className="ml-auto h-5 w-5 text-red-500 animate-pulse" />
