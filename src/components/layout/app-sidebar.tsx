@@ -54,6 +54,7 @@ import { collection, query, where, orderBy, limit, onSnapshot, type FirestoreErr
 import { FirestorePermissionError } from "@/firebase/errors";
 import { errorEmitter } from "@/firebase/error-emitter";
 import type { InternalQuery } from "@/firebase/firestore/use-collection";
+import { cn } from "@/lib/utils";
 
 
 const publicItems = [
