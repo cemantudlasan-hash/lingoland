@@ -146,44 +146,41 @@
   background: transparent;
 }
 
-/* Folder Tab active pill styles with 3D flaring rounded corners (matching 1st image) */
+/* Folder Tab active pill styles - Carved Out Design (matching reference image) */
 .folder-tab-active {
   position: absolute;
   left: -8px;
-  right: -12px;
+  right: -8px;
   top: 0;
   bottom: 0;
-  background: linear-gradient(180deg, #9333ea 0%, #db2777 100%); /* Purple to Pink vertical gradient */
-  border-radius: 0 12px 12px 0;
-  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-left: none;
+  background: hsl(var(--background)); /* Carved out to show page background */
+  border-radius: 24px 0 0 24px; /* Curved left edge */
   z-index: 0;
 }
 
 .folder-tab-active::before {
   content: '';
   position: absolute;
-  top: -8px;
-  right: 12px;
-  width: 8px;
-  height: 8px;
+  top: -16px;
+  right: 8px; /* Aligns with the right edge */
+  width: 16px;
+  height: 16px;
   background: transparent;
-  border-bottom-right-radius: 8px;
-  box-shadow: 2px 2px 0 0 #9333ea;
+  border-bottom-right-radius: 16px;
+  box-shadow: 4px 4px 0 0 hsl(var(--sidebar-background)); /* Curves the sidebar body into the active tab */
   pointer-events: none;
 }
 
 .folder-tab-active::after {
   content: '';
   position: absolute;
-  bottom: -8px;
-  right: 12px;
-  width: 8px;
-  height: 8px;
+  bottom: -16px;
+  right: 8px; /* Aligns with the right edge */
+  width: 16px;
+  height: 16px;
   background: transparent;
-  border-top-right-radius: 8px;
-  box-shadow: 2px -2px 0 0 #db2777;
+  border-top-right-radius: 16px;
+  box-shadow: 4px -4px 0 0 hsl(var(--sidebar-background)); /* Curves the sidebar body into the active tab */
   pointer-events: none;
 }
 

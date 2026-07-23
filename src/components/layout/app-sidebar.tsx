@@ -198,14 +198,14 @@ export function AppSidebar() {
 
 
   return (
-    <div className="relative h-full flex flex-col">
+    <div className="relative h-full flex flex-col bg-[hsl(var(--sidebar-background))] border-r border-[hsl(var(--sidebar-border))]">
       <div className="geometric-background">
         <div className="shape-1"></div>
         <div className="shape-2"></div>
         <div className="shape-3"></div>
       </div>
       <div className="relative z-10 flex h-full flex-col p-2 gap-2">
-        <SidebarHeader className="hidden md:flex bg-card/10">
+        <SidebarHeader className="hidden md:flex bg-transparent border-b border-[hsl(var(--sidebar-border))]/20 pb-4 mb-2">
           <div className="flex items-center gap-2 p-2 overflow-hidden">
             <Image
               src="/logo.png"
@@ -217,7 +217,7 @@ export function AppSidebar() {
             <h1 className="text-xl font-bold font-headline truncate transition-opacity group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:hidden">LingoLandVerse</h1>
           </div>
         </SidebarHeader>
-        <SidebarContent className="bg-card/10">
+        <SidebarContent className="bg-transparent">
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.href} className="relative overflow-visible my-0.5">
@@ -233,15 +233,29 @@ export function AppSidebar() {
                   isActive={pathname === item.href}
                   tooltip={{ children: item.label }}
                   className={cn(
-                    "relative z-10 transition-all duration-300 font-extrabold hover:translate-x-1.5",
+                    "relative z-10 transition-all duration-300 font-extrabold h-12 hover:translate-x-1.5",
                     pathname === item.href 
-                      ? "text-white pl-4" 
-                      : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+                      ? "text-white pl-3 bg-transparent hover:bg-transparent" 
+                      : "text-zinc-400 hover:text-white hover:bg-zinc-800/20"
                   )}
                 >
-                  <Link href={item.href}>
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    <span>{item.label}</span>
+                  <Link href={item.href} className="flex items-center w-full">
+                    <div className={cn(
+                      "flex items-center justify-center rounded-full transition-all duration-300 shrink-0 mr-3",
+                      pathname === item.href 
+                        ? "w-8.5 h-8.5 bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/20" 
+                        : "w-8.5 h-8.5 bg-zinc-800/40 text-zinc-400 group-hover:bg-zinc-700/50"
+                    )}>
+                      <item.icon className="h-4.5 w-4.5" />
+                    </div>
+                    <span className={cn(
+                      "transition-all duration-300 truncate",
+                      pathname === item.href
+                        ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-pink-500 font-black"
+                        : "text-zinc-400"
+                    )}>
+                      {item.label}
+                    </span>
                      {item.href === '/lounge' && hasNewLoungeMessages && (
                         <AlertCircle className="ml-auto h-5 w-5 text-red-500 animate-pulse" />
                     )}
@@ -251,7 +265,7 @@ export function AppSidebar() {
             ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="bg-card/10">
+        <SidebarFooter className="bg-transparent border-t border-[hsl(var(--sidebar-border))]/20 pt-4 mt-2">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={{ children: 'Privacy Policy' }}>
