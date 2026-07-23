@@ -18,6 +18,17 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
+function getYouTubeEmbedUrl(url: string) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 11) {
+    const videoId = match[2];
+    return `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`;
+  }
+  return null;
+}
+
 export default function AdminPage() {
     const { user, isAdmin, isLoading } = useAuth();
     const router = useRouter();
@@ -42,42 +53,39 @@ export default function AdminPage() {
     const [slides, setSlides] = useState<any[]>([]);
     const [slideTitle, setSlideTitle] = useState("");
     const [slideDescription, setSlideDescription] = useState("");
-    const [slideImageUrl, setSlideImageUrl] = useState("");
+    const [slideMediaUrl, setSlideMediaUrl] = useState("");
+    const [slideMediaType, setSlideMediaType] = useState<"image" | "video">("image");
     const [editingSlideId, setEditingSlideId] = useState<string | null>(null);
     const [isSavingSlide, setIsSavingSlide] = useState(false);
 
-    const slidesCollectionRef = useMemoFirebase(() => {
+    const carouselDocRef = useMemoFirebase(() => {
         if (!firestore) return null;
-        return collection(firestore, "login_carousel");
-    }, [firestore]);
-
-    const slidesQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return query(collection(firestore, "login_carousel"), orderBy("createdAt", "asc"));
+        return doc(firestore, "announcements", "login_carousel");
     }, [firestore]);
 
     useEffect(() => {
-        if (!slidesQuery || isLoading || !isAdmin) return;
+        if (!carouselDocRef || isLoading || !isAdmin) return;
 
-        const unsubscribe = onSnapshot(slidesQuery, (snapshot) => {
-            const loaded: any[] = [];
-            snapshot.forEach((doc) => {
-                loaded.push({ id: doc.id, ...doc.data() });
-            });
-            setSlides(loaded);
+        const unsubscribe = onSnapshot(carouselDocRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                setSlides(data.slides || []);
+            } else {
+                setSlides([]);
+            }
         }, (error: FirestoreError) => {
-            console.warn("Firestore collection login_carousel read failed:", error);
+            console.warn("Firestore announcements/login_carousel read failed:", error);
             setSlides([]);
         });
         return () => unsubscribe();
-    }, [slidesQuery, isLoading, isAdmin]);
+    }, [carouselDocRef, isLoading, isAdmin]);
 
     const handleSaveSlide = async () => {
-        if (!slidesCollectionRef || !user) return;
-        if (!slideTitle.trim() || !slideDescription.trim() || !slideImageUrl.trim()) {
+        if (!carouselDocRef || !user) return;
+        if (!slideTitle.trim() || !slideDescription.trim() || !slideMediaUrl.trim()) {
             toast({
                 title: "Error",
-                description: "Please fill in all fields (Title, Description, Image URL).",
+                description: "Please fill in all fields (Title, Description, Media URL).",
                 variant: "destructive"
             });
             return;
@@ -85,22 +93,30 @@ export default function AdminPage() {
 
         setIsSavingSlide(true);
         try {
+            let updatedSlides = [...slides];
             if (editingSlideId) {
-                const slideRef = doc(firestore!, "login_carousel", editingSlideId);
-                await updateDoc(slideRef, {
-                    title: slideTitle.trim(),
-                    description: slideDescription.trim(),
-                    imageUrl: slideImageUrl.trim(),
-                });
+                updatedSlides = updatedSlides.map((slide) => 
+                    slide.id === editingSlideId 
+                        ? {
+                            ...slide,
+                            title: slideTitle.trim(),
+                            description: slideDescription.trim(),
+                            mediaUrl: slideMediaUrl.trim(),
+                            mediaType: slideMediaType
+                          }
+                        : slide
+                );
                 toast({
                     title: "Success",
                     description: "Slide has been updated.",
                 });
             } else {
-                await addDoc(slidesCollectionRef, {
+                updatedSlides.push({
+                    id: Math.random().toString(36).substring(2, 9),
                     title: slideTitle.trim(),
                     description: slideDescription.trim(),
-                    imageUrl: slideImageUrl.trim(),
+                    mediaUrl: slideMediaUrl.trim(),
+                    mediaType: slideMediaType,
                     createdAt: Date.now()
                 });
                 toast({
@@ -108,10 +124,17 @@ export default function AdminPage() {
                     description: "New slide added.",
                 });
             }
+
+            // Sort by createdAt asc to preserve sequence
+            updatedSlides.sort((a, b) => a.createdAt - b.createdAt);
+
+            await setDocumentNonBlocking(carouselDocRef, { slides: updatedSlides }, { merge: true });
+
             // Reset form
             setSlideTitle("");
             setSlideDescription("");
-            setSlideImageUrl("");
+            setSlideMediaUrl("");
+            setSlideMediaType("image");
             setEditingSlideId(null);
         } catch (e) {
             console.error("Error saving slide:", e);
@@ -128,16 +151,17 @@ export default function AdminPage() {
         setEditingSlideId(slide.id);
         setSlideTitle(slide.title);
         setSlideDescription(slide.description);
-        setSlideImageUrl(slide.imageUrl);
+        setSlideMediaUrl(slide.mediaUrl || slide.imageUrl || "");
+        setSlideMediaType(slide.mediaType || "image");
     };
 
     const handleDeleteSlide = async (id: string) => {
-        if (!firestore || !user) return;
+        if (!carouselDocRef || !user) return;
         if (!confirm("Are you sure you want to delete this slide?")) return;
 
         try {
-            const slideRef = doc(firestore, "login_carousel", id);
-            await deleteDoc(slideRef);
+            const updatedSlides = slides.filter((slide) => slide.id !== id);
+            await setDocumentNonBlocking(carouselDocRef, { slides: updatedSlides }, { merge: true });
             toast({
                 title: "Success",
                 description: "Slide has been deleted.",
@@ -146,7 +170,8 @@ export default function AdminPage() {
                 setEditingSlideId(null);
                 setSlideTitle("");
                 setSlideDescription("");
-                setSlideImageUrl("");
+                setSlideMediaUrl("");
+                setSlideMediaType("image");
             }
         } catch (e) {
             console.error("Error deleting slide:", e);
@@ -512,7 +537,7 @@ export default function AdminPage() {
                             Manage Login Page Carousel Slides
                         </CardTitle>
                         <CardDescription>
-                            Create, update, and delete the custom slides displayed in the carousel on the login/auth page.
+                            Create, update, and delete the custom slides displayed in the carousel on the login/auth page. Works dynamically across client contexts!
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6 pt-6">
@@ -531,12 +556,39 @@ export default function AdminPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="slide-image">Image URL</Label>
+                                    <Label>Media Type</Label>
+                                    <div className="flex gap-4 pt-2">
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-zinc-300">
+                                            <input
+                                                type="radio"
+                                                name="mediaType"
+                                                value="image"
+                                                checked={slideMediaType === "image"}
+                                                onChange={() => setSlideMediaType("image")}
+                                                className="accent-indigo-500 h-4 w-4"
+                                            />
+                                            Image
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-zinc-300">
+                                            <input
+                                                type="radio"
+                                                name="mediaType"
+                                                value="video"
+                                                checked={slideMediaType === "video"}
+                                                onChange={() => setSlideMediaType("video")}
+                                                className="accent-indigo-500 h-4 w-4"
+                                            />
+                                            Video / YouTube URL
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="slide-media">Media URL (Image or Video / YouTube Link)</Label>
                                     <Input
-                                        id="slide-image"
-                                        value={slideImageUrl}
-                                        onChange={(e) => setSlideImageUrl(e.target.value)}
-                                        placeholder="e.g. https://images.unsplash.com/... or /images/..."
+                                        id="slide-media"
+                                        value={slideMediaUrl}
+                                        onChange={(e) => setSlideMediaUrl(e.target.value)}
+                                        placeholder="e.g. https://... or https://youtube.com/watch?v=..."
                                     />
                                 </div>
                                 <div className="space-y-2 md:col-span-2">
@@ -559,7 +611,8 @@ export default function AdminPage() {
                                         setEditingSlideId(null);
                                         setSlideTitle("");
                                         setSlideDescription("");
-                                        setSlideImageUrl("");
+                                        setSlideMediaUrl("");
+                                        setSlideMediaType("image");
                                     }}>
                                         Cancel Edit
                                     </Button>
@@ -573,31 +626,59 @@ export default function AdminPage() {
                                 <p className="text-sm text-muted-foreground">No custom slides uploaded yet. The default slides will be displayed on the login page.</p>
                             ) : (
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    {slides.map((slide) => (
-                                        <div key={slide.id} className="bg-zinc-950 p-3 rounded-xl border border-white/5 flex flex-col justify-between gap-3 relative group">
-                                            {slide.imageUrl && (
-                                                <div className="relative w-full h-32 rounded-lg overflow-hidden border border-white/5 bg-zinc-900 shrink-0">
-                                                    <img
-                                                        src={slide.imageUrl}
-                                                        alt={slide.title}
-                                                        className="object-cover w-full h-full"
-                                                    />
+                                    {slides.map((slide) => {
+                                        const youtubeUrl = getYouTubeEmbedUrl(slide.mediaUrl || slide.imageUrl);
+                                        const isVideo = slide.mediaType === "video";
+
+                                        return (
+                                            <div key={slide.id} className="bg-zinc-950 p-3 rounded-xl border border-white/5 flex flex-col justify-between gap-3 relative group">
+                                                {(slide.mediaUrl || slide.imageUrl) && (
+                                                    <div className="relative w-full h-32 rounded-lg overflow-hidden border border-white/5 bg-zinc-900 shrink-0">
+                                                        {isVideo ? (
+                                                            youtubeUrl ? (
+                                                                <iframe
+                                                                    src={youtubeUrl}
+                                                                    title={slide.title}
+                                                                    className="w-full h-full object-cover pointer-events-none"
+                                                                    frameBorder="0"
+                                                                />
+                                                            ) : (
+                                                                <video
+                                                                    src={slide.mediaUrl || slide.imageUrl}
+                                                                    muted
+                                                                    playsInline
+                                                                    className="object-cover w-full h-full"
+                                                                />
+                                                            )
+                                                        ) : (
+                                                            <img
+                                                                src={slide.mediaUrl || slide.imageUrl}
+                                                                alt={slide.title}
+                                                                className="object-cover w-full h-full"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                )}
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1.5 justify-between">
+                                                        <h5 className="font-bold text-sm text-zinc-200 line-clamp-1 flex-1">{slide.title}</h5>
+                                                        <span className="text-[10px] uppercase font-black tracking-widest px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                                                            {isVideo ? "Video" : "Image"}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed">{slide.description}</p>
                                                 </div>
-                                            )}
-                                            <div className="space-y-1">
-                                                <h5 className="font-bold text-sm text-zinc-200 line-clamp-1">{slide.title}</h5>
-                                                <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed">{slide.description}</p>
+                                                <div className="flex gap-2 pt-2 border-t border-white/5">
+                                                    <Button variant="secondary" onClick={() => handleEditSlide(slide)} className="flex-1 text-xs py-1 h-8">
+                                                        <Edit className="w-3.5 h-3.5 mr-1" /> Edit
+                                                    </Button>
+                                                    <Button variant="destructive" onClick={() => handleDeleteSlide(slide.id)} className="flex-1 text-xs py-1 h-8">
+                                                        <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+                                                    </Button>
+                                                </div>
                                             </div>
-                                            <div className="flex gap-2 pt-2 border-t border-white/5">
-                                                <Button variant="secondary" onClick={() => handleEditSlide(slide)} className="flex-1 text-xs py-1 h-8">
-                                                    <Edit className="w-3.5 h-3.5 mr-1" /> Edit
-                                                </Button>
-                                                <Button variant="destructive" onClick={() => handleDeleteSlide(slide.id)} className="flex-1 text-xs py-1 h-8">
-                                                    <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

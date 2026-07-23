@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, onSnapshot, type FirestoreError } from "firebase/firestore";
+import { doc, onSnapshot, type FirestoreError } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 
@@ -10,7 +10,8 @@ interface CarouselSlide {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  mediaUrl: string;
+  mediaType: "image" | "video";
   createdAt: number;
 }
 
@@ -19,24 +20,38 @@ const defaultSlides: CarouselSlide[] = [
     id: "default-1",
     title: "Welcome to LingoLandVerse",
     description: "Learn languages and educational subjects with 66+ interactive classroom games.",
-    imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
+    mediaUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
+    mediaType: "image",
     createdAt: 1
   },
   {
     id: "default-2",
     title: "Interactive Lingo-Pet",
     description: "Adopt, feed, and grow your animated companion while studying and completing tasks.",
-    imageUrl: "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=800&auto=format&fit=crop&q=60",
+    mediaUrl: "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=800&auto=format&fit=crop&q=60",
+    mediaType: "image",
     createdAt: 2
   },
   {
     id: "default-3",
     title: "Vocabulary Snake Arena",
     description: "Challenge your classmates in real-time vocabulary battles and climb the leaderboard.",
-    imageUrl: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format&fit=crop&q=60",
+    mediaUrl: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format&fit=crop&q=60",
+    mediaType: "image",
     createdAt: 3
   }
 ];
+
+function getYouTubeEmbedUrl(url: string) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 11) {
+    const videoId = match[2];
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`;
+  }
+  return null;
+}
 
 export function LoginCarousel() {
   const firestore = useFirestore();
@@ -44,42 +59,36 @@ export function LoginCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0); // -1 for left, 1 for right
 
-  const slidesQuery = useMemoFirebase(() => {
+  const slidesDocRef = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, "login_carousel"), orderBy("createdAt", "asc"));
+    return doc(firestore, "announcements", "login_carousel");
   }, [firestore]);
 
   useEffect(() => {
-    if (!slidesQuery) return;
+    if (!slidesDocRef) return;
 
     const unsubscribe = onSnapshot(
-      slidesQuery,
+      slidesDocRef,
       (snapshot) => {
-        if (!snapshot.empty) {
-          const loadedSlides: CarouselSlide[] = [];
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            loadedSlides.push({
-              id: doc.id,
-              title: data.title || "",
-              description: data.description || "",
-              imageUrl: data.imageUrl || "",
-              createdAt: data.createdAt || 0,
-            });
-          });
-          setSlides(loadedSlides);
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          if (data.slides && Array.isArray(data.slides) && data.slides.length > 0) {
+            setSlides(data.slides);
+          } else {
+            setSlides(defaultSlides);
+          }
         } else {
           setSlides(defaultSlides);
         }
       },
       (error: FirestoreError) => {
-        console.warn("Firestore collection login_carousel read ignored (guest/auth context):", error);
+        console.warn("Firestore announcements/login_carousel read ignored (guest/auth context):", error);
         setSlides(defaultSlides);
       }
     );
 
     return () => unsubscribe();
-  }, [slidesQuery]);
+  }, [slidesDocRef]);
 
   // Safeguard: Clamp currentIndex if slides array length changes
   useEffect(() => {
@@ -100,14 +109,19 @@ export function LoginCarousel() {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + slides.length) % slides.length);
   }, [slides.length]);
 
-  // Autoplay functionality
+  // Autoplay functionality - only autoplay if not currently displaying a YouTube iframe video
   useEffect(() => {
     if (slides.length <= 1) return;
+    const currentSlide = slides[currentIndex] || slides[0] || defaultSlides[0];
+    const isYouTube = getYouTubeEmbedUrl(currentSlide.mediaUrl);
+    // Don't auto-rotate away if it's a YouTube video (let users watch it), but auto-rotate images/direct loops
+    const autoplayDelay = isYouTube ? 15000 : 7000;
+
     const timer = setInterval(() => {
       handleNext();
-    }, 6000);
+    }, autoplayDelay);
     return () => clearInterval(timer);
-  }, [handleNext, slides.length]);
+  }, [handleNext, slides, currentIndex]);
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -128,6 +142,7 @@ export function LoginCarousel() {
 
   // Safe fallback lookup
   const currentSlide = slides[currentIndex] || slides[0] || defaultSlides[0];
+  const youtubeUrl = getYouTubeEmbedUrl(currentSlide.mediaUrl);
 
   return (
     <div className="relative w-full bg-zinc-950/40 backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden shadow-2xl p-4 flex flex-col md:flex-row gap-6 min-h-[220px]">
@@ -143,12 +158,33 @@ export function LoginCarousel() {
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className="absolute inset-0 w-full h-full"
           >
-            {currentSlide.imageUrl ? (
-              <img
-                src={currentSlide.imageUrl}
-                alt={currentSlide.title}
-                className="object-cover w-full h-full"
-              />
+            {currentSlide.mediaUrl ? (
+              currentSlide.mediaType === "video" ? (
+                youtubeUrl ? (
+                  <iframe
+                    src={youtubeUrl}
+                    title={currentSlide.title}
+                    className="w-full h-full object-cover pointer-events-none"
+                    allow="autoplay; encrypted-media"
+                    frameBorder="0"
+                  />
+                ) : (
+                  <video
+                    src={currentSlide.mediaUrl}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="object-cover w-full h-full"
+                  />
+                )
+              ) : (
+                <img
+                  src={currentSlide.mediaUrl}
+                  alt={currentSlide.title}
+                  className="object-cover w-full h-full"
+                />
+              )
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-purple-900/40 to-pink-900/40 flex items-center justify-center">
                 <AlertCircle className="w-8 h-8 text-zinc-600" />
