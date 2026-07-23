@@ -33,6 +33,8 @@ import { BeautifulWeather } from "@/components/layout/BeautifulWeather";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
 
+import { LoginCarousel } from "@/components/layout/login-carousel";
+
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
@@ -434,70 +436,75 @@ export default function AuthPage() {
     
     return (
         <>
-            <div className="flex min-h-screen items-center justify-center relative p-4 gap-6 flex-col lg:flex-row max-w-7xl w-full mx-auto">
-                <div className="relative z-10 w-full max-w-md order-1 lg:order-none space-y-6">
-                    <HolidayCountdown />
-                    <BeautifulWeather />
+            <div className="flex min-h-screen flex-col items-center justify-center relative p-4 md:p-8 gap-8 max-w-7xl w-full mx-auto py-12">
+                <div className="w-full max-w-4xl z-10 flex justify-center">
+                    <LoginCarousel />
                 </div>
-                <div className="relative z-10 w-full max-w-md order-2 lg:order-none">
-                    <BeautifulCalendar />
-                </div>
-                <div
-                    className="relative z-10 w-full max-w-md order-3 lg:order-none"
-                >
-                    <Card className="border border-white/5 bg-zinc-950/80 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-                        <div className="absolute inset-0 bg-indigo-500/5 blur-3xl pointer-events-none" />
-                        <CardHeader className="text-center pb-4 relative z-10">
-                            <div className="flex justify-center mb-2">
-                              <Image
-                                src="/logo.png"
-                                alt="LingoLandVerse Logo"
-                                width={240}
-                                height={240}
-                                className="object-contain"
-                                priority
-                              />
-                            </div>
-                            <CardTitle className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent whitespace-pre-wrap">
-                                {title}
-                            </CardTitle>
-                            <CardDescription className="text-zinc-400 text-sm mt-1 whitespace-pre-wrap">
-                                {description}
-                            </CardDescription>
-                            <p className="text-xs text-indigo-400/80 font-semibold pt-1 whitespace-pre-wrap">{credits}</p>
-                        </CardHeader>
-                        <CardContent className="relative z-10">
-                            <Tabs value={activeTab} onValueChange={setActiveTab}>
-                                <TabsList className="grid w-full grid-cols-3 bg-zinc-950 p-1 border border-white/5 rounded-xl">
-                                    <TabsTrigger value="signin" className="rounded-lg font-bold">Sign In</TabsTrigger>
-                                    <TabsTrigger value="signup" className="rounded-lg font-bold">Sign Up</TabsTrigger>
-                                    <TabsTrigger value="demo" className="rounded-lg font-extrabold text-indigo-400 hover:text-indigo-300">Try Demo</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="signin" className="pt-4">
-                                    <LoginForm />
-                                </TabsContent>
-                                <TabsContent value="signup" className="pt-4">
-                                    <SignUpForm onSignupSuccess={() => setActiveTab("signin")} />
-                                </TabsContent>
-                                <TabsContent value="demo" className="pt-4">
-                                    <InteractiveDemo onGoToSignup={() => setActiveTab("signup")} />
-                                </TabsContent>
-                            </Tabs>
-                            <div className="relative my-6">
-                                <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t border-white/5" />
+                <div className="flex flex-col lg:flex-row gap-6 w-full items-start justify-center">
+                    <div className="relative z-10 w-full max-w-md space-y-6">
+                        <HolidayCountdown />
+                        <BeautifulWeather />
+                    </div>
+                    <div className="relative z-10 w-full max-w-md">
+                        <BeautifulCalendar />
+                    </div>
+                    <div
+                        className="relative z-10 w-full max-w-md"
+                    >
+                        <Card className="border border-white/5 bg-zinc-950/80 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                            <div className="absolute inset-0 bg-indigo-500/5 blur-3xl pointer-events-none" />
+                            <CardHeader className="text-center pb-4 relative z-10">
+                                <div className="flex justify-center mb-2">
+                                  <Image
+                                    src="/logo.png"
+                                    alt="LingoLandVerse Logo"
+                                    width={240}
+                                    height={240}
+                                    className="object-contain"
+                                    priority
+                                  />
                                 </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="px-2 text-zinc-550 bg-[#09090b] text-zinc-500">
-                                    Or
-                                    </span>
+                                <CardTitle className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent whitespace-pre-wrap">
+                                    {title}
+                                </CardTitle>
+                                <CardDescription className="text-zinc-400 text-sm mt-1 whitespace-pre-wrap">
+                                    {description}
+                                </CardDescription>
+                                <p className="text-xs text-indigo-400/80 font-semibold pt-1 whitespace-pre-wrap">{credits}</p>
+                            </CardHeader>
+                            <CardContent className="relative z-10">
+                                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                                    <TabsList className="grid w-full grid-cols-3 bg-zinc-950 p-1 border border-white/5 rounded-xl">
+                                        <TabsTrigger value="signin" className="rounded-lg font-bold">Sign In</TabsTrigger>
+                                        <TabsTrigger value="signup" className="rounded-lg font-bold">Sign Up</TabsTrigger>
+                                        <TabsTrigger value="demo" className="rounded-lg font-extrabold text-indigo-400 hover:text-indigo-300">Try Demo</TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="signin" className="pt-4">
+                                        <LoginForm />
+                                    </TabsContent>
+                                    <TabsContent value="signup" className="pt-4">
+                                        <SignUpForm onSignupSuccess={() => setActiveTab("signin")} />
+                                    </TabsContent>
+                                    <TabsContent value="demo" className="pt-4">
+                                        <InteractiveDemo onGoToSignup={() => setActiveTab("signup")} />
+                                    </TabsContent>
+                                </Tabs>
+                                <div className="relative my-6">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <span className="w-full border-t border-white/5" />
+                                    </div>
+                                    <div className="relative flex justify-center text-xs uppercase">
+                                        <span className="px-2 text-zinc-550 bg-[#09090b] text-zinc-500">
+                                        Or
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <Button variant="secondary" className="w-full border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-800 text-zinc-300 font-extrabold h-11 rounded-xl shadow-inner transition-all hover:scale-[1.02] active:scale-95" onClick={handleGuestLogin} disabled={isGuest}>
-                               <LogIn className="mr-2 h-4 w-4 text-indigo-400" /> {isGuest ? "Browsing as Guest" : "Explore as Guest (Instant Access)"}
-                            </Button>
-                        </CardContent>
-                    </Card>
+                                <Button variant="secondary" className="w-full border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-800 text-zinc-300 font-extrabold h-11 rounded-xl shadow-inner transition-all hover:scale-[1.02] active:scale-95" onClick={handleGuestLogin} disabled={isGuest}>
+                                   <LogIn className="mr-2 h-4 w-4 text-indigo-400" /> {isGuest ? "Browsing as Guest" : "Explore as Guest (Instant Access)"}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
             <VisitorCounter />

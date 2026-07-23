@@ -10,9 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useFirestore, useMemoFirebase } from "@/firebase";
-import { doc, onSnapshot, type FirestoreError } from "firebase/firestore";
+import { doc, onSnapshot, type FirestoreError, collection, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Sparkles, ChevronRight } from "lucide-react";
+import { Loader2, Sparkles, ChevronRight, Plus, Trash2, Edit } from "lucide-react";
 import Link from "next/link";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -38,6 +38,127 @@ export default function AdminPage() {
     const [loginDescription, setLoginDescription] = useState("");
     const [loginCredits, setLoginCredits] = useState("");
     const [isSavingLogin, setIsSavingLogin] = useState(false);
+
+    const [slides, setSlides] = useState<any[]>([]);
+    const [slideTitle, setSlideTitle] = useState("");
+    const [slideDescription, setSlideDescription] = useState("");
+    const [slideImageUrl, setSlideImageUrl] = useState("");
+    const [editingSlideId, setEditingSlideId] = useState<string | null>(null);
+    const [isSavingSlide, setIsSavingSlide] = useState(false);
+
+    const slidesCollectionRef = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, "login_carousel");
+    }, [firestore]);
+
+    const slidesQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "login_carousel"), orderBy("createdAt", "asc"));
+    }, [firestore]);
+
+    useEffect(() => {
+        if (!slidesQuery || isLoading || !isAdmin) return;
+
+        const unsubscribe = onSnapshot(slidesQuery, (snapshot) => {
+            const loaded: any[] = [];
+            snapshot.forEach((doc) => {
+                loaded.push({ id: doc.id, ...doc.data() });
+            });
+            setSlides(loaded);
+        }, (error: FirestoreError) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+              operation: 'list',
+              path: 'login_carousel',
+            }));
+        });
+        return () => unsubscribe();
+    }, [slidesQuery, isLoading, isAdmin]);
+
+    const handleSaveSlide = async () => {
+        if (!slidesCollectionRef || !user) return;
+        if (!slideTitle.trim() || !slideDescription.trim() || !slideImageUrl.trim()) {
+            toast({
+                title: "Error",
+                description: "Please fill in all fields (Title, Description, Image URL).",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        setIsSavingSlide(true);
+        try {
+            if (editingSlideId) {
+                const slideRef = doc(firestore!, "login_carousel", editingSlideId);
+                await updateDoc(slideRef, {
+                    title: slideTitle.trim(),
+                    description: slideDescription.trim(),
+                    imageUrl: slideImageUrl.trim(),
+                });
+                toast({
+                    title: "Success",
+                    description: "Slide has been updated.",
+                });
+            } else {
+                await addDoc(slidesCollectionRef, {
+                    title: slideTitle.trim(),
+                    description: slideDescription.trim(),
+                    imageUrl: slideImageUrl.trim(),
+                    createdAt: Date.now()
+                });
+                toast({
+                    title: "Success",
+                    description: "New slide added.",
+                });
+            }
+            // Reset form
+            setSlideTitle("");
+            setSlideDescription("");
+            setSlideImageUrl("");
+            setEditingSlideId(null);
+        } catch (e) {
+            console.error("Error saving slide:", e);
+            toast({
+                title: "Error",
+                description: "Failed to save slide.",
+                variant: "destructive"
+            });
+        }
+        setIsSavingSlide(false);
+    };
+
+    const handleEditSlide = (slide: any) => {
+        setEditingSlideId(slide.id);
+        setSlideTitle(slide.title);
+        setSlideDescription(slide.description);
+        setSlideImageUrl(slide.imageUrl);
+    };
+
+    const handleDeleteSlide = async (id: string) => {
+        if (!firestore || !user) return;
+        if (!confirm("Are you sure you want to delete this slide?")) return;
+
+        try {
+            const slideRef = doc(firestore, "login_carousel", id);
+            await deleteDoc(slideRef);
+            toast({
+                title: "Success",
+                description: "Slide has been deleted.",
+            });
+            if (editingSlideId === id) {
+                setEditingSlideId(null);
+                setSlideTitle("");
+                setSlideDescription("");
+                setSlideImageUrl("");
+            }
+        } catch (e) {
+            console.error("Error deleting slide:", e);
+            toast({
+                title: "Error",
+                description: "Failed to delete slide.",
+                variant: "destructive"
+            });
+        }
+    };
     
     const announcementRef = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -377,6 +498,111 @@ export default function AdminPage() {
                                 <ChevronRight className="ml-1.5 h-4 w-4" />
                             </Link>
                         </Button>
+                    </CardContent>
+                </Card>
+
+                <Card className="md:col-span-2">
+                    <CardHeader
+                      className="bg-white text-black"
+                      style={{
+                        backgroundImage: `repeating-linear-gradient(45deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 10px)`,
+                        backgroundSize: '20px 20px',
+                      }}
+                    >
+                        <CardTitle className="flex items-center gap-1.5">
+                            <Plus className="h-5 w-5 text-indigo-500" />
+                            Manage Login Page Carousel Slides
+                        </CardTitle>
+                        <CardDescription>
+                            Create, update, and delete the custom slides displayed in the carousel on the login/auth page.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6 pt-6">
+                        <div className="bg-zinc-900/40 p-4 rounded-xl border border-white/5 space-y-4">
+                            <h4 className="font-bold text-sm text-zinc-300">
+                                {editingSlideId ? "Edit Slide Info" : "Create New Slide"}
+                            </h4>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="slide-title">Slide Title</Label>
+                                    <Input
+                                        id="slide-title"
+                                        value={slideTitle}
+                                        onChange={(e) => setSlideTitle(e.target.value)}
+                                        placeholder="e.g. Real-time Multiplayer Arena"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="slide-image">Image URL</Label>
+                                    <Input
+                                        id="slide-image"
+                                        value={slideImageUrl}
+                                        onChange={(e) => setSlideImageUrl(e.target.value)}
+                                        placeholder="e.g. https://images.unsplash.com/... or /images/..."
+                                    />
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor="slide-description">Slide Description</Label>
+                                    <Textarea
+                                        id="slide-description"
+                                        value={slideDescription}
+                                        onChange={(e) => setSlideDescription(e.target.value)}
+                                        placeholder="Provide a clean text description for the slide..."
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-2 pt-2">
+                                <Button onClick={handleSaveSlide} disabled={isSavingSlide}>
+                                    {isSavingSlide && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {editingSlideId ? "Update Slide" : "Add Slide"}
+                                </Button>
+                                {editingSlideId && (
+                                    <Button variant="secondary" onClick={() => {
+                                        setEditingSlideId(null);
+                                        setSlideTitle("");
+                                        setSlideDescription("");
+                                        setSlideImageUrl("");
+                                    }}>
+                                        Cancel Edit
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h4 className="font-bold text-sm text-zinc-300">Current Carousel Slides ({slides.length})</h4>
+                            {slides.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No custom slides uploaded yet. The default slides will be displayed on the login page.</p>
+                            ) : (
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    {slides.map((slide) => (
+                                        <div key={slide.id} className="bg-zinc-950 p-3 rounded-xl border border-white/5 flex flex-col justify-between gap-3 relative group">
+                                            {slide.imageUrl && (
+                                                <div className="relative w-full h-32 rounded-lg overflow-hidden border border-white/5 bg-zinc-900 shrink-0">
+                                                    <img
+                                                        src={slide.imageUrl}
+                                                        alt={slide.title}
+                                                        className="object-cover w-full h-full"
+                                                    />
+                                                </div>
+                                            )}
+                                            <div className="space-y-1">
+                                                <h5 className="font-bold text-sm text-zinc-200 line-clamp-1">{slide.title}</h5>
+                                                <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed">{slide.description}</p>
+                                            </div>
+                                            <div className="flex gap-2 pt-2 border-t border-white/5">
+                                                <Button variant="secondary" onClick={() => handleEditSlide(slide)} className="flex-1 text-xs py-1 h-8">
+                                                    <Edit className="w-3.5 h-3.5 mr-1" /> Edit
+                                                </Button>
+                                                <Button variant="destructive" onClick={() => handleDeleteSlide(slide.id)} className="flex-1 text-xs py-1 h-8">
+                                                    <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
