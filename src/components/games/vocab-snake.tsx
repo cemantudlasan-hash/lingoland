@@ -237,7 +237,7 @@ export function VocabSnake() {
           if (data.wordChain) setWordChain(data.wordChain);
           if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
           if (data.usedWords) setUsedWords(new Set(data.usedWords));
-          if (data.matchTimeLeft !== undefined && data.gameState === 'playing' && gameStateRef.current !== 'playing') {
+          if (data.matchTimeLeft !== undefined) {
             setMatchTimeLeft(data.matchTimeLeft);
           }
           if (data.difficulty) setDifficulty(data.difficulty);
@@ -259,7 +259,7 @@ export function VocabSnake() {
           if (data.wordChain) setWordChain(data.wordChain);
           if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
           if (data.usedWords) setUsedWords(new Set(data.usedWords));
-          if (data.matchTimeLeft !== undefined && data.gameState === 'playing' && gameStateRef.current !== 'playing') {
+          if (data.matchTimeLeft !== undefined) {
             setMatchTimeLeft(data.matchTimeLeft);
           }
           if (data.difficulty) setDifficulty(data.difficulty);
@@ -611,7 +611,7 @@ export function VocabSnake() {
           gameState: 'playing',
           wordChain: initialChain,
           usedWords: initialUsed,
-          matchTimeLeft: totalMatchTime,
+          matchTimeLeft: matchDuration,
           currentTurnIndex: 0,
           players: currentRoster,
           updatedAt: Date.now()
@@ -659,7 +659,7 @@ export function VocabSnake() {
         const nextTurn = (currentTurnIndex + 1) % activeRoster.length;
         setCurrentTurnIndex(nextTurn);
 
-        broadcastMessage({ currentTurnIndex: nextTurn });
+        broadcastMessage({ currentTurnIndex: nextTurn, matchTimeLeft: matchTimeLeft });
 
         try {
           const { firestore } = initializeFirebase();
@@ -667,13 +667,14 @@ export function VocabSnake() {
             const roomRef = doc(firestore, 'vocab_snake_rooms', roomCode);
             await updateDoc(roomRef, {
               currentTurnIndex: nextTurn,
+              matchTimeLeft: matchTimeLeft,
               updatedAt: Date.now()
             });
           }
         } catch (e) {}
       }
     }
-  }, [difficulty, lobbyMode, selectedTheme, usedWords, players, currentTurnIndex, roomCode, broadcastMessage, toast]);
+  }, [difficulty, lobbyMode, selectedTheme, usedWords, players, currentTurnIndex, roomCode, broadcastMessage, toast, matchTimeLeft]);
 
   // ─── Overall Match Timer (Counts down 3m / 5m / 7m continuously until end) ───
   useEffect(() => {
@@ -859,7 +860,8 @@ export function VocabSnake() {
       wordChain: updatedChain,
       usedWords: Array.from(updatedUsed),
       players: updatedPlayers,
-      currentTurnIndex: nextTurn
+      currentTurnIndex: nextTurn,
+      matchTimeLeft: matchTimeLeft
     });
 
     if (roomCode && lobbyMode !== 'solo') {
@@ -871,6 +873,7 @@ export function VocabSnake() {
           usedWords: Array.from(updatedUsed),
           players: updatedPlayers,
           currentTurnIndex: nextTurn,
+          matchTimeLeft: matchTimeLeft,
           updatedAt: Date.now()
         });
       } catch (e) {
