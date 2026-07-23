@@ -231,6 +231,9 @@ export function VocabSnake() {
           if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
           if (data.usedWords) setUsedWords(new Set(data.usedWords));
           if (data.matchTimeLeft !== undefined) setMatchTimeLeft(data.matchTimeLeft);
+          if (data.difficulty) setDifficulty(data.difficulty);
+          if (data.selectedTheme) setSelectedTheme(data.selectedTheme);
+          if (data.totalMatchTime) setTotalMatchTime(data.totalMatchTime);
         }
       };
     } catch (e) {}
@@ -250,6 +253,7 @@ export function VocabSnake() {
           if (data.matchTimeLeft !== undefined) setMatchTimeLeft(data.matchTimeLeft);
           if (data.difficulty) setDifficulty(data.difficulty);
           if (data.selectedTheme) setSelectedTheme(data.selectedTheme);
+          if (data.totalMatchTime) setTotalMatchTime(data.totalMatchTime);
         }
       }, (err) => {
         console.warn('Firestore room sync warning:', err);
@@ -397,6 +401,13 @@ export function VocabSnake() {
       console.warn('Firestore room create warning:', e);
     }
 
+    // Direct Broadcast to local windows/tabs
+    try {
+      const bc = new BroadcastChannel(`vocab_snake_${roomCode}`);
+      bc.postMessage({ gameState: 'waiting_room', players: newPlayers });
+      bc.close();
+    } catch (e) {}
+
     toast({
       title: `🏰 Room ${roomCode} Created!`,
       description: hostRole === 'observer' ? 'You are in Teacher Spectator mode. Waiting for players to join and ready up!' : 'Waiting for players to join and ready up!'
@@ -415,6 +426,7 @@ export function VocabSnake() {
 
     const formattedCode = rawInput.startsWith('VS-') ? rawInput : `VS-${rawInput}`;
     setRoomCode(formattedCode);
+    setLobbyMode('join');
 
     const joinedId = `p-joined-${Date.now()}`;
     setMyPlayerId(joinedId);
@@ -436,6 +448,7 @@ export function VocabSnake() {
     setIsCurrentPlayerObserver(false);
 
     let syncedViaFirestore = false;
+    let finalRoster: Player[] = [joinedPlayer];
 
     // 1. Try Firestore Sync
     try {
@@ -446,25 +459,32 @@ export function VocabSnake() {
       if (snap.exists()) {
         const roomData = snap.data();
         const existingPlayers: Player[] = roomData.players || [];
-        const updatedPlayers = [...existingPlayers.filter(p => p.id !== joinedId), joinedPlayer];
+        finalRoster = [...existingPlayers.filter(p => p.id !== joinedId), joinedPlayer];
 
         await updateDoc(roomRef, {
-          players: updatedPlayers,
+          players: finalRoster,
           updatedAt: Date.now()
         });
 
-        setPlayers(updatedPlayers);
+        setPlayers(finalRoster);
         setGameState(roomData.gameState || 'waiting_room');
+        if (roomData.difficulty) setDifficulty(roomData.difficulty);
+        if (roomData.selectedTheme) setSelectedTheme(roomData.selectedTheme);
+        if (roomData.totalMatchTime) setTotalMatchTime(roomData.totalMatchTime);
         syncedViaFirestore = true;
       }
     } catch (e) {
       console.warn('Firestore room join fallback to local broadcast:', e);
     }
 
-    // 2. Broadcast join to local windows/tabs via BroadcastChannel
-    broadcastMessage({ type: 'PLAYER_JOINED', player: joinedPlayer });
+    // 2. Direct Broadcast join to target room channel
+    try {
+      const bc = new BroadcastChannel(`vocab_snake_${formattedCode}`);
+      bc.postMessage({ type: 'PLAYER_JOINED', player: joinedPlayer, players: finalRoster });
+      bc.close();
+    } catch (e) {}
 
-    // 3. Fallback: If Firestore failed or was offline, seamlessly join waiting room
+    // 3. Fallback: If Firestore didn't sync, add joiner locally and transition to waiting_room
     if (!syncedViaFirestore) {
       setPlayers(prev => {
         const hasHost = prev.some(p => p.isObserver || p.id.includes('host'));
@@ -498,6 +518,11 @@ export function VocabSnake() {
     playSoundEffect('correct');
 
     broadcastMessage({ players: updatedPlayers });
+    try {
+      const bc = new BroadcastChannel(`vocab_snake_${roomCode}`);
+      bc.postMessage({ players: updatedPlayers });
+      bc.close();
+    } catch (e) {}
 
     try {
       const { firestore } = initializeFirebase();
@@ -549,13 +574,21 @@ export function VocabSnake() {
 
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
-    broadcastMessage({
+    const payload = {
       gameState: 'playing',
       wordChain: initialChain,
       usedWords: initialUsed,
       matchTimeLeft: totalMatchTime,
-      currentTurnIndex: 0
-    });
+      currentTurnIndex: 0,
+      players: currentRoster
+    };
+
+    broadcastMessage(payload);
+    try {
+      const bc = new BroadcastChannel(`vocab_snake_${roomCode}`);
+      bc.postMessage(payload);
+      bc.close();
+    } catch (e) {}
 
     if (roomCode && lobbyMode !== 'solo') {
       try {
@@ -567,6 +600,7 @@ export function VocabSnake() {
           usedWords: initialUsed,
           matchTimeLeft: totalMatchTime,
           currentTurnIndex: 0,
+          players: currentRoster,
           updatedAt: Date.now()
         });
       } catch (e) {
