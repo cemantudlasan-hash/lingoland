@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
-import Image from "next/image";
 
 interface CarouselSlide {
   id: string;
@@ -89,12 +88,21 @@ export function LoginCarousel() {
     return () => unsubscribe();
   }, [slidesQuery]);
 
+  // Safeguard: Clamp currentIndex if slides array length changes
+  useEffect(() => {
+    if (currentIndex >= slides.length) {
+      setCurrentIndex(0);
+    }
+  }, [slides.length, currentIndex]);
+
   const handleNext = useCallback(() => {
+    if (slides.length === 0) return;
     setDirection(1);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
   }, [slides.length]);
 
   const handlePrev = useCallback(() => {
+    if (slides.length === 0) return;
     setDirection(-1);
     setCurrentIndex((prevIndex) => (prevIndex - 1 + slides.length) % slides.length);
   }, [slides.length]);
@@ -125,10 +133,11 @@ export function LoginCarousel() {
 
   if (slides.length === 0) return null;
 
-  const currentSlide = slides[currentIndex];
+  // Safe fallback lookup
+  const currentSlide = slides[currentIndex] || slides[0] || defaultSlides[0];
 
   return (
-    <div className="relative w-full max-w-4xl bg-zinc-950/40 backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden shadow-2xl p-4 flex flex-col md:flex-row gap-6 min-h-[220px]">
+    <div className="relative w-full bg-zinc-950/40 backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden shadow-2xl p-4 flex flex-col md:flex-row gap-6 min-h-[220px]">
       <div className="relative w-full md:w-1/2 h-[180px] md:h-[240px] rounded-xl overflow-hidden bg-zinc-900 border border-white/5 shrink-0">
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
@@ -142,13 +151,10 @@ export function LoginCarousel() {
             className="absolute inset-0 w-full h-full"
           >
             {currentSlide.imageUrl ? (
-              <Image
+              <img
                 src={currentSlide.imageUrl}
                 alt={currentSlide.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 400px"
-                className="object-cover"
-                unoptimized={currentSlide.imageUrl.startsWith("http")}
+                className="object-cover w-full h-full"
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-purple-900/40 to-pink-900/40 flex items-center justify-center">

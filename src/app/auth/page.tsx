@@ -437,10 +437,10 @@ export default function AuthPage() {
     return (
         <>
             <div className="flex min-h-screen flex-col items-center justify-center relative p-4 md:p-8 gap-8 max-w-7xl w-full mx-auto py-12">
-                <div className="w-full max-w-4xl z-10 flex justify-center">
+                <div className="w-full max-w-6xl z-10">
                     <LoginCarousel />
                 </div>
-                <div className="flex flex-col lg:flex-row gap-6 w-full items-start justify-center">
+                <div className="flex flex-col lg:flex-row gap-6 w-full items-start justify-center max-w-6xl">
                     <div className="relative z-10 w-full max-w-md space-y-6">
                         <HolidayCountdown />
                         <BeautifulWeather />
