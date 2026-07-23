@@ -93,9 +93,9 @@ const THEME_CATEGORIES: Record<string, { label: string; icon: string; words: str
 };
 
 const DIFFICULTY_CONFIG = {
-  easy: { name: 'Easy', minLength: 3, turnTime: 30, bonusMult: 1 },
-  medium: { name: 'Medium', minLength: 4, turnTime: 20, bonusMult: 1.5 },
-  hard: { name: 'Hard', minLength: 5, turnTime: 12, bonusMult: 2.2 }
+  easy: { name: 'Easy', minLength: 3, turnTime: 30, matchTime: 180, bonusMult: 1 },
+  medium: { name: 'Medium', minLength: 4, turnTime: 20, matchTime: 300, bonusMult: 1.5 },
+  hard: { name: 'Hard', minLength: 5, turnTime: 12, matchTime: 420, bonusMult: 2.2 }
 };
 
 interface Player {
@@ -565,10 +565,12 @@ export function VocabSnake() {
     const initialChain = [firstChainItem];
     const initialUsed = [initialWord.toLowerCase()];
 
+    const matchDuration = DIFFICULTY_CONFIG[difficulty].matchTime;
     setCurrentTurnIndex(0);
     setWordChain(initialChain);
     setUsedWords(new Set(initialUsed));
-    setMatchTimeLeft(totalMatchTime);
+    setMatchTimeLeft(matchDuration);
+    setTotalMatchTime(matchDuration);
     setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
     setInputWord('');
     setGameState('playing');
@@ -579,7 +581,7 @@ export function VocabSnake() {
       gameState: 'playing',
       wordChain: initialChain,
       usedWords: initialUsed,
-      matchTimeLeft: totalMatchTime,
+      matchTimeLeft: matchDuration,
       currentTurnIndex: 0,
       players: currentRoster
     };
@@ -662,6 +664,28 @@ export function VocabSnake() {
       }
     }
   }, [difficulty, lobbyMode, selectedTheme, usedWords, players, currentTurnIndex, roomCode, broadcastMessage, toast]);
+
+  // ─── Overall Match Timer (Counts down 3m / 5m / 7m continuously until end) ───
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    matchTimerRef.current = setInterval(() => {
+      setMatchTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(matchTimerRef.current!);
+          setGameState('ended');
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+          playSoundEffect('correct');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (matchTimerRef.current) clearInterval(matchTimerRef.current);
+    };
+  }, [gameState, playSoundEffect]);
 
   // ─── Handle Individual Turn Timer ───
   useEffect(() => {
@@ -1274,11 +1298,97 @@ export function VocabSnake() {
         </div>
       )}
 
+      {/* ─── END GAME VIEW ─── */}
+      {gameState === 'ended' && (
+        <div className="w-full max-w-[1100px] mx-auto p-4 space-y-8 animate-in fade-in zoom-in-95 duration-500 relative z-20">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="text-center space-y-4 bg-gradient-to-b from-amber-950/80 via-zinc-950 to-zinc-950 border border-amber-500/40 p-10 rounded-3xl shadow-2xl backdrop-blur-2xl relative overflow-hidden"
+          >
+            <div className="inline-block p-4 bg-amber-500/20 rounded-full border border-amber-500/40 text-amber-400 mb-2">
+              <Trophy className="h-14 w-14 animate-bounce" />
+            </div>
+            <h2 className="text-5xl font-black text-white italic tracking-tight uppercase">Game Over!</h2>
+            <p className="text-zinc-300 text-base">Match timer expired. Here are your final game results!</p>
+
+            {/* Winner Banner */}
+            {sortedLeaderboard[0] && (
+              <div className="bg-gradient-to-r from-amber-500/30 via-amber-400/40 to-amber-500/30 border border-amber-400/50 p-6 rounded-3xl max-w-lg mx-auto shadow-xl">
+                <Crown className="h-10 w-10 text-amber-400 mx-auto mb-1 animate-pulse" />
+                <p className="text-xs font-black text-amber-300 uppercase tracking-widest">
+                  {lobbyMode === 'solo' ? '🏆 Solo Match Result' : '🏆 1st Place Winner'}
+                </p>
+                <h3 className="text-3xl font-black text-white">{sortedLeaderboard[0].name}</h3>
+                <p className="text-amber-200 font-extrabold text-xl mt-1">
+                  {sortedLeaderboard[0].score} Pts · {sortedLeaderboard[0].wordCount} Words Played
+                </p>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Final Standings */}
+          <Card className="bg-zinc-950/80 border-zinc-800 p-8 rounded-3xl backdrop-blur-2xl">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-white text-xl font-black flex items-center gap-2">
+                <Medal className="h-6 w-6 text-amber-400" /> Final Scoreboard Standings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 space-y-4">
+              {sortedLeaderboard.map((p, rank) => (
+                <div
+                  key={p.id}
+                  className={cn(
+                    'flex items-center justify-between p-5 rounded-2xl border transition-all',
+                    rank === 0
+                      ? 'bg-amber-950/50 border-amber-500/60 text-amber-200'
+                      : rank === 1
+                      ? 'bg-zinc-800/50 border-zinc-400/40 text-zinc-200'
+                      : rank === 2
+                      ? 'bg-orange-950/40 border-orange-500/40 text-orange-200'
+                      : 'bg-zinc-900/40 border-zinc-800 text-zinc-400'
+                  )}
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="font-black text-xl w-8 text-center">
+                      {rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `#${rank + 1}`}
+                    </span>
+                    <span className="text-3xl">{p.avatar}</span>
+                    <div>
+                      <p className="font-extrabold text-base text-white">{p.name}</p>
+                      <p className="text-xs text-zinc-400">{p.wordCount} words submitted</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-black text-xl text-emerald-400">{p.score} Pts</span>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-center gap-4 pt-2">
+            <Button
+              onClick={() => setGameState('lobby')}
+              className="px-10 h-14 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-2xl text-base"
+            >
+              <RotateCcw className="h-5 w-5 mr-2" /> Back to Lobby
+            </Button>
+            <Button
+              onClick={handleCreateRoom}
+              className="px-10 h-14 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-base"
+            >
+              <Play className="h-5 w-5 mr-2" /> Play Again
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* ─── MAIN ACTIVE MATCH VIEW ─── */}
       {gameState === 'playing' && (
         <div className="w-full max-w-[1380px] mx-auto space-y-6 relative z-20">
 
-          {/* Top Header Controls */}
+          {/* Top Header Controls & Match Timer */}
           <div className="flex flex-wrap items-center justify-between gap-4 bg-zinc-950/80 border border-zinc-800 p-5 rounded-3xl backdrop-blur-2xl shadow-xl">
             <div className="flex items-center gap-3">
               <span className="text-4xl">🐍</span>
@@ -1296,13 +1406,15 @@ export function VocabSnake() {
               </div>
             </div>
 
-            {/* Endless Mode Badge */}
+            {/* Overall Match Timer */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2.5 bg-emerald-950/80 border border-emerald-500/40 px-5 py-2.5 rounded-2xl text-emerald-300">
-                <Sparkles className="h-5 w-5 text-emerald-400 animate-pulse" />
+              <div className="flex items-center gap-3 bg-indigo-950/80 border border-indigo-500/40 px-5 py-2.5 rounded-2xl">
+                <Clock className="h-5 w-5 text-indigo-400 animate-spin" />
                 <div>
-                  <p className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider">Practice Mode</p>
-                  <p className="text-sm font-black text-white">Endless Chain ♾️</p>
+                  <p className="text-[10px] text-indigo-300 font-extrabold uppercase tracking-wider">Match Time ({DIFFICULTY_CONFIG[difficulty].name})</p>
+                  <p className="text-lg font-black text-white font-mono">
+                    {Math.floor(matchTimeLeft / 60)}:{String(matchTimeLeft % 60).padStart(2, '0')}
+                  </p>
                 </div>
               </div>
             </div>
