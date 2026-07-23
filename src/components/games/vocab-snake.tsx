@@ -209,6 +209,12 @@ export function VocabSnake() {
     } catch (e) {}
   }, []);
 
+  // Keep ref of gameState to prevent stale closures inside long-lived event listeners
+  const gameStateRef = useRef(gameState);
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
   // ─── HYBRID FIRESTORE + BROADCASTCHANNEL ROOM SYNC ───
   useEffect(() => {
     if (!roomCode || lobbyMode === 'solo') return;
@@ -231,7 +237,9 @@ export function VocabSnake() {
           if (data.wordChain) setWordChain(data.wordChain);
           if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
           if (data.usedWords) setUsedWords(new Set(data.usedWords));
-          if (data.matchTimeLeft !== undefined && gameState !== 'playing') setMatchTimeLeft(data.matchTimeLeft);
+          if (data.matchTimeLeft !== undefined && data.gameState === 'playing' && gameStateRef.current !== 'playing') {
+            setMatchTimeLeft(data.matchTimeLeft);
+          }
           if (data.difficulty) setDifficulty(data.difficulty);
           if (data.selectedTheme) setSelectedTheme(data.selectedTheme);
           if (data.totalMatchTime) setTotalMatchTime(data.totalMatchTime);
@@ -251,7 +259,9 @@ export function VocabSnake() {
           if (data.wordChain) setWordChain(data.wordChain);
           if (data.currentTurnIndex !== undefined) setCurrentTurnIndex(data.currentTurnIndex);
           if (data.usedWords) setUsedWords(new Set(data.usedWords));
-          if (data.matchTimeLeft !== undefined && gameState !== 'playing') setMatchTimeLeft(data.matchTimeLeft);
+          if (data.matchTimeLeft !== undefined && data.gameState === 'playing' && gameStateRef.current !== 'playing') {
+            setMatchTimeLeft(data.matchTimeLeft);
+          }
           if (data.difficulty) setDifficulty(data.difficulty);
           if (data.selectedTheme) setSelectedTheme(data.selectedTheme);
           if (data.totalMatchTime) setTotalMatchTime(data.totalMatchTime);
