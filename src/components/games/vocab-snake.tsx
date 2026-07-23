@@ -158,6 +158,7 @@ export function VocabSnake() {
 
   // Input & Broadcast Refs
   const inputRef = useRef<HTMLInputElement>(null);
+  const chainScrollRef = useRef<HTMLDivElement>(null);
   const matchTimerRef = useRef<NodeJS.Timeout | null>(null);
   const turnTimerRef = useRef<NodeJS.Timeout | null>(null);
   const broadcastRef = useRef<BroadcastChannel | null>(null);
@@ -704,10 +705,27 @@ export function VocabSnake() {
       });
     }, 1000);
 
-    return () => {
-      if (turnTimerRef.current) clearInterval(turnTimerRef.current);
-    };
-  }, [gameState, activePlayer, advanceTurn, difficulty, lobbyMode, playSoundEffect, toast]);
+      return () => {
+        if (turnTimerRef.current) clearInterval(turnTimerRef.current);
+      };
+    }, [gameState, activePlayer, advanceTurn, difficulty, lobbyMode, playSoundEffect, toast]);
+
+  // Reset Turn Timer automatically on turn change or new word answer/pass
+  useEffect(() => {
+    if (gameState === 'playing') {
+      setTurnTimeLeft(DIFFICULTY_CONFIG[difficulty].turnTime);
+    }
+  }, [currentTurnIndex, wordChain.length, difficulty, gameState]);
+
+  // Auto-scroll word snake container to the latest played word
+  useEffect(() => {
+    if (chainScrollRef.current) {
+      chainScrollRef.current.scrollTo({
+        left: chainScrollRef.current.scrollWidth,
+        behavior: 'smooth'
+      });
+    }
+  }, [wordChain]);
 
   // ─── Anti-Cheat Detection ───
   useEffect(() => {
@@ -1466,7 +1484,10 @@ export function VocabSnake() {
                 </div>
 
                 {/* Scrollable Visual Snake Stream */}
-                <div className="flex items-center gap-4 overflow-x-auto p-5 bg-zinc-900/70 rounded-2xl border border-zinc-800/80 min-h-[130px] scrollbar-thin scrollbar-thumb-zinc-700">
+                <div
+                  ref={chainScrollRef}
+                  className="flex items-center gap-4 overflow-x-auto p-5 bg-zinc-900/70 rounded-2xl border border-zinc-800/80 min-h-[130px] scrollbar-thin scrollbar-thumb-zinc-700 scroll-smooth"
+                >
                   {wordChain.map((item, idx) => (
                     <React.Fragment key={item.id}>
                       <motion.div
@@ -1511,25 +1532,27 @@ export function VocabSnake() {
                   </p>
                 </Card>
               ) : (
-                <Card className="bg-zinc-950/80 border-zinc-800 p-7 rounded-3xl space-y-4 relative overflow-hidden backdrop-blur-2xl shadow-xl">
+                <Card className="bg-zinc-950/80 border-zinc-800 p-5 sm:p-7 rounded-3xl space-y-4 relative overflow-hidden backdrop-blur-2xl shadow-xl">
                   {/* Turn lockout for players when it's not their turn */}
                   {activePlayer && activePlayer.id !== myPlayerId && lobbyMode !== 'solo' && (
-                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-2 text-zinc-400">
+                    <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-2 text-zinc-400 p-4 text-center">
                       <Lock className="h-8 w-8 text-amber-400" />
                       <p className="font-black text-white text-base">🔒 Locked — Waiting for {activePlayer?.name}&apos;s turn</p>
                       <p className="text-xs text-zinc-500">Only the active player can input words to keep turns fair.</p>
                     </div>
                   )}
 
-                  <div className="space-y-4">
-                    <label className="text-xs font-extrabold text-zinc-300 uppercase tracking-wider flex items-center justify-between">
-                      <span>Enter Next Word (Must Start With &quot;<span className="text-emerald-400 font-black">{currentTargetLetter}</span>&quot;)</span>
-                      <span className="text-[11px] text-rose-400 flex items-center gap-1 font-bold">
-                        <ShieldAlert className="h-3.5 w-3.5" /> Anti-Cheat Active (No Paste / Tab Switch)
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                      <label className="text-xs font-extrabold text-zinc-300 uppercase tracking-wider">
+                        Enter Next Word (Must Start With &quot;<span className="text-emerald-400 font-black text-sm sm:text-base">{currentTargetLetter}</span>&quot;)
+                      </label>
+                      <span className="text-[10px] sm:text-[11px] text-rose-400 flex items-center gap-1 font-bold">
+                        <ShieldAlert className="h-3.5 w-3.5" /> Anti-Cheat Active
                       </span>
-                    </label>
+                    </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <Input
                         ref={inputRef}
                         value={inputWord}
@@ -1544,26 +1567,29 @@ export function VocabSnake() {
                           });
                         }}
                         placeholder={`Type word starting with '${currentTargetLetter}'...`}
-                        className="h-16 bg-zinc-900 border-zinc-800 text-white text-xl font-mono font-bold focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl px-5"
+                        className="w-full h-14 sm:h-16 bg-zinc-900 border-zinc-800 text-white text-lg sm:text-xl font-mono font-bold focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-2xl px-4 sm:px-5"
                         autoFocus
                       />
-                      <Button
-                        onClick={() => handleWordSubmit()}
-                        className="h-16 px-8 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg rounded-2xl shadow-lg shadow-emerald-600/30"
-                      >
-                        Submit
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          playSoundEffect('pass');
-                          advanceTurn();
-                        }}
-                        variant="outline"
-                        className="h-16 px-5 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-2xl"
-                        title={lobbyMode === 'solo' ? 'Draw new starting word' : 'Pass turn to next player'}
-                      >
-                        <SkipForward className="h-6 w-6" />
-                      </Button>
+                      <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+                        <Button
+                          onClick={() => handleWordSubmit()}
+                          className="flex-1 sm:flex-initial h-14 sm:h-16 px-6 sm:px-8 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-base sm:text-lg rounded-2xl shadow-lg shadow-emerald-600/30"
+                        >
+                          Submit
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            playSoundEffect('pass');
+                            advanceTurn();
+                          }}
+                          variant="outline"
+                          className="h-14 sm:h-16 px-4 sm:px-5 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-2xl flex items-center justify-center gap-1.5"
+                          title={lobbyMode === 'solo' ? 'Draw new starting word' : 'Pass turn to next player'}
+                        >
+                          <SkipForward className="h-5 w-5 sm:h-6 sm:w-6" />
+                          <span className="sm:hidden text-xs font-extrabold uppercase">Pass</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </Card>
