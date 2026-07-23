@@ -5,8 +5,6 @@ import { useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, onSnapshot, type FirestoreError } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
 
 interface CarouselSlide {
   id: string;
@@ -75,13 +73,8 @@ export function LoginCarousel() {
         }
       },
       (error: FirestoreError) => {
-        errorEmitter.emit(
-          "permission-error",
-          new FirestorePermissionError({
-            operation: "list",
-            path: "login_carousel",
-          })
-        );
+        console.warn("Firestore collection login_carousel read ignored (guest/auth context):", error);
+        setSlides(defaultSlides);
       }
     );
 
