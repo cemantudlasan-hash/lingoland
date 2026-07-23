@@ -66,10 +66,8 @@ export default function AdminPage() {
             });
             setSlides(loaded);
         }, (error: FirestoreError) => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-              operation: 'list',
-              path: 'login_carousel',
-            }));
+            console.warn("Firestore collection login_carousel read failed:", error);
+            setSlides([]);
         });
         return () => unsubscribe();
     }, [slidesQuery, isLoading, isAdmin]);
