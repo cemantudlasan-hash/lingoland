@@ -51,7 +51,8 @@ import {
   EyeOff,
   ZoomIn,
   ZoomOut,
-  Video
+  Video,
+  FileUp
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -78,9 +79,10 @@ import {
   onSnapshot, 
   setDoc
 } from 'firebase/firestore';
+import { ThreeBackground } from '@/components/presentation/ThreeBackground';
 
 const formSchema = z.object({
-  topic: z.string().min(3, 'Topic must be at least 3 characters long.'),
+  topic: z.string().optional().or(z.literal('')),
   slideCount: z.coerce
     .number()
     .int()
@@ -249,6 +251,18 @@ export function PresentationForm() {
   const [selectedPickerImage, setSelectedPickerImage] = React.useState<string | null>(null);
   const [isLoadingPicker, setIsLoadingPicker] = React.useState(false);
 
+  // Document uploading & parser states
+  const [uploadedFile, setUploadedFile] = React.useState<File | null>(null);
+  const [uploadedText, setUploadedText] = React.useState<string | null>(null);
+  const [isParsing, setIsParsing] = React.useState(false);
+
+  // New visual and animation control options
+  const [insertPhotos, setInsertPhotos] = React.useState(true);
+  const [photoSource, setPhotoSource] = React.useState<'google' | 'bing' | 'pinterest'>('google');
+  const [enable3D, setEnable3D] = React.useState(true);
+  const [slidePhotos, setSlidePhotos] = React.useState<{ [key: number]: string }>({});
+  const [isDownloadingPptx, setIsDownloadingPptx] = React.useState(false);
+
   // Split-screen Visual Search sidebar states
   const [showSplitSearch, setShowSplitSearch] = React.useState(false);
   const [splitQuery, setSplitQuery] = React.useState("");
@@ -387,6 +401,15 @@ export function PresentationForm() {
     if (pres.fontSize) setFontSize(pres.fontSize);
     if (pres.align) setAlign(pres.align);
 
+    // Restore saved slide photos
+    const photos: { [key: number]: string } = {};
+    pres.slides.forEach((slide: any, idx: number) => {
+      if (slide.photoUrl) {
+        photos[idx] = slide.photoUrl;
+      }
+    });
+    setSlidePhotos(photos);
+
     setIsEditMode(false);
 
     // Setup word animation visible counts for loaded slides
@@ -404,7 +427,13 @@ export function PresentationForm() {
     setIsSavingDb(true);
 
     try {
-      const slidesData = isEditMode ? editableSlides : presentation.slides;
+      const baseSlides = isEditMode ? editableSlides : presentation.slides;
+      // Inject slide-specific photos and 3D object styles
+      const slidesData = baseSlides.map((slide, idx) => ({
+        ...slide,
+        photoUrl: slidePhotos[idx] || (slide as any).photoUrl || undefined,
+        threeDObjectStyle: (slide as any).threeDObjectStyle || (slide as any).threeDObjectStyle || undefined,
+      }));
       const titleData = isEditMode ? editableTitle : presentation.title;
 
       let updatedList = [...dbPresentations];
@@ -904,21 +933,165 @@ export function PresentationForm() {
     };
   }, [api, presentation]);
 
+  // File upload and extraction handler
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const fileType = file.name.split('.').pop()?.toLowerCase();
+    const allowedTypes = ['txt', 'md', 'pdf', 'docx'];
+    if (!allowedTypes.includes(fileType || '')) {
+      toast({
+        variant: 'destructive',
+        title: 'Unsupported File Type',
+        description: 'Please upload a PDF, DOCX, TXT, or MD file.',
+      });
+      return;
+    }
+
+    setUploadedFile(file);
+    setIsParsing(true);
+    setUploadedText(null);
+
+    try {
+      if (fileType === 'txt' || fileType === 'md') {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const text = e.target?.result as string;
+          setUploadedText(text);
+          setIsParsing(false);
+          toast({
+            title: 'File Loaded 📄',
+            description: `Successfully read text from "${file.name}".`,
+          });
+        };
+        reader.readAsText(file);
+      } else {
+        // Send to server API to parse PDF / DOCX
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch('/api/parse-document', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (data.success && data.text) {
+          setUploadedText(data.text);
+          toast({
+            title: 'Document Parsed 📄',
+            description: `Successfully parsed content from "${file.name}".`,
+          });
+        } else {
+          throw new Error(data.error || 'Failed to extract text from document');
+        }
+      }
+    } catch (error: any) {
+      console.error(error);
+      setUploadedFile(null);
+      toast({
+        variant: 'destructive',
+        title: 'Parsing Failed',
+        description: error.message || 'Could not parse document. Please try again.',
+      });
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
   // AI Submit Form Outlines
   const onSubmit = async (values: FormValues) => {
+    if (!values.topic?.trim() && !uploadedText) {
+      toast({
+        variant: 'destructive',
+        title: 'Input Required',
+        description: 'Please enter a topic or upload a document.',
+      });
+      return;
+    }
+
     setIsLoading(true);
     setPresentation(null);
     setActiveDbId(null);
     setIsEditMode(false);
+    setSlidePhotos({});
+    
     try {
-      const result = await generatePresentation(values);
+      const result = await generatePresentation({
+        topic: values.topic || "Presentation from Uploaded Document",
+        slideCount: values.slideCount,
+        documentText: uploadedText || undefined,
+        documentName: uploadedFile?.name || undefined,
+        insertPhotos,
+        enable3D,
+      });
+
       setPresentation(result);
       setEditableTitle(result.title);
       setEditableSlides(JSON.parse(JSON.stringify(result.slides)));
 
+      // If insertPhotos is enabled, fetch related photos from the selected source
+      if (insertPhotos && result.slides && result.slides.length > 0) {
+        toast({
+          title: "Presentation Generated 🧠",
+          description: `Fetching slide-related photos from ${photoSource}...`,
+        });
+        
+        const fetchedPhotos: { [key: number]: string } = {};
+        await Promise.all(
+          result.slides.map(async (slide, idx) => {
+            const query = slide.imageQuery || slide.title || values.topic || "learning";
+            try {
+              const res = await fetch(`/api/image-picker?query=${encodeURIComponent(query)}&source=${photoSource}&count=1`);
+              const data = await res.json();
+              if (data.success && data.images && data.images.length > 0) {
+                fetchedPhotos[idx] = data.images[0].url;
+              }
+            } catch (err) {
+              console.error("Failed to fetch image for slide " + idx, err);
+            }
+          })
+        );
+        setSlidePhotos(fetchedPhotos);
+      }
+
+      // Map suggested theme to beautiful theme defaults
+      if (result.suggestedTheme) {
+        const themeLower = result.suggestedTheme.toLowerCase();
+        let matchedTheme = themes[1].className; // Midnight Glassmorphic default
+        
+        if (themeLower.includes('space') || themeLower.includes('cosmic') || themeLower.includes('nebula')) {
+          matchedTheme = themes[8].className; // Cosmic Nebula Dream
+        } else if (themeLower.includes('solar') || themeLower.includes('gold') || themeLower.includes('royal') || themeLower.includes('amethyst')) {
+          matchedTheme = themes[5].className; // Royal Amethyst & Gold
+        } else if (themeLower.includes('nature') || themeLower.includes('forest') || themeLower.includes('emerald') || themeLower.includes('green')) {
+          matchedTheme = themes[6].className; // Deep Emerald Forest
+        } else if (themeLower.includes('teal') || themeLower.includes('aurora') || themeLower.includes('ocean')) {
+          matchedTheme = themes[3].className; // Aurora Teal
+        } else if (themeLower.includes('volcano') || themeLower.includes('obsidian') || themeLower.includes('fire') || themeLower.includes('orange')) {
+          matchedTheme = themes[9].className; // Volcano Obsidian
+        } else if (themeLower.includes('cherry') || themeLower.includes('blossom') || themeLower.includes('sakura') || themeLower.includes('pink') || themeLower.includes('rose')) {
+          matchedTheme = themes[7].className; // Sakura Blossom Glassmorphic
+        } else if (themeLower.includes('cyber') || themeLower.includes('neon') || themeLower.includes('tech')) {
+          matchedTheme = themes[4].className; // Cyber Neon
+        } else if (themeLower.includes('classic') || themeLower.includes('serif') || themeLower.includes('editorial') || themeLower.includes('plain')) {
+          matchedTheme = themes[10].className; // Classic Editorial Serif
+        } else if (themeLower.includes('dark') || themeLower.includes('charcoal')) {
+          matchedTheme = themes[11].className; // Dark Charcoal
+        }
+        setTheme(matchedTheme);
+      }
+
       if (typeof window !== 'undefined') window.dispatchEvent(new Event('ai_usage_increment'));
       setupWordAnimation(result.slides);
+      
+      toast({
+        title: "Success! 🎉",
+        description: `Successfully generated a beautiful presentation outline.`,
+      });
     } catch (e) {
+      console.error(e);
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -936,17 +1109,23 @@ export function PresentationForm() {
 
     const slideHtml = slides
       .map(
-        (slide) => `
-        <div style="page-break-after: always; padding: 40px; border: 1px solid #ccc; margin-bottom: 20px; position: relative;">
-            <h2 style="font-size: 24px; font-family: Arial, sans-serif;">${slide.title}</h2>
-            <ul style="font-size: 18px; font-family: Arial, sans-serif; line-height: 1.6; margin-bottom: 40px;">
-                ${slide.content.map((point) => `<li>${point}</li>`).join('')}
-            </ul>
-            <div style="position: absolute; bottom: 15px; left: 0; right: 0; text-align: center; font-size: 11px; color: #a0aec0; font-family: Arial, sans-serif; border-top: 1px solid #eee; padding-top: 5px; margin: 0 40px;">
-                www.lingolandverse.com
-            </div>
-        </div>
-    `
+        (slide, idx) => {
+          const photoUrl = slidePhotos[idx] || (slide as any).photoUrl;
+          return `
+          <div style="page-break-after: always; padding: 40px; border: 1px solid #ccc; margin-bottom: 20px; position: relative; display: flex; flex-direction: row; gap: 20px;">
+              <div style="flex: 1;">
+                <h2 style="font-size: 24px; font-family: Arial, sans-serif;">${slide.title}</h2>
+                <ul style="font-size: 18px; font-family: Arial, sans-serif; line-height: 1.6; margin-bottom: 40px;">
+                    ${slide.content.map((point) => `<li>${point}</li>`).join('')}
+                </ul>
+              </div>
+              ${photoUrl ? `<div style="width: 300px; shrink: 0;"><img src="${photoUrl}" style="width: 100%; border-radius: 12px; max-height: 350px; object-fit: cover;" /></div>` : ''}
+              <div style="position: absolute; bottom: 15px; left: 0; right: 0; text-align: center; font-size: 11px; color: #a0aec0; font-family: Arial, sans-serif; border-top: 1px solid #eee; padding-top: 5px; margin: 0 40px;">
+                  www.lingolandverse.com
+              </div>
+          </div>
+          `;
+        }
       )
       .join('');
 
@@ -988,6 +1167,157 @@ export function PresentationForm() {
     });
   };
 
+  const loadPptxGenJS = (): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      if ((window as any).PptxGenJS) {
+        resolve((window as any).PptxGenJS);
+        return;
+      }
+
+      // Check if script element already exists
+      const existing = document.getElementById('pptxgen-cdn-script');
+      if (existing) {
+        let checkCount = 0;
+        const interval = setInterval(() => {
+          if ((window as any).PptxGenJS) {
+            clearInterval(interval);
+            resolve((window as any).PptxGenJS);
+          }
+          checkCount++;
+          if (checkCount > 50) { // 5 seconds timeout
+            clearInterval(interval);
+            reject(new Error('Timeout loading PowerPoint library'));
+          }
+        }, 100);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = 'pptxgen-cdn-script';
+      script.src = 'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
+      script.onload = () => {
+        if ((window as any).PptxGenJS) {
+          resolve((window as any).PptxGenJS);
+        } else {
+          reject(new Error('PowerPoint library loaded but not found on window context'));
+        }
+      };
+      script.onerror = () => {
+        reject(new Error('Failed to load PowerPoint exporter from CDN'));
+      };
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleDownloadPptx = async () => {
+    if (!presentation) return;
+    setIsDownloadingPptx(true);
+
+    try {
+      const PptxGenClass = await loadPptxGenJS();
+      const pptx = new PptxGenClass();
+      pptx.layout = 'LAYOUT_16x9';
+
+      // Define visual theme mapping
+      let textColor = '1e293b'; // slate-800
+      let bgColor = 'ffffff'; // white
+
+      // Map styling theme colors for the PPTX background
+      if (theme.includes('slate-950') || theme.includes('bg-neutral-950') || theme.includes('bg-black') || theme.includes('bg-gray-800')) {
+        textColor = 'f8fafc'; // slate-50
+        bgColor = '0f172a'; // slate-900 (dark background for PPTX)
+      } else if (theme.includes('bg-rose-950') || theme.includes('bg-pink-950')) {
+        textColor = 'fff1f2';
+        bgColor = '4c0519'; // rose-950
+      } else if (theme.includes('bg-[#fdfbf7]')) {
+        textColor = '1c1917';
+        bgColor = 'fafaf9';
+      } else if (theme.includes('bg-amber-100')) {
+        textColor = '451a03';
+        bgColor = 'fef3c7';
+      }
+
+      // Add slides
+      presentation.slides.forEach((slide, idx) => {
+        const pptxSlide = pptx.addSlide();
+        
+        // Background color
+        pptxSlide.background = { fill: bgColor };
+
+        // Check if there is a photo for this slide
+        const photoUrl = slidePhotos[idx] || (slide as any).photoUrl;
+
+        // Slide title
+        pptxSlide.addText(slide.title, {
+          x: 0.5,
+          y: 0.5,
+          w: photoUrl ? 6.5 : 12.3,
+          h: 1.0,
+          fontSize: 28,
+          bold: true,
+          color: textColor,
+          fontFace: 'Arial',
+        });
+
+        // Slide content (bullet points)
+        const bulletPoints = slide.content.map(point => ({ text: point, options: { bullet: true } }));
+        pptxSlide.addText(bulletPoints as any, {
+          x: 0.5,
+          y: 1.8,
+          w: photoUrl ? 6.5 : 12.3,
+          h: 4.8,
+          fontSize: 16,
+          color: textColor,
+          fontFace: 'Arial',
+          lineSpacing: 24,
+        });
+
+        // Slide photo
+        if (photoUrl) {
+          try {
+            pptxSlide.addImage({
+              path: photoUrl,
+              x: 7.5,
+              y: 0.8,
+              w: 5.3,
+              h: 5.6,
+              sizing: { type: 'cover', w: 5.3, h: 5.6 },
+            });
+          } catch (imgError) {
+            console.error("Failed to add image to PPTX slide", imgError);
+          }
+        }
+
+        // Add a footer
+        pptxSlide.addText("Generated by LingoLand Presentation Maker", {
+          x: 0.5,
+          y: 7.0,
+          w: 12.3,
+          h: 0.3,
+          fontSize: 10,
+          color: '94a3b8', // slate-400
+          align: 'center',
+        });
+      });
+
+      // Save PowerPoint
+      await pptx.writeFile({ fileName: `${presentation.title.replace(/\s+/g, '_')}_presentation.pptx` });
+      
+      toast({
+        title: "PowerPoint Downloaded! 📊",
+        description: `Successfully exported "${presentation.title}" to a ready-made PowerPoint presentation.`,
+      });
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        variant: 'destructive',
+        title: 'Export Failed',
+        description: 'Failed to generate PowerPoint file: ' + (err.message || err),
+      });
+    }
+    setIsDownloadingPptx(false);
+  };
+
   const handleFullScreen = () => {
     if (presentationContainerRef.current) {
       if (!document.fullscreenElement) {
@@ -1002,6 +1332,9 @@ export function PresentationForm() {
     setPresentation(null);
     setActiveDbId(null);
     setIsEditMode(false);
+    setUploadedFile(null);
+    setUploadedText(null);
+    setSlidePhotos({});
     form.reset();
   };
 
@@ -1311,6 +1644,19 @@ export function PresentationForm() {
                       Download HTML
                     </Button>
                     <Button 
+                      onClick={handleDownloadPptx} 
+                      disabled={isDownloadingPptx}
+                      variant="outline" 
+                      className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
+                    >
+                      {isDownloadingPptx ? (
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Download className="mr-1.5 h-3.5 w-3.5 text-indigo-400" />
+                      )}
+                      Download PPTX
+                    </Button>
+                    <Button 
                       onClick={() => {
                         const idx = api?.selectedScrollSnap() || 0;
                         setCoveredTexts(prev => ({ ...prev, [idx]: [] }));
@@ -1432,6 +1778,16 @@ export function PresentationForm() {
               )}
               onClick={(isFullscreen || isEditMode || showSplitSearch) ? undefined : handleRevealNextWord}
             >
+              {/* Three.js 3D Background Canvas */}
+              {presentation && (
+                <ThreeBackground 
+                  themeStyle={theme}
+                  activeSlideIndex={current - 1}
+                  threeDStyle={presentation.slides[current - 1]?.threeDObjectStyle || (presentation.slides[current - 1] as any).threeDObjectStyle || ''}
+                  enabled={enable3D}
+                />
+              )}
+
               {/* Left Side: Slide Carousel & Overlays */}
               <div className={cn(
                 "h-full flex flex-col justify-between relative",
@@ -1476,9 +1832,18 @@ export function PresentationForm() {
                       <CarouselItem key={index} className="h-full">
                         <div 
                           className={cn(
-                            "w-full h-full flex transition-all duration-500",
+                            "w-full h-full flex transition-all duration-700 ease-out transform-gpu",
                             theme, fontFamily
                           )}
+                          style={enable3D ? {
+                            transform: index === (current - 1)
+                              ? 'perspective(1000px) rotateY(0deg) scale(1) translateZ(0px)'
+                              : index < (current - 1)
+                                ? 'perspective(1000px) rotateY(15deg) scale(0.92) translateZ(-50px)'
+                                : 'perspective(1000px) rotateY(-15deg) scale(0.92) translateZ(-50px)',
+                            opacity: index === (current - 1) ? 1 : 0.35,
+                            transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
+                          } : undefined}
                           onClick={(isFullscreen || isEditMode) ? undefined : handleRevealNextWord}
                         >
                           <div className={cn(
@@ -1486,78 +1851,102 @@ export function PresentationForm() {
                             !isFullscreen && "flex flex-col justify-center p-8 md:p-12",
                             isFullscreen && "py-24 px-8 md:px-16 lg:px-24"
                           )}>
-                            <div className={cn("w-full animate-in fade-in duration-700", !isFullscreen ? "max-w-4xl mx-auto" : "max-w-[85vw] mx-auto", align === 'center' ? 'text-center' : 'text-left')}>
-                              {/* Slide Title field */}
-                              {isEditMode ? (
-                                <div className="space-y-1 mb-4 text-left">
-                                  <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Slide Title</Label>
-                                  <Input 
-                                    value={slide.title} 
-                                    onChange={(e) => {
-                                      const updated = [...editableSlides];
-                                      updated[index].title = e.target.value;
-                                      setEditableSlides(updated);
-                                    }}
-                                    className="bg-slate-950/80 border-slate-800 text-white font-bold h-9 animate-pulse"
-                                  />
-                                </div>
-                              ) : (
-                                <h2 className={cn("font-bold transition-all duration-300",
-                                  !isFullscreen ? `mb-6 ${fontSize.titleClassName}` : `mb-8 lg:mb-16 ${fontSize.fullScreenTitleClassName}`
-                                )}>
-                                  {slide.title}
-                                </h2>
-                              )}
+                            <div className={cn(
+                              "w-full animate-in fade-in duration-700 max-w-6xl mx-auto flex flex-col md:flex-row gap-8 items-center justify-center",
+                              align === 'center' ? 'text-center' : 'text-left'
+                            )}>
+                              {/* Left side text content */}
+                              <div className={cn("flex-1 min-w-0 w-full", (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode ? "md:w-3/5" : "w-full")}>
+                                {/* Slide Title field */}
+                                {isEditMode ? (
+                                  <div className="space-y-1 mb-4 text-left">
+                                    <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Slide Title</Label>
+                                    <Input 
+                                      value={slide.title} 
+                                      onChange={(e) => {
+                                        const updated = [...editableSlides];
+                                        updated[index].title = e.target.value;
+                                        setEditableSlides(updated);
+                                      }}
+                                      className="bg-slate-950/80 border-slate-800 text-white font-bold h-9 animate-pulse"
+                                    />
+                                  </div>
+                                ) : (
+                                  <h2 className={cn("font-bold transition-all duration-300",
+                                    !isFullscreen ? `mb-6 ${fontSize.titleClassName}` : `mb-8 lg:mb-16 ${fontSize.fullScreenTitleClassName}`
+                                  )}>
+                                    {slide.title}
+                                  </h2>
+                                )}
 
-                              {/* Slide Bullet points */}
-                              {isEditMode ? (
-                                <div className="space-y-3 mt-4 text-left">
-                                  <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Bullet Outline points</Label>
-                                  {slide.content.map((point, ptIdx) => (
-                                    <div key={ptIdx} className="flex gap-1.5 items-start">
-                                      <Input 
-                                        value={point}
-                                        onChange={(e) => {
-                                          const updated = [...editableSlides];
-                                          updated[index].content[ptIdx] = e.target.value;
-                                          setEditableSlides(updated);
-                                        }}
-                                        className="bg-slate-950/80 border-slate-800 text-white text-xs h-9 animate-pulse"
+                                {/* Slide Bullet points */}
+                                {isEditMode ? (
+                                  <div className="space-y-3 mt-4 text-left">
+                                    <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Bullet Outline points</Label>
+                                    {slide.content.map((point, ptIdx) => (
+                                      <div key={ptIdx} className="flex gap-1.5 items-start">
+                                        <Input 
+                                          value={point}
+                                          onChange={(e) => {
+                                            const updated = [...editableSlides];
+                                            updated[index].content[ptIdx] = e.target.value;
+                                            setEditableSlides(updated);
+                                          }}
+                                          className="bg-slate-950/80 border-slate-800 text-white text-xs h-9 animate-pulse"
+                                        />
+                                        <Button 
+                                          size="icon" 
+                                          variant="ghost" 
+                                          onClick={() => {
+                                            const updated = [...editableSlides];
+                                            updated[index].content.splice(ptIdx, 1);
+                                            setEditableSlides(updated);
+                                          }}
+                                          className="h-9 w-9 text-slate-500 hover:text-red-400 shrink-0"
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      onClick={() => {
+                                        const updated = [...editableSlides];
+                                        updated[index].content.push("New slide point outline statement.");
+                                        setEditableSlides(updated);
+                                      }}
+                                      className="h-8 text-xs font-bold text-slate-400 hover:text-white"
+                                    >
+                                      <Plus className="mr-1.5 h-3.5 w-3.5" /> Add slide point
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <ul className={cn("transition-all duration-300",
+                                    align === 'center' ? 'list-none pl-0 mx-auto' : 'list-disc pl-8',
+                                    !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-6 lg:space-y-8 ${fontSize.fullScreenClassName}`
+                                  )}>
+                                    {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
+                                  </ul>
+                                )}
+                              </div>
+
+                              {/* Beautiful dynamic slide photo */}
+                              {(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode && (
+                                <div className="w-full md:w-2/5 shrink-0 select-none animate-in zoom-in-95 duration-500">
+                                  <div className="relative group perspective-[1000px]">
+                                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu transition-all duration-500 hover:scale-105 hover:rotate-y-6 hover:shadow-[0_25px_60px_rgba(99,102,241,0.25)]">
+                                      <img 
+                                        src={slidePhotos[index] || (slide as any).photoUrl} 
+                                        alt={slide.title} 
+                                        className="w-full h-full object-cover transition-transform duration-750 group-hover:scale-110" 
                                       />
-                                      <Button 
-                                        size="icon" 
-                                        variant="ghost" 
-                                        onClick={() => {
-                                          const updated = [...editableSlides];
-                                          updated[index].content.splice(ptIdx, 1);
-                                          setEditableSlides(updated);
-                                        }}
-                                        className="h-9 w-9 text-slate-500 hover:text-red-400 shrink-0"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
+                                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                                        <p className="text-[10px] text-white/80 font-mono italic">Source: {photoSource}</p>
+                                      </div>
                                     </div>
-                                  ))}
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost" 
-                                    onClick={() => {
-                                      const updated = [...editableSlides];
-                                      updated[index].content.push("New slide point outline statement.");
-                                      setEditableSlides(updated);
-                                    }}
-                                    className="h-8 text-xs font-bold text-slate-400 hover:text-white"
-                                  >
-                                    <Plus className="mr-1.5 h-3.5 w-3.5" /> Add slide point
-                                  </Button>
+                                  </div>
                                 </div>
-                              ) : (
-                                <ul className={cn("transition-all duration-300",
-                                  align === 'center' ? 'list-none pl-0 mx-auto' : 'list-disc pl-8',
-                                  !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-6 lg:space-y-8 ${fontSize.fullScreenClassName}`
-                                )}>
-                                  {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
-                                </ul>
                               )}
                             </div>
                           </div>
@@ -2512,7 +2901,7 @@ export function PresentationForm() {
             <CardHeader className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
               <CardTitle className="font-black text-2xl tracking-tight">Presentation Maker Generator</CardTitle>
               <CardDescription className="text-gray-200">
-                Enter a topic, and our Genkit AI agent will construct a stunning slide outline. Outlines can be styled and sorted in folders inside your library.
+                Enter a topic or upload your lesson plan/document, and our Genkit AI agent will construct a stunning slideshow.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
@@ -2527,12 +2916,12 @@ export function PresentationForm() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-semibold text-slate-200">
-                          Topic or Presentation Theme
+                          Topic or Presentation Theme (Optional if document uploaded)
                         </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="e.g., The History of the Internet, Benefits of Regular Exercise"
-                            className="bg-slate-950 border-slate-850 text-white rounded-xl h-11"
+                            className="bg-slate-950 border-slate-855 text-white rounded-xl h-11"
                             {...field}
                           />
                         </FormControl>
@@ -2540,28 +2929,148 @@ export function PresentationForm() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="slideCount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-semibold text-slate-200">
-                          Desired Number of Slides
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="3"
-                            max="20"
-                            className="w-[180px] bg-slate-950 border-slate-850 text-white rounded-xl h-11"
-                            {...field}
+
+                  {/* Document Uploader Field */}
+                  <div className="space-y-3 p-5 rounded-2xl bg-slate-950/40 border border-slate-850">
+                    <Label className="text-base font-semibold text-slate-200 block">
+                      Optionally Upload Document or Lesson Plan
+                    </Label>
+                    <p className="text-xs text-slate-450">
+                      Upload a PDF, DOCX, TXT, or MD file. The AI will extract the lesson plan/document content and build a beautiful, relevant PowerPoint presentation!
+                    </p>
+                    
+                    <div className="flex flex-col gap-3">
+                      <div className="relative border-2 border-dashed border-slate-800 hover:border-purple-500/50 rounded-2xl p-6 transition-all bg-slate-950 flex flex-col items-center justify-center text-center cursor-pointer group">
+                        <Input
+                          type="file"
+                          accept=".pdf,.docx,.txt,.md"
+                          onChange={handleFileUpload}
+                          disabled={isParsing}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        />
+                        <div className="flex flex-col items-center gap-2 pointer-events-none select-none">
+                          {isParsing ? (
+                            <Loader2 className="h-10 w-10 text-purple-500 animate-spin" />
+                          ) : uploadedFile ? (
+                            <FileText className="h-10 w-10 text-emerald-400 group-hover:scale-110 transition-transform" />
+                          ) : (
+                            <FileUp className="h-10 w-10 text-slate-500 group-hover:text-purple-400 group-hover:scale-110 transition-transform" />
+                          )}
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold text-slate-200">
+                              {uploadedFile ? uploadedFile.name : "Drag & Drop or Click to Upload"}
+                            </p>
+                            <p className="text-[10px] text-slate-500 font-medium">
+                              PDF, DOCX, TXT, or MD (Max 10MB)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {uploadedFile && (
+                        <div className="flex justify-between items-center bg-slate-950 p-2.5 rounded-xl border border-slate-850 animate-in slide-in-from-top-2 duration-300">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileText className="h-4 w-4 text-emerald-400 shrink-0" />
+                            <span className="text-xs text-slate-300 font-bold truncate max-w-[200px]">{uploadedFile.name}</span>
+                            {uploadedText && <span className="text-[9px] bg-emerald-500/10 text-emerald-400 font-mono px-1.5 py-0.5 rounded border border-emerald-500/20">Read ({Math.round(uploadedText.length / 1024)} KB)</span>}
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            onClick={() => {
+                              setUploadedFile(null);
+                              setUploadedText(null);
+                            }}
+                            className="h-7 w-7 text-slate-500 hover:text-red-400 hover:bg-slate-900 rounded-lg p-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Settings Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 rounded-2xl bg-slate-950/40 border border-slate-850">
+                    <FormField
+                      control={form.control}
+                      name="slideCount"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-base font-semibold text-slate-200">
+                            Desired Number of Slides
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="3"
+                              max="20"
+                              className="w-full bg-slate-950 border-slate-850 text-white rounded-xl h-11"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* New Presentation Options Section */}
+                    <div className="space-y-4">
+                      <Label className="text-base font-semibold text-slate-200 block">
+                        Visual & 3D Options
+                      </Label>
+                      
+                      <div className="space-y-3">
+                        {/* Insert Photos Options */}
+                        <div className="flex flex-col gap-2.5">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="checkbox" 
+                              id="insert-photos-checkbox" 
+                              checked={insertPhotos} 
+                              onChange={(e) => setInsertPhotos(e.target.checked)} 
+                              className="h-4 w-4 rounded border-slate-800 bg-slate-950 text-purple-650 focus:ring-purple-500/20"
+                            />
+                            <Label htmlFor="insert-photos-checkbox" className="text-xs font-bold text-slate-300 cursor-pointer">
+                              Insert related photos on slides
+                            </Label>
+                          </div>
+
+                          {insertPhotos && (
+                            <div className="pl-6 animate-in slide-in-from-top-1 duration-200 flex items-center gap-2">
+                              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Source:</span>
+                              <Select value={photoSource} onValueChange={(val: any) => setPhotoSource(val)}>
+                                <SelectTrigger className="h-8 w-36 bg-slate-950 border-slate-850 text-slate-300 text-xs rounded-lg">
+                                  <SelectValue placeholder="Photo Source" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-slate-950 border-slate-800 text-slate-350 text-xs">
+                                  <SelectItem value="google">Google Images</SelectItem>
+                                  <SelectItem value="bing">Bing Images</SelectItem>
+                                  <SelectItem value="pinterest">Pinterest</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Enable 3D Animations */}
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="checkbox" 
+                            id="enable-3d-checkbox" 
+                            checked={enable3D} 
+                            onChange={(e) => setEnable3D(e.target.checked)} 
+                            className="h-4 w-4 rounded border-slate-800 bg-slate-950 text-purple-650 focus:ring-purple-500/20"
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" disabled={isLoading} className="h-11 px-6 font-extrabold rounded-xl bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg">
+                          <Label htmlFor="enable-3d-checkbox" className="text-xs font-bold text-slate-300 cursor-pointer">
+                            Enable 3D Themes & Animations
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button type="submit" disabled={isLoading || isParsing} className="h-11 px-6 font-extrabold rounded-xl bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg">
                     {isLoading ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
