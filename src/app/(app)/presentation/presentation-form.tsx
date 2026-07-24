@@ -1783,7 +1783,7 @@ export function PresentationForm() {
                 <ThreeBackground 
                   themeStyle={theme}
                   activeSlideIndex={current - 1}
-                  threeDStyle={presentation.slides[current - 1]?.threeDObjectStyle || (presentation.slides[current - 1] as any).threeDObjectStyle || ''}
+                  threeDStyle={presentation.slides[current - 1]?.threeDObjectStyle || ''}
                   enabled={enable3D}
                 />
               )}
