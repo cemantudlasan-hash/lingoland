@@ -1847,17 +1847,21 @@ export function PresentationForm() {
                           onClick={(isFullscreen || isEditMode) ? undefined : handleRevealNextWord}
                         >
                           <div className={cn(
-                            "w-full overflow-y-auto flex flex-col justify-center",
-                            !isFullscreen && "p-8 md:p-12",
-                            isFullscreen && "py-16 px-8 md:px-16 lg:px-24 min-h-full h-full"
+                            "w-full flex flex-col justify-center",
+                            !isFullscreen && "overflow-y-auto p-8 md:p-12",
+                            isFullscreen && "overflow-hidden py-16 px-8 md:px-16 lg:px-24 h-full"
                           )}>
                             <div className={cn(
                               "w-full animate-in fade-in duration-700 mx-auto flex flex-col md:flex-row items-center justify-center",
-                              isFullscreen ? "max-w-[85vw] gap-16" : "max-w-6xl gap-8",
+                              isFullscreen ? "max-w-[85vw] gap-16 h-full max-h-[85vh] overflow-hidden" : "max-w-6xl gap-8",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
                               {/* Left side text content */}
-                              <div className={cn("flex-1 min-w-0 w-full", (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode ? (isFullscreen ? "md:w-[60%]" : "md:w-3/5") : "w-full")}>
+                              <div className={cn(
+                                "flex-1 min-w-0 w-full",
+                                isFullscreen && "h-full overflow-y-auto pr-4 scrollbar-thin",
+                                (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode ? (isFullscreen ? "md:w-[60%]" : "md:w-3/5") : "w-full"
+                              )}>
                                 {/* Slide Title field */}
                                 {isEditMode ? (
                                   <div className="space-y-1 mb-4 text-left">
