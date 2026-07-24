@@ -692,7 +692,7 @@ export default function AdminPage() {
                                                             <img
                                                                 src={resolvedImageUrl}
                                                                 alt={slide.title}
-                                                                className="object-cover w-full h-full pointer-events-none"
+                                                                className="object-contain w-full h-full pointer-events-none"
                                                             />
                                                         )}
                                                     </div>

@@ -219,7 +219,7 @@ export function LoginCarousel() {
                 <img
                   src={resolvedImageUrl}
                   alt={currentSlide.title}
-                  className="object-cover w-full h-full pointer-events-none"
+                  className="object-contain w-full h-full pointer-events-none"
                 />
               )
             ) : (
