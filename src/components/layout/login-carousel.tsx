@@ -60,11 +60,16 @@ function getEmbedUrl(url: string, autoplay: boolean = true) {
     const autoplayVal = autoplay ? "1" : "0";
     return `https://www.youtube.com/embed/${videoId}?autoplay=${autoplayVal}&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`;
   }
+  return null;
+}
+
+function resolveVideoUrl(url: string) {
+  if (!url) return "";
   const driveId = getGoogleDriveFileId(url);
   if (driveId) {
-    return `https://drive.google.com/file/d/${driveId}/preview`;
+    return `https://drive.google.com/uc?export=view&id=${driveId}`;
   }
-  return null;
+  return url;
 }
 
 function resolveImageUrl(url: string) {
@@ -132,13 +137,13 @@ export function LoginCarousel() {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + slides.length) % slides.length);
   }, [slides.length]);
 
-  // Autoplay functionality - only autoplay if not currently displaying an embedded iframe video
+  // Autoplay functionality - only autoplay if not currently displaying a video
   useEffect(() => {
     if (slides.length <= 1) return;
     const currentSlide = slides[currentIndex] || slides[0] || defaultSlides[0];
-    const embedUrl = getEmbedUrl(currentSlide.mediaUrl);
-    // Don't auto-rotate away if it's an iframe embed video (let users watch it), but auto-rotate images/direct loops
-    const autoplayDelay = embedUrl ? 15000 : 7000;
+    const isVideo = currentSlide.mediaType === "video";
+    // Don't auto-rotate away if it's a video (let users watch it), but auto-rotate images
+    const autoplayDelay = isVideo ? 15000 : 7000;
 
     const timer = setInterval(() => {
       handleNext();
@@ -170,7 +175,15 @@ export function LoginCarousel() {
 
   return (
     <div className="relative w-full bg-zinc-950/40 backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden shadow-2xl p-4 flex flex-col md:flex-row gap-6 min-h-[220px]">
-      <div className="relative w-full md:w-1/2 h-[180px] md:h-[240px] rounded-xl overflow-hidden bg-zinc-900 border border-white/5 shrink-0">
+      <div 
+        onClick={() => {
+          if (currentSlide.mediaUrl) {
+            window.open(currentSlide.mediaUrl, '_blank');
+          }
+        }}
+        title="Click to open link in a new tab"
+        className="relative w-full md:w-1/2 h-[180px] md:h-[240px] rounded-xl overflow-hidden bg-zinc-900 border border-white/5 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+      >
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
             key={currentSlide.id}
@@ -194,19 +207,19 @@ export function LoginCarousel() {
                   />
                 ) : (
                   <video
-                    src={currentSlide.mediaUrl}
+                    src={resolveVideoUrl(currentSlide.mediaUrl)}
                     autoPlay
                     loop
                     muted
                     playsInline
-                    className="object-cover w-full h-full"
+                    className="object-cover w-full h-full pointer-events-none"
                   />
                 )
               ) : (
                 <img
                   src={resolvedImageUrl}
                   alt={currentSlide.title}
-                  className="object-cover w-full h-full"
+                  className="object-cover w-full h-full pointer-events-none"
                 />
               )
             ) : (

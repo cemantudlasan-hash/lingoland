@@ -36,11 +36,16 @@ function getEmbedUrl(url: string, autoplay: boolean = false) {
     const autoplayVal = autoplay ? "1" : "0";
     return `https://www.youtube.com/embed/${videoId}?autoplay=${autoplayVal}&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`;
   }
+  return null;
+}
+
+function resolveVideoUrl(url: string) {
+  if (!url) return "";
   const driveId = getGoogleDriveFileId(url);
   if (driveId) {
-    return `https://drive.google.com/file/d/${driveId}/preview`;
+    return `https://drive.google.com/uc?export=view&id=${driveId}`;
   }
-  return null;
+  return url;
 }
 
 function resolveImageUrl(url: string) {
@@ -657,7 +662,16 @@ export default function AdminPage() {
                                         return (
                                             <div key={slide.id} className="bg-zinc-950 p-3 rounded-xl border border-white/5 flex flex-col justify-between gap-3 relative group">
                                                 {(slide.mediaUrl || slide.imageUrl) && (
-                                                    <div className="relative w-full h-32 rounded-lg overflow-hidden border border-white/5 bg-zinc-900 shrink-0">
+                                                    <div 
+                                                        onClick={() => {
+                                                            const origUrl = slide.mediaUrl || slide.imageUrl;
+                                                            if (origUrl) {
+                                                                window.open(origUrl, '_blank');
+                                                            }
+                                                        }}
+                                                        title="Click to open link in a new tab"
+                                                        className="relative w-full h-32 rounded-lg overflow-hidden border border-white/5 bg-zinc-900 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+                                                    >
                                                         {isVideo ? (
                                                             embedUrl ? (
                                                                 <iframe
@@ -668,17 +682,17 @@ export default function AdminPage() {
                                                                 />
                                                             ) : (
                                                                 <video
-                                                                    src={slide.mediaUrl || slide.imageUrl}
+                                                                    src={resolveVideoUrl(slide.mediaUrl || slide.imageUrl)}
                                                                     muted
                                                                     playsInline
-                                                                    className="object-cover w-full h-full"
+                                                                    className="object-cover w-full h-full pointer-events-none"
                                                                 />
                                                             )
                                                         ) : (
                                                             <img
                                                                 src={resolvedImageUrl}
                                                                 alt={slide.title}
-                                                                className="object-cover w-full h-full"
+                                                                className="object-cover w-full h-full pointer-events-none"
                                                             />
                                                         )}
                                                     </div>

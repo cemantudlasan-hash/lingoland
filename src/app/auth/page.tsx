@@ -502,12 +502,12 @@ export default function AuthPage() {
                                 <Button variant="secondary" className="w-full border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-800 text-zinc-300 font-extrabold h-11 rounded-xl shadow-inner transition-all hover:scale-[1.02] active:scale-95" onClick={handleGuestLogin} disabled={isGuest}>
                                    <LogIn className="mr-2 h-4 w-4 text-indigo-400" /> {isGuest ? "Browsing as Guest" : "Explore as Guest (Instant Access)"}
                                 </Button>
+                                <VisitorCounter />
                             </CardContent>
                         </Card>
                     </div>
                 </div>
             </div>
-            <VisitorCounter />
         </>
     )
 }
