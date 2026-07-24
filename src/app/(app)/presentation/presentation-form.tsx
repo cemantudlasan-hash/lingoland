@@ -148,10 +148,10 @@ const fontFamilies = [
 ];
 
 const fontSizes = [
-    { name: 'Small text', className: 'text-base', titleClassName: 'text-2xl', fullScreenClassName: 'text-[2.2vw] leading-relaxed', fullScreenTitleClassName: 'text-[3.5vw] leading-tight' },
-    { name: 'Medium text', className: 'text-lg', titleClassName: 'text-3xl', fullScreenClassName: 'text-[2.8vw] leading-relaxed', fullScreenTitleClassName: 'text-[4.5vw] leading-tight' },
-    { name: 'Large text', className: 'text-xl', titleClassName: 'text-4xl', fullScreenClassName: 'text-[3.3vw] leading-relaxed', fullScreenTitleClassName: 'text-[5.5vw] leading-tight' },
-    { name: 'Extra Large', className: 'text-2xl', titleClassName: 'text-5xl', fullScreenClassName: 'text-[3.8vw] leading-relaxed', fullScreenTitleClassName: 'text-[6.5vw] leading-tight' },
+    { name: 'Small text', className: 'text-base', titleClassName: 'text-2xl', fullScreenClassName: 'text-[1.8vw] leading-relaxed', fullScreenTitleClassName: 'text-[3vw] leading-tight' },
+    { name: 'Medium text', className: 'text-lg', titleClassName: 'text-3xl', fullScreenClassName: 'text-[2.2vw] leading-relaxed', fullScreenTitleClassName: 'text-[3.8vw] leading-tight' },
+    { name: 'Large text', className: 'text-xl', titleClassName: 'text-4xl', fullScreenClassName: 'text-[2.5vw] leading-relaxed', fullScreenTitleClassName: 'text-[4.5vw] leading-tight' },
+    { name: 'Extra Large', className: 'text-2xl', titleClassName: 'text-5xl', fullScreenClassName: 'text-[2.9vw] leading-relaxed', fullScreenTitleClassName: 'text-[5.5vw] leading-tight' },
 ];
 
 const EMOJI_MAP: { [key: string]: string } = {
@@ -1847,16 +1847,17 @@ export function PresentationForm() {
                           onClick={(isFullscreen || isEditMode) ? undefined : handleRevealNextWord}
                         >
                           <div className={cn(
-                            "w-full overflow-y-auto",
-                            !isFullscreen && "flex flex-col justify-center p-8 md:p-12",
-                            isFullscreen && "py-24 px-8 md:px-16 lg:px-24"
+                            "w-full overflow-y-auto flex flex-col justify-center",
+                            !isFullscreen && "p-8 md:p-12",
+                            isFullscreen && "py-16 px-8 md:px-16 lg:px-24 min-h-full h-full"
                           )}>
                             <div className={cn(
-                              "w-full animate-in fade-in duration-700 max-w-6xl mx-auto flex flex-col md:flex-row gap-8 items-center justify-center",
+                              "w-full animate-in fade-in duration-700 mx-auto flex flex-col md:flex-row items-center justify-center",
+                              isFullscreen ? "max-w-[85vw] gap-16" : "max-w-6xl gap-8",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
                               {/* Left side text content */}
-                              <div className={cn("flex-1 min-w-0 w-full", (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode ? "md:w-3/5" : "w-full")}>
+                              <div className={cn("flex-1 min-w-0 w-full", (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode ? (isFullscreen ? "md:w-[60%]" : "md:w-3/5") : "w-full")}>
                                 {/* Slide Title field */}
                                 {isEditMode ? (
                                   <div className="space-y-1 mb-4 text-left">
@@ -1924,7 +1925,7 @@ export function PresentationForm() {
                                 ) : (
                                   <ul className={cn("transition-all duration-300",
                                     align === 'center' ? 'list-none pl-0 mx-auto' : 'list-disc pl-8',
-                                    !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-6 lg:space-y-8 ${fontSize.fullScreenClassName}`
+                                    !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-5 lg:space-y-6 ${fontSize.fullScreenClassName}`
                                   )}>
                                     {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
                                   </ul>
@@ -1933,7 +1934,7 @@ export function PresentationForm() {
 
                               {/* Beautiful dynamic slide photo */}
                               {(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode && (
-                                <div className="w-full md:w-2/5 shrink-0 select-none animate-in zoom-in-95 duration-500">
+                                <div className={cn("w-full shrink-0 select-none animate-in zoom-in-95 duration-500", isFullscreen ? "md:w-[35%]" : "md:w-2/5")}>
                                   <div className="relative group perspective-[1000px]">
                                     <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu transition-all duration-500 hover:scale-105 hover:rotate-y-6 hover:shadow-[0_25px_60px_rgba(99,102,241,0.25)]">
                                       <img 
