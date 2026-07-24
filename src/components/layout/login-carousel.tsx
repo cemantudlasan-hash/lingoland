@@ -42,15 +42,38 @@ const defaultSlides: CarouselSlide[] = [
   }
 ];
 
-function getYouTubeEmbedUrl(url: string) {
+function getGoogleDriveFileId(url: string) {
   if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  if (match && match[2].length === 11) {
-    const videoId = match[2];
-    return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`;
+  const dMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (dMatch && dMatch[1]) return dMatch[1];
+  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch && idMatch[1]) return idMatch[1];
+  return null;
+}
+
+function getEmbedUrl(url: string, autoplay: boolean = true) {
+  if (!url) return null;
+  const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const ytMatch = url.match(ytRegExp);
+  if (ytMatch && ytMatch[2].length === 11) {
+    const videoId = ytMatch[2];
+    const autoplayVal = autoplay ? "1" : "0";
+    return `https://www.youtube.com/embed/${videoId}?autoplay=${autoplayVal}&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`;
+  }
+  const driveId = getGoogleDriveFileId(url);
+  if (driveId) {
+    return `https://drive.google.com/file/d/${driveId}/preview`;
   }
   return null;
+}
+
+function resolveImageUrl(url: string) {
+  if (!url) return "";
+  const driveId = getGoogleDriveFileId(url);
+  if (driveId) {
+    return `https://lh3.googleusercontent.com/d/${driveId}`;
+  }
+  return url;
 }
 
 export function LoginCarousel() {
@@ -109,13 +132,13 @@ export function LoginCarousel() {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + slides.length) % slides.length);
   }, [slides.length]);
 
-  // Autoplay functionality - only autoplay if not currently displaying a YouTube iframe video
+  // Autoplay functionality - only autoplay if not currently displaying an embedded iframe video
   useEffect(() => {
     if (slides.length <= 1) return;
     const currentSlide = slides[currentIndex] || slides[0] || defaultSlides[0];
-    const isYouTube = getYouTubeEmbedUrl(currentSlide.mediaUrl);
-    // Don't auto-rotate away if it's a YouTube video (let users watch it), but auto-rotate images/direct loops
-    const autoplayDelay = isYouTube ? 15000 : 7000;
+    const embedUrl = getEmbedUrl(currentSlide.mediaUrl);
+    // Don't auto-rotate away if it's an iframe embed video (let users watch it), but auto-rotate images/direct loops
+    const autoplayDelay = embedUrl ? 15000 : 7000;
 
     const timer = setInterval(() => {
       handleNext();
@@ -142,7 +165,8 @@ export function LoginCarousel() {
 
   // Safe fallback lookup
   const currentSlide = slides[currentIndex] || slides[0] || defaultSlides[0];
-  const youtubeUrl = getYouTubeEmbedUrl(currentSlide.mediaUrl);
+  const embedUrl = getEmbedUrl(currentSlide.mediaUrl, true);
+  const resolvedImageUrl = resolveImageUrl(currentSlide.mediaUrl);
 
   return (
     <div className="relative w-full bg-zinc-950/40 backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden shadow-2xl p-4 flex flex-col md:flex-row gap-6 min-h-[220px]">
@@ -160,9 +184,9 @@ export function LoginCarousel() {
           >
             {currentSlide.mediaUrl ? (
               currentSlide.mediaType === "video" ? (
-                youtubeUrl ? (
+                embedUrl ? (
                   <iframe
-                    src={youtubeUrl}
+                    src={embedUrl}
                     title={currentSlide.title}
                     className="w-full h-full object-cover pointer-events-none"
                     allow="autoplay; encrypted-media"
@@ -180,7 +204,7 @@ export function LoginCarousel() {
                 )
               ) : (
                 <img
-                  src={currentSlide.mediaUrl}
+                  src={resolvedImageUrl}
                   alt={currentSlide.title}
                   className="object-cover w-full h-full"
                 />

@@ -18,15 +18,38 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
-function getYouTubeEmbedUrl(url: string) {
+function getGoogleDriveFileId(url: string) {
   if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  if (match && match[2].length === 11) {
-    const videoId = match[2];
-    return `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`;
+  const dMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (dMatch && dMatch[1]) return dMatch[1];
+  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch && idMatch[1]) return idMatch[1];
+  return null;
+}
+
+function getEmbedUrl(url: string, autoplay: boolean = false) {
+  if (!url) return null;
+  const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const ytMatch = url.match(ytRegExp);
+  if (ytMatch && ytMatch[2].length === 11) {
+    const videoId = ytMatch[2];
+    const autoplayVal = autoplay ? "1" : "0";
+    return `https://www.youtube.com/embed/${videoId}?autoplay=${autoplayVal}&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`;
+  }
+  const driveId = getGoogleDriveFileId(url);
+  if (driveId) {
+    return `https://drive.google.com/file/d/${driveId}/preview`;
   }
   return null;
+}
+
+function resolveImageUrl(url: string) {
+  if (!url) return "";
+  const driveId = getGoogleDriveFileId(url);
+  if (driveId) {
+    return `https://lh3.googleusercontent.com/d/${driveId}`;
+  }
+  return url;
 }
 
 export default function AdminPage() {
@@ -627,17 +650,18 @@ export default function AdminPage() {
                             ) : (
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     {slides.map((slide) => {
-                                        const youtubeUrl = getYouTubeEmbedUrl(slide.mediaUrl || slide.imageUrl);
+                                        const embedUrl = getEmbedUrl(slide.mediaUrl || slide.imageUrl, false);
                                         const isVideo = slide.mediaType === "video";
+                                        const resolvedImageUrl = resolveImageUrl(slide.mediaUrl || slide.imageUrl);
 
                                         return (
                                             <div key={slide.id} className="bg-zinc-950 p-3 rounded-xl border border-white/5 flex flex-col justify-between gap-3 relative group">
                                                 {(slide.mediaUrl || slide.imageUrl) && (
                                                     <div className="relative w-full h-32 rounded-lg overflow-hidden border border-white/5 bg-zinc-900 shrink-0">
                                                         {isVideo ? (
-                                                            youtubeUrl ? (
+                                                            embedUrl ? (
                                                                 <iframe
-                                                                    src={youtubeUrl}
+                                                                    src={embedUrl}
                                                                     title={slide.title}
                                                                     className="w-full h-full object-cover pointer-events-none"
                                                                     frameBorder="0"
@@ -652,7 +676,7 @@ export default function AdminPage() {
                                                             )
                                                         ) : (
                                                             <img
-                                                                src={slide.mediaUrl || slide.imageUrl}
+                                                                src={resolvedImageUrl}
                                                                 alt={slide.title}
                                                                 className="object-cover w-full h-full"
                                                             />
