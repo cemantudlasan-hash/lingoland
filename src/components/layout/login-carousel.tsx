@@ -182,7 +182,7 @@ export function LoginCarousel() {
           }
         }}
         title="Click to open link in a new tab"
-        className="relative w-full md:w-1/2 h-[180px] md:h-[240px] rounded-xl overflow-hidden bg-zinc-900 border border-white/5 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+        className="relative w-full md:w-1/2 h-[180px] md:h-[260px] lg:h-[320px] rounded-xl overflow-hidden bg-zinc-900 border border-white/5 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
       >
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div

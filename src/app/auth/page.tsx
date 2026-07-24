@@ -436,20 +436,20 @@ export default function AuthPage() {
     
     return (
         <>
-            <div className="flex min-h-screen flex-col items-center justify-center relative p-4 md:p-8 gap-8 max-w-7xl w-full mx-auto py-12">
-                <div className="w-full max-w-6xl z-10">
+            <div className="flex min-h-screen flex-col items-center justify-center relative p-4 md:p-8 gap-8 max-w-[1440px] w-full mx-auto py-12">
+                <div className="w-full z-10">
                     <LoginCarousel />
                 </div>
-                <div className="flex flex-col lg:flex-row gap-6 w-full items-start justify-center max-w-6xl">
-                    <div className="relative z-10 w-full max-w-md space-y-6">
+                <div className="flex flex-col lg:flex-row gap-6 w-full items-start justify-center">
+                    <div className="relative z-10 w-full lg:w-1/3 max-w-lg space-y-6">
                         <HolidayCountdown />
                         <BeautifulWeather />
                     </div>
-                    <div className="relative z-10 w-full max-w-md">
+                    <div className="relative z-10 w-full lg:w-1/3 max-w-lg">
                         <BeautifulCalendar />
                     </div>
                     <div
-                        className="relative z-10 w-full max-w-md"
+                        className="relative z-10 w-full lg:w-1/3 max-w-lg"
                     >
                         <Card className="border border-white/5 bg-zinc-950/80 backdrop-blur-xl shadow-2xl relative overflow-hidden">
                             <div className="absolute inset-0 bg-indigo-500/5 blur-3xl pointer-events-none" />
