@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal, flushSync } from "react-dom";
 import { getGameBySlug } from "@/lib/games";
 import {
   Card,
@@ -58,6 +59,26 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [bingoLines, setBingoLines] = React.useState(0);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [isPrinting, setIsPrinting] = React.useState(false);
+  const [printData, setPrintData] = React.useState<{
+    level: string;
+    winnerIndices: Set<number>;
+    sortedDrawnPairs: WordDefinitionPair[];
+    cards: string[][];
+  } | null>(null);
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   const { toast } = useToast();
   const game = getGameBySlug(slug);
@@ -219,200 +240,6 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
       const shuffledIndices = shuffleArray(cardIndices);
       const winnerIndices = new Set(shuffledIndices.slice(0, numWinners));
 
-      let htmlContent = `
-        <html>
-        <head>
-          <title>Bingo Cards - ${level}</title>
-          <style>
-            body {
-              font-family: 'Inter', system-ui, sans-serif;
-              background-color: #ffffff;
-              color: #1e293b;
-              margin: 0;
-              padding: 0;
-            }
-            .page {
-              page-break-after: always;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              height: 100vh;
-              box-sizing: border-box;
-              padding: 40px;
-              position: relative;
-            }
-            /* Call sheet styles */
-            .teacher-header {
-              text-align: center;
-              margin-bottom: 20px;
-              border-bottom: 3px double #6366f1;
-              padding-bottom: 10px;
-              width: 100%;
-            }
-            .teacher-header h1 {
-              margin: 0;
-              font-size: 28px;
-              color: #4f46e5;
-            }
-            .teacher-header p {
-              margin: 5px 0 0 0;
-              font-size: 14px;
-              color: #64748b;
-            }
-            .winners-badge {
-              margin-top: 10px;
-              background-color: #fef3c7;
-              border: 1px solid #f59e0b;
-              color: #b45309;
-              padding: 6px 12px;
-              border-radius: 8px;
-              font-size: 12px;
-              font-weight: bold;
-              display: inline-block;
-            }
-            .call-sheet {
-              column-count: 2;
-              column-gap: 30px;
-              margin-top: 20px;
-              width: 100%;
-            }
-            .call-sheet-item {
-              break-inside: avoid-column;
-              margin-bottom: 12px;
-              padding: 8px;
-              background-color: #f8fafc;
-              border: 1px solid #e2e8f0;
-              border-radius: 6px;
-              font-size: 12px;
-            }
-            .call-sheet-item strong {
-              color: #4f46e5;
-              font-size: 13px;
-            }
-            /* Card styles */
-            .card-container {
-              border: 2px solid #e2e8f0;
-              border-radius: 20px;
-              padding: 24px;
-              background-color: #ffffff;
-              box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              max-width: 580px;
-              width: 100%;
-            }
-            .card-header-info {
-              display: flex;
-              justify-content: space-between;
-              width: 100%;
-              margin-bottom: 15px;
-              border-bottom: 1px solid #e2e8f0;
-              padding-bottom: 10px;
-            }
-            .card-header-info h2 {
-              margin: 0;
-              font-size: 22px;
-              color: #1e293b;
-              font-weight: 800;
-            }
-            .card-meta {
-              font-size: 12px;
-              color: #64748b;
-              font-weight: 600;
-              text-transform: uppercase;
-              letter-spacing: 0.05em;
-              display: flex;
-              align-items: center;
-              gap: 10px;
-            }
-            .bingo-card {
-               border-collapse: separate;
-               border-spacing: 8px;
-               width: 100%;
-               max-width: 500px;
-            }
-            .bingo-card th {
-              background-color: #4f46e5;
-              color: #ffffff;
-              font-size: 24px;
-              font-weight: 900;
-              width: 80px;
-              height: 50px;
-              text-align: center;
-              vertical-align: middle;
-              border-radius: 8px;
-              text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-            }
-            .bingo-card td {
-              border: 2px solid #cbd5e1;
-              background-color: #f8fafc;
-              width: 80px;
-              height: 80px;
-              text-align: center;
-              font-size: 13px;
-              font-weight: 700;
-              color: #334155;
-              word-break: break-word;
-              vertical-align: middle;
-              border-radius: 12px;
-              padding: 6px;
-            }
-            .bingo-card .free-space {
-              background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-              border: 2px dashed #6366f1;
-              color: #4338ca;
-              font-weight: 900;
-              font-size: 14px;
-            }
-            .footer {
-              margin-top: 20px;
-              border-top: 1px solid #e2e8f0;
-              padding-top: 10px;
-              text-align: center;
-              font-size: 11px;
-              color: #94a3b8;
-              width: 100%;
-              max-width: 500px;
-              font-weight: 500;
-            }
-            @media print {
-              .no-print { display: none; }
-              body { background-color: #ffffff; }
-              .page { height: 100vh; page-break-after: always; }
-            }
-          </style>
-        </head>
-        <body>
-            <div class="page">
-                <div class="teacher-header">
-                    <h1>Teacher's Bingo Call Sheet</h1>
-                    <p>Difficulty: <strong>${level.toUpperCase()}</strong> | Words in Current Game Session</p>
-                    <div class="winners-badge">
-                      Winning Cards in this set: Card ${Array.from(winnerIndices).map(idx => idx + 1).join(', Card ')}
-                    </div>
-                </div>
-                <div class="call-sheet">
-        `;
-
-      // Add the 24 drawn words in alphabetical order for the call sheet
-      const sortedDrawnPairs = [...definitions].sort((a, b) => a.word.localeCompare(b.word));
-      sortedDrawnPairs.forEach(pair => {
-        htmlContent += `
-          <div class="call-sheet-item">
-            <strong>${pair.word.toUpperCase()}</strong><br/>
-            ${pair.definition}
-          </div>
-        `;
-      });
-
-      htmlContent += `
-                </div>
-                <div class="footer">www.lingolandverse.com &bull; Teachers Guide &bull; Keep Secret from Students</div>
-            </div>
-      `;
-
       // Helper to check if cell is blocking
       const isBlockingCell = (row: number, col: number): boolean => {
         return (row === 0 && col === 0) ||
@@ -423,6 +250,9 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
                (row === 4 && col === 0);
       };
 
+      const sortedDrawnPairs = [...definitions].sort((a, b) => a.word.localeCompare(b.word));
+
+      const cards: string[][] = [];
       for (let i = 0; i < 30; i++) {
         const isWinner = winnerIndices.has(i);
         let cardWords: string[] = [];
@@ -449,84 +279,33 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
             }
           }
         }
-
-        htmlContent += `
-          <div class="page">
-            <div class="card-container">
-              <div class="card-header-info">
-                <h2>LingoLand Bingo</h2>
-                <div class="card-meta">
-                  <span>Card ${i + 1} of 30</span>
-                  <span style="background-color: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 10px;">${level}</span>
-                </div>
-              </div>
-              <table class="bingo-card">
-                <thead>
-                  <tr>
-                    <th>B</th>
-                    <th>I</th>
-                    <th>N</th>
-                    <th>G</th>
-                    <th>O</th>
-                  </tr>
-                </thead>
-                <tbody>
-        `;
-
-        let wordIndex = 0;
-        for (let row = 0; row < 5; row++) {
-          htmlContent += '<tr>';
-          for (let col = 0; col < 5; col++) {
-            if (row === 2 && col === 2) {
-              htmlContent += '<td class="free-space">FREE SPACE</td>';
-            } else {
-              const word = cardWords[wordIndex++];
-              htmlContent += `<td>${word.toUpperCase()}</td>`;
-            }
-          }
-          htmlContent += '</tr>';
-        }
-
-        htmlContent += `
-                </tbody>
-              </table>
-              <div class="footer">www.lingolandverse.com &bull; Scan words carefully as they are read!</div>
-            </div>
-          </div>
-        `;
+        cards.push(cardWords);
       }
 
-      htmlContent += '</body></html>';
-
-      const generateAndPrint = () => {
-        const newWindow = window.open("", "_blank");
-        if (newWindow) {
-          newWindow.document.write(htmlContent);
-          newWindow.document.close();
-          newWindow.focus();
-          setTimeout(() => {
-            newWindow.print();
-          }, 500);
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Popup Blocked",
-            description: "Please allow popups for this site to print the bingo cards."
+      const printGameCards = () => {
+        flushSync(() => {
+          setPrintData({
+            level,
+            winnerIndices,
+            sortedDrawnPairs,
+            cards,
           });
-        }
+          setIsPrinting(true);
+        });
+        window.print();
       };
 
       if (document.fullscreenElement) {
         const onFullscreenChange = () => {
           if (!document.fullscreenElement) {
             document.removeEventListener('fullscreenchange', onFullscreenChange);
-            generateAndPrint();
+            printGameCards();
           }
         };
         document.addEventListener('fullscreenchange', onFullscreenChange);
         document.exitFullscreen();
       } else {
-        generateAndPrint();
+        printGameCards();
       }
 
     } catch (error) {
@@ -631,6 +410,265 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
     if (typeof window !== 'undefined') {
       localStorage.removeItem("lingoland_bingo_active_session");
     }
+  };
+
+  const renderPrintPortal = () => {
+    if (!isMounted || !isPrinting || !printData) return null;
+
+    const { level, winnerIndices, sortedDrawnPairs, cards } = printData;
+
+    const content = (
+      <div id="print-root" className="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-start text-slate-900 overflow-y-auto">
+        <style dangerouslySetInnerHTML={{ __html: `
+          @media print {
+            @page {
+              size: portrait;
+              margin: 0 !important;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
+              height: 100% !important;
+              background-color: #ffffff !important;
+              color: #1e293b !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            body > *:not(#print-root) {
+              display: none !important;
+            }
+            #print-root {
+              display: block !important;
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              height: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background-color: #ffffff !important;
+            }
+            .bingo-page-break {
+              width: 100vw !important;
+              height: 100vh !important;
+              page-break-after: always !important;
+              break-after: page !important;
+              display: flex !important;
+              flex-direction: column !important;
+              align-items: center !important;
+              justify-content: center !important;
+              overflow: hidden !important;
+              box-sizing: border-box !important;
+              padding: 40px !important;
+              position: relative !important;
+            }
+            
+            /* Call sheet styles */
+            .teacher-header {
+              text-align: center;
+              margin-bottom: 20px;
+              border-bottom: 3px double #6366f1;
+              padding-bottom: 10px;
+              width: 100%;
+            }
+            .teacher-header h1 {
+              margin: 0;
+              font-size: 28px;
+              color: #4f46e5;
+            }
+            .teacher-header p {
+              margin: 5px 0 0 0;
+              font-size: 14px;
+              color: #64748b;
+            }
+            .winners-badge {
+              margin-top: 10px;
+              background-color: #fef3c7;
+              border: 1px solid #f59e0b;
+              color: #b45309;
+              padding: 6px 12px;
+              border-radius: 8px;
+              font-size: 12px;
+              font-weight: bold;
+              display: inline-block;
+            }
+            .call-sheet {
+              column-count: 2;
+              column-gap: 30px;
+              margin-top: 20px;
+              width: 100%;
+            }
+            .call-sheet-item {
+              break-inside: avoid-column;
+              margin-bottom: 12px;
+              padding: 8px;
+              background-color: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 6px;
+              font-size: 12px;
+            }
+            .call-sheet-item strong {
+              color: #4f46e5;
+              font-size: 13px;
+            }
+            /* Card styles */
+            .card-container {
+              border: 2px solid #e2e8f0;
+              border-radius: 20px;
+              padding: 24px;
+              background-color: #ffffff;
+              box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              max-width: 580px;
+              width: 100%;
+            }
+            .card-header-info {
+              display: flex;
+              justify-content: space-between;
+              width: 100%;
+              margin-bottom: 15px;
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 10px;
+            }
+            .card-header-info h2 {
+              margin: 0;
+              font-size: 22px;
+              color: #1e293b;
+              font-weight: 800;
+            }
+            .card-meta {
+              font-size: 12px;
+              color: #64748b;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            }
+            .bingo-card-table {
+               border-collapse: separate;
+               border-spacing: 8px;
+               width: 100%;
+               max-width: 500px;
+            }
+            .bingo-card-table th {
+              background-color: #4f46e5;
+              color: #ffffff;
+              font-size: 24px;
+              font-weight: 900;
+              width: 80px;
+              height: 50px;
+              text-align: center;
+              vertical-align: middle;
+              border-radius: 8px;
+              text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            }
+            .bingo-card-table td {
+              border: 2px solid #cbd5e1;
+              background-color: #f8fafc;
+              width: 80px;
+              height: 80px;
+              text-align: center;
+              font-size: 13px;
+              font-weight: 700;
+              color: #334155;
+              word-break: break-word;
+              vertical-align: middle;
+              border-radius: 12px;
+              padding: 6px;
+            }
+            .bingo-card-table .free-space {
+              background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+              border: 2px dashed #6366f1;
+              color: #4338ca;
+              font-weight: 900;
+              font-size: 14px;
+            }
+            .footer-print {
+              margin-top: 20px;
+              border-top: 1px solid #e2e8f0;
+              padding-top: 10px;
+              text-align: center;
+              font-size: 11px;
+              color: #94a3b8;
+              width: 100%;
+              max-width: 500px;
+              font-weight: 500;
+            }
+          }
+        `}} />
+
+        {/* 1. Teacher's Call Sheet */}
+        <div className="bingo-page-break">
+          <div className="teacher-header">
+            <h1>Teacher's Bingo Call Sheet</h1>
+            <p>Difficulty: <strong>{level.toUpperCase()}</strong> | Words in Current Game Session</p>
+            <div className="winners-badge">
+              Winning Cards in this set: Card {Array.from(winnerIndices).map(idx => idx + 1).join(', Card ')}
+            </div>
+          </div>
+          <div className="call-sheet">
+            {sortedDrawnPairs.map((pair, idx) => (
+              <div key={idx} className="call-sheet-item">
+                <strong>{pair.word.toUpperCase()}</strong><br />
+                {pair.definition}
+              </div>
+            ))}
+          </div>
+          <div className="footer-print">www.lingolandverse.com &bull; Teachers Guide &bull; Keep Secret from Students</div>
+        </div>
+
+        {/* 2. 30 Cards */}
+        {cards.map((cardWords, cardIdx) => {
+          let wordIndex = 0;
+          return (
+            <div key={cardIdx} className="bingo-page-break">
+              <div className="card-container">
+                <div className="card-header-info">
+                  <h2>LingoLand Bingo</h2>
+                  <div className="card-meta">
+                    <span>Card {cardIdx + 1} of 30</span>
+                    <span style={{ backgroundColor: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>{level}</span>
+                  </div>
+                </div>
+                <table className="bingo-card-table">
+                  <thead>
+                    <tr>
+                      <th>B</th>
+                      <th>I</th>
+                      <th>N</th>
+                      <th>G</th>
+                      <th>O</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...Array(5)].map((_, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {[...Array(5)].map((_, colIndex) => {
+                          if (rowIndex === 2 && colIndex === 2) {
+                            return <td key={colIndex} className="free-space">FREE SPACE</td>;
+                          } else {
+                            const word = cardWords[wordIndex++];
+                            return <td key={colIndex}>{word ? word.toUpperCase() : ''}</td>;
+                          }
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="footer-print">www.lingolandverse.com &bull; Scan words carefully as they are read!</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
+    return createPortal(content, document.body);
   };
 
   const Icon = game.icon;
@@ -979,6 +1017,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
             <Button variant="secondary" onClick={resetGame} className="h-10 bg-slate-850 text-slate-300 hover:bg-slate-800 rounded-xl">Abort Session</Button>
         )}
       </CardFooter>
+      {renderPrintPortal()}
     </Card>
   );
 }
