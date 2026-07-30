@@ -292,7 +292,9 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
           });
           setIsPrinting(true);
         });
-        window.print();
+        setTimeout(() => {
+          window.print();
+        }, 150);
       };
 
       if (document.fullscreenElement) {
@@ -418,7 +420,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
     const { level, winnerIndices, sortedDrawnPairs, cards } = printData;
 
     const content = (
-      <div id="print-root" className="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-start text-slate-900 overflow-y-auto">
+      <div id="print-root" className="fixed inset-0 z-[99999] bg-white flex flex-col items-center justify-start text-slate-900">
         <style dangerouslySetInnerHTML={{ __html: `
           @media print {
             @page {
@@ -429,7 +431,8 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
               margin: 0 !important;
               padding: 0 !important;
               width: 100% !important;
-              height: 100% !important;
+              height: auto !important;
+              min-height: 100% !important;
               background-color: #ffffff !important;
               color: #1e293b !important;
               -webkit-print-color-adjust: exact !important;
@@ -440,11 +443,10 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
             }
             #print-root {
               display: block !important;
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
+              position: relative !important;
               width: 100% !important;
-              height: 100% !important;
+              height: auto !important;
+              overflow: visible !important;
               margin: 0 !important;
               padding: 0 !important;
               background-color: #ffffff !important;
