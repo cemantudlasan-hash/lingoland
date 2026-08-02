@@ -13,10 +13,16 @@ const ADULT_KEYWORDS = [
   'seductive', 'fetish', 'adult only', '18+', '16+'
 ];
 
+const ADULT_REGEXES = ADULT_KEYWORDS.map(word => {
+  const escaped = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const start = /^\w/.test(word) ? '\\b' : '';
+  const end = /\w$/.test(word) ? '\\b' : '';
+  return new RegExp(start + escaped + end, 'i');
+});
+
 export const isSafe = (text: string): boolean => {
   if (!text) return true;
-  const lower = text.toLowerCase();
-  return !ADULT_KEYWORDS.some(word => lower.includes(word));
+  return !ADULT_REGEXES.some(regex => regex.test(text));
 };
 
 export const enhanceQuery = (query: string): string => {
