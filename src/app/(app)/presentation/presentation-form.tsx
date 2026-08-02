@@ -52,7 +52,11 @@ import {
   ZoomIn,
   ZoomOut,
   Video,
-  FileUp
+  FileUp,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -292,6 +296,27 @@ export function PresentationForm() {
   // Zoom and pan states for searchImage
   const [zoomScale, setZoomScale] = React.useState(1);
   const [transformOrigin, setTransformOrigin] = React.useState("center center");
+  const [panOffset, setPanOffset] = React.useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = React.useState(false);
+  const [panStart, setPanStart] = React.useState({ x: 0, y: 0 });
+
+  const handlePan = (direction: 'up' | 'down' | 'left' | 'right') => {
+    const step = 60;
+    setPanOffset(prev => {
+      switch (direction) {
+        case 'up': return { ...prev, y: prev.y - step };
+        case 'down': return { ...prev, y: prev.y + step };
+        case 'left': return { ...prev, x: prev.x - step };
+        case 'right': return { ...prev, x: prev.x + step };
+      }
+    });
+  };
+
+  React.useEffect(() => {
+    if (zoomScale <= 1) {
+      setPanOffset({ x: 0, y: 0 });
+    }
+  }, [zoomScale]);
 
   // Collapsible Presentation Tips Guide state
   const [showTips, setShowTips] = React.useState(false);
@@ -2008,7 +2033,7 @@ export function PresentationForm() {
                 {showImageModal && (
                   <div 
                     className="absolute inset-0 z-40 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300 select-none"
-                    onClick={() => setShowImageModal(false)}
+onClick={() => setShowImageModal(false)}
                   >
                     <div 
                       className={cn(
@@ -2039,73 +2064,153 @@ export function PresentationForm() {
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">Searching Libraries...</p>
                           </div>
                         ) : searchImage ? (
-                           <div 
-                             className="w-full h-full overflow-hidden relative cursor-zoom-in rounded-xl"
-                             onMouseMove={(e) => {
-                               if (zoomScale <= 1) return;
-                               const rect = e.currentTarget.getBoundingClientRect();
-                               const x = ((e.clientX - rect.left) / rect.width) * 100;
-                               const y = ((e.clientY - rect.top) / rect.height) * 100;
-                               setTransformOrigin(`${x}% ${y}%`);
-                             }}
-                             onMouseLeave={() => {
-                               setTransformOrigin("center center");
-                             }}
-                           >
-                             <img 
-                               src={searchImage} 
-                               alt={selectionText} 
-                               className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500 transition-transform duration-200 ease-out"
-                               style={{ 
-                                 transform: `scale(${zoomScale})`, 
-                                 transformOrigin: transformOrigin 
-                               }}
-                               onError={() => {
-                                 if (searchImageThumbnail && searchImage !== searchImageThumbnail) {
-                                   setSearchImage(searchImageThumbnail);
-                                 } else {
-                                   setSearchImage(null);
-                                   setImageSearchError(`The image for "${selectionText}" failed to load from the remote library.`);
-                                 }
-                               }}
-                             />
-                             
-                             {/* Floating Zoom Controls Overlay */}
-                             <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-lg">
-                               <Button
-                                 size="icon"
-                                 variant="ghost"
-                                 onClick={(e) => { e.stopPropagation(); setZoomScale(prev => Math.max(0.5, prev - 0.25)); }}
-                                 className="h-7 w-7 text-white hover:bg-white/20 hover:text-white rounded-lg"
-                                 title="Zoom Out"
-                               >
-                                 <ZoomOut className="h-4 w-4" />
-                               </Button>
-                               <span className="text-[10px] text-white font-mono font-bold flex items-center px-1">
-                                 {Math.round(zoomScale * 100)}%
-                               </span>
-                               <Button
-                                 size="icon"
-                                 variant="ghost"
-                                 onClick={(e) => { e.stopPropagation(); setZoomScale(prev => Math.min(3, prev + 0.25)); }}
-                                 className="h-7 w-7 text-white hover:bg-white/20 hover:text-white rounded-lg"
-                                 title="Zoom In"
-                               >
-                                 <ZoomIn className="h-4 w-4" />
-                               </Button>
-                               {zoomScale !== 1 && (
-                                 <Button
-                                   size="icon"
-                                   variant="ghost"
-                                   onClick={(e) => { e.stopPropagation(); setZoomScale(1); setTransformOrigin("center center"); }}
-                                   className="h-7 w-7 text-purple-400 hover:bg-white/20 hover:text-purple-300 rounded-lg"
-                                   title="Reset Zoom"
-                                 >
-                                   <Maximize className="h-3.5 w-3.5" />
-                                 </Button>
-                               )}
-                             </div>
-                           </div>
+                            <div 
+                              className="w-full h-full overflow-hidden relative rounded-xl"
+                              onMouseDown={(e) => {
+                                if (zoomScale > 1) {
+                                  e.preventDefault();
+                                  setIsPanning(true);
+                                  setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+                                }
+                              }}
+                              onMouseMove={(e) => {
+                                if (isPanning && zoomScale > 1) {
+                                  setPanOffset({
+                                    x: e.clientX - panStart.x,
+                                    y: e.clientY - panStart.y
+                                  });
+                                }
+                              }}
+                              onMouseUp={() => {
+                                setIsPanning(false);
+                              }}
+                              onMouseLeave={() => {
+                                setIsPanning(false);
+                              }}
+                            >
+                              <img 
+                                src={searchImage} 
+                                alt={selectionText} 
+                                className={cn(
+                                  "w-full h-full object-contain animate-in fade-in zoom-in-95 duration-500 transition-transform select-none",
+                                  isPanning ? "cursor-grabbing" : zoomScale > 1 ? "cursor-grab" : "cursor-default"
+                                )}
+                                style={{ 
+                                  transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`, 
+                                  transformOrigin: "center center",
+                                  transition: isPanning ? "none" : "transform 0.15s ease-out"
+                                }}
+                                onError={() => {
+                                  if (searchImageThumbnail && searchImage !== searchImageThumbnail) {
+                                    setSearchImage(searchImageThumbnail);
+                                  } else {
+                                    setSearchImage(null);
+                                    setImageSearchError(`The image for "${selectionText}" failed to load from the remote library.`);
+                                  }
+                                }}
+                              />
+                              
+                              {/* Floating Zoom & Pan Controls Overlay */}
+                              <div className="absolute bottom-4 right-4 z-20 flex flex-col gap-2 items-end">
+                                {/* Directional Panning Pad (only visible when zoomed in) */}
+                                {zoomScale > 1 && (
+                                  <div className="grid grid-cols-3 gap-1 bg-black/70 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-lg select-none">
+                                    <div />
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      onClick={(e) => { e.stopPropagation(); handlePan('up'); }}
+                                      className="h-6 w-6 text-white hover:bg-white/20 rounded-md"
+                                      title="Pan Up"
+                                    >
+                                      <ArrowUp className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <div />
+                                    
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      onClick={(e) => { e.stopPropagation(); handlePan('left'); }}
+                                      className="h-6 w-6 text-white hover:bg-white/20 rounded-md"
+                                      title="Pan Left"
+                                    >
+                                      <ArrowLeft className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      onClick={(e) => { e.stopPropagation(); setPanOffset({ x: 0, y: 0 }); }}
+                                      className="h-6 w-6 text-purple-400 hover:bg-white/20 rounded-md"
+                                      title="Center View"
+                                    >
+                                      <Maximize className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      onClick={(e) => { e.stopPropagation(); handlePan('right'); }}
+                                      className="h-6 w-6 text-white hover:bg-white/20 rounded-md"
+                                      title="Pan Right"
+                                    >
+                                      <ArrowRight className="h-3.5 w-3.5" />
+                                    </Button>
+                                    
+                                    <div />
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      onClick={(e) => { e.stopPropagation(); handlePan('down'); }}
+                                      className="h-6 w-6 text-white hover:bg-white/20 rounded-md"
+                                      title="Pan Down"
+                                    >
+                                      <ArrowDown className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <div />
+                                  </div>
+                                )}
+
+                                {/* Zoom Controls */}
+                                <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shadow-lg">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={(e) => { e.stopPropagation(); setZoomScale(prev => Math.max(0.5, prev - 0.25)); }}
+                                    className="h-7 w-7 text-white hover:bg-white/20 hover:text-white rounded-lg"
+                                    title="Zoom Out"
+                                  >
+                                    <ZoomOut className="h-4 w-4" />
+                                  </Button>
+                                  <span className="text-[10px] text-white font-mono font-bold flex items-center px-1 min-w-[32px] justify-center">
+                                    {Math.round(zoomScale * 100)}%
+                                  </span>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={(e) => { e.stopPropagation(); setZoomScale(prev => Math.min(3, prev + 0.25)); }}
+                                    className="h-7 w-7 text-white hover:bg-white/20 hover:text-white rounded-lg"
+                                    title="Zoom In"
+                                  >
+                                    <ZoomIn className="h-4 w-4" />
+                                  </Button>
+                                  {(zoomScale !== 1 || panOffset.x !== 0 || panOffset.y !== 0) && (
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        setZoomScale(1); 
+                                        setPanOffset({ x: 0, y: 0 }); 
+                                        setTransformOrigin("center center"); 
+                                      }}
+                                      className="h-7 w-7 text-purple-400 hover:bg-white/20 hover:text-purple-300 rounded-lg"
+                                      title="Reset View"
+                                    >
+                                      <Maximize className="h-3.5 w-3.5" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                         ) : imageSearchError ? (
                           (() => {
                             const fallbackEmoji = getEmojiFallback(selectionText);
