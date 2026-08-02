@@ -72,7 +72,7 @@ const getMockVideos = (query: string, count: number = 6) => {
 const fetchBingWebSearch = async (query: string, count: number = 5) => {
   try {
     const response = await fetch(
-      `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
+      `https://www.bing.com/search?q=${encodeURIComponent(query)}&adlt=strict`,
       {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -108,7 +108,9 @@ const fetchBingWebSearch = async (query: string, count: number = 5) => {
       snippet = decodeHtmlEntities(snippet);
       
       if (title && snippet) {
-        results.push({ title, snippet, url });
+        if (isSafe(title) && isSafe(snippet) && isSafe(url)) {
+          results.push({ title, snippet, url });
+        }
       }
     }
     
@@ -158,15 +160,17 @@ const fetchYouTubeVideos = async (query: string, count: number = 6) => {
               const views = vr.viewCountText?.simpleText || '0 views';
               const thumb = vr.thumbnail?.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
               
-              videos.push({
-                title,
-                duration,
-                channel,
-                url: `https://www.youtube.com/watch?v=${videoId}`,
-                thumb,
-                embedUrl: `https://www.youtube.com/embed/${videoId}`,
-                views
-              });
+              if (isSafe(title) && isSafe(channel) && isSafe(thumb)) {
+                videos.push({
+                  title,
+                  duration,
+                  channel,
+                  url: `https://www.youtube.com/watch?v=${videoId}`,
+                  thumb,
+                  embedUrl: `https://www.youtube.com/embed/${videoId}`,
+                  views
+                });
+              }
             }
           }
           if (videos.length > 0) {
@@ -182,7 +186,7 @@ const fetchYouTubeVideos = async (query: string, count: number = 6) => {
   // 2. Fallback to Bing Videos Scraping
   try {
     const response = await fetch(
-      `https://www.bing.com/videos/search?q=${encodeURIComponent(query)}`,
+      `https://www.bing.com/videos/search?q=${encodeURIComponent(query)}&adlt=strict`,
       {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -270,15 +274,17 @@ const fetchYouTubeVideos = async (query: string, count: number = 6) => {
         embedUrl = `https://www.youtube.com/embed?listType=search&list=${searchTerms}`;
       }
       
-      videos.push({
-        title,
-        duration,
-        channel: channel || 'Video Resource',
-        url,
-        thumb,
-        embedUrl,
-        views: 'Verified'
-      });
+      if (isSafe(title) && isSafe(channel) && isSafe(thumb) && isSafe(url)) {
+        videos.push({
+          title,
+          duration,
+          channel: channel || 'Video Resource',
+          url,
+          thumb,
+          embedUrl,
+          views: 'Verified'
+        });
+      }
     }
     
     if (videos.length === 0) {
@@ -294,7 +300,7 @@ const fetchYouTubeVideos = async (query: string, count: number = 6) => {
 const fetchUnsplashImages = async (query: string, count: number = 12) => {
   try {
     const response = await fetch(
-      `https://unsplash.com/napi/search/photos?query=${encodeURIComponent(query)}&per_page=${count}`,
+      `https://unsplash.com/napi/search/photos?query=${encodeURIComponent(query)}&per_page=${count}&content_filter=high`,
       {
         headers: {
           'User-Agent':
@@ -315,7 +321,7 @@ const fetchUnsplashImages = async (query: string, count: number = 12) => {
       thumb: result.urls?.thumb,
       engine: 'unsplash',
       title: result.alt_description || `${query} image`,
-    })).filter((img: any) => img.url);
+    })).filter((img: any) => img.url && isSafe(img.url) && isSafe(img.title));
   } catch (error) {
     console.error('Unsplash picker fetch failed:', error);
     return [];
@@ -325,7 +331,7 @@ const fetchUnsplashImages = async (query: string, count: number = 12) => {
 const fetchBingImages = async (query: string, count: number = 12, engineName: string = 'bing') => {
   try {
     const response = await fetch(
-      `https://www.bing.com/images/search?q=${encodeURIComponent(query)}`,
+      `https://www.bing.com/images/search?q=${encodeURIComponent(query)}&adlt=strict`,
       {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -348,13 +354,16 @@ const fetchBingImages = async (query: string, count: number = 12, engineName: st
         const decodedJson = match[1].replace(/&quot;/g, '"');
         const data = JSON.parse(decodedJson);
         if (data.murl && !seenUrls.has(data.murl)) {
-          seenUrls.add(data.murl);
-          images.push({
-            url: data.murl,
-            thumb: data.turl || data.murl,
-            engine: engineName,
-            title: data.desc || `${query} image`,
-          });
+          const title = data.desc || `${query} image`;
+          if (isSafe(data.murl) && isSafe(title)) {
+            seenUrls.add(data.murl);
+            images.push({
+              url: data.murl,
+              thumb: data.turl || data.murl,
+              engine: engineName,
+              title: title,
+            });
+          }
         }
       } catch (e) {
         // ignore parse errors
@@ -367,12 +376,32 @@ const fetchBingImages = async (query: string, count: number = 12, engineName: st
   }
 };
 
+const ADULT_KEYWORDS = [
+  'porn', 'sexy', 'sex', 'nude', 'naked', 'erotic', 'xxx', 'nsfw', 'sensual', 'cleavage',
+  'bikini', 'lingerie', 'underwear', 'swimsuit', 'swimwear', 'topless', 'playboy', 'hentai',
+  'boobs', 'breast', 'buttock', 'butt', 'ass', 'pussy', 'penis', 'dick', 'vagina', 'vulva',
+  'seductive', 'fetish', 'adult only', '18+', '16+'
+];
+
+export const isSafe = (text: string): boolean => {
+  if (!text) return true;
+  const lower = text.toLowerCase();
+  return !ADULT_KEYWORDS.some(word => lower.includes(word));
+};
+
+export const enhanceQuery = (query: string): string => {
+  const clean = query.toLowerCase().trim();
+  const eduTerms = ['diagram', 'chart', 'clipart', 'illustration', 'worksheet', 'educational', 'classroom', 'school', 'science', 'math', 'study', 'teaching', 'infographic'];
+  if (eduTerms.some(term => clean.includes(term))) {
+    return query;
+  }
+  return `${query} educational clipart diagram`;
+};
+
 // High-accuracy Curated "Storage" Image Database for ambiguous terms
 const AVAILABLE_IMAGES_STORAGE: Record<string, string> = {
-  'keys': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
-  'key': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
-  'alicia keys': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
-  'alicia': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
+  'keys': 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800',
+  'key': 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800',
   'apple': 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800',
   'banana': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=800',
   'orange': 'https://images.unsplash.com/photo-1547514701-42782101795e?w=800',
@@ -419,15 +448,18 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
     while ((match = arrayRegex.exec(html)) !== null) {
       const imageUrl = match[1];
       if (imageUrl && !seenUrls.has(imageUrl) && !imageUrl.includes('gstatic.com')) {
-        seenUrls.add(imageUrl);
-        images.push({
-          url: imageUrl,
-          thumb: gstaticUrls[idx] || imageUrl, // Pair with sequential gstatic thumbnail!
-          engine: 'google',
-          title: `${query} image`,
-        });
-        idx++;
-        if (images.length >= count) break;
+        const title = `${query} image`;
+        if (isSafe(imageUrl) && isSafe(title)) {
+          seenUrls.add(imageUrl);
+          images.push({
+            url: imageUrl,
+            thumb: gstaticUrls[idx] || imageUrl, // Pair with sequential gstatic thumbnail!
+            engine: 'google',
+            title: title,
+          });
+          idx++;
+          if (images.length >= count) break;
+        }
       }
     }
 
@@ -438,15 +470,18 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
         try {
           const decodedUrl = decodeURIComponent(match[1]);
           if (decodedUrl && !seenUrls.has(decodedUrl)) {
-            seenUrls.add(decodedUrl);
-            images.push({
-              url: decodedUrl,
-              thumb: gstaticUrls[idx] || decodedUrl,
-              engine: 'google',
-              title: `${query} image`,
-            });
-            idx++;
-            if (images.length >= count) break;
+            const title = `${query} image`;
+            if (isSafe(decodedUrl) && isSafe(title)) {
+              seenUrls.add(decodedUrl);
+              images.push({
+                url: decodedUrl,
+                thumb: gstaticUrls[idx] || decodedUrl,
+                engine: 'google',
+                title: title,
+              });
+              idx++;
+              if (images.length >= count) break;
+            }
           }
         } catch (e) {}
       }
@@ -456,13 +491,15 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
     if (images.length === 0) {
       gstaticUrls.forEach((thumbUrl) => {
         if (thumbUrl && !seenUrls.has(thumbUrl)) {
-          seenUrls.add(thumbUrl);
-          images.push({
-            url: thumbUrl,
-            thumb: thumbUrl,
-            engine: 'google',
-            title: `${query} thumbnail`,
-          });
+          if (isSafe(thumbUrl)) {
+            seenUrls.add(thumbUrl);
+            images.push({
+              url: thumbUrl,
+              thumb: thumbUrl,
+              engine: 'google',
+              title: `${query} thumbnail`,
+            });
+          }
         }
       });
     }
@@ -474,7 +511,7 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
   }
 };
 
-const fetchImagesHelper = async (query: string, source: string, count: number) => {
+const fetchImagesForSourceRaw = async (query: string, source: string, count: number) => {
   let images: any[] = [];
   const lowerSource = source.toLowerCase();
   
@@ -500,12 +537,46 @@ const fetchImagesHelper = async (query: string, source: string, count: number) =
       }
     }
   }
+  return images;
+};
+
+const fetchImagesHelper = async (query: string, source: string, count: number) => {
+  const lowerSource = source.toLowerCase();
+  
+  // 1. Try with enhanced query first
+  const enhancedQuery = enhanceQuery(query);
+  let searchResults = await fetchImagesForSourceRaw(enhancedQuery, lowerSource, count);
+  
+  // 2. If enhanced query returned fewer than 4 images, try a milder enhancement
+  if (searchResults.length < Math.min(4, count)) {
+    const milderQuery = `${query} educational`;
+    const milderResults = await fetchImagesForSourceRaw(milderQuery, lowerSource, count);
+    const seenUrls = new Set(searchResults.map(img => img.url));
+    for (const img of milderResults) {
+      if (!seenUrls.has(img.url)) {
+        searchResults.push(img);
+        seenUrls.add(img.url);
+      }
+    }
+  }
+  
+  // 3. Fallback to original query (with strict filters and SafeSearch)
+  if (searchResults.length < Math.min(4, count)) {
+    const originalResults = await fetchImagesForSourceRaw(query, lowerSource, count);
+    const seenUrls = new Set(searchResults.map(img => img.url));
+    for (const img of originalResults) {
+      if (!seenUrls.has(img.url)) {
+        searchResults.push(img);
+        seenUrls.add(img.url);
+      }
+    }
+  }
 
   // Prepend high-accuracy Curated "Storage" Image if matched!
   const storageImageUrl = checkStorageImage(query);
   if (storageImageUrl) {
-    images = images.filter(img => img.url !== storageImageUrl);
-    images.unshift({
+    searchResults = searchResults.filter(img => img.url !== storageImageUrl);
+    searchResults.unshift({
       url: storageImageUrl,
       thumb: storageImageUrl,
       engine: 'storage',
@@ -513,7 +584,7 @@ const fetchImagesHelper = async (query: string, source: string, count: number) =
     });
   }
 
-  return images;
+  return searchResults.slice(0, count);
 };
 
 export async function GET(request: Request) {
@@ -525,6 +596,11 @@ export async function GET(request: Request) {
 
   if (!query) {
     return NextResponse.json({ success: false, error: 'Query parameter is required' }, { status: 400 });
+  }
+
+  // Reject unsafe/restricted queries
+  if (!isSafe(query)) {
+    return NextResponse.json({ success: false, error: 'Query is invalid or contains restricted terms' }, { status: 400 });
   }
 
   try {

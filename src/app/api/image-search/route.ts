@@ -6,12 +6,32 @@ const PLACEHOLDER_FG = 'ede9fe';
 const formatPlaceholderUrl = (query: string) =>
   `https://placehold.co/600x600/${PLACEHOLDER_BG}/${PLACEHOLDER_FG}?text=${encodeURIComponent(query)}&font=inter`;
 
+const ADULT_KEYWORDS = [
+  'porn', 'sexy', 'sex', 'nude', 'naked', 'erotic', 'xxx', 'nsfw', 'sensual', 'cleavage',
+  'bikini', 'lingerie', 'underwear', 'swimsuit', 'swimwear', 'topless', 'playboy', 'hentai',
+  'boobs', 'breast', 'buttock', 'butt', 'ass', 'pussy', 'penis', 'dick', 'vagina', 'vulva',
+  'seductive', 'fetish', 'adult only', '18+', '16+'
+];
+
+export const isSafe = (text: string): boolean => {
+  if (!text) return true;
+  const lower = text.toLowerCase();
+  return !ADULT_KEYWORDS.some(word => lower.includes(word));
+};
+
+export const enhanceQuery = (query: string): string => {
+  const clean = query.toLowerCase().trim();
+  const eduTerms = ['diagram', 'chart', 'clipart', 'illustration', 'worksheet', 'educational', 'classroom', 'school', 'science', 'math', 'study', 'teaching', 'infographic'];
+  if (eduTerms.some(term => clean.includes(term))) {
+    return query;
+  }
+  return `${query} educational clipart diagram`;
+};
+
 // High-accuracy Curated "Storage" Image Database for ambiguous terms
 const AVAILABLE_IMAGES_STORAGE: Record<string, string> = {
-  'keys': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
-  'key': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
-  'alicia keys': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
-  'alicia': 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Alicia_Keys_Cannes_2016.jpg',
+  'keys': 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800',
+  'key': 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800',
   'apple': 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800',
   'banana': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=800',
   'orange': 'https://images.unsplash.com/photo-1547514701-42782101795e?w=800',
@@ -58,15 +78,18 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
     while ((match = arrayRegex.exec(html)) !== null) {
       const imageUrl = match[1];
       if (imageUrl && !seenUrls.has(imageUrl) && !imageUrl.includes('gstatic.com')) {
-        seenUrls.add(imageUrl);
-        images.push({
-          url: imageUrl,
-          thumb: gstaticUrls[idx] || imageUrl, // Pair with sequential gstatic thumbnail!
-          engine: 'google',
-          title: `${query} image`,
-        });
-        idx++;
-        if (images.length >= count) break;
+        const title = `${query} image`;
+        if (isSafe(imageUrl) && isSafe(title)) {
+          seenUrls.add(imageUrl);
+          images.push({
+            url: imageUrl,
+            thumb: gstaticUrls[idx] || imageUrl, // Pair with sequential gstatic thumbnail!
+            engine: 'google',
+            title: title,
+          });
+          idx++;
+          if (images.length >= count) break;
+        }
       }
     }
 
@@ -77,15 +100,18 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
         try {
           const decodedUrl = decodeURIComponent(match[1]);
           if (decodedUrl && !seenUrls.has(decodedUrl)) {
-            seenUrls.add(decodedUrl);
-            images.push({
-              url: decodedUrl,
-              thumb: gstaticUrls[idx] || decodedUrl,
-              engine: 'google',
-              title: `${query} image`,
-            });
-            idx++;
-            if (images.length >= count) break;
+            const title = `${query} image`;
+            if (isSafe(decodedUrl) && isSafe(title)) {
+              seenUrls.add(decodedUrl);
+              images.push({
+                url: decodedUrl,
+                thumb: gstaticUrls[idx] || decodedUrl,
+                engine: 'google',
+                title: title,
+              });
+              idx++;
+              if (images.length >= count) break;
+            }
           }
         } catch (e) {}
       }
@@ -95,13 +121,15 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
     if (images.length === 0) {
       gstaticUrls.forEach((thumbUrl) => {
         if (thumbUrl && !seenUrls.has(thumbUrl)) {
-          seenUrls.add(thumbUrl);
-          images.push({
-            url: thumbUrl,
-            thumb: thumbUrl,
-            engine: 'google',
-            title: `${query} thumbnail`,
-          });
+          if (isSafe(thumbUrl)) {
+            seenUrls.add(thumbUrl);
+            images.push({
+              url: thumbUrl,
+              thumb: thumbUrl,
+              engine: 'google',
+              title: `${query} thumbnail`,
+            });
+          }
         }
       });
     }
@@ -114,7 +142,16 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
 };
 
 const tryGoogleSingleImage = async (query: string) => {
-  const results = await tryGoogleImages(query, 1);
+  const enhanced = enhanceQuery(query);
+  let results = await tryGoogleImages(enhanced, 1);
+  if (results && results.length > 0) {
+    return {
+      imageUrl: results[0].url,
+      thumbUrl: results[0].thumb,
+      engine: 'google',
+    };
+  }
+  results = await tryGoogleImages(query, 1);
   if (results && results.length > 0) {
     return {
       imageUrl: results[0].url,
@@ -125,9 +162,9 @@ const tryGoogleSingleImage = async (query: string) => {
   return null;
 };
 
-const tryUnsplash = async (query: string) => {
+const tryUnsplashRaw = async (query: string) => {
   const response = await fetch(
-    `https://unsplash.com/napi/search/photos?query=${encodeURIComponent(query)}&per_page=3`,
+    `https://unsplash.com/napi/search/photos?query=${encodeURIComponent(query)}&per_page=3&content_filter=high`,
     {
       headers: {
         'User-Agent':
@@ -144,9 +181,21 @@ const tryUnsplash = async (query: string) => {
   const results = data.results || [];
   if (results.length === 0) return null;
 
-  const firstResult = results[0];
-  const imageUrl = firstResult.urls?.small || firstResult.urls?.regular;
-  return imageUrl ? { imageUrl, engine: 'unsplash' } : null;
+  for (const firstResult of results) {
+    const imageUrl = firstResult.urls?.small || firstResult.urls?.regular;
+    const title = firstResult.alt_description || '';
+    if (imageUrl && isSafe(imageUrl) && isSafe(title)) {
+      return { imageUrl, engine: 'unsplash' };
+    }
+  }
+  return null;
+};
+
+const tryUnsplash = async (query: string) => {
+  const enhanced = enhanceQuery(query);
+  const enhancedResult = await tryUnsplashRaw(enhanced);
+  if (enhancedResult) return enhancedResult;
+  return await tryUnsplashRaw(query);
 };
 
 const tryWikipediaPageImage = async (query: string) => {
@@ -165,7 +214,9 @@ const tryWikipediaPageImage = async (query: string) => {
   if (pageKeys.length > 0 && pageKeys[0] !== '-1') {
     const page = pages[pageKeys[0]];
     const imageUrl = page.original?.source;
-    return imageUrl ? { imageUrl, engine: 'wikipedia' } : null;
+    if (imageUrl && isSafe(imageUrl)) {
+      return { imageUrl, engine: 'wikipedia' };
+    }
   }
 
   return null;
@@ -187,7 +238,9 @@ const tryWikipediaSearchImage = async (query: string) => {
   if (pageKeys.length > 0) {
     const page = pages[pageKeys[0]];
     const imageUrl = page.original?.source;
-    return imageUrl ? { imageUrl, engine: 'wikipedia-search' } : null;
+    if (imageUrl && isSafe(imageUrl)) {
+      return { imageUrl, engine: 'wikipedia-search' };
+    }
   }
 
   return null;
@@ -204,6 +257,11 @@ export async function GET(request: Request) {
 
   if (!query) {
     return NextResponse.json({ success: false, error: 'Query parameter is required' }, { status: 400 });
+  }
+
+  // Reject unsafe/restricted queries
+  if (!isSafe(query)) {
+    return NextResponse.json({ success: false, error: 'Query is invalid or contains restricted terms' }, { status: 400 });
   }
 
   // 1. Check local "storage" database first (No Fallback Required if found!)
