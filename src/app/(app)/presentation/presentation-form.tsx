@@ -1144,7 +1144,7 @@ export function PresentationForm() {
                     ${slide.content.map((point) => `<li>${point}</li>`).join('')}
                 </ul>
               </div>
-              ${photoUrl ? `<div style="width: 300px; shrink: 0;"><img src="${photoUrl}" style="width: 100%; border-radius: 12px; max-height: 350px; object-fit: cover;" /></div>` : ''}
+              ${photoUrl ? `<div style="width: 300px; shrink: 0;"><img src="${photoUrl}" style="width: 100%; border-radius: 12px; max-height: 350px; object-fit: contain; background: #000;" /></div>` : ''}
               <div style="position: absolute; bottom: 15px; left: 0; right: 0; text-align: center; font-size: 11px; color: #a0aec0; font-family: Arial, sans-serif; border-top: 1px solid #eee; padding-top: 5px; margin: 0 40px;">
                   www.lingolandverse.com
               </div>
@@ -1851,7 +1851,7 @@ export function PresentationForm() {
                   </>
                 )}
                 
-                <Carousel setApi={setApi} className="w-full h-full">
+                <Carousel setApi={setApi} opts={{ watchDrag: false }} className="w-full h-full">
                   <CarouselContent className="h-full">
                     {(isEditMode ? editableSlides : presentation.slides).map((slide, index) => (
                       <CarouselItem key={index} className="h-full">
@@ -1969,7 +1969,7 @@ export function PresentationForm() {
                                       <img 
                                         src={slidePhotos[index] || (slide as any).photoUrl} 
                                         alt={slide.title} 
-                                        className="w-full h-full object-cover transition-transform duration-750 group-hover:scale-110" 
+                                        className="w-full h-full object-contain bg-slate-950 transition-transform duration-750 group-hover:scale-105" 
                                       />
                                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                                         <p className="text-[10px] text-white/80 font-mono italic">Source: {photoSource}</p>
