@@ -16,57 +16,129 @@ const CATEGORIES: Record<string, string[]> = {
   Animals: [
     "Eagle", "Dolphin", "Penguin", "Tiger", "Kangaroo", "Flamingo", "Gorilla", "Octopus", "Chameleon", "Giraffe",
     "Cheetah", "Koala", "Panda", "Zebra", "Hedgehog", "Walrus", "Peacock", "Platypus", "Otter", "Wolf",
-    "Sloth", "Hippopotamus", "Rhino", "Lemur", "Meerkat", "Jellyfish", "Stingray", "Seahorse"
+    "Sloth", "Hippopotamus", "Rhino", "Lemur", "Meerkat", "Jellyfish", "Stingray", "Seahorse", "Polar Bear", "Elephant",
+    "Lion", "Crocodile", "Camel", "Chimpanzee", "Jaguar", "Leopard", "Fox", "Raccoon", "Beaver", "Bat",
+    "Hummingbird", "Parrot", "Pelican", "Owl", "Swan", "Hawk", "Woodpecker", "Shark", "Whale", "Turtle",
+    "Lobster", "Crab", "Starfish", "Squid", "Seal", "Frog", "Salamander", "Iguana", "Komodo Dragon",
+    "Butterfly", "Dragonfly", "Honeybee", "Ladybug", "Grasshopper", "Firefly", "Scorpion", "Tarantula", "Antelope", "Bison",
+    "Llama", "Alpaca", "Gazelle", "Hyena", "Wombat", "Armadillo", "Badger", "Pangolin", "Porcupine"
   ],
   "Food & Drinks": [
     "Sushi", "Pizza", "Mango", "Lemonade", "Pancake", "Burrito", "Smoothie", "Waffle", "Avocado", "Popcorn",
     "Cheeseburger", "Spaghetti", "Croissant", "Tacos", "Donut", "Boba Tea", "Milkshake", "Guacamole", "Dumpling", "Lasagna",
-    "Pad Thai", "Churros", "Brownie", "Hotdog", "Pretzel", "Ramen", "Falafel", "Cupcake"
+    "Pad Thai", "Churros", "Brownie", "Hotdog", "Pretzel", "Ramen", "Falafel", "Cupcake", "French Fries", "Fried Chicken",
+    "Nachos", "Quesadilla", "Spring Rolls", "Shawarma", "Samosa", "Bagel", "Muffin", "Apple Pie", "Cheesecake", "Ice Cream",
+    "Pudding", "Tiramisu", "Crepe", "Oatmeal", "Macaroni and Cheese", "Curry", "Steak", "Meatballs", "Fish and Chips", "Chili",
+    "Tomato Soup", "Caesar Salad", "Sandwich", "Club Sandwich", "Garlic Bread", "Bruschetta", "Iced Tea", "Hot Chocolate", "Orange Juice", "Espresso",
+    "Cappuccino", "Caramel Macchiato", "Fruit Punch", "Apple Cider", "Green Tea", "Marshmallow", "Cotton Candy", "Gummy Bears", "Chocolate Fondue", "Lollipop"
   ],
   Countries: [
     "Brazil", "Iceland", "Egypt", "Japan", "Canada", "Kenya", "Norway", "Thailand", "Mexico", "Portugal",
     "Australia", "Germany", "Argentina", "South Korea", "Switzerland", "Greece", "India", "Vietnam", "Morocco", "New Zealand",
-    "Italy", "Spain", "France", "Netherlands", "Turkey", "Singapore", "Jamaica", "Philippines"
+    "Italy", "Spain", "France", "Netherlands", "Turkey", "Singapore", "Jamaica", "Philippines", "United Kingdom", "United States",
+    "South Africa", "Sweden", "Denmark", "Finland", "Ireland", "Austria", "Belgium", "Poland", "Czech Republic", "Hungary",
+    "Chile", "Colombia", "Peru", "Cuba", "Costa Rica", "Panama", "Saudi Arabia", "United Arab Emirates", "Qatar", "Israel",
+    "Malaysia", "Indonesia", "Cambodia", "Nepal", "Maldives", "Fiji", "Madagascar", "Ethiopia", "Ghana", "Nigeria",
+    "Croatia", "Romania", "Ukraine", "Ecuador", "Bolivia", "Uruguay", "Mongolia", "Sri Lanka", "Jordan", "Lebanon"
   ],
   "Hollywood Movies": [
     "Titanic", "Inception", "Frozen", "Avengers", "Interstellar", "Clueless", "Grease", "Moana", "Shrek", "Jaws",
     "Jurassic Park", "Harry Potter", "The Matrix", "Spider-Man", "Finding Nemo", "Avatar", "Star Wars", "Coco", "Toy Story", "Gladiator",
-    "The Lion King", "Back to the Future", "Barbie", "Up", "Home Alone", "Ghostbusters"
+    "The Lion King", "Back to the Future", "Barbie", "Up", "Home Alone", "Ghostbusters", "The Dark Knight", "Forrest Gump", "Pulp Fiction", "Indiana Jones",
+    "E.T.", "The Lord of the Rings", "The Hunger Games", "Pirates of the Caribbean", "Aladdin", "Beauty and the Beast", "Cinderella", "Ratatouille", "Monsters Inc", "The Incredibles",
+    "Inside Out", "Zootopia", "Tangled", "Despicable Me", "Minions", "Kung Fu Panda", "How to Train Your Dragon", "Madagascar", "Ice Age", "Sing",
+    "Men in Black", "Transformers", "Mission Impossible", "Top Gun", "Skyfall", "Twilight", "The Chronicles of Narnia", "Charlie and the Chocolate Factory", "Night at the Museum", "Jumanji"
   ],
   "Household Objects": [
     "Blender", "Umbrella", "Pillow", "Toaster", "Scissors", "Curtain", "Dustpan", "Kettle", "Hamper", "Stapler",
     "Microwave", "Mirror", "Candle", "Toothbrush", "Flashlight", "Vacuum", "Hanger", "Blanket", "Corkscrew", "Thermometer",
-    "Clock", "Spatula", "Laundry Basket", "Cushion", "Ironing Board", "Mug"
+    "Clock", "Spatula", "Laundry Basket", "Cushion", "Ironing Board", "Mug", "Refrigerator", "Washing Machine", "Dishwasher", "Coffee Maker",
+    "Frying Pan", "Cutting Board", "Rolling Pin", "Can Opener", "Whisk", "Measuring Cup", "Sponge", "Broom", "Mop", "Bucket",
+    "Bed Sheet", "Mattress", "Wardrobe", "Alarm Clock", "Lamp", "Bookshelf", "Sofa", "Armchair", "Doorbell", "Doormat",
+    "Hair Dryer", "Towel", "Soap Dispenser", "Comb", "Nail Clipper", "Tweezers", "Headphones", "Remote Control", "Charger", "Power Strip",
+    "Tape Measure", "Hammer", "Screwdriver", "Flash Drive", "Notepad", "Sticky Notes", "Paperclip", "Envelope", "Calculator", "Luggage"
   ],
   "Jobs & Professions": [
     "Surgeon", "Astronaut", "Architect", "Chef", "Journalist", "Detective", "Pilot", "Pharmacist", "Geologist", "Animator",
     "Firefighter", "Veterinarian", "Photographer", "Librarian", "Electrician", "Dentist", "Sculptor", "Barista", "Archaeologist", "Diver",
-    "Judge", "Carpenter", "Baker", "Flight Attendant", "Mechanic", "Paramedic"
+    "Judge", "Carpenter", "Baker", "Flight Attendant", "Mechanic", "Paramedic", "Teacher", "Police Officer", "Doctor", "Nurse",
+    "Software Engineer", "Graphic Designer", "Civil Engineer", "Biologist", "Chemist", "Astronomer", "Musician", "Actor", "Dancer", "Author",
+    "Plumber", "Welder", "Tailor", "Farmer", "Fisherman", "Gardener", "Tour Guide", "Coach", "Lifeguard", "Meteorologist",
+    "Real Estate Agent", "Banker", "Accountant", "Lawyer", "Politician", "Diplomat", "Translator", "Fashion Designer", "Florist", "Sommelier",
+    "News Anchor", "Stunt Performer", "Video Game Designer", "Curator", "Sound Engineer", "Roboticist", "Oceanographer", "Paleontologist"
   ],
   "Famous Landmarks": [
     "Colosseum", "Eiffel Tower", "Stonehenge", "Taj Mahal", "Niagara Falls", "Machu Picchu", "Parthenon", "Big Ben", "Pyramids", "Angkor Wat",
-    "Golden Gate Bridge", "Mount Everest", "Statue of Liberty", "Great Wall of China", "Sydney Opera House", "Grand Canyon", "Mount Fuji", "Christ the Redeemer", "Leaning Tower of Pisa"
+    "Golden Gate Bridge", "Mount Everest", "Statue of Liberty", "Great Wall of China", "Sydney Opera House", "Grand Canyon", "Mount Fuji", "Christ the Redeemer", "Leaning Tower of Pisa", "Burj Khalifa",
+    "Sagrada Familia", "Louvre Museum", "Times Square", "Empire State Building", "Central Park", "Hollywood Sign", "Alcatraz Island", "Mount Rushmore", "Yellowstone", "Yosemite Falls",
+    "Victoria Falls", "Table Mountain", "Petra", "Acropolis", "Neuschwanstein Castle", "Brandenburg Gate", "St. Peter's Basilica", "Vatican City", "Kremlin", "Red Square",
+    "Santorini", "Blue Mosque", "Hagia Sophia", "Tower of London", "Buckingham Palace", "Giant's Causeway", "Loch Ness", "Galapagos Islands", "Amazon Rainforest", "Mount Kilimanjaro"
   ],
   Sports: [
     "Badminton", "Surfing", "Archery", "Fencing", "Gymnastics", "Polo", "Curling", "Bobsled", "Lacrosse", "Squash",
     "Basketball", "Volleyball", "Skateboarding", "Snowboarding", "Table Tennis", "Rugby", "Cricket", "Ice Hockey", "Boxing", "Bowling",
-    "Rock Climbing", "Water Polo", "Karate", "Darts"
+    "Rock Climbing", "Water Polo", "Karate", "Darts", "Soccer", "Tennis", "Baseball", "American Football", "Golf", "Swimming",
+    "Track and Field", "Marathon", "High Jump", "Pole Vault", "Rowing", "Canoeing", "Kayaking", "Sailing", "Scuba Diving", "Snorkeling",
+    "Skiing", "Figure Skating", "Speed Skating", "Snowmobile", "Wrestling", "Judo", "Taekwondo", "Kickboxing", "Muay Thai", "Weightlifting",
+    "Cycling", "Triathlon", "BMX", "Horse Racing", "Equestrian", "Handball", "Pickleball", "Softball", "Ultimate Frisbee", "Paintball"
   ],
   Superheroes: [
     "Batman", "Wolverine", "Black Widow", "Flash", "Thor", "Wonder Woman", "Iron Man", "Deadpool", "Aquaman", "Storm",
-    "Spider-Man", "Captain America", "Hulk", "Doctor Strange", "Black Panther", "Superman", "Green Lantern", "Robin", "Hawkeye", "Groot"
+    "Spider-Man", "Captain America", "Hulk", "Doctor Strange", "Black Panther", "Superman", "Green Lantern", "Robin", "Hawkeye", "Groot",
+    "Rocket Raccoon", "Star-Lord", "Gamora", "Drax", "Ant-Man", "Wasp", "Captain Marvel", "Scarlet Witch", "Vision", "Falcon",
+    "Winter Soldier", "War Machine", "Shang-Chi", "Moon Knight", "Daredevil", "Punisher", "Ghost Rider", "Blade", "Silver Surfer", "Professor X",
+    "Magneto", "Mystique", "Cyclops", "Jean Grey", "Rogue", "Gambit", "Beast", "Nightcrawler", "Joker", "Harley Quinn",
+    "Catwoman", "Penguin", "Riddler", "Two-Face", "Bane", "Thanos", "Loki", "Venom", "Green Goblin", "Doc Ock"
   ],
   "School Subjects": [
     "Algebra", "Biology", "Literature", "Geography", "Chemistry", "Philosophy", "Economics", "Physics", "History", "Music",
-    "Art", "Geometry", "Astronomy", "Drama", "Psychology", "Sociology", "Computer Science", "Languages", "Calculus", "Anthropology"
+    "Art", "Geometry", "Astronomy", "Drama", "Psychology", "Sociology", "Computer Science", "Languages", "Calculus", "Anthropology",
+    "Statistics", "Trigonometry", "Creative Writing", "Journalism", "World History", "Civics", "Government", "Environmental Science", "Earth Science", "Microbiology",
+    "Genetics", "Botany", "Zoology", "Anatomy", "Physiology", "Physical Education", "Health Class", "Debate", "Public Speaking", "Media Studies",
+    "Photography", "Sculpture", "Graphic Arts", "Ceramics", "Choir", "Orchestra", "Band", "Dance", "Culinary Arts", "Woodworking"
   ],
   "Science & Nature": [
     "Volcano", "Tsunami", "Galaxy", "Black Hole", "Telescope", "Microscope", "Fossil", "DNA", "Eclipse", "Atmosphere",
-    "Lightning", "Aurora", "Constellation", "Glacier", "Meteorite", "Gravity", "Rainforest", "Coral Reef"
+    "Lightning", "Aurora", "Constellation", "Glacier", "Meteorite", "Gravity", "Rainforest", "Coral Reef", "Supernova", "Asteroid",
+    "Comet", "Solar System", "Milky Way", "Nebula", "Satellite", "Space Station", "Earthquake", "Hurricane", "Tornado", "Geyser",
+    "Oasis", "Desert", "Canyon", "Waterfall", "Cave", "Stalactite", "Magma", "Lava", "Photosynthesis", "Chlorophyll",
+    "Ecosystem", "Food Chain", "Evolution", "Bacteria", "Virus", "Cell Nucleus", "Chromosome", "Atom", "Molecule", "Electron",
+    "Proton", "Neutron", "Quantum", "Magnetism", "Electricity", "Solar Energy", "Wind Turbine", "Greenhouse Effect", "Ozone Layer", "Acid Rain"
   ],
   "Music & Instruments": [
     "Violin", "Saxophone", "Drum Set", "Electric Guitar", "Ukulele", "Accordion", "Trumpet", "Clarinet", "Harp", "Harmonica",
-    "Cello", "Flute", "Keyboard", "Microphone", "Tambourine", "Trombone"
+    "Cello", "Flute", "Keyboard", "Microphone", "Tambourine", "Trombone", "Grand Piano", "Bass Guitar", "Acoustic Guitar", "Banjo",
+    "Mandolin", "Synthesizer", "Bongos", "Congas", "Xylophone", "Marimba", "Glockenspiel", "Triangle", "Cymbals", "Snare Drum",
+    "Bagpipes", "Didgeridoo", "Oboe", "Bassoon", "Piccolo", "French Horn", "Tuba", "Euphonium", "Lute", "Sitar",
+    "Composer", "Conductor", "Symphony", "Orchestra", "Melody", "Harmony", "Rhythm", "Tempo", "Metronome", "Headphones"
+  ],
+  "Vehicles & Transport": [
+    "Helicopter", "Submarine", "Hot Air Balloon", "Rocket", "Hovercraft", "Motorcycle", "Steam Train", "Bullet Train", "Bulldozer", "Ambulance",
+    "Fire Truck", "Police Car", "Bicycle", "Scooter", "Skateboard", "Rollerblades", "Cruise Ship", "Cargo Ship", "Sailboat", "Yacht",
+    "Jet Ski", "Ferry", "Kayak", "Canoe", "Tractor", "Excavator", "Dump Truck", "Forklift", "Garbage Truck", "Cement Mixer",
+    "School Bus", "Double Decker Bus", "Limousine", "Taxi", "Golf Cart", "Snowmobile", "Go-Kart", "Monster Truck", "Convertible", "Spaceship",
+    "Space Shuttle", "Rover", "Glider", "Biplane", "Zeppelin", "Cable Car", "Monorail", "Subway Train", "Gondola", "Tugboat"
+  ],
+  "Fruits & Vegetables": [
+    "Watermelon", "Pineapple", "Strawberry", "Blueberry", "Raspberry", "Blackberry", "Kiwi", "Pomegranate", "Papaya", "Dragonfruit",
+    "Passion Fruit", "Cantaloupe", "Honeydew", "Peach", "Plum", "Apricot", "Nectarine", "Cherry", "Grapefruit", "Tangerine",
+    "Clementine", "Coconut", "Guava", "Fig", "Date", "Lychee", "Starfruit", "Broccoli", "Cauliflower", "Asparagus",
+    "Artichoke", "Zucchini", "Eggplant", "Bell Pepper", "Jalapeno", "Spinach", "Kale", "Lettuce", "Cabbage", "Brussels Sprouts",
+    "Celery", "Cucumber", "Carrot", "Radish", "Beetroot", "Turnip", "Sweet Potato", "Pumpkin", "Butternut Squash", "Corn on the Cob"
+  ],
+  "Fairy Tales & Fantasy": [
+    "Dragon", "Unicorn", "Phoenix", "Mermaid", "Centaur", "Pegasus", "Griffin", "Wizard", "Witch", "Fairy Godmother",
+    "Magic Wand", "Crystal Ball", "Flying Carpet", "Magic Lamp", "Genie", "Castle", "Dungeon", "Moat", "Drawbridge", "Treasure Chest",
+    "Enchanted Forest", "Potion", "Spellbook", "Cauldron", "Knight in Armor", "Excalibur", "Shield", "Crown", "Throne", "Mirror Mirror",
+    "Glass Slipper", "Golden Goose", "Magic Beans", "Spinning Wheel", "Poison Apple", "Gingerbread Man", "Seven Dwarfs", "Big Bad Wolf", "Three Little Pigs", "Goldilocks",
+    "Rapunzel's Tower", "Sleeping Beauty", "Beast's Rose", "Jack and the Beanstalk", "Cinderella's Carriage", "Robin Hood", "King Arthur", "Merlin", "Gnome", "Goblin"
+  ],
+  "Hobbies & Games": [
+    "Origami", "Pottery", "Knitting", "Painting", "Calligraphy", "Bird Watching", "Gardening", "Stargazing", "Baking", "Woodworking",
+    "Chess", "Checkers", "Scrabble", "Monopoly", "Jigsaw Puzzle", "Crossword", "Sudoku", "Rubik's Cube", "Lego Building", "Video Games",
+    "Board Games", "Card Tricks", "Magic Tricks", "Juggling", "Kite Flying", "Camping", "Hiking", "Fishing", "Photography", "Scrapbooking",
+    "Candle Making", "Soap Making", "Jewelry Making", "Model Airplane", "Drone Flying", "Collect Stamps", "Coin Collecting", "Escape Room", "Laser Tag", "Bowling",
+    "Billiards", "Foosball", "Air Hockey", "Ping Pong", "Karaoke", "Cosplay", "Geocaching", "Target Shooting", "Roller Skating", "Ice Sculpting"
   ]
 };
 
