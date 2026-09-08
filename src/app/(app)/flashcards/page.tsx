@@ -542,10 +542,10 @@ export default function FlashcardsPage() {
   };
 
   return (
-    <div className="relative min-h-[85vh] w-full py-4 px-2 md:px-6">
+    <div className="relative -m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col py-6 px-4 md:px-8">
       <ConstellationCanvas />
 
-      <div className="w-full max-w-full px-4 md:px-8 mx-auto relative z-10 space-y-6">
+      <div className="w-full max-w-full mx-auto relative z-10 space-y-6 flex-1 flex flex-col">
         <header className="text-center space-y-2 select-none">
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight font-sans bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
             Dynamic Flashcard Generator

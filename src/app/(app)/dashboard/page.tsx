@@ -163,7 +163,7 @@ function DashboardPageComponent() {
 
   if (isAdmin) {
     return (
-      <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-6 animate-in fade-in duration-500">
         {/* Bento Grid Header */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Welcome Admin Box */}
@@ -286,7 +286,7 @@ function DashboardPageComponent() {
 
   // Default dashboard for regular users
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-6 animate-in fade-in duration-500">
       {/* Bento Grid Header */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Welcome Card Box */}

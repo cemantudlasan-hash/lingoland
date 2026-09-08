@@ -118,7 +118,7 @@ export default function RubricsPage() {
   }, [scores]);
 
   return (
-    <div className="space-y-8">
+    <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-8">
       <Card className="print-hidden">
         <CardHeader
           className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white"

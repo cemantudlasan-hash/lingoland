@@ -164,7 +164,7 @@ export default function MyPostingsPage() {
     
     if (!user) {
          return (
-             <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full gap-4 border border-dashed rounded-lg p-12">
+             <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 text-center text-muted-foreground flex flex-col items-center justify-center gap-4 border border-dashed rounded-lg p-12">
                 <Briefcase className="h-16 w-16" />
                 <h3 className="text-xl font-bold">Please log in</h3>
                 <p>You need to be logged in to view your job postings.</p>
@@ -177,7 +177,7 @@ export default function MyPostingsPage() {
 
     if (!userJobs || userJobs.length === 0) {
         return (
-             <div className="text-center text-muted-foreground flex flex-col items-center justify-center h-full gap-4 border border-dashed rounded-lg p-12">
+             <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 text-center text-muted-foreground flex flex-col items-center justify-center gap-4 border border-dashed rounded-lg p-12">
                 <Briefcase className="h-16 w-16" />
                 <h3 className="text-xl font-bold">You haven't posted any jobs yet.</h3>
                 <p>Post a job on the job board to see it here.</p>
@@ -189,8 +189,8 @@ export default function MyPostingsPage() {
     }
 
     return (
-        <>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 md:p-6 lg:p-8">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 flex-1">
                 <div className="md:col-span-4 lg:col-span-3 space-y-2">
                      <h2 className="text-xl font-bold px-4">Your Job Postings ({userJobs.length})</h2>
                      <Card className="p-2 max-h-[70vh] overflow-y-auto">
@@ -251,6 +251,6 @@ export default function MyPostingsPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </>
+        </div>
     )
 }

@@ -155,7 +155,7 @@ export function GeneratorForm() {
 
   return (
     <Form {...form}>
-        <div className="space-y-8">
+        <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-8">
             {/* Redesigned Header & Form Card */}
             <Card className="border border-slate-800 bg-slate-900/60 backdrop-blur-md text-white rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-top duration-500">
             <CardHeader className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white p-6 md:p-8 rounded-t-3xl border-b border-white/10">
