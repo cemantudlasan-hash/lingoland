@@ -120,7 +120,7 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
   const Icon = game.icon;
 
   return (
-    <Card className={cn("w-full transition-all duration-500 flex flex-col", isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-background" : "h-full rounded-none border-x-0 border-t-0 overflow-y-auto")}>
+    <Card className={cn("w-full transition-all duration-500 flex flex-col", isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-background" : "rounded-none border-x-0 border-t-0")}>
       <CardHeader className="text-center relative pb-2">
         <Button variant="ghost" size="sm" className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]" onClick={onToggleFullscreen}>
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
@@ -134,7 +134,7 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
         <CardDescription className={cn(isFullscreen && "text-xl mt-1")}>{game.description}</CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-5 px-4 pb-4 flex-1 overflow-y-auto">
+      <CardContent className="space-y-5 px-4 pb-4">
         {/* DISPLAY PANEL */}
         <div className={cn("relative flex flex-col items-center justify-center rounded-2xl border-2 border-border/30 bg-black/60", isFullscreen ? "py-12 gap-6" : "py-6 gap-4")}>
           <div className={cn("rounded-xl px-8 py-4 text-center font-black tracking-widest uppercase border border-primary/30 bg-primary/10", isFullscreen ? "text-5xl" : "text-2xl")} style={{ color: "var(--primary)" }}>
