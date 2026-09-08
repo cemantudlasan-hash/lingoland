@@ -25,13 +25,63 @@ export const isSafe = (text: string): boolean => {
   return !ADULT_REGEXES.some(regex => regex.test(text));
 };
 
-export const enhanceQuery = (query: string): string => {
-  const clean = query.toLowerCase().trim();
-  const eduTerms = ['diagram', 'chart', 'clipart', 'illustration', 'worksheet', 'educational', 'classroom', 'school', 'science', 'math', 'study', 'teaching', 'infographic'];
-  if (eduTerms.some(term => clean.includes(term))) {
-    return query;
+const NON_ENGLISH_SCRIPTS_REGEX = /[\u0400-\u04FF\u0600-\u06FF\u0E00-\u0E7F\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0900-\u097F\u0590-\u05FF]/;
+
+const NON_ENGLISH_OR_WORKSHEET_KEYWORDS = [
+  'lembar', 'kerja', 'peserta', 'didik', 'soal', 'tugas', 'jawaban', 'latihan',
+  'kurikulum', 'pembelajaran', 'bahasa', 'kelas', 'kunci', 'ulangan', 'ujian',
+  'sekolah', 'modul', 'rangkuman', 'materiku', 'belajar', 'pendidikan', 'siswa',
+  'guru', 'materi', 'sd', 'smp', 'sma', 'smk', 'buku', 'tematik', 'rpp', 'silabus',
+  'ejercicio', 'ficha', 'devoir', 'hausaufgabe', 'compito'
+];
+
+const FOREIGN_WORKSHEET_DOMAINS = [
+  'liveworksheets.com', 'studocu.com', 'id.scribd.com', 'scribd.com/document',
+  'docplayer.info', 'roboguru', 'ruangguru', 'brainly.co.id', 'brainly.com',
+  'quipper.com', 'zenius.net', 'kumpulan-soal', 'gurubagi.com', 'duniapendidikan',
+  'kemdikbud.go.id', 'academia.edu/attachment'
+];
+
+export const isEnglishAndSafe = (url: string, title: string = ''): boolean => {
+  if (!isSafe(url) || !isSafe(title)) return false;
+
+  const lowerTitle = (title || '').toLowerCase();
+  const lowerUrl = (url || '').toLowerCase();
+
+  // 1. Reject non-Latin scripts (Cyrillic, Arabic, Chinese, Japanese, Korean, Thai, Hindi, etc.)
+  if (NON_ENGLISH_SCRIPTS_REGEX.test(title)) return false;
+
+  // 2. Reject foreign educational worksheets domains
+  if (FOREIGN_WORKSHEET_DOMAINS.some(domain => lowerUrl.includes(domain))) return false;
+
+  // 3. Reject foreign language educational/worksheet keywords in title or URL
+  for (const word of NON_ENGLISH_OR_WORKSHEET_KEYWORDS) {
+    const wordRegex = new RegExp(`(^|[^a-z0-9])${word}([^a-z0-9]|$)`, 'i');
+    if (wordRegex.test(lowerTitle) || wordRegex.test(lowerUrl)) {
+      return false;
+    }
   }
-  return `${query} educational clipart diagram`;
+
+  // 4. Reject worksheets / printables if query didn't ask for them
+  if (lowerUrl.includes('liveworksheets') || lowerTitle.includes('lembar kerja') || lowerTitle.includes('peserta didik')) {
+    return false;
+  }
+
+  return true;
+};
+
+export const cleanQuery = (query: string): string => {
+  return query
+    .replace(/\b(worksheet|clipart|diagram|lembar|kerja|soal|tugas|peserta|didik)\b/gi, '')
+    .replace(/[^\w\s-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+export const enhanceQuery = (query: string): string => {
+  const cleaned = cleanQuery(query);
+  if (!cleaned) return query;
+  return `${cleaned} photo`;
 };
 
 // High-accuracy Curated "Storage" Image Database for ambiguous terms
@@ -47,19 +97,22 @@ const AVAILABLE_IMAGES_STORAGE: Record<string, string> = {
 };
 
 const checkStorageImage = (query: string): string | null => {
-  const cleanQuery = query.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
-  return AVAILABLE_IMAGES_STORAGE[cleanQuery] || null;
+  const cleaned = query.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+  return AVAILABLE_IMAGES_STORAGE[cleaned] || null;
 };
 
-// Robust Google Images scraper
+const NEGATIVE_EXCLUSIONS = ' -lembar -kerja -soal -tugas -jawaban -kurikulum -kelas -latihan -materi -peserta -didik -pembelajaran -liveworksheets -studocu';
+
+// Robust Google Images scraper with strict English localization
 const tryGoogleImages = async (query: string, count: number = 10) => {
   try {
-    const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&safe=active`;
+    const cleaned = cleanQuery(query) || query;
+    const url = `https://www.google.com/search?q=${encodeURIComponent(cleaned + NEGATIVE_EXCLUSIONS)}&tbm=isch&safe=active&hl=en&gl=us&lr=lang_en&cr=countryUS`;
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Language': 'en-US,en;q=1.0',
       }
     });
 
@@ -85,11 +138,11 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
       const imageUrl = match[1];
       if (imageUrl && !seenUrls.has(imageUrl) && !imageUrl.includes('gstatic.com')) {
         const title = `${query} image`;
-        if (isSafe(imageUrl) && isSafe(title)) {
+        if (isEnglishAndSafe(imageUrl, title)) {
           seenUrls.add(imageUrl);
           images.push({
             url: imageUrl,
-            thumb: gstaticUrls[idx] || imageUrl, // Pair with sequential gstatic thumbnail!
+            thumb: gstaticUrls[idx] || imageUrl,
             engine: 'google',
             title: title,
           });
@@ -107,7 +160,7 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
           const decodedUrl = decodeURIComponent(match[1]);
           if (decodedUrl && !seenUrls.has(decodedUrl)) {
             const title = `${query} image`;
-            if (isSafe(decodedUrl) && isSafe(title)) {
+            if (isEnglishAndSafe(decodedUrl, title)) {
               seenUrls.add(decodedUrl);
               images.push({
                 url: decodedUrl,
@@ -127,7 +180,7 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
     if (images.length === 0) {
       gstaticUrls.forEach((thumbUrl) => {
         if (thumbUrl && !seenUrls.has(thumbUrl)) {
-          if (isSafe(thumbUrl)) {
+          if (isEnglishAndSafe(thumbUrl)) {
             seenUrls.add(thumbUrl);
             images.push({
               url: thumbUrl,
@@ -148,8 +201,8 @@ const tryGoogleImages = async (query: string, count: number = 10) => {
 };
 
 const tryGoogleSingleImage = async (query: string) => {
-  const enhanced = enhanceQuery(query);
-  let results = await tryGoogleImages(enhanced, 1);
+  // First search direct clean query for highest topic accuracy
+  let results = await tryGoogleImages(query, 1);
   if (results && results.length > 0) {
     return {
       imageUrl: results[0].url,
@@ -157,7 +210,9 @@ const tryGoogleSingleImage = async (query: string) => {
       engine: 'google',
     };
   }
-  results = await tryGoogleImages(query, 1);
+  // Fallback to query with "photo"
+  const enhanced = enhanceQuery(query);
+  results = await tryGoogleImages(enhanced, 1);
   if (results && results.length > 0) {
     return {
       imageUrl: results[0].url,
@@ -190,7 +245,7 @@ const tryUnsplashRaw = async (query: string) => {
   for (const firstResult of results) {
     const imageUrl = firstResult.urls?.small || firstResult.urls?.regular;
     const title = firstResult.alt_description || '';
-    if (imageUrl && isSafe(imageUrl) && isSafe(title)) {
+    if (imageUrl && isEnglishAndSafe(imageUrl, title)) {
       return { imageUrl, engine: 'unsplash' };
     }
   }
@@ -198,10 +253,11 @@ const tryUnsplashRaw = async (query: string) => {
 };
 
 const tryUnsplash = async (query: string) => {
-  const enhanced = enhanceQuery(query);
-  const enhancedResult = await tryUnsplashRaw(enhanced);
-  if (enhancedResult) return enhancedResult;
-  return await tryUnsplashRaw(query);
+  const cleaned = cleanQuery(query) || query;
+  const directResult = await tryUnsplashRaw(cleaned);
+  if (directResult) return directResult;
+  const enhanced = enhanceQuery(cleaned);
+  return await tryUnsplashRaw(enhanced);
 };
 
 const tryWikipediaPageImage = async (query: string) => {
@@ -220,7 +276,7 @@ const tryWikipediaPageImage = async (query: string) => {
   if (pageKeys.length > 0 && pageKeys[0] !== '-1') {
     const page = pages[pageKeys[0]];
     const imageUrl = page.original?.source;
-    if (imageUrl && isSafe(imageUrl)) {
+    if (imageUrl && isEnglishAndSafe(imageUrl, page.title || query)) {
       return { imageUrl, engine: 'wikipedia' };
     }
   }
@@ -244,7 +300,7 @@ const tryWikipediaSearchImage = async (query: string) => {
   if (pageKeys.length > 0) {
     const page = pages[pageKeys[0]];
     const imageUrl = page.original?.source;
-    if (imageUrl && isSafe(imageUrl)) {
+    if (imageUrl && isEnglishAndSafe(imageUrl, page.title || query)) {
       return { imageUrl, engine: 'wikipedia-search' };
     }
   }

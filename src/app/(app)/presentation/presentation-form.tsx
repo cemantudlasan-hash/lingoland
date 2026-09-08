@@ -262,7 +262,7 @@ export function PresentationForm() {
 
   // New visual and animation control options
   const [insertPhotos, setInsertPhotos] = React.useState(true);
-  const [photoSource, setPhotoSource] = React.useState<'google' | 'bing' | 'pinterest'>('google');
+  const [photoSource, setPhotoSource] = React.useState<'google' | 'bing' | 'pinterest' | 'unsplash'>('google');
   const [enable3D, setEnable3D] = React.useState(true);
   const [slidePhotos, setSlidePhotos] = React.useState<{ [key: number]: string }>({});
   const [isDownloadingPptx, setIsDownloadingPptx] = React.useState(false);
@@ -1066,12 +1066,25 @@ export function PresentationForm() {
         const fetchedPhotos: { [key: number]: string } = {};
         await Promise.all(
           result.slides.map(async (slide, idx) => {
-            const query = slide.imageQuery || slide.title || values.topic || "learning";
+            let query = (slide.imageQuery || '').trim();
+            if (!query || query.length < 3) {
+              query = `${values.topic || ''} ${slide.title || ''}`.trim();
+            } else if (values.topic && !query.toLowerCase().includes(values.topic.toLowerCase().split(' ')[0])) {
+              query = `${values.topic} ${query}`.trim();
+            }
+            query = query.replace(/\b(worksheet|clipart|diagram|slides?|presentation|soal|tugas|lembar)\b/gi, '').trim() || "education photo";
             try {
-              const res = await fetch(`/api/image-picker?query=${encodeURIComponent(query)}&source=${photoSource}&count=1`);
-              const data = await res.json();
+              let res = await fetch(`/api/image-picker?query=${encodeURIComponent(query)}&source=${photoSource}&count=1`);
+              let data = await res.json();
               if (data.success && data.images && data.images.length > 0) {
                 fetchedPhotos[idx] = data.images[0].url;
+              } else if (photoSource !== 'unsplash') {
+                // Fallback to Unsplash for guaranteed high-definition English photography
+                res = await fetch(`/api/image-picker?query=${encodeURIComponent(query)}&source=unsplash&count=1`);
+                data = await res.json();
+                if (data.success && data.images && data.images.length > 0) {
+                  fetchedPhotos[idx] = data.images[0].url;
+                }
               }
             } catch (err) {
               console.error("Failed to fetch image for slide " + idx, err);
@@ -3156,6 +3169,7 @@ onClick={() => setShowImageModal(false)}
                                 <SelectContent className="bg-slate-950 border-slate-800 text-slate-350 text-xs">
                                   <SelectItem value="google">Google Images</SelectItem>
                                   <SelectItem value="bing">Bing Images</SelectItem>
+                                  <SelectItem value="unsplash">Unsplash (High-Def)</SelectItem>
                                   <SelectItem value="pinterest">Pinterest</SelectItem>
                                 </SelectContent>
                               </Select>

@@ -321,7 +321,7 @@ const fetchUnsplashImages = async (query: string, count: number = 12) => {
       thumb: result.urls?.thumb,
       engine: 'unsplash',
       title: result.alt_description || `${query} image`,
-    })).filter((img: any) => img.url && isSafe(img.url) && isSafe(img.title));
+    })).filter((img: any) => img.url && isEnglishAndSafe(img.url, img.title));
   } catch (error) {
     console.error('Unsplash picker fetch failed:', error);
     return [];
@@ -330,13 +330,14 @@ const fetchUnsplashImages = async (query: string, count: number = 12) => {
 
 const fetchBingImages = async (query: string, count: number = 12, engineName: string = 'bing') => {
   try {
+    const cleaned = cleanQuery(query) || query;
     const response = await fetch(
-      `https://www.bing.com/images/search?q=${encodeURIComponent(query)}&adlt=strict`,
+      `https://www.bing.com/images/search?q=${encodeURIComponent(cleaned + NEGATIVE_EXCLUSIONS)}&adlt=strict&setlang=en-us&cc=US&ensearch=1`,
       {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Language': 'en-US,en;q=1.0',
         }
       }
     );
@@ -355,7 +356,7 @@ const fetchBingImages = async (query: string, count: number = 12, engineName: st
         const data = JSON.parse(decodedJson);
         if (data.murl && !seenUrls.has(data.murl)) {
           const title = data.desc || `${query} image`;
-          if (isSafe(data.murl) && isSafe(title)) {
+          if (isEnglishAndSafe(data.murl, title)) {
             seenUrls.add(data.murl);
             images.push({
               url: data.murl,
@@ -395,13 +396,65 @@ export const isSafe = (text: string): boolean => {
   return !ADULT_REGEXES.some(regex => regex.test(text));
 };
 
-export const enhanceQuery = (query: string): string => {
-  const clean = query.toLowerCase().trim();
-  const eduTerms = ['diagram', 'chart', 'clipart', 'illustration', 'worksheet', 'educational', 'classroom', 'school', 'science', 'math', 'study', 'teaching', 'infographic'];
-  if (eduTerms.some(term => clean.includes(term))) {
-    return query;
+const NON_ENGLISH_SCRIPTS_REGEX = /[\u0400-\u04FF\u0600-\u06FF\u0E00-\u0E7F\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0900-\u097F\u0590-\u05FF]/;
+
+const NON_ENGLISH_OR_WORKSHEET_KEYWORDS = [
+  'lembar', 'kerja', 'peserta', 'didik', 'soal', 'tugas', 'jawaban', 'latihan',
+  'kurikulum', 'pembelajaran', 'bahasa', 'kelas', 'kunci', 'ulangan', 'ujian',
+  'sekolah', 'modul', 'rangkuman', 'materiku', 'belajar', 'pendidikan', 'siswa',
+  'guru', 'materi', 'sd', 'smp', 'sma', 'smk', 'buku', 'tematik', 'rpp', 'silabus',
+  'ejercicio', 'ficha', 'devoir', 'hausaufgabe', 'compito'
+];
+
+const FOREIGN_WORKSHEET_DOMAINS = [
+  'liveworksheets.com', 'studocu.com', 'id.scribd.com', 'scribd.com/document',
+  'docplayer.info', 'roboguru', 'ruangguru', 'brainly.co.id', 'brainly.com',
+  'quipper.com', 'zenius.net', 'kumpulan-soal', 'gurubagi.com', 'duniapendidikan',
+  'kemdikbud.go.id', 'academia.edu/attachment'
+];
+
+export const isEnglishAndSafe = (url: string, title: string = ''): boolean => {
+  if (!isSafe(url) || !isSafe(title)) return false;
+
+  const lowerTitle = (title || '').toLowerCase();
+  const lowerUrl = (url || '').toLowerCase();
+
+  // 1. Reject non-Latin scripts (Cyrillic, Arabic, Chinese, Japanese, Korean, Thai, Hindi, etc.)
+  if (NON_ENGLISH_SCRIPTS_REGEX.test(title)) return false;
+
+  // 2. Reject foreign educational worksheets domains
+  if (FOREIGN_WORKSHEET_DOMAINS.some(domain => lowerUrl.includes(domain))) return false;
+
+  // 3. Reject foreign language educational/worksheet keywords in title or URL
+  for (const word of NON_ENGLISH_OR_WORKSHEET_KEYWORDS) {
+    const wordRegex = new RegExp(`(^|[^a-z0-9])${word}([^a-z0-9]|$)`, 'i');
+    if (wordRegex.test(lowerTitle) || wordRegex.test(lowerUrl)) {
+      return false;
+    }
   }
-  return `${query} educational clipart diagram`;
+
+  // 4. Reject worksheets / printables if query didn't ask for them
+  if (lowerUrl.includes('liveworksheets') || lowerTitle.includes('lembar kerja') || lowerTitle.includes('peserta didik')) {
+    return false;
+  }
+
+  return true;
+};
+
+const NEGATIVE_EXCLUSIONS = ' -lembar -kerja -soal -tugas -jawaban -kurikulum -kelas -latihan -materi -peserta -didik -pembelajaran -liveworksheets -studocu';
+
+export const cleanQuery = (query: string): string => {
+  return query
+    .replace(/\b(worksheet|clipart|diagram|lembar|kerja|soal|tugas|peserta|didik)\b/gi, '')
+    .replace(/[^\w\s-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+export const enhanceQuery = (query: string): string => {
+  const cleaned = cleanQuery(query);
+  if (!cleaned) return query;
+  return `${cleaned} photo`;
 };
 
 // High-accuracy Curated "Storage" Image Database for ambiguous terms
@@ -417,19 +470,20 @@ const AVAILABLE_IMAGES_STORAGE: Record<string, string> = {
 };
 
 const checkStorageImage = (query: string): string | null => {
-  const cleanQuery = query.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
-  return AVAILABLE_IMAGES_STORAGE[cleanQuery] || null;
+  const cleaned = query.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+  return AVAILABLE_IMAGES_STORAGE[cleaned] || null;
 };
 
-// Robust Google Images scraper for picker
+// Robust Google Images scraper for picker with strict English localization
 const fetchGoogleImages = async (query: string, count: number = 12) => {
   try {
-    const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&safe=active`;
+    const cleaned = cleanQuery(query) || query;
+    const url = `https://www.google.com/search?q=${encodeURIComponent(cleaned + NEGATIVE_EXCLUSIONS)}&tbm=isch&safe=active&hl=en&gl=us&lr=lang_en&cr=countryUS`;
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Language': 'en-US,en;q=1.0',
       }
     });
 
@@ -455,11 +509,11 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
       const imageUrl = match[1];
       if (imageUrl && !seenUrls.has(imageUrl) && !imageUrl.includes('gstatic.com')) {
         const title = `${query} image`;
-        if (isSafe(imageUrl) && isSafe(title)) {
+        if (isEnglishAndSafe(imageUrl, title)) {
           seenUrls.add(imageUrl);
           images.push({
             url: imageUrl,
-            thumb: gstaticUrls[idx] || imageUrl, // Pair with sequential gstatic thumbnail!
+            thumb: gstaticUrls[idx] || imageUrl,
             engine: 'google',
             title: title,
           });
@@ -477,7 +531,7 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
           const decodedUrl = decodeURIComponent(match[1]);
           if (decodedUrl && !seenUrls.has(decodedUrl)) {
             const title = `${query} image`;
-            if (isSafe(decodedUrl) && isSafe(title)) {
+            if (isEnglishAndSafe(decodedUrl, title)) {
               seenUrls.add(decodedUrl);
               images.push({
                 url: decodedUrl,
@@ -497,7 +551,7 @@ const fetchGoogleImages = async (query: string, count: number = 12) => {
     if (images.length === 0) {
       gstaticUrls.forEach((thumbUrl) => {
         if (thumbUrl && !seenUrls.has(thumbUrl)) {
-          if (isSafe(thumbUrl)) {
+          if (isEnglishAndSafe(thumbUrl)) {
             seenUrls.add(thumbUrl);
             images.push({
               url: thumbUrl,
@@ -537,9 +591,9 @@ const fetchImagesForSourceRaw = async (query: string, source: string, count: num
   } else {
     images = await fetchUnsplashImages(query, count);
     if (images.length === 0) {
-      images = await fetchBingImages(`site:unsplash.com ${query}`, count, 'unsplash');
+      images = await fetchGoogleImages(`${query} photo`, count);
       if (images.length === 0) {
-        images = await fetchBingImages(query, count, 'unsplash');
+        images = await fetchBingImages(`${query} photo`, count, 'unsplash');
       }
     }
   }
@@ -548,17 +602,17 @@ const fetchImagesForSourceRaw = async (query: string, source: string, count: num
 
 const fetchImagesHelper = async (query: string, source: string, count: number) => {
   const lowerSource = source.toLowerCase();
+  const cleaned = cleanQuery(query) || query;
   
-  // 1. Try with enhanced query first
-  const enhancedQuery = enhanceQuery(query);
-  let searchResults = await fetchImagesForSourceRaw(enhancedQuery, lowerSource, count);
+  // 1. Prioritize direct clean query for authentic topic accuracy
+  let searchResults = await fetchImagesForSourceRaw(cleaned, lowerSource, count);
   
-  // 2. If enhanced query returned fewer than 4 images, try a milder enhancement
+  // 2. If fewer than 4 images, try subtle photo enhancement
   if (searchResults.length < Math.min(4, count)) {
-    const milderQuery = `${query} educational`;
-    const milderResults = await fetchImagesForSourceRaw(milderQuery, lowerSource, count);
+    const photoQuery = `${cleaned} photo`;
+    const photoResults = await fetchImagesForSourceRaw(photoQuery, lowerSource, count);
     const seenUrls = new Set(searchResults.map(img => img.url));
-    for (const img of milderResults) {
+    for (const img of photoResults) {
       if (!seenUrls.has(img.url)) {
         searchResults.push(img);
         seenUrls.add(img.url);
@@ -566,16 +620,10 @@ const fetchImagesHelper = async (query: string, source: string, count: number) =
     }
   }
   
-  // 3. Fallback to original query (with strict filters and SafeSearch)
-  if (searchResults.length < Math.min(4, count)) {
-    const originalResults = await fetchImagesForSourceRaw(query, lowerSource, count);
-    const seenUrls = new Set(searchResults.map(img => img.url));
-    for (const img of originalResults) {
-      if (!seenUrls.has(img.url)) {
-        searchResults.push(img);
-        seenUrls.add(img.url);
-      }
-    }
+  // 3. If still empty on Google/Bing, fallback to Unsplash for guaranteed English photos
+  if (searchResults.length === 0 && lowerSource !== 'unsplash') {
+    const unsplashResults = await fetchUnsplashImages(cleaned, count);
+    searchResults = unsplashResults;
   }
 
   // Prepend high-accuracy Curated "Storage" Image if matched!

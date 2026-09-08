@@ -9,9 +9,9 @@ import {ai} from '@/ai/genkit';
 import { z } from 'zod';
 
 const SlideSchema = z.object({
-  title: z.string().describe('The title of the slide.'),
-  content: z.array(z.string()).describe('An array of bullet points for the slide content. Each bullet point should be a complete sentence and be concise.'),
-  imageQuery: z.string().optional().describe('A 1-3 word search query to find a photo related to this slide content.'),
+  title: z.string().describe('The title of the slide in English.'),
+  content: z.array(z.string()).describe('An array of bullet points for the slide content in English. Each bullet point should be a complete sentence and be concise.'),
+  imageQuery: z.string().optional().describe('A precise 2-4 word English search query to find a high-quality photograph or realistic illustration directly depicting this slide subject (e.g., "morning routine breakfast people", "solar system earth space", "doctor healthcare clinic"). Must be strictly English only. Never use meta words like "slide", "presentation", "clipart", "worksheet", "diagram", "image", or foreign words.'),
   threeDObjectStyle: z.string().optional().describe('A suggested 3D object shape/color/style for this slide background (e.g. "floating gold cube", "cyan neon sphere", "bouncing blue torus", "spinning green cone").'),
 });
 
@@ -41,7 +41,7 @@ const prompt = ai.definePrompt({
   name: 'generatePresentationPrompt',
   input: {schema: GeneratePresentationInputSchema},
   output: {schema: GeneratePresentationOutputSchema},
-  prompt: `You are an expert at creating concise and informative presentations for English language learners.
+  prompt: `You are an expert at creating concise, informative, and visually engaging presentations for English language learners. All generated text must be strictly in English.
   
   {{#if documentText}}
   Generate a presentation based on the following uploaded document/lesson plan (Document name: {{documentName}}):
@@ -56,9 +56,13 @@ const prompt = ai.definePrompt({
   The presentation should have a main title and exactly {{slideCount}} slides.
   
   For each slide:
-  1. Provide a short, clear title and a list of 3-5 bullet points.
+  1. Provide a short, clear title and a list of 3-5 bullet points in English.
   2. The content should be easy to understand, grammatically correct, and well-structured.
-  3. Provide an 'imageQuery' representing a 1-3 word search query to find a photo related to the slide's content.
+  3. Provide an 'imageQuery' representing 2-4 descriptive English keywords to find a high-quality, authentic photograph directly visualizing the specific subject and topic of this slide (e.g. if the slide is about "Daily Routines", use "daily morning routine people" or "healthy breakfast lifestyle").
+     CRITICAL RULES FOR imageQuery:
+     - Must be in the English language ONLY. No other languages or regional terms.
+     - Must accurately and specifically depict the topic concept.
+     - NEVER include words like "worksheet", "clipart", "diagram", "slide", "test", "assignment", "page", or non-English terms.
   4. Provide a 'threeDObjectStyle' indicating a 3D element style to render in the background (e.g. "floating gold cube", "cyan neon sphere", "bouncing blue torus").
   
   Start with an introduction slide and end with a conclusion slide.
