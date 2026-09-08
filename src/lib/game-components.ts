@@ -153,4 +153,5 @@ export const gameComponentMap = {
   "draw-the-math": dynamic(() => import("@/components/games/draw-the-math").then((mod) => mod.DrawTheMath), { ssr: false }),
   "math-tug-of-war": dynamic(() => import("@/components/games/math-tug-of-war").then((mod) => mod.MathTugOfWar), { ssr: false }),
   "english-tug-of-war": dynamic(() => import("@/components/games/english-tug-of-war").then((mod) => mod.EnglishTugOfWar), { ssr: false }),
+  "genius-guesser": dynamic(() => import("@/components/games/genius-guesser").then((mod) => mod.GeniusGuesser)),
 };

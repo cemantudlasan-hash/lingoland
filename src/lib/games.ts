@@ -54,6 +54,7 @@ import {
   Newspaper,
   Rotate3d,
   Camera,
+  Lightbulb,
 } from "lucide-react";
 
 export const allGames: Game[] = [
@@ -884,6 +885,15 @@ export const allGames: Game[] = [
     focus: "vocabulary",
     subject: "english",
     icon: Swords,
+  },
+  {
+    title: "Genius Guesser",
+    slug: "genius-guesser",
+    description: "The ultimate classroom word guessing game! One team acts, describes, or gives clues while the other team guesses the secret word before the timer runs out.",
+    level: "beginner",
+    focus: "conversation",
+    subject: "english",
+    icon: Lightbulb,
   },
 ];
 
