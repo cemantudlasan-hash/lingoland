@@ -390,13 +390,13 @@ export default function GamePage() {
         "relative transition-colors duration-500",
         isFullscreen
           ? "bg-background w-screen h-screen overflow-hidden"
-          : "-mx-3 md:-mx-4 lg:-mx-5"
+          : "-m-3 md:-m-4 lg:-m-5 min-h-full flex flex-col"
       )}
       data-fullscreen-container={isFullscreen}
       onMouseDown={startTimerOnInteraction}
       onTouchStart={startTimerOnInteraction}
     >
-      <div className={cn("w-full transition-all duration-500", isFullscreen ? "h-full overflow-y-auto" : "")}>
+      <div className={cn("w-full transition-all duration-500 flex-1 flex flex-col", isFullscreen ? "h-full overflow-y-auto" : "")}>
         <React.Suspense fallback={<LoadingPlaceholder />}>
           <GameComponent slug={game.slug} onToggleFullscreen={handleFullScreen} />
         </React.Suspense>

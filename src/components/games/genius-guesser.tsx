@@ -120,9 +120,9 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
   const Icon = game.icon;
 
   return (
-    <Card className={cn("w-full transition-all duration-500 flex flex-col", isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-background" : "rounded-none border-x-0 border-t-0")}>
-      <CardHeader className="text-center relative pb-2">
-        <Button variant="ghost" size="sm" className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]" onClick={onToggleFullscreen}>
+    <Card className={cn("w-full transition-all duration-500 flex flex-col flex-1", isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-background" : "min-h-full rounded-none border-0 shadow-none")}>
+      <CardHeader className={cn("text-center relative pb-2", isFullscreen ? "pt-12 md:pt-14 pb-4" : "pt-4")}>
+        <Button variant="ghost" size="sm" className={cn("absolute h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]", isFullscreen ? "top-6 right-6" : "top-4 right-4")} onClick={onToggleFullscreen}>
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
         </Button>
