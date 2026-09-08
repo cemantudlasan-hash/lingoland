@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function HomeworkHubPage() {
     const { user, isGuest, isLoading } = useAuth();
-    const homeworkHubUrl = 'https://studio--studio-4268485583-459c4.us-central1.hosted.app/';
+    const homeworkHubUrl = 'https://myhomeworkhub.co.in/';
 
     if (isLoading) {
         return (
