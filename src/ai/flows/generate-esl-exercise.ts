@@ -61,6 +61,7 @@ CRITICAL: You must output the exercise in standard, semantic HTML format within 
 - Use <ol> or <ul> and <li> for list items, questions, or exercise choices.
 - Use <b> or <strong> for key words, bolded terms, or blank guides.
 - For fill-in-the-blank items, use "_______" (multiple underscores) to represent the blanks.
+- For any word unscramble exercises/questions: do NOT provide multiple-choice choices! Provide only the scrambled word and a helpful tip or clue for the word. The correct unscrambled answer must be shown in the Answer Key at the end.
 - Ensure all HTML tags are correctly opened and closed. Do not include markdown code block wrappers (like \`\`\`html) inside the string.`,
 });
 

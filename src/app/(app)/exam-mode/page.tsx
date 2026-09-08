@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, FileQuestion, GraduationCap, CheckCircle, ChevronRight, ChevronLeft, ArrowLeft, LogIn, Maximize, Minimize, FileDown, BookCheck, ClipboardList, Edit3, Trash2, Save, X, BookOpen, Compass, Award, HelpCircle } from 'lucide-react';
+import { Loader2, Sparkles, FileQuestion, GraduationCap, CheckCircle, ChevronRight, ChevronLeft, ArrowLeft, LogIn, Maximize, Minimize, FileDown, BookCheck, ClipboardList, Edit3, Trash2, Save, X, BookOpen, Compass, Award, HelpCircle, Lightbulb } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateExam } from '@/ai/flows/generate-exam';
 import type { GenerateExamOutput, ExamQuestion } from '@/ai/flows/schemas/exam-schema';
@@ -167,18 +167,48 @@ export default function ExamModePage() {
 
     examData.questions.forEach((q, i) => {
       content += `<div class="question">`;
-      content += `<p><strong>Question ${i + 1}:</strong> ${q.question}</p>`;
-      if (q.options) {
+      if (q.type === 'unscramble') {
+        content += `<p><strong>Question ${i + 1} (Word Unscramble):</strong> <span style="font-size: 14pt; letter-spacing: 4px; font-weight: bold; color: #4338ca;">${q.question}</span></p>`;
+        if (q.tip) {
+          content += `<p style="color: #6366f1; margin-left: 15px;"><em>💡 Word Tip / Clue: ${q.tip}</em></p>`;
+        }
+        content += `<p style="margin-left: 15px;">Unscrambled Word: __________________________________________________</p>`;
+      } else if (q.options && q.options.length > 0) {
+        content += `<p><strong>Question ${i + 1}:</strong> ${q.question}</p>`;
         content += `<div class="options">`;
         q.options.forEach((opt, optIdx) => {
           content += `<p>${String.fromCharCode(65 + optIdx)}) ${opt}</p>`;
         });
         content += `</div>`;
       } else {
+        content += `<p><strong>Question ${i + 1}:</strong> ${q.question}</p>`;
         content += `<p>__________________________________________________</p>`;
       }
       content += `</div>`;
     });
+
+    // Append Complete Answer Key to printable document
+    content += `<br/><br/><div style="page-break-before: always;"></div>`;
+    content += `<h2 style="color: #4f46e5; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">ANSWER KEY & TEACHER GUIDE</h2>`;
+    content += `<table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-family: Arial, sans-serif; font-size: 10pt;">`;
+    content += `<tr style="background-color: #f1f5f9;">
+      <th style="border: 1px solid #cbd5e1; padding: 6px; width: 40px; text-align: center;">#</th>
+      <th style="border: 1px solid #cbd5e1; padding: 6px; width: 110px;">Type</th>
+      <th style="border: 1px solid #cbd5e1; padding: 6px; width: 180px;">Correct Answer</th>
+      <th style="border: 1px solid #cbd5e1; padding: 6px;">Tip / Explanation</th>
+    </tr>`;
+    
+    examData.questions.forEach((q, idx) => {
+      const correctIdx = q.type !== 'unscramble' && q.options ? q.options.indexOf(q.correctAnswer) : -1;
+      const letterPrefix = correctIdx !== -1 ? `(${String.fromCharCode(65 + correctIdx)}) ` : '';
+      content += `<tr>
+        <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold;">${idx + 1}</td>
+        <td style="border: 1px solid #cbd5e1; padding: 6px; text-transform: capitalize;">${q.type === 'unscramble' ? 'Unscramble' : q.type.replace(/_/g, ' ')}</td>
+        <td style="border: 1px solid #cbd5e1; padding: 6px; font-weight: bold; color: #047857;">${letterPrefix}${q.correctAnswer}</td>
+        <td style="border: 1px solid #cbd5e1; padding: 6px;">${q.tip ? `<strong>Tip:</strong> ${q.tip}<br/>` : ''}${q.explanation || ''}</td>
+      </tr>`;
+    });
+    content += `</table>`;
 
     content += `<br/><div style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 10pt; color: #a0aec0; font-family: Arial, sans-serif;">www.lingolandverse.com</div>`;
 
@@ -605,66 +635,113 @@ export default function ExamModePage() {
                         )}
                         
                         {examData.questions[currentQuestionIndex].type === 'unscramble' && !isEditing && (
-                          <p className="text-center text-slate-500 text-xs font-black tracking-wider uppercase mt-2">UNSCRAMBLE THIS WORD</p>
+                          <div className="flex items-center justify-center gap-2 mt-2">
+                            <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-black tracking-widest uppercase">
+                              Word Unscramble
+                            </span>
+                          </div>
                         )}
                       </CardHeader>
                       
                       <CardContent className="p-8 pt-0 flex-grow">
-                        {examData.questions[currentQuestionIndex].options && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
-                            {examData.questions[currentQuestionIndex].options?.map((opt, i) => (
-                              <div
-                                key={i}
-                                className={cn(
-                                  "h-auto py-5 text-lg font-bold px-6 rounded-2xl border-2 flex items-center relative transition-all",
-                                  isEditing && examData.questions[currentQuestionIndex].correctAnswer === opt 
-                                    ? "border-emerald-500 bg-emerald-500/[0.03] text-emerald-350" 
-                                    : "border-slate-800 bg-slate-950/20 text-slate-200"
-                                )}
-                              >
-                                <span className={cn(
-                                  "mr-4 h-9 w-9 rounded-xl border-2 flex items-center justify-center shrink-0 font-extrabold text-sm",
-                                  isEditing && examData.questions[currentQuestionIndex].correctAnswer === opt 
-                                    ? "border-emerald-500 text-emerald-400 bg-emerald-500/10" 
-                                    : "border-indigo-500/40 text-indigo-300 bg-indigo-500/5"
-                                )}>
-                                  {String.fromCharCode(65 + i)}
-                                </span>
-                                
-                                {isEditing ? (
-                                  <div className="flex-grow flex items-center gap-2">
-                                    <Input 
-                                      value={opt} 
-                                      onChange={(e) => {
-                                        const newOptions = [...examData.questions[currentQuestionIndex].options!];
-                                        const oldAnswer = examData.questions[currentQuestionIndex].correctAnswer;
-                                        newOptions[i] = e.target.value;
-                                        const newAnswer = oldAnswer === opt ? e.target.value : oldAnswer;
-                                        updateQuestion(currentQuestionIndex, { options: newOptions, correctAnswer: newAnswer });
-                                      }}
-                                      className="text-base font-semibold h-10 bg-slate-900 border-slate-800 text-white rounded-lg"
-                                    />
-                                    <Button 
-                                      size="sm" 
-                                      variant={examData.questions[currentQuestionIndex].correctAnswer === opt ? "default" : "outline"}
-                                      onClick={() => updateQuestion(currentQuestionIndex, { correctAnswer: opt })}
-                                      className={cn("shrink-0 text-[10px] font-black uppercase h-8 px-2.5 rounded-lg", examData.questions[currentQuestionIndex].correctAnswer === opt ? "bg-emerald-600 hover:bg-emerald-700" : "border-slate-800")}
-                                    >
-                                      {examData.questions[currentQuestionIndex].correctAnswer === opt ? <CheckCircle className="h-4 w-4" /> : "Set Correct"}
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <span className="leading-tight">{opt}</span>
-                                )}
+                        {/* Word Unscramble View: NO choices, only the unscramble word and a tip of the word */}
+                        {examData.questions[currentQuestionIndex].type === 'unscramble' ? (
+                          <div className="space-y-6 max-w-xl mx-auto w-full mt-2">
+                            {/* Tip of the word banner */}
+                            <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-indigo-500/5 border border-indigo-500/30 text-center shadow-lg relative overflow-hidden">
+                              <div className="flex items-center justify-center gap-2 text-indigo-400 font-black text-xs uppercase tracking-widest mb-2">
+                                <Lightbulb className="h-4 w-4 text-amber-400 animate-pulse" />
+                                <span>Tip of the Word</span>
                               </div>
-                            ))}
+                              {isEditing ? (
+                                <div className="space-y-1.5 text-left mt-3">
+                                  <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Word Tip / Clue</Label>
+                                  <Input 
+                                    value={examData.questions[currentQuestionIndex].tip || ''} 
+                                    placeholder="Enter a tip or definition for this word..."
+                                    onChange={(e) => updateQuestion(currentQuestionIndex, { tip: e.target.value })}
+                                    className="bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
+                                  />
+                                </div>
+                              ) : (
+                                <p className="text-lg md:text-xl font-bold text-slate-200 leading-relaxed italic">
+                                  "{examData.questions[currentQuestionIndex].tip || examData.questions[currentQuestionIndex].explanation || 'Unscramble the letters to discover the correct word.'}"
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Student Answer Writing Area */}
+                            {!isEditing && (
+                              <div className="p-6 rounded-2xl bg-slate-950/40 border border-slate-800/80 text-center space-y-3 shadow-md">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Student Answer Box</p>
+                                <Input 
+                                  placeholder="TYPE UNSCRAMBLED WORD HERE..." 
+                                  className="h-14 text-center text-xl md:text-2xl font-black uppercase tracking-widest bg-slate-900 border-slate-750 text-indigo-300 rounded-xl focus:border-indigo-500 shadow-inner"
+                                />
+                                <p className="text-[10px] text-slate-500 font-medium">Solve the unscrambled word above using the clue.</p>
+                              </div>
+                            )}
                           </div>
+                        ) : (
+                          /* Multiple Choice Options for non-unscramble questions */
+                          examData.questions[currentQuestionIndex].options && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
+                              {examData.questions[currentQuestionIndex].options?.map((opt, i) => (
+                                <div
+                                  key={i}
+                                  className={cn(
+                                    "h-auto py-5 text-lg font-bold px-6 rounded-2xl border-2 flex items-center relative transition-all",
+                                    isEditing && examData.questions[currentQuestionIndex].correctAnswer === opt 
+                                      ? "border-emerald-500 bg-emerald-500/[0.03] text-emerald-350" 
+                                      : "border-slate-800 bg-slate-950/20 text-slate-200"
+                                  )}
+                                >
+                                  <span className={cn(
+                                    "mr-4 h-9 w-9 rounded-xl border-2 flex items-center justify-center shrink-0 font-extrabold text-sm",
+                                    isEditing && examData.questions[currentQuestionIndex].correctAnswer === opt 
+                                      ? "border-emerald-500 text-emerald-400 bg-emerald-500/10" 
+                                      : "border-indigo-500/40 text-indigo-300 bg-indigo-500/5"
+                                  )}>
+                                    {String.fromCharCode(65 + i)}
+                                  </span>
+                                  
+                                  {isEditing ? (
+                                    <div className="flex-grow flex items-center gap-2">
+                                      <Input 
+                                        value={opt} 
+                                        onChange={(e) => {
+                                          const newOptions = [...examData.questions[currentQuestionIndex].options!];
+                                          const oldAnswer = examData.questions[currentQuestionIndex].correctAnswer;
+                                          newOptions[i] = e.target.value;
+                                          const newAnswer = oldAnswer === opt ? e.target.value : oldAnswer;
+                                          updateQuestion(currentQuestionIndex, { options: newOptions, correctAnswer: newAnswer });
+                                        }}
+                                        className="text-base font-semibold h-10 bg-slate-900 border-slate-800 text-white rounded-lg"
+                                      />
+                                      <Button 
+                                        size="sm" 
+                                        variant={examData.questions[currentQuestionIndex].correctAnswer === opt ? "default" : "outline"}
+                                        onClick={() => updateQuestion(currentQuestionIndex, { correctAnswer: opt })}
+                                        className={cn("shrink-0 text-[10px] font-black uppercase h-8 px-2.5 rounded-lg", examData.questions[currentQuestionIndex].correctAnswer === opt ? "bg-emerald-600 hover:bg-emerald-700" : "border-slate-800")}
+                                      >
+                                        {examData.questions[currentQuestionIndex].correctAnswer === opt ? <CheckCircle className="h-4 w-4" /> : "Set Correct"}
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <span className="leading-tight">{opt}</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )
                         )}
                         
                         {isEditing && (
                           <div className="mt-8 space-y-4 border-t border-slate-850 pt-6">
                             <div className="space-y-1.5">
-                              <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Correct Answer (Full Word/Text)</Label>
+                              <Label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                {examData.questions[currentQuestionIndex].type === 'unscramble' ? "Correct Unscrambled Word (Shown in Answer Key)" : "Correct Answer (Full Word/Text)"}
+                              </Label>
                               <Input 
                                 value={examData.questions[currentQuestionIndex].correctAnswer} 
                                 onChange={(e) => updateQuestion(currentQuestionIndex, { correctAnswer: e.target.value })}
@@ -672,7 +749,7 @@ export default function ExamModePage() {
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Explanation</Label>
+                              <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Explanation / Answer Key Notes</Label>
                               <Textarea 
                                 value={examData.questions[currentQuestionIndex].explanation || ''} 
                                 onChange={(e) => updateQuestion(currentQuestionIndex, { explanation: e.target.value })}
@@ -784,16 +861,37 @@ export default function ExamModePage() {
                               <div className="space-y-1">
                                 <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Question {i + 1} - {q.type.replace(/_/g, ' ')}</p>
                                 {isEditing ? (
-                                  <Textarea 
-                                    value={q.question} 
-                                    onChange={(e) => updateQuestion(i, { question: e.target.value })}
-                                    className="font-medium bg-slate-950/60 border-slate-800 text-white rounded-xl mt-2"
-                                  />
+                                  <div className="space-y-2 mt-2">
+                                    <Textarea 
+                                      value={q.question} 
+                                      onChange={(e) => updateQuestion(i, { question: e.target.value })}
+                                      className="font-medium bg-slate-950/60 border-slate-800 text-white rounded-xl"
+                                    />
+                                    {q.type === 'unscramble' && (
+                                      <div className="space-y-1">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Word Tip / Clue</Label>
+                                        <Input 
+                                          value={q.tip || ''} 
+                                          onChange={(e) => updateQuestion(i, { tip: e.target.value })}
+                                          placeholder="Enter clue/tip for this word..."
+                                          className="h-8 text-xs bg-slate-900 border-slate-800 text-white rounded-lg"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
                                 ) : (
-                                  <CardTitle className={cn(
-                                      "text-lg font-bold text-white leading-snug pt-1",
-                                      q.type === 'unscramble' && "font-black tracking-widest uppercase text-indigo-300"
-                                  )}>{q.question}</CardTitle>
+                                  <>
+                                    <CardTitle className={cn(
+                                        "text-lg font-bold text-white leading-snug pt-1",
+                                        q.type === 'unscramble' && "font-black tracking-widest uppercase text-indigo-300"
+                                    )}>{q.question}</CardTitle>
+                                    {q.type === 'unscramble' && (q.tip || q.explanation) && (
+                                      <div className="flex items-center gap-2 mt-2 px-3 py-1.5 rounded-lg bg-indigo-950/40 border border-indigo-800/40 text-xs text-indigo-200">
+                                        <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                        <span><strong className="text-amber-300">Tip:</strong> {q.tip || q.explanation}</span>
+                                      </div>
+                                    )}
+                                  </>
                                 )}
                               </div>
                           </CardHeader>
@@ -811,7 +909,7 @@ export default function ExamModePage() {
                                             onChange={(e) => updateQuestion(i, { correctAnswer: e.target.value })}
                                             className="bg-slate-900 border-slate-800 text-white font-bold h-9 text-sm rounded-lg"
                                           />
-                                          {q.options && (
+                                          {q.type !== 'unscramble' && q.options && (
                                             <Select value={q.correctAnswer} onValueChange={(v) => updateQuestion(i, { correctAnswer: v })}>
                                               <SelectTrigger className="w-40 bg-slate-900 border-slate-800 text-white h-9 text-xs">
                                                 <SelectValue placeholder="Pick Option" />
@@ -826,14 +924,14 @@ export default function ExamModePage() {
                                         </div>
                                       ) : (
                                         <p className="text-lg font-extrabold text-emerald-300 flex items-center gap-2 pt-0.5">
-                                            {correctLetter && <span className="px-2 py-0.5 rounded-lg bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-xs font-black">{correctLetter}</span>}
+                                            {q.type !== 'unscramble' && correctLetter && <span className="px-2 py-0.5 rounded-lg bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-xs font-black">{correctLetter}</span>}
                                             <span className="uppercase">{q.correctAnswer}</span>
                                         </p>
                                       )}
                                   </div>
                                 </div>
                                 
-                                {isEditing && q.options && (
+                                {isEditing && q.type !== 'unscramble' && q.options && (
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 bg-slate-950/40 rounded-xl border border-slate-850">
                                     {q.options.map((opt, idx) => (
                                       <div key={idx} className="flex items-center gap-2">

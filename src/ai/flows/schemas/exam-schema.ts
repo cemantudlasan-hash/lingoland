@@ -2,9 +2,10 @@ import { z } from 'zod';
 
 export const ExamQuestionSchema = z.object({
   type: z.enum(['multiple_choice', 'fill_in_the_blank', 'unscramble']),
-  question: z.string().describe('The question text or the sentence to be unscrambled.'),
-  options: z.array(z.string()).optional().describe('Required for multiple choice. Provide 4 options.'),
-  correctAnswer: z.string().describe('The correct answer (the full correct sentence for unscramble).'),
+  question: z.string().describe('The question text or the scrambled word to be unscrambled.'),
+  options: z.array(z.string()).optional().describe('Provide 4 options for multiple_choice and fill_in_the_blank. Do NOT provide options for unscramble questions (leave undefined/omitted).'),
+  tip: z.string().optional().describe('A helpful clue, hint, or definition of the word that the student needs to unscramble (used for unscramble questions).'),
+  correctAnswer: z.string().describe('The correct answer (the full correct unscrambled word/text).'),
   explanation: z.string().describe('A brief explanation of why the answer is correct.'),
 });
 

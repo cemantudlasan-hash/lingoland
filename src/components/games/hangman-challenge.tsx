@@ -45,7 +45,7 @@ const HangmanFigure = ({ incorrectGuesses, isFullscreen }: { incorrectGuesses: n
     ];
 
     return (
-        <svg viewBox="0 0 200 250" className={cn("text-foreground", isFullscreen ? "w-64 h-80" : "w-32 h-40 md:w-48 md:h-60")}>
+        <svg viewBox="0 0 200 250" className={cn("text-foreground shrink-0 transition-all", isFullscreen ? "w-40 h-48 sm:w-48 sm:h-56" : "w-32 h-40 md:w-44 md:h-52")}>
             {/* Gallows */}
             <line x1="20" y1="230" x2="180" y2="230" stroke="currentColor" strokeWidth="4" />
             <line x1="60" y1="230" x2="60" y2="50" stroke="currentColor" strokeWidth="4" />
@@ -135,14 +135,14 @@ export function HangmanChallenge({ slug, onToggleFullscreen }: { slug: string; o
     <Card className={cn(
         "w-full transition-all duration-500 flex flex-col",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-between overflow-y-auto px-4 md:px-8 py-3" 
             : "max-w-3xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
-      <CardHeader className="text-center relative">
+      <CardHeader className={cn("text-center relative shrink-0", isFullscreen ? "pb-2 pt-2" : "")}>
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+          className="absolute top-2 right-2 md:top-4 md:right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
@@ -153,54 +153,54 @@ export function HangmanChallenge({ slug, onToggleFullscreen }: { slug: string; o
                 <Icon className="w-16 h-16 text-primary" />
             </div>
         )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-2xl md:text-3xl" : "text-3xl")}>{game.title}</CardTitle>
+        <CardDescription className={cn(isFullscreen ? "text-sm md:text-base mt-1" : "")}>{game.description}</CardDescription>
         <div className="flex justify-center items-center gap-2 pt-2">
-            <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{difficulty.toUpperCase()}</Badge>
-            {(gameState === 'playing' || gameState === 'finished') && <Badge variant="secondary" className={cn(isFullscreen && "text-xl px-6 py-1")}>{category.toUpperCase()}</Badge>}
+            <Badge variant="outline" className={cn(isFullscreen && "text-xs px-3 py-0.5")}>{difficulty.toUpperCase()}</Badge>
+            {(gameState === 'playing' || gameState === 'finished') && <Badge variant="secondary" className={cn(isFullscreen && "text-xs px-3 py-0.5")}>{category.toUpperCase()}</Badge>}
         </div>
       </CardHeader>
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[20rem] p-6"
+          "text-center flex flex-col items-center justify-center flex-1 w-full",
+          isFullscreen ? "max-w-5xl mx-auto px-4 py-2 space-y-3" : "min-h-[20rem] p-6 space-y-6"
       )}>
         {gameState === "idle" && (
             <div className="flex flex-col items-center gap-4">
-                <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Ready to decipher the hidden word?</p>
-                <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl shadow-xl")}>Start Game</Button>
+                <p className={cn("text-muted-foreground", isFullscreen ? "text-2xl" : "text-base")}>Ready to decipher the hidden word?</p>
+                <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-14 px-10 text-xl rounded-2xl shadow-xl")}>Start Game</Button>
             </div>
         )}
          {gameState === "instructions" && (
              <div className={cn(
                  "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20 shadow-inner",
-                 isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-lg"
+                 isFullscreen ? "p-10 max-w-3xl" : "p-8 max-w-lg"
              )}>
-                <h3 className={cn("font-bold text-center mb-4", isFullscreen ? "text-4xl" : "text-xl")}>How to Play</h3>
-                <div className={cn("text-left space-y-4", isFullscreen ? "text-2xl" : "text-base")}>
+                <h3 className={cn("font-bold text-center mb-2", isFullscreen ? "text-2xl md:text-3xl" : "text-xl")}>How to Play</h3>
+                <div className={cn("text-left space-y-3", isFullscreen ? "text-base md:text-lg" : "text-base")}>
                     <p>1. A secret word is masked by underscores. Your goal is to reveal it.</p>
                     <p>2. Guess letters using the digital keyboard. Correct guesses appear; incorrect ones build the hangman.</p>
                     <p>3. You have {MAX_INCORRECT_GUESSES} chances before the mission fails.</p>
                 </div>
-                <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className={cn("mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl shadow-xl")}>Let's Go!</Button>
+                <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className={cn("mt-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-14 px-10 text-xl rounded-2xl shadow-xl")}>Let's Go!</Button>
             </div>
         )}
         {gameState === "selecting_difficulty" && (
-             <div className="flex flex-col items-center gap-8">
-                <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-sm")}>Choose Difficulty</p>
+             <div className="flex flex-col items-center gap-6">
+                <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-xl" : "text-sm")}>Choose Difficulty</p>
                 <div className="flex flex-wrap gap-4 justify-center">
                     {["beginner", "intermediate", "advanced"].map(level => (
-                        <Button key={level} onClick={() => { setDifficulty(level as SkillLevel); setGameState('selecting_category'); }} size={isFullscreen ? "lg" : "default"} variant="outline" className={cn("font-black uppercase", isFullscreen && "h-20 px-12 text-2xl rounded-3xl border-4")}>{level}</Button>
+                        <Button key={level} onClick={() => { setDifficulty(level as SkillLevel); setGameState('selecting_category'); }} size={isFullscreen ? "lg" : "default"} variant="outline" className={cn("font-black uppercase", isFullscreen && "h-14 px-8 text-lg rounded-2xl border-2")}>{level}</Button>
                     ))}
                 </div>
             </div>
         )}
         {gameState === 'selecting_category' && (
-            <div className="flex flex-col items-center gap-6 w-full max-w-2xl">
-                <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-sm")}>Select Research Category</p>
-                <ScrollArea className={cn("w-full border-4 rounded-3xl bg-muted/20 p-4", isFullscreen ? "h-[50vh]" : "h-72")}>
-                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 p-4">
+            <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
+                <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-xl" : "text-sm")}>Select Research Category</p>
+                <ScrollArea className={cn("w-full border-2 rounded-2xl bg-muted/20 p-3", isFullscreen ? "h-[45vh]" : "h-72")}>
+                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-2">
                         {CATEGORIES.map(cat => (
-                            <Button key={cat} onClick={() => handleStartGame(cat)} variant="outline" className={cn("font-bold", isFullscreen && "text-xl h-16")}>
+                            <Button key={cat} onClick={() => handleStartGame(cat)} variant="outline" className={cn("font-bold", isFullscreen && "text-sm h-12")}>
                                 {cat}
                             </Button>
                         ))}
@@ -209,33 +209,36 @@ export function HangmanChallenge({ slug, onToggleFullscreen }: { slug: string; o
             </div>
         )}
         {gameState === "loading" && (
-            <div className="flex flex-col items-center justify-center gap-6">
-                <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-24 w-24" : "h-12 w-12")} />
-                <p className={cn("text-muted-foreground animate-pulse", isFullscreen ? "text-3xl" : "text-lg")}>Selecting secret word...</p>
+            <div className="flex flex-col items-center justify-center gap-4">
+                <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-16 w-16" : "h-12 w-12")} />
+                <p className={cn("text-muted-foreground animate-pulse", isFullscreen ? "text-xl" : "text-lg")}>Selecting secret word...</p>
             </div>
         )}
         
         {(gameState === "playing" || gameState === "finished") && word && (
-            <div className="flex flex-col items-center gap-8 w-full">
+            <div className="flex flex-col items-center gap-3 md:gap-4 w-full">
                 <HangmanFigure incorrectGuesses={incorrectGuesses} isFullscreen={isFullscreen} />
                 
-                <div className={cn("flex flex-wrap justify-center gap-3 font-black tracking-[0.2em] text-foreground", isFullscreen ? "text-[6vw]" : "text-4xl md:text-5xl")}>
+                <div className={cn("flex flex-wrap justify-center gap-2 md:gap-3 font-black tracking-[0.15em] text-foreground")}>
                     {word.split("").map((letter, index) => (
-                        <span key={index} className={cn("border-b-8 border-primary flex items-center justify-center", isFullscreen ? "min-w-[8vw] h-[10vw]" : "w-12 h-14 md:w-16 md:h-20")}>
+                        <span key={index} className={cn(
+                          "border-b-4 md:border-b-6 border-primary flex items-center justify-center font-black",
+                          isFullscreen ? "w-8 h-10 sm:w-11 sm:h-14 md:w-14 md:h-16 text-xl sm:text-2xl md:text-3xl" : "w-10 h-12 md:w-14 md:h-16 text-2xl md:text-3xl"
+                        )}>
                             {guessedLetters.includes(letter) || gameState === 'finished' ? letter : "_"}
                         </span>
                     ))}
                 </div>
 
-                <div className={cn("flex items-center gap-4 text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-lg")}>
-                    <Lightbulb className={cn("text-amber-400", isFullscreen ? "h-10 w-10" : "h-6 w-6")} />
-                    <p>{hint}</p>
+                <div className={cn("flex items-center justify-center gap-2 text-muted-foreground font-bold uppercase tracking-wider max-w-2xl px-4", isFullscreen ? "text-sm md:text-base" : "text-sm")}>
+                    <Lightbulb className="text-amber-400 h-5 w-5 shrink-0" />
+                    <p className="line-clamp-2">{hint}</p>
                 </div>
 
                 {gameState === 'playing' ? (
-                     <div className={cn("space-y-3 w-full max-w-4xl", isFullscreen && "mt-10")}>
+                     <div className="space-y-1.5 sm:space-y-2 w-full max-w-3xl pt-1">
                         {keyboardRows.map((row, rowIndex) => (
-                            <div key={rowIndex} className="flex justify-center gap-2">
+                            <div key={rowIndex} className="flex justify-center gap-1 sm:gap-1.5 md:gap-2">
                                 {row.map(letter => {
                                     const isGuessed = guessedLetters.includes(letter);
                                     return (
@@ -243,9 +246,11 @@ export function HangmanChallenge({ slug, onToggleFullscreen }: { slug: string; o
                                             key={letter}
                                             variant={isGuessed ? "secondary" : "outline"}
                                             className={cn(
-                                                "font-black shadow-md transition-all duration-200",
-                                                isFullscreen ? "w-20 h-20 text-3xl rounded-2xl border-4" : "w-10 h-10 md:w-12 md:h-12 text-lg",
-                                                isGuessed && "opacity-30 scale-90"
+                                                "font-black shadow-sm transition-all duration-200",
+                                                isFullscreen 
+                                                  ? "w-8 h-10 sm:w-10 sm:h-12 md:w-12 md:h-13 text-sm sm:text-base md:text-lg rounded-xl border" 
+                                                  : "w-8 h-10 md:w-10 md:h-12 text-sm md:text-base",
+                                                isGuessed && "opacity-25 scale-90"
                                             )}
                                             onClick={() => handleGuess(letter)}
                                             disabled={isGuessed}
@@ -258,30 +263,30 @@ export function HangmanChallenge({ slug, onToggleFullscreen }: { slug: string; o
                         ))}
                     </div>
                 ) : (
-                     <div className="flex flex-col items-center gap-8 animate-in zoom-in duration-500">
-                        <p className={cn("font-black uppercase tracking-tighter", isWinner ? "text-green-500 text-6xl" : "text-destructive text-6xl")}>
+                     <div className="flex flex-col items-center gap-4 animate-in zoom-in duration-500 py-2">
+                        <p className={cn("font-black uppercase tracking-tighter", isWinner ? "text-green-500 text-3xl md:text-4xl" : "text-destructive text-3xl md:text-4xl")}>
                             {isWinner ? "MISSION SUCCESS!" : "CRITICAL FAILURE!"}
                         </p>
                         {!isWinner && (
-                            <div className={cn("p-8 rounded-3xl bg-muted/20 border-4 border-primary/20 text-center", isFullscreen ? "p-12" : "p-6")}>
-                                <p className="text-muted-foreground font-black mb-2 uppercase tracking-widest">The word was:</p>
-                                <p className={cn("font-black text-primary uppercase italic", isFullscreen ? "text-7xl" : "text-4xl")}>{word}</p>
+                            <div className={cn("p-4 rounded-2xl bg-muted/20 border-2 border-primary/20 text-center", isFullscreen ? "px-8 py-4" : "p-4")}>
+                                <p className="text-muted-foreground font-black text-xs uppercase tracking-widest">The word was:</p>
+                                <p className={cn("font-black text-primary uppercase italic", isFullscreen ? "text-4xl" : "text-3xl")}>{word}</p>
                             </div>
                         )}
-                        <Button onClick={() => setGameState('selecting_category')} size="lg" className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl shadow-xl")}><Repeat className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")}/>New Game</Button>
+                        <Button onClick={() => setGameState('selecting_category')} size="lg" className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-12 px-8 text-lg rounded-xl shadow-lg")}><Repeat className={cn("mr-2 h-4 w-4")}/>New Game</Button>
                     </div>
                 )}
             </div>
         )}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+      <CardFooter className={cn("flex justify-between items-center gap-4 shrink-0", isFullscreen ? "max-w-5xl mx-auto w-full pt-2 pb-2" : "pt-8")}>
+        <Button variant="outline" asChild size={isFullscreen ? "default" : "default"} className={cn(isFullscreen && "h-10 px-5 text-xs font-bold rounded-xl")}>
             <Link href="/games">Exit Challenge</Link>
         </Button>
         {gameState === 'playing' && 
-            <div className="flex gap-4">
-                <Button variant="secondary" onClick={() => setGameState('selecting_category')} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>Switch Category</Button>
-                <Button variant="secondary" onClick={() => handleNewWord(difficulty, category)} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}><Shuffle className={cn("mr-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")}/>Reroll Word</Button>
+            <div className="flex gap-2 sm:gap-3">
+                <Button variant="secondary" onClick={() => setGameState('selecting_category')} size={isFullscreen ? "default" : "default"} className={cn(isFullscreen && "h-10 px-4 text-xs font-bold rounded-xl")}>Switch Category</Button>
+                <Button variant="secondary" onClick={() => handleNewWord(difficulty, category)} size={isFullscreen ? "default" : "default"} className={cn(isFullscreen && "h-10 px-4 text-xs font-bold rounded-xl")}><Shuffle className="mr-1.5 h-3.5 w-3.5"/>Reroll Word</Button>
             </div>
         }
       </CardFooter>
