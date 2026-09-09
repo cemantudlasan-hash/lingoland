@@ -58,11 +58,12 @@ const prompt = ai.definePrompt({
   For each slide:
   1. Provide a short, clear title and a list of 3-5 bullet points in English.
   2. The content should be easy to understand, grammatically correct, and well-structured.
-  3. Provide an 'imageQuery' representing 2-4 descriptive English keywords to find a high-quality, authentic photograph directly visualizing the specific subject and topic of this slide (e.g. if the slide is about "Daily Routines", use "daily morning routine people" or "healthy breakfast lifestyle").
+  3. Provide an 'imageQuery' representing 2-4 descriptive English keywords to find a high-quality, authentic real-world photograph directly visualizing the specific subject and topic of this slide (e.g. for "Outdoors and Indoors", use "outdoor nature forest landscape" for outdoor slides, and "indoor living room architecture" for indoor slides; for "Daily Routines", use "morning routine breakfast people").
      CRITICAL RULES FOR imageQuery:
      - Must be in the English language ONLY. No other languages or regional terms.
-     - Must accurately and specifically depict the topic concept.
-     - NEVER include words like "worksheet", "clipart", "diagram", "slide", "test", "assignment", "page", or non-English terms.
+     - Must accurately, realistically, and specifically depict the real-world subject concept.
+     - NEVER use queries that could return sketches, anime drawings, drawing tutorials, facial sketches, cartoons, clipart, worksheets, diagrams, or meta words like "slide", "test", "assignment".
+     - Always focus on real-world nature, environments, objects, people, or places.
   4. Provide a 'threeDObjectStyle' indicating a 3D element style to render in the background (e.g. "floating gold cube", "cyan neon sphere", "bouncing blue torus").
   
   Start with an introduction slide and end with a conclusion slide.

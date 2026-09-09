@@ -6,23 +6,22 @@ const PLACEHOLDER_FG = 'ede9fe';
 const formatPlaceholderUrl = (query: string) =>
   `https://placehold.co/600x600/${PLACEHOLDER_BG}/${PLACEHOLDER_FG}?text=${encodeURIComponent(query)}&font=inter`;
 
-const ADULT_KEYWORDS = [
-  'porn', 'sexy', 'sex', 'nude', 'naked', 'erotic', 'xxx', 'nsfw', 'sensual', 'cleavage',
-  'bikini', 'lingerie', 'underwear', 'swimsuit', 'swimwear', 'topless', 'playboy', 'hentai',
-  'boobs', 'breast', 'buttock', 'butt', 'ass', 'pussy', 'penis', 'dick', 'vagina', 'vulva',
-  'seductive', 'fetish', 'adult only', '18+', '16+'
+// Comprehensive 16+ / Adult / Inappropriate content safety filter
+const ADULT_PATTERNS = [
+  /\b(porn|porno|pornography|xxx|nsfw|adult\s*only|18\+|16\+|r-rated|mature\s*content)\b/i,
+  /\b(sex|sexy|sexual|sexuality|intercourse|erotic|erotica|sensual|seductive|fetish|bdsm)\b/i,
+  /\b(nude|nudes|nudity|nudist|naked|unclothed|undressed|bare\s*body|topless|bottomless|shirtless)\b/i,
+  /\b(cleavage|breast|breasts|boob|boobs|butt|buttock|buttocks|ass|booty|crotch|penis|dick|vagina|vulva|pussy)\b/i,
+  /\b(bikini|swimsuit|swimwear|bathing\s*suit|lingerie|underwear|undergarment|undergarments|bra|panties|thong|g-string)\b/i,
+  /\b(strip|stripper|striptease|burlesque|playboy|penthouse|hustler|onlyfans|escort|prostitute|prostitution)\b/i,
+  /\b(steamy|provocative|intimate\s*scene|lovemaking|bedroom\s*scene|kissing\s*scene|sensual\s*photo)\b/i,
+  /\b(history\s*of\s*nudity|nudity\s*in|celebrity\s*nude|nude\s*scene|nude\s*actors?)\b/i,
+  /\b(equus|gods\s*and\s*monsters)\b/i,
 ];
 
-const ADULT_REGEXES = ADULT_KEYWORDS.map(word => {
-  const escaped = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-  const start = /^\w/.test(word) ? '\\b' : '';
-  const end = /\w$/.test(word) ? '\\b' : '';
-  return new RegExp(start + escaped + end, 'i');
-});
-
-export const isSafe = (text: string): boolean => {
+const isSafe = (text: string): boolean => {
   if (!text) return true;
-  return !ADULT_REGEXES.some(regex => regex.test(text));
+  return !ADULT_PATTERNS.some(regex => regex.test(text));
 };
 
 const NON_ENGLISH_SCRIPTS_REGEX = /[\u0400-\u04FF\u0600-\u06FF\u0E00-\u0E7F\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0900-\u097F\u0590-\u05FF]/;
@@ -42,22 +41,25 @@ const FOREIGN_WORKSHEET_DOMAINS = [
   'kemdikbud.go.id', 'academia.edu/attachment'
 ];
 
-export const isEnglishAndSafe = (url: string, title: string = ''): boolean => {
-  if (!isSafe(url) || !isSafe(title)) return false;
+const isEnglishAndSafe = (url: string, title: string = '', pageUrl: string = ''): boolean => {
+  if (!isSafe(url) || !isSafe(title) || !isSafe(pageUrl)) return false;
 
   const lowerTitle = (title || '').toLowerCase();
   const lowerUrl = (url || '').toLowerCase();
+  const lowerPageUrl = (pageUrl || '').toLowerCase();
 
   // 1. Reject non-Latin scripts (Cyrillic, Arabic, Chinese, Japanese, Korean, Thai, Hindi, etc.)
   if (NON_ENGLISH_SCRIPTS_REGEX.test(title)) return false;
 
   // 2. Reject foreign educational worksheets domains
-  if (FOREIGN_WORKSHEET_DOMAINS.some(domain => lowerUrl.includes(domain))) return false;
+  if (FOREIGN_WORKSHEET_DOMAINS.some(domain => lowerUrl.includes(domain) || lowerPageUrl.includes(domain))) {
+    return false;
+  }
 
   // 3. Reject foreign language educational/worksheet keywords in title or URL
   for (const word of NON_ENGLISH_OR_WORKSHEET_KEYWORDS) {
     const wordRegex = new RegExp(`(^|[^a-z0-9])${word}([^a-z0-9]|$)`, 'i');
-    if (wordRegex.test(lowerTitle) || wordRegex.test(lowerUrl)) {
+    if (wordRegex.test(lowerTitle) || wordRegex.test(lowerUrl) || wordRegex.test(lowerPageUrl)) {
       return false;
     }
   }
@@ -70,7 +72,7 @@ export const isEnglishAndSafe = (url: string, title: string = ''): boolean => {
   return true;
 };
 
-export const cleanQuery = (query: string): string => {
+const cleanQuery = (query: string): string => {
   return query
     .replace(/\b(worksheet|clipart|diagram|lembar|kerja|soal|tugas|peserta|didik)\b/gi, '')
     .replace(/[^\w\s-]/g, ' ')
@@ -78,14 +80,26 @@ export const cleanQuery = (query: string): string => {
     .trim();
 };
 
-export const enhanceQuery = (query: string): string => {
-  const cleaned = cleanQuery(query);
-  if (!cleaned) return query;
-  return `${cleaned} photo`;
+const enhanceEducationalQuery = (query: string): string => {
+  const cleaned = cleanQuery(query) || query;
+  const lower = cleaned.toLowerCase();
+  if (lower === 'environments' || lower === 'environment') {
+    return 'nature outdoors environment landscape';
+  }
+  if (lower === 'outdoors and indoors' || lower === 'outdoor and indoor') {
+    return 'outdoor nature landscape indoor room architecture';
+  }
+  return cleaned;
 };
 
-// High-accuracy Curated "Storage" Image Database for ambiguous terms
+// High-accuracy Curated "Storage" Image Database for key vocabulary terms
 const AVAILABLE_IMAGES_STORAGE: Record<string, string> = {
+  'environments': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800',
+  'environment': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800',
+  'outdoors and indoors': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800',
+  'outdoors': 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800',
+  'indoors': 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800',
+  'nature': 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800',
   'keys': 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800',
   'key': 'https://images.unsplash.com/photo-1582139329536-e7284fece509?w=800',
   'apple': 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800',
@@ -97,221 +111,134 @@ const AVAILABLE_IMAGES_STORAGE: Record<string, string> = {
 };
 
 const checkStorageImage = (query: string): string | null => {
-  const cleaned = query.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+  const cleaned = query.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
   return AVAILABLE_IMAGES_STORAGE[cleaned] || null;
 };
 
-const NEGATIVE_EXCLUSIONS = ' -lembar -kerja -soal -tugas -jawaban -kurikulum -kelas -latihan -materi -peserta -didik -pembelajaran -liveworksheets -studocu';
-
-// Robust Google Images scraper with strict English localization
-const tryGoogleImages = async (query: string, count: number = 10) => {
+// DuckDuckGo Image Fetcher with strict SafeSearch (p=1)
+const tryDuckDuckGoSingleImage = async (query: string) => {
   try {
-    const cleaned = cleanQuery(query) || query;
-    const url = `https://www.google.com/search?q=${encodeURIComponent(cleaned + NEGATIVE_EXCLUSIONS)}&tbm=isch&safe=active&hl=en&gl=us&lr=lang_en&cr=countryUS`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=1.0',
+    const tokenRes = await fetch(
+      `https://duckduckgo.com/?q=${encodeURIComponent(query)}&ia=images&iax=images`,
+      {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=1.0',
+        },
       }
-    });
+    );
+    if (!tokenRes.ok) return null;
+    const tokenHtml = await tokenRes.text();
+    const vqdMatch = tokenHtml.match(/vqd=["']?([^"'\s&]+)/);
+    if (!vqdMatch) return null;
 
-    if (!response.ok) return null;
-    const html = await response.text();
-
-    // Pre-extract all sequential gstatic thumbnail URLs to pair with high-res original images
-    const gstaticRegex = /(https:\/\/encrypted-tbn\d+\.gstatic\.com\/images\?q=tbn:[^"\s&]+)/gi;
-    const gstaticUrls: string[] = [];
-    let gstMatch;
-    while ((gstMatch = gstaticRegex.exec(html)) !== null) {
-      gstaticUrls.push(gstMatch[1]);
-    }
-
-    const images: any[] = [];
-    const seenUrls = new Set<string>();
-
-    // 1. Try modern Google Images AF_initDataCallback format: e.g. ["https://url", h, w]
-    const arrayRegex = /\["(https?:\/\/[^"]+?\.(?:jpg|jpeg|png|gif|webp|svg))",\s*(\d+),\s*(\d+)\]/gi;
-    let match;
-    let idx = 0;
-    while ((match = arrayRegex.exec(html)) !== null) {
-      const imageUrl = match[1];
-      if (imageUrl && !seenUrls.has(imageUrl) && !imageUrl.includes('gstatic.com')) {
-        const title = `${query} image`;
-        if (isEnglishAndSafe(imageUrl, title)) {
-          seenUrls.add(imageUrl);
-          images.push({
-            url: imageUrl,
-            thumb: gstaticUrls[idx] || imageUrl,
-            engine: 'google',
-            title: title,
-          });
-          idx++;
-          if (images.length >= count) break;
-        }
+    const imgRes = await fetch(
+      `https://duckduckgo.com/i.js?l=us-en&o=json&q=${encodeURIComponent(query)}&vqd=${vqdMatch[1]}&p=1`,
+      {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Referer': 'https://duckduckgo.com/',
+          'Accept-Language': 'en-US,en;q=1.0',
+        },
       }
-    }
+    );
+    if (!imgRes.ok) return null;
+    const data = await imgRes.json();
+    const results = data.results || [];
 
-    // 2. Try matching legacy /imgres?imgurl= parameter
-    if (images.length === 0) {
-      const imgresRegex = /\/imgres\?imgurl=([^&]+)/g;
-      while ((match = imgresRegex.exec(html)) !== null) {
-        try {
-          const decodedUrl = decodeURIComponent(match[1]);
-          if (decodedUrl && !seenUrls.has(decodedUrl)) {
-            const title = `${query} image`;
-            if (isEnglishAndSafe(decodedUrl, title)) {
-              seenUrls.add(decodedUrl);
-              images.push({
-                url: decodedUrl,
-                thumb: gstaticUrls[idx] || decodedUrl,
-                engine: 'google',
-                title: title,
-              });
-              idx++;
-              if (images.length >= count) break;
-            }
-          }
-        } catch (e) {}
+    for (const item of results) {
+      const imageUrl = item.image;
+      const thumbUrl = item.thumbnail || imageUrl;
+      const title = item.title || `${query} photo`;
+      const pageUrl = item.url || '';
+
+      if (imageUrl && isEnglishAndSafe(imageUrl, title, pageUrl)) {
+        return {
+          imageUrl,
+          thumbUrl,
+          engine: 'google',
+        };
       }
     }
-
-    // 3. Fallback to gstatic thumbnails directly
-    if (images.length === 0) {
-      gstaticUrls.forEach((thumbUrl) => {
-        if (thumbUrl && !seenUrls.has(thumbUrl)) {
-          if (isEnglishAndSafe(thumbUrl)) {
-            seenUrls.add(thumbUrl);
-            images.push({
-              url: thumbUrl,
-              thumb: thumbUrl,
-              engine: 'google',
-              title: `${query} thumbnail`,
-            });
-          }
-        }
-      });
-    }
-
-    return images.length > 0 ? images.slice(0, count) : null;
+    return null;
   } catch (err) {
-    console.error("Google scrape failed:", err);
+    console.error('DDG single image search failed:', err);
     return null;
   }
 };
 
-const tryGoogleSingleImage = async (query: string) => {
-  // First search direct clean query for highest topic accuracy
-  let results = await tryGoogleImages(query, 1);
-  if (results && results.length > 0) {
-    return {
-      imageUrl: results[0].url,
-      thumbUrl: results[0].thumb,
-      engine: 'google',
-    };
-  }
-  // Fallback to query with "photo"
-  const enhanced = enhanceQuery(query);
-  results = await tryGoogleImages(enhanced, 1);
-  if (results && results.length > 0) {
-    return {
-      imageUrl: results[0].url,
-      thumbUrl: results[0].thumb,
-      engine: 'google',
-    };
-  }
-  return null;
-};
+// Bing Images Single Image Fetcher with strict SafeSearch (adlt=strict)
+const tryBingSingleImage = async (query: string) => {
+  try {
+    const response = await fetch(
+      `https://www.bing.com/images/search?q=${encodeURIComponent(query)}&adlt=strict&form=HDRSC2&first=1`,
+      {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=1.0',
+        },
+      }
+    );
 
-const tryUnsplashRaw = async (query: string) => {
-  const response = await fetch(
-    `https://unsplash.com/napi/search/photos?query=${encodeURIComponent(query)}&per_page=3&content_filter=high`,
-    {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Referer': 'https://unsplash.com/',
-      },
+    if (!response.ok) return null;
+    const html = await response.text();
+
+    const regex = /m="({[^"]+})"/g;
+    let match;
+    while ((match = regex.exec(html)) !== null) {
+      try {
+        const decodedJson = match[1].replace(/&quot;/g, '"');
+        const data = JSON.parse(decodedJson);
+        const imageUrl = data.murl;
+        const pageUrl = data.purl || '';
+        const title = data.desc || `${query} image`;
+
+        if (imageUrl && isEnglishAndSafe(imageUrl, title, pageUrl)) {
+          return {
+            imageUrl,
+            thumbUrl: data.turl || imageUrl,
+            engine: 'bing',
+          };
+        }
+      } catch (e) {}
     }
-  );
-
-  if (!response.ok) return null;
-  const data = await response.json();
-  const results = data.results || [];
-  if (results.length === 0) return null;
-
-  for (const firstResult of results) {
-    const imageUrl = firstResult.urls?.small || firstResult.urls?.regular;
-    const title = firstResult.alt_description || '';
-    if (imageUrl && isEnglishAndSafe(imageUrl, title)) {
-      return { imageUrl, engine: 'unsplash' };
-    }
+    return null;
+  } catch (error) {
+    console.error('Bing single image search failed:', error);
+    return null;
   }
-  return null;
 };
 
-const tryUnsplash = async (query: string) => {
-  const cleaned = cleanQuery(query) || query;
-  const directResult = await tryUnsplashRaw(cleaned);
-  if (directResult) return directResult;
-  const enhanced = enhanceQuery(cleaned);
-  return await tryUnsplashRaw(enhanced);
-};
-
-const tryWikipediaPageImage = async (query: string) => {
-  const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=${encodeURIComponent(query)}&redirects=true`;
-  const wikiResponse = await fetch(wikiUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    },
-  });
-
-  if (!wikiResponse.ok) return null;
-  const wikiData = await wikiResponse.json();
-  const pages = wikiData.query?.pages || {};
-  const pageKeys = Object.keys(pages);
-
-  if (pageKeys.length > 0 && pageKeys[0] !== '-1') {
-    const page = pages[pageKeys[0]];
-    const imageUrl = page.original?.source;
-    if (imageUrl && isEnglishAndSafe(imageUrl, page.title || query)) {
-      return { imageUrl, engine: 'wikipedia' };
-    }
-  }
-
-  return null;
-};
-
+// Wikipedia Image Fetcher
 const tryWikipediaSearchImage = async (query: string) => {
-  const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=1&prop=pageimages&piprop=original&redirects=true`;
-  const wikiResponse = await fetch(wikiSearchUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    },
-  });
+  try {
+    const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=5&prop=pageimages&piprop=original&redirects=true`;
+    const wikiResponse = await fetch(wikiSearchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      },
+    });
 
-  if (!wikiResponse.ok) return null;
-  const wikiData = await wikiResponse.json();
-  const pages = wikiData.query?.pages || {};
-  const pageKeys = Object.keys(pages);
+    if (!wikiResponse.ok) return null;
+    const wikiData = await wikiResponse.json();
+    const pages = wikiData.query?.pages || {};
 
-  if (pageKeys.length > 0) {
-    const page = pages[pageKeys[0]];
-    const imageUrl = page.original?.source;
-    if (imageUrl && isEnglishAndSafe(imageUrl, page.title || query)) {
-      return { imageUrl, engine: 'wikipedia-search' };
+    for (const key of Object.keys(pages)) {
+      const page = pages[key];
+      const imageUrl = page.original?.source;
+      if (imageUrl && isEnglishAndSafe(imageUrl, page.title || query)) {
+        return { imageUrl, thumbUrl: imageUrl, engine: 'wikipedia' };
+      }
     }
+    return null;
+  } catch (e) {
+    return null;
   }
-
-  return null;
 };
-
-const tryUnsplashFeatured = (query: string) => ({
-  imageUrl: formatPlaceholderUrl(query),
-  engine: 'placeholder',
-});
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -323,49 +250,54 @@ export async function GET(request: Request) {
 
   // Reject unsafe/restricted queries
   if (!isSafe(query)) {
-    return NextResponse.json({ success: false, error: 'Query is invalid or contains restricted terms' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: 'Query is invalid or contains restricted terms' },
+      { status: 400 }
+    );
   }
 
-  // 1. Check local "storage" database first (No Fallback Required if found!)
+  // 1. Check local "storage" database first (Immediate match for key terms)
   const storageImageUrl = checkStorageImage(query);
   if (storageImageUrl) {
-    return NextResponse.json({ success: true, imageUrl: storageImageUrl, engine: 'storage' });
+    return NextResponse.json({
+      success: true,
+      imageUrl: storageImageUrl,
+      thumbUrl: storageImageUrl,
+      engine: 'storage',
+    });
   }
 
-  // 2. Google is default search engine when highlighting word
+  const enhanced = enhanceEducationalQuery(query);
+
+  // 2. High-accuracy SafeSearch via DuckDuckGo
   try {
-    const googleResult = await tryGoogleSingleImage(query);
-    if (googleResult) return NextResponse.json({ success: true, ...googleResult });
+    const ddgResult = await tryDuckDuckGoSingleImage(enhanced);
+    if (ddgResult) return NextResponse.json({ success: true, ...ddgResult });
   } catch (error) {
-    console.warn('Google image search engine failed. Falling back to Unsplash...', error);
+    console.warn('DDG image search failed, falling back to Bing...', error);
   }
 
-  // 3. Fallback search engines
+  // 3. Fallback to Bing with strict SafeSearch
   try {
-    const unsplashResult = await tryUnsplash(query);
-    if (unsplashResult) return NextResponse.json({ success: true, ...unsplashResult });
+    const bingResult = await tryBingSingleImage(enhanced);
+    if (bingResult) return NextResponse.json({ success: true, ...bingResult });
   } catch (error) {
-    console.warn('Unsplash visual search engine failed. Falling back to Wikipedia API...', error);
+    console.warn('Bing single image search failed, falling back to Wikipedia...', error);
   }
 
+  // 4. Fallback to Wikipedia Image
   try {
-    const wikiResult = await tryWikipediaPageImage(query);
+    const wikiResult = await tryWikipediaSearchImage(enhanced);
     if (wikiResult) return NextResponse.json({ success: true, ...wikiResult });
   } catch (error) {
-    console.error('Wikipedia page image fetch failed:', error);
+    console.error('Wikipedia image fetch failed:', error);
   }
 
-  try {
-    const wikiSearchResult = await tryWikipediaSearchImage(query);
-    if (wikiSearchResult) return NextResponse.json({ success: true, ...wikiSearchResult });
-  } catch (error) {
-    console.error('Wikipedia search image fetch failed:', error);
-  }
-
-  // Fallback: Return a clean placehold.co SVG placeholder card
-  try {
-    return NextResponse.json({ success: true, ...tryUnsplashFeatured(query) });
-  } catch {
-    return NextResponse.json({ success: true, imageUrl: formatPlaceholderUrl(query), engine: 'placeholder' });
-  }
+  // 5. Clean placeholder fallback
+  return NextResponse.json({
+    success: true,
+    imageUrl: formatPlaceholderUrl(query),
+    thumbUrl: formatPlaceholderUrl(query),
+    engine: 'placeholder',
+  });
 }

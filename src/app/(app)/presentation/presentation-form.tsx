@@ -1068,18 +1068,27 @@ export function PresentationForm() {
           result.slides.map(async (slide, idx) => {
             let query = (slide.imageQuery || '').trim();
             if (!query || query.length < 3) {
-              query = `${values.topic || ''} ${slide.title || ''}`.trim();
-            } else if (values.topic && !query.toLowerCase().includes(values.topic.toLowerCase().split(' ')[0])) {
-              query = `${values.topic} ${query}`.trim();
+              const cleanTopic = (values.topic || '')
+                .replace(/\b(presentation|lesson|overview|guide|slides?|talk|document)\b/gi, '')
+                .trim();
+              const cleanTitle = (slide.title || '')
+                .replace(/\b(welcome to|introduction to|overview of|summary of|conclusion|part \d+|slide \d+)\b/gi, '')
+                .trim();
+              query = `${cleanTopic} ${cleanTitle}`.trim() || cleanTopic || "education nature photo";
             }
-            query = query.replace(/\b(worksheet|clipart|diagram|slides?|presentation|soal|tugas|lembar)\b/gi, '').trim() || "education photo";
+            query = query
+              .replace(/\b(worksheet|clipart|diagram|slides?|presentation|soal|tugas|lembar|tutorial|drawing|sketch)\b/gi, '')
+              .replace(/[^\w\s-]/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim() || "nature environment photo";
+
             try {
               let res = await fetch(`/api/image-picker?query=${encodeURIComponent(query)}&source=${photoSource}&count=1`);
               let data = await res.json();
               if (data.success && data.images && data.images.length > 0) {
                 fetchedPhotos[idx] = data.images[0].url;
               } else if (photoSource !== 'unsplash') {
-                // Fallback to Unsplash for guaranteed high-definition English photography
+                // Fallback to Unsplash / general safe photography
                 res = await fetch(`/api/image-picker?query=${encodeURIComponent(query)}&source=unsplash&count=1`);
                 data = await res.json();
                 if (data.success && data.images && data.images.length > 0) {
