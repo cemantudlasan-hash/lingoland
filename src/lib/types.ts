@@ -67,11 +67,13 @@ export interface UserPet {
     shoes?: string;
     wings?: string;
     clothes?: string;
+    costume?: string;
   };
   currentBackground: string;
   lastActive: string; // ISO string
   lastLoginDate?: string; // YYYY-MM-DD
   loginStreakCount?: number; // 1-7
+  personality?: 'cheerleader' | 'scholar' | 'zen' | 'trickster' | 'cyberpunk';
 }
 
 export type DailyPostComment = {

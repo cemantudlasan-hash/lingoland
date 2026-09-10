@@ -14,6 +14,7 @@ interface LingoPetVisualProps {
     necklace?: string;
     shoes?: string;
     wings?: string;
+    costume?: string;
   };
   currentBackground: string;
   isPetting?: boolean;
@@ -429,6 +430,9 @@ export function LingoPetVisual({
             </g>
           )}
 
+          {/* Full Body Costume: Back Layer */}
+          {renderCostumeBack(100, 125)}
+
           {/* Equipped Wings */}
           {renderWings(100, 125)}
 
@@ -518,6 +522,9 @@ export function LingoPetVisual({
               <path d="M 85,128 L 92,135 L 100,128 L 108,135 L 115,128" stroke={isLvl30 ? "#c084fc" : "#c7d2fe"} strokeWidth="2.5" fill="none" />
             </>
           )}
+
+          {/* Full Body Costume: Front Layer */}
+          {renderCostumeFront(100, 125)}
 
           {/* Necklace slot */}
           {renderNecklace(necklaceX, necklaceY)}
@@ -788,6 +795,9 @@ export function LingoPetVisual({
             </g>
           )}
 
+          {/* Full Body Costume: Back Layer */}
+          {renderCostumeBack(95, 115)}
+
           {/* Equipped Wings */}
           {renderWings(95, 115)}
 
@@ -905,6 +915,9 @@ export function LingoPetVisual({
               <path d="M 122,105 L 115,115 L 125,122" fill="none" stroke="#dc2626" strokeWidth="3" />
             </>
           )}
+
+          {/* Full Body Costume: Front Layer */}
+          {renderCostumeFront(95, 115)}
 
           {/* Necklace slot */}
           {renderNecklace(necklaceX, necklaceY)}
@@ -1130,6 +1143,9 @@ export function LingoPetVisual({
           isSleeping && "translate-y-1",
           !isPetting && !isTalking && !isSleeping && "animate-breathing"
         )}>
+          {/* Full Body Costume: Back Layer */}
+          {renderCostumeBack(100, 130)}
+
           {/* Equipped Wings */}
           {renderWings(100, 130)}
 
@@ -1237,6 +1253,9 @@ export function LingoPetVisual({
           {isLvl75 && !isLvl100 && (
             <path d="M 85,128 Q 100,145 115,128 L 110,136 Q 100,146 90,136 Z" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="1.2" />
           )}
+
+          {/* Full Body Costume: Front Layer */}
+          {renderCostumeFront(100, 130)}
 
           {/* Necklace slot */}
           {renderNecklace(necklaceX, necklaceY)}
@@ -1402,6 +1421,9 @@ export function LingoPetVisual({
         </defs>
 
         <g className={cn(isPetting && "animate-bounce", isTalking && "animate-pulse", "animate-float")}>
+          {/* Full Body Costume: Back Layer */}
+          {renderCostumeBack(100, 110)}
+
           {/* Wings at the back */}
           {equippedCosmetics.wings ? renderWings(100, 110) : (
             <g>
@@ -1436,6 +1458,9 @@ export function LingoPetVisual({
 
           {/* Body */}
           <ellipse cx="100" cy="115" rx="25" ry="32" fill="url(#phxBody)" />
+
+          {/* Full Body Costume: Front Layer */}
+          {renderCostumeFront(100, 115)}
 
           {/* Necklace anchor */}
           {renderNecklace(necklaceX, necklaceY)}
@@ -1522,6 +1547,9 @@ export function LingoPetVisual({
         </defs>
 
         <g className={cn(isPetting && "animate-bounce", isTalking && "animate-pulse", "animate-water-flow")}>
+          {/* Full Body Costume: Back Layer */}
+          {renderCostumeBack(100, 114)}
+
           {/* Wings */}
           {equippedCosmetics.wings && renderWings(100, 114)}
 
@@ -1542,6 +1570,9 @@ export function LingoPetVisual({
           {/* Floating water arms */}
           <path d="M 78 120 C 55 125, 45 110, 48 100 C 52 110, 68 115, 78 120 Z" fill="url(#wtrGrad)" />
           <path d="M 122 120 C 145 125, 155 110, 152 100 C 148 110, 132 115, 122 120 Z" fill="url(#wtrGrad)" />
+
+          {/* Full Body Costume: Front Layer */}
+          {renderCostumeFront(100, 125)}
 
           {/* Necklace anchor */}
           {renderNecklace(necklaceX, necklaceY)}
@@ -1639,6 +1670,9 @@ export function LingoPetVisual({
         </g>
 
         <g className={cn(isPetting && "animate-bounce", isTalking && "animate-pulse", "animate-float")}>
+          {/* Full Body Costume: Back Layer */}
+          {renderCostumeBack(100, 105)}
+
           {/* Angelic wings if equipped */}
           {equippedCosmetics.wings && renderWings(100, 105)}
 
@@ -1663,6 +1697,9 @@ export function LingoPetVisual({
           {/* Hands holding spheres */}
           <circle cx="76" cy="115" r="5" fill="#fff" />
           <circle cx="124" cy="115" r="5" fill="#fff" />
+
+          {/* Full Body Costume: Front Layer */}
+          {renderCostumeFront(100, 110)}
 
           {/* Necklace anchor */}
           {renderNecklace(necklaceX, necklaceY)}
@@ -2316,6 +2353,314 @@ export function LingoPetVisual({
               <line x1="-3" y1="-1" x2="3" y2="-3" stroke="#fff" strokeWidth="1.5" />
               <line x1="-5" y1="-4" x2="1" y2="-6" stroke="#fff" strokeWidth="1.5" />
             </g>
+          </g>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Full Body Costume Renderer: Back Layer (Capes, thrusters, back-sheathed blades, backpacks, shadow shroud)
+  const renderCostumeBack = (cx: number, cy: number) => {
+    const costume = equippedCosmetics.costume;
+    if (!costume) return null;
+
+    switch (costume) {
+      case 'costume_mecha':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Cyber Mecha Wing Thrusters & Exhaust */}
+            <g className="animate-pulse">
+              {/* Left Thruster Pod */}
+              <g transform="translate(-42, -18)">
+                <path d="M 0 0 L -22 -20 L -30 -14 L -8 18 Z" fill="#334155" stroke="#06b6d4" strokeWidth="1.5" />
+                <polygon points="-22,-20 -28,-36 -24,-38 -16,-22" fill="#0ea5e9" stroke="#38bdf8" strokeWidth="1" />
+                {/* Plasma Jet Plume */}
+                <path d="M -26 -37 Q -34 -58 -24 -68 Q -16 -54 -20 -37 Z" fill="#06b6d4" opacity="0.85" className="animate-ping" style={{ animationDuration: '1.2s' }} />
+                <path d="M -25 -37 Q -29 -50 -23 -58 Q -18 -48 -21 -37 Z" fill="#e0f2fe" opacity="0.95" />
+              </g>
+              {/* Right Thruster Pod */}
+              <g transform="translate(42, -18) scale(-1, 1)">
+                <path d="M 0 0 L -22 -20 L -30 -14 L -8 18 Z" fill="#334155" stroke="#06b6d4" strokeWidth="1.5" />
+                <polygon points="-22,-20 -28,-36 -24,-38 -16,-22" fill="#0ea5e9" stroke="#38bdf8" strokeWidth="1" />
+                {/* Plasma Jet Plume */}
+                <path d="M -26 -37 Q -34 -58 -24 -68 Q -16 -54 -20 -37 Z" fill="#06b6d4" opacity="0.85" className="animate-ping" style={{ animationDuration: '1.2s' }} />
+                <path d="M -25 -37 Q -29 -50 -23 -58 Q -18 -48 -21 -37 Z" fill="#e0f2fe" opacity="0.95" />
+              </g>
+            </g>
+          </g>
+        );
+      case 'costume_archmage':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Astral Floating Sigils & Celestial Starlight Mantle */}
+            <g className="animate-spin-slow" style={{ transformOrigin: '0 0' }}>
+              <circle cx="0" cy="0" r="48" fill="none" stroke="#a855f7" strokeWidth="1.2" strokeDasharray="6,6" opacity="0.6" />
+              <circle cx="0" cy="0" r="54" fill="none" stroke="#6366f1" strokeWidth="0.8" strokeDasharray="3,9" opacity="0.5" />
+              <polygon points="0,-48 4,-44 -4,-44" fill="#fbbf24" />
+              <polygon points="48,0 44,4 44,-4" fill="#fbbf24" />
+              <polygon points="0,48 -4,44 4,44" fill="#fbbf24" />
+              <polygon points="-48,0 -44,-4 -44,4" fill="#fbbf24" />
+            </g>
+            {/* Cascading Royal Violet Archmage Cape */}
+            <path d="M -28 -12 C -55 10, -50 48, -42 62 C -20 54, -26 30, 0 35 C 26 30, 20 54, 42 62 C 50 48, 55 10, 28 -12 Z" fill="#3b0764" stroke="#7c3aed" strokeWidth="1.8" />
+            <path d="M -22 -8 C -42 12, -38 42, -34 52 C -18 45, -20 28, 0 30 C 20 28, 18 45, 34 52 C 38 42, 42 12, 22 -8 Z" fill="#581c87" opacity="0.7" />
+            {/* Gold Starlight Trim */}
+            <path d="M -42 62 Q 0 45 42 62" fill="none" stroke="#fbbf24" strokeWidth="1.5" />
+          </g>
+        );
+      case 'costume_royal':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Imperial Velvet & Ermine Mantle */}
+            <path d="M -30 -15 C -60 5, -55 52, -45 68 C -15 58, -15 40, 0 42 C 15 40, 15 58, 45 68 C 55 52, 60 5, 30 -15 Z" fill="#881337" stroke="#b91c1c" strokeWidth="2" />
+            {/* Ermine Fur Collar and Border */}
+            <path d="M -45 68 C -20 58, 0 60, 45 68 C 38 74, -38 74, -45 68 Z" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" />
+            <circle cx="-25" cy="69" r="1.5" fill="#0f172a" />
+            <circle cx="-10" cy="69" r="1.5" fill="#0f172a" />
+            <circle cx="5" cy="69" r="1.5" fill="#0f172a" />
+            <circle cx="20" cy="69" r="1.5" fill="#0f172a" />
+            {/* Braided Gold Bullion Ribbons */}
+            <path d="M -26 -12 C -42 8, -36 36, -26 48" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="3,2" />
+            <path d="M 26 -12 C 42 8, 36 36, 26 48" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="3,2" />
+          </g>
+        );
+      case 'costume_shinobi':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Twin Crossed Ninjato Katanas in an X */}
+            {/* Blade 1 (Top-Left to Bottom-Right) */}
+            <g transform="rotate(-38)">
+              {/* Scabbard / Sheath */}
+              <rect x="-4" y="-55" width="8" height="100" rx="3" fill="#1e293b" stroke="#0f172a" strokeWidth="1.5" />
+              {/* Golden Tsuba Guard */}
+              <rect x="-9" y="-22" width="18" height="4" rx="1.5" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
+              {/* Wrapped Tsuka Handle */}
+              <rect x="-4" y="-52" width="8" height="28" rx="2" fill="#be123c" />
+              <line x1="-4" y1="-46" x2="4" y2="-43" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="-4" y1="-40" x2="4" y2="-37" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="-4" y1="-34" x2="4" y2="-31" stroke="#fef08a" strokeWidth="1.2" />
+              <circle cx="0" cy="-53" r="3" fill="#fbbf24" />
+            </g>
+            {/* Blade 2 (Top-Right to Bottom-Left) */}
+            <g transform="rotate(38)">
+              {/* Scabbard / Sheath */}
+              <rect x="-4" y="-55" width="8" height="100" rx="3" fill="#1e293b" stroke="#0f172a" strokeWidth="1.5" />
+              {/* Golden Tsuba Guard */}
+              <rect x="-9" y="-22" width="18" height="4" rx="1.5" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
+              {/* Wrapped Tsuka Handle */}
+              <rect x="-4" y="-52" width="8" height="28" rx="2" fill="#be123c" />
+              <line x1="-4" y1="-46" x2="4" y2="-43" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="-4" y1="-40" x2="4" y2="-37" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="-4" y1="-34" x2="4" y2="-31" stroke="#fef08a" strokeWidth="1.2" />
+              <circle cx="0" cy="-53" r="3" fill="#fbbf24" />
+            </g>
+            {/* Flowing Crimson Ninja Scarf Tail */}
+            <g className="animate-wiggle">
+              <path d="M 12 -14 C 36 -28, 54 -12, 65 -24 C 58 -8, 48 -2, 22 -6 Z" fill="#e11d48" stroke="#9f1239" strokeWidth="1.2" />
+              <path d="M 8 -10 C 28 -20, 44 -6, 52 -16 C 45 -4, 38 2, 16 -4 Z" fill="#be123c" />
+            </g>
+          </g>
+        );
+      case 'costume_astronaut':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Life Support Backpack (EVA PLSS) */}
+            <rect x="-38" y="-28" width="76" height="66" rx="14" fill="#e2e8f0" stroke="#475569" strokeWidth="2.5" />
+            {/* Dual Oxygen Cylinders */}
+            <rect x="-32" y="-36" width="18" height="48" rx="8" fill="#cbd5e1" stroke="#334155" strokeWidth="1.8" />
+            <rect x="14" y="-36" width="18" height="48" rx="8" fill="#cbd5e1" stroke="#334155" strokeWidth="1.8" />
+            {/* High-Gain Comms Antenna */}
+            <line x1="28" y1="-34" x2="38" y2="-62" stroke="#64748b" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="38" cy="-62" r="3.5" fill="#ef4444" className="animate-ping" style={{ animationDuration: '1.5s' }} />
+            <circle cx="38" cy="-62" r="2.5" fill="#ef4444" />
+            {/* Umbilical Conduit Ribbed Tubes */}
+            <path d="M -32 6 Q -48 18 -26 28" fill="none" stroke="#0284c7" strokeWidth="3" strokeLinecap="round" strokeDasharray="2,2" />
+            <path d="M 32 6 Q 48 18 26 28" fill="none" stroke="#0284c7" strokeWidth="3" strokeLinecap="round" strokeDasharray="2,2" />
+          </g>
+        );
+      case 'costume_reaper':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Spectral Void Shroud & Phantom Wisps */}
+            <path d="M -35 -20 C -65 15, -60 55, -45 74 C -35 52, -22 66, 0 45 C 22 66, 35 52, 45 74 C 60 55, 65 15, 35 -20 Z" fill="#020617" stroke="#10b981" strokeWidth="1.8" />
+            {/* Spectral Phantasm Tendrils */}
+            <g className="animate-pulse" style={{ animationDuration: '2s' }}>
+              <path d="M -30 20 Q -52 42 -42 66 Q -30 48 -22 36" fill="none" stroke="#10b981" strokeWidth="1.5" opacity="0.6" />
+              <path d="M 30 20 Q 52 42 42 66 Q 30 48 22 36" fill="none" stroke="#10b981" strokeWidth="1.5" opacity="0.6" />
+              <circle cx="-38" cy="56" r="2" fill="#6ee7b7" opacity="0.8" />
+              <circle cx="38" cy="56" r="2" fill="#6ee7b7" opacity="0.8" />
+            </g>
+          </g>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Full Body Costume Renderer: Front Layer (Chestplates, tunics, robes, harness, badges, lanterns)
+  const renderCostumeFront = (cx: number, cy: number) => {
+    const costume = equippedCosmetics.costume;
+    if (!costume) return null;
+
+    switch (costume) {
+      case 'costume_mecha':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Mecha Armored Pauldrons (Shoulders) */}
+            <polygon points="-38,-8 -24,-18 -14,-4 -30,6" fill="#475569" stroke="#06b6d4" strokeWidth="1.5" />
+            <polygon points="38,-8 24,-18 14,-4 30,6" fill="#475569" stroke="#06b6d4" strokeWidth="1.5" />
+            {/* Main Cyber Torso Plate */}
+            <path d="M -24 -6 L 24 -6 L 18 24 L -18 24 Z" fill="#1e293b" stroke="#334155" strokeWidth="2" />
+            {/* Armor Inset Panels */}
+            <polygon points="-18,-2 -6,-2 -8,18 -16,18" fill="#0f172a" stroke="#0284c7" strokeWidth="1" />
+            <polygon points="18,-2 6,-2 8,18 16,18" fill="#0f172a" stroke="#0284c7" strokeWidth="1" />
+            {/* Center Spinning Arc Reactor */}
+            <g transform="translate(0, 8)">
+              <circle cx="0" cy="0" r="9" fill="#083344" stroke="#06b6d4" strokeWidth="2" />
+              <circle cx="0" cy="0" r="5" fill="#22d3ee" className="animate-pulse" />
+              <circle cx="0" cy="0" r="2.5" fill="#ffffff" />
+              {/* Reactor vanes */}
+              <line x1="-7" y1="0" x2="7" y2="0" stroke="#38bdf8" strokeWidth="1" />
+              <line x1="0" y1="-7" x2="0" y2="7" stroke="#38bdf8" strokeWidth="1" />
+            </g>
+            {/* Caution Hazard Power Belt */}
+            <rect x="-18" y="24" width="36" height="6" rx="2" fill="#f59e0b" stroke="#b45309" strokeWidth="1" />
+            <line x1="-12" y1="24" x2="-8" y2="30" stroke="#0f172a" strokeWidth="2" />
+            <line x1="-4" y1="24" x2="0" y2="30" stroke="#0f172a" strokeWidth="2" />
+            <line x1="4" y1="24" x2="8" y2="30" stroke="#0f172a" strokeWidth="2" />
+            <line x1="12" y1="24" x2="16" y2="30" stroke="#0f172a" strokeWidth="2" />
+          </g>
+        );
+      case 'costume_archmage':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Arcane Robe Collar & Chest Vestment */}
+            <path d="M -22 -10 L 0 14 L 22 -10 L 15 26 L -15 26 Z" fill="#4c1d95" stroke="#a855f7" strokeWidth="1.8" />
+            {/* Gold Lapel Trims */}
+            <path d="M -22 -10 L 0 14 L 22 -10" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" />
+            {/* Floating Arcane Grimoire (Left side) */}
+            <g transform="translate(-32, 10)" className="animate-bounce" style={{ animationDuration: '3s' }}>
+              <rect x="-10" y="-12" width="20" height="24" rx="3" fill="#1e1b4b" stroke="#fbbf24" strokeWidth="1.5" transform="rotate(-12)" />
+              {/* Pages edge */}
+              <rect x="-7" y="-10" width="15" height="20" rx="2" fill="#fef08a" transform="rotate(-12)" />
+              {/* Cover emblem */}
+              <circle cx="1" cy="0" r="3" fill="#9333ea" stroke="#fbbf24" strokeWidth="1" />
+              {/* Glow sparks */}
+              <circle cx="-8" cy="-14" r="1.5" fill="#c084fc" className="animate-ping" style={{ animationDuration: '1.2s' }} />
+            </g>
+            {/* Sorcerer Power Belt with Cosmic Gem Clasp */}
+            <rect x="-16" y="24" width="32" height="5" rx="1.5" fill="#581c87" stroke="#a855f7" strokeWidth="1" />
+            <circle cx="0" cy="26.5" r="4.5" fill="#fbbf24" stroke="#d97706" strokeWidth="1.2" />
+            <circle cx="0" cy="26.5" r="2.5" fill="#6366f1" />
+          </g>
+        );
+      case 'costume_royal':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Gold Brocade Tunic Vest */}
+            <path d="M -24 -8 L 24 -8 L 18 24 L -18 24 Z" fill="#450a0a" stroke="#7f1d1d" strokeWidth="1.5" />
+            {/* Golden Epaulets on Shoulders */}
+            <g transform="translate(-24, -8)">
+              <ellipse cx="0" cy="0" rx="8" ry="4" fill="#fbbf24" stroke="#b45309" strokeWidth="1" />
+              {/* Gold fringes */}
+              <line x1="-5" y1="3" x2="-6" y2="9" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="-2" y1="4" x2="-2" y2="11" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="2" y1="4" x2="2" y2="11" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="5" y1="3" x2="6" y2="9" stroke="#fef08a" strokeWidth="1.2" />
+            </g>
+            <g transform="translate(24, -8)">
+              <ellipse cx="0" cy="0" rx="8" ry="4" fill="#fbbf24" stroke="#b45309" strokeWidth="1" />
+              {/* Gold fringes */}
+              <line x1="-5" y1="3" x2="-6" y2="9" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="-2" y1="4" x2="-2" y2="11" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="2" y1="4" x2="2" y2="11" stroke="#fef08a" strokeWidth="1.2" />
+              <line x1="5" y1="3" x2="6" y2="9" stroke="#fef08a" strokeWidth="1.2" />
+            </g>
+            {/* Royal Sash (Diagonal sapphire ribbon) */}
+            <path d="M -20 -6 L 16 24 L 22 24 L -14 -6 Z" fill="#1d4ed8" stroke="#1e40af" strokeWidth="0.8" />
+            {/* Golden Sovereign Lion Medallion */}
+            <circle cx="-1" cy="9" r="6" fill="#fbbf24" stroke="#b45309" strokeWidth="1.5" />
+            <polygon points="-1,5 -3,9 1,9" fill="#78350f" />
+            {/* Golden Belt Buckle */}
+            <rect x="-18" y="22" width="36" height="5" rx="1.5" fill="#78350f" />
+            <rect x="-5" y="21" width="10" height="7" rx="1.5" fill="#fbbf24" stroke="#d97706" strokeWidth="1" />
+          </g>
+        );
+      case 'costume_shinobi':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Tactical Shinobi Gi Torso */}
+            <path d="M -22 -8 L 22 -8 L 16 26 L -16 26 Z" fill="#0f172a" stroke="#1e293b" strokeWidth="1.5" />
+            {/* Chainmail Neck Collar */}
+            <polygon points="-14,-8 0,4 14,-8" fill="#334155" stroke="#475569" strokeWidth="0.8" strokeDasharray="1,1" />
+            {/* Crossing Leather Bandolier Harness */}
+            <line x1="-18" y1="-6" x2="14" y2="24" stroke="#78350f" strokeWidth="3" />
+            {/* Metallic Throwing Shurikens Pinned on Harness */}
+            <g transform="translate(-4, 7) scale(0.6)">
+              <polygon points="0,-8 3,-3 8,0 3,3 0,8 -3,3 -8,0 -3,-3" fill="#e2e8f0" stroke="#64748b" strokeWidth="1" />
+              <circle cx="0" cy="0" r="1.5" fill="#0f172a" />
+            </g>
+            <g transform="translate(6, 17) scale(0.6)">
+              <polygon points="0,-8 3,-3 8,0 3,3 0,8 -3,3 -8,0 -3,-3" fill="#e2e8f0" stroke="#64748b" strokeWidth="1" />
+              <circle cx="0" cy="0" r="1.5" fill="#0f172a" />
+            </g>
+            {/* Shinobi Sash Belt with Smoke Bomb Scroll */}
+            <rect x="-18" y="24" width="36" height="5" rx="1.5" fill="#e11d48" />
+            <rect x="7" y="22" width="9" height="9" rx="2" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
+            <line x1="11.5" y1="22" x2="11.5" y2="31" stroke="#e11d48" strokeWidth="1.2" />
+          </g>
+        );
+      case 'costume_astronaut':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Pressurized NASA White Torso Suit */}
+            <path d="M -24 -6 L 24 -6 L 19 26 L -19 26 Z" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
+            {/* Blue Ribbed Shoulder Padding */}
+            <rect x="-24" y="-7" width="10" height="4" rx="1.5" fill="#2563eb" />
+            <rect x="14" y="-7" width="10" height="4" rx="1.5" fill="#2563eb" />
+            {/* Mission Chest Telemetry Computer Display */}
+            <rect x="-13" y="1" width="26" height="15" rx="3" fill="#1e293b" stroke="#0ea5e9" strokeWidth="1.2" />
+            {/* Digital Readout Lines & Status LEDs */}
+            <line x1="-9" y1="5" x2="2" y2="5" stroke="#22d3ee" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="-9" y1="9" x2="-1" y2="9" stroke="#34d399" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="6" cy="5" r="1.5" fill="#10b981" className="animate-pulse" />
+            <circle cx="6" cy="10" r="1.5" fill="#f59e0b" />
+            {/* Space Mission Patch Badge */}
+            <g transform="translate(-16, 20) scale(0.7)">
+              <circle cx="0" cy="0" r="5" fill="#1d4ed8" stroke="#f8fafc" strokeWidth="1" />
+              <polygon points="0,-3 3,3 -3,3" fill="#ef4444" />
+            </g>
+            {/* Astronaut Utility Belt */}
+            <rect x="-18" y="24" width="36" height="5" rx="1.5" fill="#64748b" stroke="#475569" strokeWidth="1" />
+            <rect x="-4" y="23" width="8" height="7" rx="1" fill="#94a3b8" />
+          </g>
+        );
+      case 'costume_reaper':
+        return (
+          <g transform={`translate(${cx}, ${cy})`}>
+            {/* Phantom Robes Torso */}
+            <path d="M -22 -8 L 22 -8 L 16 26 L -16 26 Z" fill="#0f172a" stroke="#10b981" strokeWidth="1.5" />
+            {/* Spectral Glowing Skeletal Ribcage */}
+            <g className="animate-pulse" style={{ animationDuration: '2.5s' }}>
+              <line x1="0" y1="-3" x2="0" y2="18" stroke="#6ee7b7" strokeWidth="2.5" strokeLinecap="round" />
+              <path d="M -11 0 Q 0 4 11 0" fill="none" stroke="#6ee7b7" strokeWidth="2" strokeLinecap="round" />
+              <path d="M -13 6 Q 0 10 13 6" fill="none" stroke="#6ee7b7" strokeWidth="2" strokeLinecap="round" />
+              <path d="M -10 12 Q 0 16 10 12" fill="none" stroke="#6ee7b7" strokeWidth="2" strokeLinecap="round" />
+            </g>
+            {/* Dangling Soul Lantern (Right side) */}
+            <g transform="translate(26, 12)" className="animate-swing" style={{ transformOrigin: '0 -6' }}>
+              {/* Chain */}
+              <line x1="0" y1="-10" x2="0" y2="0" stroke="#64748b" strokeWidth="1.2" strokeDasharray="1,1" />
+              {/* Lantern Housing */}
+              <polygon points="0,0 8,4 8,14 0,18 -8,14 -8,4" fill="#020617" stroke="#10b981" strokeWidth="1.5" />
+              {/* Phantasmal Green Soul Fire Core */}
+              <circle cx="0" cy="9" r="4.5" fill="#10b981" className="animate-ping" style={{ animationDuration: '1.5s' }} />
+              <circle cx="0" cy="9" r="3" fill="#6ee7b7" />
+              <circle cx="0" cy="9" r="1.5" fill="#ffffff" />
+            </g>
+            {/* Dark Tattered Waist Bindings */}
+            <rect x="-18" y="24" width="36" height="4" rx="1" fill="#020617" stroke="#059669" strokeWidth="1" />
           </g>
         );
       default:

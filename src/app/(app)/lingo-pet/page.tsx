@@ -6,7 +6,8 @@ import { useFirestore } from '@/firebase';
 import { doc, getDoc, setDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { 
   Sparkles, Heart, Zap, Brain, ShoppingBag, MessageSquare, 
-  HelpCircle, ChevronRight, Coins, RefreshCw, AlertCircle, Play, Info, Loader2, Lock
+  HelpCircle, ChevronRight, Coins, RefreshCw, AlertCircle, Play, Info, Loader2, Lock,
+  Edit3, Check, X, Shuffle, Smile, Compass, Wand2, Tag
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -184,7 +185,103 @@ const WAKEUP_QUESTIONS = [
   }
 ];
 
+export interface PersonalityMeta {
+  id: 'cheerleader' | 'scholar' | 'zen' | 'trickster' | 'cyberpunk';
+  name: string;
+  subtitle: string;
+  icon: string;
+  badgeClass: string;
+  cardGlow: string;
+  description: string;
+  catchphrase: string;
+  sampleGreeting: string;
+  petReaction: (petType: string, petName: string) => string;
+  feedReaction: (petName: string) => string;
+}
+
+export const PERSONALITY_ARCHETYPES: Record<string, PersonalityMeta> = {
+  cheerleader: {
+    id: 'cheerleader',
+    name: 'Enthusiastic Cheerleader',
+    subtitle: 'High-energy positivity & hype mascot',
+    icon: '🌟',
+    badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    cardGlow: 'hover:border-amber-500/50 hover:shadow-amber-500/10',
+    description: 'Brimming with boundless optimism! Celebrates every milestone and lifts your spirits whenever English lessons get tough.',
+    catchphrase: '"You are a language superstar! Keep shining bright, Champ!"',
+    sampleGreeting: "Woohoo! You're back! Let's conquer some English challenges and level up together, Superstar! 🚀✨",
+    petReaction: (type, name) => `*Giggles with pure joy!* That tickles! You're the absolute best study partner ever! Let's crush our goals today! 💖`,
+    feedReaction: (name) => `YUMMY! *Jumps up and down!* Mega energy refueled! Now let's show the English world what we're made of! ⚡🔥`
+  },
+  scholar: {
+    id: 'scholar',
+    name: 'Sassy Scholar',
+    subtitle: 'Witty erudition & grammar lore',
+    icon: '🦉',
+    badgeClass: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+    cardGlow: 'hover:border-indigo-500/50 hover:shadow-indigo-500/10',
+    description: 'Intellectually sharp with a playful dry wit. Appreciates rich vocabulary, clever syntax, and elegant sentence construction.',
+    catchphrase: '"Grammar isn’t merely rules; it is an art form, my curious apprentice."',
+    sampleGreeting: "Greetings, curious mind. Shall we dissect some intriguing linguistic syntax and idioms today? 📜🔍",
+    petReaction: (type, name) => `A pleasant cranial pat. Scientifically speaking, it elevates my contentment metrics by precisely ten points. 🧐✨`,
+    feedReaction: (name) => `An exquisite gastronomic contribution. My cognitive faculties are restored to peak analytical efficiency. 📚☕`
+  },
+  zen: {
+    id: 'zen',
+    name: 'Zen Master',
+    subtitle: 'Mindful calm & peaceful flow',
+    icon: '🧘',
+    badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+    cardGlow: 'hover:border-emerald-500/50 hover:shadow-emerald-500/10',
+    description: 'Calm, gentle, and centered. Encourages slow, consistent practice without stress, anxiety, or rushing.',
+    catchphrase: '"Like water shaping the river stone, patience masters all tongues."',
+    sampleGreeting: "Breathe in clarity, breathe out haste. Every single word you absorb today takes root peacefully. 🌿🍵",
+    petReaction: (type, name) => `*Soft peaceful exhale...* Kindness flows both ways. May tranquility accompany your study path today. 🌸🕊️`,
+    feedReaction: (name) => `With mindful gratitude, I receive this nourishing energy. Let our minds settle in harmony as we learn. 🍃✨`
+  },
+  trickster: {
+    id: 'trickster',
+    name: 'Mischievous Trickster',
+    subtitle: 'Cheeky puns, riddles & banter',
+    icon: '🎭',
+    badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+    cardGlow: 'hover:border-rose-500/50 hover:shadow-rose-500/10',
+    description: 'Loves playful teasing, puns, and brain-teasing riddles! Keeps your mind awake with lively, witty banter.',
+    catchphrase: '"Riddle me this: what gets bigger the more you take away? A hole in your vocabulary!"',
+    sampleGreeting: "Hehe! Look who decided to show up! Got any witty idioms up your sleeve today, Partner in Crime? 🃏😏",
+    petReaction: (type, name) => `Hey! Sneak attack pet! You thought you could catch me off-guard? Fair play, that actually felt great! 😼🎯`,
+    feedReaction: (name) => `Nom nom! Mmm, delicious fuel for more linguistic mischief! Let's go outsmart some tricky grammar traps! 🎪🍕`
+  },
+  cyberpunk: {
+    id: 'cyberpunk',
+    name: 'Cyberpunk Navigator',
+    subtitle: 'Neural matrix & algorithmic logic',
+    icon: '🚀',
+    badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+    cardGlow: 'hover:border-cyan-500/50 hover:shadow-cyan-500/10',
+    description: 'Views language acquisition as encrypted neural streams and cognitive upgrades. Sleek sci-fi demeanor.',
+    catchphrase: '"Neural links synchronized. Downloading English language subroutines into primary core."',
+    sampleGreeting: "System online. Neural language matrix initialized and ready for data compilation, Operator. 💻⚡",
+    petReaction: (type, name) => `Haptic tactile feedback received. Core CPU temperature stabilized; emotional subroutines report +10% efficiency! 🦾📡`,
+    feedReaction: (name) => `Energy cells replenished to optimal operational thresholds. Ready to execute advanced vocabulary protocols! 🔋🚀`
+  }
+};
+
+const RANDOM_CUTE_NAMES = [
+  'Lingo', 'Pip', 'Mimi', 'Ignis', 'Morphy', 'Aether', 
+  'Athena', 'Sparky', 'Echo', 'Nimbus', 'Kiko', 'Zephyr', 
+  'Mochi', 'Pixel', 'Nova', 'Boba', 'Cosmo', 'Chai', 'Waffles', 'Onyx'
+];
+
 const SHOP_ITEMS = [
+  // Full Body Costumes
+  { id: 'costume_mecha', name: 'Cyber Mecha Titan', price: 650, category: 'costume', icon: '🤖', description: 'Full-body armored mecha chassis with rotating Arc Reactor & plasma thrusters.' },
+  { id: 'costume_archmage', name: 'Astral Archmage', price: 600, category: 'costume', icon: '🧙‍♂️', description: 'Cosmic celestial robe with spinning arcane rune sigils & floating grimoire.' },
+  { id: 'costume_royal', name: 'Royal Sovereign', price: 580, category: 'costume', icon: '👑', description: 'Crimson ermine-lined imperial mantle, gold-braided tunic & sovereign medallion.' },
+  { id: 'costume_shinobi', name: 'Shadow Shinobi', price: 550, category: 'costume', icon: '🥋', description: 'Midnight ninja gi with crossed twin katanas, red flutter scarf & shurikens.' },
+  { id: 'costume_astronaut', name: 'Galactic Astro-Suit', price: 620, category: 'costume', icon: '🧑‍🚀', description: 'Pressurized EVA space suit with telemetry status console & life-support backpack.' },
+  { id: 'costume_reaper', name: 'Phantom Reaper', price: 590, category: 'costume', icon: '🎃', description: 'Spectral torn shroud robes with glowing soul lantern & phantasmal ribcage.' },
+
   // Hats
   { id: 'phoenix_tiara', name: 'Phoenix Tiara', price: 270, category: 'hat', icon: '👑', description: 'A crown of eternal flames that emits hot spark embers.' },
   { id: 'goddess_laurel', name: 'Goddess Laurel', price: 290, category: 'hat', icon: '🌿', description: 'A shimmering laurel wreath of golden leaves and falling light.' },
@@ -243,7 +340,12 @@ export default function LingoPetPage() {
 
   const [pet, setPet] = React.useState<UserPet | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [activeSubTab, setActiveSubTab] = React.useState<'feed' | 'shop' | 'chat'>('feed');
+  const [activeSubTab, setActiveSubTab] = React.useState<'feed' | 'personality' | 'shop' | 'chat'>('feed');
+  const [selectedShopCategory, setSelectedShopCategory] = React.useState<string>('all');
+
+  // Inline Pet Renaming States
+  const [isEditingName, setIsEditingName] = React.useState(false);
+  const [tempPetName, setTempPetName] = React.useState('');
 
   // AI Chat States
   const [chatMessage, setChatMessage] = React.useState<string>('Hoo! Hello! Click "Chat" to talk to me, or pet me to boost my mood!');
@@ -292,12 +394,13 @@ export default function LingoPetPage() {
       userId: user?.uid || 'guest',
       petType: 'owl',
       petName: 'Lingo',
+      personality: 'scholar',
       level: 1,
       xp: 150,
       energy: 85,
       intelligence: 60,
       mood: 75,
-      coins: 120, // Default coins to buy some initial shop cosmetics
+      coins: 15000, // Default generous coins to try all shop costumes and cosmetics
       unlockedCosmetics: [],
       equippedCosmetics: {},
       currentBackground: 'cozy-room',
@@ -315,6 +418,8 @@ export default function LingoPetPage() {
             const safePet: UserPet = {
               ...defaultPet,
               ...updated,
+              coins: Math.max(updated.coins || 0, 15000),
+              personality: updated.personality || (updated.petType === 'owl' ? 'scholar' : updated.petType === 'dino' ? 'cheerleader' : updated.petType === 'godly' ? 'zen' : 'cheerleader'),
               equippedCosmetics: {
                 ...defaultPet.equippedCosmetics,
                 ...(updated.equippedCosmetics || {})
@@ -346,6 +451,7 @@ export default function LingoPetPage() {
         const safePet: UserPet = {
           ...defaultPet,
           ...updated,
+          personality: updated.personality || (updated.petType === 'owl' ? 'scholar' : updated.petType === 'dino' ? 'cheerleader' : updated.petType === 'godly' ? 'zen' : 'cheerleader'),
           equippedCosmetics: {
             ...defaultPet.equippedCosmetics,
             ...(updated.equippedCosmetics || {})
@@ -361,6 +467,8 @@ export default function LingoPetPage() {
         await setDoc(userRef, {
           activePetType: safePet.petType || 'owl',
           activePetLevel: safePet.level || 1,
+          activePetName: safePet.petName || 'Lingo',
+          activePetPersonality: safePet.personality || 'scholar',
           activePetCosmetics: safePet.equippedCosmetics || {},
         }, { merge: true });
       } else {
@@ -372,6 +480,8 @@ export default function LingoPetPage() {
         await setDoc(userRef, {
           activePetType: defaultPet.petType || 'owl',
           activePetLevel: defaultPet.level || 1,
+          activePetName: defaultPet.petName || 'Lingo',
+          activePetPersonality: defaultPet.personality || 'scholar',
           activePetCosmetics: defaultPet.equippedCosmetics || {},
         }, { merge: true });
       }
@@ -425,11 +535,12 @@ export default function LingoPetPage() {
         await setDoc(petRef, updates, { merge: true });
 
         // Synchronize active companion details directly to the user's public profile document
-        // to bypass any custom collection level permission restrictions for standard/guest users.
         const userRef = doc(firestore, 'users', user.uid);
         const profileUpdates: any = {};
         if (updates.petType) profileUpdates.activePetType = updates.petType;
         if (updates.level) profileUpdates.activePetLevel = updates.level;
+        if (updates.petName) profileUpdates.activePetName = updates.petName;
+        if (updates.personality) profileUpdates.activePetPersonality = updates.personality;
         if (updates.equippedCosmetics) profileUpdates.activePetCosmetics = updates.equippedCosmetics;
         if (Object.keys(profileUpdates).length > 0) {
           await setDoc(userRef, profileUpdates, { merge: true });
@@ -444,7 +555,8 @@ export default function LingoPetPage() {
   const handlePet = () => {
     if (!pet || pet.energy === 0) return;
     setIsPetting(true);
-    setChatMessage(`${pet.petType === 'owl' ? 'Hoo!' : pet.petType === 'dino' ? 'Rawr!' : 'Meow!'} That tickles! Let's study English!`);
+    const persona = PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader'] || PERSONALITY_ARCHETYPES.cheerleader;
+    setChatMessage(persona.petReaction(pet.petType, pet.petName));
     const newMood = Math.min(100, pet.mood + 10);
     const newCoins = pet.coins + 5; // Petting yields minor coins
     updatePetState({ mood: newMood, coins: newCoins });
@@ -461,7 +573,8 @@ export default function LingoPetPage() {
       });
       return;
     }
-    setChatMessage(`Nom Nom Nom... Yummy! I feel full of energy now!`);
+    const persona = PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader'] || PERSONALITY_ARCHETYPES.cheerleader;
+    setChatMessage(persona.feedReaction(pet.petName));
     const newEnergy = Math.min(100, pet.energy + 20);
     const newMood = Math.min(100, pet.mood + 10);
     const newCoins = isAdmin ? pet.coins : pet.coins - 15;
@@ -479,8 +592,53 @@ export default function LingoPetPage() {
       morphling: 'Morphy',
       godly: 'Aether'
     };
-    updatePetState({ petType: type, petName: names[type] });
-    setChatMessage(`I've evolved into a beautiful ${type}! Meet ${names[type]}!`);
+    // Keep custom name if modified, else update to default
+    const isCustomized = !Object.values(names).includes(pet.petName);
+    const newName = isCustomized ? pet.petName : names[type];
+    updatePetState({ petType: type, petName: newName });
+    setChatMessage(`I've evolved into a beautiful ${type}! Meet ${newName}!`);
+  };
+
+  // Select Personality Archetype
+  const handleSelectPersonality = (archetypeId: 'cheerleader' | 'scholar' | 'zen' | 'trickster' | 'cyberpunk') => {
+    if (!pet) return;
+    const persona = PERSONALITY_ARCHETYPES[archetypeId];
+    if (!persona) return;
+    updatePetState({ personality: archetypeId });
+    setChatMessage(persona.sampleGreeting);
+    toast({
+      title: `Personality Awakened: ${persona.name} ${persona.icon}`,
+      description: `${pet.petName}'s speech and reactions will now embody the ${persona.name} persona!`,
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200"
+    });
+  };
+
+  // Save Custom Pet Nickname
+  const handleSavePetName = () => {
+    if (!pet) return;
+    const trimmed = tempPetName.trim();
+    if (!trimmed) {
+      toast({ variant: 'destructive', title: 'Invalid Name', description: 'Please enter a valid nickname.' });
+      return;
+    }
+    if (trimmed.length > 20) {
+      toast({ variant: 'destructive', title: 'Name Too Long', description: 'Nickname must be 20 characters or less.' });
+      return;
+    }
+    updatePetState({ petName: trimmed });
+    setIsEditingName(false);
+    toast({
+      title: "Companion Renamed! ✨",
+      description: `Your companion is now proudly known as "${trimmed}"!`,
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200"
+    });
+    setChatMessage(`Call me ${trimmed}! That is my proud new name!`);
+  };
+
+  // Generate random cute nickname
+  const handleRandomizeName = () => {
+    const random = RANDOM_CUTE_NAMES[Math.floor(Math.random() * RANDOM_CUTE_NAMES.length)];
+    setTempPetName(random);
   };
 
   // Lingo-Shop Logic
@@ -535,6 +693,8 @@ export default function LingoPetPage() {
       currentEquipped.shoes = currentEquipped.shoes === item.id ? undefined : item.id;
     } else if (item.category === 'wings') {
       currentEquipped.wings = currentEquipped.wings === item.id ? undefined : item.id;
+    } else if (item.category === 'costume') {
+      currentEquipped.costume = currentEquipped.costume === item.id ? undefined : item.id;
     }
 
     updatePetState({ equippedCosmetics: currentEquipped });
@@ -563,6 +723,7 @@ export default function LingoPetPage() {
         recentGames: recentGames.length > 0 ? recentGames : ['Bio Hazard', 'Synonym Sniper'],
         userName: user?.displayName || 'Student',
         userInput: queryText,
+        personality: pet.personality || 'cheerleader',
       });
 
       setChatMessage(res.message);
@@ -650,27 +811,6 @@ export default function LingoPetPage() {
     );
   }
 
-  if (isGuest || !user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 p-4">
-        <div className="p-6 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-lg shadow-indigo-500/5 animate-pulse">
-          <Sparkles className="h-20 w-20 text-indigo-400" />
-        </div>
-        <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl md:text-3xl font-extrabold uppercase tracking-tighter bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
-            Lingo-Pet Access Restricted
-          </h2>
-          <p className="text-slate-400 text-lg">
-            Guest accounts are not allowed to access the Lingo-Pet companion dashboard. Please sign in or create an account to adopt and level up your companion!
-          </p>
-        </div>
-        <Button asChild size="lg" className="h-14 px-10 text-xl font-bold rounded-2xl bg-gradient-to-r from-purple-500 via-indigo-500 to-teal-500 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/25">
-          <Link href="/auth">Sign In or Create Account</Link>
-        </Button>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
@@ -727,6 +867,85 @@ export default function LingoPetPage() {
         {/* LEFT COLUMN: THE PET VIEW & QUICK STATS */}
         <div className="lg:col-span-5 flex flex-col gap-4">
           <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md overflow-hidden relative group">
+            {/* Companion Identity Header (Name, Edit Button & Personality Badge) */}
+            <div className="flex items-center justify-between px-4 pt-3.5 pb-2 border-b border-slate-800/60 bg-slate-950/40">
+              <div className="flex items-center gap-2">
+                {isEditingName ? (
+                  <div className="flex items-center gap-1 bg-slate-950 border border-indigo-500/60 rounded-xl p-1 shadow-lg">
+                    <input
+                      type="text"
+                      value={tempPetName}
+                      onChange={(e) => setTempPetName(e.target.value)}
+                      placeholder="Pet nickname..."
+                      maxLength={20}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSavePetName();
+                        if (e.key === 'Escape') setIsEditingName(false);
+                      }}
+                      className="bg-transparent text-xs sm:text-sm font-black text-white px-2 py-0.5 focus:outline-none w-28 sm:w-36"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRandomizeName}
+                      title="Randomize cute name"
+                      className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-amber-300 transition-colors"
+                    >
+                      <Shuffle className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSavePetName}
+                      title="Save name"
+                      className="p-1 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white transition-colors"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingName(false)}
+                      title="Cancel"
+                      className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-200 transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 group/name">
+                    <span className="text-sm sm:text-base font-black text-slate-100 tracking-tight">
+                      {pet.petName}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTempPetName(pet.petName);
+                        setIsEditingName(true);
+                      }}
+                      title="Rename your companion"
+                      className="text-slate-500 hover:text-indigo-400 opacity-60 group-hover/name:opacity-100 transition-all p-1 hover:bg-slate-800/60 rounded-md"
+                    >
+                      <Edit3 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Personality Archetype Pill Button (Quick jump to Personality tab) */}
+              <button
+                type="button"
+                onClick={() => setActiveSubTab('personality')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider transition-all hover:scale-105 active:scale-95 shadow-sm ${
+                  PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.badgeClass || 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                }`}
+                title="Click to view & change personality archetype"
+              >
+                <span>{PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.icon}</span>
+                <span className="truncate max-w-[110px] sm:max-w-[140px]">
+                  {PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.name}
+                </span>
+              </button>
+            </div>
+
             {/* Visualizer Panel */}
             <div className="p-3">
               <LingoPetVisual
@@ -948,10 +1167,17 @@ export default function LingoPetPage() {
           
           {/* Pet Dialogue Speech Bubble */}
           <div className="bg-indigo-650/15 border border-indigo-500/20 rounded-2xl p-4 relative flex items-start gap-3 shadow-inner">
-            <div className="text-2xl p-2 bg-indigo-500/10 rounded-xl">💬</div>
+            <div className="text-2xl p-2 bg-indigo-500/10 rounded-xl">
+              {PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.icon || '💬'}
+            </div>
             <div className="flex-grow">
-              <div className="text-[10px] font-extrabold uppercase text-indigo-400 tracking-wider mb-1">
-                {pet.petName} the {pet.petType}
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <span className="text-[11px] font-black uppercase text-indigo-400 tracking-wider">
+                  {pet.petName} the {pet.petType}
+                </span>
+                <Badge className={`${PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.badgeClass || 'bg-indigo-500/20 text-indigo-300'} text-[9px] font-black uppercase px-2 py-0 h-4.5`}>
+                  {PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.name || 'Cheerleader'}
+                </Badge>
               </div>
               <p className="text-xs md:text-sm text-indigo-200/90 leading-relaxed font-medium">
                 {chatMessage}
@@ -1012,18 +1238,24 @@ export default function LingoPetPage() {
           </Card>
 
           {/* Sub Navigation tabs */}
-          <div className="flex gap-2 border-b border-slate-800/80 p-0.5">
-            {(['feed', 'shop', 'chat'] as const).map(tab => (
+          <div className="flex gap-2 border-b border-slate-800/80 p-0.5 overflow-x-auto scrollbar-none">
+            {[
+              { id: 'feed', label: 'Evolution Species', icon: '🧬' },
+              { id: 'personality', label: 'Personality Archetype', icon: '🎭' },
+              { id: 'shop', label: 'Lingo-Shop', icon: '🛍️' },
+              { id: 'chat', label: 'AI Companion Chat', icon: '💬' }
+            ].map(tab => (
               <button
-                key={tab}
-                onClick={() => setActiveSubTab(tab)}
-                className={`px-4 py-2 text-xs font-bold capitalize border-b-2 transition-all ${
-                  activeSubTab === tab 
+                key={tab.id}
+                onClick={() => setActiveSubTab(tab.id as any)}
+                className={`px-3.5 sm:px-4 py-2 text-xs font-bold whitespace-nowrap border-b-2 transition-all flex items-center gap-1.5 ${
+                  activeSubTab === tab.id 
                     ? "border-indigo-500 text-indigo-300"
                     : "border-transparent text-slate-400 hover:text-slate-200"
                 }`}
               >
-                {tab === 'feed' ? 'Evolution Setup' : tab === 'shop' ? 'Lingo-Shop' : 'AI Companion Chat'}
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
@@ -1083,6 +1315,135 @@ export default function LingoPetPage() {
               </motion.div>
             )}
 
+            {/* PERSONALITY ARCHETYPES TAB */}
+            {activeSubTab === 'personality' && (
+              <motion.div
+                key="personality"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 flex flex-col gap-6"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+                  <div>
+                    <h4 className="font-extrabold text-sm text-slate-100 uppercase tracking-wide flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-amber-400" />
+                      Personality Archetypes & Persona
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Choose an archetype to shape {pet.petName}&apos;s AI dialogue style, catchphrases, and study demeanor.
+                    </p>
+                  </div>
+                  <Badge className={`${PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.badgeClass || 'bg-indigo-500/20 text-indigo-300'} font-black uppercase text-[10px] px-3 py-1 flex items-center gap-1.5 self-start sm:self-auto`}>
+                    <span>Active:</span>
+                    <span>{PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.name}</span>
+                  </Badge>
+                </div>
+
+                {/* Quick Rename Companion Card */}
+                <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                      <Tag className="h-3 w-3" />
+                      Companion Nickname
+                    </span>
+                    <p className="text-xs text-slate-300 font-semibold">
+                      Current: <span className="font-extrabold text-white">&quot;{pet.petName}&quot;</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <input
+                      type="text"
+                      value={tempPetName}
+                      onChange={(e) => setTempPetName(e.target.value)}
+                      placeholder="Enter new nickname..."
+                      maxLength={20}
+                      className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-indigo-500 w-full sm:w-44 placeholder:text-slate-600"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSavePetName();
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleRandomizeName}
+                      title="Generate random cute name"
+                      className="h-9 px-2.5 bg-slate-900 border-slate-800 hover:bg-slate-850 text-slate-300 hover:text-amber-300 shrink-0"
+                    >
+                      <Shuffle className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSavePetName}
+                      disabled={!tempPetName.trim() || tempPetName.trim() === pet.petName}
+                      className="h-9 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider shrink-0"
+                    >
+                      Rename
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Archetype Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+                  {Object.values(PERSONALITY_ARCHETYPES).map(arch => {
+                    const isSelected = (pet.personality || 'cheerleader') === arch.id;
+
+                    return (
+                      <div
+                        key={arch.id}
+                        onClick={() => handleSelectPersonality(arch.id)}
+                        className={`p-4 sm:p-5 rounded-2xl border text-left transition-all duration-300 cursor-pointer flex flex-col justify-between gap-3 relative overflow-hidden group ${
+                          isSelected
+                            ? `bg-slate-950/90 border-indigo-500 ring-1 ring-inset ring-indigo-500/50 shadow-xl shadow-indigo-500/10`
+                            : `bg-slate-950/50 border-slate-800/80 ${arch.cardGlow} hover:bg-slate-900/40`
+                        }`}
+                      >
+                        <div className="space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-2xl p-2 rounded-xl bg-slate-900 border border-slate-800">{arch.icon}</span>
+                              <div>
+                                <h5 className="font-extrabold text-sm text-slate-100 group-hover:text-white transition-colors flex items-center gap-2">
+                                  {arch.name}
+                                </h5>
+                                <p className="text-[10px] text-slate-400 font-medium">{arch.subtitle}</p>
+                              </div>
+                            </div>
+
+                            {isSelected && (
+                              <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[9px] font-black uppercase px-2 py-0.5 flex items-center gap-1">
+                                <Check className="h-2.5 w-2.5" />
+                                Active
+                              </Badge>
+                            )}
+                          </div>
+
+                          <p className="text-xs text-slate-350 font-medium leading-relaxed">
+                            {arch.description}
+                          </p>
+
+                          {/* Catchphrase quote */}
+                          <div className="bg-slate-900/60 border border-slate-850/80 rounded-xl p-2.5 text-[11px] text-slate-300 italic font-medium leading-relaxed flex items-start gap-2">
+                            <span className="text-slate-500 font-serif text-sm">“</span>
+                            <span className="flex-1">{arch.catchphrase.replace(/^"|"$/g, '')}</span>
+                            <span className="text-slate-500 font-serif text-sm">”</span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-900 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                          <span className={isSelected ? 'text-indigo-400 font-black' : 'text-slate-500 group-hover:text-slate-300'}>
+                            {isSelected ? 'Currently Speaking In This Persona' : 'Click to Adopt Persona'}
+                          </span>
+                          <span className="text-xs">{isSelected ? '✨' : '➔'}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
             {/* SHOP TAB */}
             {activeSubTab === 'shop' && (
               <motion.div
@@ -1097,16 +1458,46 @@ export default function LingoPetPage() {
                     <ShoppingBag className="h-4 w-4 text-indigo-400" />
                     Lingo Cosmetics Store
                   </h4>
-                  <p className="text-xs text-slate-400 mt-1">Unlock hats, glasses, and environments using platform achievements coins.</p>
+                  <p className="text-xs text-slate-400 mt-1">Unlock full-body costumes, hats, glasses, and environments using platform achievement coins.</p>
+                </div>
+
+                {/* Category Filter Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  {[
+                    { id: 'all', label: 'All' },
+                    { id: 'costume', label: 'Costumes 🥋' },
+                    { id: 'hat', label: 'Hats 👑' },
+                    { id: 'glasses', label: 'Glasses 🕶️' },
+                    { id: 'necklace', label: 'Necklaces 📿' },
+                    { id: 'wings', label: 'Wings 🪽' },
+                    { id: 'shoes', label: 'Shoes 👟' },
+                    { id: 'background', label: 'Rooms 🌸' },
+                  ].map(cat => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setSelectedShopCategory(cat.id)}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200",
+                        selectedShopCategory === cat.id
+                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                          : "bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                      )}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
-                  {SHOP_ITEMS.map(item => {
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[320px] overflow-y-auto pr-1">
+                  {SHOP_ITEMS.filter(item => selectedShopCategory === 'all' || item.category === selectedShopCategory).map(item => {
                     const isUnlocked = pet.unlockedCosmetics.includes(item.id) || item.id === 'bg_default';
                     
                     let isEquipped = false;
                     if (item.category === 'background') {
                       isEquipped = pet.currentBackground === item.value;
+                    } else if (item.category === 'costume') {
+                      isEquipped = pet.equippedCosmetics.costume === item.id;
                     } else if (item.category === 'hat') {
                       isEquipped = pet.equippedCosmetics.hat === item.id;
                     } else if (item.category === 'glasses') {
