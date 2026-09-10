@@ -55,7 +55,7 @@ export default function HomeworkHubPage() {
 
                     <div className="pt-4 border-t text-sm text-muted-foreground">
                         <p>
-                            Does the link below not work?{' '}
+                            Does the link above is not working?{' '}
                             <a
                                 href={fallbackHubUrl}
                                 target="_blank"
