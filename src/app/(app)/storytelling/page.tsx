@@ -654,14 +654,14 @@ export default function StorytellingPage() {
   const themeConfig = getGenreTheme();
 
   return (
-    <div className="relative -m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 sm:p-6 md:p-8 text-white overflow-hidden bg-slate-950/20">
+    <div className="relative -m-3 md:-m-4 lg:-m-5 min-h-[calc(100vh-4.5rem)] flex-1 flex flex-col p-4 sm:p-8 md:p-10 lg:p-12 text-white overflow-hidden bg-slate-950/20">
       <ConstellationCanvas />
       
       {/* Background ambient highlights */}
       <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 w-full flex-1 flex flex-col h-full">
+      <div className="relative z-10 w-full flex-1 flex flex-col">
         
         <AnimatePresence mode="wait">
           
@@ -672,34 +672,34 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="space-y-6 max-w-7xl mx-auto w-full"
+              className="space-y-8 sm:space-y-10 w-full max-w-[1700px] mx-auto flex-1 flex flex-col justify-center py-4 sm:py-8"
             >
-              <div className="text-center space-y-2 select-none">
-                <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1 px-3">
+              <div className="text-center space-y-3 select-none">
+                <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1.5 px-4 text-xs">
                   Interactive Story Reader
                 </Badge>
-                <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-200 uppercase tracking-tight">
+                <h1 className="text-4xl md:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-200 uppercase tracking-tight">
                   Visual Novel Storyteller
                 </h1>
-                <p className="text-slate-400 text-sm max-w-lg mx-auto font-medium leading-relaxed">
+                <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto font-medium leading-relaxed">
                   Engage in click-by-click narrative learning! Read high-end presets or let AI compose continuous episodes tailored to your exact tastes.
                 </p>
               </div>
 
-              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl">
-                <CardContent className="p-0 space-y-6">
+              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl p-6 sm:p-10 lg:p-12 shadow-2xl w-full">
+                <CardContent className="p-0 space-y-8 sm:space-y-10">
                   
                   {/* Select Preset vs AI source */}
-                  <div className="space-y-2 select-none">
+                  <div className="space-y-3 select-none">
                     <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">1. Select Campaign Source</Label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-4">
                       <button
                         type="button"
                         onClick={() => setSource('preset')}
-                        className={`py-3 px-4 rounded-xl border text-sm font-bold uppercase transition-all duration-300 ${
+                        className={`py-4 px-6 rounded-2xl border text-sm sm:text-base font-bold uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
                           source === 'preset'
-                            ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400'
-                            : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                            ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/10'
+                            : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                         }`}
                       >
                         Read Preset Classics
@@ -707,10 +707,10 @@ export default function StorytellingPage() {
                       <button
                         type="button"
                         onClick={() => setSource('ai')}
-                        className={`py-3 px-4 rounded-xl border text-sm font-bold uppercase transition-all duration-300 ${
+                        className={`py-4 px-6 rounded-2xl border text-sm sm:text-base font-bold uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
                           source === 'ai'
-                            ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400'
-                            : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                            ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/10'
+                            : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                         }`}
                       >
                         Generate custom AI story
@@ -720,64 +720,94 @@ export default function StorytellingPage() {
 
                   {/* PRESET CHANNELS */}
                   {source === 'preset' ? (
-                    <div className="space-y-3 select-none">
+                    <div className="space-y-4 select-none">
                       <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">2. Choose Story Campaign</Label>
-                      <div className="grid gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
                         <button
                           type="button"
                           onClick={() => setPresetKey('haunted-manor')}
-                          className={`p-4 rounded-2xl border text-left transition-all duration-300 flex items-center justify-between gap-4 ${
+                          className={`p-5 sm:p-6 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between gap-4 relative overflow-hidden ${
                             presetKey === 'haunted-manor'
-                              ? 'bg-indigo-500/10 border-indigo-500'
-                              : 'bg-slate-950/20 border-slate-850 hover:bg-slate-900/30'
+                              ? 'bg-indigo-500/15 border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50'
+                              : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
                           }`}
                         >
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xl">🎭</span>
-                              <p className="font-extrabold text-sm text-slate-100">The Whispering Shadows of Blackwood</p>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">🎭</span>
+                              <Badge className={presetKey === 'haunted-manor' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-slate-900 text-slate-400 border-slate-800'}>
+                                Horror
+                              </Badge>
                             </div>
-                            <p className="text-xs text-slate-450 mt-1 font-semibold">Horror · Short Story · Creepy gothic mystery</p>
+                            <div>
+                              <p className="font-black text-base text-slate-100 leading-snug">The Whispering Shadows of Blackwood</p>
+                              <p className="text-xs text-slate-400 mt-2 font-medium leading-relaxed">Short Story · Creepy gothic mystery</p>
+                            </div>
                           </div>
-                          <ChevronRight className={`h-5 w-5 ${presetKey === 'haunted-manor' ? 'text-indigo-455' : 'text-slate-600'}`} />
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-850/60">
+                            <span className={`text-xs font-bold uppercase tracking-wider ${presetKey === 'haunted-manor' ? 'text-indigo-400' : 'text-slate-500'}`}>
+                              {presetKey === 'haunted-manor' ? 'Selected' : 'Select Campaign'}
+                            </span>
+                            <ChevronRight className={`h-5 w-5 ${presetKey === 'haunted-manor' ? 'text-indigo-400' : 'text-slate-600'}`} />
+                          </div>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => setPresetKey('school-comedy')}
-                          className={`p-4 rounded-2xl border text-left transition-all duration-300 flex items-center justify-between gap-4 ${
+                          className={`p-5 sm:p-6 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between gap-4 relative overflow-hidden ${
                             presetKey === 'school-comedy'
-                              ? 'bg-indigo-500/10 border-indigo-500'
-                              : 'bg-slate-950/20 border-slate-850 hover:bg-slate-900/30'
+                              ? 'bg-indigo-500/15 border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50'
+                              : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
                           }`}
                         >
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xl">🧪</span>
-                              <p className="font-extrabold text-sm text-slate-100">The Chemistry Catastrophe of Room 4B</p>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">🧪</span>
+                              <Badge className={presetKey === 'school-comedy' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-slate-900 text-slate-400 border-slate-800'}>
+                                Comedy
+                              </Badge>
                             </div>
-                            <p className="text-xs text-slate-450 mt-1 font-semibold">Comedy · Short Story · Harmless school pranks gone pink</p>
+                            <div>
+                              <p className="font-black text-base text-slate-100 leading-snug">The Chemistry Catastrophe of Room 4B</p>
+                              <p className="text-xs text-slate-400 mt-2 font-medium leading-relaxed">Short Story · Harmless school pranks gone pink</p>
+                            </div>
                           </div>
-                          <ChevronRight className={`h-5 w-5 ${presetKey === 'school-comedy' ? 'text-indigo-455' : 'text-slate-600'}`} />
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-850/60">
+                            <span className={`text-xs font-bold uppercase tracking-wider ${presetKey === 'school-comedy' ? 'text-indigo-400' : 'text-slate-500'}`}>
+                              {presetKey === 'school-comedy' ? 'Selected' : 'Select Campaign'}
+                            </span>
+                            <ChevronRight className={`h-5 w-5 ${presetKey === 'school-comedy' ? 'text-indigo-400' : 'text-slate-600'}`} />
+                          </div>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => setPresetKey('quantum-chronicles-1')}
-                          className={`p-4 rounded-2xl border text-left transition-all duration-300 flex items-center justify-between gap-4 ${
+                          className={`p-5 sm:p-6 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between gap-4 relative overflow-hidden ${
                             presetKey === 'quantum-chronicles-1'
-                              ? 'bg-indigo-500/10 border-indigo-500'
-                              : 'bg-slate-950/20 border-slate-850 hover:bg-slate-900/30'
+                              ? 'bg-indigo-500/15 border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50'
+                              : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
                           }`}
                         >
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xl">🚀</span>
-                              <p className="font-extrabold text-sm text-slate-100">Quantum Spire: Episode 1 - The Anomaly</p>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">🚀</span>
+                              <Badge className={presetKey === 'quantum-chronicles-1' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-slate-900 text-slate-400 border-slate-800'}>
+                                Sci-Fi
+                              </Badge>
                             </div>
-                            <p className="text-xs text-slate-450 mt-1 font-semibold">Sci-Fi · Serial Campaign · Time distortions and space ruins</p>
+                            <div>
+                              <p className="font-black text-base text-slate-100 leading-snug">Quantum Spire: Episode 1 - The Anomaly</p>
+                              <p className="text-xs text-slate-400 mt-2 font-medium leading-relaxed">Serial Campaign · Time distortions & space ruins</p>
+                            </div>
                           </div>
-                          <ChevronRight className={`h-5 w-5 ${presetKey === 'quantum-chronicles-1' ? 'text-indigo-455' : 'text-slate-600'}`} />
+                          <div className="flex items-center justify-between pt-3 border-t border-slate-850/60">
+                            <span className={`text-xs font-bold uppercase tracking-wider ${presetKey === 'quantum-chronicles-1' ? 'text-indigo-400' : 'text-slate-500'}`}>
+                              {presetKey === 'quantum-chronicles-1' ? 'Selected' : 'Select Campaign'}
+                            </span>
+                            <ChevronRight className={`h-5 w-5 ${presetKey === 'quantum-chronicles-1' ? 'text-indigo-400' : 'text-slate-600'}`} />
+                          </div>
                         </button>
                       </div>
                     </div>
@@ -787,21 +817,21 @@ export default function StorytellingPage() {
                     <motion.div
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="space-y-5"
+                      className="space-y-6 sm:space-y-8"
                     >
                       {/* Genres selector */}
-                      <div className="space-y-2 select-none">
+                      <div className="space-y-3 select-none">
                         <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">2. Select Story Genre</Label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                           {["Comedy", "Horror", "Adventure", "Fantasy", "Romance", "Sci-Fi"].map(g => (
                             <button
                               key={g}
                               type="button"
                               onClick={() => setGenre(g)}
-                              className={`py-2 px-3 rounded-xl border text-xs font-bold uppercase transition-all duration-300 ${
+                              className={`py-3.5 px-4 rounded-2xl border text-xs sm:text-sm font-bold uppercase transition-all duration-300 ${
                                 genre === g
-                                  ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400'
-                                  : 'bg-slate-950/30 border-slate-850 text-slate-550 hover:border-slate-800'
+                                  ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/10'
+                                  : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                               }`}
                             >
                               {g}
@@ -810,19 +840,19 @@ export default function StorytellingPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                         
                         {/* Length selector */}
-                        <div className="space-y-2 select-none">
+                        <div className="space-y-3 select-none">
                           <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">3. Story Format</Label>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-2 gap-3">
                             <button
                               type="button"
                               onClick={() => setLength('short')}
-                              className={`py-2 px-3 rounded-xl border text-xs font-bold uppercase transition-all duration-300 ${
+                              className={`py-3.5 px-4 rounded-2xl border text-xs sm:text-sm font-bold uppercase transition-all duration-300 ${
                                 length === 'short'
-                                  ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400'
-                                  : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                                  ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300'
+                                  : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                               }`}
                             >
                               Short Story
@@ -830,10 +860,10 @@ export default function StorytellingPage() {
                             <button
                               type="button"
                               onClick={() => setLength('long')}
-                              className={`py-2 px-3 rounded-xl border text-xs font-bold uppercase transition-all duration-300 ${
+                              className={`py-3.5 px-4 rounded-2xl border text-xs sm:text-sm font-bold uppercase transition-all duration-300 ${
                                 length === 'long'
-                                  ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400'
-                                  : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-800'
+                                  ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300'
+                                  : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                               }`}
                             >
                               Long (Part/Ep)
@@ -842,20 +872,20 @@ export default function StorytellingPage() {
                         </div>
 
                         {/* Episode selector (if long story) */}
-                        <div className="space-y-2 select-none">
+                        <div className="space-y-3 select-none">
                           <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">4. Campaign Part/Episode</Label>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-3 gap-3">
                             {[1, 2, 3].map(num => (
                               <button
                                 key={num}
                                 type="button"
                                 disabled={length !== 'long'}
                                 onClick={() => setEpisodeNumber(num)}
-                                className={`py-2 px-3 rounded-xl border text-xs font-bold uppercase transition-all duration-300 ${
+                                className={`py-3.5 px-4 rounded-2xl border text-xs sm:text-sm font-bold uppercase transition-all duration-300 ${
                                   length !== 'long' ? 'opacity-30 cursor-not-allowed border-slate-900 bg-slate-950/10' :
                                   episodeNumber === num
-                                    ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400'
-                                    : 'bg-slate-950/30 border-slate-850 text-slate-500 hover:border-slate-850'
+                                    ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300'
+                                    : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                                 }`}
                               >
                                 Part {num}
@@ -866,13 +896,13 @@ export default function StorytellingPage() {
                       </div>
 
                       {/* Custom write-in theme */}
-                      <div className="space-y-1.5">
+                      <div className="space-y-3">
                         <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">5. Story Premise & Topic</Label>
                         <Input
                           placeholder="E.g., A funny detective who loses his socks and interviews talking chairs..."
                           value={customTheme}
                           onChange={(e) => setCustomTheme(e.target.value)}
-                          className="bg-slate-950 border-slate-850 rounded-xl h-11 text-slate-200"
+                          className="bg-slate-950/70 border-slate-800 rounded-2xl h-14 text-sm sm:text-base px-5 text-slate-200 placeholder:text-slate-500 focus:border-indigo-500"
                         />
                       </div>
 
@@ -880,12 +910,12 @@ export default function StorytellingPage() {
                   )}
 
                 </CardContent>
-                <CardFooter className="p-0 pt-6">
+                <CardFooter className="p-0 pt-8 sm:pt-10">
                   <Button
                     onClick={handleLaunchReader}
-                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-wider h-11.5 rounded-xl shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-1.5"
+                    className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-sm sm:text-base tracking-wider h-14 sm:h-16 rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.005] active:scale-[0.995]"
                   >
-                    <BookOpen className="h-4.5 w-4.5 fill-current" />
+                    <BookOpen className="h-5 w-5 fill-current" />
                     Launch Interactive Reader
                   </Button>
                 </CardFooter>
@@ -900,15 +930,15 @@ export default function StorytellingPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center py-20 flex flex-col items-center justify-center gap-4 bg-slate-900/30 border border-slate-850 rounded-3xl backdrop-blur-xl p-8"
+              className="text-center py-24 flex flex-col items-center justify-center gap-6 bg-slate-900/30 border border-slate-850 rounded-3xl backdrop-blur-xl p-12 max-w-2xl mx-auto my-auto"
             >
               <div className="relative">
-                <Loader2 className="w-12 h-12 text-indigo-500 animate-spin" />
-                <BookOpen className="w-6 h-6 text-amber-400 absolute top-3 left-3 animate-pulse" />
+                <Loader2 className="w-14 h-14 text-indigo-500 animate-spin" />
+                <BookOpen className="w-7 h-7 text-amber-400 absolute top-3.5 left-3.5 animate-pulse" />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-black text-slate-100 uppercase tracking-widest">Inscribing Chronicle...</h3>
-                <p className="text-slate-400 text-xs font-semibold">Gemini is laying down sentences and defining Thai vocabulary helpers.</p>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-slate-100 uppercase tracking-widest">Inscribing Chronicle...</h3>
+                <p className="text-slate-400 text-sm font-semibold">Gemini is laying down sentences and defining Thai vocabulary helpers.</p>
               </div>
             </motion.div>
           )}
@@ -920,7 +950,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className={isFullscreen ? "fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-12 overflow-y-auto" : "flex flex-col gap-5 max-w-7xl mx-auto w-full flex-grow h-full justify-between"}
+              className={isFullscreen ? "fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-12 overflow-y-auto" : "flex flex-col gap-6 w-full max-w-[1700px] mx-auto flex-grow h-full justify-between py-2 sm:py-4"}
             >
               
               {/* Floating Exit Fullscreen Button + Audio Controls Panel */}
@@ -994,18 +1024,18 @@ export default function StorytellingPage() {
               )}
 
               {/* Progress and settings bar */}
-              <div className="bg-slate-950/60 border border-slate-850 p-4.5 rounded-2xl flex justify-between items-center shadow-md select-none">
+              <div className="bg-slate-950/60 border border-slate-850 p-5 sm:p-6 rounded-2xl flex justify-between items-center shadow-md select-none">
                 <div className="min-w-0 pr-4">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4.5 w-4.5 text-indigo-400" />
-                    <h3 className="text-sm font-black text-slate-100 truncate">{activeStory.title}</h3>
+                  <div className="flex items-center gap-2.5">
+                    <BookOpen className="h-5 w-5 text-indigo-400" />
+                    <h3 className="text-base sm:text-lg font-black text-slate-100 truncate">{activeStory.title}</h3>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-1 select-none">
-                    <Badge className={`${themeConfig.badge} text-[9px] font-black uppercase py-0.5 px-2 shrink-0`}>
+                  <div className="flex items-center gap-2 mt-1.5 select-none">
+                    <Badge className={`${themeConfig.badge} text-[10px] font-black uppercase py-0.5 px-2.5 shrink-0`}>
                       {genre}
                     </Badge>
                     {length === 'long' && (
-                      <Badge className="bg-slate-900 border border-slate-800 text-slate-400 text-[9px] font-black uppercase py-0.5 px-2 shrink-0">
+                      <Badge className="bg-slate-900 border border-slate-800 text-slate-400 text-[10px] font-black uppercase py-0.5 px-2.5 shrink-0">
                         Part {episodeNumber}
                       </Badge>
                     )}
@@ -1018,12 +1048,12 @@ export default function StorytellingPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setMusicEnabled(!musicEnabled)}
-                    className={`h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
+                    className={`h-10 w-10 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
                       musicEnabled ? 'bg-indigo-500/15 border-indigo-500/35 text-indigo-400' : 'text-slate-400 hover:text-slate-200'
                     }`}
                     title={musicEnabled ? 'Mute ambient music' : 'Play ambient music'}
                   >
-                    <Music className={`h-4 w-4 ${musicEnabled ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
+                    <Music className={`h-4.5 w-4.5 ${musicEnabled ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
                   </Button>
 
                   {/* TTS Vocal Toggle — properly stops when clicked while speaking */}
@@ -1031,12 +1061,12 @@ export default function StorytellingPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleSpeak(activeStory.narrativeBlocks[blockIndex], true)}
-                    className={`h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
+                    className={`h-10 w-10 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
                       isSpeaking ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'text-slate-400 hover:text-slate-200'
                     }`}
                     title={isSpeaking ? 'Stop AI voice' : 'Read aloud with AI voice'}
                   >
-                    {isSpeaking ? <VolumeX className="h-4.5 w-4.5" /> : <Volume2 className="h-4.5 w-4.5" />}
+                    {isSpeaking ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                   </Button>
 
                   {/* Fullscreen Mode Toggle */}
@@ -1044,15 +1074,15 @@ export default function StorytellingPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsFullscreen(!isFullscreen)}
-                    className="h-9 w-9 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200"
+                    className="h-10 w-10 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200"
                     title={isFullscreen ? 'Minimize Screen' : 'Maximize Fullscreen'}
                   >
                     {isFullscreen ? (
-                      <svg className="h-4.5 w-4.5 text-indigo-455" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 text-indigo-455" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     ) : (
-                      <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                       </svg>
                     )}
@@ -1068,26 +1098,26 @@ export default function StorytellingPage() {
               </div>
 
               {/* Progress gauge bar */}
-              <div className="space-y-1.5 select-none">
+              <div className="space-y-2 select-none">
                 <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
                   <span>Story Progress</span>
                   <span>{blockIndex + 1} / {activeStory.narrativeBlocks.length} blocks</span>
                 </div>
                 <Progress 
                   value={((blockIndex + 1) / activeStory.narrativeBlocks.length) * 100} 
-                  className="h-2 rounded-full bg-slate-900 border border-slate-850"
+                  className="h-2.5 rounded-full bg-slate-900 border border-slate-850"
                 />
               </div>
 
               {/* THE ACTIVE CHATBOX BALLOON READER */}
               <div
                 onClick={handleNextBlock}
-                className={`bg-gradient-to-b ${themeConfig.bg} border-2 backdrop-blur-xl rounded-3xl shadow-2xl text-center cursor-pointer flex flex-col justify-center items-center relative transition-all duration-500 hover:brightness-105 active:scale-[0.99] group ${isFullscreen ? 'flex-grow my-4 p-10 sm:p-20 min-h-[48vh]' : 'flex-grow min-h-[50vh] sm:min-h-[55vh] my-2 p-8 sm:p-14'}`}
+                className={`bg-gradient-to-b ${themeConfig.bg} border-2 backdrop-blur-xl rounded-3xl shadow-2xl text-center cursor-pointer flex flex-col justify-center items-center relative transition-all duration-500 hover:brightness-105 active:scale-[0.99] group ${isFullscreen ? 'flex-grow my-4 p-10 sm:p-20 min-h-[55vh]' : 'flex-grow min-h-[58vh] sm:min-h-[65vh] my-3 p-8 sm:p-16 lg:p-24'}`}
               >
                 
                 {/* Visual novel talk box prompt */}
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-950/80 border border-slate-850 text-slate-500 text-[9px] font-black uppercase tracking-widest py-1 px-3 rounded-full flex items-center gap-1 select-none opacity-80 group-hover:opacity-100 transition-opacity">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-ping" />
+                <div className="absolute top-5 left-1/2 -translate-x-1/2 bg-slate-950/80 border border-slate-850 text-slate-500 text-[10px] font-black uppercase tracking-widest py-1.5 px-4 rounded-full flex items-center gap-1.5 select-none opacity-80 group-hover:opacity-100 transition-opacity">
+                  <span className="h-2 w-2 rounded-full bg-indigo-500 animate-ping" />
                   <span>Click box to continue reading</span>
                 </div>
 
@@ -1098,16 +1128,16 @@ export default function StorytellingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
                     transition={{ duration: 0.35, ease: "easeOut" }}
-                    className={`font-bold leading-relaxed max-w-5xl mx-auto select-text text-justify sm:text-center ${themeConfig.text} ${isFullscreen ? 'text-2xl sm:text-4xl' : 'text-2xl sm:text-3xl'}`}
+                    className={`font-bold leading-relaxed max-w-6xl mx-auto select-text text-justify sm:text-center ${themeConfig.text} ${isFullscreen ? 'text-2xl sm:text-4xl' : 'text-2xl sm:text-3xl lg:text-4xl'}`}
                   >
                     {activeStory.narrativeBlocks[blockIndex]}
                   </motion.p>
                 </AnimatePresence>
 
                 {/* Right button helper */}
-                <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-slate-950/70 border border-slate-850 py-1.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-indigo-400 transition-colors select-none">
+                <div className="absolute bottom-5 right-5 flex items-center gap-1.5 bg-slate-950/70 border border-slate-850 py-2 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-400 group-hover:text-indigo-400 transition-colors select-none">
                   <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5 fill-current animate-pulse" />
+                  <ChevronRight className="h-4 w-4 fill-current animate-pulse" />
                 </div>
               </div>
 
@@ -1122,72 +1152,72 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="max-w-7xl mx-auto w-full space-y-6 text-center select-none"
+              className="w-full max-w-[1700px] mx-auto space-y-8 text-center select-none flex-1 flex flex-col justify-center py-6 sm:py-10"
             >
-              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6">
+              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl p-8 sm:p-12 lg:p-14 shadow-2xl space-y-8">
                 
-                <div className="w-16 h-16 mx-auto rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 animate-bounce">
-                  <Trophy className="h-8 w-8" />
+                <div className="w-20 h-20 mx-auto rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 animate-bounce">
+                  <Trophy className="h-10 w-10" />
                 </div>
                 
-                <div className="space-y-2">
-                  <Badge className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black tracking-widest uppercase px-3 py-0.5">
+                <div className="space-y-3">
+                  <Badge className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black tracking-widest uppercase px-4 py-1 text-xs">
                     Quest Read Complete
                   </Badge>
-                  <h2 className="text-3xl font-black text-slate-100 uppercase tracking-tight">Campaign Epilogue</h2>
-                  <p className="text-slate-400 text-xs max-w-sm mx-auto leading-relaxed">
+                  <h2 className="text-3xl sm:text-4xl font-black text-slate-100 uppercase tracking-tight">Campaign Epilogue</h2>
+                  <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
                     You have read to the end of **{activeStory.title}**! Review the key vocabulary cards featured in this narrative.
                   </p>
                 </div>
 
                 {/* Vocabulary Cards list */}
-                <div className="grid gap-3 pt-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
                   {activeStory.vocabulary.map((vocab, i) => (
                     <div 
                       key={i}
-                      className="bg-slate-950/60 border border-slate-850 p-4.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between text-left gap-3 relative"
+                      className="bg-slate-950/60 border border-slate-850 p-5 sm:p-6 rounded-2xl flex flex-col justify-between text-left gap-4 relative"
                     >
-                      <div className="space-y-1 pr-6 select-text">
-                        <h4 className="font-extrabold text-amber-455 text-base capitalize flex items-center gap-1.5">
-                          <BookOpen className="h-4.5 w-4.5 text-slate-600" />
+                      <div className="space-y-2 select-text">
+                        <h4 className="font-extrabold text-amber-455 text-base sm:text-lg capitalize flex items-center gap-2">
+                          <BookOpen className="h-5 w-5 text-slate-600" />
                           {vocab.word}
                         </h4>
-                        <p className="text-slate-350 text-xs font-semibold leading-relaxed">
+                        <p className="text-slate-350 text-xs sm:text-sm font-semibold leading-relaxed">
                           {vocab.definition}
                         </p>
                       </div>
                       
-                      <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 border-slate-900 pt-3.5 sm:pt-0 shrink-0">
-                        <span className="text-indigo-400 text-xs font-black select-text">Thai: {vocab.translation}</span>
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-900">
+                        <span className="text-indigo-400 text-xs sm:text-sm font-black select-text">Thai: {vocab.translation}</span>
                         <Button
                           onClick={() => handleSaveWord(vocab)}
-                          className="h-7 w-7 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-indigo-400 p-0 flex items-center justify-center shrink-0"
+                          className="h-8 w-8 rounded-lg border border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-indigo-400 p-0 flex items-center justify-center shrink-0"
                           title="Save to Flashcards"
                         >
-                          <BookMarked className="h-3.5 w-3.5 fill-current" />
+                          <BookMarked className="h-4 w-4 fill-current" />
                         </Button>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-6 border-t border-slate-850 flex flex-wrap gap-3 justify-center">
+                <div className="pt-8 border-t border-slate-850 flex flex-wrap gap-4 justify-center">
                   <Button
                     onClick={() => {
                       setSource('ai');
                       setCustomTheme('');
                       setReadState('config');
                     }}
-                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black uppercase text-xs h-11 px-6 rounded-xl flex items-center gap-1.5 shadow-md shadow-amber-500/10"
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black uppercase text-xs sm:text-sm h-12 px-6 rounded-xl flex items-center gap-2 shadow-md shadow-amber-500/10"
                   >
-                    <Sparkles className="h-4 w-4" />
+                    <Sparkles className="h-4.5 w-4.5" />
                     <span>Generate New AI Story</span>
                   </Button>
 
                   <Button
                     onClick={() => setReadState('config')}
                     variant="outline"
-                    className="bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-455 font-black uppercase text-xs h-11 px-6 rounded-xl"
+                    className="bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-455 font-black uppercase text-xs sm:text-sm h-12 px-6 rounded-xl"
                   >
                     Change Genre / Preset
                   </Button>
@@ -1195,19 +1225,19 @@ export default function StorytellingPage() {
                   {length === 'long' && (
                     <Button
                       onClick={handleNextEpisode}
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-wider h-11 px-6 rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1"
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs sm:text-sm tracking-wider h-12 px-6 rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1.5"
                     >
                       <span>Unlock Episode {episodeNumber + 1}</span>
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-4.5 w-4.5" />
                     </Button>
                   )}
                   
                   {length === 'short' && (
                     <Button
                       onClick={handleLaunchReader}
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-wider h-11 px-6 rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1"
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs sm:text-sm tracking-wider h-12 px-6 rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1.5"
                     >
-                      <RotateCcw className="h-4 w-4" />
+                      <RotateCcw className="h-4.5 w-4.5" />
                       <span>Reread Story</span>
                     </Button>
                   )}
