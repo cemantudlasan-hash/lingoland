@@ -27,7 +27,12 @@ import {
   Music,
   Volume1,
   Mic,
-  MicOff
+  MicOff,
+  Bookmark,
+  BookmarkCheck,
+  Lock,
+  Unlock,
+  CheckCircle2
 } from 'lucide-react';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
 import { useAuth } from '@/context/auth-context';
@@ -46,66 +51,261 @@ interface ReaderStory {
   vocabulary: VocabularyItem[];
 }
 
-// Visual Novel Default Presets (for zero-latency instant play!)
-const presetStories: Record<string, ReaderStory> = {
+export interface StoryBookmark {
+  campaignKey: string;
+  title: string;
+  genre: string;
+  source: 'preset' | 'ai';
+  episodeNumber: number;
+  blockIndex: number;
+  totalBlocks: number;
+  narrativePreview: string;
+  timestamp: number;
+  activeStory: ReaderStory;
+  length?: 'short' | 'long';
+  customTheme?: string;
+}
+
+export interface CampaignEpisodeMeta {
+  number: number;
+  title: string;
+  subtitle: string;
+  description: string;
+}
+
+export interface CampaignMetadata {
+  id: string;
+  title: string;
+  genre: string;
+  icon: string;
+  description: string;
+  totalEpisodes: number;
+  episodes: CampaignEpisodeMeta[];
+}
+
+export const CAMPAIGN_REGISTRY: Record<string, CampaignMetadata> = {
   'haunted-manor': {
-    title: 'The Whispering Shadows of Blackwood Manor',
-    narrativeBlocks: [
-      'The rusty iron gates of Blackwood Manor groaned loudly as Leo pushed them open, stepping into the overgrown, foggy courtyard.',
-      'A chill wind swept through the dead oak branches, carrying a faint, melodic whistling sound from the dark, boarded-up windows.',
-      'He clutched his flashlight tightly. He had been warned never to enter Blackwood after dusk, but his lost dog’s footprints led straight to the front door.',
-      'Taking a deep breath, Leo climbed the decaying wooden steps. The floorboards shrieked beneath his boots, a warning from the house itself.',
-      'As his fingers wrapped around the cold brass doorknob, the heavy door swung open on its own, revealing a pitch-black corridor.',
-      'A scent of old parchment and damp earth flooded his senses. "Hello?" he called out, his voice instantly swallowed by the heavy silence.',
-      'Suddenly, a tiny whimper echoed from the top of the grand spiral staircase, followed by a glowing, bluish mist that danced across the dust.',
-      'Determined to rescue his companion, Leo crossed the threshold. Behind him, the heavy door slammed shut with a thunderous bang, locking him inside the whispering dark.'
-    ],
-    vocabulary: [
-      { word: 'groaned', definition: 'Made a deep, creaking noise under pressure or pain.', translation: 'คราง / ร้องคราง' },
-      { word: 'dusk', definition: 'The period of partial darkness between day and night; early evening.', translation: 'พลบค่ำ' },
-      { word: 'decaying', definition: 'Rotting, decomposing, or falling apart due to old age.', translation: 'ผุพัง / เน่าเปื่อย' },
-      { word: 'whimper', definition: 'A low, feeble sound expressive of fear, pain, or discontent.', translation: 'เสียงครางเบาๆ' }
+    id: 'haunted-manor',
+    title: 'The Whispering Shadows of Blackwood',
+    genre: 'Horror',
+    icon: '🎭',
+    description: 'Creepy gothic mystery · Old Victorian manor',
+    totalEpisodes: 3,
+    episodes: [
+      { number: 1, title: 'The Whispering Gates', subtitle: 'Episode 1', description: 'Leo enters the cursed courtyard following mysterious footprints.' },
+      { number: 2, title: 'The Grand Staircase', subtitle: 'Episode 2', description: 'Moving oil portraits and a sorrowful ghost guide the way.' },
+      { number: 3, title: 'The Forgotten Crypt', subtitle: 'Episode 3', description: 'Unlocking the ancient subterranean vault to rescue his companion.' }
     ]
   },
   'school-comedy': {
-    title: 'The Great Chemistry Catastrophe of Room 4B',
-    narrativeBlocks: [
-      'Professor Higgins was famous for two things: his perfectly groomed mustache and his absolute rule of silence during chemistry labs.',
-      'Barnaby, unfortunately, was famous for his clumsy hands and an uncontrollable urge to mix colorful liquids together.',
-      'Today’s experiment was simple: create a harmless blue vapor by carefully combining beaker A and beaker B at exactly room temperature.',
-      'Barnaby, daydreaming about chocolate chip cookies, accidentally grabbed a vial of purple catalyst instead of beaker B.',
-      '"This should make it look like a magical potion," Barnaby whispered to himself, pouring the purple liquid into Higgins’ prized copper vat.',
-      'Within three seconds, the mixture began to bubble violently, making a strange sound resembling a small, furious steam train.',
-      'Professor Higgins gasped, his mustache twitching in absolute horror as a massive, thick pink cloud erupted from the vat.',
-      'The pink foam expanded rapidly, covering Higgins, Barnaby, and the entire front row in sticky, bubblegum-scented sludge.',
-      'Higgins blinked, a dollop of pink foam sliding down his nose. "Barnaby," he muttered calmly, "I believe you have synthesized a very clean B grade."'
-    ],
-    vocabulary: [
-      { word: 'groomed', definition: 'Neat, tidy, and clean in appearance.', translation: 'ได้รับการตกแต่งเป็นอย่างดี' },
-      { word: 'vapor', definition: 'A gas-like substance suspended in the air (mist or smoke).', translation: 'ไอ / ละออง' },
-      { word: 'catalyst', definition: 'A substance that increases the speed of a chemical reaction.', translation: 'ตัวเร่งปฏิกิริยา' },
-      { word: 'sludge', definition: 'Thick, soft, wet mud or a similar viscous mixture.', translation: 'โคลน / ตะกอนเหนียว' }
+    id: 'school-comedy',
+    title: 'The Chemistry Catastrophe of Room 4B',
+    genre: 'Comedy',
+    icon: '🧪',
+    description: 'Harmless school pranks gone bubbly pink',
+    totalEpisodes: 3,
+    episodes: [
+      { number: 1, title: 'The Bubblegum Sludge', subtitle: 'Episode 1', description: 'Barnaby mixes the wrong catalyst and covers the room in pink foam.' },
+      { number: 2, title: 'Detention Cleanup Crisis', subtitle: 'Episode 2', description: 'The foam inflates into giant bouncy animals while dodging Professor Higgins.' },
+      { number: 3, title: 'The Science Fair Showdown', subtitle: 'Episode 3', description: 'Turning accidental sludge into a first-place award-winning invention.' }
     ]
   },
   'quantum-chronicles-1': {
-    title: 'The Quantum Spire: Episode 1 - The Anomaly',
-    narrativeBlocks: [
-      'The holographic display in Nova\'s cockpit flickered red. The chronometers were counting backward, a physical impossibility.',
-      'Below her spaceship, the surface of Planet Aethel gard was cracking open, glowing with rivers of liquid plasma energy.',
-      'She was sent here to investigate the Quantum Spire, a massive, ancient tower built by a long-lost civilization.',
-      'As she initiated landing thrusters, a sudden magnetic pulse hit the ship, knocking out the primary power grid.',
-      '"Computer, run auxiliary power backup!" Nova commanded, gripping the steering wheel as the ship glided into a rocky canyon.',
-      'The ship landed with a metallic crash. Outside, a towering pillar of obsidian stone stretched up into the purple clouds.',
-      'The Spire was awake. Rings of cyan light rotated around its peak, projecting a glowing map of coordinates into the sky.',
-      'Nova grabbed her scan-visor and stepped onto the planetary surface. The very air hummed with quantum electricity.',
-      'As she approached the base of the Spire, a glowing door materialized in the obsidian wall, beckoning her to step inside.'
-    ],
-    vocabulary: [
-      { word: 'chronometers', definition: 'Highly accurate clocks or timekeeping instruments.', translation: 'เครื่องจับเวลาอย่างแม่นยำ' },
-      { word: 'auxiliary', definition: 'Providing supplementary or additional help and support; backup.', translation: 'สำรอง / เสริม' },
-      { word: 'obsidian', definition: 'A dark, glasslike volcanic rock formed by the rapid cooling of lava.', translation: 'หินออบซิเดียน' },
-      { word: 'beckoning', definition: 'Making a gesture with the hand or head to encourage someone to approach.', translation: 'กวักมือเรียก / อัญเชิญ' }
+    id: 'quantum-chronicles-1',
+    title: 'Quantum Spire: Chronicles of Aethelgard',
+    genre: 'Sci-Fi',
+    icon: '🚀',
+    description: 'Time distortions, ancient alien towers, and space ruins',
+    totalEpisodes: 3,
+    episodes: [
+      { number: 1, title: 'The Anomaly', subtitle: 'Episode 1', description: 'Nova crash-lands near the ancient obsidian tower humming with time distortion.' },
+      { number: 2, title: 'The Vault of Echoes', subtitle: 'Episode 2', description: 'Floating zero-gravity atriums and star-maps of a fallen federation.' },
+      { number: 3, title: 'The Synthetic Guardian', subtitle: 'Episode 3', description: 'Reversing planetary fractures with the ancient starlight construct.' }
     ]
+  }
+};
+
+// Visual Novel Multi-Episode Presets
+const presetStories: Record<string, Record<number, ReaderStory>> = {
+  'haunted-manor': {
+    1: {
+      title: 'The Whispering Shadows of Blackwood: Episode 1 - The Iron Gates',
+      narrativeBlocks: [
+        'The rusty iron gates of Blackwood Manor groaned loudly as Leo pushed them open, stepping into the overgrown, foggy courtyard.',
+        'A chill wind swept through the dead oak branches, carrying a faint, melodic whistling sound from the dark, boarded-up windows.',
+        'He clutched his flashlight tightly. He had been warned never to enter Blackwood after dusk, but his lost dog’s footprints led straight to the front door.',
+        'Taking a deep breath, Leo climbed the decaying wooden steps. The floorboards shrieked beneath his boots, a warning from the house itself.',
+        'As his fingers wrapped around the cold brass doorknob, the heavy door swung open on its own, revealing a pitch-black corridor.',
+        'A scent of old parchment and damp earth flooded his senses. "Hello?" he called out, his voice instantly swallowed by the heavy silence.',
+        'Suddenly, a tiny whimper echoed from the top of the grand spiral staircase, followed by a glowing, bluish mist that danced across the dust.',
+        'Determined to rescue his companion, Leo crossed the threshold. Behind him, the heavy door slammed shut with a thunderous bang, locking him inside the whispering dark.'
+      ],
+      vocabulary: [
+        { word: 'groaned', definition: 'Made a deep, creaking noise under pressure or pain.', translation: 'คราง / ร้องคราง' },
+        { word: 'dusk', definition: 'The period of partial darkness between day and night; early evening.', translation: 'พลบค่ำ' },
+        { word: 'decaying', definition: 'Rotting, decomposing, or falling apart due to old age.', translation: 'ผุพัง / เน่าเปื่อย' },
+        { word: 'whimper', definition: 'A low, feeble sound expressive of fear, pain, or discontent.', translation: 'เสียงครางเบาๆ' }
+      ]
+    },
+    2: {
+      title: 'The Whispering Shadows of Blackwood: Episode 2 - The Grand Staircase',
+      narrativeBlocks: [
+        'Leo pointed his beam of light up the grand mahogany staircase, where shadows slithered like living ink across the faded wallpaper.',
+        'Gilded oil portraits lined the staircase, their painted eyes following his every movement with silent, frozen disapproval.',
+        'Halfway up the landing, a glint of metal caught his eye: a worn leather collar with a brass tag reading "Barnaby".',
+        'Suddenly, the air pressure plummeted. His breath formed crystalline plumes in the sudden freezing chill.',
+        'At the top landing stood a translucent figure—a young Victorian girl in a lace dress, hovering inches above the velvet carpet.',
+        'She raised a glowing pale hand, pointing not toward fear, but toward a concealed double door at the end of the gallery.',
+        '"Hurry," a delicate whisper vibrated in Leo\'s mind, "the house awakens when midnight chimes."',
+        'Taking a resolute step past the phantom, Leo pushed open the gallery doors into the grand manor library.'
+      ],
+      vocabulary: [
+        { word: 'translucent', definition: 'Allowing light to pass through, but not completely transparent.', translation: 'โปร่งแสง' },
+        { word: 'plummeted', definition: 'Fell or dropped straight down at high speed.', translation: 'ดิ่งลงอย่างรวดเร็ว' },
+        { word: 'resolute', definition: 'Admirably purposeful, determined, and unwavering.', translation: 'เด็ดเดี่ยว / แน่วแน่' },
+        { word: 'phantom', definition: 'A ghost, apparition, or spectral figure.', translation: 'ภูตผี / ภาพลวงตา' }
+      ]
+    },
+    3: {
+      title: 'The Whispering Shadows of Blackwood: Episode 3 - The Hidden Crypt',
+      narrativeBlocks: [
+        'The library was a labyrinth of towering bookshelves stretching into darkness, laden with ancient leather-bound grimoires.',
+        'In the center stood a colossal grandfather clock ticking backward, its obsidian pendulum glowing with soft emerald runes.',
+        'Remembering the girl\'s whisper, Leo aligned the clock hands with the hour of the hound, triggering a resonant grinding sound.',
+        'The entire bookshelf slid aside, unveiling a narrow stone stairway descending into the subterranean foundations of the estate.',
+        'Down below, a warm golden candlelight flickered across smooth cobblestones, banishing the freezing terror of the upper floors.',
+        'A joyous bark shattered the eerie quiet—sitting safely beside a gilded antique chest was Barnaby, tail wagging furiously!',
+        'Beside him, the spectral girl bowed graciously: "You came not with greed, but with devotion. Blackwood’s curse is broken."',
+        'Together with his loyal dog, Leo stepped into the rising dawn sunlight, the manor behind them forever resting in peaceful silence.'
+      ],
+      vocabulary: [
+        { word: 'labyrinth', definition: 'A complicated irregular network of passages or paths; a maze.', translation: 'เขาวงกต' },
+        { word: 'grimoires', definition: 'Books of magic spells and invocations.', translation: 'ตำราเวทมนตร์' },
+        { word: 'subterranean', definition: 'Existing, occurring, or done under the earth\'s surface.', translation: 'ใต้ดิน / ใต้พิภพ' },
+        { word: 'devotion', definition: 'Love, loyalty, or enthusiasm for a person, activity, or cause.', translation: 'ความจงรักภักดี / ความทุ่มเท' }
+      ]
+    }
+  },
+  'school-comedy': {
+    1: {
+      title: 'The Great Chemistry Catastrophe: Episode 1 - The Bubblegum Sludge',
+      narrativeBlocks: [
+        'Professor Higgins was famous for two things: his perfectly groomed mustache and his absolute rule of silence during chemistry labs.',
+        'Barnaby, unfortunately, was famous for his clumsy hands and an uncontrollable urge to mix colorful liquids together.',
+        'Today’s experiment was simple: create a harmless blue vapor by carefully combining beaker A and beaker B at exactly room temperature.',
+        'Barnaby, daydreaming about chocolate chip cookies, accidentally grabbed a vial of purple catalyst instead of beaker B.',
+        '"This should make it look like a magical potion," Barnaby whispered to himself, pouring the purple liquid into Higgins’ prized copper vat.',
+        'Within three seconds, the mixture began to bubble violently, making a strange sound resembling a small, furious steam train.',
+        'Professor Higgins gasped, his mustache twitching in absolute horror as a massive, thick pink cloud erupted from the vat.',
+        'The pink foam expanded rapidly, covering Higgins, Barnaby, and the entire front row in sticky, bubblegum-scented sludge.',
+        'Higgins blinked, a dollop of pink foam sliding down his nose. "Barnaby," he muttered calmly, "I believe you have synthesized a very clean B grade."'
+      ],
+      vocabulary: [
+        { word: 'groomed', definition: 'Neat, tidy, and clean in appearance.', translation: 'ได้รับการตกแต่งเป็นอย่างดี' },
+        { word: 'vapor', definition: 'A gas-like substance suspended in the air (mist or smoke).', translation: 'ไอ / ละออง' },
+        { word: 'catalyst', definition: 'A substance that increases the speed of a chemical reaction.', translation: 'ตัวเร่งปฏิกิริยา' },
+        { word: 'sludge', definition: 'Thick, soft, wet mud or a similar viscous mixture.', translation: 'โคลน / ตะกอนเหนียว' }
+      ]
+    },
+    2: {
+      title: 'The Great Chemistry Catastrophe: Episode 2 - Detention Cleanup Crisis',
+      narrativeBlocks: [
+        'At 3:30 PM, Room 4B was an eerie sea of hot pink foam, squeaking every time someone took a step.',
+        'Barnaby and his lab partner Mia were handed extra-large industrial squeegees with strict orders from Principal Higgins to clean every inch.',
+        '"Don\'t touch it with plain water," Mia warned, consulting the lab safety manual, "or the polymers will cross-link into rubber!"',
+        'Barnaby, naturally, immediately dropped the mop bucket into the biggest foam puddle in the center of the classroom.',
+        'Instantly, the sludge hardened into a springy, bouncy trampoline surface that covered the entire floor from wall to wall.',
+        'Mia bounced three feet into the air, clutching a bottle of vinegar neutralizer while screaming with laughter.',
+        'Just as Barnaby performed a triumphant mid-air somersault, Principal Higgins stepped through the doorway with a tray of hot tea.',
+        'A rogue foam bubble bounced off the ceiling, ricocheted off the chalkboard, and neatly replaced the sugar cube in Higgins’ teacup.',
+        '"Fascinating elasticity," Higgins deadpanned, sipping his pink strawberry tea. "You both have thirty minutes before the janitor arrives."'
+      ],
+      vocabulary: [
+        { word: 'polymers', definition: 'Substances with molecular structures made of many similar units bonded together.', translation: 'โพลิเมอร์' },
+        { word: 'ricocheted', definition: 'Rebounded one or more times off a surface.', translation: 'กระดอน / เด้งสะท้อน' },
+        { word: 'elasticity', definition: 'The ability of an object or material to resume its normal shape after being stretched or compressed.', translation: 'ความยืดหยุ่น' },
+        { word: 'deadpanned', definition: 'Said something amusing while maintaining a serious, expressionless face.', translation: 'พูดหน้าตาย / ตีหน้าขรึม' }
+      ]
+    },
+    3: {
+      title: 'The Great Chemistry Catastrophe: Episode 3 - The Science Fair Showdown',
+      narrativeBlocks: [
+        'On Friday morning, the regional STEM Science Fair packed the auditorium with ambitious students and skeptical university judges.',
+        'At Booth 14, Barnaby and Mia stood proudly beside their creation: "The Self-Cleaning Bouncy Sludge Dispenser 3000".',
+        'Across the aisle, their snooty rival Bradley smirked over his robotic arm that could barely stack two plastic cups without catching fire.',
+        '"Step right up, honorable judges!" Barnaby announced, strapping on oversized neon goggles and gripping the brass valve.',
+        'The head judge, Dr. Aris Thorne, raised a skeptical eyebrow: "A cleaning agent derived from accidental cafeteria chewing gum?"',
+        'Barnaby cranked the valve. A cascade of shimmering, strawberry-scented bubbles erupted across Bradley’s stained laboratory bench.',
+        'Within seconds, the bubbles dissolved every speck of permanent marker, dried ink, and burnt grease, leaving the wood polished and glowing.',
+        'The auditorium erupted in thunderous applause as Dr. Thorne stamped the blue ribbon: "First place for extraordinary accidental innovation!"'
+      ],
+      vocabulary: [
+        { word: 'skeptical', definition: 'Not easily convinced; having doubts or reservations.', translation: 'สงสัย / กังขา' },
+        { word: 'cascade', definition: 'A large number or amount of something occurring or falling in rapid succession.', translation: 'การหลั่งไหลเป็นสาย' },
+        { word: 'derived', definition: 'Obtained or developed from a specified source.', translation: 'ได้รับมาจาก / กำเนิดจาก' },
+        { word: 'innovation', definition: 'The action or process of inventing new methods, ideas, or products.', translation: 'นวัตกรรม' }
+      ]
+    }
+  },
+  'quantum-chronicles-1': {
+    1: {
+      title: 'The Quantum Spire: Episode 1 - The Anomaly',
+      narrativeBlocks: [
+        'The holographic display in Nova\'s cockpit flickered red. The chronometers were counting backward, a physical impossibility.',
+        'Below her spaceship, the surface of Planet Aethelgard was cracking open, glowing with rivers of liquid plasma energy.',
+        'She was sent here to investigate the Quantum Spire, a massive, ancient tower built by a long-lost civilization.',
+        'As she initiated landing thrusters, a sudden magnetic pulse hit the ship, knocking out the primary power grid.',
+        '"Computer, run auxiliary power backup!" Nova commanded, gripping the steering wheel as the ship glided into a rocky canyon.',
+        'The ship landed with a metallic crash. Outside, a towering pillar of obsidian stone stretched up into the purple clouds.',
+        'The Spire was awake. Rings of cyan light rotated around its peak, projecting a glowing map of coordinates into the sky.',
+        'Nova grabbed her scan-visor and stepped onto the planetary surface. The very air hummed with quantum electricity.',
+        'As she approached the base of the Spire, a glowing door materialized in the obsidian wall, beckoning her to step inside.'
+      ],
+      vocabulary: [
+        { word: 'chronometers', definition: 'Highly accurate clocks or timekeeping instruments.', translation: 'เครื่องจับเวลาอย่างแม่นยำ' },
+        { word: 'auxiliary', definition: 'Providing supplementary or additional help and support; backup.', translation: 'สำรอง / เสริม' },
+        { word: 'obsidian', definition: 'A dark, glasslike volcanic rock formed by the rapid cooling of lava.', translation: 'หินออบซิเดียน' },
+        { word: 'beckoning', definition: 'Making a gesture with the hand or head to encourage someone to approach.', translation: 'กวักมือเรียก / อัญเชิญ' }
+      ]
+    },
+    2: {
+      title: 'The Quantum Spire: Episode 2 - The Vault of Echoes',
+      narrativeBlocks: [
+        'Nova stepped through the energy threshold, leaving behind planetary gravity as her boots gently floated off the floor.',
+        'Before her opened an immense cylindrical atrium, filled with floating crystalline prisms that refracted temporal energy.',
+        'Each crystal pulsed with holographic echoes of the past—fleets of starships, alien cities, and cosmic constellations.',
+        '"Chronon density exceeding standard galactic thresholds," her suit AI announced in a calm, digitized tone.',
+        'At the center of the atrium drifted an artificial miniature star, held in stasis by four magnetic containment arches.',
+        'Approaching the primary terminal, Nova placed her biometric gauntlet onto a glyph interface that mirrored human biology.',
+        'A harmonious chord resonated throughout the Spire. The ceiling dissolved into a real-time stellar cartography projection.',
+        'She watched in awe as the star-map highlighted a collapsing temporal rift connecting Aethelgard directly to Earth\'s solar system.'
+      ],
+      vocabulary: [
+        { word: 'atrium', definition: 'A large open central hall or courtyard, often rising through several stories.', translation: 'ห้องโถงกลางขนาดใหญ่' },
+        { word: 'stasis', definition: 'A period or state of inactivity, equilibrium, or suspended animation.', translation: 'ภาวะคงที่ / ภาวะหยุดนิ่ง' },
+        { word: 'biometric', definition: 'Relating to the statistical analysis of unique biological characteristics.', translation: 'ชีวมาตร / ข้อมูลชีวภาพ' },
+        { word: 'cartography', definition: 'The science or practice of drawing and compiling maps.', translation: 'การทำแผนที่' }
+      ]
+    },
+    3: {
+      title: 'The Quantum Spire: Episode 3 - The Synthetic Guardian',
+      narrativeBlocks: [
+        'From the glowing perimeter of the artificial star, particles of light condensed into an elegant, silver humanoid form.',
+        'Rings of quantum code circled the Guardian\'s head, pulsing in sync with Nova\'s own heartbeat.',
+        '"Welcome, Traveler of the Milky Way," the synthetic voice resonated inside her helmet without using physical soundwaves.',
+        '"For ten thousand cycles, this Spire has anchored the timeline against entropy. But the anchor matrix is destabilizing."',
+        'Nova realized her ship\'s plasma core could supply the missing harmonics needed to recalibrate the containment field.',
+        'Connecting her omni-tool to the Guardian\'s core conduit, Nova channeled a concentrated burst of ionization energy.',
+        'A brilliant nova of cyan luminescence surged through the Spire, sealing the planetary fractures across Aethelgard.',
+        'The Guardian placed a glowing chronon crystal into her hand: "The timeline is secured. Take this coordinate key—your true destiny begins now."'
+      ],
+      vocabulary: [
+        { word: 'entropy', definition: 'A thermodynamic quantity representing the degree of disorder or randomness in a system.', translation: 'เอนโทรปี / ความไร้ระเบียบ' },
+        { word: 'recalibrate', definition: 'Calibrate something again or differently to ensure accurate measurement.', translation: 'ปรับเทียบใหม่' },
+        { word: 'luminescence', definition: 'The emission of light by a substance not resulting from heat; glowing.', translation: 'การเปล่งแสง' },
+        { word: 'conduit', definition: 'A channel, pipe, or tube through which fluid, electrical energy, or signals pass.', translation: 'ท่อส่ง / ช่องทางนำสัญญาณ' }
+      ]
+    }
   }
 };
 
@@ -290,38 +490,25 @@ const generateSimulatedStory = (
     narrativeBlocks = [
       `The soft piano melody played as Elena stepped into the crowded ballroom, her velvet gown catching the golden chandelier light.`,
       `Across the crowded room, Arthur stood holding a sealed letter, his eyes immediately locking onto her entrance.`,
-      `They moved toward each other like planets in orbit, the chatter of high society fading into faint background whispers.`,
-      `"I believed you would not attend tonight," he murmured, his voice soft, offering his hand for a gentle waltz.`,
-      `As they danced, she slipped the secret ledger into his coat pocket. "The plans are completed. We leave at midnight," she whispered.`,
-      `They shared a subtle, knowing glance under the starry sky, stepping separate ways into the misty night.`
+      `They moved toward each other through the swirl of dancers, their footsteps synchronized to the gentle rhythm of the waltz.`,
+      `"I believed you had left the capital for good," Arthur murmured, handing her the wax-stamped envelope.`,
+      `Elena broke the seal with trembling fingers, gasping as she read the secret message written inside: "The crown is safe."`,
+      `Together under the moonlit terrace, they vowed to protect their realm whatever danger tomorrow might bring.`
     ];
     vocabulary = [
-      { word: 'chatter', definition: 'Rapid, informal talk about trivial matters.', translation: 'เสียงจ๊อกแจ๊ก / คุยโม้' },
-      { word: 'orbit', definition: 'The curved path of a celestial object or spacecraft round a star or planet.', translation: 'วงโคจร' },
-      { word: 'ledger', definition: 'A book or other collection of financial accounts or secrets.', translation: 'สมุดบัญชี / สมุดบันทึกหลัก' },
-      { word: 'subtle', definition: 'So delicate or precise as to be difficult to analyze or describe.', translation: 'บอบบาง / ละเอียดอ่อน' }
-    ];
-  }
-
-  // Customize based on Part/Episode
-  if (length === 'long') {
-    narrativeBlocks = [
-      `[Episode ${episodeNumber} Opening Segment] - Following her previous discoveries, the journey takes a dramatic turn.`,
-      ...narrativeBlocks,
-      `End of Part ${episodeNumber} - The plot thickens. What destiny awaits in the next episode?`
-    ];
-    vocabulary = [
-      ...vocabulary,
-      { word: 'destiny', definition: 'The events that will necessarily happen to a particular person or thing in the future.', translation: 'โชคชะตา / พรหมลิขิต' }
+      { word: 'ballroom', definition: 'A large room used for dancing.', translation: 'ห้องเต้นรำ' },
+      { word: 'synchronized', definition: 'Occurring at the same time or rate.', translation: 'พร้อมเพรียงกัน / ตรงจังหวะกัน' },
+      { word: 'envelope', definition: 'A flat paper container, especially for a letter.', translation: 'ซองจดหมาย' },
+      { word: 'realm', definition: 'A kingdom or domain.', translation: 'อาณาจักร' }
     ];
   }
 
   return {
-    title: `${finalTitle} (Episode ${episodeNumber})`,
+    title,
     narrativeBlocks,
     vocabulary
   };
-};
+}
 
 export default function StorytellingPage() {
   const { toast } = useToast();
@@ -339,7 +526,17 @@ export default function StorytellingPage() {
   
   // Active story payload
   const [activeStory, setActiveStory] = useState<ReaderStory | null>(null);
-  
+
+  // Persistent Unlocked Episodes per campaign
+  const [unlockedEpisodes, setUnlockedEpisodes] = useState<Record<string, number[]>>({
+    'haunted-manor': [1],
+    'school-comedy': [1],
+    'quantum-chronicles-1': [1]
+  });
+
+  // Persistent Story Bookmark
+  const [bookmark, setBookmark] = useState<StoryBookmark | null>(null);
+
   // Reading tracking
   const [blockIndex, setBlockIndex] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -354,6 +551,125 @@ export default function StorytellingPage() {
   // Auth and Firestore references
   const { user, isGuest } = useAuth();
   const firestore = useFirestore();
+
+  // Load unlocked episodes and bookmark from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedUnlocked = localStorage.getItem('lingoland_unlocked_episodes');
+        if (savedUnlocked) {
+          const parsed = JSON.parse(savedUnlocked);
+          if (parsed && typeof parsed === 'object') {
+            setUnlockedEpisodes(prev => ({ ...prev, ...parsed }));
+          }
+        }
+
+        const savedBookmark = localStorage.getItem('lingoland_story_bookmark');
+        if (savedBookmark) {
+          const parsedBookmark = JSON.parse(savedBookmark);
+          if (parsedBookmark && parsedBookmark.title && parsedBookmark.activeStory) {
+            setBookmark(parsedBookmark);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to parse local storage for storytelling:', err);
+      }
+    }
+  }, []);
+
+  // Unlock an episode for a campaign and save to localStorage
+  const unlockEpisode = (campaignKey: string, epNum: number) => {
+    setUnlockedEpisodes(prev => {
+      const current = prev[campaignKey] || [1];
+      if (current.includes(epNum)) return prev;
+      const updated = {
+        ...prev,
+        [campaignKey]: [...current, epNum].sort((a, b) => a - b)
+      };
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('lingoland_unlocked_episodes', JSON.stringify(updated));
+        } catch (e) {}
+      }
+      return updated;
+    });
+  };
+
+  // Save current position as bookmark
+  const saveBookmark = (story: ReaderStory, currentBlockIdx: number) => {
+    if (!story || !story.narrativeBlocks || story.narrativeBlocks.length === 0) return;
+    const currentKey = source === 'preset' ? presetKey : `ai-${genre}`;
+    const newBookmark: StoryBookmark = {
+      campaignKey: currentKey,
+      title: story.title,
+      genre,
+      source,
+      episodeNumber,
+      blockIndex: currentBlockIdx,
+      totalBlocks: story.narrativeBlocks.length,
+      narrativePreview: story.narrativeBlocks[currentBlockIdx] || story.narrativeBlocks[0],
+      timestamp: Date.now(),
+      activeStory: story,
+      length,
+      customTheme
+    };
+    setBookmark(newBookmark);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('lingoland_story_bookmark', JSON.stringify(newBookmark));
+      } catch (e) {}
+    }
+  };
+
+  // Remove saved bookmark
+  const clearBookmark = () => {
+    setBookmark(null);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('lingoland_story_bookmark');
+      } catch (e) {}
+    }
+  };
+
+  // Resume directly from bookmark
+  const handleResumeBookmark = () => {
+    if (!bookmark || !bookmark.activeStory) return;
+    setActiveStory(bookmark.activeStory);
+    setBlockIndex(bookmark.blockIndex);
+    setGenre(bookmark.genre);
+    setSource(bookmark.source);
+    if (bookmark.source === 'preset') {
+      setPresetKey(bookmark.campaignKey);
+    } else {
+      setCustomTheme(bookmark.customTheme || '');
+    }
+    setEpisodeNumber(bookmark.episodeNumber);
+    setLength(bookmark.length || 'short');
+    setReadState('reading');
+    toast({
+      title: "Resumed from Bookmark 🔖",
+      description: `Continuing "${bookmark.title}" at block ${bookmark.blockIndex + 1} of ${bookmark.totalBlocks}.`,
+      className: "bg-indigo-950 border-indigo-500/30 text-indigo-200"
+    });
+  };
+
+  // User explicitly clicks "Bookmark & Pause" while reading
+  const handleBookmarkAndExit = () => {
+    if (activeStory) {
+      saveBookmark(activeStory, blockIndex);
+      toast({
+        title: "Story Bookmarked! 🔖",
+        description: `Saved at Block ${blockIndex + 1} of ${activeStory.narrativeBlocks.length} in Episode ${episodeNumber}. You can return anytime to resume.`,
+        className: "bg-indigo-950 border-indigo-500/30 text-indigo-200"
+      });
+    }
+    if (isSpeaking && canSpeak) {
+      try { window.speechSynthesis.cancel(); } catch (e) {}
+      setIsSpeaking(false);
+    }
+    setIsFullscreen(false);
+    setReadState('config');
+  };
 
   // Escape key handler to exit fullscreen mode
   useEffect(() => {
@@ -448,27 +764,27 @@ export default function StorytellingPage() {
     setBlockIndex(0);
     
     if (source === 'preset') {
-      const selected = presetStories[presetKey];
+      const campaignStories = presetStories[presetKey];
+      const selected = campaignStories?.[episodeNumber] || campaignStories?.[1];
       if (selected) {
-        // Preset stories have fixed genres for consistency
         if (presetKey === 'haunted-manor') setGenre('Horror');
         if (presetKey === 'school-comedy') setGenre('Comedy');
         if (presetKey === 'quantum-chronicles-1') {
           setGenre('Sci-Fi');
-          setEpisodeNumber(1);
           setLength('long');
         }
         
         setTimeout(() => {
           setActiveStory(selected);
           setReadState('reading');
+          saveBookmark(selected, 0);
           if (ttsEnabled) {
             setTimeout(() => handleSpeak(selected.narrativeBlocks[0]), 800);
           }
-        }, 800);
+        }, 700);
       } else {
         setReadState('config');
-        toast({ variant: 'destructive', title: 'Story Not Found', description: 'Could not load preset story.' });
+        toast({ variant: 'destructive', title: 'Story Not Found', description: 'Could not load preset story episode.' });
       }
     } else {
       // AI story generation
@@ -485,6 +801,7 @@ export default function StorytellingPage() {
         if (res && res.narrativeBlocks && res.narrativeBlocks.length > 0) {
           setActiveStory(res);
           setReadState('reading');
+          saveBookmark(res, 0);
           
           if (ttsEnabled) {
             setTimeout(() => handleSpeak(res.narrativeBlocks[0]), 800);
@@ -495,11 +812,11 @@ export default function StorytellingPage() {
         }
       } catch (err) {
         console.warn("AI Reader Story generation failed, switching to premium local simulation:", err);
-        // Seamless fallback to premium local simulation so the user never sees an error screen
         const simulated = generateSimulatedStory(genre, length, finalTheme, episodeNumber);
         setTimeout(() => {
           setActiveStory(simulated);
           setReadState('reading');
+          saveBookmark(simulated, 0);
           toast({
             title: "Offline Intelligence Active 🔮",
             description: `Auto-synthesized a custom ${genre} episode natively!`,
@@ -523,13 +840,25 @@ export default function StorytellingPage() {
     }
     
     if (blockIndex >= activeStory.narrativeBlocks.length - 1) {
-      // Completed story!
+      // Completed episode!
+      const currentCampaignKey = source === 'preset' ? presetKey : `ai-${genre}`;
+      const nextEp = episodeNumber + 1;
+      unlockEpisode(currentCampaignKey, nextEp);
+      clearBookmark();
+      
+      toast({
+        title: `Episode ${episodeNumber} Cleared! 🏆`,
+        description: `Episode ${nextEp} is now unlocked in this campaign!`,
+        className: "bg-emerald-950 border-emerald-500/30 text-emerald-200"
+      });
+      
       setReadState('completed');
       return;
     }
     
     const nextIdx = blockIndex + 1;
     setBlockIndex(nextIdx);
+    saveBookmark(activeStory, nextIdx);
     
     if (ttsEnabled) {
       setTimeout(() => handleSpeak(activeStory.narrativeBlocks[nextIdx]), 200);
@@ -581,24 +910,28 @@ export default function StorytellingPage() {
 
   // Advanced next-episode handler
   const handleNextEpisode = () => {
-    if (source === 'preset' && presetKey === 'quantum-chronicles-1') {
-      toast({
-        title: "Episode 2 Materializing... 🚀",
-        description: "Moving down Planet Aethelgard coordinates. Generating Episode 2!",
-      });
-      // Set AI generation mode for episode 2
-      setSource('ai');
-      setPresetKey('');
-      setGenre('Sci-Fi');
-      setCustomTheme('Episode 2 of the Quantum Spire: Nova steps inside the obsidian doors and encounters a floating synthetic guardian.');
-      setEpisodeNumber(2);
-      setLength('long');
-      setTimeout(handleLaunchReader, 1500);
+    const nextEp = episodeNumber + 1;
+    const currentCampaignKey = source === 'preset' ? presetKey : `ai-${genre}`;
+    unlockEpisode(currentCampaignKey, nextEp);
+    setEpisodeNumber(nextEp);
+    
+    if (source === 'preset') {
+      const campaignStories = presetStories[presetKey];
+      if (campaignStories && campaignStories[nextEp]) {
+        toast({
+          title: `Launching Episode ${nextEp}! 🔓`,
+          description: `Loading next chapter of ${CAMPAIGN_REGISTRY[presetKey]?.title || 'the campaign'}.`,
+          className: "bg-indigo-950 border-indigo-500/30 text-indigo-200"
+        });
+        setTimeout(handleLaunchReader, 500);
+      } else {
+        // Dynamic AI generation for episodes past presets
+        setSource('ai');
+        setCustomTheme(`Continuation Episode ${nextEp} of ${CAMPAIGN_REGISTRY[presetKey]?.title || 'the campaign'}`);
+        setTimeout(handleLaunchReader, 500);
+      }
     } else {
-      // Increment episode count
-      const nextEp = episodeNumber + 1;
-      setEpisodeNumber(nextEp);
-      handleLaunchReader();
+      setTimeout(handleLaunchReader, 500);
     }
   };
 
@@ -672,7 +1005,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="space-y-8 sm:space-y-10 w-full max-w-[1700px] mx-auto flex-1 flex flex-col justify-center py-4 sm:py-8"
+              className="space-y-6 sm:space-y-8 w-full max-w-[1700px] mx-auto flex-1 flex flex-col justify-center py-4 sm:py-8"
             >
               <div className="text-center space-y-3 select-none">
                 <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1.5 px-4 text-xs">
@@ -685,6 +1018,61 @@ export default function StorytellingPage() {
                   Engage in click-by-click narrative learning! Read high-end presets or let AI compose continuous episodes tailored to your exact tastes.
                 </p>
               </div>
+
+              {/* BOOKMARK RESUME BANNER */}
+              {bookmark && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-gradient-to-r from-indigo-950/80 via-purple-950/60 to-slate-900/90 border-2 border-indigo-500/50 rounded-3xl p-5 sm:p-7 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5 select-none relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500" />
+                  
+                  <div className="flex items-start gap-4 sm:gap-5 min-w-0">
+                    <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300 shrink-0 mt-0.5 shadow-lg shadow-indigo-500/20">
+                      <Bookmark className="h-6 w-6 sm:h-7 sm:w-7 fill-current animate-pulse text-indigo-400" />
+                    </div>
+                    <div className="space-y-1.5 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/40 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 flex items-center gap-1">
+                          <BookmarkCheck className="h-3 w-3" />
+                          Bookmark Saved
+                        </Badge>
+                        <Badge className="bg-slate-900 text-slate-300 border-slate-800 text-[10px] font-black uppercase px-2 py-0.5">
+                          {bookmark.genre}
+                        </Badge>
+                        <span className="text-[11px] text-slate-400 font-bold">
+                          Episode {bookmark.episodeNumber} · Block {bookmark.blockIndex + 1} of {bookmark.totalBlocks} ({Math.round(((bookmark.blockIndex + 1) / bookmark.totalBlocks) * 100)}%)
+                        </span>
+                      </div>
+                      <h3 className="text-base sm:text-xl font-black text-slate-100 truncate">
+                        {bookmark.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-350 italic line-clamp-1">
+                        "{bookmark.narrativePreview}"
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full md:w-auto shrink-0 pt-2 md:pt-0 justify-end">
+                    <Button
+                      onClick={handleResumeBookmark}
+                      className="flex-1 md:flex-initial bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider h-12 px-6 rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <Bookmark className="h-4 w-4 fill-current" />
+                      Resume Story
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={clearBookmark}
+                      className="h-12 px-4 rounded-2xl border border-slate-800 hover:bg-slate-800/80 text-slate-400 hover:text-slate-200 text-xs font-bold uppercase transition-colors"
+                      title="Discard saved bookmark"
+                    >
+                      Dismiss
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
 
               <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl p-6 sm:p-10 lg:p-12 shadow-2xl w-full">
                 <CardContent className="p-0 space-y-8 sm:space-y-10">
@@ -720,95 +1108,144 @@ export default function StorytellingPage() {
 
                   {/* PRESET CHANNELS */}
                   {source === 'preset' ? (
-                    <div className="space-y-4 select-none">
-                      <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">2. Choose Story Campaign</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-                        <button
-                          type="button"
-                          onClick={() => setPresetKey('haunted-manor')}
-                          className={`p-5 sm:p-6 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between gap-4 relative overflow-hidden ${
-                            presetKey === 'haunted-manor'
-                              ? 'bg-indigo-500/15 border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50'
-                              : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
-                          }`}
-                        >
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">🎭</span>
-                              <Badge className={presetKey === 'haunted-manor' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-slate-900 text-slate-400 border-slate-800'}>
-                                Horror
-                              </Badge>
-                            </div>
-                            <div>
-                              <p className="font-black text-base text-slate-100 leading-snug">The Whispering Shadows of Blackwood</p>
-                              <p className="text-xs text-slate-400 mt-2 font-medium leading-relaxed">Short Story · Creepy gothic mystery</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between pt-3 border-t border-slate-850/60">
-                            <span className={`text-xs font-bold uppercase tracking-wider ${presetKey === 'haunted-manor' ? 'text-indigo-400' : 'text-slate-500'}`}>
-                              {presetKey === 'haunted-manor' ? 'Selected' : 'Select Campaign'}
-                            </span>
-                            <ChevronRight className={`h-5 w-5 ${presetKey === 'haunted-manor' ? 'text-indigo-400' : 'text-slate-600'}`} />
-                          </div>
-                        </button>
+                    <div className="space-y-6 select-none">
+                      <div className="space-y-3">
+                        <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">2. Choose Story Campaign</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+                          {Object.values(CAMPAIGN_REGISTRY).map(camp => {
+                            const isCampSelected = presetKey === camp.id;
+                            const unlockedCount = (unlockedEpisodes[camp.id] || [1]).length;
+                            const hasBookmark = bookmark && bookmark.source === 'preset' && bookmark.campaignKey === camp.id;
 
-                        <button
-                          type="button"
-                          onClick={() => setPresetKey('school-comedy')}
-                          className={`p-5 sm:p-6 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between gap-4 relative overflow-hidden ${
-                            presetKey === 'school-comedy'
-                              ? 'bg-indigo-500/15 border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50'
-                              : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
-                          }`}
-                        >
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">🧪</span>
-                              <Badge className={presetKey === 'school-comedy' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-slate-900 text-slate-400 border-slate-800'}>
-                                Comedy
-                              </Badge>
-                            </div>
-                            <div>
-                              <p className="font-black text-base text-slate-100 leading-snug">The Chemistry Catastrophe of Room 4B</p>
-                              <p className="text-xs text-slate-400 mt-2 font-medium leading-relaxed">Short Story · Harmless school pranks gone pink</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between pt-3 border-t border-slate-850/60">
-                            <span className={`text-xs font-bold uppercase tracking-wider ${presetKey === 'school-comedy' ? 'text-indigo-400' : 'text-slate-500'}`}>
-                              {presetKey === 'school-comedy' ? 'Selected' : 'Select Campaign'}
-                            </span>
-                            <ChevronRight className={`h-5 w-5 ${presetKey === 'school-comedy' ? 'text-indigo-400' : 'text-slate-600'}`} />
-                          </div>
-                        </button>
+                            return (
+                              <button
+                                key={camp.id}
+                                type="button"
+                                onClick={() => {
+                                  setPresetKey(camp.id);
+                                  // Default episode to lowest unlocked or current bookmark
+                                  if (hasBookmark) {
+                                    setEpisodeNumber(bookmark.episodeNumber);
+                                  } else {
+                                    const unlocked = unlockedEpisodes[camp.id] || [1];
+                                    setEpisodeNumber(unlocked[unlocked.length - 1] || 1);
+                                  }
+                                }}
+                                className={`p-5 sm:p-6 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between gap-4 relative overflow-hidden ${
+                                  isCampSelected
+                                    ? 'bg-indigo-500/15 border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50'
+                                    : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
+                                }`}
+                              >
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">{camp.icon}</span>
+                                    <div className="flex items-center gap-1.5">
+                                      {hasBookmark && (
+                                        <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-[10px] font-black uppercase py-0.5 px-2">
+                                          🔖 Bookmarked
+                                        </Badge>
+                                      )}
+                                      <Badge className={isCampSelected ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-slate-900 text-slate-400 border-slate-800'}>
+                                        {camp.genre}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="font-black text-base text-slate-100 leading-snug">{camp.title}</p>
+                                    <p className="text-xs text-slate-400 mt-2 font-medium leading-relaxed">{camp.description}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between pt-3 border-t border-slate-850/60 text-xs">
+                                  <span className="text-indigo-400 font-extrabold">
+                                    {unlockedCount}/{camp.totalEpisodes} Episodes Unlocked 🔓
+                                  </span>
+                                  <ChevronRight className={`h-5 w-5 ${isCampSelected ? 'text-indigo-400' : 'text-slate-600'}`} />
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
 
-                        <button
-                          type="button"
-                          onClick={() => setPresetKey('quantum-chronicles-1')}
-                          className={`p-5 sm:p-6 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between gap-4 relative overflow-hidden ${
-                            presetKey === 'quantum-chronicles-1'
-                              ? 'bg-indigo-500/15 border-indigo-500 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50'
-                              : 'bg-slate-950/40 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
-                          }`}
-                        >
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">🚀</span>
-                              <Badge className={presetKey === 'quantum-chronicles-1' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-slate-900 text-slate-400 border-slate-800'}>
-                                Sci-Fi
-                              </Badge>
-                            </div>
-                            <div>
-                              <p className="font-black text-base text-slate-100 leading-snug">Quantum Spire: Episode 1 - The Anomaly</p>
-                              <p className="text-xs text-slate-400 mt-2 font-medium leading-relaxed">Serial Campaign · Time distortions & space ruins</p>
-                            </div>
+                      {/* UNLOCKED EPISODES SELECTOR */}
+                      <div className="space-y-3 pt-4 border-t border-slate-850/80">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-2">
+                            <Layers className="h-4.5 w-4.5 text-indigo-400" />
+                            <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">
+                              3. Choose Unlocked Episode ({CAMPAIGN_REGISTRY[presetKey]?.title})
+                            </Label>
                           </div>
-                          <div className="flex items-center justify-between pt-3 border-t border-slate-850/60">
-                            <span className={`text-xs font-bold uppercase tracking-wider ${presetKey === 'quantum-chronicles-1' ? 'text-indigo-400' : 'text-slate-500'}`}>
-                              {presetKey === 'quantum-chronicles-1' ? 'Selected' : 'Select Campaign'}
-                            </span>
-                            <ChevronRight className={`h-5 w-5 ${presetKey === 'quantum-chronicles-1' ? 'text-indigo-400' : 'text-slate-600'}`} />
-                          </div>
-                        </button>
+                          <span className="text-[11px] text-slate-400 font-semibold">
+                            Complete previous episodes to unlock future chapters
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                          {CAMPAIGN_REGISTRY[presetKey]?.episodes.map(ep => {
+                            const isUnlocked = (unlockedEpisodes[presetKey] || [1]).includes(ep.number);
+                            const isSelected = episodeNumber === ep.number;
+                            const isBookmarked = bookmark && bookmark.source === 'preset' && bookmark.campaignKey === presetKey && bookmark.episodeNumber === ep.number;
+
+                            return (
+                              <button
+                                key={ep.number}
+                                type="button"
+                                disabled={!isUnlocked}
+                                onClick={() => setEpisodeNumber(ep.number)}
+                                className={`p-4 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative flex flex-col justify-between gap-3 ${
+                                  !isUnlocked
+                                    ? 'opacity-40 cursor-not-allowed border-slate-850/60 bg-slate-950/30'
+                                    : isSelected
+                                      ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/50'
+                                      : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/50 text-slate-300'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`h-2.5 w-2.5 rounded-full ${isSelected ? 'bg-indigo-400 animate-ping' : isUnlocked ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                                    <span className="font-black text-xs uppercase tracking-wider text-slate-200">
+                                      Episode {ep.number}
+                                    </span>
+                                  </div>
+                                  {isBookmarked ? (
+                                    <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-[9px] font-black uppercase px-2 py-0.5 flex items-center gap-1">
+                                      <Bookmark className="h-2.5 w-2.5 fill-current" />
+                                      Bookmark ({bookmark.blockIndex + 1}/{bookmark.totalBlocks})
+                                    </Badge>
+                                  ) : isUnlocked ? (
+                                    <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-[9px] font-black uppercase px-2 py-0.5 flex items-center gap-1">
+                                      <CheckCircle2 className="h-2.5 w-2.5" />
+                                      Unlocked
+                                    </Badge>
+                                  ) : (
+                                    <Badge className="bg-slate-900 text-slate-500 border-slate-800 text-[9px] font-black uppercase px-2 py-0.5 flex items-center gap-1">
+                                      <Lock className="h-2.5 w-2.5" />
+                                      Locked
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                <div>
+                                  <p className="text-sm font-black text-slate-100 leading-snug">
+                                    {ep.title}
+                                  </p>
+                                  <p className="text-xs text-slate-400 mt-1 font-medium leading-relaxed line-clamp-2">
+                                    {isUnlocked ? ep.description : `Complete Episode ${ep.number - 1} to unlock this chapter`}
+                                  </p>
+                                </div>
+
+                                <div className="pt-2 border-t border-slate-850/60 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                                  <span className={isSelected ? 'text-indigo-400' : isUnlocked ? 'text-slate-400' : 'text-slate-600'}>
+                                    {isSelected ? 'Selected Chapter' : isUnlocked ? 'Click to Choose' : 'Locked'}
+                                  </span>
+                                  {isUnlocked ? <Unlock className="h-3.5 w-3.5 text-emerald-400" /> : <Lock className="h-3.5 w-3.5 text-slate-600" />}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -873,24 +1310,37 @@ export default function StorytellingPage() {
 
                         {/* Episode selector (if long story) */}
                         <div className="space-y-3 select-none">
-                          <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">4. Campaign Part/Episode</Label>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">4. Campaign Part/Episode</Label>
+                            {length === 'long' && (
+                              <span className="text-[10px] text-slate-400 font-bold">
+                                {unlockedEpisodes[`ai-${genre}`]?.length || 1} Part(s) Unlocked
+                              </span>
+                            )}
+                          </div>
                           <div className="grid grid-cols-3 gap-3">
-                            {[1, 2, 3].map(num => (
-                              <button
-                                key={num}
-                                type="button"
-                                disabled={length !== 'long'}
-                                onClick={() => setEpisodeNumber(num)}
-                                className={`py-3.5 px-4 rounded-2xl border text-xs sm:text-sm font-bold uppercase transition-all duration-300 ${
-                                  length !== 'long' ? 'opacity-30 cursor-not-allowed border-slate-900 bg-slate-950/10' :
-                                  episodeNumber === num
-                                    ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300'
-                                    : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
-                                }`}
-                              >
-                                Part {num}
-                              </button>
-                            ))}
+                            {[1, 2, 3].map(num => {
+                              const aiUnlocked = (unlockedEpisodes[`ai-${genre}`] || [1]).includes(num);
+                              const isDisabled = length !== 'long' || !aiUnlocked;
+                              
+                              return (
+                                <button
+                                  key={num}
+                                  type="button"
+                                  disabled={isDisabled}
+                                  onClick={() => setEpisodeNumber(num)}
+                                  className={`py-3.5 px-4 rounded-2xl border text-xs sm:text-sm font-bold uppercase transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                                    length !== 'long' ? 'opacity-30 cursor-not-allowed border-slate-900 bg-slate-950/10' :
+                                    !aiUnlocked ? 'opacity-40 cursor-not-allowed border-slate-900 bg-slate-950/20 text-slate-600' :
+                                    episodeNumber === num
+                                      ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300'
+                                      : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                                  }`}
+                                >
+                                  {aiUnlocked ? <span>Part {num}</span> : <span className="flex items-center gap-1"><Lock className="h-3 w-3" /> P{num}</span>}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       </div>
@@ -916,7 +1366,7 @@ export default function StorytellingPage() {
                     className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-sm sm:text-base tracking-wider h-14 sm:h-16 rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.005] active:scale-[0.995]"
                   >
                     <BookOpen className="h-5 w-5 fill-current" />
-                    Launch Interactive Reader
+                    Launch Episode {episodeNumber} Reader
                   </Button>
                 </CardFooter>
               </Card>
@@ -953,19 +1403,30 @@ export default function StorytellingPage() {
               className={isFullscreen ? "fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 sm:p-12 overflow-y-auto" : "flex flex-col gap-6 w-full max-w-[1700px] mx-auto flex-grow h-full justify-between py-2 sm:py-4"}
             >
               
-              {/* Floating Exit Fullscreen Button + Audio Controls Panel */}
+              {/* Floating Exit Fullscreen Button + Audio & Bookmark Controls Panel */}
               {isFullscreen && (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => setIsFullscreen(false)}
-                    className="fixed top-6 right-6 z-50 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 text-slate-350 hover:text-white px-4.5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-2xl flex items-center gap-2 transition-all active:scale-95 duration-200"
-                  >
-                    <svg className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <span>Exit Fullscreen (Esc)</span>
-                  </button>
+                  <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleBookmarkAndExit}
+                      className="bg-slate-900/90 hover:bg-slate-800/90 border border-amber-500/40 text-amber-300 hover:text-amber-200 px-4.5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-2xl flex items-center gap-2 transition-all active:scale-95 duration-200"
+                    >
+                      <Bookmark className="h-4 w-4 fill-current text-amber-400" />
+                      <span>Bookmark & Exit</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsFullscreen(false)}
+                      className="bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 text-slate-350 hover:text-white px-4.5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-2xl flex items-center gap-2 transition-all active:scale-95 duration-200"
+                    >
+                      <svg className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      <span>Exit Fullscreen (Esc)</span>
+                    </button>
+                  </div>
 
                   {/* Floating Audio Control Panel — bottom-left in fullscreen */}
                   <div className="fixed bottom-6 left-6 z-50 bg-slate-900/90 border border-slate-800/80 backdrop-blur-xl rounded-2xl shadow-2xl p-4 flex flex-col gap-3 min-w-[220px] select-none">
@@ -1034,15 +1495,24 @@ export default function StorytellingPage() {
                     <Badge className={`${themeConfig.badge} text-[10px] font-black uppercase py-0.5 px-2.5 shrink-0`}>
                       {genre}
                     </Badge>
-                    {length === 'long' && (
-                      <Badge className="bg-slate-900 border border-slate-800 text-slate-400 text-[10px] font-black uppercase py-0.5 px-2.5 shrink-0">
-                        Part {episodeNumber}
-                      </Badge>
-                    )}
+                    <Badge className="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[10px] font-black uppercase py-0.5 px-2.5 shrink-0">
+                      Episode {episodeNumber}
+                    </Badge>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2.5 shrink-0">
+                  {/* Bookmark & Pause Button */}
+                  <Button
+                    variant="ghost"
+                    onClick={handleBookmarkAndExit}
+                    className="h-10 px-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition-colors flex items-center gap-1.5 text-xs font-black uppercase tracking-wider"
+                    title="Bookmark progress and pause"
+                  >
+                    <Bookmark className="h-4 w-4 text-amber-400 fill-amber-400/40" />
+                    <span className="hidden sm:inline">Bookmark</span>
+                  </Button>
+
                   {/* Ambient Soundtrack Trigger */}
                   <Button
                     variant="ghost"
@@ -1056,7 +1526,7 @@ export default function StorytellingPage() {
                     <Music className={`h-4.5 w-4.5 ${musicEnabled ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
                   </Button>
 
-                  {/* TTS Vocal Toggle — properly stops when clicked while speaking */}
+                  {/* TTS Vocal Toggle */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -1092,7 +1562,7 @@ export default function StorytellingPage() {
                     onClick={() => { setIsFullscreen(false); setReadState('config'); }}
                     className="text-xs font-black uppercase text-slate-500 hover:text-slate-350 transition-colors p-2"
                   >
-                    Cancel
+                    Exit
                   </button>
                 </div>
               </div>
@@ -1100,7 +1570,7 @@ export default function StorytellingPage() {
               {/* Progress gauge bar */}
               <div className="space-y-2 select-none">
                 <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
-                  <span>Story Progress</span>
+                  <span>Episode {episodeNumber} Progress</span>
                   <span>{blockIndex + 1} / {activeStory.narrativeBlocks.length} blocks</span>
                 </div>
                 <Progress 
@@ -1161,12 +1631,18 @@ export default function StorytellingPage() {
                 </div>
                 
                 <div className="space-y-3">
-                  <Badge className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black tracking-widest uppercase px-4 py-1 text-xs">
-                    Quest Read Complete
-                  </Badge>
+                  <div className="flex items-center justify-center gap-2">
+                    <Badge className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black tracking-widest uppercase px-4 py-1 text-xs">
+                      Episode {episodeNumber} Cleared!
+                    </Badge>
+                    <Badge className="bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-black tracking-widest uppercase px-4 py-1 text-xs flex items-center gap-1">
+                      <Unlock className="h-3.5 w-3.5" />
+                      Episode {episodeNumber + 1} Unlocked
+                    </Badge>
+                  </div>
                   <h2 className="text-3xl sm:text-4xl font-black text-slate-100 uppercase tracking-tight">Campaign Epilogue</h2>
                   <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
-                    You have read to the end of **{activeStory.title}**! Review the key vocabulary cards featured in this narrative.
+                    You have cleared **{activeStory.title}**! Review the key vocabulary cards featured in this narrative.
                   </p>
                 </div>
 
@@ -1202,6 +1678,26 @@ export default function StorytellingPage() {
                 </div>
 
                 <div className="pt-8 border-t border-slate-850 flex flex-wrap gap-4 justify-center">
+                  {/* Play Next Episode */}
+                  <Button
+                    onClick={handleNextEpisode}
+                    className="bg-gradient-to-r from-emerald-500 via-teal-600 to-indigo-600 hover:from-emerald-400 hover:to-indigo-500 text-white font-black uppercase text-xs sm:text-sm tracking-wider h-12 px-6 rounded-xl shadow-md shadow-emerald-500/20 flex items-center gap-2"
+                  >
+                    <Unlock className="h-4 w-4" />
+                    <span>Play Episode {episodeNumber + 1}</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+
+                  {/* View All Episodes / Config */}
+                  <Button
+                    onClick={() => setReadState('config')}
+                    variant="outline"
+                    className="bg-slate-950 border-slate-800 hover:bg-slate-900 text-slate-300 font-black uppercase text-xs sm:text-sm h-12 px-6 rounded-xl flex items-center gap-2"
+                  >
+                    <Layers className="h-4 w-4 text-indigo-400" />
+                    <span>View Unlocked Episodes</span>
+                  </Button>
+
                   <Button
                     onClick={() => {
                       setSource('ai');
@@ -1215,32 +1711,13 @@ export default function StorytellingPage() {
                   </Button>
 
                   <Button
-                    onClick={() => setReadState('config')}
-                    variant="outline"
-                    className="bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-455 font-black uppercase text-xs sm:text-sm h-12 px-6 rounded-xl"
+                    onClick={handleLaunchReader}
+                    variant="ghost"
+                    className="border border-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white font-black uppercase text-xs sm:text-sm tracking-wider h-12 px-6 rounded-xl flex items-center gap-1.5"
                   >
-                    Change Genre / Preset
+                    <RotateCcw className="h-4 w-4" />
+                    <span>Reread Episode {episodeNumber}</span>
                   </Button>
-                  
-                  {length === 'long' && (
-                    <Button
-                      onClick={handleNextEpisode}
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs sm:text-sm tracking-wider h-12 px-6 rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1.5"
-                    >
-                      <span>Unlock Episode {episodeNumber + 1}</span>
-                      <ArrowRight className="h-4.5 w-4.5" />
-                    </Button>
-                  )}
-                  
-                  {length === 'short' && (
-                    <Button
-                      onClick={handleLaunchReader}
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs sm:text-sm tracking-wider h-12 px-6 rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1.5"
-                    >
-                      <RotateCcw className="h-4.5 w-4.5" />
-                      <span>Reread Story</span>
-                    </Button>
-                  )}
                 </div>
 
               </Card>
