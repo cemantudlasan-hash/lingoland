@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function HomeworkHubPage() {
     const { user, isGuest, isLoading } = useAuth();
     const homeworkHubUrl = 'https://myhomeworkhub.co.in/';
+    const fallbackHubUrl = 'https://studio--studio-4268485583-459c4.us-central1.hosted.app/';
 
     if (isLoading) {
         return (
@@ -39,16 +40,33 @@ export default function HomeworkHubPage() {
                     <CardTitle className="text-2xl">Redirecting to Homework Hub</CardTitle>
                     <CardDescription>The Homework Hub will open in a new browser tab.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <p className="mb-6 text-muted-foreground">
+                <CardContent className="space-y-6">
+                    <p className="text-muted-foreground">
                         Click the button below to proceed.
                     </p>
-                    <Button asChild size="lg">
-                        <a href={homeworkHubUrl} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="mr-2 h-5 w-5" />
-                            Open Homework Hub
-                        </a>
-                    </Button>
+                    <div>
+                        <Button asChild size="lg">
+                            <a href={homeworkHubUrl} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="mr-2 h-5 w-5" />
+                                Open Homework Hub
+                            </a>
+                        </Button>
+                    </div>
+
+                    <div className="pt-4 border-t text-sm text-muted-foreground">
+                        <p>
+                            Does the link below not work?{' '}
+                            <a
+                                href={fallbackHubUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80 transition-colors inline-flex items-center gap-1"
+                            >
+                                Try this link here
+                                <ExternalLink className="h-3.5 w-3.5 inline" />
+                            </a>
+                        </p>
+                    </div>
                 </CardContent>
             </Card>
         </div>
