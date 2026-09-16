@@ -251,8 +251,16 @@ interface ChoiceOrb {
   color: string;
   glowColor: string;
   collected: boolean;
-  questionId: string;
+  question: TenseQuestion;
   lane: 'high' | 'low';
+}
+
+interface QuestionEncounter {
+  id: string;
+  question: TenseQuestion;
+  orbs: ChoiceOrb[];
+  resolved: boolean;
+  spawnX: number;
 }
 
 interface AttemptRecord {
@@ -287,7 +295,7 @@ export function TenseRunner() {
   // Game Lifecycle States: "start" | "playing" | "paused" | "gameover"
   const [gameState, setGameState] = useState<'start' | 'playing' | 'paused' | 'gameover'>('start');
   const [selectedCategory, setSelectedCategory] = useState<GrammarCategory>('all');
-  const [difficulty, setDifficulty] = useState<'normal' | 'turbo'>('normal');
+  const [difficulty, setDifficulty] = useState<'relaxed' | 'normal' | 'turbo'>('normal');
 
   // Gameplay HUD States
   const [score, setScore] = useState(0);
@@ -323,15 +331,18 @@ export function TenseRunner() {
 
   // World & Obstacles State
   const worldRef = useRef({
-    scrollSpeed: 5.5,
-    gravity: 0.72,
+    scrollSpeed: 2.2,
+    baseSpeed: 2.2,
+    maxSpeed: 3.0,
+    gravity: 0.66,
     groundY: 380,
     platforms: [] as Platform[],
+    encounters: [] as QuestionEncounter[],
     orbs: [] as ChoiceOrb[],
     particles: [] as Particle[],
     bgStars: [] as { x: number; y: number; size: number; speed: number; alpha: number }[],
     distanceMeters: 0,
-    nextEncounterX: 700,
+    framesSinceResolved: 0,
     shake: 0,
   });
 
@@ -386,9 +397,8 @@ export function TenseRunner() {
       questionsQueueRef.current = getQuestionsForCategory(selectedCategory);
     }
     const nextQ = questionsQueueRef.current.shift()!;
-    setCurrentQuestion(nextQ);
 
-    // Pick 1 wrong distractor (or 2)
+    // Pick 1 wrong distractor
     const shuffledWrongs = shuffleArray(nextQ.wrongOptions);
     const wrongChoice = shuffledWrongs[0];
 
@@ -400,40 +410,47 @@ export function TenseRunner() {
     const randomizedOptions = shuffleArray(options);
 
     const groundY = worldRef.current.groundY;
-    // High Orb (Jump / Double Jump lane): around y = groundY - 140
-    // Low Orb (Ground / Slide lane): around y = groundY - 30
     const orbRadius = 30;
 
-    const newOrbs: ChoiceOrb[] = [
-      {
-        x: spawnX,
-        y: groundY - 150,
-        radius: orbRadius,
-        text: randomizedOptions[0].text,
-        isCorrect: randomizedOptions[0].isCorrect,
-        color: '#06b6d4',
-        glowColor: 'rgba(6, 182, 212, 0.65)',
-        collected: false,
-        questionId: nextQ.id,
-        lane: 'high',
-      },
-      {
-        x: spawnX + 70,
-        y: groundY - 35,
-        radius: orbRadius,
-        text: randomizedOptions[1].text,
-        isCorrect: randomizedOptions[1].isCorrect,
-        color: '#f43f5e',
-        glowColor: 'rgba(244, 63, 94, 0.65)',
-        collected: false,
-        questionId: nextQ.id,
-        lane: 'low',
-      },
-    ];
+    const highOrb: ChoiceOrb = {
+      x: spawnX,
+      y: groundY - 145,
+      radius: orbRadius,
+      text: randomizedOptions[0].text,
+      isCorrect: randomizedOptions[0].isCorrect,
+      color: '#06b6d4',
+      glowColor: 'rgba(6, 182, 212, 0.65)',
+      collected: false,
+      question: nextQ,
+      lane: 'high',
+    };
 
-    worldRef.current.orbs.push(...newOrbs);
-    // Schedule next encounter after 750 pixels
-    worldRef.current.nextEncounterX = spawnX + 750;
+    const lowOrb: ChoiceOrb = {
+      x: spawnX,
+      y: groundY - 32,
+      radius: orbRadius,
+      text: randomizedOptions[1].text,
+      isCorrect: randomizedOptions[1].isCorrect,
+      color: '#f43f5e',
+      glowColor: 'rgba(244, 63, 94, 0.65)',
+      collected: false,
+      question: nextQ,
+      lane: 'low',
+    };
+
+    const encounter: QuestionEncounter = {
+      id: nextQ.id,
+      question: nextQ,
+      orbs: [highOrb, lowOrb],
+      resolved: false,
+      spawnX,
+    };
+
+    worldRef.current.encounters.push(encounter);
+    worldRef.current.orbs.push(highOrb, lowOrb);
+
+    // Sync question state if none is set yet
+    setCurrentQuestion((prev) => prev ?? nextQ);
   }, [selectedCategory]);
 
   // Reset & Start Game
@@ -448,16 +465,28 @@ export function TenseRunner() {
     setRecentNotice(null);
     setGameState('playing');
 
-    // Fresh questions pool
+    // Fresh questions pool for category
     questionsQueueRef.current = getQuestionsForCategory(selectedCategory);
 
-    // Initial base speed
-    const baseSpeed = difficulty === 'turbo' ? 7.2 : 5.4;
+    // Initial base speed and cap tuned for reaction and readability (relaxed and smooth)
+    let baseSpeed = 2.2;
+    let maxSpeed = 3.0;
+    if (difficulty === 'relaxed') {
+      baseSpeed = 1.7;
+      maxSpeed = 1.7;
+    } else if (difficulty === 'turbo') {
+      baseSpeed = 3.2;
+      maxSpeed = 4.2;
+    }
+
+    worldRef.current.baseSpeed = baseSpeed;
     worldRef.current.scrollSpeed = baseSpeed;
+    worldRef.current.maxSpeed = maxSpeed;
     worldRef.current.distanceMeters = 0;
-    worldRef.current.nextEncounterX = 750;
+    worldRef.current.encounters = [];
     worldRef.current.orbs = [];
     worldRef.current.particles = [];
+    worldRef.current.framesSinceResolved = 0;
     worldRef.current.shake = 0;
 
     // Reset player
@@ -478,8 +507,10 @@ export function TenseRunner() {
       runFrame: 0,
     };
 
-    // Spawn first encounter
-    spawnQuestionEncounter(820);
+    setCurrentQuestion(null);
+
+    // Spawn first encounter with generous lead time (x = 1020)
+    spawnQuestionEncounter(1020);
 
     // Start music
     if (!isMuted) {
@@ -487,7 +518,7 @@ export function TenseRunner() {
     }
   }, [selectedCategory, difficulty, isMuted, spawnQuestionEncounter]);
 
-  // Jump Action
+  // Jump Action (boosted height & fluid hang-time)
   const handleJump = useCallback(() => {
     if (gameState !== 'playing') return;
     const player = playerRef.current;
@@ -495,11 +526,11 @@ export function TenseRunner() {
       player.isSliding = false;
       player.slideTimer = 0;
       if (player.jumpCount === 0) {
-        player.vy = -13.6;
+        player.vy = -15.4;
         audioRef.current.playJump();
       } else {
         // Double jump with flip
-        player.vy = -12.4;
+        player.vy = -14.2;
         audioRef.current.playDoubleJump();
         // Emit jump ring particles
         for (let i = 0; i < 10; i++) {
@@ -532,25 +563,31 @@ export function TenseRunner() {
       }
     } else {
       // Fast fall
-      player.vy = Math.max(player.vy, 14);
+      player.vy = Math.max(player.vy, 15.5);
       audioRef.current.playSlide();
     }
   }, [gameState]);
 
   // Direct Button Choice (Accessibility / Tap from HUD)
   const handleDirectChoice = useCallback((chosenText: string) => {
-    if (gameState !== 'playing' || !currentQuestion) return;
-    const isCorrect = chosenText.trim().toLowerCase() === currentQuestion.correctOption.trim().toLowerCase();
+    if (gameState !== 'playing') return;
+    const world = worldRef.current;
+    const player = playerRef.current;
 
-    // Trigger visual collection for the matching orb
-    worldRef.current.orbs.forEach((orb) => {
-      if (orb.questionId === currentQuestion.id && !orb.collected) {
-        orb.collected = true;
-      }
-    });
+    // Find the currently active encounter approaching the player
+    const activeEncounter = world.encounters.find(
+      (e) => !e.resolved && e.orbs.some((o) => !o.collected && o.x > player.x - 60)
+    );
+    if (!activeEncounter) return;
 
-    handleOrbCollisionResult(isCorrect, chosenText);
-  }, [gameState, currentQuestion]);
+    activeEncounter.resolved = true;
+    activeEncounter.orbs.forEach((o) => { o.collected = true; });
+    world.framesSinceResolved = 0;
+
+    const isCorrect = chosenText.trim().toLowerCase() === activeEncounter.question.correctOption.trim().toLowerCase();
+    createBurstParticles(player.x + 30, player.y + 20, isCorrect ? '#38bdf8' : '#f43f5e', 24);
+    handleOrbCollisionResult(isCorrect, chosenText, activeEncounter.question);
+  }, [gameState]);
 
   // Collision Particle Explosion
   const createBurstParticles = (x: number, y: number, color: string, count: number = 24) => {
@@ -570,14 +607,12 @@ export function TenseRunner() {
     }
   };
 
-  // Result Handling on Orb Hit
-  const handleOrbCollisionResult = (isCorrect: boolean, chosenText: string) => {
-    if (!currentQuestion) return;
-
+  // Result Handling on Orb Hit (uses the exact question attached to the orb)
+  const handleOrbCollisionResult = (isCorrect: boolean, chosenText: string, question: TenseQuestion) => {
     // Record attempt
     setHistory((prev) => [
       {
-        question: currentQuestion,
+        question,
         userChoice: chosenText,
         isCorrect,
         timestamp: Date.now(),
@@ -598,8 +633,8 @@ export function TenseRunner() {
         return next;
       });
 
-      // Calculate multiplier: 1x, 2x (3+ streak), 3x (6+ streak), 5x (10+ streak)
-      const multiplier = streak >= 10 ? 5 : streak >= 6 ? 3 : streak >= 3 ? 2 : 1;
+      const currentStreak = streak + 1;
+      const multiplier = currentStreak >= 10 ? 5 : currentStreak >= 6 ? 3 : currentStreak >= 3 ? 2 : 1;
       const pointsEarned = 100 * multiplier;
       setScore((s) => {
         const updated = s + pointsEarned;
@@ -617,20 +652,23 @@ export function TenseRunner() {
         isCorrect: true,
       });
 
-      // Slight speed boost
-      worldRef.current.scrollSpeed = Math.min(
-        worldRef.current.scrollSpeed + 0.15,
-        difficulty === 'turbo' ? 10.5 : 8.8
-      );
+      // Gentle speed progression only on streaks and capped comfortably
+      if (difficulty !== 'relaxed' && currentStreak >= 4) {
+        const speedStep = difficulty === 'turbo' ? 0.03 : 0.02;
+        worldRef.current.scrollSpeed = Math.min(
+          worldRef.current.scrollSpeed + speedStep,
+          worldRef.current.maxSpeed
+        );
+      }
     } else {
       // Wrong orb hit
       audioRef.current.playWrong();
-      worldRef.current.shake = 18;
+      worldRef.current.shake = 16;
       playerRef.current.invincibleTimer = 45; // Invulnerable for 45 frames
       setStreak(0);
 
       setRecentNotice({
-        text: `Oops! "${currentQuestion.baseWord}" ➔ ${currentQuestion.correctOption}`,
+        text: `Oops! "${question.baseWord}" ➔ ${question.correctOption}`,
         isCorrect: false,
       });
 
@@ -647,6 +685,29 @@ export function TenseRunner() {
     }
 
     // Clear recent notice after 2.5s
+    setTimeout(() => {
+      setRecentNotice((curr) => (curr ? null : null));
+    }, 2500);
+  };
+
+  // Result Handling when an encounter is completely skipped/passed
+  const handleMissedEncounter = (question: TenseQuestion) => {
+    setStreak(0);
+    setHistory((prev) => [
+      {
+        question,
+        userChoice: '(Missed)',
+        isCorrect: false,
+        timestamp: Date.now(),
+      },
+      ...prev,
+    ]);
+
+    setRecentNotice({
+      text: `Missed: "${question.baseWord}" ➔ ${question.correctOption}`,
+      isCorrect: false,
+    });
+
     setTimeout(() => {
       setRecentNotice((curr) => (curr ? null : null));
     }, 2500);
@@ -732,8 +793,8 @@ export function TenseRunner() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Init canvas size
-    const width = 960;
+    // Init canvas size with wider cinematic aspect ratio
+    const width = 1152;
     const height = 480;
     canvas.width = width;
     canvas.height = height;
@@ -818,11 +879,14 @@ export function TenseRunner() {
       }
     });
 
-    // Check if we need to spawn next encounter
-    if (world.nextEncounterX <= width + 100) {
-      spawnQuestionEncounter(width + 250);
-    } else {
-      world.nextEncounterX -= world.scrollSpeed;
+    // Update and synchronize active question with the nearest approaching encounter
+    const activeEncounter = world.encounters.find(
+      (e) => !e.resolved && e.orbs.some((o) => !o.collected && o.x > player.x - 60)
+    );
+    if (activeEncounter) {
+      if (currentQuestion?.id !== activeEncounter.question.id) {
+        setCurrentQuestion(activeEncounter.question);
+      }
     }
 
     // Update & check Choice Orbs
@@ -847,15 +911,50 @@ export function TenseRunner() {
         const distanceSquared = distX * distX + distY * distY;
 
         if (distanceSquared < orb.radius * orb.radius) {
-          orb.collected = true;
+          // Resolve encounter and mark both orbs collected so remaining orb disappears
+          const enc = world.encounters.find((e) => e.id === orb.question.id);
+          if (enc && !enc.resolved) {
+            enc.resolved = true;
+            enc.orbs.forEach((o) => { o.collected = true; });
+            world.framesSinceResolved = 0;
+          }
           createBurstParticles(orb.x, orb.y, orb.isCorrect ? '#38bdf8' : '#f43f5e', 24);
-          handleOrbCollisionResult(orb.isCorrect, orb.text);
+          handleOrbCollisionResult(orb.isCorrect, orb.text, orb.question);
         }
       }
 
       // Remove orbs that scrolled past screen
       if (orb.x < -120) {
         world.orbs.splice(i, 1);
+      }
+    }
+
+    // Check if an encounter passed the player without any orb being collected
+    world.encounters.forEach((enc) => {
+      if (!enc.resolved) {
+        const allPassed = enc.orbs.every((o) => o.x < player.x - 50);
+        if (allPassed) {
+          enc.resolved = true;
+          enc.orbs.forEach((o) => { o.collected = true; });
+          world.framesSinceResolved = 0;
+          handleMissedEncounter(enc.question);
+        }
+      }
+    });
+
+    // Cleanup old resolved encounters
+    world.encounters = world.encounters.filter(
+      (e) => !e.resolved || e.orbs.some((o) => o.x > -100)
+    );
+
+    // Spawn next encounter only after current encounter is resolved + generous runway
+    const hasUnresolved = world.encounters.some((e) => !e.resolved);
+    if (!hasUnresolved) {
+      world.framesSinceResolved++;
+      // ~75 frames at speed 3.0 gives 2.5 seconds of clean celebratory running runway
+      if (world.framesSinceResolved >= 75) {
+        spawnQuestionEncounter(width + 120);
+        world.framesSinceResolved = 0;
       }
     }
 
@@ -970,42 +1069,6 @@ export function TenseRunner() {
       ctx.stroke();
     }
 
-    // 4.5 In-Canvas Question Prompt Banner (Guaranteed always visible on canvas!)
-    if (currentQuestion) {
-      ctx.save();
-      const promptX = width / 2;
-      const promptY = 36;
-      const boxW = 540;
-      const boxH = 42;
-
-      // Glow Container
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
-      ctx.lineWidth = 2;
-      ctx.shadowColor = 'rgba(56, 189, 248, 0.4)';
-      ctx.shadowBlur = 12;
-      ctx.beginPath();
-      ctx.roundRect(promptX - boxW / 2, promptY - boxH / 2, boxW, boxH, 12);
-      ctx.fill();
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Prompt Instruction Text
-      ctx.font = 'bold 13px system-ui, sans-serif';
-      ctx.fillStyle = '#cbd5e1';
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`${currentQuestion.prompt.toUpperCase()} ➔`, promptX - 8, promptY);
-
-      // Target Verb Badge
-      ctx.font = '900 16px system-ui, sans-serif';
-      ctx.fillStyle = '#38bdf8';
-      ctx.textAlign = 'left';
-      ctx.fillText(currentQuestion.baseWord.toUpperCase(), promptX + 8, promptY);
-
-      ctx.restore();
-    }
-
     // 5. Choice Portals & Orbs
     world.orbs.forEach((orb) => {
       if (orb.collected) return;
@@ -1044,32 +1107,32 @@ export function TenseRunner() {
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Badge is placed strictly ABOVE each orb
-      const isHighLane = orb.lane === 'high' || orb.y < 280;
-      const badgeY = orb.y - orb.radius - 22;
+      // Badge placement: High lane above orb, Low lane above orb but positioned cleanly
+      const isHighLane = orb.lane === 'high';
+      const badgeY = isHighLane ? orb.y - orb.radius - 22 : orb.y - orb.radius - 22;
 
-      // Draw Action Lane Indicator (▲ JUMP vs ▼ RUN)
-      ctx.font = 'bold 11px system-ui, sans-serif';
+      // Draw Action Lane Indicator (▲ JUMP vs ▼ RUN / SLIDE)
+      ctx.font = '900 13px system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const actionTag = isHighLane ? '▲ JUMP' : '▼ RUN';
+      const actionTag = isHighLane ? '▲ JUMP' : '▼ RUN / SLIDE';
       const tagColor = isHighLane ? '#38bdf8' : '#fb7185';
       ctx.fillStyle = tagColor;
-      ctx.fillText(actionTag, orb.x, badgeY - 18);
+      ctx.fillText(actionTag, orb.x, badgeY - 20);
 
       // Badge Container Box
-      ctx.font = 'bold 16px system-ui, sans-serif';
+      ctx.font = 'bold 20px system-ui, sans-serif';
       const textMetrics = ctx.measureText(orb.text);
-      const badgeWidth = Math.max(textMetrics.width + 26, 82);
-      const badgeHeight = 30;
+      const badgeWidth = Math.max(textMetrics.width + 34, 100);
+      const badgeHeight = 38;
 
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
       ctx.strokeStyle = orb.color;
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 3;
       ctx.shadowColor = orb.glowColor;
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = 18;
       ctx.beginPath();
-      ctx.roundRect(orb.x - badgeWidth / 2, badgeY - badgeHeight / 2, badgeWidth, badgeHeight, 8);
+      ctx.roundRect(orb.x - badgeWidth / 2, badgeY - badgeHeight / 2, badgeWidth, badgeHeight, 10);
       ctx.fill();
       ctx.stroke();
       ctx.shadowBlur = 0;
@@ -1262,12 +1325,14 @@ export function TenseRunner() {
     <div
       ref={containerRef}
       className={cn(
-        'relative w-full max-w-5xl mx-auto flex flex-col items-center select-none font-sans transition-all duration-300',
-        isFullscreen ? 'h-screen justify-center p-2 bg-slate-950' : 'p-4'
+        'relative w-full mx-auto flex flex-col items-center select-none font-sans transition-all duration-300',
+        isFullscreen
+          ? 'h-screen justify-center p-2 bg-slate-950'
+          : 'w-full min-h-[calc(100vh-64px)] px-1 sm:px-2 py-1'
       )}
     >
       {/* ─── Top Control Bar ─── */}
-      <div className="w-full flex items-center justify-between mb-3 px-2">
+      <div className="w-full flex items-center justify-between mb-2 px-1">
         <div className="flex items-center gap-3">
           <Badge className="bg-gradient-to-r from-amber-500 to-rose-500 text-white font-black px-3 py-1 text-sm tracking-wide shadow-md flex items-center gap-1.5">
             <Zap className="w-4 h-4 fill-current" />
@@ -1312,11 +1377,11 @@ export function TenseRunner() {
         </div>
       </div>
 
-      {/* ─── Main Game Canvas Box ─── */}
-      <div className="relative w-full aspect-[2/1] rounded-2xl overflow-hidden border-2 border-slate-800 shadow-2xl bg-slate-950 flex items-center justify-center">
+      {/* ─── Main Game Canvas Box (Full width & height stretch) ─── */}
+      <div className="relative w-full flex-1 h-[76vh] min-h-[520px] max-h-[86vh] rounded-2xl overflow-hidden border-2 border-slate-800 shadow-2xl bg-slate-950 flex items-center justify-center">
         <canvas
           ref={canvasRef}
-          className="w-full h-full object-contain"
+          className="w-full h-full"
           onClick={handleJump}
         />
 
@@ -1342,27 +1407,8 @@ export function TenseRunner() {
               </div>
             </div>
 
-            {/* Top-Right Stats: Shields/Lives & Combo Multiplier */}
+            {/* Top-Right Stats: Shields/Lives */}
             <div className="absolute top-3 right-4 flex items-center gap-3 z-10 pointer-events-none">
-              {/* Combo Multiplier */}
-              {streak > 0 && (
-                <motion.div
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  className={cn(
-                    'px-3 py-1.5 rounded-xl border flex items-center gap-1.5 font-mono font-black text-xs shadow-lg backdrop-blur-md',
-                    streak >= 10
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-300'
-                      : streak >= 5
-                      ? 'bg-rose-500/20 border-rose-400 text-rose-300'
-                      : 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                  )}
-                >
-                  <Flame className="w-3.5 h-3.5 fill-current animate-pulse" />
-                  <span>{streak}x COMBO</span>
-                </motion.div>
-              )}
-
               {/* Lives / Shields */}
               <div className="bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-1.5 text-rose-400">
                 {[1, 2, 3].map((heartIndex) => (
@@ -1379,37 +1425,93 @@ export function TenseRunner() {
               </div>
             </div>
 
-            {/* Top-Center Encounter Prompt Banner */}
+            {/* Top-Center Encounter Prompt Banner (Large, High-Visibility, Stacked Mission Card) */}
             {currentQuestion && (
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none max-w-[80%] text-center">
+              <div className="absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none max-w-[95%] sm:max-w-[800px] text-center">
                 <motion.div
                   key={currentQuestion.id}
-                  initial={{ y: -15, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  className="bg-slate-900/90 backdrop-blur-md px-5 py-1.5 rounded-2xl border border-cyan-500/40 shadow-xl flex items-center gap-2.5"
+                  initial={{ y: -20, scale: 0.9, opacity: 0 }}
+                  animate={{ y: 0, scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+                  className="bg-slate-950/95 backdrop-blur-2xl px-6 py-3 sm:px-10 sm:py-4 rounded-2xl border-2 border-cyan-400 shadow-[0_0_40px_rgba(6,182,212,0.5)] flex flex-col items-center justify-center gap-2"
                 >
-                  <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                    {currentQuestion.prompt}
-                  </span>
-                  <Badge className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black text-sm px-2.5 py-0.5 tracking-wide uppercase">
-                    {currentQuestion.baseWord}
-                  </Badge>
+                  {/* Top Sub-Row: Category & Instruction */}
+                  <div className="flex items-center justify-center gap-2.5 sm:gap-4 flex-wrap">
+                    <Badge
+                      variant="outline"
+                      className="text-sm sm:text-base px-3.5 py-1 border-cyan-400/60 bg-cyan-950/80 text-cyan-200 font-black tracking-wide flex items-center gap-2 shadow-sm"
+                    >
+                      <span className="text-base sm:text-lg">{CATEGORY_INFO[currentQuestion.category]?.icon}</span>
+                      <span>{CATEGORY_INFO[currentQuestion.category]?.name.split(' (')[0]}</span>
+                    </Badge>
+
+                    <span className="text-base sm:text-xl lg:text-2xl font-black text-cyan-50 uppercase tracking-wide drop-shadow-md">
+                      {currentQuestion.prompt}
+                    </span>
+                  </div>
+
+                  {/* Symmetrically Centered Target Word Section */}
+                  <div className="flex flex-col items-center justify-center gap-1.5 mt-0.5 text-center w-full">
+                    <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-cyan-300">
+                      WORD TO CONVERT:
+                    </span>
+                    <div className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 font-black text-2xl sm:text-4xl lg:text-5xl px-8 py-1.5 sm:px-12 sm:py-2 rounded-xl shadow-[0_0_35px_rgba(251,191,36,0.75)] tracking-widest uppercase border-2 border-amber-200 ring-2 sm:ring-4 ring-amber-400/40 inline-block text-center">
+                      {currentQuestion.baseWord}
+                    </div>
+                  </div>
+
+                  {/* Streak Multiplier (Dead-center directly under the golden word box and the form) */}
+                  {streak > 0 && (
+                    <div className="flex items-center justify-center w-full mt-1">
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className={cn(
+                          'px-4 py-1 rounded-full border flex items-center justify-center gap-2 font-mono font-black text-xs sm:text-sm shadow-xl backdrop-blur-md',
+                          streak >= 10
+                            ? 'bg-amber-500/25 border-amber-400 text-amber-300 shadow-amber-500/40'
+                            : streak >= 5
+                            ? 'bg-rose-500/25 border-rose-400 text-rose-300 shadow-rose-500/40'
+                            : 'bg-cyan-500/25 border-cyan-400 text-cyan-300 shadow-cyan-500/40'
+                        )}
+                      >
+                        <Flame className="w-4 h-4 fill-current animate-pulse text-amber-400" />
+                        <span>{streak}x STREAK COMBO!</span>
+                      </motion.div>
+                    </div>
+                  )}
                 </motion.div>
               </div>
             )}
 
-            {/* Floating Feedback Notice Banner */}
+            {/* In-Game Bottom-Left Quick Button: Back to Categories */}
+            <div className="absolute bottom-3 left-4 z-20">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 px-3.5 bg-slate-950/90 hover:bg-slate-900 border-slate-700/90 text-slate-200 hover:text-white font-bold text-xs rounded-xl shadow-xl backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-95 pointer-events-auto"
+                onClick={() => {
+                  audioRef.current.stopMusic();
+                  setGameState('start');
+                }}
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Categories</span>
+              </Button>
+            </div>
+
+            {/* Floating Feedback Notice Banner (Positioned cleanly below the enlarged prompt banner & streak) */}
             <AnimatePresence>
               {recentNotice && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8, y: 15 }}
+                  initial={{ opacity: 0, scale: 0.85, y: 12 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                  exit={{ opacity: 0, scale: 0.85, y: -10 }}
                   className={cn(
-                    'absolute top-16 left-1/2 -translate-x-1/2 z-20 px-4 py-1.5 rounded-xl font-black text-sm tracking-wide shadow-2xl border backdrop-blur-md pointer-events-none',
+                    'absolute top-48 sm:top-60 left-1/2 -translate-x-1/2 z-20 px-6 py-2 rounded-2xl font-black text-sm sm:text-base tracking-wide shadow-2xl border-2 backdrop-blur-xl pointer-events-none whitespace-nowrap',
                     recentNotice.isCorrect
-                      ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200'
-                      : 'bg-rose-500/30 border-rose-400 text-rose-200'
+                      ? 'bg-cyan-950/95 border-cyan-400 text-cyan-200 shadow-cyan-500/30'
+                      : 'bg-rose-950/95 border-rose-400 text-rose-200 shadow-rose-500/30'
                   )}
                 >
                   {recentNotice.text}
@@ -1425,7 +1527,7 @@ export function TenseRunner() {
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="max-w-md w-full flex flex-col items-center"
+              className="max-w-2xl w-full flex flex-col items-center px-4"
             >
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center shadow-xl shadow-rose-500/25 mb-3">
                 <Zap className="w-8 h-8 text-white fill-current" />
@@ -1434,7 +1536,7 @@ export function TenseRunner() {
               <h1 className="text-3xl font-black tracking-tight text-white mb-1">
                 RUN & JUMP: TENSE RUNNER
               </h1>
-              <p className="text-xs text-slate-300 mb-4 max-w-sm">
+              <p className="text-xs text-slate-300 mb-4 max-w-lg">
                 Sprint across platforms and leap into the correct grammar portals to keep running and build massive combo streaks!
               </p>
 
@@ -1443,7 +1545,7 @@ export function TenseRunner() {
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2 text-left">
                   Select Grammar Training:
                 </label>
-                <div className="grid grid-cols-2 gap-2 text-left">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-left">
                   {(Object.keys(CATEGORY_INFO) as GrammarCategory[]).map((cat) => (
                     <button
                       key={cat}
@@ -1464,29 +1566,51 @@ export function TenseRunner() {
               </div>
 
               {/* Difficulty Speed Selector */}
-              <div className="flex items-center gap-2 mb-5">
-                <Button
-                  size="sm"
-                  variant={difficulty === 'normal' ? 'default' : 'outline'}
-                  className={cn(
-                    'h-8 text-xs font-bold rounded-lg px-4',
-                    difficulty === 'normal' ? 'bg-cyan-600 hover:bg-cyan-500' : 'border-slate-700 text-slate-400'
-                  )}
-                  onClick={() => setDifficulty('normal')}
-                >
-                  Normal Speed
-                </Button>
-                <Button
-                  size="sm"
-                  variant={difficulty === 'turbo' ? 'default' : 'outline'}
-                  className={cn(
-                    'h-8 text-xs font-bold rounded-lg px-4',
-                    difficulty === 'turbo' ? 'bg-amber-600 hover:bg-amber-500' : 'border-slate-700 text-slate-400'
-                  )}
-                  onClick={() => setDifficulty('turbo')}
-                >
-                  <Flame className="w-3.5 h-3.5 mr-1 fill-current" /> Turbo Mode
-                </Button>
+              <div className="w-full mb-4">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2 text-left">
+                  Runner Speed Pace:
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDifficulty('relaxed')}
+                    className={cn(
+                      'p-2 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 text-center',
+                      difficulty === 'relaxed'
+                        ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-md shadow-emerald-500/20'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
+                    )}
+                  >
+                    <span>🌱 Relaxed</span>
+                    <span className="text-[10px] font-normal text-slate-400">Easy Practice</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDifficulty('normal')}
+                    className={cn(
+                      'p-2 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 text-center',
+                      difficulty === 'normal'
+                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-md shadow-cyan-500/20'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
+                    )}
+                  >
+                    <span>⚡ Normal</span>
+                    <span className="text-[10px] font-normal text-slate-400">Balanced Pace</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDifficulty('turbo')}
+                    className={cn(
+                      'p-2 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 text-center',
+                      difficulty === 'turbo'
+                        ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md shadow-amber-500/20'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
+                    )}
+                  >
+                    <span>🔥 Turbo</span>
+                    <span className="text-[10px] font-normal text-slate-400">Fast Reflex</span>
+                  </button>
+                </div>
               </div>
 
               {/* Start Button */}
@@ -1499,7 +1623,7 @@ export function TenseRunner() {
               </Button>
 
               <div className="mt-3 text-[11px] text-slate-400 font-medium">
-                Tip: Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-white">Space</kbd> or <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-white">▲</kbd> to Jump (Double-jump in air!), <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-white">▼</kbd> to Slide.
+                Tip: Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-white">Space</kbd> or <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-white">▲</kbd> to Jump, <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-white">▼</kbd> to Slide.
               </div>
             </motion.div>
           </div>
@@ -1508,8 +1632,39 @@ export function TenseRunner() {
         {/* ─── Pause Overlay ─── */}
         {gameState === 'paused' && (
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 z-30">
-            <h2 className="text-2xl font-black text-white mb-2">GAME PAUSED</h2>
-            <p className="text-xs text-slate-300 mb-5">Take a breather, the runner will wait for you!</p>
+            <h2 className="text-2xl font-black text-white mb-1">GAME PAUSED</h2>
+            <p className="text-xs text-slate-300 mb-4">Take a breather or change speed pace:</p>
+
+            {/* In-pause speed switcher */}
+            <div className="flex items-center gap-2 mb-5">
+              {(['relaxed', 'normal', 'turbo'] as const).map((mode) => (
+                <Button
+                  key={mode}
+                  size="sm"
+                  variant={difficulty === mode ? 'default' : 'outline'}
+                  className={cn(
+                    'h-8 text-xs font-bold rounded-lg px-3 capitalize',
+                    difficulty === mode
+                      ? mode === 'relaxed'
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                        : mode === 'normal'
+                        ? 'bg-cyan-600 hover:bg-cyan-500 text-white'
+                        : 'bg-amber-600 hover:bg-amber-500 text-white'
+                      : 'border-slate-700 text-slate-400'
+                  )}
+                  onClick={() => {
+                    setDifficulty(mode);
+                    const newSpeed = mode === 'relaxed' ? 1.7 : mode === 'normal' ? 2.2 : 3.2;
+                    worldRef.current.scrollSpeed = newSpeed;
+                    worldRef.current.baseSpeed = newSpeed;
+                    worldRef.current.maxSpeed = mode === 'relaxed' ? 1.7 : mode === 'normal' ? 3.0 : 4.2;
+                  }}
+                >
+                  {mode === 'relaxed' ? '🌱 Relaxed' : mode === 'normal' ? '⚡ Normal' : '🔥 Turbo'}
+                </Button>
+              ))}
+            </div>
+
             <div className="flex items-center gap-3">
               <Button
                 size="lg"
@@ -1603,7 +1758,7 @@ export function TenseRunner() {
             <span className="text-xs font-bold text-slate-400 mr-1 hidden md:inline">Quick Tap:</span>
             {(() => {
               const activeOrbs = worldRef.current.orbs.filter(
-                (o) => o.questionId === currentQuestion.id && !o.collected
+                (o) => o.question.id === currentQuestion.id && !o.collected
               );
               const choices =
                 activeOrbs.length >= 2
@@ -1635,8 +1790,24 @@ export function TenseRunner() {
           </div>
         )}
 
-        {/* On-Screen Jump / Slide Touch Buttons for Mobile/Tablet */}
+        {/* On-Screen Jump / Slide Touch Buttons for Mobile/Tablet + Back to Categories */}
         <div className="flex items-center gap-3 w-full sm:w-auto">
+          {gameState === 'playing' && (
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-11 px-3.5 border-slate-700 bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-800 font-bold active:scale-95 rounded-xl text-xs flex items-center gap-1.5 shadow-md"
+              onClick={() => {
+                audioRef.current.stopMusic();
+                setGameState('start');
+              }}
+              title="Return to category selection to play a new game"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hidden sm:inline">Back to Categories</span>
+              <span className="sm:hidden">Categories</span>
+            </Button>
+          )}
           <Button
             size="lg"
             variant="outline"

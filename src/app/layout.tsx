@@ -59,6 +59,33 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${ptSans.variable} ${roboto.variable} ${lato.variable} ${montserrat.variable}`}>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Silence third-party browser extension hydration warnings (e.g. Bitdefender bis_skin_checked)
+              (function() {
+                if (typeof window !== 'undefined') {
+                  const origError = console.error;
+                  console.error = function(...args) {
+                    const msg = typeof args[0] === 'string' ? args[0] : '';
+                    if (msg.includes('bis_skin_checked') || (args[1] && typeof args[1] === 'string' && args[1].includes('bis_skin_checked'))) {
+                      return;
+                    }
+                    origError.apply(console, args);
+                  };
+                  // Also strip any pre-injected bis_skin_checked attributes
+                  const clean = () => {
+                    try {
+                      document.querySelectorAll('[bis_skin_checked]').forEach(el => el.removeAttribute('bis_skin_checked'));
+                    } catch(e) {}
+                  };
+                  clean();
+                  window.addEventListener('DOMContentLoaded', clean, { once: true });
+                }
+              })();
+            `,
+          }}
+        />
         {isLiveAdSense && (
           <script
             async
@@ -69,7 +96,7 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <PlexusBackground />
-        <div id="root">
+        <div id="root" suppressHydrationWarning>
           <FirebaseClientProvider>
               <AuthProviderWrapper>
                   {children}

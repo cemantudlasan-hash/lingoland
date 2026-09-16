@@ -6,7 +6,7 @@ import { DailyLoginModal } from "@/components/layout/daily-login-modal";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="h-screen">
+    <div className="h-screen" suppressHydrationWarning>
         <AppShell>
             {children}
             <DailyLoginModal />
