@@ -19,9 +19,11 @@ const CATEGORIES: Record<string, string[]> = {
     "Sloth", "Hippopotamus", "Rhino", "Lemur", "Meerkat", "Jellyfish", "Stingray", "Seahorse", "Polar Bear", "Elephant",
     "Lion", "Crocodile", "Camel", "Chimpanzee", "Jaguar", "Leopard", "Fox", "Raccoon", "Beaver", "Bat",
     "Hummingbird", "Parrot", "Pelican", "Owl", "Swan", "Hawk", "Woodpecker", "Shark", "Whale", "Turtle",
-    "Lobster", "Crab", "Starfish", "Squid", "Seal", "Frog", "Salamander", "Iguana", "Komodo Dragon",
-    "Butterfly", "Dragonfly", "Honeybee", "Ladybug", "Grasshopper", "Firefly", "Scorpion", "Tarantula", "Antelope", "Bison",
-    "Llama", "Alpaca", "Gazelle", "Hyena", "Wombat", "Armadillo", "Badger", "Pangolin", "Porcupine"
+    "Lobster", "Crab", "Starfish", "Squid", "Seal", "Frog", "Salamander", "Iguana", "Komodo Dragon", "Butterfly",
+    "Dragonfly", "Honeybee", "Ladybug", "Grasshopper", "Firefly", "Scorpion", "Tarantula", "Antelope", "Bison", "Llama",
+    "Alpaca", "Gazelle", "Hyena", "Wombat", "Armadillo", "Badger", "Pangolin", "Porcupine", "Chinchilla", "Capybara",
+    "Snow Leopard", "Golden Retriever", "Toucan", "Macaw", "Crow", "Flamingo", "Ostrich", "Emu", "Gecko", "Manta Ray",
+    "Clownfish", "Barracuda", "Narwhal", "Sea Turtle"
   ],
   "Food & Drinks": [
     "Sushi", "Pizza", "Mango", "Lemonade", "Pancake", "Burrito", "Smoothie", "Waffle", "Avocado", "Popcorn",
@@ -30,7 +32,9 @@ const CATEGORIES: Record<string, string[]> = {
     "Nachos", "Quesadilla", "Spring Rolls", "Shawarma", "Samosa", "Bagel", "Muffin", "Apple Pie", "Cheesecake", "Ice Cream",
     "Pudding", "Tiramisu", "Crepe", "Oatmeal", "Macaroni and Cheese", "Curry", "Steak", "Meatballs", "Fish and Chips", "Chili",
     "Tomato Soup", "Caesar Salad", "Sandwich", "Club Sandwich", "Garlic Bread", "Bruschetta", "Iced Tea", "Hot Chocolate", "Orange Juice", "Espresso",
-    "Cappuccino", "Caramel Macchiato", "Fruit Punch", "Apple Cider", "Green Tea", "Marshmallow", "Cotton Candy", "Gummy Bears", "Chocolate Fondue", "Lollipop"
+    "Cappuccino", "Caramel Macchiato", "Fruit Punch", "Apple Cider", "Green Tea", "Marshmallow", "Cotton Candy", "Gummy Bears", "Chocolate Fondue", "Lollipop",
+    "Bibimbap", "Tom Yum Soup", "Baguette", "Enchilada", "Poutine", "Baklava", "Gelato", "Cannoli", "Empanada", "Hummus",
+    "Kebab", "Paella"
   ],
   Countries: [
     "Brazil", "Iceland", "Egypt", "Japan", "Canada", "Kenya", "Norway", "Thailand", "Mexico", "Portugal",
@@ -39,7 +43,8 @@ const CATEGORIES: Record<string, string[]> = {
     "South Africa", "Sweden", "Denmark", "Finland", "Ireland", "Austria", "Belgium", "Poland", "Czech Republic", "Hungary",
     "Chile", "Colombia", "Peru", "Cuba", "Costa Rica", "Panama", "Saudi Arabia", "United Arab Emirates", "Qatar", "Israel",
     "Malaysia", "Indonesia", "Cambodia", "Nepal", "Maldives", "Fiji", "Madagascar", "Ethiopia", "Ghana", "Nigeria",
-    "Croatia", "Romania", "Ukraine", "Ecuador", "Bolivia", "Uruguay", "Mongolia", "Sri Lanka", "Jordan", "Lebanon"
+    "Croatia", "Romania", "Ukraine", "Ecuador", "Bolivia", "Uruguay", "Mongolia", "Sri Lanka", "Jordan", "Lebanon",
+    "Bhutan", "Monaco", "Luxembourg", "Guatemala", "Honduras", "Bahamas", "Trinidad and Tobago", "Samoa", "Zimbabwe", "Tanzania"
   ],
   "Hollywood Movies": [
     "Titanic", "Inception", "Frozen", "Avengers", "Interstellar", "Clueless", "Grease", "Moana", "Shrek", "Jaws",
@@ -47,7 +52,8 @@ const CATEGORIES: Record<string, string[]> = {
     "The Lion King", "Back to the Future", "Barbie", "Up", "Home Alone", "Ghostbusters", "The Dark Knight", "Forrest Gump", "Pulp Fiction", "Indiana Jones",
     "E.T.", "The Lord of the Rings", "The Hunger Games", "Pirates of the Caribbean", "Aladdin", "Beauty and the Beast", "Cinderella", "Ratatouille", "Monsters Inc", "The Incredibles",
     "Inside Out", "Zootopia", "Tangled", "Despicable Me", "Minions", "Kung Fu Panda", "How to Train Your Dragon", "Madagascar", "Ice Age", "Sing",
-    "Men in Black", "Transformers", "Mission Impossible", "Top Gun", "Skyfall", "Twilight", "The Chronicles of Narnia", "Charlie and the Chocolate Factory", "Night at the Museum", "Jumanji"
+    "Men in Black", "Transformers", "Mission Impossible", "Top Gun", "Skyfall", "Twilight", "The Chronicles of Narnia", "Charlie and the Chocolate Factory", "Night at the Museum", "Jumanji",
+    "The Wizard of Oz", "Oppenheimer", "Dune", "Wonka", "Spider-Verse", "Spirited Away", "WALL-E", "Paddington"
   ],
   "Household Objects": [
     "Blender", "Umbrella", "Pillow", "Toaster", "Scissors", "Curtain", "Dustpan", "Kettle", "Hamper", "Stapler",
@@ -56,7 +62,8 @@ const CATEGORIES: Record<string, string[]> = {
     "Frying Pan", "Cutting Board", "Rolling Pin", "Can Opener", "Whisk", "Measuring Cup", "Sponge", "Broom", "Mop", "Bucket",
     "Bed Sheet", "Mattress", "Wardrobe", "Alarm Clock", "Lamp", "Bookshelf", "Sofa", "Armchair", "Doorbell", "Doormat",
     "Hair Dryer", "Towel", "Soap Dispenser", "Comb", "Nail Clipper", "Tweezers", "Headphones", "Remote Control", "Charger", "Power Strip",
-    "Tape Measure", "Hammer", "Screwdriver", "Flash Drive", "Notepad", "Sticky Notes", "Paperclip", "Envelope", "Calculator", "Luggage"
+    "Tape Measure", "Hammer", "Screwdriver", "Flash Drive", "Notepad", "Sticky Notes", "Paperclip", "Envelope", "Calculator", "Luggage",
+    "Shoe Rack", "Clothes Peg", "Trash Can", "Key Ring", "Air Conditioner", "Ceiling Fan", "Tablecloth", "Curtain Rod"
   ],
   "Jobs & Professions": [
     "Surgeon", "Astronaut", "Architect", "Chef", "Journalist", "Detective", "Pilot", "Pharmacist", "Geologist", "Animator",
@@ -65,14 +72,16 @@ const CATEGORIES: Record<string, string[]> = {
     "Software Engineer", "Graphic Designer", "Civil Engineer", "Biologist", "Chemist", "Astronomer", "Musician", "Actor", "Dancer", "Author",
     "Plumber", "Welder", "Tailor", "Farmer", "Fisherman", "Gardener", "Tour Guide", "Coach", "Lifeguard", "Meteorologist",
     "Real Estate Agent", "Banker", "Accountant", "Lawyer", "Politician", "Diplomat", "Translator", "Fashion Designer", "Florist", "Sommelier",
-    "News Anchor", "Stunt Performer", "Video Game Designer", "Curator", "Sound Engineer", "Roboticist", "Oceanographer", "Paleontologist"
+    "News Anchor", "Stunt Performer", "Video Game Designer", "Curator", "Sound Engineer", "Roboticist", "Oceanographer", "Paleontologist", "Choreographer", "Botanist",
+    "Optometrist", "Physiotherapist", "Air Traffic Controller", "Blacksmith", "Watchmaker", "Deep Sea Diver"
   ],
   "Famous Landmarks": [
     "Colosseum", "Eiffel Tower", "Stonehenge", "Taj Mahal", "Niagara Falls", "Machu Picchu", "Parthenon", "Big Ben", "Pyramids", "Angkor Wat",
     "Golden Gate Bridge", "Mount Everest", "Statue of Liberty", "Great Wall of China", "Sydney Opera House", "Grand Canyon", "Mount Fuji", "Christ the Redeemer", "Leaning Tower of Pisa", "Burj Khalifa",
     "Sagrada Familia", "Louvre Museum", "Times Square", "Empire State Building", "Central Park", "Hollywood Sign", "Alcatraz Island", "Mount Rushmore", "Yellowstone", "Yosemite Falls",
     "Victoria Falls", "Table Mountain", "Petra", "Acropolis", "Neuschwanstein Castle", "Brandenburg Gate", "St. Peter's Basilica", "Vatican City", "Kremlin", "Red Square",
-    "Santorini", "Blue Mosque", "Hagia Sophia", "Tower of London", "Buckingham Palace", "Giant's Causeway", "Loch Ness", "Galapagos Islands", "Amazon Rainforest", "Mount Kilimanjaro"
+    "Santorini", "Blue Mosque", "Hagia Sophia", "Tower of London", "Buckingham Palace", "Giant's Causeway", "Loch Ness", "Galapagos Islands", "Amazon Rainforest", "Mount Kilimanjaro",
+    "Matterhorn", "Forbidden City", "Chichen Itza", "Easter Island Moai", "Panama Canal", "Alhambra", "Mount Rushmore", "Cliffs of Moher"
   ],
   Sports: [
     "Badminton", "Surfing", "Archery", "Fencing", "Gymnastics", "Polo", "Curling", "Bobsled", "Lacrosse", "Squash",
@@ -80,7 +89,8 @@ const CATEGORIES: Record<string, string[]> = {
     "Rock Climbing", "Water Polo", "Karate", "Darts", "Soccer", "Tennis", "Baseball", "American Football", "Golf", "Swimming",
     "Track and Field", "Marathon", "High Jump", "Pole Vault", "Rowing", "Canoeing", "Kayaking", "Sailing", "Scuba Diving", "Snorkeling",
     "Skiing", "Figure Skating", "Speed Skating", "Snowmobile", "Wrestling", "Judo", "Taekwondo", "Kickboxing", "Muay Thai", "Weightlifting",
-    "Cycling", "Triathlon", "BMX", "Horse Racing", "Equestrian", "Handball", "Pickleball", "Softball", "Ultimate Frisbee", "Paintball"
+    "Cycling", "Triathlon", "BMX", "Horse Racing", "Equestrian", "Handball", "Pickleball", "Softball", "Ultimate Frisbee", "Paintball",
+    "Wakeboarding", "Windsurfing", "Biathlon", "Luge", "Kiteboarding", "Roller Derby", "Sumo Wrestling", "Synchronized Swimming"
   ],
   Superheroes: [
     "Batman", "Wolverine", "Black Widow", "Flash", "Thor", "Wonder Woman", "Iron Man", "Deadpool", "Aquaman", "Storm",
@@ -88,14 +98,16 @@ const CATEGORIES: Record<string, string[]> = {
     "Rocket Raccoon", "Star-Lord", "Gamora", "Drax", "Ant-Man", "Wasp", "Captain Marvel", "Scarlet Witch", "Vision", "Falcon",
     "Winter Soldier", "War Machine", "Shang-Chi", "Moon Knight", "Daredevil", "Punisher", "Ghost Rider", "Blade", "Silver Surfer", "Professor X",
     "Magneto", "Mystique", "Cyclops", "Jean Grey", "Rogue", "Gambit", "Beast", "Nightcrawler", "Joker", "Harley Quinn",
-    "Catwoman", "Penguin", "Riddler", "Two-Face", "Bane", "Thanos", "Loki", "Venom", "Green Goblin", "Doc Ock"
+    "Catwoman", "Penguin", "Riddler", "Two-Face", "Bane", "Thanos", "Loki", "Venom", "Green Goblin", "Doc Ock",
+    "Shazam", "Supergirl", "Batgirl", "Nightwing", "Miles Morales", "Doctor Fate", "Starfire", "Raven", "Beast Boy", "Cyborg"
   ],
   "School Subjects": [
     "Algebra", "Biology", "Literature", "Geography", "Chemistry", "Philosophy", "Economics", "Physics", "History", "Music",
     "Art", "Geometry", "Astronomy", "Drama", "Psychology", "Sociology", "Computer Science", "Languages", "Calculus", "Anthropology",
     "Statistics", "Trigonometry", "Creative Writing", "Journalism", "World History", "Civics", "Government", "Environmental Science", "Earth Science", "Microbiology",
     "Genetics", "Botany", "Zoology", "Anatomy", "Physiology", "Physical Education", "Health Class", "Debate", "Public Speaking", "Media Studies",
-    "Photography", "Sculpture", "Graphic Arts", "Ceramics", "Choir", "Orchestra", "Band", "Dance", "Culinary Arts", "Woodworking"
+    "Photography", "Sculpture", "Graphic Arts", "Ceramics", "Choir", "Orchestra", "Band", "Dance", "Culinary Arts", "Woodworking",
+    "Marine Biology", "Biochemistry", "Forensics", "Robotics", "Archeology", "Creative Coding", "Ethics", "Linguistics"
   ],
   "Science & Nature": [
     "Volcano", "Tsunami", "Galaxy", "Black Hole", "Telescope", "Microscope", "Fossil", "DNA", "Eclipse", "Atmosphere",
@@ -103,42 +115,149 @@ const CATEGORIES: Record<string, string[]> = {
     "Comet", "Solar System", "Milky Way", "Nebula", "Satellite", "Space Station", "Earthquake", "Hurricane", "Tornado", "Geyser",
     "Oasis", "Desert", "Canyon", "Waterfall", "Cave", "Stalactite", "Magma", "Lava", "Photosynthesis", "Chlorophyll",
     "Ecosystem", "Food Chain", "Evolution", "Bacteria", "Virus", "Cell Nucleus", "Chromosome", "Atom", "Molecule", "Electron",
-    "Proton", "Neutron", "Quantum", "Magnetism", "Electricity", "Solar Energy", "Wind Turbine", "Greenhouse Effect", "Ozone Layer", "Acid Rain"
+    "Proton", "Neutron", "Quantum", "Magnetism", "Electricity", "Solar Energy", "Wind Turbine", "Greenhouse Effect", "Ozone Layer", "Acid Rain",
+    "Plate Tectonics", "Petrified Forest", "Geode", "Fata Morgana", "Bioluminescence", "Quicksand", "Hot Spring", "Continental Drift"
   ],
   "Music & Instruments": [
     "Violin", "Saxophone", "Drum Set", "Electric Guitar", "Ukulele", "Accordion", "Trumpet", "Clarinet", "Harp", "Harmonica",
     "Cello", "Flute", "Keyboard", "Microphone", "Tambourine", "Trombone", "Grand Piano", "Bass Guitar", "Acoustic Guitar", "Banjo",
     "Mandolin", "Synthesizer", "Bongos", "Congas", "Xylophone", "Marimba", "Glockenspiel", "Triangle", "Cymbals", "Snare Drum",
     "Bagpipes", "Didgeridoo", "Oboe", "Bassoon", "Piccolo", "French Horn", "Tuba", "Euphonium", "Lute", "Sitar",
-    "Composer", "Conductor", "Symphony", "Orchestra", "Melody", "Harmony", "Rhythm", "Tempo", "Metronome", "Headphones"
+    "Composer", "Conductor", "Symphony", "Orchestra", "Melody", "Harmony", "Rhythm", "Tempo", "Metronome", "Headphones",
+    "Theremin", "Kalimba", "Castanets", "Ocarina", "Tubular Bells", "Djembe", "Steel Drum", "Pan Flute", "Harpsichord", "Tuning Fork"
   ],
   "Vehicles & Transport": [
     "Helicopter", "Submarine", "Hot Air Balloon", "Rocket", "Hovercraft", "Motorcycle", "Steam Train", "Bullet Train", "Bulldozer", "Ambulance",
     "Fire Truck", "Police Car", "Bicycle", "Scooter", "Skateboard", "Rollerblades", "Cruise Ship", "Cargo Ship", "Sailboat", "Yacht",
     "Jet Ski", "Ferry", "Kayak", "Canoe", "Tractor", "Excavator", "Dump Truck", "Forklift", "Garbage Truck", "Cement Mixer",
     "School Bus", "Double Decker Bus", "Limousine", "Taxi", "Golf Cart", "Snowmobile", "Go-Kart", "Monster Truck", "Convertible", "Spaceship",
-    "Space Shuttle", "Rover", "Glider", "Biplane", "Zeppelin", "Cable Car", "Monorail", "Subway Train", "Gondola", "Tugboat"
+    "Space Shuttle", "Rover", "Glider", "Biplane", "Zeppelin", "Cable Car", "Monorail", "Subway Train", "Gondola", "Tugboat",
+    "Hoverboard", "Segway", "Steamroller", "Unicycle", "Airship", "Paddleboat", "Rickshaw", "Sidecar Motorcycle", "Hydrofoil", "Bobsleigh"
   ],
   "Fruits & Vegetables": [
     "Watermelon", "Pineapple", "Strawberry", "Blueberry", "Raspberry", "Blackberry", "Kiwi", "Pomegranate", "Papaya", "Dragonfruit",
     "Passion Fruit", "Cantaloupe", "Honeydew", "Peach", "Plum", "Apricot", "Nectarine", "Cherry", "Grapefruit", "Tangerine",
     "Clementine", "Coconut", "Guava", "Fig", "Date", "Lychee", "Starfruit", "Broccoli", "Cauliflower", "Asparagus",
     "Artichoke", "Zucchini", "Eggplant", "Bell Pepper", "Jalapeno", "Spinach", "Kale", "Lettuce", "Cabbage", "Brussels Sprouts",
-    "Celery", "Cucumber", "Carrot", "Radish", "Beetroot", "Turnip", "Sweet Potato", "Pumpkin", "Butternut Squash", "Corn on the Cob"
+    "Celery", "Cucumber", "Carrot", "Radish", "Beetroot", "Turnip", "Sweet Potato", "Pumpkin", "Butternut Squash", "Corn on the Cob",
+    "Avocado", "Durian", "Jackfruit", "Mangosteen", "Rambutan", "Plantain", "Bok Choy", "Okra", "Shiitake Mushroom", "Lemongrass"
   ],
   "Fairy Tales & Fantasy": [
     "Dragon", "Unicorn", "Phoenix", "Mermaid", "Centaur", "Pegasus", "Griffin", "Wizard", "Witch", "Fairy Godmother",
     "Magic Wand", "Crystal Ball", "Flying Carpet", "Magic Lamp", "Genie", "Castle", "Dungeon", "Moat", "Drawbridge", "Treasure Chest",
     "Enchanted Forest", "Potion", "Spellbook", "Cauldron", "Knight in Armor", "Excalibur", "Shield", "Crown", "Throne", "Mirror Mirror",
     "Glass Slipper", "Golden Goose", "Magic Beans", "Spinning Wheel", "Poison Apple", "Gingerbread Man", "Seven Dwarfs", "Big Bad Wolf", "Three Little Pigs", "Goldilocks",
-    "Rapunzel's Tower", "Sleeping Beauty", "Beast's Rose", "Jack and the Beanstalk", "Cinderella's Carriage", "Robin Hood", "King Arthur", "Merlin", "Gnome", "Goblin"
+    "Rapunzel's Tower", "Sleeping Beauty", "Beast's Rose", "Jack and the Beanstalk", "Cinderella's Carriage", "Robin Hood", "King Arthur", "Merlin", "Gnome", "Goblin",
+    "Sorcerer", "Pixie Dust", "Banshee", "Valkyrie", "Leprechaun", "Elixir of Life", "Flying Broomstick", "Invisibility Cloak", "Wishing Well", "Stone Golem"
   ],
   "Hobbies & Games": [
     "Origami", "Pottery", "Knitting", "Painting", "Calligraphy", "Bird Watching", "Gardening", "Stargazing", "Baking", "Woodworking",
     "Chess", "Checkers", "Scrabble", "Monopoly", "Jigsaw Puzzle", "Crossword", "Sudoku", "Rubik's Cube", "Lego Building", "Video Games",
     "Board Games", "Card Tricks", "Magic Tricks", "Juggling", "Kite Flying", "Camping", "Hiking", "Fishing", "Photography", "Scrapbooking",
     "Candle Making", "Soap Making", "Jewelry Making", "Model Airplane", "Drone Flying", "Collect Stamps", "Coin Collecting", "Escape Room", "Laser Tag", "Bowling",
-    "Billiards", "Foosball", "Air Hockey", "Ping Pong", "Karaoke", "Cosplay", "Geocaching", "Target Shooting", "Roller Skating", "Ice Sculpting"
+    "Billiards", "Foosball", "Air Hockey", "Ping Pong", "Karaoke", "Cosplay", "Geocaching", "Target Shooting", "Roller Skating", "Ice Sculpting",
+    "Archery Tag", "Telescope Astronomy", "Bonsai Trimming", "Quilting", "Model Railroading", "Flower Arranging", "Rock Tumbling", "Metal Detecting"
+  ],
+  "Clothing & Fashion": [
+    "Tuxedo", "Kimono", "Fedora", "Hoodie", "Scarf", "Leather Jacket", "High Heels", "Overalls", "Poncho", "Beret",
+    "Trench Coat", "Bow Tie", "Suspenders", "Sunglasses", "Beanie", "Sombrero", "Moccasins", "Cardigan", "Turtleneck", "Swimsuit",
+    "Mittens", "Raincoat", "Pajamas", "Vest", "Cufflinks", "Bathrobe", "Ballgown", "Bandana", "Leggings", "Flip Flops",
+    "Earmuffs", "Silk Robe", "Sneakers", "Combat Boots", "Apron", "Blazer", "Baseball Cap", "Kilt", "Sari", "Sarong",
+    "Caftan", "Parka", "Windbreaker", "Anorak", "Leotard", "Visor", "Espadrilles", "Brogues", "Loafers", "Clogs",
+    "Stiletto", "Top Hat", "Veil", "Petticoat", "Corset", "Shawl", "Pashmina", "Turban", "Hanbok", "Cheongsam",
+    "Dirndl", "Lederhosen", "Cape", "Cloak", "Ascot", "Waistcoat", "Polo Shirt", "Cargo Pants", "Denim Jacket", "Bucket Hat"
+  ],
+  "Weather & Seasons": [
+    "Blizzard", "Rainbow", "Hailstorm", "Tornado", "Heatwave", "Monsoon", "Avalanche", "Fog", "Hurricane", "Solstice",
+    "Thunderstorm", "Frost", "Dew", "Drought", "Breeze", "Typhoon", "Aurora Borealis", "Eclipse", "Humidity", "Sleet",
+    "Gale", "Downpour", "Snow Flurry", "Sandstorm", "Overcast", "Cloudburst", "Equinox", "Indian Summer", "Cold Front", "Warm Front",
+    "Drizzle", "Mist", "Smog", "Sunbeam", "Lightning Bolt", "Cyclone", "Dust Devil", "Whiteout", "Black Ice", "Sunshower",
+    "Permafrost", "Whirlwind", "Squall", "Cumulonimbus", "Cirrus Cloud", "Microburst", "Heat Index", "Wind Chill", "Polar Vortex", "Twilight",
+    "Sunrise", "Sunset", "Sunshine", "Waterspout", "Freezing Rain", "Haze", "Spring Thaw", "Autumn Foliage", "Winter Solstice", "Summer Solstice"
+  ],
+  "Human Body & Health": [
+    "Stethoscope", "Bandage", "Skeleton", "Heartbeat", "Crutches", "Brain", "Muscle", "Thermometer", "Reflex", "Immunity",
+    "Spine", "Ribcage", "Skull", "Microscope", "Pulse", "Vitamin", "Retina", "Eardrum", "Joint", "Tendon",
+    "Ligament", "Stomach", "Liver", "Kidney", "Artery", "Vein", "Capillary", "Platelet", "Hemoglobin", "Antibody",
+    "Vaccine", "Antibiotic", "Prescription", "First Aid Kit", "Syringe", "Plaster Cast", "Wheelchair", "Splint", "Ointment", "Inhaler",
+    "Vocal Cords", "Collarbone", "Kneecap", "Bicep", "Tricep", "Abdominals", "Hamstring", "Cartilage", "Neuron", "Sinuses",
+    "Tonsils", "Appendix", "Spleen", "Bone Marrow", "Iris", "Cornea", "Taste Buds", "Dental Braces", "Blood Pressure Gauge", "X-Ray Scan"
+  ],
+  "Space & Astronomy": [
+    "Asteroid", "Constellation", "Supernova", "Meteor Shower", "Black Hole", "Milky Way", "Telescope", "Spacesuit", "Saturn Rings", "Lunar Eclipse",
+    "Solar Flare", "Nebula", "Space Station", "Comet", "Orbit", "Red Giant", "White Dwarf", "Pulsar", "Quasar", "Dark Matter",
+    "Andromeda Galaxy", "Mars Rover", "Lunar Module", "Spacewalk", "Space Shuttle", "Hubble Telescope", "James Webb", "Light Year", "Gravity Well", "Exoplanet",
+    "Event Horizon", "Spacetime", "Wormhole", "Deep Space", "Zenith", "Planetary Ring", "Cosmic Dust", "Solar Wind", "Kuiper Belt", "Oort Cloud",
+    "Meteorite", "Cosmic Ray", "Big Bang", "Space Elevator", "Radio Telescope", "Interstellar Probe", "Moon Crater", "Solar Prominence", "Zero Gravity", "Escape Velocity"
+  ],
+  "Ocean & Sea Life": [
+    "Anglerfish", "Narwhal", "Barracuda", "Seahorse", "Hammerhead Shark", "Manta Ray", "Barnacle", "Giant Squid", "Blue Whale", "Coral Reef",
+    "Sea Turtle", "Clownfish", "Moray Eel", "Pufferfish", "Swordfish", "Great White Shark", "Beluga Whale", "Humpback Whale", "Orca", "Sea Otter",
+    "Walrus", "Manatee", "Dugong", "Electric Eel", "Flying Fish", "Lionfish", "Stonefish", "Jellyfish", "Portuguese Man o War", "Nautilus",
+    "Horseshoe Crab", "Hermit Crab", "King Crab", "Lobster", "Sea Anemone", "Starfish", "Sea Urchin", "Sea Cucumber", "Krill", "Plankton",
+    "Pelican", "Albatross", "Stingray", "Whale Shark", "Coelacanth", "Deep Sea Trench", "Bioluminescence", "Sunfish", "Giant Clam", "Mantis Shrimp"
+  ],
+  "Action Verbs & Charades": [
+    "Juggle", "Whisper", "Somersault", "Slither", "Tightrope Walk", "Gallop", "Meditate", "Moonwalk", "Hula Hoop", "Yawn",
+    "Tiptoe", "Freeze Dance", "Mime", "Balance", "Backflip", "Cartwheel", "Shuffle", "Karate Chop", "Shadowbox", "High Five",
+    "Crawl", "March", "Skateboard", "Leapfrog", "Skip Rope", "Limbo", "Arm Wrestle", "Air Guitar", "Blow Bubbles", "Wave Goodbye",
+    "Shiver", "Laugh Out Loud", "Stumble", "Wink", "Whistle", "Snap Fingers", "Pirouette", "Scuba Dive", "Row a Boat", "Ride a Horse",
+    "Fly a Kite", "Climb a Ladder", "Plant a Seed", "Play Trumpet", "Paint a Portrait", "Peel a Banana", "Sneeze", "Pretend to Sleep", "Conduct Orchestra", "Walk the Dog"
+  ],
+  "Inventions & Technology": [
+    "Smartphone", "Printing Press", "Lightbulb", "Internet", "Telescope", "Compass", "Artificial Intelligence", "Steam Engine", "Microchip", "Wheel",
+    "Battery", "Electric Motor", "Drone", "3D Printer", "Fiber Optics", "Solar Panel", "Virtual Reality", "Hovercraft", "Transistor", "Radio",
+    "Radar", "Sonar", "Laser", "Nuclear Reactor", "Jet Engine", "Windmill", "Submarine", "GPS Navigation", "Barcode Scanner", "Touchscreen",
+    "Smartwatch", "Quantum Computer", "Blockchain", "Self-Driving Car", "Bluetooth", "Wi-Fi Router", "Pacemaker", "Bionic Arm", "Steamboat", "Telegraph",
+    "Telephone", "Camera", "Gramophone", "Automobile", "Aeroplane", "Bicycle", "Microscope", "Anesthesia", "X-Ray Machine", "Particle Accelerator"
+  ],
+  "Mythology & Legends": [
+    "Minotaur", "Zeus", "Medusa", "Thor Hammer", "Kraken", "Loch Ness Monster", "Sphinx", "Poseidon", "Achilles Heel", "Valkyrie",
+    "Cyclops", "Cerberus", "Pegasus", "Centaur", "Sirens", "Anubis", "Ra Sun God", "Odin", "Hercules", "Pandora Box",
+    "Trojan Horse", "Midas Touch", "Chimera", "Hydra", "Phoenix", "Griffin", "Basilisk", "Gargoyle", "Excalibur", "King Arthur",
+    "Merlin", "Banshee", "Leprechaun", "Bigfoot", "Yeti", "Wendigo", "Thunderbird", "Valhalla", "Mount Olympus", "Underworld",
+    "River Styx", "Golden Fleece", "Icarus Wings", "Cupid", "Athena", "Ares", "Hades", "Anubis Scale", "Fenrir Wolf", "Pegasus Wings"
+  ],
+  "Buildings & Architecture": [
+    "Skyscraper", "Lighthouse", "Windmill", "Igloo", "Pagoda", "Amphitheater", "Cathedral", "Treehouse", "Castle", "Fortress",
+    "Suspension Bridge", "Aqueduct", "Pyramid", "Colosseum", "Taj Mahal", "Parthenon", "Clock Tower", "Obelisk", "Palace", "Mansion",
+    "Cottage", "Log Cabin", "Bungalow", "Chalet", "Monastery", "Mosque", "Synagogue", "Temple", "Shrine", "Stadium",
+    "Arena", "Opera House", "Museum", "Library", "Observatory", "Citadel", "Watchtower", "Moat", "Drawbridge", "Wind Turbine",
+    "Red Barn", "Grain Silo", "Greenhouse", "Geodesic Dome", "Yurt", "Teepee", "Houseboat", "Bell Tower", "Arc de Triomphe", "Belltower"
+  ],
+  "Kitchen & Cooking": [
+    "Whisk", "Rolling Pin", "Apron", "Spatula", "Blender", "Colander", "Cutting Board", "Ladle", "Oven Mitt", "Cheese Grater",
+    "Vegetable Peeler", "Garlic Press", "Meat Thermometer", "Corkscrew", "Can Opener", "Measuring Cup", "Flour Sifter", "Kitchen Tongs", "Wok Pan", "Dutch Oven",
+    "Cast Iron Skillet", "Casserole Dish", "Baking Sheet", "Muffin Tin", "Toaster Oven", "Pressure Cooker", "Slow Cooker", "Air Fryer", "Stand Mixer", "Food Processor",
+    "Coffee Grinder", "Tea Infuser", "Salad Spinner", "Chopsticks", "Carving Knife", "Chef Knife", "Bread Knife", "Meat Cleaver", "Butter Knife", "Fondue Pot",
+    "Mortar and Pestle", "Pepper Mill", "Saucepan", "Stockpot", "Steamer Basket", "Basting Brush", "Pastry Bag", "Cookie Cutter", "Kitchen Timer", "Measuring Spoons"
+  ],
+  "Festivals & Celebrations": [
+    "Fireworks", "Birthday Cake", "Halloween", "Thanksgiving", "Carnivale", "Confetti", "Pinata", "Masquerade", "Lantern Festival", "New Year Countdown",
+    "Valentine Heart", "Christmas Tree", "Easter Egg", "Menorah", "Dreidel", "Dragon Boat", "Dia de los Muertos", "Mardi Gras", "Graduation Cap", "Wedding Bouquet",
+    "Parade Float", "Balloon Arch", "Party Popper", "Sparkler", "Champagne Toast", "Costume Party", "Bonfire", "Harvest Feast", "Ribbon Cutting", "Trophy Ceremony",
+    "Santa Claus", "Cupid Arrow", "Jack o Lantern", "Trick or Treat", "Hanukkah", "Diwali Lamp", "Holi Colors", "Mooncake", "Shamrock", "Groundhog Day",
+    "Cherry Blossom Festival", "Oktoberfest", "Prom Night", "Baby Shower", "Housewarming", "Barbecue Party", "Festival Tent", "Laser Light Show", "Ferris Wheel", "Cotton Candy Stand"
+  ],
+  "Emotions & Expressions": [
+    "Ecstatic", "Nostalgic", "Grumpy", "Anxious", "Terrified", "Bewildered", "Hopeful", "Frustrated", "Empathetic", "Melancholy",
+    "Furious", "Surprised", "Confused", "Jealous", "Relieved", "Embarrassed", "Proud", "Overjoyed", "Suspicious", "Grateful",
+    "Curious", "Determined", "Cheerful", "Amused", "Exhausted", "Shocked", "Thrilled", "Astonished", "Nervous", "Puzzled",
+    "Inspired", "Affectionate", "Restless", "Contented", "Bashful", "Gloomy", "Enthusiastic", "Compassionate", "Homesick", "Serene",
+    "Panicked", "Sheepish", "Hyped", "Inquisitive", "Heartbroken", "Flabbergasted", "Jubilant", "Hesitant", "Skeptical", "Radiant"
+  ],
+  "Wild West & Adventure": [
+    "Cowboy Hat", "Horseshoe", "Lasso", "Sheriff Badge", "Saloon", "Stagecoach", "Gold Nugget", "Campfire", "Horse Saddle", "Spurs",
+    "Covered Wagon", "Bandana", "Wanted Poster", "Tomahawk", "Water Canteen", "Saguaro Cactus", "Desert Canyon", "Tumbleweed", "Gold Mine", "Prospector",
+    "Locomotive", "Gunpowder", "Rodeo", "Frontier", "Leather Holster", "Silver Dollar", "Dynamite Stick", "Bull Skull", "Telegraph Wire", "Cowboy Boots",
+    "Ranch House", "Prairie Dog", "Bunkhouse", "Cattle Drive", "Leather Whip", "Chuckwagon", "Ghost Town", "Blacksmith Forge", "Dusty Trail", "Outlaw"
+  ],
+  "School & Stationery": [
+    "Backpack", "Pencil Sharpener", "Highlighter", "Sticky Notes", "Paperclip", "Rubber Eraser", "Wooden Ruler", "Protractor", "Drawing Compass", "Glue Stick",
+    "Scissors", "Spiral Notebook", "Three Ring Binder", "Index Cards", "Whiteboard", "Dry Erase Marker", "Chalk Piece", "Desktop Stapler", "Hole Puncher", "Scientific Calculator",
+    "World Globe", "Flashcards", "Pencil Case", "Wax Crayons", "Colored Pencils", "Watercolor Paint", "Paintbrush", "Bookmark", "Clipboard", "Desk Lamp",
+    "Hall Pass", "Report Card", "School Lunchbox", "Thermos Flask", "Gym Locker", "Microscope", "Glass Test Tube", "Dictionary", "Thesaurus", "World Atlas",
+    "Graduation Gown", "School Bus", "Blackboard", "Cork Bulletin Board", "Locker Combination", "Diploma Certificate", "Permanent Marker", "Correction Tape", "Mechanical Pencil", "Graph Paper"
   ]
 };
 
@@ -252,12 +371,27 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
-  // Cleanup interval on unmount
+  // Dedicated timer interval during playing phase
   React.useEffect(() => {
+    if (phase !== "playing") {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
+    }
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     };
-  }, []);
+  }, [phase]);
 
   const playSfx = React.useCallback((type: "correct" | "skip" | "timeout" | "win") => {
     if (soundEnabled) {
@@ -265,47 +399,12 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
     }
   }, [soundEnabled]);
 
-  // Helper to pick next word from category without repeating
-  const getNextWord = React.useCallback((categoryName: string, currentUsed: string[]) => {
-    const wordList = CATEGORIES[categoryName] || CATEGORIES.Animals;
-    const available = wordList.filter((w) => !currentUsed.includes(w.toLowerCase()));
-    if (available.length === 0) {
-      // If all words used, reset pool
-      const pick = wordList[Math.floor(Math.random() * wordList.length)];
-      return { word: pick, nextUsed: [pick.toLowerCase()] };
-    }
-    const pick = available[Math.floor(Math.random() * available.length)];
-    return { word: pick, nextUsed: [...currentUsed, pick.toLowerCase()] };
-  }, []);
-
-  // START ACTIVE TEAM'S TURN
-  const startTurn = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-
-    const firstWordData = getNextWord(selectedCategory, usedWords);
-    setSecretWord(firstWordData.word);
-    setUsedWords(firstWordData.nextUsed);
-    setTurnGuessedCount(0);
-    setLastGuessedWord(null);
-    setWordFlash(null);
-    setTimeLeft(timerDuration);
-    setPhase("playing");
-
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          handleTimeExpired();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
   // TIME RUNS OUT
   const handleTimeExpired = React.useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     playSfx("timeout");
 
     setTurnsFinished((prevTurns) => {
@@ -325,6 +424,43 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
       return nextTurns;
     });
   }, [roundsTotal, playSfx]);
+
+  // Trigger expiration when timeLeft hits 0 during active play
+  React.useEffect(() => {
+    if (phase === "playing" && timeLeft === 0) {
+      handleTimeExpired();
+    }
+  }, [phase, timeLeft, handleTimeExpired]);
+
+  // Helper to pick next word from category without repeating
+  const getNextWord = React.useCallback((categoryName: string, currentUsed: string[]) => {
+    const wordList = CATEGORIES[categoryName] || CATEGORIES.Animals;
+    const available = wordList.filter((w) => !currentUsed.includes(w.toLowerCase()));
+    if (available.length === 0) {
+      // If all words used, reset pool
+      const pick = wordList[Math.floor(Math.random() * wordList.length)];
+      return { word: pick, nextUsed: [pick.toLowerCase()] };
+    }
+    const pick = available[Math.floor(Math.random() * available.length)];
+    return { word: pick, nextUsed: [...currentUsed, pick.toLowerCase()] };
+  }, []);
+
+  // START ACTIVE TEAM'S TURN
+  const startTurn = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    const firstWordData = getNextWord(selectedCategory, usedWords);
+    setSecretWord(firstWordData.word);
+    setUsedWords(firstWordData.nextUsed);
+    setTurnGuessedCount(0);
+    setLastGuessedWord(null);
+    setWordFlash(null);
+    setTimeLeft(timerDuration);
+    setPhase("playing");
+  };
 
   // CORRECT GUESS (+1 point, automatically load next word from same category, timer keeps running)
   const handleCorrect = () => {
@@ -362,7 +498,7 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
 
   // END TURN EARLY (manual button)
   const handleEndTurnEarly = () => {
-    handleTimeExpired();
+    setTimeLeft(0);
   };
 
   // PROCEED TO NEXT TEAM'S TURN (from turn_over screen)
@@ -377,12 +513,16 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
     }
 
     setSecretWord("");
+    setTimeLeft(timerDuration);
     setPhase("setup");
   };
 
   // REMATCH (Keep team names, reset scores, start at round 1)
   const handleRematch = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setTeams((prev) => prev.map((t) => ({ ...t, score: 0 })));
     setActiveTeam(0);
     setCurrentRound(1);
@@ -396,7 +536,10 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
 
   // FULL RESET (reset everything to defaults)
   const fullReset = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setTeams([
       { name: "Team A", score: 0 },
       { name: "Team B", score: 0 }
@@ -834,7 +977,11 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
                     max={180}
                     step={5}
                     value={timerDuration}
-                    onChange={(e) => setTimerDuration(parseInt(e.target.value))}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      setTimerDuration(val);
+                      setTimeLeft(val);
+                    }}
                     className="flex-1 accent-primary cursor-pointer"
                   />
                   <span className="text-xs text-muted-foreground">180s</span>
@@ -843,11 +990,16 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
 
               {/* Rounds Selector */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Rounds per Team
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+                  <span>Rounds per Team</span>
+                  {turnsFinished > 0 && (
+                    <span className="text-xs font-normal text-muted-foreground">
+                      (Turn {turnsFinished + 1} of {roundsTotal * 2})
+                    </span>
+                  )}
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[1, 2, 3].map((r) => (
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[1, 2, 3, 5].map((r) => (
                     <button
                       key={r}
                       onClick={() => setRoundsTotal(r)}
@@ -858,7 +1010,7 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
                           : "bg-muted/40 text-muted-foreground border-border/30 hover:border-primary/50"
                       )}
                     >
-                      {r} {r === 1 ? "Round" : "Rounds"}
+                      {r} {r === 1 ? "Round" : "Rds"}
                     </button>
                   ))}
                 </div>
@@ -897,14 +1049,14 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
                   ))}
                   <button
                     onClick={() => setShowMoreCategories((p) => !p)}
-                    className="px-3 py-1.5 rounded-full text-xs font-bold bg-muted/40 text-muted-foreground border border-border/30 hover:border-primary/50"
+                    className="px-3 py-1.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-all"
                   >
-                    {showMoreCategories ? "Less" : "More Categories..."}
+                    {showMoreCategories ? "▲ Show Less" : `▼ All ${Object.keys(CATEGORIES).length} Categories...`}
                   </button>
                 </div>
 
                 {showMoreCategories && (
-                  <div className="flex flex-wrap gap-1.5 pt-1">
+                  <div className="flex flex-wrap gap-1.5 pt-2 max-h-48 sm:max-h-60 overflow-y-auto pr-1 border-t border-border/20 mt-2">
                     {MORE_CATS.map((cat) => (
                       <button
                         key={cat}
