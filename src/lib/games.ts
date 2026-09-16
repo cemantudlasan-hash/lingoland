@@ -59,6 +59,15 @@ import {
 
 export const allGames: Game[] = [
   {
+    title: "Run & Jump: Tense Runner",
+    slug: "tense-runner",
+    description: "Endless 2D platform runner! Sprint across platforms and leap through the correct tense portals to master irregular verbs, plurals, and comparatives.",
+    level: "beginner",
+    focus: "grammar",
+    subject: "english",
+    icon: Zap,
+  },
+  {
     title: "Arithmetic Ace",
     slug: "arithmetic-ace",
     description: "Solve rapid-fire mental math problems to climb the global leaderboard.",

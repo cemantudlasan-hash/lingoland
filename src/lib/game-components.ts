@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 
 export const gameComponentMap = {
+  "tense-runner": dynamic(() => import("@/components/games/tense-runner").then((mod) => mod.TenseRunner), { ssr: false }),
   "arithmetic-ace": dynamic(() => import("@/components/games/arithmetic-ace").then((mod) => mod.ArithmeticAce)),
   "fraction-fusion": dynamic(() => import("@/components/games/fraction-fusion").then((mod) => mod.FractionFusion)),
   "math-mission-situations": dynamic(() =>
