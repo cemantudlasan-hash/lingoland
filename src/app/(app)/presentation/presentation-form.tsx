@@ -231,11 +231,29 @@ const getEmojiFallback = (text: string): string | null => {
   return fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)];
 };
 
+const ACTIVE_PRESENTATION_STORAGE_KEY = 'lingoland_active_presentation_v1';
+
+interface ActivePresentationSession {
+  presentation: GeneratePresentationOutput;
+  editableTitle: string;
+  editableSlides: { title: string; content: string[] }[];
+  slidePhotos: { [key: number]: string };
+  theme: string;
+  fontFamily: string;
+  fontSize: typeof fontSizes[0];
+  align: 'left' | 'center';
+  activeDbId: string | null;
+  coveredTexts?: { [slideIndex: number]: string[] };
+  revealedTexts?: { [slideIndex: number]: string[] };
+  savedAt: string;
+}
+
 export function PresentationForm() {
   // Authentication & DB
   const { user, isGuest, isLoading: isAuthLoading } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const isRestoredRef = React.useRef(false);
 
   // Outlines States
   const [presentation, setPresentation] = React.useState<GeneratePresentationOutput | null>(null);
@@ -626,6 +644,9 @@ export function PresentationForm() {
       await setDoc(userDocRef, { savedPresentations: updatedPresentations }, { merge: true });
 
       if (activeDbId === presId) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(ACTIVE_PRESENTATION_STORAGE_KEY);
+        }
         setPresentation(null);
         setActiveDbId(null);
         setIsEditMode(false);
@@ -724,6 +745,69 @@ export function PresentationForm() {
       return prevCounts;
     });
   }, [presentation, api]);
+
+  // Restore saved presentation from localStorage on initial page mount/refresh/reconnect
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem(ACTIVE_PRESENTATION_STORAGE_KEY);
+      if (raw) {
+        const data: ActivePresentationSession = JSON.parse(raw);
+        if (data && data.presentation && Array.isArray(data.presentation.slides) && data.presentation.slides.length > 0) {
+          setPresentation(data.presentation);
+          setEditableTitle(data.editableTitle || data.presentation.title || '');
+          setEditableSlides(data.editableSlides || data.presentation.slides || []);
+          if (data.slidePhotos) setSlidePhotos(data.slidePhotos);
+          if (data.theme) setTheme(data.theme);
+          if (data.fontFamily) setFontFamily(data.fontFamily);
+          if (data.fontSize) setFontSize(data.fontSize);
+          if (data.align) setAlign(data.align);
+          if (data.activeDbId) setActiveDbId(data.activeDbId);
+          if (data.coveredTexts) setCoveredTexts(data.coveredTexts);
+          if (data.revealedTexts) setRevealedTexts(data.revealedTexts);
+          
+          setupWordAnimation(data.editableSlides || data.presentation.slides);
+          
+          toast({
+            title: "Presentation Restored 🔄",
+            description: `Loaded "${data.editableTitle || data.presentation.title}".`,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to restore presentation session from localStorage", err);
+    } finally {
+      isRestoredRef.current = true;
+    }
+  }, [setupWordAnimation, toast]);
+
+  // Persist presentation changes to localStorage whenever presentation state changes
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!isRestoredRef.current) return;
+
+    if (presentation) {
+      try {
+        const session: ActivePresentationSession = {
+          presentation,
+          editableTitle: editableTitle || presentation.title,
+          editableSlides: editableSlides.length > 0 ? editableSlides : presentation.slides,
+          slidePhotos,
+          theme,
+          fontFamily,
+          fontSize,
+          align,
+          activeDbId,
+          coveredTexts,
+          revealedTexts,
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(ACTIVE_PRESENTATION_STORAGE_KEY, JSON.stringify(session));
+      } catch (e) {
+        console.warn("Could not save presentation to localStorage", e);
+      }
+    }
+  }, [presentation, editableTitle, editableSlides, slidePhotos, theme, fontFamily, fontSize, align, activeDbId, coveredTexts, revealedTexts]);
 
   // Fullscreen listeners
   React.useEffect(() => {
@@ -1149,11 +1233,18 @@ export function PresentationForm() {
       return;
     }
 
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(ACTIVE_PRESENTATION_STORAGE_KEY);
+    }
     setIsLoading(true);
     setPresentation(null);
     setActiveDbId(null);
     setIsEditMode(false);
     setSlidePhotos({});
+    setBrokenSlideImages({});
+    setRegeneratingSlide({});
+    setCoveredTexts({});
+    setRevealedTexts({});
     
     try {
       const result = await generatePresentation({
@@ -1489,13 +1580,40 @@ export function PresentationForm() {
   };
 
   const handleCreateNew = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(ACTIVE_PRESENTATION_STORAGE_KEY);
+    }
     setPresentation(null);
     setActiveDbId(null);
     setIsEditMode(false);
     setUploadedFile(null);
     setUploadedText(null);
     setSlidePhotos({});
+    setBrokenSlideImages({});
+    setRegeneratingSlide({});
+    setCoveredTexts({});
+    setRevealedTexts({});
     form.reset();
+  };
+
+  const handleClosePresentation = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(ACTIVE_PRESENTATION_STORAGE_KEY);
+    }
+    setPresentation(null);
+    setActiveDbId(null);
+    setIsEditMode(false);
+    setUploadedFile(null);
+    setUploadedText(null);
+    setSlidePhotos({});
+    setBrokenSlideImages({});
+    setRegeneratingSlide({});
+    setCoveredTexts({});
+    setRevealedTexts({});
+    toast({
+      title: "Presentation Closed ✕",
+      description: "You have exited the presentation.",
+    });
   };
 
   // Cover and reveal word utility
@@ -1798,6 +1916,15 @@ export function PresentationForm() {
                     <Button onClick={handleCreateNew} variant="secondary" className="h-10 text-xs font-bold rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700">
                       <Wand2 className="mr-1.5 h-3.5 w-3.5" />
                       Create New
+                    </Button>
+                    <Button 
+                      onClick={handleClosePresentation} 
+                      variant="outline" 
+                      className="h-10 text-xs font-bold rounded-xl border-rose-900/50 bg-rose-950/20 text-rose-300 hover:bg-rose-900/40 hover:text-white"
+                      title="Exit and close current presentation"
+                    >
+                      <X className="mr-1.5 h-3.5 w-3.5 text-rose-400" />
+                      Close / Exit
                     </Button>
                     <Button onClick={handleDownload} variant="outline" className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white">
                       <Download className="mr-1.5 h-3.5 w-3.5" />
