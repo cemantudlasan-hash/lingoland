@@ -56,7 +56,12 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  ImageOff,
+  PanelRightOpen,
+  Sparkles,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -266,6 +271,9 @@ export function PresentationForm() {
   const [enable3D, setEnable3D] = React.useState(true);
   const [slidePhotos, setSlidePhotos] = React.useState<{ [key: number]: string }>({});
   const [isDownloadingPptx, setIsDownloadingPptx] = React.useState(false);
+  const [brokenSlideImages, setBrokenSlideImages] = React.useState<{ [key: number]: boolean }>({});
+  const [regeneratingSlide, setRegeneratingSlide] = React.useState<{ [key: number]: boolean }>({});
+  const [targetSlideIndex, setTargetSlideIndex] = React.useState<number | null>(null);
 
   // Split-screen Visual Search sidebar states
   const [showSplitSearch, setShowSplitSearch] = React.useState(false);
@@ -844,6 +852,111 @@ export function PresentationForm() {
       handleSearchSplit(splitQuery, activeSplitSource, activeSplitTab);
     }
   }, [activeSplitTab]);
+
+  const handleRegenerateSlideImage = async (slideIndex: number, slideTitle?: string) => {
+    setRegeneratingSlide(prev => ({ ...prev, [slideIndex]: true }));
+    toast({
+      title: "Generating New Image 🎨",
+      description: `Searching fresh image for Slide ${slideIndex + 1}...`,
+    });
+
+    const cleanTopic = (presentation?.title || '')
+      .replace(/\b(presentation|lesson|overview|guide|slides?|talk|document)\b/gi, '')
+      .trim();
+    const cleanTitle = (slideTitle || '')
+      .replace(/\b(welcome to|introduction to|overview of|summary of|conclusion|part \d+|slide \d+)\b/gi, '')
+      .trim();
+
+    const queries = [
+      `${cleanTopic} ${cleanTitle}`.trim(),
+      cleanTitle || cleanTopic,
+      `${cleanTopic} visual concepts`,
+      cleanTopic,
+      'education concept photo'
+    ].filter(q => q.length > 2);
+
+    const sources: Array<'unsplash' | 'google' | 'bing'> = [
+      photoSource === 'unsplash' ? 'bing' : 'unsplash',
+      photoSource as any,
+      'google'
+    ];
+
+    let foundImageUrl: string | null = null;
+    const currentUrl = slidePhotos[slideIndex];
+
+    for (const q of queries) {
+      if (foundImageUrl) break;
+      const cleanQ = q
+        .replace(/\b(worksheet|clipart|diagram|slides?|presentation|soal|tugas|lembar)\b/gi, '')
+        .replace(/[^\w\s-]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      for (const src of sources) {
+        try {
+          const res = await fetch(`/api/image-picker?query=${encodeURIComponent(cleanQ)}&source=${src}&count=6`);
+          const data = await res.json();
+          if (data.success && data.images && data.images.length > 0) {
+            const candidate = data.images.find((img: any) => img.url && img.url !== currentUrl);
+            if (candidate) {
+              foundImageUrl = candidate.url;
+              break;
+            }
+          }
+        } catch (e) {
+          console.error("Regenerate image fetch attempt failed:", e);
+        }
+      }
+    }
+
+    if (!foundImageUrl) {
+      try {
+        const res = await fetch(`/api/image-search?query=${encodeURIComponent(cleanTitle || cleanTopic || 'education')}`);
+        const data = await res.json();
+        if (data.success && data.imageUrl && data.imageUrl !== currentUrl) {
+          foundImageUrl = data.imageUrl;
+        }
+      } catch (e) {}
+    }
+
+    if (foundImageUrl) {
+      setSlidePhotos(prev => ({ ...prev, [slideIndex]: foundImageUrl! }));
+      setBrokenSlideImages(prev => ({ ...prev, [slideIndex]: false }));
+      toast({
+        title: "New Image Generated! ✨",
+        description: `Successfully updated image for Slide ${slideIndex + 1}.`,
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Could Not Find Alternative Image",
+        description: "Please try searching for a visual image on the side panel.",
+      });
+    }
+
+    setRegeneratingSlide(prev => ({ ...prev, [slideIndex]: false }));
+  };
+
+  const handleOpenSideSearchForSlide = (slideIndex: number, slideTitle?: string) => {
+    setTargetSlideIndex(slideIndex);
+    const cleanTopic = (presentation?.title || '')
+      .replace(/\b(presentation|lesson|overview|guide|slides?|talk|document)\b/gi, '')
+      .trim();
+    const cleanTitle = (slideTitle || '')
+      .replace(/\b(welcome to|introduction to|overview of|summary of|conclusion|part \d+|slide \d+)\b/gi, '')
+      .trim();
+    const initialQuery = cleanTitle || cleanTopic || presentation?.title || "";
+    setSplitQuery(initialQuery);
+    setActiveSplitTab('IMAGES');
+    setShowSplitSearch(true);
+    if (initialQuery) {
+      handleSearchSplit(initialQuery, activeSplitSource, 'IMAGES');
+    }
+    toast({
+      title: "Visual Search Opened 🔍",
+      description: `Browsing images for Slide ${slideIndex + 1}. Click any image to apply!`,
+    });
+  };
 
   const handleShowImage = async (text: string) => {
     setZoomScale(1);
@@ -1986,18 +2099,109 @@ export function PresentationForm() {
                               {/* Beautiful dynamic slide photo */}
                               {(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode && (
                                 <div className={cn("w-full shrink-0 select-none animate-in zoom-in-95 duration-500", isFullscreen ? "md:w-[35%]" : "md:w-2/5")}>
-                                  <div className="relative group perspective-[1000px]">
-                                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu transition-all duration-500 hover:scale-105 hover:rotate-y-6 hover:shadow-[0_25px_60px_rgba(99,102,241,0.25)]">
-                                      <img 
-                                        src={slidePhotos[index] || (slide as any).photoUrl} 
-                                        alt={slide.title} 
-                                        className="w-full h-full object-contain bg-slate-950 transition-transform duration-750 group-hover:scale-105" 
-                                      />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                        <p className="text-[10px] text-white/80 font-mono italic">Source: {photoSource}</p>
+                                  {brokenSlideImages[index] ? (
+                                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-amber-500/30 bg-slate-900/90 shadow-[0_15px_40px_rgba(245,158,11,0.12)] p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300">
+                                      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-purple-500/10 pointer-events-none" />
+                                      
+                                      {regeneratingSlide[index] ? (
+                                        <div className="relative z-10 flex flex-col items-center gap-3">
+                                          <div className="relative">
+                                            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                                              <Loader2 className="h-6 w-6 text-purple-400 animate-spin" />
+                                            </div>
+                                            <Sparkles className="h-4 w-4 text-amber-400 absolute -top-1 -right-1 animate-pulse" />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <p className="text-xs font-black text-slate-100 uppercase tracking-wider">Generating Image...</p>
+                                            <p className="text-[11px] text-slate-400 max-w-[220px] truncate">
+                                              Topic: "{slide.title}"
+                                            </p>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-xs">
+                                          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
+                                            <ImageOff className="h-6 w-6" />
+                                          </div>
+                                          
+                                          <div className="space-y-1">
+                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                                              <AlertCircle className="h-3 w-3" /> Image Failed to Load
+                                            </div>
+                                            <p className="text-xs text-slate-300 font-medium leading-snug pt-0.5">
+                                              The visual for this slide is broken or unavailable.
+                                            </p>
+                                          </div>
+
+                                          <div className="flex flex-col gap-2 w-full pt-1">
+                                            <Button
+                                              size="sm"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRegenerateSlideImage(index, slide.title);
+                                              }}
+                                              className="w-full h-9 text-xs font-black rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-indigo-500/25 transition-all hover:scale-[1.02] active:scale-95"
+                                            >
+                                              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-amber-300 animate-pulse" /> Generate New Image
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenSideSearchForSlide(index, slide.title);
+                                              }}
+                                              className="w-full h-9 text-xs font-bold rounded-xl border-slate-700 bg-slate-950/80 hover:bg-slate-800 text-slate-200 shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+                                            >
+                                              <PanelRightOpen className="mr-1.5 h-3.5 w-3.5 text-purple-400" /> Search Visual Image on Side
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="relative group perspective-[1000px]">
+                                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu transition-all duration-500 hover:scale-105 hover:rotate-y-6 hover:shadow-[0_25px_60px_rgba(99,102,241,0.25)]">
+                                        <img 
+                                          src={slidePhotos[index] || (slide as any).photoUrl} 
+                                          alt={slide.title} 
+                                          onError={() => {
+                                            setBrokenSlideImages(prev => ({ ...prev, [index]: true }));
+                                          }}
+                                          className="w-full h-full object-contain bg-slate-950 transition-transform duration-750 group-hover:scale-105" 
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5">
+                                          <div className="flex justify-end gap-1.5">
+                                            <Button
+                                              size="sm"
+                                              variant="secondary"
+                                              title="Generate a new image related to this slide topic"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRegenerateSlideImage(index, slide.title);
+                                              }}
+                                              className="h-7 px-2.5 text-[10px] font-bold rounded-lg bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/15 shadow-sm"
+                                            >
+                                              <RefreshCw className={cn("h-3 w-3 mr-1 text-purple-400", regeneratingSlide[index] && "animate-spin")} /> Change Image
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="secondary"
+                                              title="Search visual images on the side panel"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenSideSearchForSlide(index, slide.title);
+                                              }}
+                                              className="h-7 px-2.5 text-[10px] font-bold rounded-lg bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/15 shadow-sm"
+                                            >
+                                              <PanelRightOpen className="h-3 w-3 mr-1 text-indigo-400" /> Side Search
+                                            </Button>
+                                          </div>
+                                          <p className="text-[10px] text-white/80 font-mono italic">Source: {photoSource}</p>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -2317,6 +2521,28 @@ onClick={() => setShowImageModal(false)}
                               : 'LingoLand Visual Search Engine'}
                         </p>
 
+                        {/* Apply image to current slide option */}
+                        {searchImage && (
+                          <div className="pt-2 border-t border-slate-850">
+                            <Button
+                              onClick={() => {
+                                const targetIdx = targetSlideIndex ?? (api?.selectedScrollSnap() ?? (current > 0 ? current - 1 : 0));
+                                setSlidePhotos(prev => ({ ...prev, [targetIdx]: searchImage }));
+                                setBrokenSlideImages(prev => ({ ...prev, [targetIdx]: false }));
+                                setShowImageModal(false);
+                                toast({
+                                  title: "Slide Image Updated! 🎨",
+                                  description: `Applied image to Slide ${targetIdx + 1}.`,
+                                });
+                              }}
+                              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-md text-xs transition-all hover:scale-[1.01] active:scale-95"
+                            >
+                              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                              Apply to Slide {(targetSlideIndex ?? (api?.selectedScrollSnap() ?? (current > 0 ? current - 1 : 0))) + 1}
+                            </Button>
+                          </div>
+                        )}
+
                         {/* Premium Split Search button inside Modal */}
                         {(searchImageEngine === 'placeholder' || imageSearchError || !searchImage) && (
                           <div className="pt-2.5 border-t border-slate-850 mt-2 space-y-1.5">
@@ -2485,13 +2711,31 @@ onClick={() => setShowImageModal(false)}
                       </h3>
                     </div>
                     <button 
-                      onClick={() => setShowSplitSearch(false)}
+                      onClick={() => {
+                        setShowSplitSearch(false);
+                        setTargetSlideIndex(null);
+                      }}
                       className="p-1 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors"
                       title="Close Split Search"
                     >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
+
+                  {/* Target Slide Indicator */}
+                  {targetSlideIndex !== null && (
+                    <div className="mt-2.5 px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-between text-[11px] animate-in fade-in">
+                      <span className="text-purple-300 font-bold flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" /> Target: Slide {targetSlideIndex + 1}
+                      </span>
+                      <button
+                        onClick={() => setTargetSlideIndex(null)}
+                        className="text-slate-400 hover:text-white text-[10px] font-semibold underline"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  )}
 
                   {/* Search Input Box */}
                   <div className="relative mt-4">
@@ -2545,27 +2789,37 @@ onClick={() => setShowImageModal(false)}
                     ) : activeSplitTab === 'IMAGES' ? (
                       splitImages.length > 0 ? (
                         <div className="grid grid-cols-2 gap-2">
-                          {splitImages.map((img, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => {
-                                setSearchImage(img.url);
-                                setSearchImageThumbnail(img.thumb || img.url);
-                                setSearchImageEngine('user-selected');
-                                setShowImageModal(true);
-                              }}
-                              className="relative aspect-[3/4] w-full rounded-xl overflow-hidden border border-slate-850 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all group bg-slate-950"
-                            >
-                              <img 
-                                src={img.thumb || img.url} 
-                                alt={img.title} 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                              />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-center justify-center p-2 text-center">
-                                <span className="text-[9px] text-white font-black opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider">Select</span>
-                              </div>
-                            </button>
-                          ))}
+                          {splitImages.map((img, idx) => {
+                            const activeSlideIdx = targetSlideIndex ?? (api?.selectedScrollSnap() ?? (current > 0 ? current - 1 : 0));
+                            return (
+                              <button
+                                key={idx}
+                                onClick={() => {
+                                  setSlidePhotos(prev => ({ ...prev, [activeSlideIdx]: img.url }));
+                                  setBrokenSlideImages(prev => ({ ...prev, [activeSlideIdx]: false }));
+                                  setSearchImage(img.url);
+                                  setSearchImageThumbnail(img.thumb || img.url);
+                                  setSearchImageEngine('user-selected');
+                                  toast({
+                                    title: "Slide Image Updated! 🎨",
+                                    description: `Applied image to Slide ${activeSlideIdx + 1}.`,
+                                  });
+                                }}
+                                className="relative aspect-[3/4] w-full rounded-xl overflow-hidden border border-slate-850 hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all group bg-slate-950"
+                              >
+                                <img 
+                                  src={img.thumb || img.url} 
+                                  alt={img.title} 
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/75 transition-colors flex flex-col items-center justify-center p-2 text-center">
+                                  <span className="text-[10px] text-purple-300 font-black opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider flex items-center gap-1">
+                                    <Sparkles className="h-3 w-3 text-amber-300" /> Use on Slide {activeSlideIdx + 1}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 h-full text-slate-500">

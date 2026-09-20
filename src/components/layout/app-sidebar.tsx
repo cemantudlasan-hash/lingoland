@@ -58,7 +58,6 @@ import { cn } from "@/lib/utils";
 
 
 const publicItems = [
-  { href: "/lingo-pet", label: "Lingo-Pet", icon: Egg },
   { href: "/games", label: "Classroom Games", icon: Gamepad2 },
   { href: "/marketplace", label: "Tutor Marketplace", icon: Store },
   { href: "/roleplay-workspace", label: "Roleplay Workspace", icon: Users },
@@ -83,6 +82,7 @@ const publicItems = [
 
 const privateItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/lingo-pet", label: "Lingo-Pet", icon: Egg },
     { href: "/profile", label: "Profile", icon: User },
     { href: "/my-postings", label: "My Postings", icon: FileText },
     { href: "/study-room", label: "Acoustic Study Room", icon: GraduationCap },
@@ -193,7 +193,7 @@ export function AppSidebar() {
     }, 2500);
   };
   
-  const baseItems = user ? [...privateItems, ...publicItems] : publicItems;
+  const baseItems = (user && !isGuest) ? [...privateItems, ...publicItems] : publicItems;
   const menuItems = isAdmin ? [...baseItems, ...adminItems] : baseItems;
 
 

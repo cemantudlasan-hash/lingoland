@@ -7,7 +7,7 @@ import { doc, getDoc, setDoc, collection, query, where, limit, getDocs } from 'f
 import { 
   Sparkles, Heart, Zap, Brain, ShoppingBag, MessageSquare, 
   HelpCircle, ChevronRight, Coins, RefreshCw, AlertCircle, Play, Info, Loader2, Lock,
-  Edit3, Check, X, Shuffle, Smile, Compass, Wand2, Tag
+  Edit3, Check, X, Shuffle, Smile, Compass, Wand2, Tag, Egg, UserPlus
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -366,6 +366,10 @@ export default function LingoPetPage() {
 
   // Load Lingo-Pet on mount
   React.useEffect(() => {
+    if (!user || isGuest) {
+      setLoading(false);
+      return;
+    }
     loadPetData();
     loadRecentGamesAnalytics();
   }, [user, isGuest]);
@@ -389,9 +393,13 @@ export default function LingoPetPage() {
   };
 
   const loadPetData = async () => {
+    if (!user || isGuest || !firestore) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const defaultPet: UserPet = {
-      userId: user?.uid || 'guest',
+      userId: user.uid,
       petType: 'owl',
       petName: 'Lingo',
       personality: 'scholar',
@@ -406,40 +414,6 @@ export default function LingoPetPage() {
       currentBackground: 'cozy-room',
       lastActive: new Date().toISOString(),
     };
-
-    if (isGuest || !user || !firestore) {
-      // Load Guest Pet from Local Storage
-      if (typeof window !== 'undefined') {
-        const local = localStorage.getItem('lingoland_guest_pet');
-        if (local) {
-          try {
-            const parsed = JSON.parse(local) as UserPet;
-            const updated = applyDecay(parsed);
-            const safePet: UserPet = {
-              ...defaultPet,
-              ...updated,
-              coins: Math.max(updated.coins || 0, 15000),
-              personality: updated.personality || (updated.petType === 'owl' ? 'scholar' : updated.petType === 'dino' ? 'cheerleader' : updated.petType === 'godly' ? 'zen' : 'cheerleader'),
-              equippedCosmetics: {
-                ...defaultPet.equippedCosmetics,
-                ...(updated.equippedCosmetics || {})
-              },
-              unlockedCosmetics: updated.unlockedCosmetics || []
-            };
-            setPet(safePet);
-            localStorage.setItem('lingoland_guest_pet', JSON.stringify(safePet));
-          } catch (e) {
-            setPet(defaultPet);
-            localStorage.setItem('lingoland_guest_pet', JSON.stringify(defaultPet));
-          }
-        } else {
-          setPet(defaultPet);
-          localStorage.setItem('lingoland_guest_pet', JSON.stringify(defaultPet));
-        }
-      }
-      setLoading(false);
-      return;
-    }
 
     // Load Authenticated Pet from Firestore
     try {
@@ -807,6 +781,65 @@ export default function LingoPetPage() {
           <Loader2 className="h-10 w-10 text-indigo-500 animate-spin" />
           <span className="text-sm text-slate-400">Loading profile...</span>
         </div>
+      </div>
+    );
+  }
+
+  // ── GUEST / UNREGISTERED ACCESS RESTRICTION ───────────────────────────────
+  if (!user || isGuest) {
+    return (
+      <div className="relative min-h-[85vh] w-full flex flex-col items-center justify-center overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900 text-white p-8 my-4">
+        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="relative z-10 flex flex-col items-center gap-6 max-w-md text-center"
+        >
+          <div className="relative">
+            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-500 to-indigo-600 flex items-center justify-center shadow-[0_0_48px_theme(colors.indigo.500/0.4)] border border-indigo-500/30">
+              <Egg className="w-11 h-11 text-white" />
+            </div>
+            <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center shadow-lg">
+              <Lock className="w-4 h-4 text-amber-400" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black tracking-tight text-white">Lingo-Pet Companion</h2>
+            <p className="text-xs text-amber-300 font-bold uppercase tracking-widest bg-amber-500/10 border border-amber-500/25 px-3 py-1 rounded-full inline-block">
+              Members Only • Account Required
+            </p>
+          </div>
+
+          <p className="text-sm text-slate-400 leading-relaxed">
+            Lingo-Pet is an exclusive companion feature for registered users.
+            Sign in or create a LingoLandVerse account to adopt, level up, customize, and unlock outfits for your personal AI study companion!
+          </p>
+
+          <div className="flex flex-wrap justify-center gap-2">
+            {['Pet Evolutions', 'Outfits & Cosmetics', 'AI Conversations', 'Daily Mood & Quizzes', 'Persistent Progress'].map((feat) => (
+              <span key={feat} className="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-950/60 border border-indigo-500/20 text-indigo-300">
+                {feat}
+              </span>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full pt-2">
+            <Button asChild size="lg" className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 font-bold shadow-lg shadow-indigo-500/25">
+              <Link href="/auth">
+                <UserPlus className="mr-2 h-5 w-5" /> Sign In / Create Account
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="flex-1 h-12 rounded-2xl border-slate-700 hover:bg-slate-800 text-slate-300 font-semibold">
+              <Link href="/games">
+                Explore Games
+              </Link>
+            </Button>
+          </div>
+        </motion.div>
       </div>
     );
   }

@@ -102,7 +102,7 @@ export function FloatingPetWidget() {
       isClosedThisSession = sessionStorage.getItem(closeKey) === 'true';
     }
 
-    if (isAuthPage || isPetPage || isClosedThisSession || (!user && !isGuest)) {
+    if (isAuthPage || isPetPage || isClosedThisSession || !user || isGuest) {
       setIsOpen(false);
       return;
     }
@@ -110,18 +110,7 @@ export function FloatingPetWidget() {
     setIsOpen(true);
 
     const loadWidgetPet = async () => {
-      if (isGuest || !user || !firestore) {
-        if (typeof window !== 'undefined') {
-          const local = localStorage.getItem('lingoland_guest_pet');
-          if (local) {
-            try {
-              const parsed = JSON.parse(local);
-              if (parsed.petType) setPetType(parsed.petType);
-              if (parsed.level) setPetLevel(parsed.level);
-              if (parsed.equippedCosmetics) setEquippedCosmetics(parsed.equippedCosmetics);
-            } catch (e) {}
-          }
-        }
+      if (!user || isGuest || !firestore) {
         return;
       }
 
