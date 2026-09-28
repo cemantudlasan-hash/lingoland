@@ -59,6 +59,15 @@ import {
 
 export const allGames: Game[] = [
   {
+    title: "Speed Debater",
+    slug: "speed-debater",
+    description: "Fast-paced 3-round AI debate arena! Defend your stance, counter opposing arguments under 100 words, and earn judging scores.",
+    level: "advanced",
+    focus: "conversation",
+    subject: "english",
+    icon: Gavel,
+  },
+  {
     title: "Run & Jump: Tense Runner",
     slug: "tense-runner",
     description: "Endless 2D platform runner! Sprint across platforms and leap through the correct tense portals to master irregular verbs, plurals, and comparatives.",

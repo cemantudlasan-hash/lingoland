@@ -198,26 +198,30 @@ export function AppSidebar() {
 
 
   return (
-    <div className="relative h-full flex flex-col bg-[hsl(var(--sidebar-background))] border-r border-[hsl(var(--sidebar-border))]">
-      <div className="geometric-background">
-        <div className="shape-1"></div>
-        <div className="shape-2"></div>
-        <div className="shape-3"></div>
+    <div className="relative h-full flex flex-col bg-gradient-to-b from-slate-950/95 via-[#0a0f1d]/95 to-slate-950/95 backdrop-blur-xl border-r border-indigo-500/20 text-sidebar-foreground">
+      {/* Subtle site-matching ambient glows */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-12 -left-12 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-16 -left-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
       </div>
       <div className="relative z-10 flex h-full flex-col p-2 gap-2">
-        <SidebarHeader className="hidden md:flex bg-transparent border-b border-[hsl(var(--sidebar-border))]/20 pb-4 mb-2">
-          <div className="flex items-center gap-2 p-2 overflow-hidden">
-            <Image
-              src="/logo.png"
-              alt="LingoLandVerse Logo"
-              width={36}
-              height={36}
-              className="shrink-0 object-contain"
-            />
-            <h1 className="text-xl font-bold font-headline truncate transition-opacity group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:hidden">LingoLandVerse</h1>
+        <SidebarHeader className="hidden md:flex rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-slate-900/80 via-indigo-950/40 to-slate-900/80 p-2.5 mb-2 backdrop-blur-xl shadow-md">
+          <div className="flex items-center gap-2.5 px-2 py-1 overflow-hidden">
+            <div className="p-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 shrink-0">
+              <Image
+                src="/logo.png"
+                alt="LingoLandVerse Logo"
+                width={30}
+                height={30}
+                className="shrink-0 object-contain"
+              />
+            </div>
+            <h1 className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent truncate transition-opacity group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:hidden">
+              LingoLandVerse
+            </h1>
           </div>
         </SidebarHeader>
-        <SidebarContent className="bg-transparent">
+        <SidebarContent className="rounded-2xl border border-indigo-500/20 bg-gradient-to-b from-slate-900/60 via-[#0a0f1d]/50 to-slate-900/60 p-1.5 backdrop-blur-xl shadow-inner">
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.href} className="relative overflow-visible my-0.5">
@@ -265,7 +269,7 @@ export function AppSidebar() {
             ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter className="bg-transparent border-t border-[hsl(var(--sidebar-border))]/20 pt-4 mt-2">
+        <SidebarFooter className="rounded-2xl border border-indigo-500/20 bg-gradient-to-b from-slate-900/70 to-slate-950/70 p-2 mt-2 backdrop-blur-xl shadow-md">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={{ children: 'Privacy Policy' }}>

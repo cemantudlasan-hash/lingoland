@@ -84,20 +84,35 @@ export default function GamesPage() {
 
       return (
             <div className="space-y-6">
-                  {/* Premium Header with Total Games Count */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
-                        <div>
-                              <h1 className="text-3xl font-extrabold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent flex items-center gap-2.5">
-                                    <Gamepad2 className="h-7 w-7 text-indigo-400" />
-                                    Classroom Games
-                              </h1>
-                              <p className="text-xs text-slate-400 mt-1">
-                                    Complete learning games to level up your pet and earn Lingo-Coins!
-                              </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                              <div className="bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1.5 rounded-full flex items-center gap-2">
-                                    <span className="text-xs font-bold text-indigo-300">Total Games: {allGames.length}</span>
+                  {/* Premium Header with Total Games Count & Custom Themed Background */}
+                  <div className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-r from-slate-900/85 via-slate-950/75 to-slate-900/85 p-5 sm:p-6 backdrop-blur-xl shadow-xl shadow-black/40">
+                        {/* Ambient Themed Glows */}
+                        <div className="absolute -top-10 -left-10 w-44 h-44 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent pointer-events-none" />
+
+                        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
+                              <div className="flex items-center gap-4">
+                                    <div className="p-3 rounded-2xl bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 shadow-inner shrink-0">
+                                          <Gamepad2 className="h-7 w-7 text-indigo-400" />
+                                    </div>
+                                    <div>
+                                          <h1 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-300 bg-clip-text text-transparent tracking-tight">
+                                                Classroom Games
+                                          </h1>
+                                          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                                                Complete learning games to level up your pet and earn Lingo-Coins!
+                                          </p>
+                                    </div>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                    <div className="bg-indigo-500/15 border border-indigo-500/30 px-4 py-2 rounded-2xl flex items-center gap-2.5 backdrop-blur-md shadow-sm">
+                                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                          <span className="text-xs font-bold text-indigo-200">
+                                                Total Games: <span className="font-extrabold text-indigo-300">{allGames.length}</span>
+                                          </span>
+                                    </div>
                               </div>
                         </div>
                   </div>

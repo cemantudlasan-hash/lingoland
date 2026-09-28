@@ -364,7 +364,7 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2 rounded-lg bg-sidebar-accent/50 border border-sidebar-border shadow-lg backdrop-blur-sm", className)}
+      className={cn("flex flex-col gap-2 p-2.5 rounded-2xl bg-sidebar-accent/40 border border-indigo-500/20 shadow-md backdrop-blur-sm", className)}
       {...props}
     />
   )
@@ -379,7 +379,7 @@ const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2 rounded-lg bg-sidebar-accent/50 border border-sidebar-border shadow-lg backdrop-blur-sm mt-auto", className)}
+      className={cn("flex flex-col gap-2 p-2.5 rounded-2xl bg-sidebar-accent/40 border border-indigo-500/20 shadow-md backdrop-blur-sm mt-auto", className)}
       {...props}
     />
   )
@@ -410,7 +410,7 @@ const SidebarContent = React.forwardRef<
       ref={ref}
       data-sidebar="content"
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden rounded-lg bg-sidebar-accent/50 border border-sidebar-border shadow-lg backdrop-blur-sm",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden rounded-2xl bg-sidebar-accent/40 border border-indigo-500/20 shadow-md backdrop-blur-sm",
         className
       )}
       {...props}

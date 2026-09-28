@@ -385,7 +385,7 @@ export function AppHeader() {
 
 
   return (
-    <header className="sticky top-0 z-30 flex shrink-0 flex-col items-center border-b border-sidebar-border bg-sidebar text-sidebar-foreground">
+    <header className="sticky top-0 z-30 flex shrink-0 flex-col items-center border-b border-indigo-500/20 bg-gradient-to-r from-slate-950/90 via-[#0d1326]/85 to-slate-950/90 backdrop-blur-xl text-sidebar-foreground shadow-sm">
       {!isAdmin && announcement && announcement.isActive && (
         <div className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-primary-foreground py-2 text-sm font-semibold overflow-hidden">
           <div className="marquee flex items-center gap-4">
@@ -407,7 +407,7 @@ export function AppHeader() {
             </button>
         </div>
       )}
-      <div className="relative z-10 flex h-16 w-full items-center justify-between px-4 sm:px-6 bg-card/10 backdrop-blur-sm">
+      <div className="relative z-10 flex h-16 w-full items-center justify-between px-4 sm:px-6 bg-slate-950/30 backdrop-blur-md">
         <div className="flex items-center gap-2">
             <Button variant="ghost" onClick={toggleSidebar} className="group -ml-2 px-2 text-sidebar-foreground gap-2 transition-all hover:bg-card/20">
                 <PanelLeft className="h-5 w-5 text-primary group-hover:animate-none animate-pulse" />
@@ -417,15 +417,19 @@ export function AppHeader() {
                 </div>
             </Button>
             <div className="h-6 w-px bg-border/50 hidden md:block mx-1"></div>
-            <div className="items-center gap-2 p-2 hidden md:flex">
-                <Image
-                  src="/logo.png"
-                  alt="LingoLandVerse Logo"
-                  width={32}
-                  height={32}
-                  className="shrink-0 object-contain"
-                />
-                <h1 className="text-xl font-bold font-headline">LingoLandVerse</h1>
+            <div className="items-center gap-2.5 px-3 py-1.5 rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-slate-900/70 via-indigo-950/40 to-slate-900/70 backdrop-blur-md shadow-sm hidden md:flex">
+                <div className="p-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 shrink-0">
+                  <Image
+                    src="/logo.png"
+                    alt="LingoLandVerse Logo"
+                    width={26}
+                    height={26}
+                    className="shrink-0 object-contain"
+                  />
+                </div>
+                <h1 className="text-base font-extrabold bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">
+                  LingoLandVerse
+                </h1>
             </div>
         </div>
         <h1 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold hidden md:block md:text-xl font-headline text-foreground">{title}</h1>
