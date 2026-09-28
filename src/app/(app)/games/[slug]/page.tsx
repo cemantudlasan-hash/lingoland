@@ -54,26 +54,106 @@ export default function GamePage() {
   const [timerCompleted, setTimerCompleted] = React.useState(false);
   const [isDailyGame, setIsDailyGame] = React.useState(false);
 
-  const handleFullScreen = () => {
-    const elem = gameContainerRef.current;
+  // Cross-browser helper to retrieve current fullscreen element (Safari webkit, Firefox moz, IE/Edge ms)
+  const getFullscreenElement = () => {
+    if (typeof document === 'undefined') return null;
+    return (
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement ||
+      null
+    );
+  };
+
+  const handleFullScreen = async () => {
+    const elem = gameContainerRef.current as any;
     if (!elem) return;
 
-    if (!document.fullscreenElement) {
-      elem.requestFullscreen().catch((err) => {
-        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-      });
+    const fsElement = getFullscreenElement();
+
+    if (!fsElement && !isFullscreen) {
+      try {
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          await elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+          await elem.msRequestFullscreen();
+        } else {
+          // Seamless CSS fallback on devices without element.requestFullscreen (e.g. iOS Safari)
+          setIsFullscreen(true);
+        }
+      } catch (err) {
+        console.warn("Native fullscreen unavailable, falling back to CSS fullscreen:", err);
+        setIsFullscreen(true);
+      }
     } else {
-      document.exitFullscreen();
+      try {
+        if (getFullscreenElement()) {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          } else if ((document as any).webkitExitFullscreen) {
+            await (document as any).webkitExitFullscreen();
+          } else if ((document as any).mozCancelFullScreen) {
+            await (document as any).mozCancelFullScreen();
+          } else if ((document as any).msExitFullscreen) {
+            await (document as any).msExitFullscreen();
+          }
+        }
+      } catch (err) {
+        console.warn("Error exiting native fullscreen:", err);
+      }
+      setIsFullscreen(false);
     }
   };
 
   React.useEffect(() => {
+    // Polyfill document.fullscreenElement on Safari so nested games can read it
+    if (typeof document !== 'undefined') {
+      if (!('fullscreenElement' in document) && 'webkitFullscreenElement' in document) {
+        try {
+          Object.defineProperty(document, 'fullscreenElement', {
+            get: () => (document as any).webkitFullscreenElement,
+            configurable: true,
+          });
+        } catch (e) {}
+      }
+    }
+
     const onFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const fsElem = getFullscreenElement();
+      setIsFullscreen(!!fsElem);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('lingoland_fullscreen_change', {
+          detail: { isFullscreen: !!fsElem }
+        }));
+      }
     };
+
     document.addEventListener('fullscreenchange', onFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    document.addEventListener('mozfullscreenchange', onFullscreenChange);
+    document.addEventListener('MSFullscreenChange', onFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', onFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', onFullscreenChange);
+    };
   }, []);
+
+  React.useEffect(() => {
+    // When isFullscreen state toggles, notify document so games listening to fullscreenchange update
+    if (typeof document !== 'undefined') {
+      try {
+        document.dispatchEvent(new Event('fullscreenchange'));
+      } catch (e) {}
+    }
+  }, [isFullscreen]);
 
   // Initialize and load saved timer from localStorage
   React.useEffect(() => {
@@ -388,16 +468,16 @@ export default function GamePage() {
     <div
       ref={gameContainerRef}
       className={cn(
-        "relative transition-colors duration-500",
+        "relative transition-all duration-300",
         isFullscreen
-          ? "bg-background w-screen h-screen overflow-hidden"
+          ? "fixed inset-0 z-50 bg-background w-full h-[100dvh] max-h-[100dvh] overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
           : "-m-3 md:-m-4 lg:-m-5 min-h-full flex flex-col"
       )}
       data-fullscreen-container={isFullscreen}
       onMouseDown={startTimerOnInteraction}
       onTouchStart={startTimerOnInteraction}
     >
-      <div className={cn("w-full transition-all duration-500 flex-1 flex flex-col", isFullscreen ? "h-full overflow-y-auto" : "")}>
+      <div className={cn("w-full transition-all duration-300 flex-1 flex flex-col", isFullscreen ? "min-h-[100dvh] h-full overflow-y-auto overflow-x-hidden" : "")}>
         <React.Suspense fallback={<LoadingPlaceholder />}>
           <GameComponent slug={game.slug} onToggleFullscreen={handleFullScreen} />
         </React.Suspense>
