@@ -285,51 +285,89 @@ export function AuctionAction({ slug, onToggleFullscreen }: { slug: string; onTo
       case "turn":
         const currentTeam = teams[turn];
         return (
-          <div className="w-full text-center flex flex-col items-center gap-8">
-            <h3 className={cn("font-black uppercase tracking-[0.2em] text-muted-foreground", isFullscreen ? "text-3xl" : "text-xl")}>Round {round} / {settings.numSentences}</h3>
-            
-            <div className={cn(
-                "flex items-center justify-center p-12 rounded-[3rem] bg-muted/20 border-4 border-primary shadow-xl w-full max-w-5xl transition-all",
-                isFullscreen ? "text-[5vw] leading-tight min-h-[300px]" : "text-3xl min-h-[6rem] font-bold"
-            )}>
-                {exercise?.presentedSentence}
+          <div className="w-full text-center flex flex-col items-center gap-6 max-w-4xl mx-auto animate-in fade-in duration-300">
+            <div className="flex items-center justify-center p-6 md:p-10 rounded-2xl md:rounded-3xl bg-muted/20 border-2 md:border-4 border-primary shadow-xl w-full transition-all text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-relaxed min-h-[120px] md:min-h-[160px]">
+              {exercise?.presentedSentence}
             </div>
 
-            <div className="text-center w-full space-y-8">
-                <div className="space-y-2">
-                    <p className={cn("font-black uppercase tracking-widest text-primary", isFullscreen ? "text-4xl" : "text-2xl")}>{currentTeam.name}, what is your verdict?</p>
-                    <p className={cn("text-muted-foreground font-bold", isFullscreen ? "text-2xl" : "text-base")}>Wager: $100</p>
-                </div>
-                <div className="flex justify-center gap-6">
-                   <Button onClick={() => handleJudge(true)} className={cn("bg-green-600 hover:bg-green-700 text-white font-black uppercase shadow-xl", isFullscreen ? "h-24 px-16 text-3xl rounded-3xl" : "h-16 px-8")} size="lg"><ThumbsUp className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-6 w-6")}/>Correct</Button>
-                   <Button onClick={() => handleJudge(false)} variant="destructive" className={cn("font-black uppercase shadow-xl", isFullscreen ? "h-24 px-16 text-3xl rounded-3xl" : "h-16 px-8")} size="lg"><ThumbsDown className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-6 w-6")}/>Incorrect</Button>
-                </div>
-                <div className="pt-4">
-                     <Button onClick={handlePass} variant="secondary" size="sm" disabled={currentTeam.passes <= 0} className={cn(isFullscreen && "h-12 text-xl px-6")}><Send className="mr-2"/>Pass Turn ({currentTeam.passes} left)</Button>
-                </div>
+            <div className="text-center w-full space-y-4">
+              <div className="space-y-1">
+                <p className="font-black uppercase tracking-widest text-primary text-lg sm:text-xl md:text-2xl">
+                  {currentTeam.name}, what is your verdict?
+                </p>
+                <p className="text-muted-foreground font-semibold text-sm md:text-base">Wager: $100</p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button
+                  onClick={() => handleJudge(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white font-black uppercase shadow-lg h-14 md:h-16 px-8 md:px-12 text-lg md:text-xl rounded-2xl transition-transform hover:scale-105"
+                  size="lg"
+                >
+                  <ThumbsUp className="mr-2.5 h-5 w-5 md:h-6 md:w-6" />
+                  Correct
+                </Button>
+                <Button
+                  onClick={() => handleJudge(false)}
+                  variant="destructive"
+                  className="font-black uppercase shadow-lg h-14 md:h-16 px-8 md:px-12 text-lg md:text-xl rounded-2xl transition-transform hover:scale-105"
+                  size="lg"
+                >
+                  <ThumbsDown className="mr-2.5 h-5 w-5 md:h-6 md:w-6" />
+                  Incorrect
+                </Button>
+              </div>
+              <div className="pt-2">
+                <Button
+                  onClick={handlePass}
+                  variant="secondary"
+                  size="sm"
+                  disabled={currentTeam.passes <= 0}
+                  className="h-10 px-5 text-sm font-semibold rounded-xl"
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Pass Turn ({currentTeam.passes} left)
+                </Button>
+              </div>
             </div>
           </div>
         );
-    case "judged":
+      case "judged":
         return (
-            <div className="text-center w-full max-w-4xl flex flex-col items-center gap-8">
-                <Alert variant={judgement?.correct ? "default" : "destructive"} className={cn(
-                    "border-4 rounded-[3rem] shadow-2xl animate-in fade-in zoom-in duration-300",
-                    isFullscreen ? "p-16" : "",
-                    judgement?.correct
-                        ? "bg-green-500/20 border-green-500/50 text-foreground"
-                        : "bg-red-500/20 border-red-500/50 text-foreground"
-                )}>
-                    {judgement?.correct ? <CheckCircle className={cn(isFullscreen ? "h-16 w-16" : "h-6 w-6")} /> : <XCircle className={cn(isFullscreen ? "h-16 w-16" : "h-6 w-6")} />}
-                    <AlertTitle className={cn("font-black tracking-tight uppercase mb-4", isFullscreen ? "text-5xl" : "text-xl")}>{judgement?.message}</AlertTitle>
-                    <AlertDescription className={cn(isFullscreen ? "text-3xl leading-relaxed" : "text-lg")}>
-                        {!exercise?.isCorrect && <p className="mt-4 border-t-2 border-current/10 pt-4"><strong>Correction Intelligence:</strong> {exercise?.explanation}</p>}
-                    </AlertDescription>
-                </Alert>
-                <Button onClick={handleNext} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                    {round >= settings.numSentences ? "Finish Session" : "Next Round"}
-                </Button>
-            </div>
+          <div className="text-center w-full max-w-3xl mx-auto flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
+            <Alert
+              variant={judgement?.correct ? "default" : "destructive"}
+              className={cn(
+                "border-2 md:border-4 rounded-2xl md:rounded-3xl shadow-2xl p-6 md:p-8 text-left",
+                judgement?.correct
+                  ? "bg-green-500/10 border-green-500/50 text-foreground"
+                  : "bg-red-500/10 border-red-500/50 text-foreground"
+              )}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                {judgement?.correct ? (
+                  <CheckCircle className="h-8 w-8 text-green-500 shrink-0" />
+                ) : (
+                  <XCircle className="h-8 w-8 text-red-500 shrink-0" />
+                )}
+                <AlertTitle className="text-xl md:text-2xl font-black uppercase tracking-tight m-0">
+                  {judgement?.message}
+                </AlertTitle>
+              </div>
+              <AlertDescription className="text-base md:text-lg">
+                {!exercise?.isCorrect && (
+                  <p className="mt-3 border-t border-border/30 pt-3">
+                    <strong className="text-primary">Correction Intelligence:</strong> {exercise?.explanation}
+                  </p>
+                )}
+              </AlertDescription>
+            </Alert>
+            <Button
+              onClick={handleNext}
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl h-14 px-10 text-lg md:text-xl rounded-2xl"
+            >
+              {round >= settings.numSentences ? "Finish Session" : "Next Round"}
+            </Button>
+          </div>
         );
       case "event":
           const isGive = randomEvent?.type === 'give';
@@ -398,58 +436,103 @@ export function AuctionAction({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   const Icon = game.icon;
+  const isPlaying = gameState !== "idle" && gameState !== "setup" && gameState !== "instructions";
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full transition-all duration-300 flex flex-col",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-start p-4 sm:p-6 md:p-8" 
             : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
-      <CardHeader className="text-center relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
-          onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
-        </Button>
-        {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
+      {/* Top Header: Compact HUD during gameplay or fullscreen mode; Standard centered banner during setup/idle */}
+      {isFullscreen || isPlaying ? (
+        <div className="w-full max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 pb-3 mb-2 border-b border-border/40 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-        )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
-        <div className="flex justify-center pt-2">
-            <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{game.level.toUpperCase()}</Badge>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg md:text-xl font-black uppercase tracking-tight text-foreground">
+                  {game.title}
+                </h2>
+                <Badge variant="outline" className="text-[10px] sm:text-xs font-bold uppercase border-primary/40 text-primary px-2 py-0">
+                  {game.level}
+                </Badge>
+                {isPlaying && (
+                  <Badge variant="secondary" className="text-[10px] sm:text-xs font-bold px-2 py-0">
+                    Round {round} / {settings.numSentences}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground hidden md:block">
+                {game.description}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {gameState !== "idle" && gameState !== "setup" && (
+              <Button variant="ghost" size="sm" onClick={resetGame} className="text-xs h-8 sm:h-9 px-2.5 sm:px-3 gap-1 text-muted-foreground hover:text-foreground">
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Reset</span>
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 font-bold text-xs"
+              onClick={onToggleFullscreen}
+            >
+              {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize className="h-3.5 w-3.5" />}
+              <span className="uppercase">{isFullscreen ? "Exit Full" : "Fullscreen"}</span>
+            </Button>
+          </div>
         </div>
-      </CardHeader>
+      ) : (
+        <CardHeader className="text-center relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
+          </Button>
+          <div className="flex justify-center mb-3">
+            <Icon className="w-14 h-14 text-primary" />
+          </div>
+          <CardTitle className="font-black tracking-tight uppercase text-3xl md:text-4xl">{game.title}</CardTitle>
+          <CardDescription className="text-base md:text-lg max-w-xl mx-auto">{game.description}</CardDescription>
+          <div className="flex justify-center pt-2">
+            <Badge variant="outline" className="text-sm px-4 py-0.5">{game.level.toUpperCase()}</Badge>
+          </div>
+        </CardHeader>
+      )}
+
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[28rem] p-6"
+          "w-full max-w-5xl mx-auto flex flex-col items-center justify-start flex-1 gap-4 sm:gap-6",
+          isFullscreen ? "p-0 pt-2" : "p-6 pt-0 min-h-[24rem]"
       )}>
-        {(gameState !== 'setup' && gameState !== 'finished' && gameState !== 'instructions' && gameState !== 'idle') && (
+        {isPlaying && (
             <div className={cn(
-                "w-full grid gap-4 mb-10",
+                "w-full grid gap-3 md:gap-4 my-2",
                 teams.length === 2 && "grid-cols-2",
                 teams.length === 3 && "grid-cols-3",
-                teams.length >= 4 && "grid-cols-4",
-                isFullscreen && "max-w-5xl"
+                teams.length >= 4 && "grid-cols-2 sm:grid-cols-4"
             )}>
                 {teams.map((team, index) => (
                      <div key={index} className={cn(
-                         "p-4 rounded-2xl border-4 transition-all duration-300",
-                         turn === index && gameState === 'turn' 
-                            ? "border-primary bg-primary/10 scale-105 shadow-lg shadow-primary/20" 
-                            : "border-transparent bg-muted/50 opacity-70",
-                         isFullscreen && "p-6"
+                         "p-3.5 sm:p-4 md:p-5 rounded-2xl border-2 transition-all duration-300",
+                         turn === index && gameState === "turn" 
+                            ? "border-primary bg-primary/10 shadow-lg shadow-primary/20 scale-[1.02]" 
+                            : "border-border/40 bg-muted/30 opacity-75"
                      )}>
-                        <p className={cn("truncate font-black uppercase tracking-widest", isFullscreen ? "text-2xl" : "text-sm")}>{team.name}</p>
-                        <p className={cn("text-primary font-black", isFullscreen ? "text-4xl" : "text-xl")}>${team.money}</p>
-                        <p className={cn("text-muted-foreground italic", isFullscreen ? "text-lg" : "text-xs")}>{team.passes} passes left</p>
+                        <p className="truncate font-black uppercase tracking-wider text-xs md:text-sm text-muted-foreground">{team.name}</p>
+                        <p className="text-primary font-black text-2xl sm:text-3xl my-0.5">${team.money}</p>
+                        <p className="text-muted-foreground/80 italic text-[11px] md:text-xs">{team.passes} passes left</p>
                     </div>
                 ))}
             </div>
@@ -458,12 +541,19 @@ export function AuctionAction({ slug, onToggleFullscreen }: { slug: string; onTo
             {renderContent()}
         </div>
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+
+      <CardFooter className={cn(
+        "flex justify-between items-center gap-4 pt-4 max-w-5xl mx-auto w-full",
+        isFullscreen ? "p-0 pt-4" : "p-6 pt-0"
+      )}>
+        <Button variant="outline" asChild size="default" className="rounded-xl font-bold">
             <Link href="/games">Back to Library</Link>
         </Button>
-        {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'setup' && (
-            <Button variant="secondary" onClick={resetGame} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>Reset Session</Button>
+        {isPlaying && (
+            <Button variant="secondary" onClick={resetGame} size="default" className="rounded-xl font-bold">
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Reset Session
+            </Button>
         )}
       </CardFooter>
     </Card>
