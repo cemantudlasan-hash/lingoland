@@ -56,6 +56,7 @@ export const gameComponentMap = {
   "world-tour-wheel": dynamic(() => import("@/components/games/world-tour-wheel").then((mod) => mod.WorldTourWheel)),
   "hangman-challenge": dynamic(() => import("@/components/games/hangman-challenge").then((mod) => mod.HangmanChallenge)),
   "bingo-boost": dynamic(() => import("@/components/games/bingo-boost").then((mod) => mod.BingoBoost)),
+  "bingo-2": dynamic(() => import("@/components/games/bingo-2").then((mod) => mod.Bingo2)),
   "arena-showdown-math": dynamic(() => import("@/components/games/arena-showdown").then((mod) => mod.ArenaShowdown)),
   "arena-showdown-science": dynamic(() => import("@/components/games/arena-showdown").then((mod) => mod.ArenaShowdown)),
   "arena-showdown-english": dynamic(() => import("@/components/games/arena-showdown").then((mod) => mod.ArenaShowdown)),

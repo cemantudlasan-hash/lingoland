@@ -239,6 +239,15 @@ export const allGames: Game[] = [
     icon: Star,
   },
   {
+    title: "Bingo 2",
+    slug: "bingo-2",
+    description: "Interactive Vocabulary Bingo! Teacher draws Mystery Words while students mark 3x3 or 5x5 cards to claim BINGO.",
+    level: "beginner",
+    focus: "vocabulary",
+    subject: "english",
+    icon: LayoutGrid,
+  },
+  {
     title: "Charades Challenge",
     slug: "charades-challenge",
     description: "Act out the prompt for your friends to guess.",
