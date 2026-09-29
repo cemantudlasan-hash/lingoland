@@ -65,7 +65,13 @@ import {
   Maximize2,
   Scan,
   RotateCcw,
-  Move
+  Move,
+  PenTool,
+  Highlighter,
+  Eraser,
+  Undo2,
+  Palette,
+  Check
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -249,7 +255,301 @@ interface ActivePresentationSession {
   activeDbId: string | null;
   coveredTexts?: { [slideIndex: number]: string[] };
   revealedTexts?: { [slideIndex: number]: string[] };
+  slideDrawings?: { [slideIndex: number]: DrawingStroke[] };
   savedAt: string;
+}
+
+export interface DrawingPoint {
+  x: number; // 0..1 normalized
+  y: number; // 0..1 normalized
+}
+
+export interface DrawingStroke {
+  points: DrawingPoint[];
+  tool: 'pen' | 'highlighter' | 'eraser';
+  color: string;
+  size: number;
+}
+
+const MARKER_COLORS = [
+  { name: 'Red', hex: '#ef4444' },
+  { name: 'Yellow', hex: '#facc15' },
+  { name: 'Green', hex: '#22c55e' },
+  { name: 'Cyan', hex: '#06b6d4' },
+  { name: 'Purple', hex: '#a855f7' },
+  { name: 'Pink', hex: '#ec4899' },
+  { name: 'Orange', hex: '#f97316' },
+  { name: 'White', hex: '#ffffff' },
+  { name: 'Black', hex: '#0f172a' },
+];
+
+const MARKER_THICKNESSES = [
+  { label: 'Fine', value: 3, dotSize: 'w-1.5 h-1.5' },
+  { label: 'Medium', value: 6, dotSize: 'w-2.5 h-2.5' },
+  { label: 'Thick', value: 12, dotSize: 'w-3.5 h-3.5' },
+  { label: 'Marker', value: 24, dotSize: 'w-5 h-5' },
+];
+
+interface SlideAnnotationCanvasProps {
+  slideIndex: number;
+  isActive: boolean;
+  tool: 'pen' | 'highlighter' | 'eraser';
+  color: string;
+  size: number;
+  strokes: DrawingStroke[];
+  onAddStroke: (stroke: DrawingStroke) => void;
+}
+
+function SlideAnnotationCanvas({
+  slideIndex,
+  isActive,
+  tool,
+  color,
+  size,
+  strokes,
+  onAddStroke,
+}: SlideAnnotationCanvasProps) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const isDrawingRef = React.useRef(false);
+  const currentPointsRef = React.useRef<DrawingPoint[]>([]);
+
+  // Redraw all committed strokes on the canvas
+  const renderStrokes = React.useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
+    const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+    const targetW = Math.round(rect.width * dpr);
+    const targetH = Math.round(rect.height * dpr);
+
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW;
+      canvas.height = targetH;
+    }
+
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    const w = rect.width;
+    const h = rect.height;
+
+    strokes.forEach((stroke) => {
+      const pts = stroke.points;
+      if (!pts || pts.length === 0) return;
+
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (stroke.tool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = stroke.size;
+        ctx.strokeStyle = '#000000';
+      } else if (stroke.tool === 'highlighter') {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 0.45;
+        ctx.strokeStyle = stroke.color;
+        ctx.lineWidth = stroke.size * 2.2;
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1.0;
+        ctx.strokeStyle = stroke.color;
+        ctx.lineWidth = stroke.size;
+      }
+
+      ctx.beginPath();
+      const startX = pts[0].x * w;
+      const startY = pts[0].y * h;
+      ctx.moveTo(startX, startY);
+
+      if (pts.length === 1) {
+        ctx.arc(startX, startY, (stroke.tool === 'highlighter' ? stroke.size * 1.1 : stroke.size) / 2, 0, Math.PI * 2);
+        ctx.fillStyle = stroke.tool === 'eraser' ? '#000000' : stroke.color;
+        ctx.fill();
+      } else {
+        for (let i = 1; i < pts.length; i++) {
+          const midX = ((pts[i - 1].x + pts[i].x) / 2) * w;
+          const midY = ((pts[i - 1].y + pts[i].y) / 2) * h;
+          ctx.quadraticCurveTo(pts[i - 1].x * w, pts[i - 1].y * h, midX, midY);
+        }
+        ctx.lineTo(pts[pts.length - 1].x * w, pts[pts.length - 1].y * h);
+        ctx.stroke();
+      }
+      ctx.restore();
+    });
+  }, [strokes]);
+
+  // Sync canvas size on mount, resize, and when strokes change
+  React.useEffect(() => {
+    renderStrokes();
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        renderStrokes();
+      });
+      resizeObserver.observe(canvas);
+    }
+
+    return () => {
+      if (resizeObserver) resizeObserver.disconnect();
+    };
+  }, [renderStrokes]);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isActive) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    try {
+      canvas.setPointerCapture(e.pointerId);
+    } catch (_) {}
+    isDrawingRef.current = true;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+
+    currentPointsRef.current = [{ x, y }];
+
+    // Draw single dot immediately
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+      ctx.save();
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (tool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x * rect.width, y * rect.height, size / 2, 0, Math.PI * 2);
+        ctx.fillStyle = '#000000';
+        ctx.fill();
+      } else if (tool === 'highlighter') {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 0.45;
+        ctx.beginPath();
+        ctx.arc(x * rect.width, y * rect.height, (size * 2.2) / 2, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1.0;
+        ctx.beginPath();
+        ctx.arc(x * rect.width, y * rect.height, size / 2, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isActive || !isDrawingRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+
+    const pts = currentPointsRef.current;
+    pts.push({ x, y });
+
+    // Draw segment in real-time
+    const ctx = canvas.getContext('2d');
+    if (ctx && pts.length >= 2) {
+      const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+      ctx.save();
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (tool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = size;
+        ctx.strokeStyle = '#000000';
+      } else if (tool === 'highlighter') {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 0.45;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = size * 2.2;
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1.0;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = size;
+      }
+
+      ctx.beginPath();
+      const prevPt = pts[pts.length - 2];
+      ctx.moveTo(prevPt.x * rect.width, prevPt.y * rect.height);
+      ctx.lineTo(x * rect.width, y * rect.height);
+      ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+  const handlePointerUpOrCancel = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!isActive || !isDrawingRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      try {
+        if (canvas.hasPointerCapture(e.pointerId)) {
+          canvas.releasePointerCapture(e.pointerId);
+        }
+      } catch (_) {}
+    }
+    isDrawingRef.current = false;
+
+    if (currentPointsRef.current.length > 0) {
+      onAddStroke({
+        points: [...currentPointsRef.current],
+        tool,
+        color,
+        size,
+      });
+      currentPointsRef.current = [];
+    }
+  };
+
+  return (
+    <canvas
+      ref={canvasRef}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUpOrCancel}
+      onPointerCancel={handlePointerUpOrCancel}
+      className={cn(
+        "absolute inset-0 w-full h-full z-15 touch-none select-none rounded-xl",
+        isActive
+          ? "cursor-crosshair pointer-events-auto"
+          : "pointer-events-none"
+      )}
+    />
+  );
 }
 
 export function PresentationForm() {
@@ -358,7 +658,31 @@ export function PresentationForm() {
   const [isDraggingSlide, setIsDraggingSlide] = React.useState(false);
   const slideDragStartRef = React.useRef<{ x: number; y: number; panX: number; panY: number; index: number }>({ x: 0, y: 0, panX: 0, panY: 0, index: 0 });
 
+  // Digital Marker / Pen Whiteboard states
+  const [activeDrawSlideIndex, setActiveDrawSlideIndex] = React.useState<number | null>(null);
+  const [drawingTool, setDrawingTool] = React.useState<'pen' | 'highlighter' | 'eraser'>('pen');
+  const [drawingColor, setDrawingColor] = React.useState<string>('#ef4444');
+  const [drawingThickness, setDrawingThickness] = React.useState<number>(6);
+  const [slideDrawings, setSlideDrawings] = React.useState<{ [key: number]: DrawingStroke[] }>({});
+
+  const handleUndoDrawing = (slideIdx: number) => {
+    setSlideDrawings(prev => {
+      const list = prev[slideIdx] || [];
+      if (list.length === 0) return prev;
+      return { ...prev, [slideIdx]: list.slice(0, -1) };
+    });
+  };
+
+  const handleClearDrawings = (slideIdx: number) => {
+    setSlideDrawings(prev => ({ ...prev, [slideIdx]: [] }));
+    toast({
+      title: "Annotations Cleared 🧹",
+      description: `All marker annotations on Slide ${slideIdx + 1} were erased.`
+    });
+  };
+
   const handleSlideImageMouseDown = (index: number, e: React.MouseEvent) => {
+    if (activeDrawSlideIndex === index) return;
     const currentZoom = slideImageZooms[index] || 1;
     if (currentZoom <= 1) return;
     e.preventDefault();
@@ -396,6 +720,7 @@ export function PresentationForm() {
   };
 
   const handleSlideImageTouchStart = (index: number, e: React.TouchEvent) => {
+    if (activeDrawSlideIndex === index) return;
     const currentZoom = slideImageZooms[index] || 1;
     if (currentZoom <= 1 || e.touches.length !== 1) return;
     const touch = e.touches[0];
@@ -411,7 +736,7 @@ export function PresentationForm() {
   };
 
   const handleSlideImageTouchMove = (index: number, e: React.TouchEvent) => {
-    if (!isDraggingSlide || slideDragStartRef.current.index !== index || e.touches.length !== 1) return;
+    if (activeDrawSlideIndex === index || !isDraggingSlide || slideDragStartRef.current.index !== index || e.touches.length !== 1) return;
     const touch = e.touches[0];
     const dx = touch.clientX - slideDragStartRef.current.x;
     const dy = touch.clientY - slideDragStartRef.current.y;
@@ -425,6 +750,7 @@ export function PresentationForm() {
   };
 
   const handleSlideImageWheel = (index: number, e: React.WheelEvent) => {
+    if (activeDrawSlideIndex === index) return;
     if (e.ctrlKey || e.metaKey || e.altKey) {
       e.preventDefault();
       e.stopPropagation();
@@ -567,14 +893,19 @@ export function PresentationForm() {
     if (pres.fontSize) setFontSize(pres.fontSize);
     if (pres.align) setAlign(pres.align);
 
-    // Restore saved slide photos
+    // Restore saved slide photos & drawings
     const photos: { [key: number]: string } = {};
+    const drawings: { [key: number]: DrawingStroke[] } = {};
     pres.slides.forEach((slide: any, idx: number) => {
       if (slide.photoUrl) {
         photos[idx] = slide.photoUrl;
       }
+      if (slide.drawings && Array.isArray(slide.drawings)) {
+        drawings[idx] = slide.drawings;
+      }
     });
     setSlidePhotos(photos);
+    setSlideDrawings(drawings);
 
     setIsEditMode(false);
 
@@ -594,11 +925,12 @@ export function PresentationForm() {
 
     try {
       const baseSlides = isEditMode ? editableSlides : presentation.slides;
-      // Inject slide-specific photos and 3D object styles
+      // Inject slide-specific photos, 3D object styles, and digital marker drawings
       const slidesData = baseSlides.map((slide, idx) => ({
         ...slide,
         photoUrl: slidePhotos[idx] || (slide as any).photoUrl || undefined,
-        threeDObjectStyle: (slide as any).threeDObjectStyle || (slide as any).threeDObjectStyle || undefined,
+        threeDObjectStyle: (slide as any).threeDObjectStyle || undefined,
+        drawings: slideDrawings[idx] || (slide as any).drawings || undefined,
       }));
       const titleData = isEditMode ? editableTitle : presentation.title;
 
@@ -2251,7 +2583,7 @@ export function PresentationForm() {
                             opacity: index === (current - 1) ? 1 : 0.35,
                             transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
                           } : undefined}
-                          onClick={(isFullscreen || isEditMode) ? undefined : handleRevealNextWord}
+                          onClick={(isFullscreen || isEditMode || activeDrawSlideIndex !== null) ? undefined : handleRevealNextWord}
                         >
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
@@ -2428,25 +2760,45 @@ export function PresentationForm() {
                                           "w-full h-full flex items-center justify-center overflow-hidden transition-all",
                                           slideImageFitModes[index] === 'cover' ? "p-0" : "p-3 sm:p-5 md:p-6"
                                         )}>
-                                          <img 
-                                            src={slidePhotos[index] || (slide as any).photoUrl} 
-                                            alt={slide.title} 
-                                            onError={() => {
-                                              setBrokenSlideImages(prev => ({ ...prev, [index]: true }));
-                                            }}
-                                            className={cn(
-                                              "max-w-full max-h-full object-contain select-none transition-all duration-200 pointer-events-auto rounded-xl drop-shadow-md",
-                                              slideImageFitModes[index] === 'cover' && "!w-full !h-full !max-w-none !max-h-none !object-cover !rounded-none",
-                                              slideImageFitModes[index] === 'fill' && "!w-full !h-full !max-w-none !max-h-none object-fill",
-                                              (slideImageZooms[index] || 1) > 1 ? (isDraggingSlide ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
-                                            )}
+                                          <div 
+                                            className="relative flex items-center justify-center max-w-full max-h-full"
                                             style={{
                                               transform: `translate(${slideImagePans[index]?.x || 0}px, ${slideImagePans[index]?.y || 0}px) scale(${slideImageZooms[index] || 1})`,
                                               transformOrigin: "center center",
                                               transition: isDraggingSlide ? "none" : "transform 0.15s ease-out"
                                             }}
-                                            draggable={false}
-                                          />
+                                          >
+                                            <img 
+                                              src={slidePhotos[index] || (slide as any).photoUrl} 
+                                              alt={slide.title} 
+                                              onError={() => {
+                                                setBrokenSlideImages(prev => ({ ...prev, [index]: true }));
+                                              }}
+                                              className={cn(
+                                                "max-w-full max-h-full object-contain select-none transition-all duration-200 pointer-events-auto rounded-xl drop-shadow-md block",
+                                                slideImageFitModes[index] === 'cover' && "!w-full !h-full !max-w-none !max-h-none !object-cover !rounded-none",
+                                                slideImageFitModes[index] === 'fill' && "!w-full !h-full !max-w-none !max-h-none object-fill",
+                                                (slideImageZooms[index] || 1) > 1 && activeDrawSlideIndex !== index ? (isDraggingSlide ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
+                                              )}
+                                              draggable={false}
+                                            />
+
+                                            {/* Digital Annotation Canvas Overlay */}
+                                            <SlideAnnotationCanvas
+                                              slideIndex={index}
+                                              isActive={activeDrawSlideIndex === index}
+                                              tool={drawingTool}
+                                              color={drawingColor}
+                                              size={drawingThickness}
+                                              strokes={slideDrawings[index] || []}
+                                              onAddStroke={(newStroke) => {
+                                                setSlideDrawings(prev => ({
+                                                  ...prev,
+                                                  [index]: [...(prev[index] || []), newStroke]
+                                                }));
+                                              }}
+                                            />
+                                          </div>
                                         </div>
 
                                         {/* Top Controls Overlay (Fit Mode, Expand Lightbox, Regenerate & Side Search) */}
@@ -2492,6 +2844,29 @@ export function PresentationForm() {
                                           </div>
 
                                           <div className="flex items-center gap-1.5">
+                                            {/* Digital Marker / Pen Button */}
+                                            <Button
+                                              size="sm"
+                                              variant={activeDrawSlideIndex === index ? "default" : "secondary"}
+                                              title="Digital Pen & Marker - Draw or write directly on this picture"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setActiveDrawSlideIndex(prev => prev === index ? null : index);
+                                              }}
+                                              className={cn(
+                                                "h-7 px-2.5 text-[10px] font-bold rounded-lg backdrop-blur-md border shadow-md flex items-center gap-1.5 transition-all",
+                                                activeDrawSlideIndex === index
+                                                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.5)]"
+                                                  : "bg-black/75 hover:bg-black/95 text-white border-white/15"
+                                              )}
+                                            >
+                                              <PenTool className="h-3.5 w-3.5 text-amber-300" />
+                                              <span>{activeDrawSlideIndex === index ? "Drawing..." : "Draw / Pen"}</span>
+                                              {slideDrawings[index] && slideDrawings[index].length > 0 && (
+                                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse ml-0.5" />
+                                              )}
+                                            </Button>
+
                                             {/* Expand / Detailed Full View */}
                                             <Button
                                               size="icon"
@@ -2539,6 +2914,158 @@ export function PresentationForm() {
                                             </Button>
                                           </div>
                                         </div>
+
+                                        {/* Floating Digital Whiteboard & Marker Toolbar */}
+                                        {activeDrawSlideIndex === index && (
+                                          <div 
+                                            className="absolute top-12 sm:top-14 inset-x-2 sm:inset-x-4 z-30 flex flex-wrap items-center justify-between gap-2 p-2 sm:p-2.5 rounded-2xl bg-slate-950/95 border border-purple-500/40 shadow-[0_15px_35px_rgba(0,0,0,0.8)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200 pointer-events-auto select-none"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            {/* Tools Selector (Pen, Highlighter, Eraser) */}
+                                            <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10">
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setDrawingTool('pen')}
+                                                className={cn(
+                                                  "h-7 px-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5",
+                                                  drawingTool === 'pen'
+                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                                                )}
+                                                title="Solid Ink Pen"
+                                              >
+                                                <PenTool className="h-3.5 w-3.5 text-amber-300" />
+                                                <span className="hidden sm:inline">Pen</span>
+                                              </Button>
+
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setDrawingTool('highlighter')}
+                                                className={cn(
+                                                  "h-7 px-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5",
+                                                  drawingTool === 'highlighter'
+                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                                                )}
+                                                title="Highlighter Marker (Translucent)"
+                                              >
+                                                <Highlighter className="h-3.5 w-3.5 text-yellow-300" />
+                                                <span className="hidden sm:inline">Marker</span>
+                                              </Button>
+
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setDrawingTool('eraser')}
+                                                className={cn(
+                                                  "h-7 px-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5",
+                                                  drawingTool === 'eraser'
+                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                                                )}
+                                                title="Precision Eraser (Freehand)"
+                                              >
+                                                <Eraser className="h-3.5 w-3.5 text-rose-300" />
+                                                <span className="hidden sm:inline">Eraser</span>
+                                              </Button>
+                                            </div>
+
+                                            {/* Color Palette (dimmed when eraser is active) */}
+                                            <div className={cn(
+                                              "flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10 transition-opacity",
+                                              drawingTool === 'eraser' && "opacity-40 pointer-events-none"
+                                            )}>
+                                              {MARKER_COLORS.map((c) => (
+                                                <button
+                                                  key={c.hex}
+                                                  type="button"
+                                                  onClick={() => { setDrawingColor(c.hex); if (drawingTool === 'eraser') setDrawingTool('pen'); }}
+                                                  title={c.name}
+                                                  className={cn(
+                                                    "w-5 h-5 sm:w-6 sm:h-6 rounded-full border transition-all transform hover:scale-110",
+                                                    drawingColor === c.hex
+                                                      ? "ring-2 ring-purple-400 ring-offset-1 ring-offset-black scale-110 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                                                      : "border-black/50 opacity-80 hover:opacity-100"
+                                                  )}
+                                                  style={{ backgroundColor: c.hex }}
+                                                />
+                                              ))}
+
+                                              {/* Custom Color Input */}
+                                              <label className="relative cursor-pointer w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 border border-white/40 flex items-center justify-center hover:scale-110 transition-transform">
+                                                <input 
+                                                  type="color" 
+                                                  value={drawingColor} 
+                                                  onChange={(e) => { setDrawingColor(e.target.value); if (drawingTool === 'eraser') setDrawingTool('pen'); }} 
+                                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                                  title="Pick Custom Color"
+                                                />
+                                                <Palette className="h-2.5 w-2.5 text-white drop-shadow" />
+                                              </label>
+                                            </div>
+
+                                            {/* Thickness Selector */}
+                                            <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10">
+                                              {MARKER_THICKNESSES.map((t) => (
+                                                <button
+                                                  key={t.value}
+                                                  type="button"
+                                                  onClick={() => setDrawingThickness(t.value)}
+                                                  title={`Thickness: ${t.label} (${t.value}px)`}
+                                                  className={cn(
+                                                    "h-6 px-1.5 sm:px-2 rounded-lg flex items-center gap-1 text-[10px] font-bold transition-all",
+                                                    drawingThickness === t.value
+                                                      ? "bg-purple-600 text-white shadow"
+                                                      : "text-slate-400 hover:text-white hover:bg-white/10"
+                                                  )}
+                                                >
+                                                  <span 
+                                                    className={cn("rounded-full", t.dotSize)} 
+                                                    style={{ backgroundColor: drawingTool === 'eraser' ? '#ffffff' : drawingColor }} 
+                                                  />
+                                                  <span className="hidden md:inline">{t.label}</span>
+                                                </button>
+                                              ))}
+                                            </div>
+
+                                            {/* Actions (Undo, Clear, Done) */}
+                                            <div className="flex items-center gap-1 ml-auto">
+                                              <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                onClick={() => handleUndoDrawing(index)}
+                                                disabled={!slideDrawings[index] || slideDrawings[index].length === 0}
+                                                className="h-7 w-7 text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 rounded-lg"
+                                                title="Undo last stroke"
+                                              >
+                                                <Undo2 className="h-3.5 w-3.5" />
+                                              </Button>
+
+                                              <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                onClick={() => handleClearDrawings(index)}
+                                                disabled={!slideDrawings[index] || slideDrawings[index].length === 0}
+                                                className="h-7 w-7 text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 disabled:opacity-30 rounded-lg"
+                                                title="Clear all drawings on this slide"
+                                              >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                              </Button>
+
+                                              <Button
+                                                size="sm"
+                                                onClick={() => setActiveDrawSlideIndex(null)}
+                                                className="h-7 px-3 text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md transition-all ml-1 flex items-center gap-1"
+                                                title="Finished drawing / Hide toolbar"
+                                              >
+                                                <Check className="h-3.5 w-3.5" />
+                                                <span>Done</span>
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        )}
 
                                         {/* Bottom Controls Overlay: Zoom In, Zoom Out, Reset, and Pan Nudge */}
                                         <div className="absolute bottom-2.5 inset-x-2.5 z-20 flex items-center justify-between pointer-events-auto">
