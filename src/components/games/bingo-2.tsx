@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { createPortal, flushSync } from "react-dom";
+import { useRouter } from "next/navigation";
 import { getGameBySlug } from "@/lib/games";
 import {
   Card,
@@ -44,6 +45,8 @@ import {
   Info,
   Layers,
   Award,
+  LogOut,
+  Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -97,6 +100,49 @@ export type BingoEvent =
   | { type: "WORD_DRAWN"; word: VocabItem; remainingCount: number; timestamp: number }
   | { type: "GAME_RESET"; category: string; gridSize: GridSize; timestamp: number }
   | { type: "STUDENT_BINGO"; studentName: string; lineLabel: string; timestamp: number };
+
+export const BINGO2_STORAGE_KEY = "lingoland_bingo2_active_session_v1";
+
+export interface Bingo2SavedSession {
+  version: 1;
+  roomCode: string;
+  gridSize: GridSize;
+  selectedCategory: string;
+  viewMode: GameViewMode;
+  drawSpeed: DrawSpeed;
+  isMuted: boolean;
+  allowFreePlay: boolean;
+  drawnWords: VocabItem[];
+  currentMysteryWord: VocabItem | null;
+  studentCard: BingoCell[][];
+  winningLines: WinningLine[];
+  celebrationDetails: {
+    lineLabel: string;
+    drawCount: number;
+    xpEarned: number;
+    coinsEarned: number;
+  } | null;
+  showWinCelebration: boolean;
+  printData: {
+    categoryTitle: string;
+    gridSize: GridSize;
+    studentCount: number;
+    winnerIndices: number[];
+    targetWinningWords: VocabItem[];
+    allWords: VocabItem[];
+    cards: {
+      cardIndex: number;
+      isWinner: boolean;
+      cells: { word: string; emoji?: string; isFree?: boolean }[][];
+    }[];
+    cardsPerPage: 1 | 2;
+    includeKey: boolean;
+  } | null;
+  studentCountInput: number;
+  cardsPerPage: 1 | 2;
+  includeCallSheet: boolean;
+  lastUpdated: number;
+}
 
 // --- 50+ RICH VOCABULARY WORDS PER CATEGORY ---
 
@@ -613,6 +659,7 @@ export function Bingo2({
   slug?: string;
   onToggleFullscreen?: () => void;
 }) {
+  const router = useRouter();
   const { user } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -675,8 +722,22 @@ export function Bingo2({
   const [isPrinting, setIsPrinting] = React.useState<boolean>(false);
 
   // Classroom Live Room Code & Multiplayer Broadcast Channel
-  const [roomCode] = React.useState<string>(() => "BINGO-" + Math.floor(1000 + Math.random() * 9000));
+  const [roomCode, setRoomCode] = React.useState<string>(
+    () => "BINGO-" + Math.floor(1000 + Math.random() * 9000)
+  );
   const channelRef = React.useRef<BroadcastChannel | null>(null);
+
+  // Persistence & Dialog States
+  const [showEndGameConfirm, setShowEndGameConfirm] = React.useState<boolean>(false);
+  const [showExitGameConfirm, setShowExitGameConfirm] = React.useState<boolean>(false);
+  const [pendingOptionChange, setPendingOptionChange] = React.useState<{
+    type: "category" | "grid";
+    value: string | GridSize;
+  } | null>(null);
+  const [lastSavedTime, setLastSavedTime] = React.useState<number | null>(null);
+
+  const isSessionInitializedRef = React.useRef<boolean>(false);
+  const isRestoringRef = React.useRef<boolean>(false);
 
   // Sync Audio Synth Mute State
   React.useEffect(() => {
@@ -793,9 +854,122 @@ export function Bingo2({
     []
   );
 
+  // --- PERSISTENCE: RESTORE SESSION ON MOUNT ---
   React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = localStorage.getItem(BINGO2_STORAGE_KEY);
+      if (raw) {
+        const saved: Bingo2SavedSession = JSON.parse(raw);
+        if (saved && Array.isArray(saved.studentCard) && saved.studentCard.length > 0) {
+          isRestoringRef.current = true;
+          if (saved.roomCode) setRoomCode(saved.roomCode);
+          if (saved.gridSize) setGridSize(saved.gridSize);
+          if (saved.selectedCategory && VOCAB_CATEGORIES[saved.selectedCategory]) {
+            setSelectedCategory(saved.selectedCategory);
+          }
+          if (saved.viewMode) setViewMode(saved.viewMode);
+          if (saved.drawSpeed) setDrawSpeed(saved.drawSpeed);
+          if (typeof saved.isMuted === "boolean") setIsMuted(saved.isMuted);
+          if (typeof saved.allowFreePlay === "boolean") setAllowFreePlay(saved.allowFreePlay);
+          if (Array.isArray(saved.drawnWords)) setDrawnWords(saved.drawnWords);
+          if (saved.currentMysteryWord !== undefined) setCurrentMysteryWord(saved.currentMysteryWord);
+          setStudentCard(saved.studentCard);
+          if (Array.isArray(saved.winningLines)) setWinningLines(saved.winningLines);
+          if (saved.celebrationDetails !== undefined) setCelebrationDetails(saved.celebrationDetails);
+          if (typeof saved.showWinCelebration === "boolean") setShowWinCelebration(saved.showWinCelebration);
+          if (saved.studentCountInput) setStudentCountInput(saved.studentCountInput);
+          if (saved.cardsPerPage) setCardsPerPage(saved.cardsPerPage);
+          if (typeof saved.includeCallSheet === "boolean") setIncludeCallSheet(saved.includeCallSheet);
+
+          if (saved.printData) {
+            setPrintData({
+              ...saved.printData,
+              winnerIndices: new Set(saved.printData.winnerIndices || []),
+            });
+          }
+
+          setLastSavedTime(saved.lastUpdated || Date.now());
+          isSessionInitializedRef.current = true;
+          setTimeout(() => {
+            isRestoringRef.current = false;
+          }, 60);
+
+          toast({
+            title: "Game Restored 💾",
+            description: `Resumed your active Bingo round (${saved.drawnWords?.length || 0} words called).`,
+            className: "bg-slate-900 text-slate-100 border-indigo-500/50",
+          });
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load saved Bingo 2 session:", e);
+    }
+
+    // If no existing session found, initialize fresh board
     generateStudentBoard(gridSize, selectedCategory);
-  }, [gridSize, selectedCategory, generateStudentBoard]);
+    isSessionInitializedRef.current = true;
+  }, [generateStudentBoard]);
+
+  // --- PERSISTENCE: AUTO-SAVE ON EVERY STATE CHANGE ---
+  React.useEffect(() => {
+    if (!isSessionInitializedRef.current || isRestoringRef.current) return;
+    if (typeof window === "undefined") return;
+    if (!studentCard || studentCard.length === 0) return;
+
+    try {
+      const session: Bingo2SavedSession = {
+        version: 1,
+        roomCode,
+        gridSize,
+        selectedCategory,
+        viewMode,
+        drawSpeed,
+        isMuted,
+        allowFreePlay,
+        drawnWords,
+        currentMysteryWord,
+        studentCard,
+        winningLines,
+        celebrationDetails,
+        showWinCelebration,
+        printData: printData
+          ? {
+              ...printData,
+              winnerIndices: Array.from(printData.winnerIndices),
+            }
+          : null,
+        studentCountInput,
+        cardsPerPage,
+        includeCallSheet,
+        lastUpdated: Date.now(),
+      };
+      localStorage.setItem(BINGO2_STORAGE_KEY, JSON.stringify(session));
+      setLastSavedTime(Date.now());
+    } catch (err) {
+      console.warn("Auto-save Bingo session error:", err);
+    }
+  }, [
+    roomCode,
+    gridSize,
+    selectedCategory,
+    viewMode,
+    drawSpeed,
+    isMuted,
+    allowFreePlay,
+    drawnWords,
+    currentMysteryWord,
+    studentCard,
+    winningLines,
+    celebrationDetails,
+    showWinCelebration,
+    printData,
+    studentCountInput,
+    cardsPerPage,
+    includeCallSheet,
+  ]);
 
   // --- WIN CONDITION CHECKER ---
   const checkForBingo = React.useCallback(
@@ -1074,24 +1248,94 @@ export function Bingo2({
     return () => clearInterval(timer);
   }, [isAutoDrawActive, autoDrawSeconds, drawMysteryWord]);
 
-  // Reset Game
-  const resetGame = () => {
+  // Check if a game is actively in progress (words drawn or marks placed by student)
+  const isGameInProgress =
+    drawnWords.length > 0 ||
+    studentCard.reduce((acc, row) => acc + row.filter((c) => c.marked && !c.isFree).length, 0) > 0;
+
+  // Explicitly End Game and start a new game round & fresh print sets
+  const handleEndGameAndStartNew = (newGrid?: GridSize, newCat?: string) => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(BINGO2_STORAGE_KEY);
+      } catch (e) {}
+    }
+
+    const targetGrid = newGrid ?? gridSize;
+    const targetCat = newCat ?? selectedCategory;
+
     setDrawnWords([]);
     setCurrentMysteryWord(null);
     setIsAutoDrawActive(false);
-    generateStudentBoard(gridSize, selectedCategory);
+    setWinningLines([]);
+    setShowWinCelebration(false);
+    setCelebrationDetails(null);
+    setPrintData(null); // Clear print set so fresh print sets can be made for new game
+    if (newGrid) setGridSize(newGrid);
+    if (newCat) setSelectedCategory(newCat);
+
+    generateStudentBoard(targetGrid, targetCat);
     audioSynth.playPop();
+
     broadcast({
       type: "GAME_RESET",
-      category: selectedCategory,
-      gridSize,
+      category: targetCat,
+      gridSize: targetGrid,
       timestamp: Date.now(),
     });
+
+    setShowEndGameConfirm(false);
+    setPendingOptionChange(null);
+
     toast({
-      title: "New Bingo Session Started",
-      description: "Word pool and student cards have been reshuffled!",
+      title: "New Game Started! 🎲",
+      description: "Previous session & print sets ended. Fresh vocabulary board ready.",
+      className: "bg-slate-900 text-slate-100 border-indigo-500/50",
     });
   };
+
+  // Exit Game back to games lobby
+  const handleExitGame = () => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(BINGO2_STORAGE_KEY);
+      } catch (e) {}
+    }
+    setShowExitGameConfirm(false);
+    toast({
+      title: "Exited Bingo 2",
+      description: "Session cleared. Returning to Games...",
+    });
+    router.push("/games");
+  };
+
+  const handleCategorySelect = (newCat: string) => {
+    if (newCat === selectedCategory) return;
+    if (isGameInProgress) {
+      setPendingOptionChange({ type: "category", value: newCat });
+      setShowEndGameConfirm(true);
+    } else {
+      setSelectedCategory(newCat);
+      setDrawnWords([]);
+      setCurrentMysteryWord(null);
+      setPrintData(null);
+      generateStudentBoard(gridSize, newCat);
+    }
+  };
+
+  const handleGridSizeSelect = (newSize: GridSize) => {
+    if (newSize === gridSize) return;
+    if (isGameInProgress) {
+      setPendingOptionChange({ type: "grid", value: newSize });
+      setShowEndGameConfirm(true);
+    } else {
+      setGridSize(newSize);
+      setPrintData(null);
+      generateStudentBoard(newSize, selectedCategory);
+    }
+  };
+
+  const resetGame = () => handleEndGameAndStartNew();
 
   const speakCurrentWord = () => {
     if (!currentMysteryWord || typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -1253,16 +1497,39 @@ export function Bingo2({
             </div>
           </div>
 
-          {/* Quick Print & Audio buttons for Mobile */}
+          {/* Quick Print, End & Exit buttons for Mobile */}
           <div className="flex items-center gap-1.5 md:hidden">
             <Button
               size="sm"
               variant="outline"
-              className="h-8 border-slate-800 text-xs text-slate-300"
+              className="h-8 border-slate-800 text-xs text-slate-300 px-2"
               onClick={() => setIsPrintModalOpen(true)}
+              title="Print Cards"
             >
               <Printer className="h-3.5 w-3.5 mr-1 text-indigo-400" />
               Print
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 border-amber-500/40 text-xs text-amber-300 px-2 hover:bg-amber-950/40"
+              onClick={() => {
+                setPendingOptionChange(null);
+                setShowEndGameConfirm(true);
+              }}
+              title="End Game"
+            >
+              <RotateCcw className="h-3.5 w-3.5 mr-1 text-amber-400" />
+              End
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-rose-400 hover:text-rose-300 hover:bg-rose-950/40"
+              onClick={() => setShowExitGameConfirm(true)}
+              title="Exit Game"
+            >
+              <LogOut className="h-3.5 w-3.5" />
             </Button>
             <Button
               size="icon"
@@ -1270,7 +1537,7 @@ export function Bingo2({
               className="h-8 w-8 text-slate-400 hover:text-white"
               onClick={() => setIsMuted(!isMuted)}
             >
-              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              {isMuted ? <VolumeX className="h-4 w-4 text-rose-400" /> : <Volume2 className="h-4 w-4 text-emerald-400" />}
             </Button>
           </div>
         </div>
@@ -1320,6 +1587,15 @@ export function Bingo2({
 
         {/* Action Tool Buttons */}
         <div className="hidden md:flex items-center gap-2">
+          {/* Auto-Saved Status Pill */}
+          <div
+            title="All game progress, called words, and print cards are automatically saved. It only resets when you press End Game or Exit Game."
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold select-none cursor-default shadow-sm"
+          >
+            <Save className="h-3 w-3 animate-pulse" />
+            <span>Auto-Saved</span>
+          </div>
+
           {/* Print Cards Generator Button */}
           <Button
             size="sm"
@@ -1327,17 +1603,32 @@ export function Bingo2({
             className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30"
           >
             <Printer className="h-3.5 w-3.5 mr-1.5" />
-            Print Student Cards (1-50)
+            {printData ? "Print Cards (Active Set)" : "Print Student Cards (1-50)"}
           </Button>
 
+          {/* End Game Button */}
           <Button
             size="sm"
             variant="outline"
-            onClick={resetGame}
-            className="border-slate-800 hover:bg-slate-800/80 text-xs font-bold text-slate-300"
+            onClick={() => {
+              setPendingOptionChange(null);
+              setShowEndGameConfirm(true);
+            }}
+            className="border-amber-500/40 hover:bg-amber-950/40 text-xs font-bold text-amber-300"
           >
-            <RotateCcw className="h-3.5 w-3.5 mr-1 text-slate-400" />
-            Reset Round
+            <RotateCcw className="h-3.5 w-3.5 mr-1 text-amber-400" />
+            End Game
+          </Button>
+
+          {/* Exit Game Button */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowExitGameConfirm(true)}
+            className="border-rose-500/30 hover:bg-rose-950/40 text-xs font-bold text-rose-300"
+          >
+            <LogOut className="h-3.5 w-3.5 mr-1 text-rose-400" />
+            Exit Game
           </Button>
 
           <Button
@@ -1548,12 +1839,7 @@ export function Bingo2({
                     </label>
                     <select
                       value={selectedCategory}
-                      onChange={(e) => {
-                        setSelectedCategory(e.target.value);
-                        setDrawnWords([]);
-                        setCurrentMysteryWord(null);
-                        generateStudentBoard(gridSize, e.target.value);
-                      }}
+                      onChange={(e) => handleCategorySelect(e.target.value)}
                       className="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-indigo-500"
                     >
                       {Object.entries(VOCAB_CATEGORIES).map(([key, cat]) => (
@@ -1571,10 +1857,7 @@ export function Bingo2({
                     </label>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
-                        onClick={() => {
-                          setGridSize(3);
-                          generateStudentBoard(3, selectedCategory);
-                        }}
+                        onClick={() => handleGridSizeSelect(3)}
                         className={cn(
                           "py-1.5 px-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5",
                           gridSize === 3
@@ -1587,10 +1870,7 @@ export function Bingo2({
                       </button>
 
                       <button
-                        onClick={() => {
-                          setGridSize(5);
-                          generateStudentBoard(5, selectedCategory);
-                        }}
+                        onClick={() => handleGridSizeSelect(5)}
                         className={cn(
                           "py-1.5 px-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5",
                           gridSize === 5
@@ -1920,6 +2200,35 @@ export function Bingo2({
                   </div>
                 </div>
 
+                {/* Active Print Set Attached Status */}
+                {printData && (
+                  <div className="p-3.5 rounded-2xl bg-indigo-950/40 border border-indigo-500/40 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+                        <Check className="h-4 w-4 text-emerald-400" /> Active Print Set Attached
+                      </span>
+                      <Badge className="bg-indigo-600/40 text-indigo-200 border-indigo-500/40 text-[10px]">
+                        {printData.studentCount} Cards • {printData.winnerIndices.size} Winners
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-snug">
+                      This active set is saved with your current game. You can reprint the exact same cards without changing anything, or generate a fresh set.
+                    </p>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setIsPrinting(true);
+                        setIsPrintModalOpen(false);
+                        setTimeout(() => window.print(), 250);
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 w-full mt-1"
+                    >
+                      <Printer className="h-3.5 w-3.5 mr-1.5" />
+                      Reprint Current Active Set ({printData.studentCount} Cards)
+                    </Button>
+                  </div>
+                )}
+
                 {/* Category Confirmation */}
                 <div className="flex items-center justify-between text-xs text-slate-400 bg-slate-950 px-3 py-2 rounded-xl border border-slate-800">
                   <span>Selected Pool:</span>
@@ -1943,7 +2252,7 @@ export function Bingo2({
                   className="flex-1 bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30"
                 >
                   <Printer className="h-4 w-4 mr-1.5" />
-                  Generate & Print ({studentCountInput} Cards)
+                  {printData ? `Generate New Set (${studentCountInput} Cards)` : `Generate & Print (${studentCountInput} Cards)`}
                 </Button>
               </div>
             </motion.div>
@@ -2002,11 +2311,130 @@ export function Bingo2({
                 <Button
                   onClick={() => {
                     setShowWinCelebration(false);
-                    resetGame();
+                    handleEndGameAndStartNew();
                   }}
                   className="w-full sm:flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow-lg shadow-amber-500/30"
                 >
-                  Next Round
+                  End & Start Next Round
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================= */}
+      {/* END GAME & NEW ROUND CONFIRMATION MODAL                   */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {showEndGameConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 15 }}
+              className="bg-slate-900 border border-amber-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl relative flex flex-col gap-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                  <RotateCcw className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">
+                    {pendingOptionChange
+                      ? `Start New Game with ${
+                          pendingOptionChange.type === "category"
+                            ? VOCAB_CATEGORIES[pendingOptionChange.value as string]?.label || "New Category"
+                            : `${pendingOptionChange.value}x${pendingOptionChange.value} Grid`
+                        }?`
+                      : "End Current Game & Start New Round?"}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {pendingOptionChange
+                      ? `You currently have ${drawnWords.length} words drawn in this game. Switching will end this round and reset the boards.`
+                      : "Ending the game will wipe current drawn words, reshuffle student boards, and clear old print sets."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-amber-950/30 border border-amber-500/30 text-xs text-amber-200/90 leading-relaxed">
+                <strong>Saved Session Notice:</strong> While a round is active, your board is automatically saved so refreshing or exiting won&apos;t lose your place. Pressing <strong>End Game</strong> is the only way to clear this session and generate a new game and new print sets.
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-1">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowEndGameConfirm(false);
+                    setPendingOptionChange(null);
+                  }}
+                  className="flex-1 border-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-800"
+                >
+                  Cancel & Keep Playing
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (pendingOptionChange) {
+                      if (pendingOptionChange.type === "category") {
+                        handleEndGameAndStartNew(gridSize, pendingOptionChange.value as string);
+                      } else {
+                        handleEndGameAndStartNew(pendingOptionChange.value as GridSize, selectedCategory);
+                      }
+                    } else {
+                      handleEndGameAndStartNew();
+                    }
+                  }}
+                  className="flex-1 bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-600/30"
+                >
+                  Confirm & End Game
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================= */}
+      {/* EXIT GAME CONFIRMATION MODAL                              */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {showExitGameConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 15 }}
+              className="bg-slate-900 border border-rose-500/40 rounded-3xl p-6 max-w-md w-full shadow-2xl relative flex flex-col gap-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                  <LogOut className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white">Exit Bingo 2?</h3>
+                  <p className="text-xs text-slate-400">
+                    Exiting will end your active game, clear your saved cards and print sets, and return you to the games menu.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-rose-950/30 border border-rose-500/30 text-xs text-rose-200/90 leading-relaxed">
+                If you just want to take a break, you can simply close this tab or leave it open — Bingo 2 will restore your exact game whenever you return! Only click <strong>Exit Game</strong> if you want to permanently end this session.
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-1">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowExitGameConfirm(false)}
+                  className="flex-1 border-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-800"
+                >
+                  Keep Playing
+                </Button>
+                <Button
+                  onClick={handleExitGame}
+                  className="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-lg shadow-rose-600/30"
+                >
+                  Exit Game
                 </Button>
               </div>
             </motion.div>
