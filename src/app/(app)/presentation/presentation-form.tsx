@@ -61,7 +61,11 @@ import {
   PanelRightOpen,
   Sparkles,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Maximize2,
+  Scan,
+  RotateCcw,
+  Move
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -343,6 +347,117 @@ export function PresentationForm() {
       setPanOffset({ x: 0, y: 0 });
     }
   }, [zoomScale]);
+
+  // Slide Generated Pictures Zoom, Pan & Fit Mode states
+  const [slideImageZooms, setSlideImageZooms] = React.useState<{ [key: number]: number }>({});
+  const [slideImagePans, setSlideImagePans] = React.useState<{ [key: number]: { x: number; y: number } }>({});
+  const [slideImageFitModes, setSlideImageFitModes] = React.useState<{ [key: number]: 'contain' | 'cover' | 'fill' }>({});
+  const [activeLightboxImage, setActiveLightboxImage] = React.useState<{ url: string; title: string; index: number } | null>(null);
+  const [lightboxZoom, setLightboxZoom] = React.useState(1);
+  const [lightboxPan, setLightboxPan] = React.useState({ x: 0, y: 0 });
+  const [isDraggingSlide, setIsDraggingSlide] = React.useState(false);
+  const slideDragStartRef = React.useRef<{ x: number; y: number; panX: number; panY: number; index: number }>({ x: 0, y: 0, panX: 0, panY: 0, index: 0 });
+
+  const handleSlideImageMouseDown = (index: number, e: React.MouseEvent) => {
+    const currentZoom = slideImageZooms[index] || 1;
+    if (currentZoom <= 1) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingSlide(true);
+    const currentPan = slideImagePans[index] || { x: 0, y: 0 };
+    slideDragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      panX: currentPan.x,
+      panY: currentPan.y,
+      index,
+    };
+  };
+
+  const handleSlideImageMouseMove = (index: number, e: React.MouseEvent) => {
+    if (!isDraggingSlide || slideDragStartRef.current.index !== index) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const dx = e.clientX - slideDragStartRef.current.x;
+    const dy = e.clientY - slideDragStartRef.current.y;
+    setSlideImagePans(prev => ({
+      ...prev,
+      [index]: {
+        x: slideDragStartRef.current.panX + dx,
+        y: slideDragStartRef.current.panY + dy,
+      }
+    }));
+  };
+
+  const handleSlideImageMouseUp = () => {
+    if (isDraggingSlide) {
+      setIsDraggingSlide(false);
+    }
+  };
+
+  const handleSlideImageTouchStart = (index: number, e: React.TouchEvent) => {
+    const currentZoom = slideImageZooms[index] || 1;
+    if (currentZoom <= 1 || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    setIsDraggingSlide(true);
+    const currentPan = slideImagePans[index] || { x: 0, y: 0 };
+    slideDragStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      panX: currentPan.x,
+      panY: currentPan.y,
+      index,
+    };
+  };
+
+  const handleSlideImageTouchMove = (index: number, e: React.TouchEvent) => {
+    if (!isDraggingSlide || slideDragStartRef.current.index !== index || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - slideDragStartRef.current.x;
+    const dy = touch.clientY - slideDragStartRef.current.y;
+    setSlideImagePans(prev => ({
+      ...prev,
+      [index]: {
+        x: slideDragStartRef.current.panX + dx,
+        y: slideDragStartRef.current.panY + dy,
+      }
+    }));
+  };
+
+  const handleSlideImageWheel = (index: number, e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      const delta = e.deltaY < 0 ? 0.2 : -0.2;
+      setSlideImageZooms(prev => {
+        const current = prev[index] || 1;
+        const next = Math.min(3.5, Math.max(0.6, parseFloat((current + delta).toFixed(2))));
+        return { ...prev, [index]: next };
+      });
+    }
+  };
+
+  const handleZoomSlideImage = (index: number, direction: 'in' | 'out' | 'reset') => {
+    if (direction === 'reset') {
+      setSlideImageZooms(prev => ({ ...prev, [index]: 1 }));
+      setSlideImagePans(prev => ({ ...prev, [index]: { x: 0, y: 0 } }));
+      return;
+    }
+    setSlideImageZooms(prev => {
+      const current = prev[index] || 1;
+      const step = 0.25;
+      const next = direction === 'in' ? Math.min(3.5, current + step) : Math.max(0.6, current - step);
+      return { ...prev, [index]: parseFloat(next.toFixed(2)) };
+    });
+  };
+
+  const toggleSlideImageFitMode = (index: number) => {
+    setSlideImageFitModes(prev => {
+      const current = prev[index] || 'contain';
+      const next = current === 'contain' ? 'cover' : 'contain';
+      return { ...prev, [index]: next };
+    });
+  };
 
   // Collapsible Presentation Tips Guide state
   const [showTips, setShowTips] = React.useState(false);
@@ -2059,8 +2174,8 @@ export function PresentationForm() {
             <div
               ref={presentationContainerRef}
               className={cn(
-                  'relative h-[480px] w-full mt-4 select-text overflow-hidden bg-slate-950 rounded-3xl border border-slate-800', 
-                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 rounded-none bg-slate-950',
+                  'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden bg-slate-950 rounded-3xl border border-slate-800 transition-all duration-300', 
+                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none bg-slate-950',
                   showSplitSearch && 'flex flex-row'
               )}
               onClick={(isFullscreen || isEditMode || showSplitSearch) ? undefined : handleRevealNextWord}
@@ -2134,20 +2249,22 @@ export function PresentationForm() {
                           onClick={(isFullscreen || isEditMode) ? undefined : handleRevealNextWord}
                         >
                           <div className={cn(
-                            "w-full flex flex-col justify-center",
-                            !isFullscreen && "overflow-y-auto p-8 md:p-12",
-                            isFullscreen && "overflow-hidden py-16 px-8 md:px-16 lg:px-24 h-full"
+                            "w-full flex flex-col justify-center h-full",
+                            !isFullscreen && "overflow-y-auto p-4 md:p-6 lg:p-8",
+                            isFullscreen && "overflow-hidden py-3 md:py-4 px-4 md:px-8 lg:px-12"
                           )}>
                             <div className={cn(
-                              "w-full animate-in fade-in duration-700 mx-auto flex flex-col md:flex-row items-center justify-center",
-                              isFullscreen ? "max-w-[85vw] gap-16 h-full max-h-[85vh] overflow-hidden" : "max-w-6xl gap-8",
+                              "w-full animate-in fade-in duration-700 mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
+                              isFullscreen ? "max-w-[98vw] gap-4 md:gap-8 max-h-[96vh] overflow-hidden" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
                               {/* Left side text content */}
                               <div className={cn(
-                                "flex-1 min-w-0 w-full",
-                                isFullscreen && "h-full overflow-y-auto pr-4 scrollbar-thin",
-                                (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode ? (isFullscreen ? "md:w-[60%]" : "md:w-3/5") : "w-full"
+                                "flex-1 min-w-0 w-full flex flex-col justify-center",
+                                isFullscreen && "h-full overflow-y-auto pr-3 md:pr-4 scrollbar-thin",
+                                (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode 
+                                  ? (isFullscreen ? "md:w-1/2 lg:w-[48%]" : "md:w-1/2") 
+                                  : "w-full"
                               )}>
                                 {/* Slide Title field */}
                                 {isEditMode ? (
@@ -2223,11 +2340,14 @@ export function PresentationForm() {
                                 )}
                               </div>
 
-                              {/* Beautiful dynamic slide photo */}
+                              {/* Beautiful dynamic slide photo with auto-fit, vertical stretch and interactive zoom */}
                               {(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode && (
-                                <div className={cn("w-full shrink-0 select-none animate-in zoom-in-95 duration-500", isFullscreen ? "md:w-[35%]" : "md:w-2/5")}>
+                                <div className={cn(
+                                  "w-full select-none animate-in zoom-in-95 duration-500 flex flex-col items-center justify-center h-full",
+                                  isFullscreen ? "md:w-1/2 lg:w-[52%] flex-1" : "md:w-1/2 flex-1 min-h-[350px]"
+                                )}>
                                   {brokenSlideImages[index] ? (
-                                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-amber-500/30 bg-slate-900/90 shadow-[0_15px_40px_rgba(245,158,11,0.12)] p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300">
+                                    <div className="relative w-full h-full min-h-[320px] md:min-h-[440px] rounded-2xl overflow-hidden border border-amber-500/30 bg-slate-900/90 shadow-[0_15px_40px_rgba(245,158,11,0.12)] p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300">
                                       <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-purple-500/10 pointer-events-none" />
                                       
                                       {regeneratingSlide[index] ? (
@@ -2287,18 +2407,77 @@ export function PresentationForm() {
                                       )}
                                     </div>
                                   ) : (
-                                    <div className="relative group perspective-[1000px]">
-                                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu transition-all duration-500 hover:scale-105 hover:rotate-y-6 hover:shadow-[0_25px_60px_rgba(99,102,241,0.25)]">
+                                    <div className="relative group w-full h-full flex flex-col items-center justify-center">
+                                      <div 
+                                        className="relative w-full h-full min-h-[340px] md:min-h-[460px] lg:min-h-[560px] flex-1 flex items-center justify-center rounded-2xl overflow-hidden border border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md select-none"
+                                        onMouseDown={(e) => handleSlideImageMouseDown(index, e)}
+                                        onMouseMove={(e) => handleSlideImageMouseMove(index, e)}
+                                        onMouseUp={handleSlideImageMouseUp}
+                                        onMouseLeave={handleSlideImageMouseUp}
+                                        onTouchStart={(e) => handleSlideImageTouchStart(index, e)}
+                                        onTouchMove={(e) => handleSlideImageTouchMove(index, e)}
+                                        onTouchEnd={handleSlideImageMouseUp}
+                                        onWheel={(e) => handleSlideImageWheel(index, e)}
+                                      >
                                         <img 
                                           src={slidePhotos[index] || (slide as any).photoUrl} 
                                           alt={slide.title} 
                                           onError={() => {
                                             setBrokenSlideImages(prev => ({ ...prev, [index]: true }));
                                           }}
-                                          className="w-full h-full object-contain bg-slate-950 transition-transform duration-750 group-hover:scale-105" 
+                                          className={cn(
+                                            "w-full h-full select-none transition-all duration-200 pointer-events-auto",
+                                            (slideImageFitModes[index] || 'contain') === 'contain' && "object-contain",
+                                            slideImageFitModes[index] === 'cover' && "object-cover",
+                                            slideImageFitModes[index] === 'fill' && "object-fill",
+                                            (slideImageZooms[index] || 1) > 1 ? (isDraggingSlide ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
+                                          )}
+                                          style={{
+                                            transform: `translate(${slideImagePans[index]?.x || 0}px, ${slideImagePans[index]?.y || 0}px) scale(${slideImageZooms[index] || 1})`,
+                                            transformOrigin: "center center",
+                                            transition: isDraggingSlide ? "none" : "transform 0.15s ease-out"
+                                          }}
+                                          draggable={false}
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5">
-                                          <div className="flex justify-end gap-1.5">
+
+                                        {/* Top Controls Overlay (Fit Mode, Expand Lightbox, Regenerate & Side Search) */}
+                                        <div className="absolute top-2.5 inset-x-2.5 z-20 flex items-center justify-between gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity pointer-events-auto">
+                                          {/* Auto-Fit / Fill Toggle */}
+                                          <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            title="Toggle Image Fit: Auto-Fit (Contain) vs Fill Frame (Cover)"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              toggleSlideImageFitMode(index);
+                                            }}
+                                            className="h-7 px-2.5 text-[10px] font-bold rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md flex items-center gap-1.5"
+                                          >
+                                            <Scan className="h-3 w-3 text-cyan-300" />
+                                            <span>{slideImageFitModes[index] === 'cover' ? "Fill Frame" : "Auto-Fit"}</span>
+                                          </Button>
+
+                                          <div className="flex items-center gap-1.5">
+                                            {/* Expand / Detailed Full View */}
+                                            <Button
+                                              size="icon"
+                                              variant="secondary"
+                                              title="Expand image to large fullscreen view"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setActiveLightboxImage({
+                                                  url: slidePhotos[index] || (slide as any).photoUrl,
+                                                  title: slide.title,
+                                                  index
+                                                });
+                                                setLightboxZoom(1);
+                                                setLightboxPan({ x: 0, y: 0 });
+                                              }}
+                                              className="h-7 w-7 rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md"
+                                            >
+                                              <Maximize2 className="h-3.5 w-3.5 text-blue-300" />
+                                            </Button>
+
                                             <Button
                                               size="sm"
                                               variant="secondary"
@@ -2307,10 +2486,11 @@ export function PresentationForm() {
                                                 e.stopPropagation();
                                                 handleRegenerateSlideImage(index, slide.title);
                                               }}
-                                              className="h-7 px-2.5 text-[10px] font-bold rounded-lg bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/15 shadow-sm"
+                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md"
                                             >
-                                              <RefreshCw className={cn("h-3 w-3 mr-1 text-purple-400", regeneratingSlide[index] && "animate-spin")} /> Change Image
+                                              <RefreshCw className={cn("h-3 w-3 mr-1 text-purple-400", regeneratingSlide[index] && "animate-spin")} /> Change
                                             </Button>
+
                                             <Button
                                               size="sm"
                                               variant="secondary"
@@ -2319,12 +2499,70 @@ export function PresentationForm() {
                                                 e.stopPropagation();
                                                 handleOpenSideSearchForSlide(index, slide.title);
                                               }}
-                                              className="h-7 px-2.5 text-[10px] font-bold rounded-lg bg-black/60 hover:bg-black/90 text-white backdrop-blur-md border border-white/15 shadow-sm"
+                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md"
                                             >
                                               <PanelRightOpen className="h-3 w-3 mr-1 text-indigo-400" /> Side Search
                                             </Button>
                                           </div>
-                                          <p className="text-[10px] text-white/80 font-mono italic">Source: {photoSource}</p>
+                                        </div>
+
+                                        {/* Bottom Controls Overlay: Zoom In, Zoom Out, Reset, and Pan Nudge */}
+                                        <div className="absolute bottom-2.5 inset-x-2.5 z-20 flex items-center justify-between pointer-events-auto">
+                                          {/* Pan hint when zoomed */}
+                                          {(slideImageZooms[index] || 1) > 1 ? (
+                                            <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-black/85 backdrop-blur-md border border-purple-500/30 text-[9px] font-mono text-purple-300 shadow-md">
+                                              <Move className="h-2.5 w-2.5 animate-pulse" /> Drag image to pan
+                                            </div>
+                                          ) : (
+                                            <p className="text-[9px] text-white/70 font-mono italic bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded">
+                                              Source: {photoSource}
+                                            </p>
+                                          )}
+
+                                          {/* Zoom Controls Pill */}
+                                          <div 
+                                            className="flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-xl border border-white/15 shadow-xl text-white ml-auto"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'out'); }}
+                                              className="h-6 w-6 text-white hover:bg-white/20 rounded-lg"
+                                              title="Zoom Out"
+                                              disabled={(slideImageZooms[index] || 1) <= 0.6}
+                                            >
+                                              <ZoomOut className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'reset'); }}
+                                              className="text-[10px] text-white/90 hover:text-white font-mono font-bold px-1.5 min-w-[36px] text-center"
+                                              title="Click to reset zoom"
+                                            >
+                                              {Math.round((slideImageZooms[index] || 1) * 100)}%
+                                            </button>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'in'); }}
+                                              className="h-6 w-6 text-white hover:bg-white/20 rounded-lg"
+                                              title="Zoom In"
+                                              disabled={(slideImageZooms[index] || 1) >= 3.5}
+                                            >
+                                              <ZoomIn className="h-3.5 w-3.5" />
+                                            </Button>
+                                            {((slideImageZooms[index] || 1) !== 1 || (slideImagePans[index]?.x || 0) !== 0 || (slideImagePans[index]?.y || 0) !== 0) && (
+                                              <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'reset'); }}
+                                                className="h-6 w-6 text-purple-400 hover:bg-white/20 hover:text-purple-300 rounded-lg"
+                                                title="Reset Zoom & Pan"
+                                              >
+                                                <RotateCcw className="h-3 w-3" />
+                                              </Button>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
@@ -2819,6 +3057,103 @@ onClick={() => setShowImageModal(false)}
                         </Button>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Slide Picture Expanded High-Resolution Lightbox Modal */}
+              {activeLightboxImage && (
+                <div 
+                  className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-between p-4 md:p-6 animate-in fade-in duration-200 select-none"
+                  onClick={() => setActiveLightboxImage(null)}
+                >
+                  {/* Top Bar */}
+                  <div 
+                    className="w-full max-w-5xl flex items-center justify-between z-10 pointer-events-auto"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center gap-2.5 bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border border-white/10 text-white shadow-xl">
+                      <Sparkles className="h-4 w-4 text-purple-400" />
+                      <span className="text-xs font-black tracking-wide truncate max-w-[200px] md:max-w-md">
+                        {activeLightboxImage.title}
+                      </span>
+                      <span className="text-[10px] text-purple-300/80 font-mono px-1.5 py-0.5 rounded bg-purple-950/60 border border-purple-500/20">
+                        Slide {activeLightboxImage.index + 1}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Zoom Controls */}
+                      <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md p-1 rounded-2xl border border-white/10 text-white shadow-xl">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => { e.stopPropagation(); setLightboxZoom(prev => Math.max(0.5, prev - 0.25)); }}
+                          className="h-7 w-7 text-white hover:bg-white/20 rounded-xl"
+                          title="Zoom Out"
+                        >
+                          <ZoomOut className="h-3.5 w-3.5" />
+                        </Button>
+                        <span className="text-[11px] font-mono font-bold px-2 min-w-[36px] text-center">
+                          {Math.round(lightboxZoom * 100)}%
+                        </span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => { e.stopPropagation(); setLightboxZoom(prev => Math.min(4, prev + 0.25)); }}
+                          className="h-7 w-7 text-white hover:bg-white/20 rounded-xl"
+                          title="Zoom In"
+                        >
+                          <ZoomIn className="h-3.5 w-3.5" />
+                        </Button>
+                        {lightboxZoom !== 1 && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={(e) => { e.stopPropagation(); setLightboxZoom(1); setLightboxPan({ x: 0, y: 0 }); }}
+                            className="h-7 w-7 text-purple-400 hover:bg-white/20 rounded-xl"
+                            title="Reset Zoom"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        onClick={(e) => { e.stopPropagation(); setActiveLightboxImage(null); }}
+                        className="h-8 w-8 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 shadow-xl"
+                        title="Close preview"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Image Viewport */}
+                  <div 
+                    className="relative w-full flex-1 max-w-6xl max-h-[82vh] flex items-center justify-center overflow-hidden my-auto"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <img
+                      src={activeLightboxImage.url}
+                      alt={activeLightboxImage.title}
+                      className={cn(
+                        "max-w-full max-h-full object-contain transition-transform select-none rounded-2xl shadow-2xl border border-white/10",
+                        lightboxZoom > 1 ? "cursor-grab" : "cursor-default"
+                      )}
+                      style={{
+                        transform: `translate(${lightboxPan.x}px, ${lightboxPan.y}px) scale(${lightboxZoom})`,
+                        transition: "transform 0.15s ease-out"
+                      }}
+                      draggable={false}
+                    />
+                  </div>
+
+                  {/* Footer hint */}
+                  <div className="text-[10px] text-white/50 font-mono">
+                    Click outside or press Close to return to presentation
                   </div>
                 </div>
               )}
