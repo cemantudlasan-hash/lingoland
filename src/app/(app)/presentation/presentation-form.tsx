@@ -95,8 +95,10 @@ import { useFirestore } from '@/firebase';
 import Link from 'next/link';
 import { 
   doc, 
+  collection,
   onSnapshot, 
-  setDoc
+  setDoc,
+  deleteDoc
 } from 'firebase/firestore';
 import { ThreeBackground } from '@/components/presentation/ThreeBackground';
 
@@ -860,23 +862,79 @@ export function PresentationForm() {
     },
   });
 
-  // Load Library from Firestore Root User Document in real-time
+  // Helper to remove any undefined fields before sending to Firestore
+  const sanitizeForFirestore = <T,>(data: T): T => {
+    return JSON.parse(
+      JSON.stringify(data, (key, value) => {
+        if (value === undefined) return null;
+        return value;
+      })
+    );
+  };
+
+  // Load Library from LocalStorage, Firestore Root User Document, and Subcollection in real-time
   React.useEffect(() => {
     if (!user || isGuest || !firestore) return;
 
+    const storageKey = `lingoland_presentations_cache_${user.uid}`;
+    // 1. Immediately populate from local cache if present so library is instant
+    try {
+      const cached = localStorage.getItem(storageKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDbPresentations(parsed);
+        }
+      }
+    } catch (_) {}
+
+    let subcollectionList: DbPresentation[] = [];
+    let rootDocList: DbPresentation[] = [];
+
+    const mergeAndSetPresentations = () => {
+      const map = new Map<string, DbPresentation>();
+      // First root doc presentations (legacy)
+      rootDocList.forEach(p => { if (p && p.id) map.set(p.id, p); });
+      // Subcollection takes priority (latest/unlimited)
+      subcollectionList.forEach(p => { if (p && p.id) map.set(p.id, p); });
+      const merged = Array.from(map.values()).sort((a, b) => 
+        (new Date(b.updatedAt || b.createdAt || 0).getTime()) - (new Date(a.updatedAt || a.createdAt || 0).getTime())
+      );
+      setDbPresentations(merged);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(merged));
+      } catch (_) {}
+    };
+
+    // 2. Listen to root user document (for folders and legacy savedPresentations)
     const userDocRef = doc(firestore, `users/${user.uid}`);
-    const unsub = onSnapshot(userDocRef, (snap) => {
+    const unsubRoot = onSnapshot(userDocRef, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
-        const presentations = data.savedPresentations || [];
+        rootDocList = (data.savedPresentations || []).filter((p: any) => p && p.id);
         const folders = data.savedPresentationFolders || [];
-        setDbPresentations(presentations);
         setDbFolders(folders);
+        mergeAndSetPresentations();
       }
+    }, (err) => {
+      console.warn("User doc library snapshot error:", err);
+    });
+
+    // 3. Listen to subcollection `users/${user.uid}/presentations` (unlimited outlines)
+    const subColRef = collection(firestore, `users/${user.uid}/presentations`);
+    const unsubSub = onSnapshot(subColRef, (snap) => {
+      subcollectionList = snap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      } as DbPresentation));
+      mergeAndSetPresentations();
+    }, (err) => {
+      console.warn("Subcollection presentations snapshot error:", err);
     });
 
     return () => {
-      unsub();
+      unsubRoot();
+      unsubSub();
     };
   }, [user, isGuest, firestore]);
 
@@ -920,54 +978,83 @@ export function PresentationForm() {
     });
   };
 
-  // Save changes to Firestore User Document
+  // Save changes to Firestore User Document & Subcollection
   const handleSaveToDb = async () => {
     if (!user || isGuest || !firestore || !presentation) return;
     setIsSavingDb(true);
 
     try {
       const baseSlides = isEditMode ? editableSlides : presentation.slides;
-      // Inject slide-specific photos, 3D object styles, and digital marker drawings
-      const slidesData = baseSlides.map((slide, idx) => ({
-        ...slide,
-        photoUrl: slidePhotos[idx] || (slide as any).photoUrl || undefined,
-        threeDObjectStyle: (slide as any).threeDObjectStyle || undefined,
-        drawings: slideDrawings[idx] || (slide as any).drawings || undefined,
-      }));
-      const titleData = isEditMode ? editableTitle : presentation.title;
+      // Inject slide-specific photos, 3D object styles, and digital marker drawings cleanly without undefined values
+      const slidesData = baseSlides.map((slide, idx) => {
+        const slideItem: any = {
+          title: slide.title || '',
+          content: Array.isArray(slide.content) ? slide.content : [],
+        };
+        const photo = slidePhotos[idx] || (slide as any).photoUrl;
+        if (photo) slideItem.photoUrl = photo;
+        const style3D = (slide as any).threeDObjectStyle;
+        if (style3D) slideItem.threeDObjectStyle = style3D;
+        const drawings = slideDrawings[idx] || (slide as any).drawings;
+        if (drawings && drawings.length > 0) slideItem.drawings = drawings;
+        return slideItem;
+      });
 
+      const titleData = isEditMode ? editableTitle : presentation.title;
       let updatedList = [...dbPresentations];
       let docId = activeDbId;
+      let targetFolderId: string | null = null;
 
       if (activeDbId) {
         // Update existing presentation
-        updatedList = updatedList.map(p => {
-          if (p.id === activeDbId) {
-            return {
-              ...p,
-              title: titleData,
-              slides: slidesData,
-              theme,
-              fontFamily,
-              fontSize,
-              align,
-              updatedAt: new Date().toISOString()
-            };
-          }
-          return p;
-        });
+        const existing = updatedList.find(p => p.id === activeDbId);
+        targetFolderId = existing?.folderId || null;
+        const updatedPres: DbPresentation = {
+          id: activeDbId,
+          title: titleData,
+          slides: slidesData,
+          folderId: targetFolderId,
+          theme,
+          fontFamily,
+          fontSize,
+          align,
+          createdAt: existing?.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        updatedList = updatedList.map(p => p.id === activeDbId ? updatedPres : p);
         
-        // Update current presentation state
+        // Optimistically update React state immediately
+        setDbPresentations(updatedList);
         setPresentation({
           title: titleData,
           slides: slidesData
         });
+
+        // 1. Save to dedicated subcollection (unlimited storage)
+        const subDocRef = doc(firestore, `users/${user.uid}/presentations/${activeDbId}`);
+        await setDoc(subDocRef, sanitizeForFirestore(updatedPres), { merge: true });
+
+        // 2. Also keep root user document synchronized
+        try {
+          const userDocRef = doc(firestore, `users/${user.uid}`);
+          await setDoc(userDocRef, { savedPresentations: sanitizeForFirestore(updatedList) }, { merge: true });
+        } catch (rootErr) {
+          console.warn("Root doc sync skipped:", rootErr);
+        }
+
+        // 3. Cache locally
+        try {
+          localStorage.setItem(`lingoland_presentations_cache_${user.uid}`, JSON.stringify(updatedList));
+        } catch (_) {}
+
+        setIsEditMode(false);
         toast({
           title: "Outline Saved ✅",
           description: `Successfully updated "${titleData}" in your Library.`
         });
       } else {
-        // Create new presentation with a client-side generated UUID
+        // Create new presentation with a unique ID
         const newId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
         const newPres: DbPresentation = {
           id: newId,
@@ -981,26 +1068,43 @@ export function PresentationForm() {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
-        updatedList.push(newPres);
+
+        updatedList = [newPres, ...updatedList];
         docId = newId;
         setActiveDbId(newId);
-        
+
+        // Optimistically update React state immediately so it appears on the left panel!
+        setDbPresentations(updatedList);
+
+        // 1. Save to dedicated subcollection (unlimited storage)
+        const subDocRef = doc(firestore, `users/${user.uid}/presentations/${newId}`);
+        await setDoc(subDocRef, sanitizeForFirestore(newPres), { merge: true });
+
+        // 2. Also keep root user document synchronized
+        try {
+          const userDocRef = doc(firestore, `users/${user.uid}`);
+          await setDoc(userDocRef, { savedPresentations: sanitizeForFirestore(updatedList) }, { merge: true });
+        } catch (rootErr) {
+          console.warn("Root doc sync skipped:", rootErr);
+        }
+
+        // 3. Cache locally
+        try {
+          localStorage.setItem(`lingoland_presentations_cache_${user.uid}`, JSON.stringify(updatedList));
+        } catch (_) {}
+
+        setIsEditMode(false);
         toast({
           title: "Saved to Library 📁",
           description: `Saved "${titleData}" to your presentation outlines collection.`
         });
       }
-
-      // Write array directly to user doc
-      const userDocRef = doc(firestore, `users/${user.uid}`);
-      await setDoc(userDocRef, { savedPresentations: updatedList }, { merge: true });
-      setIsEditMode(false);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("Save to Firestore failed:", err);
       toast({
         variant: "destructive",
         title: "Save Failed",
-        description: "Failed to persist presentation changes in Firestore."
+        description: "Failed to persist presentation changes: " + (err?.message || "Unknown error")
       });
     }
     setIsSavingDb(false);
@@ -1017,9 +1121,10 @@ export function PresentationForm() {
         createdAt: new Date().toISOString()
       };
       const updatedFolders = [...dbFolders, newFolder];
+      setDbFolders(updatedFolders);
       
       const userDocRef = doc(firestore, `users/${user.uid}`);
-      await setDoc(userDocRef, { savedPresentationFolders: updatedFolders }, { merge: true });
+      await setDoc(userDocRef, { savedPresentationFolders: sanitizeForFirestore(updatedFolders) }, { merge: true });
 
       setFolderName("");
       setShowFolderInput(false);
@@ -1043,16 +1148,18 @@ export function PresentationForm() {
 
     try {
       const updatedFolders = dbFolders.filter(f => f.id !== folderId);
+      setDbFolders(updatedFolders);
       
       // Unlink presentations inside this folder
       const updatedPresentations = dbPresentations.map(p => 
         p.folderId === folderId ? { ...p, folderId: null } : p
       );
+      setDbPresentations(updatedPresentations);
 
       const userDocRef = doc(firestore, `users/${user.uid}`);
       await setDoc(userDocRef, { 
-        savedPresentationFolders: updatedFolders,
-        savedPresentations: updatedPresentations
+        savedPresentationFolders: sanitizeForFirestore(updatedFolders),
+        savedPresentations: sanitizeForFirestore(updatedPresentations)
       }, { merge: true });
 
       toast({
@@ -1071,8 +1178,9 @@ export function PresentationForm() {
 
     try {
       const updatedFolders = dbFolders.map(f => f.id === folderId ? { ...f, name: newName.trim() } : f);
+      setDbFolders(updatedFolders);
       const userDocRef = doc(firestore, `users/${user.uid}`);
-      await setDoc(userDocRef, { savedPresentationFolders: updatedFolders }, { merge: true });
+      await setDoc(userDocRef, { savedPresentationFolders: sanitizeForFirestore(updatedFolders) }, { merge: true });
       toast({
         title: "Folder Renamed",
         description: "Successfully updated folder name."
@@ -1089,8 +1197,25 @@ export function PresentationForm() {
 
     try {
       const updatedPresentations = dbPresentations.filter(p => p.id !== presId);
-      const userDocRef = doc(firestore, `users/${user.uid}`);
-      await setDoc(userDocRef, { savedPresentations: updatedPresentations }, { merge: true });
+      setDbPresentations(updatedPresentations);
+      try {
+        localStorage.setItem(`lingoland_presentations_cache_${user.uid}`, JSON.stringify(updatedPresentations));
+      } catch (_) {}
+
+      // Delete from subcollection
+      try {
+        await deleteDoc(doc(firestore, `users/${user.uid}/presentations/${presId}`));
+      } catch (subErr) {
+        console.warn("Subcollection delete warning:", subErr);
+      }
+
+      // Sync root document array
+      try {
+        const userDocRef = doc(firestore, `users/${user.uid}`);
+        await setDoc(userDocRef, { savedPresentations: sanitizeForFirestore(updatedPresentations) }, { merge: true });
+      } catch (rootErr) {
+        console.warn("Root doc update warning:", rootErr);
+      }
 
       if (activeDbId === presId) {
         if (typeof window !== 'undefined') {
@@ -1104,8 +1229,13 @@ export function PresentationForm() {
         title: "Outline Deleted",
         description: `Removed "${title}" successfully.`
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast({
+        variant: "destructive",
+        title: "Delete Failed",
+        description: e?.message || "Failed to remove outline."
+      });
     }
   };
 
@@ -1118,9 +1248,26 @@ export function PresentationForm() {
       const updatedPresentations = dbPresentations.map(p => 
         p.id === presId ? { ...p, title: newTitle.trim(), updatedAt: new Date().toISOString() } : p
       );
+      setDbPresentations(updatedPresentations);
+      try {
+        localStorage.setItem(`lingoland_presentations_cache_${user.uid}`, JSON.stringify(updatedPresentations));
+      } catch (_) {}
+
+      const updatedPres = updatedPresentations.find(p => p.id === presId);
+      if (updatedPres) {
+        try {
+          await setDoc(doc(firestore, `users/${user.uid}/presentations/${presId}`), sanitizeForFirestore(updatedPres), { merge: true });
+        } catch (subErr) {
+          console.warn("Subcollection rename error:", subErr);
+        }
+      }
       
-      const userDocRef = doc(firestore, `users/${user.uid}`);
-      await setDoc(userDocRef, { savedPresentations: updatedPresentations }, { merge: true });
+      try {
+        const userDocRef = doc(firestore, `users/${user.uid}`);
+        await setDoc(userDocRef, { savedPresentations: sanitizeForFirestore(updatedPresentations) }, { merge: true });
+      } catch (rootErr) {
+        console.warn("Root doc rename sync error:", rootErr);
+      }
 
       if (activeDbId === presId) {
         setPresentation(prev => prev ? { ...prev, title: newTitle.trim() } : null);
@@ -1141,9 +1288,26 @@ export function PresentationForm() {
       const updatedPresentations = dbPresentations.map(p => 
         p.id === presId ? { ...p, folderId, updatedAt: new Date().toISOString() } : p
       );
+      setDbPresentations(updatedPresentations);
+      try {
+        localStorage.setItem(`lingoland_presentations_cache_${user.uid}`, JSON.stringify(updatedPresentations));
+      } catch (_) {}
+
+      const updatedPres = updatedPresentations.find(p => p.id === presId);
+      if (updatedPres) {
+        try {
+          await setDoc(doc(firestore, `users/${user.uid}/presentations/${presId}`), sanitizeForFirestore(updatedPres), { merge: true });
+        } catch (subErr) {
+          console.warn("Subcollection move error:", subErr);
+        }
+      }
       
-      const userDocRef = doc(firestore, `users/${user.uid}`);
-      await setDoc(userDocRef, { savedPresentations: updatedPresentations }, { merge: true });
+      try {
+        const userDocRef = doc(firestore, `users/${user.uid}`);
+        await setDoc(userDocRef, { savedPresentations: sanitizeForFirestore(updatedPresentations) }, { merge: true });
+      } catch (rootErr) {
+        console.warn("Root doc move sync error:", rootErr);
+      }
 
       setMovingPresId(null);
       toast({
