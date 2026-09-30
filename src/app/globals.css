@@ -194,16 +194,14 @@
 }
 
 @media print {
-  body > * {
+  body > *:not(.printable-area):not(#print-root):not(#bingo-print-portal) {
     display: none !important;
   }
   
-  body > .printable-area, 
-  body > .printable-area * {
+  body > .printable-area,
+  body > #bingo-print-portal,
+  body > #print-root {
     display: block !important;
-  }
-  
-  .printable-area {
     position: static !important;
   }
 }

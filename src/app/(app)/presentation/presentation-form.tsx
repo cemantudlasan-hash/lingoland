@@ -664,6 +664,8 @@ export function PresentationForm() {
   const [drawingColor, setDrawingColor] = React.useState<string>('#ef4444');
   const [drawingThickness, setDrawingThickness] = React.useState<number>(6);
   const [slideDrawings, setSlideDrawings] = React.useState<{ [key: number]: DrawingStroke[] }>({});
+  const [isDrawToolbarCollapsed, setIsDrawToolbarCollapsed] = React.useState<boolean>(false);
+  const [autoHideDrawToolbar, setAutoHideDrawToolbar] = React.useState<boolean>(false);
 
   const handleUndoDrawing = (slideIdx: number) => {
     setSlideDrawings(prev => {
@@ -2796,6 +2798,9 @@ export function PresentationForm() {
                                                   ...prev,
                                                   [index]: [...(prev[index] || []), newStroke]
                                                 }));
+                                                if (autoHideDrawToolbar) {
+                                                  setIsDrawToolbarCollapsed(true);
+                                                }
                                               }}
                                             />
                                           </div>
@@ -2851,7 +2856,16 @@ export function PresentationForm() {
                                               title="Digital Pen & Marker - Draw or write directly on this picture"
                                               onClick={(e) => {
                                                 e.stopPropagation();
-                                                setActiveDrawSlideIndex(prev => prev === index ? null : index);
+                                                if (activeDrawSlideIndex === index) {
+                                                  if (isDrawToolbarCollapsed) {
+                                                    setIsDrawToolbarCollapsed(false);
+                                                  } else {
+                                                    setActiveDrawSlideIndex(null);
+                                                  }
+                                                } else {
+                                                  setActiveDrawSlideIndex(index);
+                                                  setIsDrawToolbarCollapsed(false);
+                                                }
                                               }}
                                               className={cn(
                                                 "h-7 px-2.5 text-[10px] font-bold rounded-lg backdrop-blur-md border shadow-md flex items-center gap-1.5 transition-all",
@@ -2861,7 +2875,7 @@ export function PresentationForm() {
                                               )}
                                             >
                                               <PenTool className="h-3.5 w-3.5 text-amber-300" />
-                                              <span>{activeDrawSlideIndex === index ? "Drawing..." : "Draw / Pen"}</span>
+                                              <span>{activeDrawSlideIndex === index ? (isDrawToolbarCollapsed ? "Tools Hidden" : "Drawing...") : "Draw / Pen"}</span>
                                               {slideDrawings[index] && slideDrawings[index].length > 0 && (
                                                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse ml-0.5" />
                                               )}
@@ -2915,8 +2929,8 @@ export function PresentationForm() {
                                           </div>
                                         </div>
 
-                                        {/* Floating Digital Whiteboard & Marker Toolbar */}
-                                        {activeDrawSlideIndex === index && (
+                                        {/* Floating Digital Whiteboard & Marker Toolbar (Full View) */}
+                                        {activeDrawSlideIndex === index && !isDrawToolbarCollapsed && (
                                           <div 
                                             className="absolute top-12 sm:top-14 inset-x-2 sm:inset-x-4 z-30 flex flex-wrap items-center justify-between gap-2 p-2 sm:p-2.5 rounded-2xl bg-slate-950/95 border border-purple-500/40 shadow-[0_15px_35px_rgba(0,0,0,0.8)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200 pointer-events-auto select-none"
                                             onClick={(e) => e.stopPropagation()}
@@ -3030,6 +3044,33 @@ export function PresentationForm() {
                                               ))}
                                             </div>
 
+                                            {/* Optional Hide Button & Auto-hide */}
+                                            <div className="flex items-center gap-1.5">
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setIsDrawToolbarCollapsed(true)}
+                                                className="h-7 px-2.5 text-xs font-bold text-purple-200 hover:text-white bg-purple-950/50 hover:bg-purple-900/70 border border-purple-500/40 rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+                                                title="Hide toolbar so it doesn't block the picture at the top (drawing remains active)"
+                                              >
+                                                <EyeOff className="h-3.5 w-3.5 text-cyan-300" />
+                                                <span className="text-[11px] font-bold">Hide Bar</span>
+                                              </Button>
+
+                                              <label 
+                                                className="hidden lg:flex items-center gap-1.5 text-[10px] text-slate-300 font-bold cursor-pointer bg-black/60 px-2 py-1 rounded-xl border border-white/10 hover:text-white select-none transition-colors"
+                                                title="Automatically collapse toolbar when drawing begins"
+                                              >
+                                                <input 
+                                                  type="checkbox" 
+                                                  checked={autoHideDrawToolbar} 
+                                                  onChange={(e) => setAutoHideDrawToolbar(e.target.checked)} 
+                                                  className="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer" 
+                                                />
+                                                <span>Auto-hide</span>
+                                              </label>
+                                            </div>
+
                                             {/* Actions (Undo, Clear, Done) */}
                                             <div className="flex items-center gap-1 ml-auto">
                                               <Button
@@ -3056,7 +3097,10 @@ export function PresentationForm() {
 
                                               <Button
                                                 size="sm"
-                                                onClick={() => setActiveDrawSlideIndex(null)}
+                                                onClick={() => {
+                                                  setActiveDrawSlideIndex(null);
+                                                  setIsDrawToolbarCollapsed(false);
+                                                }}
                                                 className="h-7 px-3 text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md transition-all ml-1 flex items-center gap-1"
                                                 title="Finished drawing / Hide toolbar"
                                               >
@@ -3064,6 +3108,63 @@ export function PresentationForm() {
                                                 <span>Done</span>
                                               </Button>
                                             </div>
+                                          </div>
+                                        )}
+
+                                        {/* Collapsed Compact Floating Marker Pill (Unblocks view of the generated picture at the top) */}
+                                        {activeDrawSlideIndex === index && isDrawToolbarCollapsed && (
+                                          <div 
+                                            className="absolute top-12 sm:top-14 right-2 sm:right-4 z-30 flex items-center gap-1.5 p-1.5 px-3 rounded-2xl bg-slate-950/90 border border-purple-500/50 shadow-2xl backdrop-blur-xl animate-in fade-in duration-200 pointer-events-auto select-none"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            {/* Active Feature Indicator */}
+                                            <div className="flex items-center gap-1.5 pr-2 border-r border-white/15">
+                                              <span 
+                                                className="w-2.5 h-2.5 rounded-full ring-1 ring-white/50 shrink-0" 
+                                                style={{ backgroundColor: drawingTool === 'eraser' ? '#ffffff' : drawingColor }} 
+                                              />
+                                              <span className="text-[10px] font-extrabold text-purple-200 capitalize tracking-wide">
+                                                {drawingTool} ({drawingThickness}px)
+                                              </span>
+                                            </div>
+
+                                            {/* Expand / Show Full Toolbar */}
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => setIsDrawToolbarCollapsed(false)}
+                                              className="h-6 px-2.5 text-[10px] font-black bg-purple-600/40 hover:bg-purple-600 text-white rounded-lg flex items-center gap-1 transition-all shadow-sm"
+                                              title="Show full toolbar, colors & thickness settings"
+                                            >
+                                              <Eye className="h-3 w-3 text-cyan-300" />
+                                              <span>Show Tools</span>
+                                            </Button>
+
+                                            {/* Quick Undo */}
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={() => handleUndoDrawing(index)}
+                                              disabled={!slideDrawings[index] || slideDrawings[index].length === 0}
+                                              className="h-6 w-6 text-slate-300 hover:text-white rounded-lg disabled:opacity-30"
+                                              title="Undo last stroke"
+                                            >
+                                              <Undo2 className="h-3 w-3" />
+                                            </Button>
+
+                                            {/* Done / Finish drawing */}
+                                            <Button
+                                              size="sm"
+                                              onClick={() => {
+                                                setActiveDrawSlideIndex(null);
+                                                setIsDrawToolbarCollapsed(false);
+                                              }}
+                                              className="h-6 px-2 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg flex items-center gap-0.5 transition-all shadow-sm"
+                                              title="Finish drawing"
+                                            >
+                                              <Check className="h-3 w-3" />
+                                              <span>Done</span>
+                                            </Button>
                                           </div>
                                         )}
 

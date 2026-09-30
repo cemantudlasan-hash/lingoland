@@ -40,6 +40,7 @@ import {
   BookOpen,
   Split,
   Printer,
+  ExternalLink,
   Sliders,
   X,
   Info,
@@ -649,6 +650,367 @@ const shuffle = <T,>(arr: T[]): T[] => {
   }
   return result;
 };
+
+// Generates standalone, print-optimized HTML document for new tab/window (failsafe on iOS & macOS)
+function generatePrintableHtml(data: PrintCardData): string {
+  const letters = data.gridSize === 3 ? ["B", "I", "N"] : ["B", "I", "N", "G", "O"];
+  const perPage = data.cardsPerPage;
+
+  let pagesHtml = "";
+
+  if (data.includeKey) {
+    const winnersList = Array.from(data.winnerIndices)
+      .map((idx) => `#${idx + 1}`)
+      .join(", Card ");
+
+    const winningWordsHtml = data.targetWinningWords
+      .map(
+        (item, i) => `
+        <span style="background: #e0e7ff; border: 1px solid #6366f1; color: #312e81; padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 800; display: inline-block; margin: 2px;">
+          ${i + 1}. ${item.emoji} ${item.word}
+        </span>`
+      )
+      .join("");
+
+    const allWordsHtml = data.allWords
+      .map(
+        (w, idx) => `
+        <div class="call-word-item">
+          <strong>${idx + 1}. ${w.emoji} ${w.word}</strong>
+          <div style="color: #64748b; margin-top: 2px;">${w.definition}</div>
+        </div>`
+      )
+      .join("");
+
+    pagesHtml += `
+      <div class="print-page">
+        <div class="teacher-sheet">
+          <div class="print-card-header">
+            <div>
+              <h1 class="teacher-title">Teacher's Secret Bingo Master Sheet</h1>
+              <p style="margin: 0; font-size: 11px; color: #64748b;">
+                Category: <strong>${data.categoryTitle}</strong> • Total Cards Printed: <strong>${data.studentCount}</strong>
+              </p>
+            </div>
+            <span style="font-size: 11px; font-weight: bold; color: #6366f1;">www.lingolandverse.com</span>
+          </div>
+          <div class="winner-box">
+            🏆 SECRET WINNING CARDS IN THIS BATCH: Card ${winnersList}
+            <div style="font-size: 11px; font-weight: normal; margin-top: 4px;">
+              These cards are guaranteed to hit BINGO once you call the words below!
+            </div>
+          </div>
+          <p style="font-size: 11px; font-weight: bold; color: #334155; margin: 10px 0 4px;">
+            Primary Winning Vocabulary Sequence:
+          </p>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">
+            ${winningWordsHtml}
+          </div>
+          <p style="font-size: 11px; font-weight: bold; color: #334155; margin: 10px 0 4px;">
+            Complete Category Vocabulary Pool (${data.allWords.length} words):
+          </p>
+          <div class="call-words-grid">
+            ${allWordsHtml}
+          </div>
+          <div class="print-footer" style="margin-top: 16px;">
+            <span>CONFIDENTIAL • Teachers Only • Do not distribute to students</span>
+            <span>LingoLandVerse Educational Consortium</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  for (let i = 0; i < data.cards.length; i += perPage) {
+    const pageCards = data.cards.slice(i, i + perPage);
+    let cardsInPageHtml = "";
+
+    for (const card of pageCards) {
+      let rowsHtml = "";
+      for (const row of card.cells) {
+        let cellsHtml = "";
+        for (const cell of row) {
+          if (cell.isFree) {
+            cellsHtml += `<td class="print-free-space">⭐ FREE ⭐</td>`;
+          } else {
+            cellsHtml += `
+              <td>
+                <div style="font-size: 13px;">${cell.emoji || ""}</div>
+                <span class="print-word-text">${cell.word}</span>
+              </td>`;
+          }
+        }
+        rowsHtml += `<tr>${cellsHtml}</tr>`;
+      }
+
+      cardsInPageHtml += `
+        <div class="print-card-wrapper">
+          <div class="print-card-header">
+            <div>
+              <h2>LingoLandVerse Bingo</h2>
+              <span class="print-student-line">
+                Student Name: ____________________________ Date: ___________
+              </span>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 12px; font-weight: 900; color: #4338ca;">
+                Card ${card.cardIndex} of ${data.studentCount}
+              </div>
+              <span style="font-size: 10px; color: #64748b;">${data.categoryTitle}</span>
+            </div>
+          </div>
+          <table class="print-table">
+            <thead>
+              <tr>
+                ${letters.map((l) => `<th>${l}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          <div class="print-footer">
+            <span>Mark words as your teacher calls them. First full line wins BINGO!</span>
+            <span>www.lingolandverse.com</span>
+          </div>
+        </div>
+      `;
+    }
+
+    pagesHtml += `<div class="print-page">${cardsInPageHtml}</div>`;
+  }
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LingoLandVerse Bingo Cards - ${data.categoryTitle}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #000000;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .no-print-bar {
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #6366f1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .no-print-bar .title {
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .no-print-bar .actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-print {
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      color: white;
+    }
+    .btn-print:hover {
+      opacity: 0.9;
+    }
+    .btn-close {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    .btn-close:hover {
+      background: #475569;
+    }
+    .print-page {
+      page-break-after: always;
+      break-after: page;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 12px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    .print-card-wrapper {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      border: 2px solid #1e293b;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      background: #ffffff !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .print-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .print-card-header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 900;
+      color: #1e1b4b;
+      letter-spacing: -0.5px;
+    }
+    .print-student-line {
+      font-size: 11px;
+      color: #475569;
+      font-weight: 600;
+    }
+    .print-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+      table-layout: fixed;
+    }
+    .print-table th {
+      background: #f1f5f9 !important;
+      color: #1e293b !important;
+      font-size: 14px;
+      font-weight: 900;
+      padding: 6px;
+      text-align: center;
+      border: 1.5px solid #cbd5e1;
+      letter-spacing: 2px;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .print-table td {
+      border: 1.5px solid #cbd5e1;
+      text-align: center;
+      padding: 8px 4px;
+      vertical-align: middle;
+      height: 52px;
+      word-break: break-word;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .print-word-text {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+      text-transform: uppercase;
+      display: block;
+    }
+    .print-free-space {
+      background: #fef3c7 !important;
+      font-weight: 900 !important;
+      color: #b45309 !important;
+      font-size: 13px !important;
+      letter-spacing: 1px;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .print-footer {
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .teacher-sheet {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      padding: 20px;
+      border: 2px dashed #6366f1;
+      border-radius: 12px;
+      background: #f8fafc !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .teacher-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #312e81;
+      margin: 0 0 6px 0;
+    }
+    .winner-box {
+      background: #fef3c7 !important;
+      border: 2px solid #f59e0b;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-weight: 800;
+      font-size: 13px;
+      color: #92400e;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .call-words-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .call-word-item {
+      border: 1px solid #cbd5e1;
+      background: #ffffff !important;
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 10px;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    @media print {
+      .no-print-bar {
+        display: none !important;
+      }
+      .print-page {
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print-bar">
+    <div class="title">🖨️ LingoLandVerse Bingo • ${data.studentCount} Cards (${data.categoryTitle})</div>
+    <div class="actions">
+      <button class="btn btn-print" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn btn-close" onclick="window.close()">Close</button>
+    </div>
+  </div>
+  ${pagesHtml}
+</body>
+</html>`;
+}
 
 // --- COMPONENT IMPLEMENTATION ---
 
@@ -1349,27 +1711,45 @@ export function Bingo2({
     } catch (e) {}
   };
 
-  // --- PRINTABLE CARDS GENERATION ALGORITHM (UP TO 50 STUDENTS, 1-3 GUARANTEED WINNERS) ---
-  const handleGenerateAndPrint = () => {
+  // Helper to exit fullscreen if active (macOS Safari & Chrome suppress native print dialog in HTML5 fullscreen)
+  const triggerPrint = () => {
+    if (typeof document !== "undefined") {
+      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+        try {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if ((document as any).webkitExitFullscreen) {
+            (document as any).webkitExitFullscreen();
+          }
+        } catch (e) {
+          // Ignore fullscreen exit issues
+        }
+      }
+    }
+
+    // Call window.print() synchronously to preserve the user-gesture activation token in iOS & macOS Safari
+    try {
+      window.print();
+    } catch (err) {
+      console.error("Direct print failed:", err);
+    }
+  };
+
+  // Build card data structure
+  const buildCurrentPrintData = (): { data: PrintCardData; count: number; numWinners: number } => {
     const pool = VOCAB_CATEGORIES[selectedCategory]?.words || VOCAB_CATEGORIES.animals.words;
     const count = Math.min(Math.max(1, studentCountInput || 25), 50);
 
-    // 1. Pick 1 to 3 random distinct winner card indices
-    // (e.g. if 30 students, choose 2 random winners: Card #7 and Card #22)
-    const numWinners = count >= 6 ? Math.floor(Math.random() * 3) + 1 : 1; // 1, 2, or 3 cards
+    const numWinners = count >= 6 ? Math.floor(Math.random() * 3) + 1 : 1;
     const allIndices = Array.from({ length: count }, (_, i) => i);
     const shuffledIndices = shuffle(allIndices);
     const winnerIndices = new Set(shuffledIndices.slice(0, numWinners));
 
-    // 2. Select target primary winning words from the pool
-    // In 5x5, a winning line requires 5 words (or 4 + Free center)
-    // In 3x3, a winning line requires 3 words
     const targetLineWordCount = gridSize === 5 ? 5 : 3;
     const shuffledPool = shuffle(pool);
     const targetWinningWords = shuffledPool.slice(0, targetLineWordCount);
     const remainingPoolWords = shuffledPool.slice(targetLineWordCount);
 
-    // 3. Generate each student's card
     const generatedCards = [];
     const centerIndex = Math.floor((gridSize * gridSize) / 2);
 
@@ -1378,7 +1758,6 @@ export function Bingo2({
       const cells: { word: string; emoji?: string; isFree?: boolean }[][] = [];
 
       if (isWinner) {
-        // For winning cards: Place target winning words along a designated line (e.g. Row 0, or Row 1, or Diagonal)
         const winningRowIndex = cardIdx % gridSize;
         const otherCardWords = shuffle(remainingPoolWords);
         let otherWordIdx = 0;
@@ -1391,7 +1770,6 @@ export function Bingo2({
             if (gridSize === 5 && flatIndex === centerIndex) {
               row.push({ word: "FREE", emoji: "⭐", isFree: true });
             } else if (r === winningRowIndex) {
-              // Guaranteed winning word in this line!
               const winItem = targetWinningWords[winWordIdx % targetWinningWords.length];
               winWordIdx++;
               row.push({ word: winItem.word, emoji: winItem.emoji });
@@ -1404,7 +1782,6 @@ export function Bingo2({
           cells.push(row);
         }
       } else {
-        // For non-winning cards: Fill words while deliberately breaking any single winning line
         const randomWords = shuffle(pool);
         let wordIdx = 0;
 
@@ -1443,6 +1820,14 @@ export function Bingo2({
       includeKey: includeCallSheet,
     };
 
+    return { data, count, numWinners };
+  };
+
+  // --- PRINTABLE CARDS GENERATION ALGORITHM (UP TO 50 STUDENTS, 1-3 GUARANTEED WINNERS) ---
+  const handleGenerateAndPrint = () => {
+    const { data, count, numWinners } = buildCurrentPrintData();
+
+    // Synchronously commit state to the DOM so the print portal is immediately mounted before window.print()
     flushSync(() => {
       setPrintData(data);
       setIsPrinting(true);
@@ -1454,9 +1839,34 @@ export function Bingo2({
       description: `Generated ${count} student cards with ${numWinners} secret winning card(s).`,
     });
 
-    setTimeout(() => {
-      window.print();
-    }, 250);
+    // Synchronous execution ensures iOS & macOS Safari do not discard the user gesture activation
+    triggerPrint();
+  };
+
+  // Open printable cards in a clean new tab/window (failsafe for iOS Safari & macOS pop-up settings)
+  const handleOpenPrintInNewTab = () => {
+    let targetData = printData;
+    if (!targetData) {
+      const generated = buildCurrentPrintData();
+      targetData = generated.data;
+      setPrintData(targetData);
+    }
+
+    const printWin = window.open("", "_blank");
+    if (!printWin) {
+      toast({
+        title: "Pop-up Blocked",
+        description: "Please allow pop-ups for this site, or use direct print.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const html = generatePrintableHtml(targetData);
+    printWin.document.open();
+    printWin.document.write(html);
+    printWin.document.close();
+    setIsPrintModalOpen(false);
   };
 
   const markedCellsCount = studentCard.reduce(
@@ -2214,18 +2624,32 @@ export function Bingo2({
                     <p className="text-[11px] text-slate-300 leading-snug">
                       This active set is saved with your current game. You can reprint the exact same cards without changing anything, or generate a fresh set.
                     </p>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setIsPrinting(true);
-                        setIsPrintModalOpen(false);
-                        setTimeout(() => window.print(), 250);
-                      }}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 w-full mt-1"
-                    >
-                      <Printer className="h-3.5 w-3.5 mr-1.5" />
-                      Reprint Current Active Set ({printData.studentCount} Cards)
-                    </Button>
+                    <div className="flex gap-2 mt-1">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          flushSync(() => {
+                            setIsPrinting(true);
+                            setIsPrintModalOpen(false);
+                          });
+                          triggerPrint();
+                        }}
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30"
+                      >
+                        <Printer className="h-3.5 w-3.5 mr-1.5" />
+                        Reprint Active Set ({printData.studentCount})
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleOpenPrintInNewTab}
+                        className="border-indigo-400/40 hover:bg-indigo-900/50 text-indigo-200 text-xs font-bold"
+                        title="Open this active set in a new tab / save as PDF"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                        Tab / PDF
+                      </Button>
+                    </div>
                   </div>
                 )}
 
@@ -2239,20 +2663,33 @@ export function Bingo2({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex flex-col gap-2 pt-2">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleOpenPrintInNewTab}
+                    className="flex-1 border-indigo-500/40 hover:bg-indigo-950/50 text-indigo-300 font-bold text-xs"
+                    title="Open cards in a clean new tab or save to PDF (Recommended for Mac & iOS)"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                    Open Print Tab / PDF
+                  </Button>
+                  <Button
+                    onClick={handleGenerateAndPrint}
+                    className="flex-1 bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30"
+                  >
+                    <Printer className="h-4 w-4 mr-1.5" />
+                    {printData ? `Generate & Print (${studentCountInput})` : `Generate & Print (${studentCountInput})`}
+                  </Button>
+                </div>
                 <Button
-                  variant="outline"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setIsPrintModalOpen(false)}
-                  className="flex-1 border-slate-800 text-xs font-bold text-slate-300"
+                  className="w-full text-slate-400 hover:text-slate-200 text-xs"
                 >
                   Cancel
-                </Button>
-                <Button
-                  onClick={handleGenerateAndPrint}
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30"
-                >
-                  <Printer className="h-4 w-4 mr-1.5" />
-                  {printData ? `Generate New Set (${studentCountInput} Cards)` : `Generate & Print (${studentCountInput} Cards)`}
                 </Button>
               </div>
             </motion.div>
@@ -2443,58 +2880,83 @@ export function Bingo2({
       </AnimatePresence>
 
       {/* ========================================================= */}
-      {/* PRINT PORTAL CONTAINER (RENDERED ONLY FOR BROWSER PRINT)   */}
+      {/* PRINT PORTAL CONTAINER (RENDERED FOR BROWSER PRINT)       */}
       {/* ========================================================= */}
-      {isPrinting &&
-        printData &&
+      {printData &&
         typeof document !== "undefined" &&
         createPortal(
-          <div id="bingo-print-portal">
+          <div id="bingo-print-portal" className="printable-area">
             <style
               dangerouslySetInnerHTML={{
                 __html: `
                 @media screen {
                   #bingo-print-portal {
                     display: none !important;
+                    visibility: hidden !important;
+                    position: absolute !important;
+                    left: -99999px !important;
+                    top: -99999px !important;
+                    width: 0 !important;
+                    height: 0 !important;
+                    overflow: hidden !important;
                   }
                 }
                 @media print {
                   @page {
                     size: A4 portrait;
-                    margin: 10mm;
+                    margin: 8mm;
                   }
                   html, body {
                     background: #ffffff !important;
                     color: #000000 !important;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
                     margin: 0 !important;
                     padding: 0 !important;
+                    height: auto !important;
+                    min-height: 100% !important;
+                    max-height: none !important;
+                    overflow: visible !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                   }
                   body > *:not(#bingo-print-portal) {
                     display: none !important;
                   }
                   #bingo-print-portal {
                     display: block !important;
+                    visibility: visible !important;
+                    position: static !important;
                     width: 100% !important;
+                    height: auto !important;
+                    overflow: visible !important;
                     background: #ffffff !important;
+                    color: #000000 !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                   }
                   .print-page {
                     page-break-after: always;
                     break-after: page;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
                     width: 100%;
-                    min-height: 98vh;
+                    min-height: auto;
                     box-sizing: border-box;
-                    padding: 10px;
+                    padding: 8px;
                     display: flex;
                     flex-direction: column;
                   }
                   .print-card-wrapper {
+                    page-break-inside: avoid;
+                    break-inside: avoid;
                     border: 2px solid #1e293b;
                     border-radius: 12px;
-                    padding: 14px;
+                    padding: 12px;
                     margin-bottom: 12px;
                     box-sizing: border-box;
-                    background: #ffffff;
+                    background: #ffffff !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                   }
                   .print-card-header {
                     display: flex;
@@ -2564,10 +3026,14 @@ export function Bingo2({
                   }
                   /* Teacher Sheet Styles */
                   .teacher-sheet {
-                    padding: 20px;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
+                    padding: 18px;
                     border: 2px dashed #6366f1;
                     border-radius: 12px;
-                    background: #f8fafc;
+                    background: #f8fafc !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                   }
                   .teacher-title {
                     font-size: 22px;
