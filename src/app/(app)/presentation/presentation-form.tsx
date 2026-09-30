@@ -1909,6 +1909,126 @@ export function PresentationForm() {
     });
   };
 
+  // Safely convert an image URL into a base64 data URL for PowerPoint export (bypassing CORS via server proxy)
+  const fetchImageAsDataUrl = async (url: string, strokes?: DrawingStroke[]): Promise<string | null> => {
+    if (!url) return null;
+
+    let baseDataUrl: string | null = null;
+
+    if (url.startsWith('data:image/')) {
+      baseDataUrl = url;
+    } else {
+      // 1. Try internal server-side proxy which bypasses browser CORS restrictions
+      try {
+        const proxyRes = await fetch(`/api/image-proxy?url=${encodeURIComponent(url)}&format=base64`);
+        if (proxyRes.ok) {
+          const data = await proxyRes.json();
+          if (data.success && data.dataUrl) {
+            baseDataUrl = data.dataUrl;
+          }
+        }
+      } catch (proxyErr) {
+        console.warn('Image proxy conversion failed for:', url, proxyErr);
+      }
+
+      // 2. Direct browser fetch fallback (for local assets or CORS-enabled CDNs)
+      if (!baseDataUrl) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const blob = await res.blob();
+            baseDataUrl = await new Promise<string | null>((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = () => resolve(null);
+              reader.readAsDataURL(blob);
+            });
+          }
+        } catch (directErr) {
+          console.warn('Direct fetch conversion failed for:', url, directErr);
+        }
+      }
+    }
+
+    if (!baseDataUrl) return null;
+
+    // If there are annotations/drawings on this slide, composite them onto the image
+    if (strokes && strokes.length > 0 && typeof window !== 'undefined') {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error('Failed to load image for canvas compositing'));
+          img.src = baseDataUrl!;
+        });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || 800;
+        canvas.height = img.naturalHeight || 600;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          const w = canvas.width;
+          const h = canvas.height;
+
+          strokes.forEach((stroke) => {
+            const pts = stroke.points;
+            if (!pts || pts.length === 0) return;
+
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (stroke.tool === 'eraser') {
+              ctx.globalCompositeOperation = 'destination-out';
+              ctx.lineWidth = stroke.size * (w / 400);
+              ctx.strokeStyle = '#000000';
+            } else if (stroke.tool === 'highlighter') {
+              ctx.globalCompositeOperation = 'source-over';
+              ctx.globalAlpha = 0.45;
+              ctx.strokeStyle = stroke.color;
+              ctx.lineWidth = stroke.size * 2.2 * (w / 400);
+            } else {
+              ctx.globalCompositeOperation = 'source-over';
+              ctx.globalAlpha = 1.0;
+              ctx.strokeStyle = stroke.color;
+              ctx.lineWidth = stroke.size * (w / 400);
+            }
+
+            ctx.beginPath();
+            const startX = pts[0].x * w;
+            const startY = pts[0].y * h;
+            ctx.moveTo(startX, startY);
+
+            if (pts.length === 1) {
+              ctx.arc(startX, startY, ((stroke.tool === 'highlighter' ? stroke.size * 1.1 : stroke.size) * (w / 400)) / 2, 0, Math.PI * 2);
+              ctx.fillStyle = stroke.tool === 'eraser' ? '#000000' : stroke.color;
+              ctx.fill();
+            } else {
+              for (let i = 1; i < pts.length; i++) {
+                const midX = ((pts[i - 1].x + pts[i].x) / 2) * w;
+                const midY = ((pts[i - 1].y + pts[i].y) / 2) * h;
+                ctx.quadraticCurveTo(pts[i - 1].x * w, pts[i - 1].y * h, midX, midY);
+              }
+              ctx.lineTo(pts[pts.length - 1].x * w, pts[pts.length - 1].y * h);
+              ctx.stroke();
+            }
+            ctx.restore();
+          });
+
+          return canvas.toDataURL('image/png');
+        }
+      } catch (composeErr) {
+        console.warn('Could not composite annotations onto slide image, returning base image:', composeErr);
+        return baseDataUrl;
+      }
+    }
+
+    return baseDataUrl;
+  };
+
   const handleDownloadPptx = async () => {
     if (!presentation) return;
     setIsDownloadingPptx(true);
@@ -1937,6 +2057,20 @@ export function PresentationForm() {
         bgColor = 'fef3c7';
       }
 
+      // Pre-resolve all slide images in parallel as base64 data URLs to prevent pptxgenjs CORS XHR errors
+      const slideImagePromises = presentation.slides.map(async (slide, idx) => {
+        const photoUrl = slidePhotos[idx] || (slide as any).photoUrl;
+        if (!photoUrl) return null;
+        try {
+          const strokes = slideDrawings[idx];
+          return await fetchImageAsDataUrl(photoUrl, strokes);
+        } catch (fetchErr) {
+          console.warn(`Could not resolve photo for slide ${idx + 1}:`, fetchErr);
+          return null;
+        }
+      });
+      const resolvedSlideImages = await Promise.all(slideImagePromises);
+
       // Add slides
       presentation.slides.forEach((slide, idx) => {
         const pptxSlide = pptx.addSlide();
@@ -1945,13 +2079,13 @@ export function PresentationForm() {
         pptxSlide.background = { fill: bgColor };
 
         // Check if there is a photo for this slide
-        const photoUrl = slidePhotos[idx] || (slide as any).photoUrl;
+        const photoDataUrl = resolvedSlideImages[idx];
 
         // Slide title
         pptxSlide.addText(slide.title, {
           x: 0.5,
           y: 0.5,
-          w: photoUrl ? 6.5 : 12.3,
+          w: photoDataUrl ? 6.5 : 12.3,
           h: 1.0,
           fontSize: 28,
           bold: true,
@@ -1964,7 +2098,7 @@ export function PresentationForm() {
         pptxSlide.addText(bulletPoints as any, {
           x: 0.5,
           y: 1.8,
-          w: photoUrl ? 6.5 : 12.3,
+          w: photoDataUrl ? 6.5 : 12.3,
           h: 4.8,
           fontSize: 16,
           color: textColor,
@@ -1972,11 +2106,11 @@ export function PresentationForm() {
           lineSpacing: 24,
         });
 
-        // Slide photo
-        if (photoUrl) {
+        // Slide photo (embeds raw base64 data - ZERO browser XHR, completely immune to CORS failures)
+        if (photoDataUrl) {
           try {
             pptxSlide.addImage({
-              path: photoUrl,
+              data: photoDataUrl,
               x: 7.5,
               y: 0.8,
               w: 5.3,
