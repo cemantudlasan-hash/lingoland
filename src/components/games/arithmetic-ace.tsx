@@ -1327,8 +1327,10 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
-        isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" : "max-w-3xl mx-auto bg-card shadow-xl"
+        "w-full transition-all duration-500 flex flex-col justify-between",
+        isFullscreen 
+          ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
+          : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/90 backdrop-blur-xl border border-white/10 shadow-2xl"
       )}>
       <CardHeader className="text-center relative px-4 sm:px-10">
         <Button variant="ghost" size="sm" className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]" onClick={onToggleFullscreen}>
@@ -1353,7 +1355,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         )}
       </CardHeader>
 
-      <CardContent className={cn("flex flex-col items-center justify-center p-6", isFullscreen ? "min-h-[60vh]" : "min-h-[350px]")}>
+      <CardContent className={cn("flex-1 w-full flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8", isFullscreen ? "min-h-[60vh]" : "min-h-[calc(100dvh-16rem)]")}>
         {gameMode === 'multi' ? (
           <>
             {isEditingQuestions ? (
@@ -1404,7 +1406,7 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
             {gameState === "instructions" && (
                  <div className={cn(
                      "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20 shadow-inner",
-                     isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-lg"
+                     isFullscreen ? "p-16 max-w-5xl" : "p-6 sm:p-8 max-w-2xl w-full"
                  )}>
                     <h3 className={cn("font-black uppercase tracking-widest text-center mb-4", isFullscreen ? "text-4xl" : "text-xl")}>How to Play</h3>
                     <div className={cn("text-left space-y-4", isFullscreen ? "text-2xl" : "text-base")}>

@@ -97,10 +97,10 @@ export function ArticleArchitect({ slug, onToggleFullscreen }: { slug: string; o
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full transition-all duration-500 flex flex-col justify-between",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-2xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/90 backdrop-blur-xl border border-white/10 shadow-2xl"
       )}>
       <CardHeader className="text-center relative">
         <Button
@@ -124,8 +124,8 @@ export function ArticleArchitect({ slug, onToggleFullscreen }: { slug: string; o
         </div>
       </CardHeader>
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-5xl mx-auto w-full px-8" : "min-h-[20rem]"
+          "flex-1 w-full space-y-6 text-center flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8",
+          isFullscreen ? "min-h-[60vh] max-w-5xl mx-auto w-full px-8" : "min-h-[calc(100dvh-16rem)] max-w-4xl mx-auto w-full"
       )}>
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4">
@@ -138,8 +138,8 @@ export function ArticleArchitect({ slug, onToggleFullscreen }: { slug: string; o
         )}
         {gameState === "instructions" && (
              <div className={cn(
-                 "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20",
-                 isFullscreen ? "p-16 max-w-4xl" : "p-8 max-w-lg"
+                 "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-2xl mx-auto border border-border/20 w-full",
+                 isFullscreen ? "p-16 max-w-4xl" : "p-6 sm:p-8 max-w-2xl"
              )}>
                 <h3 className={cn("font-bold text-center mb-4", isFullscreen ? "text-4xl" : "text-xl")}>How to Play Article Architect</h3>
                 <div className={cn("text-left space-y-4", isFullscreen ? "text-2xl" : "text-base")}>

@@ -248,14 +248,14 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
   };
 
   return (
-    <div className="relative min-h-[92vh] w-full flex flex-col items-center justify-start p-3 sm:p-6 text-white overflow-hidden select-none bg-slate-950/10 rounded-3xl border border-slate-900/60">
+    <div className="relative min-h-[calc(100dvh-4.5rem)] w-full flex-1 flex flex-col items-center justify-start p-3 sm:p-6 lg:p-8 text-white overflow-y-auto select-none bg-zinc-950/85 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-indigo-500/20 shadow-2xl">
       <ConstellationCanvas />
       
       {/* Background radial highlights */}
       <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-7xl flex flex-col gap-6">
+      <div className="relative z-10 w-full flex-1 flex flex-col gap-6">
 
         
         <AnimatePresence mode="wait">
@@ -267,21 +267,21 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="w-full flex flex-col gap-6"
+              className="w-full flex-1 flex flex-col gap-6"
             >
               <div className="text-center space-y-2">
                 <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1 px-3">
                   Classroom RPG Game
                 </Badge>
-                <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-200 uppercase tracking-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-200 uppercase tracking-tight">
                   AI Choose-Your-Own Adventure
                 </h1>
-                <p className="text-slate-400 text-sm max-w-lg mx-auto font-medium leading-relaxed">
+                <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto font-medium leading-relaxed">
                   Design a custom adventure quest, pick your genre, and unlock story paths by completing grammar challenges!
                 </p>
               </div>
 
-              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8">
+              <Card className="bg-zinc-950/80 border-indigo-500/20 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 flex-1">
                 <CardContent className="space-y-6 p-0">
                   
                   {/* Genre Selections */}

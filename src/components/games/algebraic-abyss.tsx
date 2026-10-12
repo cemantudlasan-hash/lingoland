@@ -145,8 +145,8 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 flex flex-col overflow-y-auto relative border-none shadow-2xl",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-black" : "max-w-4xl mx-auto h-[600px] sm:h-[700px] bg-slate-950"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] transition-all duration-500 flex flex-col justify-between overflow-y-auto relative border border-blue-500/20 shadow-2xl bg-zinc-950/90 backdrop-blur-2xl",
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-black" : "rounded-2xl md:rounded-3xl"
     )}>
       {/* Background Starfield Effect */}
       <div className="absolute inset-0 z-0 opacity-30">
@@ -207,7 +207,7 @@ export function AlgebraicAbyss({ slug, onToggleFullscreen }: { slug: string; onT
         </div>
       </CardHeader>
 
-      <CardContent className={cn("flex-grow flex flex-col items-center justify-center p-6 z-10 relative overflow-y-auto", isFullscreen ? "min-h-[60vh]" : "min-h-[350px]")}>
+      <CardContent className={cn("flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 z-10 relative overflow-y-auto w-full", isFullscreen ? "min-h-[60vh]" : "min-h-[calc(100dvh-16rem)]")}>
         <AnimatePresence mode="wait">
           {gameState === "idle" && (
             <motion.div 

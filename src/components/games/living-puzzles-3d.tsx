@@ -235,8 +235,8 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
     <div className={cn(
       "w-full transition-all duration-500 flex flex-col items-center bg-slate-950 text-white relative overflow-hidden",
       isFullscreen 
-        ? "min-h-screen rounded-none border-none p-8 max-w-none justify-center" 
-        : "max-w-4xl mx-auto rounded-3xl p-6 border border-slate-800 shadow-2xl min-h-[600px]"
+        ? "min-h-screen rounded-none border-none p-4 sm:p-8 max-w-none justify-center" 
+        : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl p-4 sm:p-6 lg:p-8 border border-cyan-500/20 bg-slate-950/95 backdrop-blur-2xl shadow-2xl justify-between"
     )}>
       {/* Background visual effects */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-600/5 rounded-full blur-3xl pointer-events-none" />
@@ -269,7 +269,7 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 flex flex-col items-center justify-center text-center max-w-md my-auto space-y-6 z-10"
+            className="flex-1 flex flex-col items-center justify-center text-center max-w-2xl my-auto space-y-6 z-10 p-6 md:p-10 rounded-3xl bg-slate-900/60 border border-cyan-500/20 backdrop-blur-md shadow-2xl"
           >
             <div className="relative">
               <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 blur opacity-40 animate-pulse" />

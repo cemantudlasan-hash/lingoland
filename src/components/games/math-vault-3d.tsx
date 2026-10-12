@@ -1743,8 +1743,8 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   return (
     <div className={cn(
-      "w-full relative min-h-[44rem] flex flex-col justify-center items-center select-none",
-      isFullscreen ? "h-screen max-h-screen overflow-hidden bg-slate-950 p-0" : "py-6"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] flex flex-col justify-start items-center select-none relative",
+      isFullscreen ? "h-screen max-h-screen overflow-hidden bg-slate-950 p-0" : "p-0"
     )}>
       <style>{`
         @keyframes vault-float {
@@ -1804,8 +1804,8 @@ export function MathVault3D({ slug, onToggleFullscreen }: { slug: string; onTogg
       </div>
 
       <Card className={cn(
-        "w-full bg-slate-900/90 backdrop-blur-md border-cyan-500/20 shadow-2xl relative transition-all duration-500 z-10",
-        isFullscreen ? "h-screen w-screen rounded-none border-none flex flex-col overflow-hidden" : "max-w-4xl mx-auto rounded-xl border-2 border-cyan-500/10 overflow-hidden"
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] bg-zinc-950/90 backdrop-blur-2xl border-cyan-500/30 shadow-2xl relative transition-all duration-500 z-10 flex flex-col justify-between overflow-hidden",
+        isFullscreen ? "h-screen w-screen rounded-none border-none" : "rounded-2xl md:rounded-3xl border-2"
       )}>
         <CardHeader className="text-center pb-2 relative border-b border-cyan-500/10">
           <Button

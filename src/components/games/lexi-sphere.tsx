@@ -383,8 +383,8 @@ export function LexiSphere({ slug, onToggleFullscreen }: { slug: string; onToggl
 
   return (
     <div className={cn(
-      "w-full relative min-h-[40rem] flex flex-col justify-center items-center",
-      isFullscreen ? "min-h-screen bg-slate-950 p-4 sm:p-8" : "py-4"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] flex flex-col justify-start items-center relative",
+      isFullscreen ? "min-h-screen bg-slate-950 p-2 sm:p-4" : "p-0"
     )}>
       <style>{`
         @keyframes english-shake {
@@ -425,11 +425,11 @@ export function LexiSphere({ slug, onToggleFullscreen }: { slug: string; onToggl
       `}</style>
 
       <Card className={cn(
-        "w-full overflow-hidden bg-card/90 backdrop-blur-md border-border/20 shadow-2xl relative transition-all duration-500 z-10",
-        isFullscreen ? "h-screen rounded-none border-none" : "max-w-4xl mx-auto rounded-xl border",
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] overflow-hidden bg-zinc-950/90 backdrop-blur-2xl border-white/10 shadow-2xl relative transition-all duration-500 z-10 flex flex-col justify-between",
+        isFullscreen ? "h-screen rounded-none border-none" : "rounded-2xl md:rounded-3xl border",
         triggerShake && "english-animate-shake"
       )}>
-        <CardHeader className="text-center pb-2 relative">
+        <CardHeader className="text-center pb-2 relative border-b border-white/5">
           <Button
             variant="ghost"
             size="sm"
@@ -444,13 +444,13 @@ export function LexiSphere({ slug, onToggleFullscreen }: { slug: string; onToggl
               <Icon className="w-10 h-10 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-black tracking-tighter italic uppercase text-white">3D LEXI-SPHERE</CardTitle>
-          <CardDescription className="text-gray-300 font-medium">Grab and spin to find the matching word.</CardDescription>
+          <CardTitle className="text-2xl sm:text-3xl font-black tracking-tighter italic uppercase text-white">3D LEXI-SPHERE</CardTitle>
+          <CardDescription className="text-gray-300 font-medium text-xs sm:text-sm">Grab and spin to find the matching word.</CardDescription>
         </CardHeader>
 
         <CardContent className={cn(
-          "flex flex-col items-center justify-center relative p-0 overflow-hidden select-none touch-none",
-          isFullscreen ? "min-h-[calc(100vh-200px)]" : "min-h-[600px]"
+          "flex-1 flex flex-col items-center justify-center relative p-0 overflow-hidden select-none touch-none w-full",
+          isFullscreen ? "min-h-[calc(100vh-200px)]" : "min-h-[calc(100dvh-16rem)]"
         )}>
           <AnimatePresence>
             {feedback && (

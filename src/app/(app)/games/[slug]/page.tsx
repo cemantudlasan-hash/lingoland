@@ -468,16 +468,16 @@ export default function GamePage() {
     <div
       ref={gameContainerRef}
       className={cn(
-        "relative transition-all duration-300",
+        "relative transition-all duration-300 flex flex-col w-full",
         isFullscreen
           ? "fixed inset-0 z-50 bg-background w-full h-[100dvh] max-h-[100dvh] overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
-          : "-m-3 md:-m-4 lg:-m-5 min-h-full flex flex-col"
+          : "-m-3 md:-m-4 lg:-m-5 min-h-[calc(100dvh-4rem)] flex-1"
       )}
       data-fullscreen-container={isFullscreen}
       onMouseDown={startTimerOnInteraction}
       onTouchStart={startTimerOnInteraction}
     >
-      <div className={cn("w-full transition-all duration-300 flex-1 flex flex-col", isFullscreen ? "min-h-[100dvh] h-full overflow-y-auto overflow-x-hidden" : "")}>
+      <div className={cn("w-full transition-all duration-300 flex-1 flex flex-col", isFullscreen ? "min-h-[100dvh] h-full overflow-y-auto overflow-x-hidden" : "min-h-[calc(100dvh-4rem)] flex-1")}>
         <React.Suspense fallback={<LoadingPlaceholder />}>
           <GameComponent slug={game.slug} onToggleFullscreen={handleFullScreen} />
         </React.Suspense>

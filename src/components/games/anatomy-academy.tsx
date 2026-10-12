@@ -325,10 +325,10 @@ export function AnatomyAcademy({ slug, onToggleFullscreen }: { slug: string; onT
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] transition-all duration-500 flex flex-col justify-between bg-zinc-950/90 backdrop-blur-2xl border border-white/10 shadow-2xl",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            : "rounded-2xl md:rounded-3xl"
       )}>
       <CardHeader className="text-center relative">
         <Button
@@ -345,15 +345,15 @@ export function AnatomyAcademy({ slug, onToggleFullscreen }: { slug: string; onT
                 <Icon className="w-16 h-16 text-primary" />
             </div>
         )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl text-white" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen ? "text-2xl mt-2 text-white/80" : "mt-2")}>{game.description}</CardDescription>
+        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl text-white" : "text-2xl sm:text-3xl")}>{game.title}</CardTitle>
+        <CardDescription className={cn(isFullscreen ? "text-2xl mt-2 text-white/80" : "mt-2 text-xs sm:text-sm text-zinc-300 font-medium")}>{game.description}</CardDescription>
         <div className="flex justify-center pt-2">
             <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{(difficulty || game.level).toUpperCase()}</Badge>
         </div>
       </CardHeader>
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-7xl mx-auto w-full px-12" : "min-h-[24rem] p-6"
+          "space-y-6 text-center flex-1 flex flex-col items-center justify-center w-full",
+          isFullscreen ? "min-h-[60vh] max-w-7xl mx-auto w-full px-12" : "min-h-[calc(100dvh-16rem)] p-4 sm:p-6"
       )}>
         {renderContent()}
       </CardContent>

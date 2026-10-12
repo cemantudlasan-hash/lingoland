@@ -170,7 +170,7 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
               return (
                 <div className={cn(
                     "flex flex-col items-center justify-center gap-4 text-center bg-sky-900/20 rounded-3xl mx-auto border-2 border-sky-500/20 shadow-inner",
-                    isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-lg"
+                    isFullscreen ? "p-16 max-w-5xl" : "p-6 sm:p-8 max-w-2xl w-full"
                 )}>
                     <h3 className={cn("font-black uppercase tracking-widest text-sky-400 mb-4", isFullscreen ? "text-4xl" : "text-xl")}>Mission Brief</h3>
                     <div className={cn("text-left space-y-4 font-bold text-sky-50", isFullscreen ? "text-2xl" : "text-base")}>
@@ -327,10 +327,10 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full transition-all duration-500 flex flex-col justify-between",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/90 backdrop-blur-xl border border-sky-500/20 shadow-2xl"
       )}>
       <CardHeader className="text-center relative">
         <Button
@@ -354,8 +354,8 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
         </div>
       </CardHeader>
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-7xl mx-auto w-full px-12" : "min-h-[24rem] p-6"
+          "flex-1 w-full space-y-6 text-center flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8",
+          isFullscreen ? "min-h-[60vh] max-w-7xl mx-auto w-full px-12" : "min-h-[calc(100dvh-16rem)] max-w-5xl mx-auto w-full"
       )}>
         {renderContent()}
       </CardContent>

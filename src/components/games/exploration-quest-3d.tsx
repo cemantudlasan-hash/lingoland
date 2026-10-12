@@ -233,10 +233,10 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
 
   return (
     <div className={cn(
-      "w-full transition-all duration-500 flex flex-col items-center bg-slate-950 text-white relative overflow-hidden",
+      "w-full transition-all duration-500 flex flex-col items-center bg-zinc-950 text-white relative overflow-hidden",
       isFullscreen 
-        ? "min-h-screen rounded-none border-none p-8 max-w-none justify-center" 
-        : "max-w-4xl mx-auto rounded-3xl p-6 border border-slate-800 shadow-2xl min-h-[600px]"
+        ? "min-h-screen rounded-none border-none p-4 sm:p-8 max-w-none justify-center" 
+        : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl p-4 sm:p-6 lg:p-8 border border-indigo-500/20 bg-zinc-950/90 backdrop-blur-2xl shadow-2xl justify-between"
     )}>
       {/* Premium background gradient elements */}
       <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
@@ -269,26 +269,26 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 flex flex-col items-center justify-center text-center max-w-md my-auto space-y-6 z-10"
+            className="flex-1 flex flex-col items-center justify-center text-center max-w-2xl my-auto space-y-8 z-10 w-full px-6 py-12 bg-white/[0.02] border border-white/10 rounded-3xl backdrop-blur-xl shadow-2xl"
           >
             <div className="relative">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 blur opacity-40 animate-pulse" />
-              <div className="relative p-6 bg-slate-900 border border-slate-800 rounded-full">
+              <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 blur-xl opacity-50 animate-pulse" />
+              <div className="relative p-7 bg-zinc-950/90 border border-indigo-500/30 rounded-full shadow-2xl">
                 <Search className="h-16 w-16 text-indigo-400" />
               </div>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-slate-100 uppercase tracking-tight">Vocabulary Quest</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Step into a full 3D interactive classroom kitchen! Find objects, click on them to hear their pronunciation, and complete the daily explorer quest.
+            <div className="space-y-3 max-w-lg">
+              <h3 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">Vocabulary Quest</h3>
+              <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-medium">
+                Step into a full 3D interactive classroom kitchen! Find hidden objects, listen to native pronunciations, and conquer the daily explorer quest.
               </p>
             </div>
             <button
               onClick={handleStartGame}
-              className="px-10 py-4 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-black uppercase text-sm tracking-widest rounded-2xl transition-all shadow-[0_4px_25px_rgba(99,102,241,0.25)] hover:scale-105 active:scale-95 flex items-center gap-2"
+              className="px-12 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-sm sm:text-base tracking-widest rounded-2xl transition-all shadow-[0_4px_25px_rgba(99,102,241,0.4)] hover:scale-105 active:scale-95 flex items-center gap-3 border border-indigo-400/30"
             >
-              <Sparkles className="h-4 w-4" />
-              Begin Quest
+              <Sparkles className="h-5 w-5 text-indigo-200 animate-spin" />
+              <span>Begin Quest</span>
             </button>
           </motion.div>
         )}

@@ -440,14 +440,14 @@ export function AuctionAction({ slug, onToggleFullscreen }: { slug: string; onTo
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-300 flex flex-col",
+        "w-full transition-all duration-300 flex flex-col justify-between",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-start p-4 sm:p-6 md:p-8" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/90 backdrop-blur-xl border border-white/10 shadow-2xl p-4 sm:p-6 md:p-8"
       )}>
       {/* Top Header: Compact HUD during gameplay or fullscreen mode; Standard centered banner during setup/idle */}
       {isFullscreen || isPlaying ? (
-        <div className="w-full max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 pb-3 mb-2 border-b border-border/40 shrink-0">
+        <div className="w-full flex flex-wrap items-center justify-between gap-3 pb-3 mb-2 border-b border-border/40 shrink-0">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
               <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -513,8 +513,8 @@ export function AuctionAction({ slug, onToggleFullscreen }: { slug: string; onTo
       )}
 
       <CardContent className={cn(
-          "w-full max-w-5xl mx-auto flex flex-col items-center justify-start flex-1 gap-4 sm:gap-6",
-          isFullscreen ? "p-0 pt-2" : "p-6 pt-0 min-h-[24rem]"
+          "w-full flex flex-col items-center justify-start flex-1 gap-4 sm:gap-6",
+          isFullscreen ? "p-0 pt-2" : "p-4 sm:p-6 pt-0 min-h-[calc(100dvh-16rem)]"
       )}>
         {isPlaying && (
             <div className={cn(
@@ -543,8 +543,8 @@ export function AuctionAction({ slug, onToggleFullscreen }: { slug: string; onTo
       </CardContent>
 
       <CardFooter className={cn(
-        "flex justify-between items-center gap-4 pt-4 max-w-5xl mx-auto w-full",
-        isFullscreen ? "p-0 pt-4" : "p-6 pt-0"
+        "flex justify-between items-center gap-4 pt-4 w-full",
+        isFullscreen ? "p-0 pt-4" : "p-4 sm:p-6 pt-0"
       )}>
         <Button variant="outline" asChild size="default" className="rounded-xl font-bold">
             <Link href="/games">Back to Library</Link>
