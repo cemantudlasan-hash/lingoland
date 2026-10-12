@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { chatWithTutor, translateText } from '@/ai/flows/tutor-chat';
 import { useFirestore } from '@/firebase';
@@ -241,6 +242,17 @@ export default function MarketplacePage() {
   const { toast } = useToast();
   const { user, isGuest, isLoading, isAdmin, setAuthAction } = useAuth();
   const firestore = useFirestore();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (!isLoading && (!user || isGuest)) {
+      toast({
+        title: "Log In Required",
+        description: "Log in to explore this tab",
+      });
+    }
+  }, [user, isGuest, isLoading, toast]);
   
   // Tabs: 'browse' | 'peer-listings' | 'peer-create' | 'create' | 'moderate-reviews'
   const [activeTab, setActiveTab] = useState<'browse' | 'peer-listings' | 'peer-create' | 'create' | 'moderate-reviews'>('browse');
@@ -916,24 +928,36 @@ export default function MarketplacePage() {
 
   if (!user || isGuest) {
     return (
-      <div className="relative min-h-[92vh] w-full p-6 text-white overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900 flex items-center justify-center">
+      <div className="relative min-h-[92vh] w-full p-6 text-white overflow-hidden bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-teal-500/30 flex items-center justify-center shadow-2xl">
         <ConstellationCanvas />
-        <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-xl mx-auto w-full text-center space-y-6 select-none relative z-10">
-          <div className="w-16 h-16 mx-auto rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 select-none">
+        <Card className="bg-zinc-950/95 border-teal-500/30 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 max-w-xl mx-auto w-full text-center space-y-6 select-none relative z-10">
+          <div className="w-16 h-16 mx-auto rounded-full bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 select-none shadow-[0_0_20px_rgba(20,184,166,0.3)]">
             <ShieldCheck className="h-8 w-8 animate-pulse" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-black text-slate-100 uppercase tracking-widest">Registered Account Required</h3>
-            <p className="text-slate-400 text-xs leading-relaxed max-w-sm mx-auto">
-              The Peer & AI Tutor Marketplace is exclusively available to authenticated student and educator accounts. Guest accounts cannot access this portal.
+            <h3 className="text-2xl font-black text-white uppercase tracking-wider bg-gradient-to-r from-teal-300 via-cyan-200 to-white bg-clip-text text-transparent">
+              Log In to Explore This Tab
+            </h3>
+            <p className="text-zinc-200 text-sm leading-relaxed max-w-md mx-auto font-medium">
+              The Peer & AI Tutor Marketplace is exclusively available to authenticated student and educator accounts. Log in or create an account to explore interactive AI tutors and peer mentorship.
             </p>
           </div>
-          <div className="flex gap-3 justify-center select-none">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center select-none pt-2">
             <Button 
-              onClick={() => setAuthAction?.("login")} 
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs h-11 px-8 rounded-xl shadow-md shadow-indigo-650/20 transition-all hover:scale-[1.02]"
+              onClick={() => {
+                setAuthAction?.("login");
+                router.push('/auth');
+              }} 
+              className="bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white font-black uppercase text-xs h-11 px-8 rounded-xl shadow-lg shadow-teal-500/25 transition-all hover:scale-[1.02] active:scale-95"
             >
-              Log In / Register
+              Log In / Register Now
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push('/auth')}
+              className="border-white/15 bg-zinc-900/80 text-zinc-300 hover:text-white hover:bg-zinc-800 text-xs h-11 px-6 rounded-xl"
+            >
+              Back to Portal
             </Button>
           </div>
         </Card>

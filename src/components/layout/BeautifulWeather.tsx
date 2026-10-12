@@ -15,7 +15,11 @@ interface WeatherData {
   countryCode: string;
 }
 
-export function BeautifulWeather() {
+interface BeautifulWeatherProps {
+  className?: string;
+}
+
+export function BeautifulWeather({ className = "" }: BeautifulWeatherProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [unit, setUnit] = useState<'C' | 'F'>('C');
@@ -263,7 +267,7 @@ export function BeautifulWeather() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.8, ease: 'easeOut' }}
-      className={`w-full bg-gradient-to-br ${theme.bg} ${theme.border} backdrop-blur-xl border rounded-3xl p-5 shadow-2xl relative overflow-hidden select-none`}
+      className={`w-full bg-gradient-to-br ${theme.bg} ${theme.border} backdrop-blur-xl border rounded-2xl p-5 shadow-xl relative overflow-hidden select-none flex flex-col justify-between ${className}`}
     >
       {/* Dynamic CSS Particle Animations in Background */}
       {theme.effect === 'rainy' && (
@@ -292,7 +296,7 @@ export function BeautifulWeather() {
       )}
 
       {/* Main Container */}
-      <div className="relative z-10 space-y-4">
+      <div className="relative z-10 space-y-4 flex-1 flex flex-col justify-between">
         
         {/* Header (Geo Location Tracking) */}
         <div className="flex items-center justify-between border-b border-white/5 pb-3">

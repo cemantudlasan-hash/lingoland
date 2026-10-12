@@ -1863,16 +1863,16 @@ export default function LanguageModulesPage() {
               <button
                 key={mod.id}
                 onClick={() => setActiveLanguage(mod.id)}
-                className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 border ${isActive
-                  ? 'bg-indigo-500/20 border-indigo-500/40 text-white shadow-lg shadow-indigo-500/10'
-                  : 'border-slate-700/60 text-slate-400 hover:border-slate-600 hover:text-slate-200'}`}
+                className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 border backdrop-blur-md ${isActive
+                  ? 'bg-indigo-600/30 border-indigo-400 text-white shadow-lg shadow-indigo-500/20'
+                  : 'bg-zinc-950/80 border-white/10 text-zinc-300 hover:border-white/25 hover:text-white'}`}
               >
                 <span className="text-lg">{mod.flag}</span>
                 <span className="hidden sm:inline">{mod.language}</span>
                 <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${complete
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : done > 0 ? 'bg-indigo-500/15 text-indigo-400'
-                    : 'bg-slate-800 text-slate-500'}`}>
+                  ? 'bg-emerald-500/20 text-emerald-300'
+                  : done > 0 ? 'bg-indigo-500/25 text-indigo-300'
+                    : 'bg-zinc-800 text-zinc-400'}`}>
                   {done}/{total}
                 </span>
                 {complete && (
@@ -1894,7 +1894,7 @@ export default function LanguageModulesPage() {
             className="space-y-4"
           >
             {/* Module header */}
-            <div className={`relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br ${currentModule.gradient}/10 to-slate-950/50 p-6`}>
+            <div className={`relative overflow-hidden rounded-3xl border border-white/15 bg-zinc-950/90 backdrop-blur-2xl p-6 shadow-2xl`}>
               <div className="absolute inset-0 opacity-5 text-[160px] flex items-center justify-end pr-8 pointer-events-none select-none">
                 {currentModule.flag}
               </div>
@@ -1904,18 +1904,18 @@ export default function LanguageModulesPage() {
                     <span className="text-4xl">{currentModule.flag}</span>
                     <div>
                       <h2 className="text-2xl font-black text-white">{currentModule.language}</h2>
-                      <p className="text-slate-400 text-sm">{currentModule.lessons.length} structured lessons</p>
+                      <p className="text-zinc-300 text-sm font-medium">{currentModule.lessons.length} structured lessons</p>
                     </div>
                   </div>
                   {/* Progress bar */}
                   <div className="flex items-center gap-3 mt-3">
-                    <div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="w-48 h-2.5 bg-slate-900 border border-white/10 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700"
                         style={{ width: `${(completedForLang.size / currentModule.lessons.length) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs text-slate-400 font-bold">
+                    <span className="text-xs text-zinc-300 font-bold">
                       {completedForLang.size}/{currentModule.lessons.length} complete
                     </span>
                   </div>
@@ -1952,9 +1952,9 @@ export default function LanguageModulesPage() {
                     </button>
                   )
                 ) : (
-                  <div className="flex flex-col items-center gap-1 text-center opacity-60">
-                    <Award className="w-8 h-8 text-slate-500" />
-                    <span className="text-xs text-slate-500 font-bold">
+                  <div className="flex flex-col items-center gap-1 text-center opacity-80">
+                    <Award className="w-8 h-8 text-zinc-400" />
+                    <span className="text-xs text-zinc-400 font-bold">
                       {currentModule.lessons.length - completedForLang.size} more to unlock
                     </span>
                   </div>
@@ -1967,14 +1967,14 @@ export default function LanguageModulesPage() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 flex items-center gap-4"
+                className="bg-zinc-950/95 border border-emerald-500/50 rounded-2xl p-4 flex items-center gap-4 shadow-2xl backdrop-blur-xl"
               >
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
                   <Trophy className="w-6 h-6 text-emerald-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-emerald-300 font-black">🎉 Congratulations! You completed all {currentModule.language} lessons!</h3>
-                  <p className="text-emerald-400/70 text-sm">
+                  <h3 className="text-emerald-300 font-black text-base">🎉 Congratulations! You completed all {currentModule.language} lessons!</h3>
+                  <p className="text-zinc-200 text-sm font-medium mt-0.5">
                     {passedExams[activeLanguage]
                       ? 'Click "Get Certificate!" to generate and download your certificate of completion.'
                       : 'You can now take the 30-question Certification Exam to unlock your certificate and earn +500 XP!'}
@@ -1984,7 +1984,7 @@ export default function LanguageModulesPage() {
             )}
 
             {/* Lesson cards grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {currentModule.lessons.map((lesson, index) => {
                 const done = completedForLang.has(lesson.id);
                 return (
@@ -1994,15 +1994,15 @@ export default function LanguageModulesPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
                     onClick={() => setSelectedLesson({ lesson, index })}
-                    className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] group ${done
-                      ? 'bg-emerald-500/[0.04] border-emerald-500/20 hover:border-emerald-500/40'
-                      : 'bg-slate-900/40 border-slate-800 hover:border-indigo-500/30 hover:bg-slate-900/60'}`}
+                    className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] group shadow-xl backdrop-blur-xl ${done
+                      ? 'bg-zinc-950/90 border-emerald-500/40 hover:border-emerald-400/80 shadow-emerald-500/5'
+                      : 'bg-zinc-950/90 border-white/15 hover:border-indigo-400/60 hover:bg-zinc-900/95'}`}
                   >
                     <div className="flex items-start gap-3">
                       {/* Number / check */}
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-black text-sm transition-all ${done
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : 'bg-slate-800 text-slate-500 border border-slate-700 group-hover:border-indigo-500/30 group-hover:text-indigo-400'}`}>
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                        : 'bg-zinc-900 text-zinc-300 border border-white/10 group-hover:border-indigo-400/40 group-hover:text-indigo-300'}`}>
                         {done ? <CheckCircle className="w-4.5 h-4.5" /> : String(index + 1).padStart(2, '0')}
                       </div>
                       {/* Content */}
@@ -2014,17 +2014,17 @@ export default function LanguageModulesPage() {
                           <span className={`text-[9px] font-bold uppercase ${difficultyColor[lesson.difficulty]}`}>
                             {lesson.difficulty}
                           </span>
-                          <span className="text-[9px] text-slate-600 flex items-center gap-0.5">
+                          <span className="text-[9px] text-zinc-400 flex items-center gap-0.5 font-medium">
                             <Clock className="w-2.5 h-2.5" /> {lesson.duration}
                           </span>
                         </div>
                         <h4 className={`font-bold text-sm leading-tight ${done ? 'text-emerald-200' : 'text-white'}`}>
                           {lesson.title}
                         </h4>
-                        <p className="text-slate-500 text-xs mt-0.5 line-clamp-1">{lesson.description}</p>
+                        <p className="text-zinc-300 text-xs mt-0.5 line-clamp-1 font-medium">{lesson.description}</p>
                       </div>
                       {/* Arrow */}
-                      <ChevronRight className={`w-4 h-4 shrink-0 mt-1 transition-all group-hover:translate-x-0.5 ${done ? 'text-emerald-500' : 'text-slate-600 group-hover:text-indigo-400'}`} />
+                      <ChevronRight className={`w-4 h-4 shrink-0 mt-1 transition-all group-hover:translate-x-0.5 ${done ? 'text-emerald-400' : 'text-zinc-500 group-hover:text-indigo-400'}`} />
                     </div>
                   </motion.button>
                 );

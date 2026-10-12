@@ -1,8 +1,8 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +12,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ShieldCheck, UserPlus, LogIn, Sparkles, Timer, CheckCircle2, XCircle, Award } from "lucide-react";
+import { 
+  Loader2, 
+  LogIn, 
+  Sparkles, 
+  Timer, 
+  CheckCircle2, 
+  XCircle, 
+  User, 
+  BookOpen, 
+  Users, 
+  Glasses, 
+  Bell, 
+  ChevronRight, 
+  Globe,
+  Layers,
+  GraduationCap
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,10 +46,10 @@ import { VisitorCounter } from "@/components/layout/VisitorCounter";
 import { HolidayCountdown } from "@/components/layout/HolidayCountdown";
 import { BeautifulCalendar } from "@/components/layout/BeautifulCalendar";
 import { BeautifulWeather } from "@/components/layout/BeautifulWeather";
+import { LoginCarousel } from "@/components/layout/login-carousel";
+import { Metaverse3DCanvas } from "@/components/layout/Metaverse3DCanvas";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
-
-import { LoginCarousel } from "@/components/layout/login-carousel";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -49,10 +65,8 @@ const signupSchema = z.object({
     path: ["confirmPassword"],
 });
 
-
 type LoginValues = z.infer<typeof loginSchema>;
 type SignupValues = z.infer<typeof signupSchema>;
-
 
 function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +85,7 @@ function LoginForm() {
     const { error } = await signInWithEmail(data.email, data.password);
     setIsLoading(false);
     if (error) {
-      setAuthAction(null); // Clear auth action on error
+      setAuthAction(null);
       toast({
         variant: "destructive",
         title: "Login Failed",
@@ -109,50 +123,70 @@ function LoginForm() {
       });
     }
   };
-    return (
-        <>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="agent@lingolandverse.io" {...register("email")} autoComplete="email" />
-                    {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-                </div>
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <button
-                        type="button"
-                        onClick={() => setIsResetDialogOpen(true)}
-                        className="text-sm font-medium text-primary hover:underline"
-                    >
-                        Forgot Password?
-                    </button>
-                    </div>
-                    <Input id="password" type="password" {...register("password")} autoComplete="current-password" />
-                    {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
-                </div>
-                <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 font-extrabold h-11 rounded-xl shadow-lg shadow-indigo-600/10 transition-all hover:scale-[1.02] active:scale-95" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Begin Your AI Journey"}
-                </Button>
-            </form>
-             <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-                <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Reset Password</AlertDialogTitle>
-                    <AlertDialogDescription>
-                    Enter your email address to receive a password reset link.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handlePasswordReset} disabled={isPasswordResetting}>
-                    {isPasswordResetting ? <Loader2 className="animate-spin" /> : "Send Reset Link"}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
-    )
+
+  return (
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="email" className="text-xs text-zinc-300 font-medium">Email Address</Label>
+          <Input 
+            id="email" 
+            type="email" 
+            placeholder="agent@lingolandverse.io" 
+            {...register("email")} 
+            autoComplete="email" 
+            className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-10 text-sm shadow-inner"
+          />
+          {errors.email && <p className="text-xs text-rose-400">{errors.email.message}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-xs text-zinc-300 font-medium">Password</Label>
+            <button
+              type="button"
+              onClick={() => setIsResetDialogOpen(true)}
+              className="text-xs font-semibold text-teal-400 hover:text-teal-300 hover:underline transition-colors"
+            >
+              Forgot?
+            </button>
+          </div>
+          <Input 
+            id="password" 
+            type="password" 
+            placeholder="••••••••"
+            {...register("password")} 
+            autoComplete="current-password" 
+            className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-10 text-sm shadow-inner"
+          />
+          {errors.password && <p className="text-xs text-rose-400">{errors.password.message}</p>}
+        </div>
+        <Button 
+          type="submit" 
+          className="w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white font-extrabold h-11 rounded-xl shadow-lg shadow-teal-500/25 transition-all hover:scale-[1.02] active:scale-95" 
+          disabled={isLoading}
+        >
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Begin Your AI Journey"}
+        </Button>
+      </form>
+
+      <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <AlertDialogContent className="bg-zinc-950/95 border border-teal-500/30 backdrop-blur-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Reset Password</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              Enter your email address to receive a secure password reset link.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-900 border-zinc-800 text-zinc-300">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePasswordReset} disabled={isPasswordResetting} className="bg-teal-500 hover:bg-teal-400 text-black font-bold">
+              {isPasswordResetting ? <Loader2 className="animate-spin" /> : "Send Reset Link"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 }
 
 function SignUpForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
@@ -165,7 +199,7 @@ function SignUpForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
 
   const onSubmit = async (data: SignupValues) => {
     setIsLoading(true);
-    setAuthAction('login'); // Use login animation for signup as well
+    setAuthAction('login');
     const { error } = await signUpWithEmail(data.email, data.password);
     
     if (error) {
@@ -177,7 +211,6 @@ function SignUpForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
         description: error,
       });
     } else {
-      // Force sign out after creation to ensure clean initial login as requested
       await signOut();
       setIsLoading(false);
       setAuthAction(null);
@@ -190,27 +223,52 @@ function SignUpForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
   };
 
   return (
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-            <Label htmlFor="signup-email">Email</Label>
-            <Input id="signup-email" type="email" placeholder="new.agent@lingolandverse.io" {...register("email")} autoComplete="email" />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-        </div>
-        <div className="space-y-2">
-            <Label htmlFor="signup-password">Password</Label>
-            <Input id="signup-password" type="password" {...register("password")} autoComplete="new-password" />
-            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
-        </div>
-        <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input id="confirmPassword" type="password" {...register("confirmPassword")} autoComplete="new-password"/>
-            {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
-        </div>
-        <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 font-extrabold h-11 rounded-xl shadow-lg shadow-indigo-600/10 transition-all hover:scale-[1.02] active:scale-95" disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Start Learning for Free"}
-        </Button>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="signup-email" className="text-xs text-zinc-300 font-medium">Email</Label>
+        <Input 
+          id="signup-email" 
+          type="email" 
+          placeholder="new.agent@lingolandverse.io" 
+          {...register("email")} 
+          autoComplete="email" 
+          className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-9 text-sm"
+        />
+        {errors.email && <p className="text-xs text-rose-400">{errors.email.message}</p>}
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="signup-password" className="text-xs text-zinc-300 font-medium">Password</Label>
+        <Input 
+          id="signup-password" 
+          type="password" 
+          placeholder="••••••••"
+          {...register("password")} 
+          autoComplete="new-password" 
+          className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-9 text-sm"
+        />
+        {errors.password && <p className="text-xs text-rose-400">{errors.password.message}</p>}
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="confirmPassword" className="text-xs text-zinc-300 font-medium">Confirm Password</Label>
+        <Input 
+          id="confirmPassword" 
+          type="password" 
+          placeholder="••••••••"
+          {...register("confirmPassword")} 
+          autoComplete="new-password"
+          className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-9 text-sm"
+        />
+        {errors.confirmPassword && <p className="text-xs text-rose-400">{errors.confirmPassword.message}</p>}
+      </div>
+      <Button 
+        type="submit" 
+        className="w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white font-extrabold h-11 rounded-xl shadow-lg shadow-teal-500/25 transition-all hover:scale-[1.02] active:scale-95 mt-2" 
+        disabled={isLoading}
+      >
+        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Start Learning for Free"}
+      </Button>
     </form>
-  )
+  );
 }
 
 interface DemoQuestion {
@@ -303,40 +361,32 @@ function InteractiveDemo({ onGoToSignup }: { onGoToSignup: () => void }) {
         setIsFinished(true);
         setIsPlaying(false);
       }
-    }, 1000);
+    }, 800);
   };
 
   if (isFinished) {
     return (
-      <div className="flex flex-col items-center text-center p-4 space-y-4 animate-in fade-in zoom-in duration-300">
-        <div className="p-3 bg-amber-500/10 rounded-full border border-amber-500/20">
-          <Award className="h-10 w-10 text-amber-500 animate-bounce" />
+      <div className="text-center p-4 space-y-3 bg-black/40 rounded-xl border border-teal-500/20">
+        <Sparkles className="h-8 w-8 mx-auto text-teal-400 animate-bounce" />
+        <h4 className="text-base font-bold text-white">Quiz Finished!</h4>
+        <p className="text-xs text-zinc-300">You scored <span className="font-extrabold text-teal-300 text-sm">{score}</span> out of {DEMO_QUESTIONS.length}</p>
+        <div className="flex gap-2 pt-2">
+          <Button onClick={handleStart} variant="outline" className="flex-1 text-xs border-zinc-800 text-zinc-300">Try Again</Button>
+          <Button onClick={onGoToSignup} className="flex-1 text-xs bg-teal-500 hover:bg-teal-400 text-black font-bold">Sign Up Free</Button>
         </div>
-        <h4 className="text-xl font-bold text-white">Quiz Finished!</h4>
-        <p className="text-sm text-zinc-300">
-          You scored <span className="font-extrabold text-indigo-400 text-lg">{score}/{DEMO_QUESTIONS.length}</span> in under 30 seconds!
-        </p>
-        <div className="p-4 bg-zinc-950/40 rounded-xl border border-zinc-800 text-xs text-zinc-400 max-w-xs">
-          🚀 In LingoLandVerse, you can play <span className="text-indigo-300 font-bold">66+ interactive subjects and language games</span>, level up your skills, and earn trophies!
-        </div>
-        <Button onClick={onGoToSignup} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:opacity-90 font-extrabold shadow-lg hover:shadow-indigo-500/20 h-11 rounded-xl">
-          Start Learning for Free
-        </Button>
       </div>
     );
   }
 
   if (!isPlaying) {
     return (
-      <div className="flex flex-col items-center text-center p-4 space-y-4">
-        <div className="p-3 bg-indigo-500/10 rounded-full border border-indigo-500/20">
-          <Sparkles className="h-8 w-8 text-indigo-400 animate-pulse" />
+      <div className="text-center p-5 space-y-3 bg-black/40 rounded-xl border border-teal-500/20">
+        <div className="w-10 h-10 rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center mx-auto text-teal-300">
+          <Sparkles className="w-5 h-5" />
         </div>
-        <h4 className="text-lg font-bold text-white uppercase tracking-tight">Try a 30s Vocabulary Quiz!</h4>
-        <p className="text-xs text-zinc-400 max-w-xs">
-          Experience LingoLandVerse instantly. Answer as many correct definitions as you can before the 30-second timer runs out!
-        </p>
-        <Button onClick={handleStart} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold h-11 rounded-xl shadow-md">
+        <h4 className="text-sm font-bold text-white">Quick 30s Vocabulary Speed-Run</h4>
+        <p className="text-xs text-zinc-400">Test your language prowess with real exam questions.</p>
+        <Button onClick={handleStart} className="w-full bg-teal-500 hover:bg-teal-400 text-black font-bold h-10 rounded-xl shadow-lg shadow-teal-500/20">
           Start Quiz Now
         </Button>
       </div>
@@ -346,37 +396,36 @@ function InteractiveDemo({ onGoToSignup }: { onGoToSignup: () => void }) {
   const currentQuestion = DEMO_QUESTIONS[currentIdx];
 
   return (
-    <div className="space-y-4 p-2 animate-in fade-in duration-300">
-      <div className="flex justify-between items-center bg-zinc-950/40 px-3 py-2 rounded-xl border border-zinc-900">
-        <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-semibold">
-          <Timer className="h-4 w-4 text-rose-500" />
-          Time Left: <span className="text-rose-400 font-extrabold text-sm">{timeLeft}s</span>
+    <div className="space-y-3 p-1">
+      <div className="flex justify-between items-center bg-zinc-950/60 px-3 py-1.5 rounded-xl border border-zinc-900 text-xs">
+        <div className="flex items-center gap-1.5 text-zinc-400 font-semibold">
+          <Timer className="h-3.5 w-3.5 text-rose-500" />
+          <span className="text-rose-400 font-bold">{timeLeft}s</span>
         </div>
-        <div className="text-xs text-zinc-400 font-semibold">
-          Score: <span className="text-green-400 font-extrabold text-sm">{score}</span>
+        <div className="text-zinc-400 font-semibold">
+          Score: <span className="text-teal-400 font-bold">{score}</span>
         </div>
       </div>
 
-      <div className="p-4 bg-zinc-900/40 rounded-xl border border-zinc-800 space-y-2">
-        <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">Word {currentIdx + 1} of {DEMO_QUESTIONS.length}</span>
-        <h3 className="text-2xl font-black tracking-tight text-white">{currentQuestion.word}</h3>
-        <p className="text-xs text-zinc-400 italic">Select the correct definition below:</p>
+      <div className="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800 space-y-1">
+        <span className="text-[9px] uppercase font-bold tracking-wider text-teal-400">Word {currentIdx + 1} / {DEMO_QUESTIONS.length}</span>
+        <h3 className="text-lg font-black tracking-tight text-white">{currentQuestion.word}</h3>
       </div>
 
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 gap-1.5">
         {currentQuestion.options.map((opt, i) => {
-          let btnClass = "bg-zinc-900/60 border-zinc-800 text-zinc-300 text-left justify-start h-auto py-3 px-4 rounded-xl border font-medium transition-all hover:bg-zinc-800/80 hover:text-white";
+          let btnClass = "bg-zinc-900/70 border-zinc-800 text-zinc-300 text-left justify-start py-2.5 px-3 rounded-xl border font-medium text-xs transition-all hover:bg-zinc-800 hover:text-white";
           let icon = null;
 
           if (selectedOpt !== null) {
             if (i === currentQuestion.correct) {
-              btnClass = "bg-green-500/20 border-green-500 text-green-300 text-left justify-start h-auto py-3 px-4 rounded-xl border font-bold";
-              icon = <CheckCircle2 className="h-4 w-4 ml-auto text-green-400 shrink-0" />;
+              btnClass = "bg-green-500/20 border-green-500 text-green-300 text-left justify-start py-2.5 px-3 rounded-xl border font-bold text-xs";
+              icon = <CheckCircle2 className="h-3.5 w-3.5 ml-auto text-green-400 shrink-0" />;
             } else if (i === selectedOpt) {
-              btnClass = "bg-rose-500/20 border-rose-500 text-rose-300 text-left justify-start h-auto py-3 px-4 rounded-xl border font-bold";
-              icon = <XCircle className="h-4 w-4 ml-auto text-rose-400 shrink-0" />;
+              btnClass = "bg-rose-500/20 border-rose-500 text-rose-300 text-left justify-start py-2.5 px-3 rounded-xl border font-bold text-xs";
+              icon = <XCircle className="h-3.5 w-3.5 ml-auto text-rose-400 shrink-0" />;
             } else {
-              btnClass = "bg-zinc-900/30 border-zinc-800/50 text-zinc-550 text-left justify-start h-auto py-3 px-4 rounded-xl border font-medium opacity-50";
+              btnClass = "bg-zinc-900/30 border-zinc-800/50 text-zinc-600 text-left justify-start py-2.5 px-3 rounded-xl border font-medium text-xs opacity-50";
             }
           }
 
@@ -387,7 +436,7 @@ function InteractiveDemo({ onGoToSignup }: { onGoToSignup: () => void }) {
               disabled={selectedOpt !== null}
               className={`flex items-center w-full ${btnClass}`}
             >
-              <span className="text-xs sm:text-sm">{opt}</span>
+              <span>{opt}</span>
               {icon}
             </button>
           );
@@ -397,117 +446,459 @@ function InteractiveDemo({ onGoToSignup }: { onGoToSignup: () => void }) {
   );
 }
 
+
+
 export default function AuthPage() {
-    const { user, isGuest, isLoading, loginAsGuest, setAuthAction, authAction } = useAuth();
-    const [activeTab, setActiveTab] = useState("signin");
-    const router = useRouter();
+  const { user, isGuest, loginAsGuest, setAuthAction } = useAuth();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("signin");
+  const [activeSideNav, setActiveSideNav] = useState("signin");
+  const router = useRouter();
 
-    const firestore = useFirestore();
-    const loginFormRef = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return doc(firestore, "announcements", "login_form");
-    }, [firestore]);
+  const firestore = useFirestore();
+  const loginFormRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, "announcements", "login_form");
+  }, [firestore]);
 
-    const { data: loginTexts } = useDoc(loginFormRef);
+  const { data: loginTexts } = useDoc(loginFormRef);
+  const title = loginTexts?.title || "Master Any Subject with Your Personal AI Companion here in Lingolandverse!";
+  const description = loginTexts?.description || "Welcome to LingoLandVerse - Learn language and educational subjects with 79+ interactive games, classroom tools, PowerPoint generator, jobs posting and more! Explore and use it for free!";
+  const credits = loginTexts?.credits || "Ideas and created by: CSC Group Tech, Powered by AI.";
 
-    const title = loginTexts?.title || "Master Any Subject with Your Personal AI Companion";
-    const description = loginTexts?.description || "Welcome to LingoLandVerse — Learn language and educational subjects with 66+ interactive games.";
-    const credits = loginTexts?.credits || "Ideas and created by: CSC Tech Corp., Powered by AI.";
+  const handleGuestLogin = () => {
+    setAuthAction('login');
+    loginAsGuest();
+    router.push("/games");
+  };
 
-    useEffect(() => {
-        if (!isLoading) {
-            // Only redirect if a real user is logged in.
-            // Guests are allowed to visit this page to sign in/up.
+  return (
+    <div className="relative min-h-screen w-full flex flex-col bg-[#030712] text-slate-100 font-sans select-none overflow-x-hidden">
+      {/* 1. ENHANCED 4K METAVERSE BACKGROUND with Cinematic Ambient Drift */}
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <img 
+          src="/lingolandverse-metaverse.jpg" 
+          alt="LingoLandVerse 4K Background"
+          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none will-change-transform"
+          style={{
+            imageRendering: '-webkit-optimize-contrast',
+            filter: 'contrast(1.08) saturate(1.15) brightness(1.02)',
+            animation: 'lingoland-ambient-drift 40s ease-in-out infinite alternate',
+            transformOrigin: 'center center',
+          }}
+        />
+
+        {/* Shimmer Light Sweeping Across Globe Routes */}
+        <div 
+          className="absolute bottom-[22%] left-1/4 right-1/4 h-32 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent blur-3xl pointer-events-none"
+          style={{ animation: 'light-sweep 10s ease-in-out infinite' }}
+        />
+
+        {/* Ambient Aurora Glow in Horizon */}
+        <div 
+          className="absolute top-[35%] left-[20%] w-[500px] h-[300px] rounded-full blur-[140px] opacity-40 mix-blend-screen pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, rgba(34, 211, 238, 0.6) 0%, rgba(168, 85, 247, 0.3) 50%, transparent 70%)',
+            animation: 'lingoland-aurora-glow 16s ease-in-out infinite alternate',
+          }}
+        />
+
+        {/* Contrast Vignette to ensure complete readability of cards & video */}
+        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
+        {/* Interactive Canvas for 3D Holographic Globe, Traveling Data Beams & Shooting Stars */}
+        <Metaverse3DCanvas intensity={1.0} />
+      </div>
+
+      {/* 2. TOP NAVIGATION BAR (Attached flush to the top) */}
+      <header className="relative w-full h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-black/60 backdrop-blur-md sticky top-0 z-50">
+        {/* Left: Glowing Planetary Orbit Icon */}
+        <div 
+          onClick={() => router.push('/')}
+          className="flex items-center gap-3 cursor-pointer group"
+          title="LingoLandVerse"
+        >
+          <div className="relative w-9 h-9 flex items-center justify-center">
+            <div className="w-4 h-4 rounded-full bg-cyan-400 blur-[2px] opacity-90 absolute group-hover:scale-125 transition-transform" />
+            <div className="w-3.5 h-3.5 rounded-full bg-teal-300 relative z-10" />
+            <svg 
+              className="absolute w-9 h-9 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+              style={{ animation: 'orbit-spin 20s linear infinite' }} 
+              viewBox="0 0 36 36" 
+              fill="none"
+            >
+              <ellipse 
+                cx="18" 
+                cy="18" 
+                rx="15" 
+                ry="5.5" 
+                stroke="currentColor" 
+                strokeWidth="1.8" 
+                transform="rotate(-28 18 18)" 
+              />
+              <circle cx="28" cy="12" r="1.5" fill="#38bdf8" />
+            </svg>
+          </div>
+          <span className="font-extrabold tracking-wider text-white text-base hidden sm:inline-block bg-gradient-to-r from-teal-300 via-cyan-200 to-white bg-clip-text text-transparent">
+            LINGOLANDVERSE
+          </span>
+        </div>
+
+        {/* Center: Navigation Links */}
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-300">
+          <Link href="/games" className="hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.7)] transition-all">
+            Explore
+          </Link>
+          <Link href="/language-modules" className="hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.7)] transition-all">
+            Learn
+          </Link>
+          <Link href="/classroom-tools" className="hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.7)] transition-all">
+            Live Classes
+          </Link>
+          <button
+            onClick={() => {
+              if (!user || isGuest) {
+                toast({
+                  title: "Log In Required",
+                  description: "Log in to explore this tab",
+                });
+                router.push('/marketplace?notice=login-required');
+              } else {
+                router.push('/marketplace');
+              }
+            }}
+            className="hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.7)] transition-all font-medium text-sm text-zinc-300 cursor-pointer"
+          >
+            AI Tutor
+          </button>
+        </nav>
+
+        {/* Right: Bell with Red Badge, Cyan Pill Button, Profile Avatar */}
+        <div className="flex items-center gap-3.5">
+          <Link 
+            href="/notifications" 
+            className="relative p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 transition-all"
+            title="Notifications"
+          >
+            <Bell className="w-5 h-5 text-zinc-300" />
+            <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center border border-black shadow-[0_0_8px_rgba(244,63,94,0.8)]">
+              1
+            </span>
+          </Link>
+
+          <button
+            onClick={() => {
+              const el = document.getElementById("login-card-section");
+              el?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="flex items-center gap-1.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-zinc-950 font-bold px-4 py-1.5 rounded-full text-xs sm:text-sm shadow-[0_0_18px_rgba(20,184,166,0.4)] transition-all hover:scale-105 active:scale-95"
+          >
+            <span>Welcome!</span>
+          </button>
+
+          <div 
+            onClick={() => {
+              if (user) {
+                router.push('/profile');
+              } else {
+                document.getElementById("login-card-section")?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="relative w-8 h-8 rounded-full border-2 border-teal-400/40 overflow-hidden cursor-pointer hover:border-teal-400 transition-colors shadow-[0_0_10px_rgba(20,184,166,0.25)]"
+            title={user ? "User Profile" : "Sign-In"}
+          >
+            <img 
+              src="/logo.png" 
+              alt="Profile" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* 3. DESKTOP SIDEBAR - Docked flush from top-16 header to bottom-14 dock */}
+      <aside className="fixed left-0 top-16 bottom-14 w-20 border-r border-white/10 bg-black/75 backdrop-blur-xl hidden md:flex flex-col items-center py-6 gap-6 z-40">
+        <button 
+          onClick={() => { 
+            setActiveSideNav("signin"); 
             if (user) {
-                router.replace('/dashboard');
+              router.push('/profile');
+            } else {
+              document.getElementById('login-card-section')?.scrollIntoView({ behavior: 'smooth' });
             }
-        }
-    }, [user, isLoading, router]);
+          }}
+          className={`flex flex-col items-center gap-1 group w-full relative py-2 transition-all ${
+            activeSideNav === 'signin' || activeSideNav === 'profile' ? 'text-teal-400' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+          title={user ? "Profile" : "Sign-In"}
+        >
+          {(activeSideNav === 'signin' || activeSideNav === 'profile') && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.8)]" />
+          )}
+          <div className={`p-2 rounded-xl transition-all ${activeSideNav === 'signin' || activeSideNav === 'profile' ? 'bg-teal-500/10' : 'group-hover:bg-white/5'}`}>
+            {user ? <User className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
+          </div>
+          <span className="text-[11px] font-medium tracking-wide">{user ? "Profile" : "Sign-In"}</span>
+        </button>
 
-    const handleGuestLogin = () => {
-        setAuthAction('login');
-        loginAsGuest();
-        router.push("/games");
-    }
+        <button 
+          onClick={() => { setActiveSideNav("courses"); router.push('/language-modules'); }}
+          className={`flex flex-col items-center gap-1 group w-full relative py-2 transition-all ${
+            activeSideNav === 'courses' ? 'text-teal-400' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          {activeSideNav === 'courses' && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.8)]" />
+          )}
+          <div className={`p-2 rounded-xl transition-all ${activeSideNav === 'courses' ? 'bg-teal-500/10' : 'group-hover:bg-white/5'}`}>
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <span className="text-[11px] font-medium tracking-wide">Courses</span>
+        </button>
 
-    if (isLoading && !authAction) {
-        return null;
-    }
-    
-    return (
-        <>
-            <div className="flex min-h-screen flex-col items-center justify-center relative p-4 md:p-8 gap-8 max-w-[1440px] w-full mx-auto py-12">
-                <div className="w-full z-10">
-                    <LoginCarousel />
-                </div>
-                <div className="flex flex-col lg:flex-row gap-6 w-full items-start justify-center">
-                    <div className="relative z-10 w-full lg:w-1/3 max-w-lg space-y-6">
-                        <HolidayCountdown />
-                        <BeautifulWeather />
-                    </div>
-                    <div className="relative z-10 w-full lg:w-1/3 max-w-lg">
-                        <BeautifulCalendar />
-                    </div>
-                    <div
-                        className="relative z-10 w-full lg:w-1/3 max-w-lg"
-                    >
-                        <Card className="border border-white/5 bg-zinc-950/80 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-                            <div className="absolute inset-0 bg-indigo-500/5 blur-3xl pointer-events-none" />
-                            <CardHeader className="text-center pb-4 relative z-10">
-                                <div className="flex justify-center mb-2">
-                                  <Image
-                                    src="/logo.png"
-                                    alt="LingoLandVerse Logo"
-                                    width={240}
-                                    height={240}
-                                    className="object-contain"
-                                    priority
-                                  />
-                                </div>
-                                <CardTitle className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent whitespace-pre-wrap">
-                                    {title}
-                                </CardTitle>
-                                <CardDescription className="text-zinc-400 text-sm mt-1 whitespace-pre-wrap">
-                                    {description}
-                                </CardDescription>
-                                <p className="text-xs text-indigo-400/80 font-semibold pt-1 whitespace-pre-wrap">{credits}</p>
-                            </CardHeader>
-                            <CardContent className="relative z-10">
-                                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                                    <TabsList className="grid w-full grid-cols-3 bg-zinc-950 p-1 border border-white/5 rounded-xl">
-                                        <TabsTrigger value="signin" className="rounded-lg font-bold">Sign In</TabsTrigger>
-                                        <TabsTrigger value="signup" className="rounded-lg font-bold">Sign Up</TabsTrigger>
-                                        <TabsTrigger value="demo" className="rounded-lg font-extrabold text-indigo-400 hover:text-indigo-300">Try Demo</TabsTrigger>
-                                    </TabsList>
-                                    <TabsContent value="signin" className="pt-4">
-                                        <LoginForm />
-                                    </TabsContent>
-                                    <TabsContent value="signup" className="pt-4">
-                                        <SignUpForm onSignupSuccess={() => setActiveTab("signin")} />
-                                    </TabsContent>
-                                    <TabsContent value="demo" className="pt-4">
-                                        <InteractiveDemo onGoToSignup={() => setActiveTab("signup")} />
-                                    </TabsContent>
-                                </Tabs>
-                                <div className="relative my-6">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <span className="w-full border-t border-white/5" />
-                                    </div>
-                                    <div className="relative flex justify-center text-xs uppercase">
-                                        <span className="px-2 text-zinc-550 bg-[#09090b] text-zinc-500">
-                                        Or
-                                        </span>
-                                    </div>
-                                </div>
-                                <Button variant="secondary" className="w-full border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-800 text-zinc-300 font-extrabold h-11 rounded-xl shadow-inner transition-all hover:scale-[1.02] active:scale-95" onClick={handleGuestLogin} disabled={isGuest}>
-                                   <LogIn className="mr-2 h-4 w-4 text-indigo-400" /> {isGuest ? "Browsing as Guest" : "Explore as Guest (Instant Access)"}
-                                </Button>
-                                <VisitorCounter />
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
+        <button 
+          onClick={() => { setActiveSideNav("community"); router.push('/lounge'); }}
+          className={`flex flex-col items-center gap-1 group w-full relative py-2 transition-all ${
+            activeSideNav === 'community' ? 'text-teal-400' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          {activeSideNav === 'community' && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-teal-400 shadow-[0_0_10px_rgba(45,212,191,0.8)]" />
+          )}
+          <div className={`p-2 rounded-xl transition-all ${activeSideNav === 'community' ? 'bg-teal-500/10' : 'group-hover:bg-white/5'}`}>
+            <Users className="w-5 h-5" />
+          </div>
+          <span className="text-[11px] font-medium tracking-wide">Community</span>
+        </button>
+
+        <a 
+          href="https://www.myhomeworkhub.co.in" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex flex-col items-center gap-1 group w-full relative py-2 transition-all text-zinc-400 hover:text-cyan-300"
+          title="HomeworkHub (myhomeworkhub.co.in)"
+        >
+          <div className="p-2 rounded-xl transition-all group-hover:bg-white/5 group-hover:scale-110">
+            <GraduationCap className="w-5 h-5" />
+          </div>
+          <span className="text-[10px] font-medium tracking-wide">HomeworkHub</span>
+        </a>
+      </aside>
+
+      {/* 4. MAIN SCROLLABLE DASHBOARD & AUTH PORTAL CONTENT */}
+      <div className="relative flex-1 w-full pl-0 md:pl-20 pb-20 md:pb-20 z-30">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-[1720px] w-full mx-auto">
+            {/* 1. TOP VIDEO FEATURE CAROUSEL (Admin can update videos & text in /admin) */}
+            <div className="w-full">
+              <LoginCarousel />
             </div>
-        </>
-    )
+
+            {/* 2. BALANCED RESPONSIVE GRID (Holiday & Weather level from left to right) */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start w-full">
+              {/* Left Column (2-spans wide): Holiday + Weather LEVEL FROM LEFT TO RIGHT, then Calendar */}
+              <div className="xl:col-span-2 space-y-6 w-full">
+                {/* Row 1: Holiday Season 2026 (Left) & Weather & Location (Right) - LEVEL FROM LEFT TO RIGHT */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full items-stretch">
+                  <div className="w-full flex">
+                    <HolidayCountdown className="w-full h-full" />
+                  </div>
+                  <div className="w-full flex">
+                    <BeautifulWeather className="w-full h-full" />
+                  </div>
+                </div>
+
+                {/* Row 2: Beautiful Interactive Calendar */}
+                <div className="w-full">
+                  <BeautifulCalendar />
+                </div>
+              </div>
+
+              {/* Right Column (1-span wide): The Dedicated Login Portal Card */}
+              <div id="login-card-section" className="xl:col-span-1 w-full">
+                <Card className="border border-teal-500/35 bg-zinc-950/85 backdrop-blur-2xl shadow-[0_0_50px_rgba(20,184,166,0.25)] relative overflow-hidden rounded-2xl">
+                  {/* Subtle Neon Edge Glow */}
+                  <div className="absolute -top-16 -right-16 w-36 h-36 bg-teal-500/20 blur-3xl rounded-full pointer-events-none" />
+                  <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-cyan-500/20 blur-3xl rounded-full pointer-events-none" />
+
+                  <CardHeader className="text-center pb-4 pt-6 px-6 relative z-10">
+                    <div className="flex justify-center mb-3">
+                      <Image
+                        src="/logo.png"
+                        alt="LingoLandVerse Logo"
+                        width={120}
+                        height={120}
+                        className="object-contain drop-shadow-[0_0_15px_rgba(20,184,166,0.4)]"
+                        priority
+                      />
+                    </div>
+                    {/* Dynamic Title (Admin configurable in /admin) */}
+                    <CardTitle className="text-xl md:text-2xl font-black tracking-tight bg-gradient-to-r from-white via-teal-200 to-cyan-400 bg-clip-text text-transparent whitespace-pre-wrap">
+                      {title}
+                    </CardTitle>
+                    {/* Dynamic Subtitle / Description (Admin configurable in /admin) */}
+                    <CardDescription className="text-zinc-300 text-xs md:text-sm mt-1.5 whitespace-pre-wrap leading-relaxed">
+                      {description}
+                    </CardDescription>
+                    {/* Dynamic Credits */}
+                    <p className="text-xs text-teal-400/90 font-semibold pt-1 whitespace-pre-wrap">{credits}</p>
+                  </CardHeader>
+
+                  <CardContent className="px-6 pb-6 relative z-10 space-y-4">
+                    {user && (
+                      <div className="p-3 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs space-y-2">
+                        <div className="flex items-center justify-between text-teal-300 font-semibold">
+                          <span className="truncate">Active: {user.email || 'Agent'}</span>
+                          <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse shrink-0" />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button onClick={() => router.push('/dashboard')} className="flex-1 h-8 text-xs bg-teal-500 hover:bg-teal-400 text-black font-bold">
+                            Go to Dashboard
+                          </Button>
+                          <Button onClick={() => signOut()} variant="outline" className="h-8 text-xs border-zinc-800 text-zinc-300">
+                            Sign Out
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                      <TabsList className="grid w-full grid-cols-3 bg-black/70 p-1 border border-teal-500/20 rounded-xl">
+                        <TabsTrigger value="signin" className="rounded-lg text-xs font-bold data-[state=active]:bg-teal-500 data-[state=active]:text-black">
+                          Sign In
+                        </TabsTrigger>
+                        <TabsTrigger value="signup" className="rounded-lg text-xs font-bold data-[state=active]:bg-teal-500 data-[state=active]:text-black">
+                          Sign Up
+                        </TabsTrigger>
+                        <TabsTrigger value="demo" className="rounded-lg text-xs font-bold text-teal-300 data-[state=active]:bg-teal-500 data-[state=active]:text-black">
+                          Try Demo
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="signin" className="pt-3">
+                        <LoginForm />
+                      </TabsContent>
+
+                      <TabsContent value="signup" className="pt-3">
+                        <SignUpForm onSignupSuccess={() => setActiveTab("signin")} />
+                      </TabsContent>
+
+                      <TabsContent value="demo" className="pt-3">
+                        <InteractiveDemo onGoToSignup={() => setActiveTab("signup")} />
+                      </TabsContent>
+                    </Tabs>
+
+                    {/* Divider */}
+                    <div className="relative my-3">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-teal-500/15" />
+                      </div>
+                      <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                        <span className="px-2 text-zinc-500 bg-zinc-950">
+                          Or Instant Access
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Explore as Guest Button */}
+                    <Button 
+                      variant="secondary" 
+                      onClick={handleGuestLogin} 
+                      disabled={isGuest}
+                      className="w-full border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-200 font-extrabold h-11 rounded-xl shadow-inner transition-all hover:scale-[1.02] active:scale-95 text-xs"
+                    >
+                      <LogIn className="mr-2 h-4 w-4 text-teal-300" /> 
+                      {isGuest ? "Browsing as Guest" : "Explore as Guest (Instant Access)"}
+                    </Button>
+
+                    {/* Live Visitor Counter */}
+                    <div className="pt-1">
+                      <VisitorCounter />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+          </div>
+        </main>
+      </div>
+
+      {/* 5. CONNECTED BOTTOM DOCK BAR - Spans full width, connects seamlessly with sidebar */}
+      <footer className="fixed left-0 right-0 bottom-0 h-14 border-t border-white/10 bg-black/75 backdrop-blur-xl z-40 flex items-center justify-between">
+        {/* Desktop View: System Ticker & Explore Button */}
+        <div className="hidden md:flex items-center justify-between w-full pl-24 pr-6">
+          <div className="flex items-center gap-4 text-xs text-zinc-300">
+            <span className="flex items-center gap-1.5 font-semibold">
+              <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping" />
+              Next-Gen Language Learning • 79+ Subject Worlds
+            </span>
+            <span className="hidden lg:inline-flex items-center gap-1 text-zinc-400">
+              <Globe className="w-3.5 h-3.5 text-teal-400" /> Global ESL
+            </span>
+            <span className="hidden lg:inline-flex items-center gap-1 text-zinc-400">
+              <Layers className="w-3.5 h-3.5 text-cyan-400" /> Real-time Speech AI
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link 
+              href="/games"
+              className="flex items-center gap-1.5 text-xs font-bold text-teal-300 hover:text-white transition-colors bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 px-3.5 py-1.5 rounded-xl shadow-sm"
+            >
+              <span>Explore 79+ Games</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Mobile View: Auto-Arranging High-Tech Dock Navigation */}
+        <div className="flex md:hidden items-center justify-around w-full px-2 py-1">
+          <button 
+            onClick={() => { 
+              setActiveSideNav("signin"); 
+              if (user) {
+                router.push('/profile');
+              } else {
+                document.getElementById('login-card-section')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${activeSideNav === 'signin' || activeSideNav === 'profile' ? 'text-teal-400 bg-teal-500/10' : 'text-zinc-400'}`}
+            title={user ? "Profile" : "Sign-In"}
+          >
+            {user ? <User className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+            <span className="text-[10px] font-medium">{user ? "Profile" : "Sign-In"}</span>
+          </button>
+          <button 
+            onClick={() => { setActiveSideNav("courses"); router.push('/language-modules'); }}
+            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${activeSideNav === 'courses' ? 'text-teal-400 bg-teal-500/10' : 'text-zinc-400'}`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="text-[10px] font-medium">Courses</span>
+          </button>
+          <button 
+            onClick={() => { setActiveSideNav("community"); router.push('/lounge'); }}
+            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${activeSideNav === 'community' ? 'text-teal-400 bg-teal-500/10' : 'text-zinc-400'}`}
+          >
+            <Users className="w-4 h-4" />
+            <span className="text-[10px] font-medium">Community</span>
+          </button>
+          <a 
+            href="https://www.myhomeworkhub.co.in" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors text-zinc-400 hover:text-cyan-300"
+            title="HomeworkHub"
+          >
+            <GraduationCap className="w-4 h-4" />
+            <span className="text-[10px] font-medium">HomeworkHub</span>
+          </a>
+          <Link 
+            href="/games"
+            className="flex items-center gap-1 text-[10px] font-bold text-teal-300 bg-teal-500/20 border border-teal-500/30 px-2.5 py-1 rounded-lg"
+          >
+            <span>Games</span>
+            <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </footer>
+    </div>
+  );
 }

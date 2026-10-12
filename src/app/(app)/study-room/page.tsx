@@ -62,7 +62,7 @@ export default function StudyRoomPage() {
   // ── GUEST / LOGGED OUT ──────────────────────────────────────────────────────
   if (!user || isGuest) {
     return (
-      <div className="relative min-h-[88vh] w-full flex flex-col items-center justify-center overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900 text-white p-8">
+      <div className="relative min-h-[88vh] w-full flex flex-col items-center justify-center overflow-hidden bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-indigo-500/25 text-white p-8 shadow-2xl">
         <ConstellationCanvas />
         <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -84,10 +84,10 @@ export default function StudyRoomPage() {
 
           <div className="space-y-2">
             <h2 className="text-3xl font-black tracking-tight text-white">Acoustic Study Room</h2>
-            <p className="text-sm text-indigo-300 font-semibold uppercase tracking-widest">Members Only</p>
+            <p className="text-sm text-indigo-300 font-bold uppercase tracking-widest">Members Only</p>
           </div>
 
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className="text-sm text-zinc-300 font-medium leading-relaxed">
             The Acoustic Study Room is an exclusive feature for registered users.
             Sign in with your LingoLandVerse account to unlock AI-powered lessons,
             text-to-speech practice, and live progress tracking.
@@ -95,7 +95,7 @@ export default function StudyRoomPage() {
 
           <div className="flex flex-wrap justify-center gap-2">
             {['AI Text-to-Speech', 'Live Lessons', 'Progress Tracking', 'Multi-Language'].map((feat) => (
-              <span key={feat} className="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-950/60 border border-indigo-500/20 text-indigo-300">
+              <span key={feat} className="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-950/80 border border-indigo-500/30 text-indigo-200">
                 {feat}
               </span>
             ))}
@@ -115,10 +115,10 @@ export default function StudyRoomPage() {
 
   // ── AUTHENTICATED LAUNCHER ──────────────────────────────────────────────────
   return (
-    <div className="relative min-h-[88vh] w-full overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900 text-white flex flex-col">
+    <div className="relative min-h-[88vh] w-full overflow-hidden bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-indigo-500/25 text-white flex flex-col shadow-2xl">
       <ConstellationCanvas />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/8 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex flex-col items-center justify-center flex-1 gap-10 p-6 sm:p-12 text-center">
 
@@ -137,14 +137,14 @@ export default function StudyRoomPage() {
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-purple-300 bg-clip-text text-transparent">
               Acoustic Study Room
             </h1>
-            <p className="text-indigo-300 font-semibold text-sm uppercase tracking-widest">
+            <p className="text-indigo-200 font-bold text-sm uppercase tracking-widest drop-shadow-sm">
               AI-Powered Language Learning
             </p>
           </div>
 
-          <p className="text-slate-400 text-sm sm:text-base max-w-lg leading-relaxed">
-            Explore <span className="text-white font-bold">7 languages</span>, 
-            complete <span className="text-white font-bold">33 interactive modules</span>, 
+          <p className="text-zinc-200 text-sm sm:text-base max-w-lg leading-relaxed font-medium drop-shadow-sm">
+            Explore <span className="text-white font-extrabold">7 languages</span>, 
+            complete <span className="text-white font-extrabold">33 interactive modules</span>, 
             and practice real conversations with AI text-to-speech in your own dedicated study environment.
           </p>
         </motion.div>
@@ -154,18 +154,18 @@ export default function StudyRoomPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
-          className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-2xl"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 w-full max-w-2xl"
         >
           {FEATURES.map(({ icon: Icon, label, desc }) => (
             <div
               key={label}
-              className="flex flex-col gap-1.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all text-left"
+              className="flex flex-col gap-1.5 p-4 rounded-2xl bg-zinc-900/90 border border-white/15 hover:border-indigo-500/60 hover:bg-zinc-850/90 transition-all text-left shadow-lg"
             >
               <div className="flex items-center gap-2">
                 <Icon className="w-4 h-4 text-indigo-400 shrink-0" />
                 <span className="text-xs font-black text-white uppercase tracking-wider">{label}</span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">{desc}</p>
+              <p className="text-xs text-zinc-300 font-medium leading-relaxed">{desc}</p>
             </div>
           ))}
         </motion.div>
@@ -192,7 +192,7 @@ export default function StudyRoomPage() {
               ✓ Study Room opened in a new tab!
             </p>
           ) : (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-zinc-400 font-medium">
               Opens in a new tab for the best experience
             </p>
           )}

@@ -12,7 +12,11 @@ interface TimeLeft {
   seconds: number;
 }
 
-export function HolidayCountdown() {
+interface HolidayCountdownProps {
+  className?: string;
+}
+
+export function HolidayCountdown({ className = "" }: HolidayCountdownProps) {
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [timeLeftXmas, setTimeLeftXmas] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [timeLeftNY, setTimeLeftNY] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -75,17 +79,17 @@ export function HolidayCountdown() {
   );
 
   return (
-    <Card className="w-full max-w-md border-primary/20 bg-background/40 backdrop-blur-xl shadow-[0_0_40px_-15px_rgba(var(--primary),0.3)]">
-      <CardHeader className="text-center pb-2">
-        <CardTitle className="flex items-center justify-center gap-2 text-2xl font-bold">
-          <Sparkles className="w-5 h-5 text-yellow-500 animate-pulse" />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400">
+    <Card className={`w-full border-teal-500/25 bg-zinc-950/75 backdrop-blur-xl shadow-xl rounded-2xl flex flex-col justify-between ${className}`}>
+      <CardHeader className="text-center pb-2 pt-5">
+        <CardTitle className="flex items-center justify-center gap-2 text-xl sm:text-2xl font-black tracking-tight">
+          <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-300 via-cyan-200 to-indigo-400">
             Holiday Season {currentYear}
           </span>
-          <Sparkles className="w-5 h-5 text-yellow-500 animate-pulse" />
+          <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 pb-5 flex-1 flex flex-col justify-around">
         
         {/* Christmas Countdown */}
         <div className="space-y-3">

@@ -1,12 +1,16 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { Metaverse3DCanvas } from './Metaverse3DCanvas';
 
 // Lingolandverse Living Celestial Cosmic Backdrop
 export default function PlexusBackground() {
+  const pathname = usePathname();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (pathname === '/auth' || pathname === '/login') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -453,15 +457,19 @@ export default function PlexusBackground() {
     };
   }, []);
 
+  if (pathname === '/auth' || pathname === '/login') {
+    return null;
+  }
+
   return (
     <div
       aria-hidden="true"
       className="fixed inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-0 bg-[#030712]"
       style={{ width: '100vw', height: '100vh' }}
     >
-      {/* Layer 1: Artwork Background with Smooth Ambient Drifting Animation */}
+      {/* Layer 1: Artwork Background (3rd Uploaded Image) with Smooth Ambient Drifting Animation */}
       <img
-        src="/lingolandverse-bg.jpg"
+        src="/lingolandverse-logged-in-bg.jpg"
         alt="Lingolandverse Celestial Backdrop"
         className="absolute inset-0 w-full h-full min-w-full min-h-full object-cover object-center pointer-events-none select-none will-change-transform"
         style={{
@@ -496,12 +504,20 @@ export default function PlexusBackground() {
         }}
       />
 
-      {/* Layer 3: Contrast & Readability Vignette Gradient (keeps cards & text crystal clear) */}
+      {/* Layer 3: Contrast & Anti-Glare Shield (dampens center globe glare so text & cards stay ultra-sharp) */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(circle at 50% 50%, transparent 60%, rgba(4, 7, 20, 0.25) 85%, rgba(2, 4, 14, 0.6) 100%)',
+            'radial-gradient(circle at 50% 50%, rgba(3, 7, 18, 0.65) 0%, rgba(3, 7, 18, 0.45) 45%, rgba(2, 4, 14, 0.75) 100%)',
+        }}
+      />
+      {/* Central anti-glare shield directly dampening the white core of the hologram */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(circle at 50% 52%, rgba(2, 6, 23, 0.72) 0%, rgba(2, 6, 23, 0.4) 40%, transparent 75%)',
         }}
       />
 
@@ -510,6 +526,9 @@ export default function PlexusBackground() {
         ref={canvasRef}
         className="absolute inset-0 w-full h-full block"
       />
+
+      {/* Layer 5: Ultra-Realistic 3D Holographic Globe & Orbital Satellites */}
+      <Metaverse3DCanvas intensity={0.9} />
     </div>
   );
 }

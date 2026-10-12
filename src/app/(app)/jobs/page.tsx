@@ -154,15 +154,15 @@ function JobsPageComponent() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl"
+        className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 rounded-2xl bg-zinc-950/90 backdrop-blur-2xl border border-white/15 shadow-2xl"
       >
         <div className="md:col-span-8 relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
           <Input
             placeholder="Search by city or country..."
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
-            className="pl-10 h-12 bg-white/5 border-white/10 focus-visible:ring-primary focus-visible:border-primary/50 text-white placeholder:text-muted-foreground/50 rounded-xl"
+            className="pl-10 h-12 bg-zinc-900 border-white/15 focus-visible:ring-primary focus-visible:border-primary/50 text-white placeholder:text-zinc-400 rounded-xl"
           />
         </div>
         <div className="md:col-span-4 flex items-center justify-between md:justify-end gap-6 px-2">
@@ -173,14 +173,14 @@ function JobsPageComponent() {
               onCheckedChange={setRemoteOnly}
               className="data-[state=checked]:bg-primary"
             />
-            <Label htmlFor="remote-only" className="text-sm font-medium text-white/80 cursor-pointer">Remote Only</Label>
+            <Label htmlFor="remote-only" className="text-sm font-semibold text-zinc-200 cursor-pointer">Remote Only</Label>
           </div>
           {locationFilter && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLocationFilter("")}
-              className="text-muted-foreground hover:text-white"
+              className="text-zinc-400 hover:text-white"
             >
               <X className="h-4 w-4 mr-1" /> Clear
             </Button>
@@ -192,14 +192,14 @@ function JobsPageComponent() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center p-12 text-center bg-white/5 backdrop-blur-sm border border-dashed border-white/20 rounded-3xl gap-6 mt-8"
+          className="flex flex-col items-center justify-center p-12 text-center bg-zinc-950/90 backdrop-blur-xl border border-dashed border-white/20 rounded-3xl gap-6 mt-8 shadow-2xl"
         >
           <div className="p-4 bg-primary/10 rounded-full">
             <Briefcase className="h-12 w-12 text-primary" />
           </div>
           <div className="space-y-2 max-w-sm">
             <h3 className="text-2xl font-bold text-white">Unlock Opportunities</h3>
-            <p className="text-muted-foreground">Sign in to view detailed candidate requirements and apply for top teaching positions.</p>
+            <p className="text-zinc-300 font-medium">Sign in to view detailed candidate requirements and apply for top teaching positions.</p>
           </div>
           <Button asChild size="lg" className="px-8 rounded-xl font-bold shadow-xl shadow-primary/20">
             <Link href="/auth">Connect Now</Link>
@@ -210,7 +210,7 @@ function JobsPageComponent() {
           {/* jobs list pane */}
           <div className="lg:col-span-4 flex flex-col gap-4">
             <div className="flex items-center justify-between px-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
                 {filteredJobs.length} Openings Found
               </h2>
             </div>
@@ -219,10 +219,10 @@ function JobsPageComponent() {
               <div className="flex flex-col gap-3">
                 {isLoading ? (
                   Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="h-24 w-full bg-white/5 animate-pulse rounded-2xl" />
+                    <div key={i} className="h-24 w-full bg-zinc-900 animate-pulse rounded-2xl border border-white/10" />
                   ))
                 ) : filteredJobs.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground bg-white/5 rounded-2xl border border-dashed border-white/10">
+                  <div className="text-center py-12 text-zinc-400 bg-zinc-950/80 rounded-2xl border border-dashed border-white/15">
                     No results found
                   </div>
                 ) : (
@@ -235,10 +235,10 @@ function JobsPageComponent() {
                         transition={{ delay: index * 0.05 }}
                         key={job.id}
                         className={cn(
-                          "relative w-full text-left p-4 rounded-2xl transition-all duration-300 group overflow-hidden border",
+                          "relative w-full text-left p-4 rounded-2xl transition-all duration-300 group overflow-hidden border shadow-lg backdrop-blur-xl",
                           selectedJobId === job.id
-                            ? "bg-primary/20 border-primary/50 shadow-lg shadow-primary/10"
-                            : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                            ? "bg-primary/25 border-primary/60 shadow-xl shadow-primary/20"
+                            : "bg-zinc-950/90 border-white/15 hover:bg-zinc-900/90 hover:border-white/25"
                         )}
                         onClick={() => handleSelectJob(job)}
                       >
@@ -257,12 +257,12 @@ function JobsPageComponent() {
                               {job.title}
                             </p>
                             {job.isRemote && (
-                              <Badge variant="outline" className="text-[10px] py-0 px-2 border-primary/30 text-primary/80 shrink-0 mt-1">Remote</Badge>
+                              <Badge variant="outline" className="text-[10px] py-0 px-2 border-primary/40 text-primary shrink-0 mt-1">Remote</Badge>
                             )}
                           </div>
-                          <p className="text-sm text-white/60 font-medium group-hover:text-white/80 transition-colors truncate">{job.company}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
-                            <MapPin className="h-3 w-3" />
+                          <p className="text-sm text-zinc-300 font-medium group-hover:text-white transition-colors truncate">{job.company}</p>
+                          <div className="flex items-center gap-2 text-xs text-zinc-400 pt-2 font-medium">
+                            <MapPin className="h-3 w-3 text-primary" />
                             <span className="truncate">{job.location}</span>
                           </div>
                         </div>
@@ -286,7 +286,7 @@ function JobsPageComponent() {
                   transition={{ type: "spring", damping: 20 }}
                   className="w-full h-auto lg:h-[calc(100vh-280px)] flex flex-col"
                 >
-                  <Card className="bg-white/5 backdrop-blur-md border-white/10 rounded-3xl overflow-hidden shadow-2xl h-full flex flex-col">
+                  <Card className="bg-zinc-950/95 backdrop-blur-2xl border-white/15 rounded-3xl overflow-hidden shadow-2xl h-full flex flex-col">
                     <div className="h-2 w-full bg-gradient-to-r from-primary to-indigo-500" />
                     <CardHeader className="p-8">
                       <div className="flex flex-col md:flex-row justify-between items-start gap-6">
@@ -297,14 +297,14 @@ function JobsPageComponent() {
                               {selectedJob.type}
                             </Badge>
                           </div>
-                          <CardDescription className="text-lg font-medium text-white/70 truncate">at {selectedJob.company}</CardDescription>
+                          <CardDescription className="text-lg font-medium text-zinc-200 truncate">at {selectedJob.company}</CardDescription>
                         </div>
 
 
                         <div className="flex gap-2 w-full md:w-auto">
                           {user && (isAdmin || user.uid === selectedJob.userId) && (
                             <div className="flex gap-2">
-                              <Button variant="outline" size="sm" onClick={() => handleEditJobClick(selectedJob)} className="border-white/10 bg-white/5 hover:bg-white/10 text-white">
+                              <Button variant="outline" size="sm" onClick={() => handleEditJobClick(selectedJob)} className="border-white/15 bg-zinc-900 hover:bg-zinc-800 text-white">
                                 <Edit className="h-4 w-4 mr-2" /> Edit
                               </Button>
                               <Button variant="ghost" size="sm" onClick={() => handleDeleteClick(selectedJob)} className="text-destructive hover:bg-destructive/10">
@@ -315,19 +315,19 @@ function JobsPageComponent() {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-4 text-sm text-white/50 pt-6">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+                      <div className="flex flex-wrap gap-4 text-sm text-zinc-300 pt-6 font-medium">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-full border border-white/10">
                           <MapPin className="h-4 w-4 text-primary" />
                           <span>{selectedJob.location}</span>
                         </div>
                         {selectedJob.isRemote && (
-                          <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-full border border-white/10">
                             <Globe className="h-4 w-4 text-primary" />
                             <span>Worldwide Remote</span>
                           </div>
                         )}
                         {selectedJob.createdAt && (
-                          <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-full border border-white/10">
                             <Calendar className="h-4 w-4 text-primary" />
                             <span>{formatDistanceToNow(selectedJob.createdAt.toDate(), { addSuffix: true })}</span>
                           </div>
@@ -338,27 +338,27 @@ function JobsPageComponent() {
                     <div className="flex-1 overflow-y-auto min-h-0 overflow-x-hidden">
                       <CardContent className="px-8 pb-8 space-y-10">
                         <div className="space-y-4">
-                          <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+                          <div className="flex items-center gap-2 pb-2 border-b border-white/10">
                             <Briefcase className="h-5 w-5 text-primary" />
                             <h3 className="font-bold text-white text-lg">Job Description</h3>
                           </div>
-                          <p className="text-white/70 leading-relaxed whitespace-pre-line text-base">
+                          <p className="text-zinc-200 leading-relaxed whitespace-pre-line text-base font-medium">
                             {selectedJob.description}
                           </p>
                         </div>
 
                         <div className="space-y-4">
-                          <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+                          <div className="flex items-center gap-2 pb-2 border-b border-white/10">
                             <Check className="h-5 w-5 text-primary" />
                             <h3 className="font-bold text-white text-lg">Requirements</h3>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {selectedJob.requirements.map((req, i) => (
-                              <div key={i} className="flex items-start gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group transition-colors hover:border-primary/30">
-                                <div className="mt-1 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20">
+                              <div key={i} className="flex items-start gap-3 p-3.5 bg-zinc-900/90 rounded-xl border border-white/10 group transition-colors hover:border-primary/40 shadow-sm">
+                                <div className="mt-1 h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/30">
                                   <Check className="h-3 w-3 text-primary" />
                                 </div>
-                                <span className="text-white/80 text-sm leading-snug">{req}</span>
+                                <span className="text-zinc-200 text-sm leading-snug font-medium">{req}</span>
                               </div>
                             ))}
                           </div>
@@ -366,9 +366,9 @@ function JobsPageComponent() {
                       </CardContent>
                     </div>
 
-                    <CardFooter className="p-8 bg-white/5 border-t border-white/10 flex justify-between items-center shrink-0">
+                    <CardFooter className="p-8 bg-zinc-900/80 border-t border-white/10 flex justify-between items-center shrink-0">
                       <div className="hidden md:block">
-                        <p className="text-xs text-muted-foreground">Ready to take the next step?</p>
+                        <p className="text-xs text-zinc-400">Ready to take the next step?</p>
                         <p className="text-sm font-semibold text-white">Apply now to start your journey.</p>
                       </div>
                       <Button onClick={handleApplyClick} size="lg" className="bg-primary hover:bg-primary/90 text-white px-10 rounded-xl font-bold transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto">

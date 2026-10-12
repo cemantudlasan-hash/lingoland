@@ -1199,79 +1199,79 @@ export default function LingoPetPage() {
         <div className="lg:col-span-7 flex flex-col gap-4">
           
           {/* Pet Dialogue Speech Bubble */}
-          <div className="bg-indigo-650/15 border border-indigo-500/20 rounded-2xl p-4 relative flex items-start gap-3 shadow-inner">
-            <div className="text-2xl p-2 bg-indigo-500/10 rounded-xl">
+          <div className="bg-zinc-950/90 border border-indigo-500/30 backdrop-blur-2xl rounded-2xl p-4 relative flex items-start gap-3 shadow-2xl">
+            <div className="text-2xl p-2 bg-indigo-500/15 rounded-xl border border-indigo-500/20">
               {PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.icon || '💬'}
             </div>
             <div className="flex-grow">
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span className="text-[11px] font-black uppercase text-indigo-400 tracking-wider">
+                <span className="text-[11px] font-black uppercase text-indigo-300 tracking-wider">
                   {pet.petName} the {pet.petType}
                 </span>
-                <Badge className={`${PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.badgeClass || 'bg-indigo-500/20 text-indigo-300'} text-[9px] font-black uppercase px-2 py-0 h-4.5`}>
+                <Badge className={`${PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.badgeClass || 'bg-indigo-500/20 text-indigo-300'} text-[9px] font-black uppercase px-2 py-0 h-4.5 border border-indigo-500/30`}>
                   {PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.name || 'Cheerleader'}
                 </Badge>
               </div>
-              <p className="text-xs md:text-sm text-indigo-200/90 leading-relaxed font-medium">
+              <p className="text-xs md:text-sm text-zinc-100 leading-relaxed font-semibold">
                 {chatMessage}
               </p>
             </div>
             {/* Ambient bubble tail */}
-            <div className="absolute left-6 -bottom-2 w-4 h-4 bg-indigo-950/90 border-r border-b border-indigo-500/20 transform rotate-45 pointer-events-none" />
+            <div className="absolute left-6 -bottom-2 w-4 h-4 bg-zinc-950 border-r border-b border-indigo-500/30 transform rotate-45 pointer-events-none" />
           </div>
 
           {/* Vitality Bars Card */}
-          <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md p-6">
-            <h3 className="font-extrabold text-sm text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Card className="bg-zinc-950/90 border-slate-700/80 backdrop-blur-2xl p-6 shadow-2xl">
+            <h3 className="font-extrabold text-sm text-white uppercase tracking-wider mb-4 flex items-center gap-2">
               <Info className="h-4 w-4 text-indigo-400" />
               Mascot Vitality Indicators
             </h3>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               
               {/* Energy Progress bar */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-amber-400 flex items-center gap-1.5">
-                    <Zap className="h-3.5 w-3.5 fill-amber-400/20" />
+                  <span className="font-bold text-amber-300 flex items-center gap-1.5">
+                    <Zap className="h-3.5 w-3.5 fill-amber-400/20 text-amber-400" />
                     Energy (Consistency)
                   </span>
-                  <span className="font-bold text-amber-300">{pet.energy} / 100</span>
+                  <span className="font-extrabold text-amber-200">{pet.energy} / 100</span>
                 </div>
-                <Progress value={pet.energy} className="bg-slate-950 h-2.5" />
-                <p className="text-[9px] text-slate-500">Decreases by 15 points every 24 hours missed. Wake up pet with a quiz if it hits 0.</p>
+                <Progress value={pet.energy} className="bg-slate-900 border border-white/10 h-3" />
+                <p className="text-xs text-zinc-300 font-medium">Decreases by 15 points every 24 hours missed. Wake up pet with a quiz if it hits 0.</p>
               </div>
 
               {/* Intelligence Progress bar */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-indigo-400 flex items-center gap-1.5">
-                    <Brain className="h-3.5 w-3.5 fill-indigo-400/20" />
+                  <span className="font-bold text-indigo-300 flex items-center gap-1.5">
+                    <Brain className="h-3.5 w-3.5 fill-indigo-400/20 text-indigo-400" />
                     Intelligence (Platform Accuracy)
                   </span>
-                  <span className="font-bold text-indigo-300">{pet.intelligence} / 100</span>
+                  <span className="font-extrabold text-indigo-200">{pet.intelligence} / 100</span>
                 </div>
-                <Progress value={pet.intelligence} className="bg-slate-950 h-2.5" />
-                <p className="text-[9px] text-slate-500">Increases when you score high marks in classroom tests and game activities.</p>
+                <Progress value={pet.intelligence} className="bg-slate-900 border border-white/10 h-3" />
+                <p className="text-xs text-zinc-300 font-medium">Increases when you score high marks in classroom tests and game activities.</p>
               </div>
 
               {/* Mood Progress bar */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-pink-400 flex items-center gap-1.5">
-                    <Heart className="h-3.5 w-3.5 fill-pink-400/20" />
+                  <span className="font-bold text-pink-300 flex items-center gap-1.5">
+                    <Heart className="h-3.5 w-3.5 fill-pink-400/20 text-pink-400" />
                     Mood (Happiness)
                   </span>
-                  <span className="font-bold text-pink-300">{pet.mood} / 100</span>
+                  <span className="font-extrabold text-pink-200">{pet.mood} / 100</span>
                 </div>
-                <Progress value={pet.mood} className="bg-slate-950 h-2.5" />
-                <p className="text-[9px] text-slate-500">Boost by petting (+10) or feeding snacks. Encourages high daily platform usage.</p>
+                <Progress value={pet.mood} className="bg-slate-900 border border-white/10 h-3" />
+                <p className="text-xs text-zinc-300 font-medium">Boost by petting (+10) or feeding snacks. Encourages high daily platform usage.</p>
               </div>
 
             </div>
           </Card>
 
           {/* Sub Navigation tabs */}
-          <div className="flex gap-2 border-b border-slate-800/80 p-0.5 overflow-x-auto scrollbar-none">
+          <div className="flex gap-2 border border-white/10 bg-zinc-950/80 backdrop-blur-md rounded-xl p-1 overflow-x-auto scrollbar-none">
             {[
               { id: 'feed', label: 'Evolution Species', icon: '🧬' },
               { id: 'personality', label: 'Personality Archetype', icon: '🎭' },
@@ -1281,10 +1281,10 @@ export default function LingoPetPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveSubTab(tab.id as any)}
-                className={`px-3.5 sm:px-4 py-2 text-xs font-bold whitespace-nowrap border-b-2 transition-all flex items-center gap-1.5 ${
+                className={`px-3.5 sm:px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg transition-all flex items-center gap-1.5 ${
                   activeSubTab === tab.id 
-                    ? "border-indigo-500 text-indigo-300"
-                    : "border-transparent text-slate-400 hover:text-slate-200"
+                    ? "bg-indigo-600/30 border border-indigo-500/50 text-indigo-200 shadow-md"
+                    : "text-zinc-400 hover:text-white hover:bg-white/5"
                 }`}
               >
                 <span>{tab.icon}</span>
@@ -1302,11 +1302,11 @@ export default function LingoPetPage() {
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 flex flex-col gap-4"
+                className="bg-zinc-950/90 border border-slate-700/80 backdrop-blur-2xl rounded-2xl p-6 flex flex-col gap-4 shadow-2xl"
               >
                 <div>
-                  <h4 className="font-extrabold text-sm text-slate-300 uppercase tracking-wide">Evolution Morphing</h4>
-                  <p className="text-xs text-slate-400 mt-1">Select the species of your language companion. Morphs carry over levels and outfits.</p>
+                  <h4 className="font-extrabold text-sm text-white uppercase tracking-wide">Evolution Morphing</h4>
+                  <p className="text-xs text-zinc-300 font-medium mt-1">Select the species of your language companion. Morphs carry over levels and outfits.</p>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {[
@@ -1325,20 +1325,20 @@ export default function LingoPetPage() {
                         onClick={() => handleSelectPetType(species.id as any)}
                         className={`p-3 rounded-xl border flex flex-col items-center text-center gap-1.5 transition-all relative ${
                           pet.petType === species.id 
-                            ? "bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-md"
+                            ? "bg-indigo-600/30 border-indigo-400 text-indigo-200 shadow-lg shadow-indigo-500/20"
                             : isLocked
-                            ? "bg-slate-950/20 border-slate-900/20 text-slate-500 cursor-not-allowed opacity-50"
-                            : "bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                            ? "bg-slate-950/40 border-slate-900/40 text-slate-500 cursor-not-allowed opacity-50"
+                            : "bg-zinc-900/80 border-slate-700 text-zinc-300 hover:border-slate-500 hover:text-white"
                         }`}
                       >
                         <span className="text-3xl">{species.icon}</span>
                         <span className="text-xs font-bold whitespace-nowrap">{species.name.split(' ')[0]}</span>
-                        <span className="text-[8px] opacity-70">
+                        <span className="text-[9px] font-semibold text-zinc-400">
                           {isLocked ? `Req Lvl ${species.level}` : species.desc}
                         </span>
                         {isLocked && (
-                          <div className="absolute top-1 right-1 bg-slate-950/80 p-0.5 rounded border border-slate-800">
-                            <Lock className="h-2.5 w-2.5 text-slate-500" />
+                          <div className="absolute top-1 right-1 bg-slate-950/90 p-0.5 rounded border border-slate-700">
+                            <Lock className="h-2.5 w-2.5 text-slate-400" />
                           </div>
                         )}
                       </button>
@@ -1355,32 +1355,32 @@ export default function LingoPetPage() {
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 flex flex-col gap-6"
+                className="bg-zinc-950/90 border border-slate-700/80 backdrop-blur-2xl rounded-2xl p-6 flex flex-col gap-6 shadow-2xl"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
                   <div>
-                    <h4 className="font-extrabold text-sm text-slate-100 uppercase tracking-wide flex items-center gap-2">
+                    <h4 className="font-extrabold text-sm text-white uppercase tracking-wide flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-amber-400" />
                       Personality Archetypes & Persona
                     </h4>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-zinc-300 font-medium mt-1">
                       Choose an archetype to shape {pet.petName}&apos;s AI dialogue style, catchphrases, and study demeanor.
                     </p>
                   </div>
-                  <Badge className={`${PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.badgeClass || 'bg-indigo-500/20 text-indigo-300'} font-black uppercase text-[10px] px-3 py-1 flex items-center gap-1.5 self-start sm:self-auto`}>
+                  <Badge className={`${PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.badgeClass || 'bg-indigo-500/20 text-indigo-300'} font-black uppercase text-[10px] px-3 py-1 flex items-center gap-1.5 self-start sm:self-auto border border-white/10`}>
                     <span>Active:</span>
                     <span>{PERSONALITY_ARCHETYPES[pet.personality || 'cheerleader']?.name}</span>
                   </Badge>
                 </div>
 
                 {/* Quick Rename Companion Card */}
-                <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="bg-zinc-900/80 border border-slate-700/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
                   <div className="space-y-0.5">
                     <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
                       <Tag className="h-3 w-3" />
                       Companion Nickname
                     </span>
-                    <p className="text-xs text-slate-300 font-semibold">
+                    <p className="text-xs text-zinc-200 font-semibold">
                       Current: <span className="font-extrabold text-white">&quot;{pet.petName}&quot;</span>
                     </p>
                   </div>
@@ -1484,14 +1484,14 @@ export default function LingoPetPage() {
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 flex flex-col gap-4"
+                className="bg-zinc-950/90 border border-slate-700/80 backdrop-blur-2xl rounded-2xl p-6 flex flex-col gap-4 shadow-2xl"
               >
                 <div>
-                  <h4 className="font-extrabold text-sm text-slate-300 uppercase tracking-wide flex items-center gap-1.5">
+                  <h4 className="font-extrabold text-sm text-white uppercase tracking-wide flex items-center gap-1.5">
                     <ShoppingBag className="h-4 w-4 text-indigo-400" />
                     Lingo Cosmetics Store
                   </h4>
-                  <p className="text-xs text-slate-400 mt-1">Unlock full-body costumes, hats, glasses, and environments using platform achievement coins.</p>
+                  <p className="text-xs text-zinc-300 font-medium mt-1">Unlock full-body costumes, hats, glasses, and environments using platform achievement coins.</p>
                 </div>
 
                 {/* Category Filter Pills */}
@@ -1514,7 +1514,7 @@ export default function LingoPetPage() {
                         "px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200",
                         selectedShopCategory === cat.id
                           ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
-                          : "bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                          : "bg-zinc-900 border border-white/10 text-zinc-300 hover:text-white hover:bg-zinc-800"
                       )}
                     >
                       {cat.label}
@@ -1546,13 +1546,13 @@ export default function LingoPetPage() {
                     return (
                       <div 
                         key={item.id} 
-                        className="bg-slate-950/60 border border-slate-800/60 rounded-xl p-3 flex items-center justify-between gap-3"
+                        className="bg-zinc-900/80 border border-slate-700/80 rounded-xl p-3 flex items-center justify-between gap-3 shadow-md"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-3xl bg-slate-900 p-2 rounded-lg border border-slate-800">{item.icon}</span>
+                          <span className="text-3xl bg-zinc-950 p-2 rounded-lg border border-slate-700">{item.icon}</span>
                           <div>
-                            <div className="text-xs font-bold text-slate-200">{item.name}</div>
-                            <div className="text-[10px] text-slate-500 leading-snug">{item.description}</div>
+                            <div className="text-xs font-bold text-white">{item.name}</div>
+                            <div className="text-[10px] text-zinc-300 leading-snug">{item.description}</div>
                           </div>
                         </div>
                         
@@ -1596,14 +1596,14 @@ export default function LingoPetPage() {
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
-                className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 flex flex-col gap-4"
+                className="bg-zinc-950/90 border border-slate-700/80 backdrop-blur-2xl rounded-2xl p-6 flex flex-col gap-4 shadow-2xl"
               >
                 <div>
-                  <h4 className="font-extrabold text-sm text-slate-300 uppercase tracking-wide flex items-center gap-1.5">
+                  <h4 className="font-extrabold text-sm text-white uppercase tracking-wide flex items-center gap-1.5">
                     <MessageSquare className="h-4 w-4 text-indigo-400" />
                     AI Companion Dialogue
                   </h4>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-zinc-300 font-medium mt-1">
                     Talk to {pet.petName}. Ask details about your progress, ask for grammar help, or just have a chat!
                   </p>
                 </div>
@@ -1615,7 +1615,7 @@ export default function LingoPetPage() {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder={isSleeping ? "Pet is asleep..." : "Ask me anything (e.g. 'How can I improve today?')..."}
-                    className="flex-grow h-11 bg-slate-950 border border-slate-850 rounded-xl px-4 text-xs font-semibold focus:outline-none focus:border-indigo-500 text-slate-100 disabled:opacity-50 placeholder:text-slate-600"
+                    className="flex-grow h-11 bg-zinc-900 border border-slate-700 rounded-xl px-4 text-xs font-semibold focus:outline-none focus:border-indigo-500 text-white disabled:opacity-50 placeholder:text-zinc-500"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSendChat();
                     }}
@@ -1623,7 +1623,7 @@ export default function LingoPetPage() {
                   <Button
                     disabled={isSleeping || aiLoading || !chatInput.trim()}
                     onClick={handleSendChat}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-11 px-5"
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-11 px-5 shadow-lg shadow-indigo-500/20"
                   >
                     {aiLoading ? (
                       <RefreshCw className="h-4 w-4 animate-spin" />
