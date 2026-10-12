@@ -96,7 +96,7 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <PlexusBackground />
-        <div id="root" suppressHydrationWarning>
+        <div id="root" suppressHydrationWarning className="relative z-10">
           <FirebaseClientProvider>
               <AuthProviderWrapper>
                   {children}

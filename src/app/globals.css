@@ -81,10 +81,14 @@
   
   html {
     scroll-behavior: smooth;
+    min-height: 100%;
+    background-color: #030712;
   }
 
   body {
     @apply text-foreground;
+    min-height: 100vh;
+    background-color: #030712;
     isolation: isolate;
     /* Firefox scrollbar */
     scrollbar-width: thin;
@@ -860,6 +864,49 @@
   width: 100% !important;
   max-width: 100% !important;
 }
+
+@keyframes lingoland-ambient-drift {
+  0% {
+    transform: scale(1.03) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.06) translate(-1%, -0.8%);
+  }
+  100% {
+    transform: scale(1.04) translate(0.8%, 0.5%);
+  }
+}
+
+@keyframes lingoland-aurora-glow {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(30px) scale(1.15);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0.45;
+  }
+}
+
+@keyframes lingoland-nebula-pulse {
+  0% {
+    transform: scale(0.95) rotate(0deg);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.12) rotate(10deg);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1) rotate(-8deg);
+    opacity: 0.4;
+  }
+}
+
 
 
 
