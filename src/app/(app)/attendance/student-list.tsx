@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Trash2, UserPlus } from 'lucide-react';
+import { Edit, Trash2, UserPlus, FileSpreadsheet, Download, X, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 // import { AddClassModal } from './add-class-modal';
 // import { ExportAttendanceModal } from './export-attendance-modal';
@@ -86,15 +86,78 @@ const AddClassModal = ({ onClose, onAddClass, existingStudents }: { onClose: () 
 };
 
 const ExportAttendanceModal = ({ onClose, students, firestore, user, gradeFilter }: { onClose: () => void; students: any[]; firestore: any; user: any; gradeFilter?: string }) => {
-    const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-    const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+    // Helper to format local Date as YYYY-MM-DD string without timezone skew
+    const formatLocalDate = (d: Date) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const now = new Date();
+    const defaultStartStr = formatLocalDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    const defaultEndStr = formatLocalDate(now);
+
+    const [startDateStr, setStartDateStr] = useState<string>(defaultStartStr);
+    const [endDateStr, setEndDateStr] = useState<string>(defaultEndStr);
     const [isExporting, setIsExporting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string>('');
+
+    // Quick range presets
+    const setPreset = (preset: 'thisMonth' | 'lastMonth' | 'last30Days' | 'thisYear') => {
+        setErrorMessage('');
+        const today = new Date();
+        if (preset === 'thisMonth') {
+            setStartDateStr(formatLocalDate(new Date(today.getFullYear(), today.getMonth(), 1)));
+            setEndDateStr(formatLocalDate(today));
+        } else if (preset === 'lastMonth') {
+            const firstOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const lastOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+            setStartDateStr(formatLocalDate(firstOfLastMonth));
+            setEndDateStr(formatLocalDate(lastOfLastMonth));
+        } else if (preset === 'last30Days') {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            setStartDateStr(formatLocalDate(thirtyDaysAgo));
+            setEndDateStr(formatLocalDate(today));
+        } else if (preset === 'thisYear') {
+            setStartDateStr(formatLocalDate(new Date(today.getFullYear(), 0, 1)));
+            setEndDateStr(formatLocalDate(today));
+        }
+    };
 
     const handleExport = async () => {
-        if (!startDate || !endDate) {
-            alert('Please select a start and end date.');
+        setErrorMessage('');
+        if (!startDateStr || !endDateStr) {
+            setErrorMessage('Please select both a start date and an end date.');
             return;
         }
+
+        const startParts = startDateStr.split('-').map(Number);
+        const endParts = endDateStr.split('-').map(Number);
+        if (startParts.length !== 3 || endParts.length !== 3 || startParts.some(isNaN) || endParts.some(isNaN)) {
+            setErrorMessage('Please enter valid dates.');
+            return;
+        }
+
+        const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+        const endDate = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            setErrorMessage('Please enter valid start and end dates.');
+            return;
+        }
+
+        if (startDate > endDate) {
+            setErrorMessage('Start date cannot be after end date.');
+            return;
+        }
+
+        if (!students || students.length === 0) {
+            setErrorMessage('No student records found to export.');
+            return;
+        }
+
         setIsExporting(true);
 
         try {
@@ -102,9 +165,9 @@ const ExportAttendanceModal = ({ onClose, students, firestore, user, gradeFilter
             const getWeekdaysInRange = (start: Date, end: Date) => {
                 const dates: Date[] = [];
                 let current = new Date(start);
-                current.setHours(0,0,0,0);
+                current.setHours(0, 0, 0, 0);
                 const last = new Date(end);
-                last.setHours(23,59,59,999);
+                last.setHours(23, 59, 59, 999);
 
                 while (current <= last) {
                     const dayOfWeek = current.getDay();
@@ -117,16 +180,16 @@ const ExportAttendanceModal = ({ onClose, students, firestore, user, gradeFilter
             };
 
             const weekdays = getWeekdaysInRange(startDate, endDate);
-            
+
             if (weekdays.length === 0) {
-                alert('No weekdays found in the selected range.');
+                setErrorMessage('No weekdays (Mon–Fri) found in the selected range.');
                 setIsExporting(false);
                 return;
             }
 
             // Fetch attendance data for all students in parallel
             const attendanceMap = new Map<string, Map<string, string>>(); // studentId -> dateString -> status
-            
+
             await Promise.all(students.map(async (student) => {
                 const studentAttendance = new Map<string, string>();
                 const attendanceQuery = query(collection(firestore, `users/${user.uid}/students/${student.id}/attendance`));
@@ -199,7 +262,7 @@ const ExportAttendanceModal = ({ onClose, students, firestore, user, gradeFilter
                 weekdays.forEach((date) => {
                     const dateStr = formatDateStr(date);
                     const status = studentAttendance?.get(dateStr);
-                    
+
                     if (status === "present") {
                         studentRow.push("/");
                     } else if (status === "absent") {
@@ -286,34 +349,135 @@ const ExportAttendanceModal = ({ onClose, students, firestore, user, gradeFilter
             onClose();
         } catch (error) {
             console.error("Export error:", error);
-            alert("An error occurred during Excel export: " + (error as Error).message);
+            setErrorMessage("An error occurred during Excel export: " + (error as Error).message);
         } finally {
             setIsExporting(false);
         }
     };
 
-
     return (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-card rounded-xl shadow-2xl p-6 w-full max-w-md">
-                <h3 className="text-2xl font-bold text-green-700 mb-4">Export Attendance</h3>
-                <p className="text-muted-foreground mb-4">Select a date range to export.</p>
-                {/* Simplified date pickers for brevity. A proper date picker would be better. */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Label>Start Date</Label>
-                        <Input type="date" value={startDate?.toISOString().split('T')[0]} onChange={e => setStartDate(new Date(e.target.value))} />
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-zinc-900 border border-emerald-500/20 rounded-2xl shadow-2xl p-6 w-full max-w-md text-gray-900 dark:text-gray-100">
+                <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-zinc-800 mb-4">
+                    <div className="flex items-center gap-2.5">
+                        <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                            <FileSpreadsheet className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-emerald-700 dark:text-emerald-400 leading-tight">
+                                Export Attendance Sheet
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Export official Excel register ({students?.length || 0} students)
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <Label>End Date</Label>
-                        <Input type="date" value={endDate?.toISOString().split('T')[0]} onChange={e => setEndDate(new Date(e.target.value))} />
+                    <button
+                        onClick={onClose}
+                        disabled={isExporting}
+                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400 transition-colors"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="mb-4">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">
+                        Quick Date Presets
+                    </Label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                        <button
+                            type="button"
+                            onClick={() => setPreset('thisMonth')}
+                            className="py-1.5 px-2 rounded-lg text-xs font-bold bg-gray-100 dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-gray-700 dark:text-gray-200 hover:text-emerald-600 transition-all border border-gray-200 dark:border-zinc-700"
+                        >
+                            This Month
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setPreset('lastMonth')}
+                            className="py-1.5 px-2 rounded-lg text-xs font-bold bg-gray-100 dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-gray-700 dark:text-gray-200 hover:text-emerald-600 transition-all border border-gray-200 dark:border-zinc-700"
+                        >
+                            Last Month
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setPreset('last30Days')}
+                            className="py-1.5 px-2 rounded-lg text-xs font-bold bg-gray-100 dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-gray-700 dark:text-gray-200 hover:text-emerald-600 transition-all border border-gray-200 dark:border-zinc-700"
+                        >
+                            Last 30d
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setPreset('thisYear')}
+                            className="py-1.5 px-2 rounded-lg text-xs font-bold bg-gray-100 dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-gray-700 dark:text-gray-200 hover:text-emerald-600 transition-all border border-gray-200 dark:border-zinc-700"
+                        >
+                            This Year
+                        </button>
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-2 mt-6">
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
-                    <Button onClick={handleExport} disabled={isExporting} className="bg-green-600 hover:bg-green-700">
-                        {isExporting ? 'Exporting...' : 'Export to Excel'}
+                {/* Date Inputs */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <Label htmlFor="export-start-date" className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                            Start Date
+                        </Label>
+                        <Input
+                            id="export-start-date"
+                            type="date"
+                            value={startDateStr}
+                            onChange={(e) => {
+                                setStartDateStr(e.target.value);
+                                setErrorMessage('');
+                            }}
+                            className="mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-700 font-medium"
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="export-end-date" className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                            End Date
+                        </Label>
+                        <Input
+                            id="export-end-date"
+                            type="date"
+                            value={endDateStr}
+                            onChange={(e) => {
+                                setEndDateStr(e.target.value);
+                                setErrorMessage('');
+                            }}
+                            className="mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-700 font-medium"
+                        />
+                    </div>
+                </div>
+
+                {errorMessage && (
+                    <div className="p-2.5 mb-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 text-xs font-semibold">
+                        {errorMessage}
+                    </div>
+                )}
+
+                <div className="flex justify-end space-x-2 pt-3 border-t border-gray-200 dark:border-zinc-800">
+                    <Button variant="outline" onClick={onClose} disabled={isExporting} className="rounded-xl">
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleExport}
+                        disabled={isExporting || !startDateStr || !endDateStr}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow-md transition-all flex items-center gap-2"
+                    >
+                        {isExporting ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Generating Excel...
+                            </>
+                        ) : (
+                            <>
+                                <Download className="h-4 w-4" />
+                                Export to Excel (.xlsx)
+                            </>
+                        )}
                     </Button>
                 </div>
             </div>
