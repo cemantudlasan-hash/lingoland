@@ -21,6 +21,7 @@ import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { logAnalyticsEvent } from "@/lib/analytics";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import {
   Gavel,
   Mic,
@@ -178,6 +179,13 @@ export function SpeedDebater({
   // Final Results
   const [judgingResult, setJudgingResult] = React.useState<DebateJudgeOutput | null>(null);
   const [coinsClaimed, setCoinsClaimed] = React.useState(false);
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
 
   const turnsEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -405,7 +413,10 @@ export function SpeedDebater({
 
   return (
     // FULL-BLEED ARENA BACKGROUND (Stretches edge-to-edge top to bottom, left to right)
-    <div className="w-full min-h-[calc(100vh-3.5rem)] md:min-h-[calc(100vh-4rem)] flex-1 flex flex-col justify-between bg-gradient-to-b from-[#080d19] via-[#0d1424] to-[#060911] text-foreground relative overflow-hidden select-text">
+    <div className={cn(
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between bg-gradient-to-b from-[#080d19] via-[#0d1424] to-[#060911] text-foreground relative overflow-y-auto overflow-x-hidden select-text",
+      isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-4"
+    )}>
       {/* Immersive Arena Spotlights & Ambient Glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[1100px] h-[500px] bg-gradient-to-b from-amber-500/15 via-orange-500/5 to-transparent rounded-full blur-3xl opacity-80" />
@@ -417,7 +428,7 @@ export function SpeedDebater({
       </div>
 
       {/* Main Container - Expands wide across the viewport */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex-1 flex flex-col justify-between p-3 sm:p-5 md:p-6 space-y-4">
+      <div className="relative z-10 w-full max-w-7xl mx-auto flex-1 flex flex-col justify-between p-2 sm:p-5 md:p-6 space-y-4">
         {/* Top Header / Arena HUD */}
         <div className="flex flex-wrap items-center justify-between gap-3 bg-card/70 backdrop-blur-xl p-3.5 sm:p-4 rounded-2xl border border-border/50 shadow-lg shadow-black/20">
           <div className="flex items-center gap-3">
@@ -522,6 +533,28 @@ export function SpeedDebater({
               </CardHeader>
 
               <CardContent className="space-y-6 pt-4 max-w-4xl mx-auto w-full">
+                {/* How to Play Banner */}
+                <div className="bg-amber-500/10 border border-amber-500/25 rounded-2xl p-4 sm:p-5 text-left space-y-2">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                    <Lightbulb className="w-4 h-4" />
+                    <span>How to Play Speed Debater</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs text-muted-foreground pt-1">
+                    <div className="bg-background/40 p-2.5 rounded-xl border border-border/40">
+                      <span className="font-bold text-foreground block mb-0.5">1. Three Fast Rounds</span>
+                      Opening argument, Rebuttal against the AI, and final Closing statement.
+                    </div>
+                    <div className="bg-background/40 p-2.5 rounded-xl border border-border/40">
+                      <span className="font-bold text-foreground block mb-0.5">2. Word Limit Discipline</span>
+                      Stay strictly under your chosen word limit to avoid heavy score penalties.
+                    </div>
+                    <div className="bg-background/40 p-2.5 rounded-xl border border-border/40">
+                      <span className="font-bold text-foreground block mb-0.5">3. AI Adjudication</span>
+                      The AI judge evaluates logic, vocabulary, rebuttal sharpness, and crowns the winner!
+                    </div>
+                  </div>
+                </div>
+
                 {/* 1. Stance Picker */}
                 <div>
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">

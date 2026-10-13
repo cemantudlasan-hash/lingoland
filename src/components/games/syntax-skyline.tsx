@@ -6,7 +6,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { Building2, Sparkles, Timer, Trophy, Repeat, Maximize, Minimize, Building, Landmark, Warehouse, Castle } from "lucide-react";
+import { Building2, Sparkles, Timer, Trophy, Repeat, Maximize, Minimize, Building, Landmark, Warehouse, Castle, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -130,16 +130,16 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 flex flex-col overflow-y-auto bg-slate-950 border-none",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[800px] shadow-2xl"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden bg-slate-950 border-none relative transition-all duration-300",
+      isFullscreen && "fixed inset-0 z-50 rounded-none min-h-screen max-w-none p-2 sm:p-6"
     )}>
       {/* Neon City Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-indigo-950 to-transparent opacity-40" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,#1e1b4b_0%,#020617_100%)]" />
         
         {/* Animated Grid Floor */}
-        <div className="absolute inset-x-0 bottom-0 h-64 perspective-[1000px]">
+        <div className="absolute inset-x-0 bottom-0 h-40 sm:h-64 perspective-[1000px]">
             <motion.div 
                 animate={{ backgroundPosition: '0 100%' }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -148,7 +148,7 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
         </div>
 
         {/* Skyline Display */}
-        <div className="absolute inset-x-0 bottom-32 h-64 flex items-end justify-center gap-2 px-12 overflow-hidden">
+        <div className="absolute inset-x-0 bottom-16 sm:bottom-24 h-40 sm:h-64 flex items-end justify-center gap-1.5 sm:gap-2 px-4 sm:px-12 overflow-hidden">
           <AnimatePresence>
             {buildings.map((type, i) => (
               <motion.div
@@ -157,8 +157,8 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ type: "spring", damping: 15 }}
                 className={cn(
-                    "w-12 md:w-16 flex-shrink-0 relative group",
-                    type === "Simple" ? "h-24" : type === "Compound" ? "h-40" : "h-56"
+                    "w-8 sm:w-12 md:w-16 flex-shrink-0 relative group",
+                    type === "Simple" ? "h-16 sm:h-24" : type === "Compound" ? "h-24 sm:h-40" : "h-36 sm:h-56"
                 )}
               >
                 <div className="absolute inset-0 bg-indigo-500/20 blur-xl group-hover:bg-indigo-400/30 transition-all" />
@@ -174,38 +174,42 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
         </div>
       </div>
 
-      <CardHeader className="z-10 bg-slate-900/60 backdrop-blur-xl border-b border-white/10">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-             <Button variant="ghost" size="icon" asChild className="text-white/50 hover:text-white mr-2">
+      <CardHeader className="z-10 bg-slate-900/60 backdrop-blur-xl border-b border-white/10 p-3 sm:p-6 shrink-0">
+        <div className="flex justify-between items-center flex-wrap gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+             <Button variant="ghost" size="icon" asChild className="text-white/50 hover:text-white h-8 w-8 sm:h-10 sm:w-10">
                 <Link href="/games">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                 </Link>
              </Button>
-             <div className="h-10 w-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)]">
-                <Building2 className="text-white h-6 w-6" />
+             <div className="h-8 w-8 sm:h-10 sm:w-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)]">
+                <Building2 className="text-white h-5 w-5 sm:h-6 sm:w-6" />
              </div>
              <div>
-                <CardTitle className="text-2xl font-black text-white uppercase tracking-widest italic">Syntax Skyline</CardTitle>
-                <div className="flex gap-2">
-                    <Badge variant="outline" className="text-[10px] text-indigo-400 border-indigo-400/40">CITY LEVEL {buildings.length + 1}</Badge>
-                    <Badge variant="outline" className="text-[10px] text-purple-400 border-purple-400/40">{currentSentence?.difficulty || 'INIT'}</Badge>
+                <CardTitle className="text-lg sm:text-2xl font-black text-white uppercase tracking-widest italic">Syntax Skyline</CardTitle>
+                <div className="flex gap-1.5 sm:gap-2">
+                    <Badge variant="outline" className="text-[9px] sm:text-[10px] text-indigo-400 border-indigo-400/40">CITY LVL {buildings.length + 1}</Badge>
+                    <Badge variant="outline" className="text-[9px] sm:text-[10px] text-purple-400 border-purple-400/40">{currentSentence?.difficulty || 'INIT'}</Badge>
                 </div>
              </div>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 sm:gap-6">
+            <Button variant="ghost" size="sm" onClick={() => setGameState(gameState === 'instructions' ? 'playing' : 'instructions')} className="text-indigo-300 hover:text-white gap-1 text-xs sm:text-sm h-8 sm:h-9">
+                <HelpCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Blueprint</span>
+            </Button>
             <div className="text-right">
-                <p className="text-[10px] font-bold text-white/30 uppercase tracking-tighter">Urban Score</p>
-                <p className="text-3xl font-black text-indigo-400 tabular-nums">{score}</p>
+                <p className="text-[8px] sm:text-[10px] font-bold text-white/40 uppercase tracking-tighter">Urban Score</p>
+                <p className="text-lg sm:text-3xl font-black text-indigo-400 tabular-nums">{score}</p>
             </div>
-            <Button variant="ghost" size="icon" className="text-white/50 hover:text-white" onClick={onToggleFullscreen}>
-                {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+            <Button variant="ghost" size="icon" className="text-white/50 hover:text-white h-8 w-8 sm:h-10 sm:w-10" onClick={onToggleFullscreen}>
+                {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
             </Button>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col items-center justify-start pt-12 p-8 z-10 relative overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col items-center justify-start p-3 sm:p-8 z-10 relative overflow-y-auto">
         <AnimatePresence mode="wait">
           {gameState === "idle" && (
             <motion.div 
@@ -213,7 +217,7 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.1 }}
-              className="mt-20 text-center space-y-12"
+              className="my-auto text-center space-y-6 sm:space-y-10 py-6 max-w-xl mx-auto"
             >
               <div className="relative">
                 <motion.div 
@@ -221,61 +225,70 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
                     transition={{ duration: 5, repeat: Infinity }}
                     className="absolute inset-0 bg-indigo-500/20 blur-[150px] rounded-full scale-150"
                 />
-                <h2 className="text-8xl font-black text-white uppercase tracking-tighter leading-[0.75]">
+                <h2 className="text-4xl sm:text-6xl md:text-8xl font-black text-white uppercase tracking-tighter leading-tight sm:leading-[0.85]">
                     Build the<br/><span className="text-indigo-500 italic">Future</span>
                 </h2>
               </div>
-              <p className="text-slate-400 max-w-sm mx-auto text-lg font-bold uppercase tracking-widest">
+              <p className="text-slate-400 max-w-sm mx-auto text-xs sm:text-base font-bold uppercase tracking-widest">
                 Construct perfect syntax to expand the glowing neon metropolis.
               </p>
-              <Button 
-                onClick={() => setGameState('instructions')} 
-                className="h-24 px-16 text-3xl font-black bg-white text-slate-950 hover:bg-indigo-500 hover:text-white rounded-[40px] shadow-[0_20px_60px_rgba(99,102,241,0.4)] transition-all hover:scale-105 active:scale-95 uppercase"
-              >
-                Launch Architect
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button 
+                  onClick={() => setGameState('instructions')} 
+                  className="h-14 sm:h-20 px-8 sm:px-14 text-lg sm:text-2xl font-black bg-white text-slate-950 hover:bg-indigo-500 hover:text-white rounded-2xl sm:rounded-[32px] shadow-[0_20px_60px_rgba(99,102,241,0.4)] transition-all hover:scale-105 active:scale-95 uppercase"
+                >
+                  Blueprint & Launch
+                </Button>
+                <Button 
+                  onClick={() => setGameState('playing')} 
+                  variant="outline"
+                  className="h-14 sm:h-20 px-8 sm:px-14 text-lg sm:text-2xl font-black border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/20 rounded-2xl sm:rounded-[32px] uppercase"
+                >
+                  Direct Start
+                </Button>
+              </div>
             </motion.div>
           )}
 
           {gameState === "instructions" && (
             <motion.div 
               key="instructions"
-              initial={{ opacity: 0, scale: 0.9, rotate: 2 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              exit={{ opacity: 0, scale: 1.1 }}
-              className="mt-10 bg-slate-900 shadow-2xl border border-white/10 p-16 rounded-[60px] max-w-2xl w-full"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              className="my-auto bg-slate-900/90 shadow-2xl border border-white/10 p-5 sm:p-12 rounded-3xl max-w-2xl w-full"
             >
-              <h3 className="text-4xl font-black text-white uppercase mb-10 italic underline underline-offset-8 decoration-indigo-500">The Blueprint</h3>
-              <div className="space-y-8 text-xl text-slate-300 font-bold uppercase tracking-tight">
-                <div className="flex gap-6 items-center">
-                  <div className="h-12 w-12 bg-white text-slate-950 flex items-center justify-center rounded-2xl font-black shrink-0">01</div>
+              <h3 className="text-2xl sm:text-4xl font-black text-white uppercase mb-6 italic underline underline-offset-8 decoration-indigo-500">The Blueprint / How to Play</h3>
+              <div className="space-y-4 sm:space-y-6 text-sm sm:text-lg text-slate-300 font-bold uppercase tracking-tight">
+                <div className="flex gap-3 sm:gap-5 items-center">
+                  <div className="h-9 w-9 sm:h-12 sm:w-12 bg-white text-slate-950 flex items-center justify-center rounded-xl font-black shrink-0 text-sm sm:text-base">01</div>
                   <p>Order the word shards to create grammatically correct sentences.</p>
                 </div>
-                <div className="flex gap-6 items-center">
-                  <div className="h-12 w-12 bg-white text-slate-950 flex items-center justify-center rounded-2xl font-black shrink-0">02</div>
+                <div className="flex gap-3 sm:gap-5 items-center">
+                  <div className="h-9 w-9 sm:h-12 sm:w-12 bg-white text-slate-950 flex items-center justify-center rounded-xl font-black shrink-0 text-sm sm:text-base">02</div>
                   <p>Each success architecturalizes a new building in the skyline.</p>
                 </div>
-                <div className="flex gap-6 items-center">
-                  <div className="h-12 w-12 bg-white text-slate-950 flex items-center justify-center rounded-2xl font-black shrink-0">03</div>
+                <div className="flex gap-3 sm:gap-5 items-center">
+                  <div className="h-9 w-9 sm:h-12 sm:w-12 bg-white text-slate-950 flex items-center justify-center rounded-xl font-black shrink-0 text-sm sm:text-base">03</div>
                   <p>Complex sentences create taller, more prestigious skyscrapers.</p>
                 </div>
               </div>
-              <Button onClick={() => setGameState('playing')} className="w-full mt-12 h-20 text-2xl font-black bg-indigo-600 text-white hover:bg-indigo-500 transition-all uppercase rounded-3xl shadow-xl shadow-indigo-900/20">
+              <Button onClick={() => setGameState('playing')} className="w-full mt-6 sm:mt-8 h-14 sm:h-16 text-lg sm:text-xl font-black bg-indigo-600 text-white hover:bg-indigo-500 transition-all uppercase rounded-2xl shadow-xl shadow-indigo-900/20">
                 Begin Construction
               </Button>
             </motion.div>
           )}
 
           {gameState === "playing" && (
-            <div className="w-full h-full flex flex-col items-center justify-between">
+            <div className="w-full h-full flex flex-col items-center justify-between py-2 sm:py-4">
                {/* Selection Area */}
-               <div className="w-full space-y-8">
+               <div className="w-full space-y-4 sm:space-y-6 max-w-3xl mx-auto">
                   <div className={cn(
-                    "min-h-32 w-full p-8 bg-slate-900/40 backdrop-blur-md rounded-[40px] border-2 border-dashed border-white/10 flex flex-wrap gap-3 items-center justify-center transition-all",
-                    selectedWords.length > 0 ? "border-indigo-500/30" : ""
+                    "min-h-24 sm:min-h-32 w-full p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl sm:rounded-[32px] border-2 border-dashed border-white/10 flex flex-wrap gap-2 sm:gap-3 items-center justify-center transition-all",
+                    selectedWords.length > 0 ? "border-indigo-500/40" : ""
                   )}>
                     {selectedWords.length === 0 && (
-                        <p className="text-slate-500 font-black uppercase tracking-widest animate-pulse">Select shards to build sentence...</p>
+                        <p className="text-slate-500 text-xs sm:text-sm font-black uppercase tracking-widest animate-pulse">Select shards below to build sentence...</p>
                     )}
                     <AnimatePresence>
                         {selectedWords.map((word, i) => (
@@ -285,7 +298,7 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.5 }}
                                 onClick={() => removeWord(i)}
-                                className="px-6 py-3 bg-indigo-600 text-white text-xl font-black rounded-2xl shadow-lg shadow-indigo-900/40 hover:bg-red-500 transition-colors"
+                                className="px-3 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 text-white text-sm sm:text-lg font-black rounded-xl shadow-lg shadow-indigo-900/40 hover:bg-red-500 transition-colors"
                             >
                                 {word}
                             </motion.button>
@@ -293,21 +306,21 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
                     </AnimatePresence>
                   </div>
 
-                  <div className="flex flex-wrap gap-4 justify-center py-8">
+                  <div className="flex flex-wrap gap-2 sm:gap-3 justify-center py-2 sm:py-4">
                     {availableWords.map((word, i) => {
                         const isUsed = selectedWords.filter(w => w === word).length >= currentSentence.parts.filter(w => w === word).length;
                         return (
                             <motion.button
                                 key={`${word}-${i}`}
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                                 disabled={isUsed}
                                 onClick={() => handleWordClick(word, i)}
                                 className={cn(
-                                    "px-8 py-4 text-2xl font-black rounded-3xl transition-all border-2",
+                                    "px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-lg font-black rounded-xl sm:rounded-2xl transition-all border",
                                     isUsed 
-                                        ? "bg-slate-900 text-slate-700 border-white/5 opacity-50 cursor-not-allowed" 
-                                        : "bg-white/5 text-white border-white/10 hover:border-indigo-500 hover:bg-white/10"
+                                        ? "bg-slate-900/80 text-slate-700 border-white/5 opacity-40 cursor-not-allowed" 
+                                        : "bg-white/10 text-white border-white/15 hover:border-indigo-400 hover:bg-indigo-950/50"
                                 )}
                             >
                                 {word}
@@ -317,18 +330,18 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
                   </div>
                </div>
 
-               <div className="flex gap-4 mb-20">
+               <div className="flex gap-3 my-4">
                   <Button 
                     variant="outline" 
                     onClick={() => setSelectedWords([])}
-                    className="h-16 px-10 text-xl font-black border-white/10 text-white hover:bg-white/5 rounded-2xl uppercase"
+                    className="h-12 sm:h-14 px-6 sm:px-8 text-sm sm:text-base font-black border-white/10 text-white hover:bg-white/5 rounded-xl uppercase"
                   >
-                    Clear All
+                    Clear
                   </Button>
                   <Button 
                     onClick={checkSentence}
                     disabled={selectedWords.length === 0}
-                    className="h-16 px-20 text-xl font-black bg-indigo-600 text-white hover:bg-indigo-500 rounded-2xl uppercase shadow-2xl shadow-indigo-900/50"
+                    className="h-12 sm:h-14 px-8 sm:px-14 text-sm sm:text-base font-black bg-indigo-600 text-white hover:bg-indigo-500 rounded-xl uppercase shadow-xl shadow-indigo-900/50"
                   >
                     Authorize Structure
                   </Button>
@@ -338,37 +351,37 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
 
           {gameState === "finished" && (
             <motion.div 
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-center mt-10"
+              className="text-center my-auto max-w-xl mx-auto py-6"
             >
-              <div className="relative mb-12">
+              <div className="relative mb-6">
                 <motion.div 
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
                     transition={{ duration: 4, repeat: Infinity }}
                     className="absolute inset-0 bg-indigo-500/30 blur-[100px] rounded-full"
                 />
-                <Trophy className="h-48 w-48 text-indigo-400 mx-auto relative drop-shadow-[0_0_50px_rgba(99,102,241,0.5)]" />
+                <Trophy className="h-24 w-24 sm:h-36 sm:w-36 text-indigo-400 mx-auto relative drop-shadow-[0_0_50px_rgba(99,102,241,0.5)]" />
               </div>
-              <h2 className="text-8xl font-black text-white uppercase italic tracking-tighter mb-4">Metropolis Maxima</h2>
-              <p className="text-indigo-400 text-2xl font-bold uppercase tracking-[0.4em] mb-16">The Skyline is Immortal</p>
+              <h2 className="text-3xl sm:text-6xl font-black text-white uppercase italic tracking-tighter mb-2">Metropolis Maxima</h2>
+              <p className="text-indigo-400 text-sm sm:text-xl font-bold uppercase tracking-[0.2em] mb-6">The Skyline is Complete</p>
               
-              <div className="flex gap-6 justify-center">
-                <div className="bg-slate-900/60 p-10 rounded-[40px] border border-white/10 backdrop-blur-xl">
-                    <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Final Infrastructure Score</p>
-                    <p className="text-7xl font-black text-white tabular-nums">{score}</p>
+              <div className="flex gap-4 justify-center">
+                <div className="bg-slate-900/60 p-5 sm:p-8 rounded-2xl border border-white/10 backdrop-blur-xl">
+                    <p className="text-[9px] sm:text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Infrastructure Score</p>
+                    <p className="text-3xl sm:text-5xl font-black text-white tabular-nums">{score}</p>
                 </div>
-                <div className="bg-slate-900/60 p-10 rounded-[40px] border border-white/10 backdrop-blur-xl">
-                    <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Buildings Constructed</p>
-                    <p className="text-7xl font-black text-indigo-400 tabular-nums">{buildings.length}</p>
+                <div className="bg-slate-900/60 p-5 sm:p-8 rounded-2xl border border-white/10 backdrop-blur-xl">
+                    <p className="text-[9px] sm:text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Skyscrapers Built</p>
+                    <p className="text-3xl sm:text-5xl font-black text-indigo-400 tabular-nums">{buildings.length}</p>
                 </div>
               </div>
 
-              <div className="flex gap-6 mt-16 justify-center">
-                <Button onClick={() => { setScore(0); setCurrentSentenceIndex(0); setSelectedWords([]); setBuildings([]); setGameState('idle'); }} className="h-20 px-16 text-2xl font-black bg-white text-slate-950 hover:bg-indigo-500 hover:text-white rounded-[32px] transition-all hover:scale-105 active:scale-95 uppercase tracking-widest">
-                    <Repeat className="h-8 w-8 mr-4" /> Rebuild City
+              <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-center">
+                <Button onClick={() => { setScore(0); setCurrentSentenceIndex(0); setSelectedWords([]); setBuildings([]); setGameState('idle'); }} className="h-12 sm:h-14 px-8 text-base font-black bg-white text-slate-950 hover:bg-indigo-500 hover:text-white rounded-xl uppercase tracking-wider">
+                    <Repeat className="h-4 w-4 mr-2" /> Rebuild City
                 </Button>
-                <Button variant="outline" asChild className="h-20 px-16 text-2xl font-black border-white/10 text-white hover:bg-white/5 rounded-[32px] transition-all hover:scale-105 uppercase tracking-widest">
+                <Button variant="outline" asChild className="h-12 sm:h-14 px-8 text-base font-black border-white/10 text-white hover:bg-white/5 rounded-xl uppercase tracking-wider">
                     <Link href="/games">Command Center</Link>
                 </Button>
               </div>
@@ -377,13 +390,13 @@ export function SyntaxSkyline({ slug, onToggleFullscreen }: { slug: string; onTo
         </AnimatePresence>
       </CardContent>
 
-      <CardFooter className="z-10 bg-slate-950/80 backdrop-blur-md border-t border-white/5 py-6 flex justify-between items-center px-12">
-        <div className="flex items-center gap-3">
+      <CardFooter className="z-10 bg-slate-950/80 backdrop-blur-md border-t border-white/5 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-center px-4 sm:px-8 gap-2 shrink-0">
+        <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_10px_#6366f1]" />
-            <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.6em]">Syntax Skyline // Neural Architect v4.0</span>
+            <span className="text-slate-500 text-[10px] font-black uppercase tracking-wider">Syntax Skyline // Neural Architect v4.0</span>
         </div>
         <div className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
-            {currentSentenceIndex + 1} OF {sessionSentences.length} MODULES REMAINING
+            {currentSentenceIndex + 1} OF {sessionSentences.length} MODULES
         </div>
       </CardFooter>
     </Card>

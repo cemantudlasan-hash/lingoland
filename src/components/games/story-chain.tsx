@@ -122,7 +122,7 @@ export function StoryChain({ slug, onToggleFullscreen }: { slug: string; onToggl
   const handleAddSentence = async () => {
     if (!userSentence.trim() || isAiTurn || gameState !== 'playing') return;
     
-    const newStoryChain = [...storyChain, { player: "Human", sentence: userSentence }];
+    const newStoryChain: StoryTurn[] = [...storyChain, { player: "Human", sentence: userSentence }];
     setStoryChain(newStoryChain);
     setUserSentence("");
 
@@ -149,126 +149,112 @@ export function StoryChain({ slug, onToggleFullscreen }: { slug: string; onToggl
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
-        isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300",
+        isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background"
       )}>
-      <CardHeader className="text-center relative">
+      <CardHeader className="text-center relative p-4 sm:p-6 pb-2">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
         </Button>
-        {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
-            </div>
-        )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+        <div className="flex justify-center mb-2">
+            <Icon className="w-10 h-10 sm:w-14 sm:h-14 text-primary" />
+        </div>
+        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-2xl sm:text-4xl md:text-5xl" : "text-xl sm:text-3xl")}>{game.title}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm md:text-base max-w-xl mx-auto">{game.description}</CardDescription>
         <div className="flex justify-center pt-2">
-            <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{game.level.toUpperCase()}</Badge>
+            <Badge variant="outline" className="text-xs sm:text-sm px-3 py-0.5">{game.level.toUpperCase()}</Badge>
         </div>
       </CardHeader>
-      <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[24rem] p-6"
-      )}>
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
         {gameState === "idle" && (
-            <div className="flex flex-col items-center gap-6">
-                <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Collaborate with AI to craft a legend!</p>
-                <div className={cn("w-full max-w-xs space-y-2", isFullscreen && "max-w-md")}>
-                    <label className={cn("font-bold uppercase tracking-widest", isFullscreen ? "text-xl" : "text-sm")}>Select Genre</label>
+            <div className="flex flex-col items-center gap-6 text-center max-w-md w-full">
+                <p className="text-sm sm:text-base text-muted-foreground">Collaborate with AI to craft an epic story, sentence by sentence!</p>
+                <div className="w-full space-y-2 text-left">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Genre</label>
                      <Select value={genre} onValueChange={setGenre}>
-                        <SelectTrigger className={cn(isFullscreen && "h-16 text-xl")}><SelectValue/></SelectTrigger>
+                        <SelectTrigger className="h-11 rounded-xl"><SelectValue/></SelectTrigger>
                         <SelectContent>
                             {GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                         </SelectContent>
                     </Select>
                 </div>
-                <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                    <Sparkles className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} /> Start Story
+                <Button onClick={() => setGameState('instructions')} className="w-full sm:w-auto h-12 px-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-lg rounded-xl">
+                    <Sparkles className="mr-2 h-5 w-5" /> Start Story
                 </Button>
             </div>
         )}
         {gameState === "instructions" && (
-             <div className={cn(
-                 "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20 shadow-inner",
-                 isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-lg"
-             )}>
-                <h3 className={cn("font-bold text-center mb-4", isFullscreen ? "text-4xl" : "text-xl")}>How to Play</h3>
-                <div className={cn("text-left space-y-4", isFullscreen ? "text-2xl" : "text-base")}>
-                    <p>1. The AI provides the opening scene.</p>
-                    <p>2. Take turns adding one sentence each to the chain.</p>
-                    <p>3. Keep the flow consistent until the timer expires.</p>
-                    <p>4. Get a final grammar and narrative coherence score.</p>
+             <div className="flex flex-col items-center justify-center gap-4 text-center bg-muted/40 rounded-2xl mx-auto border border-border/20 shadow-inner p-4 sm:p-8 max-w-lg w-full">
+                <h3 className="font-bold text-lg sm:text-2xl text-center">How to Play</h3>
+                <div className="text-left space-y-3 text-xs sm:text-base text-muted-foreground">
+                    <p className="flex items-start gap-2"><span className="font-bold text-primary">1.</span> The AI provides the opening sentence.</p>
+                    <p className="flex items-start gap-2"><span className="font-bold text-primary">2.</span> Take turns adding one sentence each to continue the story.</p>
+                    <p className="flex items-start gap-2"><span className="font-bold text-primary">3.</span> Keep the narrative going until the timer expires.</p>
+                    <p className="flex items-start gap-2"><span className="font-bold text-primary">4.</span> Receive a grammar and narrative score when finished!</p>
                 </div>
-                <Button onClick={handleStartGame} size="lg" className={cn("mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl shadow-xl")}>Begin Narrative</Button>
+                <Button onClick={handleStartGame} className="w-full sm:w-auto mt-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black h-12 px-8 rounded-xl shadow-lg">Begin Narrative</Button>
             </div>
         )}
         {gameState === "loading" && (
-            <div className="flex flex-col items-center justify-center gap-6">
-                <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-24 w-24" : "h-12 w-12")} />
-                <p className={cn("text-muted-foreground animate-pulse font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-lg")}>Forging original beginning...</p>
+            <div className="flex flex-col items-center justify-center gap-4 text-center">
+                <Loader2 className="animate-spin text-primary h-10 w-10 sm:h-14 sm:h-14" />
+                <p className="text-muted-foreground animate-pulse font-black uppercase tracking-wider text-xs sm:text-sm">Forging original beginning...</p>
             </div>
         )}
         {(gameState === "playing" || gameState === "scoring" || gameState === "finished") && (
-            <div className="w-full h-full text-left flex flex-col gap-6 max-w-5xl mx-auto">
+            <div className="w-full h-full text-left flex flex-col gap-4 max-w-3xl mx-auto">
                 { (gameState === 'playing') &&
-                    <div className="flex items-center gap-4">
-                        <Timer className={cn("text-primary", isFullscreen ? "h-10 w-10" : "h-6 w-6")} />
-                        <Progress value={(timeLeft / GAME_TIME_SECONDS) * 100} className={cn("flex-grow h-4", isFullscreen && "h-6")} />
-                        <span className={cn("font-mono font-black", isFullscreen ? "text-3xl" : "text-sm")}>{Math.floor(timeLeft / 60)}:{('0' + (timeLeft % 60)).slice(-2)}</span>
+                    <div className="flex items-center gap-3">
+                        <Timer className="text-primary h-5 w-5 shrink-0" />
+                        <Progress value={(timeLeft / GAME_TIME_SECONDS) * 100} className="flex-grow h-2.5 rounded-full" />
+                        <span className="font-mono font-black text-xs sm:text-sm">{Math.floor(timeLeft / 60)}:{('0' + (timeLeft % 60)).slice(-2)}</span>
                     </div>
                 }
 
-                <div ref={storyContainerRef} className={cn(
-                    "flex-grow overflow-y-auto p-8 bg-muted/20 backdrop-blur-sm rounded-[2rem] border-4 border-primary/10 space-y-6 shadow-inner",
-                    isFullscreen ? "h-[50vh]" : "h-64 max-h-96"
-                )}>
+                <div ref={storyContainerRef} className="flex-grow overflow-y-auto p-4 sm:p-6 bg-muted/20 backdrop-blur-sm rounded-2xl border-2 border-primary/10 space-y-3 shadow-inner h-64 sm:h-80 max-h-96">
                     {storyChain.map((turn, index) => (
-                        <div key={index} className={cn("flex items-start gap-4", {"justify-end": turn.player === 'Human'})}>
-                            {turn.player === 'AI' && <div className={cn("flex-shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center", isFullscreen ? "w-12 h-12" : "w-8 h-8")}><Bot className={isFullscreen ? "w-8 h-8" : "w-5 h-5"}/></div>}
-                            <p className={cn(
-                                "max-w-[80%] p-4 rounded-2xl shadow-md leading-relaxed",
-                                turn.player === 'AI' ? "bg-card text-foreground" : "bg-primary text-primary-foreground font-bold",
-                                isFullscreen ? "text-2xl p-6" : "text-base"
+                        <div key={index} className={cn("flex items-start gap-2.5", {"justify-end": turn.player === 'Human'})}>
+                            {turn.player === 'AI' && <div className="flex-shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 mt-1"><Bot className="w-4 h-4"/></div>}
+                            <div className={cn(
+                                "max-w-[85%] p-3 sm:p-4 rounded-2xl shadow-sm text-xs sm:text-sm md:text-base leading-relaxed break-words",
+                                turn.player === 'AI' ? "bg-card text-foreground border" : "bg-primary text-primary-foreground font-medium"
                             )}>
                                 {turn.sentence}
-                            </p>
+                            </div>
                         </div>
                     ))}
                      {isAiTurn && (
-                        <div className="flex items-start gap-4">
-                            <div className={cn("flex-shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center", isFullscreen ? "w-12 h-12" : "w-8 h-8")}><Bot className={isFullscreen ? "w-8 h-8" : "w-5 h-5"}/></div>
-                            <div className="max-w-prose p-4 rounded-2xl bg-card border flex items-center">
-                                <Loader2 className="w-5 h-5 animate-spin"/>
+                        <div className="flex items-start gap-2.5">
+                            <div className="flex-shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8"><Bot className="w-4 h-4"/></div>
+                            <div className="p-3 rounded-2xl bg-card border flex items-center">
+                                <Loader2 className="w-4 h-4 animate-spin text-primary"/>
                             </div>
                         </div>
                     )}
                 </div>
 
                 {(gameState === 'scoring' || gameState === 'finished') && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="space-y-4 animate-in fade-in">
                          {gameState === 'scoring' && (
-                             <div className="flex flex-col items-center gap-4 text-muted-foreground">
-                                 <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-12 w-12" : "h-8 w-8")} />
-                                 <p className={cn("font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-lg")}>Running linguistic audit...</p>
+                             <div className="flex flex-col items-center gap-3 text-muted-foreground text-center">
+                                 <Loader2 className="animate-spin text-primary h-8 w-8" />
+                                 <p className="font-black uppercase tracking-wider text-xs sm:text-sm">Running linguistic audit...</p>
                              </div>
                          )}
                          {gameState === 'finished' && score && (
-                             <Alert className={cn("border-4 rounded-[2rem] shadow-2xl bg-primary/10 border-primary/30", isFullscreen && "p-12")}>
-                                <CheckCircle className={cn("text-primary", isFullscreen ? "h-12 w-12" : "h-6 w-6")} />
-                                <AlertTitle className={cn("font-black uppercase tracking-tighter", isFullscreen ? "text-4xl mb-4" : "text-xl mb-2")}>Mission Debriefing</AlertTitle>
-                                <AlertDescription className={cn("space-y-4", isFullscreen ? "text-2xl leading-relaxed" : "text-base")}>
-                                    <div className="flex items-center gap-4">
+                             <Alert className="border-2 rounded-2xl shadow-xl bg-primary/10 border-primary/30 p-4 sm:p-6">
+                                <CheckCircle className="text-primary h-5 w-5 sm:h-6 sm:w-6" />
+                                <AlertTitle className="font-black uppercase tracking-tight text-base sm:text-xl mb-2">Narrative Debriefing</AlertTitle>
+                                <AlertDescription className="space-y-2 text-xs sm:text-base">
+                                    <div className="flex items-center gap-3">
                                         <p className="font-bold text-muted-foreground">Grammar Integrity:</p>
-                                        <p className="font-black text-3xl text-primary">{score.score}%</p>
+                                        <p className="font-black text-2xl text-primary">{score.score}%</p>
                                     </div>
                                     <p className="italic text-foreground/80">"{score.feedback}"</p>
                                 </AlertDescription>
@@ -278,15 +264,12 @@ export function StoryChain({ slug, onToggleFullscreen }: { slug: string; onToggl
                 )}
                 
                 {gameState === 'playing' && (
-                     <div className={cn("flex gap-4 items-end", isFullscreen && "mt-4")}>
+                     <div className="flex gap-2 sm:gap-3 items-end">
                         <Textarea 
                             value={userSentence}
                             onChange={(e) => setUserSentence(e.target.value)}
-                            placeholder="Forge the next sentence..."
-                            className={cn(
-                                "flex-grow bg-card border-4 focus-visible:ring-primary rounded-2xl shadow-inner",
-                                isFullscreen ? "text-2xl p-6 min-h-[100px]" : "p-4 min-h-[60px]"
-                            )}
+                            placeholder="Write the next sentence..."
+                            className="flex-grow bg-card border-2 focus-visible:ring-primary rounded-xl p-3 min-h-[50px] sm:min-h-[60px] text-xs sm:text-base"
                             disabled={isAiTurn}
                             onKeyDown={(e) => {
                                 if(e.key === "Enter" && !e.shiftKey) {
@@ -298,21 +281,21 @@ export function StoryChain({ slug, onToggleFullscreen }: { slug: string; onToggl
                         <Button 
                             onClick={handleAddSentence} 
                             disabled={isAiTurn || !userSentence.trim()}
-                            className={cn("shadow-xl h-auto aspect-square", isFullscreen ? "w-24 p-0 rounded-3xl" : "w-16 p-0 rounded-2xl")}
+                            className="h-11 sm:h-12 w-11 sm:w-12 rounded-xl shrink-0"
                         >
-                            <Send className={cn(isFullscreen ? "h-10 w-10" : "h-6 w-6")} />
+                            <Send className="h-4 w-4" />
                         </Button>
                     </div>
                 )}
             </div>
         )}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 w-full shrink-0">
+        <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl font-bold">
             <Link href="/games">Back to Library</Link>
         </Button>
         {gameState !== 'idle' && gameState !== 'instructions' && (
-            <Button variant="secondary" onClick={() => setGameState('idle')} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}><Repeat className="mr-2"/>Reset Narrative</Button>
+            <Button variant="secondary" onClick={() => setGameState('idle')} className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl font-bold"><Repeat className="mr-2 h-4 w-4"/>Reset Story</Button>
         )}
       </CardFooter>
     </Card>

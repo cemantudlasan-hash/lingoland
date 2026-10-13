@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Maximize2, Minimize2, ArrowLeft, RefreshCw, XCircle, CheckCircle2, Trophy, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 type Difficulty = "easy" | "medium" | "hard";
 
@@ -105,6 +106,7 @@ export function NeonNumbersLabyrinth() {
   const [score, setScore] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wrongAnswer, setWrongAnswer] = useState<{ selected: number; correct: number } | null>(null);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [currentRound, setCurrentRound] = useState(1);
@@ -183,29 +185,78 @@ export function NeonNumbersLabyrinth() {
 
   if (!difficulty) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 bg-zinc-950 p-8 rounded-xl border border-cyan-500/30">
-        <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+      <div className="flex flex-col items-center justify-center w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full space-y-6 sm:space-y-8 bg-zinc-950 p-4 sm:p-8 rounded-2xl md:rounded-3xl border border-cyan-500/30 text-center relative overflow-hidden">
+        {/* Background Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+
+        <h1 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
           Neon Numbers Labyrinth
         </h1>
-        <p className="text-cyan-100/70 text-center max-w-md">
+        <p className="text-cyan-100/70 max-w-md text-sm sm:text-base px-2">
           Navigate the retro-futuristic grid by decoding the mathematical sequence. Choose your difficulty to begin.
         </p>
-        <div className="flex gap-4 flex-wrap justify-center">
-          <Button onClick={() => setDifficulty("easy")} className="bg-cyan-950 border border-cyan-500 text-cyan-400 hover:bg-cyan-900 transition-all uppercase tracking-widest">
+        <div className="flex gap-3 flex-wrap justify-center w-full max-w-md">
+          <Button onClick={() => setDifficulty("easy")} className="flex-1 min-w-[120px] h-12 sm:h-14 bg-cyan-950 border border-cyan-500 text-cyan-300 hover:bg-cyan-900 transition-all uppercase tracking-wider text-xs sm:text-sm cursor-pointer">
             Easy (10 Rnds)
           </Button>
-          <Button onClick={() => setDifficulty("medium")} className="bg-cyan-950 border border-cyan-500 text-cyan-400 hover:bg-cyan-900 transition-all uppercase tracking-widest">
+          <Button onClick={() => setDifficulty("medium")} className="flex-1 min-w-[120px] h-12 sm:h-14 bg-cyan-950 border border-cyan-500 text-cyan-300 hover:bg-cyan-900 transition-all uppercase tracking-wider text-xs sm:text-sm cursor-pointer">
             Medium (20 Rnds)
           </Button>
-          <Button onClick={() => setDifficulty("hard")} className="bg-cyan-950 border border-cyan-500 text-cyan-400 hover:bg-cyan-900 transition-all uppercase tracking-widest">
+          <Button onClick={() => setDifficulty("hard")} className="flex-1 min-w-[120px] h-12 sm:h-14 bg-cyan-950 border border-cyan-500 text-cyan-300 hover:bg-cyan-900 transition-all uppercase tracking-wider text-xs sm:text-sm cursor-pointer">
             Hard (30 Rnds)
           </Button>
         </div>
-        <Link href="/games">
-          <Button variant="ghost" className="text-zinc-500 hover:text-zinc-300">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Library
+        <div className="flex gap-4 items-center">
+          <Button onClick={() => setShowHowToPlay(true)} variant="outline" className="border-cyan-500/40 text-cyan-300 hover:bg-cyan-950/40 text-xs sm:text-sm font-sans font-bold cursor-pointer">
+            How to Play
           </Button>
-        </Link>
+          <Link href="/games">
+            <Button variant="ghost" className="text-zinc-400 hover:text-zinc-200 text-xs sm:text-sm cursor-pointer">
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Library
+            </Button>
+          </Link>
+        </div>
+
+        {/* How to Play Modal */}
+        <AnimatePresence>
+          {showHowToPlay && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[150] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="bg-zinc-900 border border-cyan-500/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative space-y-5 text-left font-sans"
+              >
+                <div className="flex items-center justify-between pb-3 border-b border-cyan-500/20">
+                  <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">How To Play</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setShowHowToPlay(false)} className="text-zinc-400 hover:text-white">✕</Button>
+                </div>
+                <div className="space-y-4 text-sm text-zinc-300">
+                  <div className="p-3 bg-cyan-950/40 rounded-xl border border-cyan-500/20">
+                    <p className="font-bold text-cyan-200">🔢 Sequence Decoding:</p>
+                    <p className="text-xs text-cyan-300/80 mt-1 leading-relaxed">
+                      Analyze the row of 4 numbers to determine the mathematical progression (addition, subtraction, multiplication, or powers).
+                    </p>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800">
+                      <p className="font-black text-white uppercase tracking-wide">Select the Next Value</p>
+                      <p className="text-zinc-400 mt-1">Tap the correct number from the 4 neon buttons below to fill the missing "?" slot.</p>
+                    </div>
+                  </div>
+                </div>
+                <Button onClick={() => setShowHowToPlay(false)} className="w-full h-12 bg-cyan-600 hover:bg-cyan-500 text-zinc-950 font-bold rounded-xl cursor-pointer">
+                  Start Game
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -213,29 +264,35 @@ export function NeonNumbersLabyrinth() {
   return (
     <div 
       ref={containerRef} 
-      className={`relative flex flex-col items-center justify-center w-full min-h-[70vh] bg-zinc-950 font-mono transition-all overflow-hidden ${isFullscreen ? 'h-screen overflow-y-auto' : 'rounded-xl border border-cyan-500/30'}`}
+      className={cn(
+        "relative flex flex-col items-center justify-between w-full min-h-[calc(100dvh-4.5rem)] max-w-full bg-zinc-950 font-mono transition-all overflow-y-auto overflow-x-hidden",
+        isFullscreen ? "fixed inset-0 z-50 min-h-screen rounded-none border-none" : "rounded-2xl md:rounded-3xl border border-cyan-500/30"
+      )}
     >
       {/* Background Grid Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.05)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
 
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-10 bg-zinc-950/80 backdrop-blur-sm border-b border-cyan-500/20">
-        <div className="flex items-center gap-4">
-          {!isFullscreen && (
-            <Button variant="ghost" size="icon" onClick={() => setDifficulty(null)} className="text-cyan-500 hover:bg-cyan-950 hover:text-cyan-300">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          )}
-          <Badge variant="outline" className="text-cyan-400 border-cyan-500/50 uppercase tracking-widest">
+      <div className="w-full p-3 sm:p-4 flex justify-between items-center z-10 bg-zinc-950/90 backdrop-blur-sm border-b border-cyan-500/20 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Button variant="ghost" size="icon" onClick={() => setDifficulty(null)} className="text-cyan-400 hover:bg-cyan-950 hover:text-cyan-300 h-8 w-8 sm:h-9 sm:w-9 cursor-pointer">
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+          <Badge variant="outline" className="text-cyan-400 border-cyan-500/50 uppercase tracking-widest text-[10px] sm:text-xs">
             {difficulty}
           </Badge>
           {!isGameOver && (
-            <span className="text-cyan-400 font-bold">Round: {currentRound}/{totalRounds} | Score: {score}</span>
+            <span className="text-cyan-400 font-bold text-xs sm:text-sm">R{currentRound}/{totalRounds} | {score} pts</span>
           )}
         </div>
-        <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="text-cyan-500 hover:bg-cyan-950">
-          {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-        </Button>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setShowHowToPlay(true)} className="text-cyan-400 hover:text-cyan-200 text-xs font-sans cursor-pointer">
+            Help
+          </Button>
+          <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="text-cyan-400 hover:bg-cyan-950 h-8 w-8 sm:h-9 sm:w-9 cursor-pointer">
+            {isFullscreen ? <Minimize2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />}
+          </Button>
+        </div>
       </div>
 
       {/* Game Content */}
@@ -247,28 +304,28 @@ export function NeonNumbersLabyrinth() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
             transition={{ duration: 0.4 }}
-            className="z-10 flex flex-col items-center gap-12 mt-16"
+            className="z-10 flex flex-col items-center justify-center gap-6 sm:gap-10 my-auto py-6 px-2 w-full max-w-2xl"
           >
-            <div className="flex gap-4 sm:gap-8 items-center justify-center flex-wrap">
+            <div className="flex gap-1.5 sm:gap-3 items-center justify-center flex-wrap px-2">
               {currentSeq.sequence.map((num, i) => (
                 <div key={i} className="flex items-center">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center bg-cyan-950/50 border-2 border-cyan-500 text-cyan-300 text-2xl font-bold rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center bg-cyan-950/50 border-2 border-cyan-500 text-cyan-300 text-base sm:text-xl font-bold rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.3)]">
                     {num}
                   </div>
-                  <div className="w-4 h-1 sm:w-8 sm:h-1 bg-cyan-500/50 mx-2 shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+                  <div className="w-2 h-0.5 sm:w-4 sm:h-1 bg-cyan-500/50 mx-1 sm:mx-1.5 shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
                 </div>
               ))}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center bg-zinc-900 border-2 border-dashed border-cyan-500 text-cyan-500/50 text-3xl font-bold rounded-lg animate-pulse">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center bg-zinc-900 border-2 border-dashed border-cyan-500 text-cyan-500/50 text-xl sm:text-2xl font-bold rounded-lg animate-pulse">
                 ?
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-md px-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-sm px-2">
               {currentSeq.options.map((opt, i) => (
                 <Button
                   key={i}
                   onClick={() => handleOptionClick(opt)}
-                  className="h-16 text-xl bg-cyan-950/30 border border-cyan-500/50 text-cyan-300 hover:bg-cyan-500 hover:text-zinc-950 hover:shadow-[0_0_20px_rgba(34,211,238,0.8)] transition-all duration-300 rounded-xl"
+                  className="h-12 sm:h-14 text-lg bg-cyan-950/40 border border-cyan-500/50 text-cyan-300 hover:bg-cyan-500 hover:text-zinc-950 hover:shadow-[0_0_20px_rgba(34,211,238,0.8)] transition-all duration-300 rounded-xl cursor-pointer"
                 >
                   {opt}
                 </Button>

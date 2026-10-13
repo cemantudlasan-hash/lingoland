@@ -16,7 +16,7 @@ import {
 import { Button } from "../ui/button";
 import { generateTimeChallenge } from "@/ai/flows/generate-time-challenge";
 import type { GenerateTimeChallengeOutput } from "@/ai/flows/schemas/time-traveler-schema";
-import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, Clock, History, Trophy } from "lucide-react";
+import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, Clock, History, Trophy, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -324,55 +324,68 @@ export function TimeTraveler({ slug, onToggleFullscreen }: { slug: string; onTog
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
-        isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300",
+        isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background"
       )}>
-      <CardHeader className="text-center relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
-          onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
-        </Button>
+      <CardHeader className="text-center relative p-4 sm:p-6 shrink-0">
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1 sm:gap-2 z-[100]">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 sm:h-9 px-2 gap-1 text-muted-foreground hover:text-foreground text-xs"
+            onClick={() => setGameState(gameState === 'instructions' ? 'idle' : 'instructions')}
+          >
+            <HelpCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">How to Play</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 sm:h-9 p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <span className="text-[10px] font-bold uppercase hidden sm:inline">{isFullscreen ? 'Exit' : 'Full'}</span>
+          </Button>
+        </div>
         {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
+            <div className="flex justify-center mb-2 sm:mb-3">
+                <Icon className="w-10 h-10 sm:w-14 sm:h-14 text-primary" />
             </div>
         )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+        <CardTitle className="font-black tracking-tight uppercase text-xl sm:text-3xl md:text-4xl">{game.title}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm md:text-base max-w-xl mx-auto">{game.description}</CardDescription>
         <div className="flex justify-center pt-2">
-            <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{(difficulty || game.level).toUpperCase()}</Badge>
+            <Badge variant="outline" className="text-xs sm:text-sm px-3 py-0.5">{(difficulty || game.level).toUpperCase()}</Badge>
         </div>
       </CardHeader>
-      <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-7xl mx-auto w-full px-12" : "min-h-[24rem] p-6"
-      )}>
+
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
         {renderContent()}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-7xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 w-full shrink-0">
+        <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl font-bold">
           <Link href="/games">Back to Library</Link>
         </Button>
-        <div className="flex gap-4">
-            {gameState === 'playing' && <Button onClick={handleCheckAnswer} disabled={!selectedOption} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}>Verify Timestamp</Button>}
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
+            {gameState === 'playing' && (
+              <Button onClick={handleCheckAnswer} disabled={!selectedOption} className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl h-11 sm:h-12 px-6 rounded-xl flex-1 sm:flex-initial">
+                Verify Timestamp
+              </Button>
+            )}
             {gameState === 'answered' && (
               <Button 
                 onClick={handleNextStep} 
-                size={isFullscreen ? "lg" : "default"} 
-                className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}
+                className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl h-11 sm:h-12 px-6 rounded-xl flex-1 sm:flex-initial"
               >
                 {currentRound + 1 >= roundsChoice ? "Finish Mission" : "Next Epoch"}
               </Button>
             )}
             {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty' && gameState !== 'selecting_rounds' && (
-                <Button variant="secondary" onClick={() => setGameState('selecting_difficulty')} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>Shift Timelines</Button>
+                <Button variant="secondary" onClick={() => setGameState('selecting_difficulty')} className="h-11 sm:h-12 px-6 rounded-xl font-bold flex-1 sm:flex-initial">
+                  Shift Timelines
+                </Button>
             )}
         </div>
       </CardFooter>

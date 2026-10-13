@@ -6,7 +6,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { Crosshair, Target, Zap, Repeat, Maximize, Minimize } from "lucide-react";
+import { Crosshair, Target, Zap, Repeat, Maximize, Minimize, HelpCircle, Info } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,7 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
   const [resultData, setResultData] = React.useState<{ status: "hit" | "miss" | "timeout", points?: number, trueAnswer?: string }>({ status: "hit" });
   const [sessionProblems, setSessionProblems] = React.useState<Problem[]>([]);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [showHowToPlay, setShowHowToPlay] = React.useState(false);
   const { user } = useAuth();
   const firestore = useFirestore();
   const game = getGameBySlug(slug);
@@ -242,89 +243,105 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 bg-slate-950 flex flex-col relative border-none shadow-[0_0_50px_rgba(16,185,129,0.1)] overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[700px]"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between transition-all duration-500 bg-slate-950 relative border-none shadow-[0_0_50px_rgba(16,185,129,0.1)] overflow-y-auto overflow-x-hidden",
+      isFullscreen && "fixed inset-0 z-50 rounded-none min-h-screen max-w-none p-2 sm:p-6"
     )}>
       <div className="absolute inset-0 pointer-events-none opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(16, 185, 129, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.4) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_#020617_80%)] pointer-events-none" />
 
-      <CardHeader className="z-10 bg-slate-900/80 backdrop-blur-md border-b border-emerald-500/20 relative">
-        <div className="flex justify-between items-center text-emerald-100">
-            <div className="flex items-center gap-4">
-               <Button variant="ghost" size="icon" asChild className="text-emerald-500/50 hover:text-emerald-400">
-                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
+      <CardHeader className="z-10 bg-slate-900/80 backdrop-blur-md border-b border-emerald-500/20 relative p-3 sm:p-6">
+        <div className="flex justify-between items-center text-emerald-100 flex-wrap gap-2">
+            <div className="flex items-center gap-2 sm:gap-4">
+               <Button variant="ghost" size="icon" asChild className="text-emerald-500/50 hover:text-emerald-400 h-8 w-8 sm:h-10 sm:w-10">
+                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
                </Button>
-               <Crosshair className="h-8 w-8 text-emerald-500 animate-pulse" />
+               <Crosshair className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-500 animate-pulse" />
                <div>
-                 <CardTitle className="text-2xl font-black uppercase tracking-widest text-emerald-400">Synonym Sniper</CardTitle>
-                 <Badge variant="outline" className="text-emerald-500 border-emerald-500/30 mt-1">TARGET {round}/10</Badge>
+                 <CardTitle className="text-lg sm:text-2xl md:text-3xl font-black uppercase tracking-widest text-emerald-400">Synonym Sniper</CardTitle>
+                 <Badge variant="outline" className="text-emerald-500 border-emerald-500/30 text-[10px] sm:text-xs">TARGET {round}/10</Badge>
                </div>
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+                <Button variant="ghost" size="sm" onClick={() => setShowHowToPlay(!showHowToPlay)} className="text-emerald-400 hover:text-emerald-300 gap-1 text-xs sm:text-sm h-8 sm:h-9">
+                    <HelpCircle className="w-4 h-4" />
+                    <span className="hidden sm:inline">How to Play</span>
+                </Button>
                 <div className="text-right">
-                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Score</p>
-                    <p className="text-2xl font-black text-emerald-400 tabular-nums">{score}</p>
+                    <p className="text-[9px] sm:text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Score</p>
+                    <p className="text-lg sm:text-2xl font-black text-emerald-400 tabular-nums">{score}</p>
                 </div>
-                <Button variant="ghost" size="icon" className="text-emerald-500/50 hover:text-emerald-400" onClick={onToggleFullscreen}>
-                    {isFullscreen ? <Minimize /> : <Maximize />}
+                <Button variant="ghost" size="icon" className="text-emerald-500/50 hover:text-emerald-400 h-8 w-8 sm:h-10 sm:w-10" onClick={onToggleFullscreen}>
+                    {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </Button>
             </div>
         </div>
+
+        {showHowToPlay && (
+          <div className="mt-3 p-3 sm:p-4 rounded-xl bg-slate-900/90 border border-emerald-500/30 text-emerald-200 text-xs sm:text-sm flex flex-col gap-1.5 animate-in fade-in">
+            <div className="font-bold text-emerald-400 flex items-center gap-2">
+              <Info className="w-4 h-4" /> Mission Briefing / How to Play
+            </div>
+            <p>1. A priority target word is projected on your HUD.</p>
+            <p>2. Identify and shoot the target containing its exact synonym before your lock-on timer runs out.</p>
+            <p>3. Faster hits award higher precision bonus points across 10 rounds.</p>
+          </div>
+        )}
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-6 z-10 relative">
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 z-10 relative overflow-y-auto">
         <AnimatePresence mode="wait">
            {gameState === "idle" && (
-             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="text-center">
-               <Crosshair className="w-32 h-32 text-emerald-500 mx-auto mb-8 drop-shadow-[0_0_30px_rgba(16,185,129,0.5)]" />
-               <h2 className="text-5xl font-black text-white uppercase tracking-widest mb-6">Lock On Target</h2>
-               <p className="text-emerald-200/60 max-w-sm mx-auto mb-8">Select target speed and complexity.</p>
+             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} className="text-center w-full max-w-xl mx-auto py-4">
+               <Crosshair className="w-20 h-20 sm:w-28 sm:h-28 text-emerald-500 mx-auto mb-4 sm:mb-6 drop-shadow-[0_0_30px_rgba(16,185,129,0.5)]" />
+               <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-widest mb-2 sm:mb-3">Lock On Target</h2>
+               <p className="text-xs sm:text-base text-emerald-200/70 max-w-md mx-auto mb-6">Select radar frequency & speed lock to begin.</p>
                
-               <div className="flex flex-col gap-4 max-w-sm mx-auto">
-                 <Button onClick={() => startGame("easy")} className="h-16 px-12 text-xl font-black bg-slate-900 border-2 border-emerald-500/50 hover:border-emerald-400 hover:bg-emerald-900/40 text-emerald-400 transition-all uppercase tracking-widest relative overflow-hidden group">
-                     <Target className="absolute -left-4 -bottom-4 w-20 h-20 text-emerald-500/10 group-hover:text-emerald-500/30 transition-all" />
-                     Easy (10s lock)
+               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full mb-6">
+                 <Button onClick={() => startGame("easy")} className="h-14 sm:h-20 text-sm sm:text-base font-black bg-slate-900 border-2 border-emerald-500/50 hover:border-emerald-400 hover:bg-emerald-900/40 text-emerald-400 uppercase tracking-wider relative overflow-hidden group rounded-xl">
+                     <Target className="absolute -left-3 -bottom-3 w-12 h-12 text-emerald-500/10 group-hover:text-emerald-500/30 transition-all" />
+                     <span>Easy<br /><span className="text-[10px] sm:text-xs font-normal text-emerald-300/70">10s lock</span></span>
                  </Button>
-                 <Button onClick={() => startGame("intermediate")} className="h-16 px-12 text-xl font-black bg-slate-900 border-2 border-yellow-500/50 hover:border-yellow-400 hover:bg-yellow-900/40 text-yellow-400 transition-all uppercase tracking-widest relative overflow-hidden group">
-                     <Target className="absolute -left-4 -bottom-4 w-20 h-20 text-yellow-500/10 group-hover:text-yellow-500/30 transition-all" />
-                     Intermediate (7s lock)
+                 <Button onClick={() => startGame("intermediate")} className="h-14 sm:h-20 text-sm sm:text-base font-black bg-slate-900 border-2 border-yellow-500/50 hover:border-yellow-400 hover:bg-yellow-900/40 text-yellow-400 uppercase tracking-wider relative overflow-hidden group rounded-xl">
+                     <Target className="absolute -left-3 -bottom-3 w-12 h-12 text-yellow-500/10 group-hover:text-yellow-500/30 transition-all" />
+                     <span>Medium<br /><span className="text-[10px] sm:text-xs font-normal text-yellow-300/70">7s lock</span></span>
                  </Button>
-                 <Button onClick={() => startGame("pro")} className="h-16 px-12 text-xl font-black bg-slate-900 border-2 border-red-500/50 hover:border-red-400 hover:bg-red-900/40 text-red-500 transition-all uppercase tracking-widest relative overflow-hidden group">
-                     <Target className="absolute -left-4 -bottom-4 w-20 h-20 text-red-500/10 group-hover:text-red-500/30 transition-all" />
-                     Pro (4s lock)
-                 </Button>
-                 <Button variant="ghost" asChild className="mt-4 text-emerald-500/50 hover:text-emerald-400 uppercase tracking-widest transition-all">
-                    <Link href="/games">Back to Games</Link>
+                 <Button onClick={() => startGame("pro")} className="h-14 sm:h-20 text-sm sm:text-base font-black bg-slate-900 border-2 border-red-500/50 hover:border-red-400 hover:bg-red-900/40 text-red-500 uppercase tracking-wider relative overflow-hidden group rounded-xl">
+                     <Target className="absolute -left-3 -bottom-3 w-12 h-12 text-red-500/10 group-hover:text-red-500/30 transition-all" />
+                     <span>Pro<br /><span className="text-[10px] sm:text-xs font-normal text-red-300/70">4s lock</span></span>
                  </Button>
                </div>
+
+               <Button variant="ghost" asChild className="text-emerald-500/50 hover:text-emerald-400 uppercase tracking-widest text-xs sm:text-sm">
+                  <Link href="/games">Back to Games</Link>
+               </Button>
              </motion.div>
            )}
 
            {gameState === "playing" && currentProblem && currentProblem.baseWord !== "" && (
-             <div className="w-full h-full relative flex items-center justify-center">
-                <div className="absolute top-10 flex flex-col items-center">
-                   <p className="text-emerald-500 font-bold uppercase tracking-widest text-sm mb-2">Priority Target</p>
-                   <h1 className="text-6xl font-black text-white uppercase tracking-widest drop-shadow-[0_0_20px_rgba(16,185,129,0.6)] border-b-2 border-emerald-500/50 pb-4">{currentProblem.baseWord}</h1>
+             <div className="w-full flex-grow flex flex-col items-center justify-between py-2 sm:py-6">
+                <div className="flex flex-col items-center text-center">
+                   <p className="text-emerald-500 font-bold uppercase tracking-widest text-[10px] sm:text-xs mb-1">Priority Target</p>
+                   <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-widest drop-shadow-[0_0_20px_rgba(16,185,129,0.6)] border-b-2 border-emerald-500/50 pb-2 sm:pb-3 px-4">{currentProblem.baseWord}</h1>
                 </div>
 
-                <div className="w-full max-w-4xl grid grid-cols-2 gap-8 mt-20">
+                <div className="w-full max-w-3xl grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5 my-4">
                   {currentProblem.options.map((opt, i) => (
-                    <motion.div key={opt} initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1, type: "spring" }}>
-                       <Button onClick={() => handleShot(opt)} className="group relative w-full h-32 bg-slate-900/50 border-2 border-emerald-900/50 hover:border-emerald-400 rounded-none hover:bg-emerald-900/20 text-3xl font-black text-emerald-100 uppercase overflow-hidden transition-all duration-300">
-                          <Target className="absolute -right-4 -bottom-4 w-24 h-24 text-emerald-500/10 group-hover:text-emerald-500/30 transition-all duration-300 group-hover:scale-110" />
-                          <span className="relative z-10">{opt}</span>
+                    <motion.div key={opt} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}>
+                       <Button onClick={() => handleShot(opt)} className="group relative w-full h-16 sm:h-24 bg-slate-900/70 border-2 border-emerald-900/60 hover:border-emerald-400 rounded-xl hover:bg-emerald-900/30 text-lg sm:text-2xl font-black text-emerald-100 uppercase overflow-hidden transition-all duration-300">
+                          <Target className="absolute -right-3 -bottom-3 w-16 h-16 sm:w-20 sm:h-20 text-emerald-500/10 group-hover:text-emerald-500/30 transition-all duration-300 group-hover:scale-110" />
+                          <span className="relative z-10 px-2 truncate">{opt}</span>
                           <div className="absolute inset-x-0 bottom-0 h-1 bg-emerald-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                        </Button>
                     </motion.div>
                   ))}
                 </div>
 
-                <div className="absolute bottom-8 left-12 right-12">
-                   <div className="flex justify-between mb-2">
-                       <span className="text-emerald-600 text-xs font-black tracking-widest uppercase">Target Lock Timeout</span>
-                       <span className="text-emerald-400 font-black tabular-nums">{timeLeft.toFixed(1)}s</span>
+                <div className="w-full max-w-xl px-2">
+                   <div className="flex justify-between mb-1">
+                       <span className="text-emerald-600 text-[10px] sm:text-xs font-black tracking-widest uppercase">Target Lock Timeout</span>
+                       <span className="text-emerald-400 text-xs sm:text-sm font-black tabular-nums">{timeLeft.toFixed(1)}s</span>
                    </div>
-                   <Progress value={(timeLeft / getTimerLimit()) * 100} className="h-1 bg-slate-800 rounded-none">
+                   <Progress value={(timeLeft / getTimerLimit()) * 100} className="h-2 bg-slate-800 rounded-full">
                      <div className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,1)]" />
                    </Progress>
                 </div>
@@ -332,43 +349,43 @@ export function SynonymSniper({ slug, onToggleFullscreen }: { slug: string; onTo
            )}
 
            {gameState === "showing_result" && (
-             <motion.div initial={{ opacity: 0, scale: 1.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="text-center absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center flex-col">
+             <motion.div initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="text-center w-full max-w-md mx-auto p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/30 flex items-center justify-center flex-col my-auto">
                {resultData.status === "hit" && (
                  <>
-                   <Crosshair className="w-40 h-40 text-emerald-400 mb-8 animate-pulse drop-shadow-[0_0_40px_rgba(16,185,129,0.8)]" />
-                   <h2 className="text-7xl font-black text-emerald-400 uppercase tracking-widest">Target Hit</h2>
-                   <p className="text-3xl text-emerald-100 mt-4">+{resultData.points} SCORE</p>
+                   <Crosshair className="w-20 h-20 sm:w-28 sm:h-28 text-emerald-400 mb-4 animate-pulse drop-shadow-[0_0_40px_rgba(16,185,129,0.8)]" />
+                   <h2 className="text-3xl sm:text-5xl font-black text-emerald-400 uppercase tracking-widest">Target Hit</h2>
+                   <p className="text-xl sm:text-2xl text-emerald-100 mt-2">+{resultData.points} SCORE</p>
                  </>
                )}
                {resultData.status !== "hit" && (
                  <>
-                   <Zap className="w-40 h-40 text-red-500 mb-8 drop-shadow-[0_0_40px_rgba(239,68,68,0.8)]" />
-                   <h2 className="text-7xl font-black text-red-500 uppercase tracking-widest">{resultData.status === "miss" ? "Missed" : "Time Out"}</h2>
-                   <p className="text-2xl text-slate-300 mt-6 uppercase tracking-widest">Correct Target: <span className="text-emerald-400 font-bold ml-2 text-3xl">{resultData.trueAnswer}</span></p>
+                   <Zap className="w-20 h-20 sm:w-28 sm:h-28 text-red-500 mb-4 drop-shadow-[0_0_40px_rgba(239,68,68,0.8)]" />
+                   <h2 className="text-3xl sm:text-5xl font-black text-red-500 uppercase tracking-widest">{resultData.status === "miss" ? "Missed" : "Time Out"}</h2>
+                   <p className="text-sm sm:text-lg text-slate-300 mt-3 uppercase tracking-widest">Correct Target: <span className="text-emerald-400 font-bold ml-1 text-base sm:text-xl">{resultData.trueAnswer}</span></p>
                  </>
                )}
                
-               <div className="flex flex-col items-center gap-4 mt-12">
-                   <Button onClick={nextRound} className="h-16 px-12 text-2xl font-black bg-emerald-600 text-white hover:bg-emerald-500 rounded-none border border-emerald-400 uppercase tracking-widest transition-all hover:scale-105 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
+               <div className="flex flex-col sm:flex-row items-center gap-3 mt-6 w-full">
+                   <Button onClick={nextRound} className="w-full h-12 sm:h-14 text-base sm:text-xl font-black bg-emerald-600 text-white hover:bg-emerald-500 rounded-xl border border-emerald-400 uppercase tracking-widest transition-all hover:scale-105 shadow-[0_0_30px_rgba(16,185,129,0.4)]">
                        {round >= 10 ? "End Mission" : "Next Target"}
                    </Button>
-                   <Button variant="ghost" onClick={() => setGameState("idle")} className="text-emerald-500/50 hover:text-emerald-400 uppercase tracking-widest transition-all">
-                       Abort & Reset
+                   <Button variant="ghost" onClick={() => setGameState("idle")} className="w-full sm:w-auto text-emerald-500/50 hover:text-emerald-400 uppercase tracking-widest text-xs">
+                       Abort
                    </Button>
                </div>
              </motion.div>
            )}
 
            {gameState === "finished" && (
-             <div className="text-center">
-               <h2 className="text-6xl font-black text-emerald-400 uppercase mb-4 tracking-widest">Mission Complete</h2>
-               <div className="bg-slate-900 border border-emerald-500/20 p-12 mt-8 inline-block shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-                   <p className="text-emerald-600 font-bold uppercase tracking-widest text-sm mb-2">Final Score</p>
-                   <p className="text-8xl font-black text-white">{score}</p>
+             <div className="text-center w-full max-w-md mx-auto py-4">
+               <h2 className="text-3xl sm:text-5xl font-black text-emerald-400 uppercase mb-2 tracking-widest">Mission Complete</h2>
+               <div className="bg-slate-900 border border-emerald-500/20 p-6 sm:p-8 mt-4 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                   <p className="text-emerald-600 font-bold uppercase tracking-widest text-xs mb-1">Final Score</p>
+                   <p className="text-5xl sm:text-7xl font-black text-white">{score}</p>
                </div>
-               <div className="mt-12 flex gap-6 justify-center">
-                 <Button onClick={() => { setGameState("idle"); setScore(0); setRound(0); }} className="h-16 px-12 text-xl font-black bg-emerald-600 hover:bg-emerald-500 text-white rounded-none border border-emerald-400 uppercase tracking-widest"><Repeat className="mr-2" /> RESTART</Button>
-                 <Button variant="outline" asChild className="h-16 px-12 text-xl font-black border-slate-700 text-slate-300 hover:text-white rounded-none uppercase tracking-widest"><Link href="/games">EXIT</Link></Button>
+               <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+                 <Button onClick={() => { setGameState("idle"); setScore(0); setRound(0); }} className="h-12 px-8 text-base font-black bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl border border-emerald-400 uppercase tracking-widest"><Repeat className="mr-2 h-4 w-4" /> RESTART</Button>
+                 <Button variant="outline" asChild className="h-12 px-8 text-base font-black border-slate-700 text-slate-300 hover:text-white rounded-xl uppercase tracking-widest"><Link href="/games">EXIT</Link></Button>
                </div>
              </div>
            )}

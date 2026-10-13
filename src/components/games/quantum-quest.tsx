@@ -189,48 +189,48 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 flex flex-col overflow-y-auto relative border-none shadow-2xl",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-slate-950" : "max-w-4xl mx-auto h-[700px] bg-slate-950"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-cyan-500/20 shadow-2xl bg-slate-950 transition-all duration-300 relative",
+      isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-slate-950"
     )}>
       {/* Bio-Sci Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-cyan-900/30 via-slate-950 to-slate-950" />
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
       </div>
 
-      <CardHeader className="z-10 bg-slate-950/60 backdrop-blur-md border-b border-cyan-500/20 relative">
-        <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" asChild className="text-cyan-500/50 hover:text-cyan-400 mr-2">
+      <CardHeader className="z-10 bg-slate-950/60 backdrop-blur-md border-b border-cyan-500/20 relative p-3 sm:p-6 shrink-0">
+        <div className="flex justify-between items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <Button variant="ghost" size="icon" asChild className="text-cyan-500/50 hover:text-cyan-400 shrink-0 h-8 w-8 sm:h-10 sm:w-10">
                     <Link href="/games">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                     </Link>
                 </Button>
-                <div className="relative">
-                    <Atom className="h-8 w-8 text-cyan-400" />
+                <div className="relative shrink-0">
+                    <Atom className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-400" />
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} className="absolute inset-0 border border-t-cyan-400 border-r-transparent border-b-transparent border-l-transparent rounded-full opacity-50" />
                 </div>
-                <div>
-                    <CardTitle className="text-2xl font-black text-white tracking-widest uppercase font-mono">Quantum Quest</CardTitle>
-                    <div className="flex gap-2">
-                        <Badge variant="outline" className="text-cyan-400 border-cyan-400/50">ISOTOPE {round}/{ROUNDS}</Badge>
-                        <Badge variant="outline" className="text-blue-400 border-blue-400/50">ENERGY x{combo}</Badge>
+                <div className="min-w-0">
+                    <CardTitle className="text-lg sm:text-2xl font-black text-white tracking-wider uppercase font-mono truncate">Quantum Quest</CardTitle>
+                    <div className="flex gap-1.5 sm:gap-2 flex-wrap">
+                        <Badge variant="outline" className="text-cyan-400 border-cyan-400/50 text-[10px] sm:text-xs">ISOTOPE {round}/{ROUNDS}</Badge>
+                        <Badge variant="outline" className="text-blue-400 border-blue-400/50 text-[10px] sm:text-xs">ENERGY x{combo}</Badge>
                     </div>
                 </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                 <div className="text-right">
-                    <p className="text-[10px] font-bold text-cyan-500/50 uppercase tracking-widest">Resonance</p>
-                    <p className="text-2xl font-black text-white tabular-nums drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">{score}</p>
+                    <p className="text-[9px] sm:text-[10px] font-bold text-cyan-500/50 uppercase tracking-widest">Resonance</p>
+                    <p className="text-lg sm:text-2xl font-black text-white tabular-nums drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">{score}</p>
                 </div>
-                <Button variant="ghost" size="icon" className="text-cyan-500/50 hover:text-cyan-400 hover:bg-cyan-900/40" onClick={onToggleFullscreen}>
-                    {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+                <Button variant="ghost" size="icon" className="text-cyan-500/50 hover:text-cyan-400 hover:bg-cyan-900/40 h-8 w-8 sm:h-10 sm:w-10" onClick={onToggleFullscreen}>
+                    {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </Button>
             </div>
         </div>
       </CardHeader>
 
-      <CardContent className={cn("flex-grow flex flex-col items-center justify-center p-6 z-10 relative overflow-y-auto", isFullscreen ? "min-h-[60vh]" : "min-h-[350px]")}>
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 z-10 relative overflow-y-auto w-full max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
           {gameState === "idle" && (
             <motion.div 
@@ -238,7 +238,7 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-              className="text-center space-y-8 max-w-2xl px-4"
+              className="text-center space-y-6 sm:space-y-8 max-w-2xl px-3 py-6"
             >
               <div className="relative">
                 <motion.div 
@@ -246,20 +246,29 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute inset-0 bg-cyan-500/20 blur-3xl rounded-full"
                 />
-                <FlaskConical className="h-32 w-32 text-cyan-400 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]" />
-                <h2 className="text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none mb-4 font-mono">
+                <FlaskConical className="h-20 w-20 sm:h-32 sm:w-32 text-cyan-400 mx-auto mb-4 sm:mb-6 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)]" />
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-tighter leading-none mb-3 sm:mb-4 font-mono">
                     Harness the<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 drop-shadow-sm">Elements</span>
                 </h2>
               </div>
-              <p className="text-cyan-200/60 text-lg md:text-xl max-w-lg mx-auto font-mono">
+              <p className="text-cyan-200/60 text-sm sm:text-lg md:text-xl max-w-lg mx-auto font-mono">
                 Unknown isotopes are destabilizing. Identify their elemental nature before critical mass.
               </p>
-              <Button 
-                onClick={() => setGameState('instructions')} 
-                className="h-20 px-12 text-2xl font-black bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:shadow-[0_0_40px_rgba(34,211,238,0.6)] transition-all hover:-translate-y-1 block mx-auto font-mono uppercase tracking-[0.2em]"
-              >
-                Start Reaction
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center w-full max-w-md mx-auto">
+                <Button 
+                  onClick={startNextRound} 
+                  className="w-full sm:flex-1 h-12 sm:h-16 px-6 sm:px-8 text-base sm:text-xl font-black bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all font-mono uppercase tracking-wider"
+                >
+                  Start Reaction
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setGameState('instructions')} 
+                  className="w-full sm:flex-1 h-12 sm:h-16 px-6 sm:px-8 text-base sm:text-xl font-black border-cyan-500/50 text-cyan-400 hover:bg-cyan-950/40 rounded-xl font-mono uppercase tracking-wider"
+                >
+                  Lab Procedures
+                </Button>
+              </div>
             </motion.div>
           )}
 
@@ -270,51 +279,56 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
               animate={{ opacity: 1, rotateX: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: "spring", damping: 15 }}
-              className="bg-slate-900/80 backdrop-blur-xl border border-cyan-500/20 p-10 rounded-2xl max-w-2xl w-full mx-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+              className="bg-slate-900/80 backdrop-blur-xl border border-cyan-500/20 p-5 sm:p-10 rounded-2xl max-w-2xl w-full mx-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
             >
-              <h3 className="text-3xl font-black text-white uppercase mb-8 flex items-center gap-3 font-mono">
-                <ShieldAlert className="text-cyan-400" /> Lab Procedures
+              <h3 className="text-xl sm:text-3xl font-black text-white uppercase mb-4 sm:mb-8 flex items-center gap-3 font-mono">
+                <ShieldAlert className="text-cyan-400 h-6 w-6" /> Lab Procedures
               </h3>
-              <div className="space-y-6 text-xl text-cyan-100/90 font-mono">
-                <div className="flex gap-4">
-                  <div className="h-8 w-8 rounded bg-cyan-950 border border-cyan-500/50 text-cyan-400 flex items-center justify-center text-sm font-bold shrink-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</div>
+              <div className="space-y-4 sm:space-y-6 text-sm sm:text-lg text-cyan-100/90 font-mono">
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded bg-cyan-950 border border-cyan-500/50 text-cyan-400 flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">1</div>
                   <span>Analyze the chemical symbol inside the containment field.</span>
                 </div>
-                <div className="flex gap-4">
-                  <div className="h-8 w-8 rounded bg-cyan-950 border border-cyan-500/50 text-cyan-400 flex items-center justify-center text-sm font-bold shrink-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">2</div>
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded bg-cyan-950 border border-cyan-500/50 text-cyan-400 flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">2</div>
                   <span>Select the correct Element Name from the data modules.</span>
                 </div>
-                <div className="flex gap-4">
-                  <div className="h-8 w-8 rounded bg-cyan-950 border border-cyan-500/50 text-cyan-400 flex items-center justify-center text-sm font-bold shrink-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">3</div>
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded bg-cyan-950 border border-cyan-500/50 text-cyan-400 flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">3</div>
                   <span><span className="text-red-400 font-bold">WARNING:</span> Containment fails in {TIMER_LIMIT} seconds. React quickly.</span>
                 </div>
               </div>
-              <Button onClick={startNextRound} className="w-full mt-10 h-16 text-xl font-black bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition-colors uppercase tracking-widest rounded-lg">
-                Confirm Protocols
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 w-full mt-6 sm:mt-10">
+                <Button onClick={startNextRound} className="flex-1 h-12 sm:h-14 text-base sm:text-lg font-black bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition-colors uppercase tracking-wider rounded-xl">
+                  Confirm Protocols
+                </Button>
+                <Button variant="outline" onClick={() => setGameState('idle')} className="h-12 sm:h-14 text-base border-cyan-500/40 text-cyan-400 rounded-xl">
+                  Back
+                </Button>
+              </div>
             </motion.div>
           )}
 
           {gameState === "playing" && currentProblem && (
-            <div className="w-full h-full flex flex-col items-center justify-center relative">
+            <div className="w-full flex-grow flex flex-col items-center justify-center relative py-4">
                <motion.div
                   key={currentProblem.id}
                   initial={{ opacity: 0, scale: 0.5, filter: "blur(20px)" }}
                   animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                   transition={{ type: "spring", damping: 20 }}
-                  className="mb-12 relative"
+                  className="mb-6 sm:mb-10 relative"
                >
                   <div className="absolute inset-0 rounded-full border border-cyan-500/30 animate-[spin_4s_linear_infinite]" />
                   <div className="absolute inset-2 rounded-full border border-blue-500/30 animate-[spin_3s_linear_infinite_reverse]" />
-                  <div className="h-44 w-44 md:h-56 md:w-56 bg-slate-900/60 backdrop-blur-sm rounded-full flex flex-col items-center justify-center shadow-[inset_0_0_50px_rgba(34,211,238,0.2)] border border-cyan-500/50">
-                    <span className="text-zinc-500 font-mono text-xs uppercase tracking-widest mb-2">Symbol</span>
-                    <span className="text-7xl md:text-8xl font-black text-white drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+                  <div className="h-32 w-32 sm:h-44 sm:w-44 md:h-52 md:w-52 bg-slate-900/60 backdrop-blur-sm rounded-full flex flex-col items-center justify-center shadow-[inset_0_0_50px_rgba(34,211,238,0.2)] border border-cyan-500/50">
+                    <span className="text-zinc-500 font-mono text-[10px] sm:text-xs uppercase tracking-widest mb-1">Symbol</span>
+                    <span className="text-5xl sm:text-7xl md:text-8xl font-black text-white drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
                       {currentProblem.symbol}
                     </span>
                   </div>
                </motion.div>
 
-               <div className="grid grid-cols-2 gap-4 w-full max-w-3xl px-4">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 w-full max-w-2xl px-2">
                   {currentProblem.options.map((opt, i) => (
                     <motion.div
                         key={opt}
@@ -324,11 +338,10 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
                     >
                         <Button
                             onClick={() => handleAnswer(opt)}
-                            className="w-full h-20 md:h-24 text-2xl md:text-3xl font-bold font-mono bg-slate-900/80 hover:bg-cyan-950/60 text-cyan-50 border border-slate-700 hover:border-cyan-400 rounded-xl transition-all group overflow-hidden relative shadow-lg"
+                            className="w-full h-14 sm:h-20 text-lg sm:text-2xl font-bold font-mono bg-slate-900/80 hover:bg-cyan-950/60 text-cyan-50 border border-slate-700 hover:border-cyan-400 rounded-xl transition-all group overflow-hidden relative shadow-lg"
                         >
                             <span className="relative z-10">{opt}</span>
                             <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            {/* Scanning line effect */}
                             <motion.div 
                                 className="absolute top-0 left-0 right-0 h-[2px] bg-cyan-400 opacity-0 group-hover:opacity-50"
                                 animate={{ top: ["0%", "100%", "0%"] }}
@@ -339,17 +352,15 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
                   ))}
                </div>
 
-               <div className="absolute bottom-8 left-0 right-0 px-8 w-full max-w-3xl mx-auto">
-                  <div className="flex justify-between items-center mb-2 px-1">
-                    <span className="text-cyan-500/60 text-xs font-black uppercase tracking-widest font-mono">Containment Shield</span>
-                    <span className={cn("font-black tabular-nums font-mono drop-shadow-md", timeLeft < 3 ? "text-red-400 animate-pulse" : "text-cyan-400")}>
+               <div className="mt-6 sm:mt-8 px-4 w-full max-w-2xl mx-auto">
+                  <div className="flex justify-between items-center mb-1.5 px-1">
+                    <span className="text-cyan-500/60 text-[10px] sm:text-xs font-black uppercase tracking-wider font-mono">Containment Shield</span>
+                    <span className={cn("font-black tabular-nums font-mono drop-shadow-md text-xs sm:text-sm", timeLeft < 3 ? "text-red-400 animate-pulse" : "text-cyan-400")}>
                         {timeLeft.toFixed(1)}s
                     </span>
                   </div>
-                  <Progress value={(timeLeft / TIMER_LIMIT) * 100} className="h-1 bg-slate-800 rounded-none overflow-visible">
-                    <div className={cn("h-full relative shadow-[0_0_10px_currentColor]", timeLeft < 3 ? "bg-red-500 text-red-500" : "bg-cyan-400 text-cyan-400")}>
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-white shadow-[0_0_10px_currentColor]" />
-                    </div>
+                  <Progress value={(timeLeft / TIMER_LIMIT) * 100} className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div className={cn("h-full relative shadow-[0_0_10px_currentColor]", timeLeft < 3 ? "bg-red-500 text-red-500" : "bg-cyan-400 text-cyan-400")} />
                   </Progress>
                </div>
             </div>
@@ -361,30 +372,30 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, filter: "blur(10px)" }}
-              className="w-full h-full flex flex-col items-center justify-center relative text-center px-4"
+              className="w-full flex-grow flex flex-col items-center justify-center relative text-center px-4 py-8"
             >
                 {resultData.status === "correct" && (
-                    <div className="bg-slate-900/80 border border-cyan-500/40 p-16 rounded-[2rem] backdrop-blur-md shadow-[0_0_50px_rgba(34,211,238,0.2)]">
-                        <h2 className="text-5xl md:text-7xl font-black text-cyan-400 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(34,211,238,0.5)] font-mono">
+                    <div className="bg-slate-900/80 border border-cyan-500/40 p-8 sm:p-14 rounded-2xl backdrop-blur-md shadow-[0_0_50px_rgba(34,211,238,0.2)] max-w-md w-full">
+                        <h2 className="text-3xl sm:text-5xl font-black text-cyan-400 uppercase tracking-wider drop-shadow-[0_0_20px_rgba(34,211,238,0.5)] font-mono">
                             Contained
                         </h2>
-                        <p className="text-2xl text-cyan-100 mt-6 font-bold font-mono">+{resultData.points} units</p>
+                        <p className="text-lg sm:text-2xl text-cyan-100 mt-4 font-bold font-mono">+{resultData.points} units</p>
                     </div>
                 )}
                 {resultData.status === "incorrect" && (
-                    <div className="bg-slate-900/80 border border-red-500/40 p-16 rounded-[2rem] backdrop-blur-md shadow-[0_0_50px_rgba(239,68,68,0.2)]">
-                        <h2 className="text-5xl md:text-7xl font-black text-red-500 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] font-mono">
+                    <div className="bg-slate-900/80 border border-red-500/40 p-8 sm:p-14 rounded-2xl backdrop-blur-md shadow-[0_0_50px_rgba(239,68,68,0.2)] max-w-md w-full">
+                        <h2 className="text-3xl sm:text-5xl font-black text-red-500 uppercase tracking-wider drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] font-mono">
                             Mismatch
                         </h2>
-                        <p className="text-xl md:text-2xl text-white mt-8 font-mono">Correct Element: <br/><span className="text-4xl font-bold text-red-400 block mt-2">{resultData.trueAnswer}</span></p>
+                        <p className="text-base sm:text-xl text-white mt-4 font-mono">Correct Element: <br/><span className="text-2xl sm:text-3xl font-bold text-red-400 block mt-2">{resultData.trueAnswer}</span></p>
                     </div>
                 )}
                 {resultData.status === "timeout" && (
-                    <div className="bg-slate-900/80 border border-orange-500/40 p-16 rounded-[2rem] backdrop-blur-md shadow-[0_0_50px_rgba(249,115,22,0.2)]">
-                        <h2 className="text-5xl md:text-7xl font-black text-orange-500 uppercase tracking-widest drop-shadow-[0_0_20px_rgba(249,115,22,0.5)] font-mono">
+                    <div className="bg-slate-900/80 border border-orange-500/40 p-8 sm:p-14 rounded-2xl backdrop-blur-md shadow-[0_0_50px_rgba(249,115,22,0.2)] max-w-md w-full">
+                        <h2 className="text-3xl sm:text-5xl font-black text-orange-500 uppercase tracking-wider drop-shadow-[0_0_20px_rgba(249,115,22,0.5)] font-mono">
                             Overload
                         </h2>
-                        <p className="text-xl md:text-2xl text-white mt-8 font-mono">Correct Element: <br/><span className="text-4xl font-bold text-orange-400 block mt-2">{resultData.trueAnswer}</span></p>
+                        <p className="text-base sm:text-xl text-white mt-4 font-mono">Correct Element: <br/><span className="text-2xl sm:text-3xl font-bold text-orange-400 block mt-2">{resultData.trueAnswer}</span></p>
                     </div>
                 )}
             </motion.div>
@@ -394,32 +405,32 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center w-full max-w-2xl px-4"
+              className="text-center w-full max-w-2xl px-4 py-8"
             >
-              <div className="relative inline-block mb-8">
-                <Atom className="h-32 w-32 text-cyan-400 drop-shadow-[0_0_30px_rgba(34,211,238,0.6)]" />
+              <div className="relative inline-block mb-6 sm:mb-8">
+                <Atom className="h-20 w-20 sm:h-32 sm:w-32 text-cyan-400 drop-shadow-[0_0_30px_rgba(34,211,238,0.6)]" />
                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} className="absolute inset-[-20%] border-2 border-dashed border-cyan-400/30 rounded-full" />
               </div>
-              <h2 className="text-4xl md:text-6xl font-black text-white uppercase mb-2 font-mono">Laboratory Secured</h2>
-              <p className="text-cyan-400/60 text-lg md:text-xl font-bold uppercase tracking-widest mb-12 font-mono">Reaction Complete</p>
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase mb-2 font-mono">Laboratory Secured</h2>
+              <p className="text-cyan-400/60 text-sm sm:text-lg font-bold uppercase tracking-wider mb-6 sm:mb-8 font-mono">Reaction Complete</p>
               
-              <div className="bg-slate-900/60 border border-cyan-500/20 rounded-2xl p-8 mb-12 flex flex-col md:flex-row gap-8 justify-center backdrop-blur-lg">
+              <div className="bg-slate-900/60 border border-cyan-500/20 rounded-2xl p-4 sm:p-8 mb-6 sm:mb-8 flex flex-row gap-4 justify-center backdrop-blur-lg">
                 <div className="text-center flex-1">
-                    <p className="text-xs font-black text-slate-500 uppercase mb-2 tracking-widest font-mono">Total Resonance</p>
-                    <p className="text-5xl lg:text-6xl font-black text-white tabular-nums font-mono drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">{score}</p>
+                    <p className="text-[10px] sm:text-xs font-black text-slate-500 uppercase mb-1 tracking-wider font-mono">Total Resonance</p>
+                    <p className="text-3xl sm:text-5xl font-black text-white tabular-nums font-mono drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">{score}</p>
                 </div>
-                <div className="hidden md:block w-px bg-slate-700" />
+                <div className="w-px bg-slate-700" />
                 <div className="text-center flex-1">
-                    <p className="text-xs font-black text-slate-500 uppercase mb-2 tracking-widest font-mono">Energy Peak</p>
-                    <p className="text-5xl lg:text-6xl font-black text-cyan-400 tabular-nums font-mono drop-shadow-[0_0_10px_rgba(34,211,238,0.2)]">{combo}</p>
+                    <p className="text-[10px] sm:text-xs font-black text-slate-500 uppercase mb-1 tracking-wider font-mono">Energy Peak</p>
+                    <p className="text-3xl sm:text-5xl font-black text-cyan-400 tabular-nums font-mono drop-shadow-[0_0_10px_rgba(34,211,238,0.2)]">{combo}</p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button onClick={() => { setScore(0); setRound(0); setCombo(0); setGameState('idle'); }} className="h-16 px-10 text-xl font-black bg-cyan-500 text-slate-950 hover:bg-cyan-400 rounded-lg font-mono uppercase tracking-widest">
-                    <Repeat className="mr-2" /> RESTART LAB
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={() => { setScore(0); setRound(0); setCombo(0); setGameState('idle'); }} className="h-12 sm:h-14 px-8 text-base sm:text-lg font-black bg-cyan-500 text-slate-950 hover:bg-cyan-400 rounded-xl font-mono uppercase tracking-wider">
+                    <Repeat className="mr-2 h-4 w-4" /> RESTART LAB
                 </Button>
-                <Button variant="outline" asChild className="h-16 px-10 text-xl font-black border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg font-mono uppercase tracking-widest">
+                <Button variant="outline" asChild className="h-12 sm:h-14 px-8 text-base sm:text-lg font-black border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl font-mono uppercase tracking-wider">
                     <Link href="/games">EXIT FACILITY</Link>
                 </Button>
               </div>
@@ -428,13 +439,13 @@ export function QuantumQuest({ slug, onToggleFullscreen }: { slug: string; onTog
         </AnimatePresence>
       </CardContent>
 
-      <CardFooter className="z-10 bg-slate-950/80 backdrop-blur-md border-t border-cyan-500/20 py-4 flex justify-between px-6">
-        <div className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] font-mono">
+      <CardFooter className="z-10 bg-slate-950/80 backdrop-blur-md border-t border-cyan-500/20 py-3 sm:py-4 flex justify-between px-4 sm:px-6 shrink-0">
+        <div className="text-slate-500 text-[9px] sm:text-[10px] font-black uppercase tracking-wider font-mono">
             Quantum Quest // LingoLabs Hub
         </div>
         <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-cyan-500 shadow-[0_0_5px_currentColor]" />
-            <span className="text-cyan-500 text-[10px] font-black uppercase font-mono tracking-widest">Online</span>
+            <span className="text-cyan-500 text-[9px] sm:text-[10px] font-black uppercase font-mono tracking-wider">Online</span>
         </div>
       </CardFooter>
     </Card>

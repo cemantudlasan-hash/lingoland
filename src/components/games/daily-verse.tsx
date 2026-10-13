@@ -4,7 +4,7 @@ import * as React from 'react';
 import { 
   Newspaper, Award, Calendar, BookOpen, Clock, ChevronRight, 
   CheckCircle2, XCircle, RefreshCw, Maximize, Minimize, AlertCircle, 
-  Play, ArrowLeft, Loader2, Sparkles, Check, BookmarkCheck, Flame
+  Play, ArrowLeft, Loader2, Sparkles, Check, BookmarkCheck, Flame, HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -88,6 +88,14 @@ export function DailyVerse({ slug, onToggleFullscreen }: { slug: string; onToggl
 
   // Sound and visual feedback
   const [showExplanation, setShowExplanation] = React.useState(false);
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [showHowToPlay, setShowHowToPlay] = React.useState(false);
+
+  React.useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
 
   // Load persistence from localStorage
   React.useEffect(() => {
@@ -278,37 +286,60 @@ export function DailyVerse({ slug, onToggleFullscreen }: { slug: string; onToggl
   }, [headlines, completedNewsIds]);
 
   return (
-    <div className="w-full min-h-[600px] flex flex-col justify-start bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden backdrop-blur-md text-slate-100 p-6 relative">
+    <div className={cn(
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-start bg-slate-950/70 border border-slate-800 rounded-2xl md:rounded-3xl overflow-y-auto overflow-x-hidden backdrop-blur-md text-slate-100 p-3 sm:p-6 relative transition-all duration-300",
+      isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-3 sm:p-6 bg-slate-950"
+    )}>
       
       {/* Background Decorative Glow */}
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Header bar */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800 z-10">
-        <div className="flex items-center gap-3">
-          <Newspaper className="h-8 w-8 text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+      <div className="flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-slate-800 z-10 flex-wrap gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Newspaper className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+            <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
               The Daily Verse
             </h1>
-            <p className="text-xs text-slate-400">AI News Aggregator & Comprehension Quiz</p>
+            <p className="text-[10px] sm:text-xs text-slate-400">AI News Aggregator & Comprehension Quiz</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowHowToPlay(!showHowToPlay)}
+            className="text-indigo-300 hover:text-white text-xs h-8 sm:h-9 gap-1"
+          >
+            <HelpCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">How to Play</span>
+          </Button>
           {onToggleFullscreen && (
             <Button
               variant="outline"
               size="sm"
               onClick={onToggleFullscreen}
-              className="bg-slate-900 border-slate-800 text-slate-300 hover:text-white"
+              className="bg-slate-900 border-slate-800 text-slate-300 hover:text-white text-xs h-8 sm:h-9"
             >
-              <Maximize className="h-4 w-4 mr-1" />
-              Fullscreen
+              {isFullscreen ? <Minimize className="h-3.5 w-3.5 mr-1" /> : <Maximize className="h-3.5 w-3.5 mr-1" />}
+              {isFullscreen ? 'Exit' : 'Fullscreen'}
             </Button>
           )}
         </div>
       </div>
+
+      {showHowToPlay && (
+        <div className="mb-4 p-4 rounded-xl bg-slate-900/90 border border-indigo-500/30 text-slate-200 text-xs sm:text-sm flex flex-col gap-1.5 animate-in fade-in z-20">
+          <div className="font-bold text-indigo-400 flex items-center gap-2">
+            <BookOpen className="w-4 h-4" /> Editorial Guide / How to Play
+          </div>
+          <p>1. Pick any global news headline and select your preferred vocabulary level (Beginner, Intermediate, Advanced).</p>
+          <p>2. Read the custom AI-generated article and analyze the key vocabulary terms.</p>
+          <p>3. Complete the timed comprehension quiz to test understanding and unlock exclusive badges!</p>
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         

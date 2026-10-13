@@ -1483,8 +1483,8 @@ export function SpellcasterDefense({ slug, onToggleFullscreen }: { slug: string;
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 flex flex-col relative overflow-hidden select-none border-slate-900 bg-slate-950 text-slate-100",
-      isFullscreen ? "min-h-screen rounded-none border-none max-w-none justify-center" : "max-w-4xl mx-auto shadow-2xl"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden relative select-none border-slate-900 bg-slate-950 text-slate-100 transition-all duration-300",
+      isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6"
     )}>
       {/* Absolute Canvas Background */}
       <canvas 
@@ -1493,7 +1493,7 @@ export function SpellcasterDefense({ slug, onToggleFullscreen }: { slug: string;
       />
 
       {/* Top Controls Header */}
-      <div className="flex justify-between items-center p-4 border-b border-slate-900/60 z-10 bg-slate-950/70 backdrop-blur-sm">
+      <div className="flex flex-wrap justify-between items-center p-3 sm:p-4 border-b border-slate-900/60 z-10 bg-slate-950/70 backdrop-blur-sm gap-2">
         <div className="flex items-center gap-2">
           <Flame className="h-5 w-5 text-pink-400 fill-pink-400" />
           <span className="font-extrabold tracking-wider bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent uppercase text-xs md:text-sm">
@@ -1501,22 +1501,22 @@ export function SpellcasterDefense({ slug, onToggleFullscreen }: { slug: string;
           </span>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {gameState === "playing" && (
-            <div className="flex items-center gap-4 text-xs md:text-sm font-semibold">
-              <div className="flex items-center gap-1.5 bg-slate-900/70 border border-slate-800/80 px-3 py-1 rounded-full">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-semibold">
+              <div className="flex items-center gap-1.5 bg-slate-900/70 border border-slate-800/80 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full">
                 <Badge variant="outline" className="border-pink-500/20 text-pink-400 p-0 text-[10px]">
                   INCANTATION {questionIndex + 1}/10
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-1.5 bg-slate-900/70 border border-slate-800/80 px-3 py-1 rounded-full">
+              <div className="flex items-center gap-1.5 bg-slate-900/70 border border-slate-800/80 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full">
                 <Coins className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
                 <span className="text-amber-300 font-bold">{score} pts</span>
               </div>
 
               <div className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all duration-300 bg-slate-900/70 border-slate-800",
+                "flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border transition-all duration-300 bg-slate-900/70 border-slate-800",
                 castleHealth <= 20 ? "border-red-500/30 text-red-400 animate-pulse" : "text-cyan-400"
               )}>
                 <ShieldAlert className="h-3.5 w-3.5 fill-current" />
@@ -1537,10 +1537,7 @@ export function SpellcasterDefense({ slug, onToggleFullscreen }: { slug: string;
       </div>
 
       {/* Main Content Area */}
-      <CardContent className={cn(
-        "flex flex-col items-center justify-center p-4 md:p-8 z-10 flex-grow relative min-h-[450px]",
-        isFullscreen ? "min-h-[70vh]" : "min-h-[450px]"
-      )}>
+      <CardContent className="flex flex-col items-center justify-center p-3 sm:p-6 z-10 flex-grow relative overflow-y-auto w-full max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
           {/* 1. IDLE STATE */}
           {gameState === "idle" && (
@@ -1774,7 +1771,7 @@ export function SpellcasterDefense({ slug, onToggleFullscreen }: { slug: string;
               )}
 
               {/* Gargoyle Phantom cards options */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 w-full max-w-3xl">
                 {currentQuestion.options.map((opt, idx) => {
                   const positions: ("left" | "center" | "right")[] = ["left", "center", "right"];
                   const pos = positions[idx] || "center";
@@ -1787,20 +1784,20 @@ export function SpellcasterDefense({ slug, onToggleFullscreen }: { slug: string;
                       disabled={selectedOption !== null}
                       onClick={() => handleSpellCast(opt, pos)}
                       className={cn(
-                        "h-20 md:h-24 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 font-extrabold text-sm md:text-base flex flex-col items-center justify-center p-3 relative shadow-lg hover:-translate-y-1 active:translate-y-0",
+                        "h-auto min-h-[56px] sm:min-h-[72px] rounded-xl sm:rounded-2xl border-2 backdrop-blur-md transition-all duration-300 font-extrabold text-xs sm:text-sm md:text-base flex flex-col items-center justify-center py-2.5 px-3 relative shadow-md whitespace-normal break-words text-center",
                         // Idle styles
                         "bg-slate-900/50 border-slate-800 text-slate-200 hover:bg-pink-500/10 hover:border-pink-500/40 hover:shadow-pink-500/5",
                         // Selection states
-                        isSelected && isCorrectAnswer && "bg-green-500/20 border-green-500 text-green-300 shadow-green-500/10 scale-105",
+                        isSelected && isCorrectAnswer && "bg-green-500/20 border-green-500 text-green-300 shadow-green-500/10 scale-[1.02]",
                         isSelected && !isCorrectAnswer && "bg-red-500/20 border-red-500 text-red-300 shadow-red-500/10 scale-[0.98]",
                         selectedOption !== null && !isSelected && isCorrectAnswer && "bg-green-500/15 border-green-500/50 text-green-300",
                         selectedOption !== null && !isSelected && !isCorrectAnswer && "opacity-40"
                       )}
                     >
-                      <span className="text-[10px] font-black uppercase text-pink-400/70 tracking-widest absolute top-2">
+                      <span className="text-[9px] sm:text-[10px] font-black uppercase text-pink-400/70 tracking-widest block mb-0.5">
                         PHANTOM {idx + 1}
                       </span>
-                      <span className="truncate max-w-full pt-2">{opt}</span>
+                      <span className="max-w-full leading-snug">{opt}</span>
                     </Button>
                   );
                 })}
@@ -1906,9 +1903,15 @@ export function SpellcasterDefense({ slug, onToggleFullscreen }: { slug: string;
       </CardContent>
 
       {/* Footer Details */}
-      <CardFooter className="flex justify-between items-center border-t border-slate-900/40 p-4 bg-slate-950/50 backdrop-blur-sm z-10 text-[10px] md:text-xs text-slate-500">
-        <span>Incantations Speed: <span className="uppercase text-slate-400 font-bold">{difficulty}</span></span>
-        <span>Aesthetic: Neon Spell Dust simulation active</span>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2 border-t border-slate-900/40 p-3 sm:p-4 bg-slate-950/50 backdrop-blur-sm z-10 text-[10px] sm:text-xs text-slate-400 w-full shrink-0">
+        <Button variant="ghost" size="sm" asChild className="text-slate-400 hover:text-slate-200 h-8 px-3">
+          <Link href="/games">Back to Library</Link>
+        </Button>
+        <div className="flex items-center gap-3">
+          <span>Incantations Level: <span className="uppercase text-pink-400 font-bold">{difficulty}</span></span>
+          <span className="hidden sm:inline text-slate-600">•</span>
+          <span className="hidden sm:inline">Spell Dust Active</span>
+        </div>
       </CardFooter>
     </Card>
   );

@@ -12,7 +12,8 @@ import {
 } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { generateWordMorph, type GenerateWordMorphOutput } from '@/ai/flows/generate-word-morph';
+import { generateWordMorph } from '@/ai/flows/generate-word-morph';
+import type { GenerateWordMorphOutput } from '@/ai/flows/schemas/word-morph-schema';
 import {
   Loader2,
   Sparkles,
@@ -29,6 +30,7 @@ import {
   SkipForward,
   Maximize,
   Minimize,
+  HelpCircle,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -246,195 +248,238 @@ export function WordMorph({ slug, onToggleFullscreen }: { slug: string; onToggle
                 <UserPlus className="mr-2" /> Add Team
               </Button>
             </div>
-            <Button onClick={() => setGameState('instructions')} size="lg" className="w-full mt-4 h-14 font-black uppercase text-xl rounded-2xl shadow-lg">Next</Button>
+            <div className="flex gap-2 w-full mt-4">
+              <Button onClick={() => setGameState('instructions')} variant="outline" className="flex-1 h-11 sm:h-12 rounded-xl font-bold">
+                <HelpCircle className="mr-2 h-4 w-4" /> Rules
+              </Button>
+              <Button onClick={handleStartGame} className="flex-1 h-11 sm:h-12 font-black uppercase text-base sm:text-lg rounded-xl shadow-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white">
+                Start Game
+              </Button>
+            </div>
           </div>
         );
       case 'instructions':
         return (
           <div className={cn(
-              "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20 shadow-inner",
-              isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-lg"
+            "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-2xl mx-auto border border-border/20 shadow-inner w-full",
+            isFullscreen ? "p-6 sm:p-12 max-w-3xl" : "p-5 sm:p-8 max-w-lg"
           )}>
-            <h3 className={cn("font-bold text-center mb-4", isFullscreen ? "text-4xl" : "text-xl")}>How to Play</h3>
-            <div className={cn("text-left space-y-4", isFullscreen ? "text-2xl" : "text-base")}>
-              <p>1. You'll be given a <strong>Root Word</strong> and a <strong>Definition</strong>.</p>
-              <p>2. Your goal is to add a prefix or suffix to the root word to match the definition.</p>
-              <p>3. Morph the base signal correctly before the transmission times out!</p>
+            <h3 className={cn("font-bold text-center", isFullscreen ? "text-2xl sm:text-3xl" : "text-lg sm:text-xl")}>How to Play</h3>
+            <div className={cn("text-left space-y-3 text-muted-foreground w-full", isFullscreen ? "text-base sm:text-lg" : "text-xs sm:text-sm")}>
+              <p className="flex items-start gap-2">
+                <span className="font-bold text-primary">1.</span>
+                <span>You will be given a <strong>Root Word</strong> and a <strong>Definition</strong>.</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="font-bold text-primary">2.</span>
+                <span>Add an appropriate prefix or suffix to the root word to create the target word.</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="font-bold text-primary">3.</span>
+                <span>Type your answer and submit before the timer expires to score points!</span>
+              </p>
             </div>
-            <Button onClick={handleStartGame} size="lg" className={cn("mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl shadow-xl")}>Begin Morphing</Button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-4">
+              <Button onClick={() => setGameState(challenge ? 'playing' : 'setup')} variant="outline" className="h-10 sm:h-11 px-5 rounded-xl font-bold">
+                Back
+              </Button>
+              <Button onClick={handleStartGame} className="h-10 sm:h-11 px-8 rounded-xl font-black bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg">
+                Begin Morphing
+              </Button>
+            </div>
           </div>
         );
       case 'loading':
         return (
-          <div className="flex flex-col items-center justify-center gap-6">
-            <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-24 w-24" : "h-12 w-12")} />
-            <p className={cn("text-muted-foreground animate-pulse font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-lg")}>Synthesizing morphology challenges...</p>
+          <div className="flex flex-col items-center justify-center gap-4 py-8">
+            <Loader2 className="animate-spin text-primary h-10 w-10 sm:h-14 sm:w-14" />
+            <p className="text-muted-foreground animate-pulse font-black uppercase tracking-widest text-xs sm:text-sm">Synthesizing morphology challenges...</p>
           </div>
         );
       case 'playing':
       case 'answered':
         if (!challenge) return null;
         return (
-          <div className="w-full flex flex-col items-center gap-8 max-w-5xl">
-            <div className={cn("w-full grid grid-cols-1 sm:grid-cols-3 gap-4 text-center font-black uppercase tracking-widest", isFullscreen && "max-w-4xl")}>
-              <div className="p-4 bg-muted/20 rounded-2xl shadow-inner border-2 border-primary/10">
-                <p className="text-xs opacity-60">Round</p>
-                <p className={cn(isFullscreen ? "text-4xl" : "text-lg")}>{currentRound}/{totalRounds}</p>
+          <div className="w-full flex flex-col items-center gap-4 sm:gap-6 max-w-3xl mx-auto">
+            <div className="w-full grid grid-cols-3 gap-2 sm:gap-4 text-center font-black uppercase tracking-wider text-xs sm:text-sm">
+              <div className="p-2 sm:p-3 bg-muted/30 rounded-xl border border-primary/10">
+                <p className="text-[10px] sm:text-xs opacity-60">Round</p>
+                <p className="text-sm sm:text-xl font-black">{currentRound}/{totalRounds}</p>
               </div>
-              <div className={cn("p-4 rounded-2xl border-4 transition-all", gameState === 'playing' ? "border-primary bg-primary/10 scale-105 shadow-xl" : "bg-muted border-transparent opacity-70")}>
-                <p className="text-xs opacity-80">Active Team</p>
-                <p className={cn("truncate", isFullscreen ? "text-4xl" : "text-lg")}>{teams[currentTurn].name}</p>
+              <div className={cn("p-2 sm:p-3 rounded-xl border-2 transition-all", gameState === 'playing' ? "border-primary bg-primary/10 shadow-md" : "bg-muted border-transparent opacity-70")}>
+                <p className="text-[10px] sm:text-xs opacity-80">Turn</p>
+                <p className="truncate text-sm sm:text-xl font-black">{teams[currentTurn].name}</p>
               </div>
-              <div className="p-4 bg-muted/20 rounded-2xl shadow-inner border-2 border-primary/10">
-                <p className="text-xs opacity-60">Time Left</p>
-                <p className={cn("font-mono font-black", isFullscreen ? "text-4xl" : "text-lg")}>{timeLeft}s</p>
+              <div className="p-2 sm:p-3 bg-muted/30 rounded-xl border border-primary/10">
+                <p className="text-[10px] sm:text-xs opacity-60">Time</p>
+                <p className="font-mono text-sm sm:text-xl font-black">{timeLeft}s</p>
               </div>
             </div>
-            <Progress value={(timeLeft / TURN_TIME_SECONDS) * 100} className={cn("w-full h-4 rounded-full", isFullscreen && "max-w-4xl")} />
+            <Progress value={(timeLeft / TURN_TIME_SECONDS) * 100} className="w-full h-2 sm:h-3 rounded-full" />
 
-            <div className="flex flex-col items-center gap-6 mt-4 w-full">
-                <p className={cn("font-black text-muted-foreground uppercase tracking-[0.2em]", isFullscreen ? "text-2xl" : "text-xs")}>Morph this signal:</p>
-                <div className={cn(
-                    "font-black p-12 bg-card rounded-[3rem] shadow-2xl border-4 border-primary/20 animate-in fade-in zoom-in duration-500 uppercase italic",
-                    isFullscreen ? "text-[10vw] p-16" : "text-6xl md:text-7xl"
-                )}>
-                    {challenge.rootWord}
-                </div>
-                <div className={cn(
-                    "p-8 rounded-3xl bg-muted/50 border-2 border-primary/10 max-w-2xl text-center italic font-bold",
-                    isFullscreen ? "text-4xl leading-tight" : "text-xl"
-                )}>
-                    "{challenge.definition}"
-                </div>
+            <div className="flex flex-col items-center gap-3 sm:gap-4 w-full mt-1">
+              <p className="font-bold text-muted-foreground uppercase tracking-widest text-xs">Morph this root word:</p>
+              <div className="font-black px-6 py-4 sm:px-10 sm:py-6 bg-card rounded-2xl sm:rounded-3xl shadow-xl border-2 sm:border-4 border-primary/20 uppercase italic text-3xl sm:text-5xl md:text-6xl text-primary text-center">
+                {challenge.rootWord}
+              </div>
+              <div className="p-3 sm:p-5 rounded-2xl bg-muted/40 border border-primary/10 max-w-xl text-center italic font-semibold text-xs sm:text-base md:text-lg">
+                &quot;{challenge.definition}&quot;
+              </div>
             </div>
 
             {gameState === 'playing' ? (
-                <div className="flex flex-col items-center gap-6 w-full max-w-2xl mt-4">
-                    <div className="flex gap-4 w-full">
-                        <Input 
-                            value={userGuess}
-                            onChange={(e) => setUserGuess(e.target.value)}
-                            placeholder="Type the morphed word..."
-                            className={cn("text-center font-black uppercase tracking-widest bg-card border-4", isFullscreen ? "h-24 text-[4vw] rounded-3xl" : "h-16 text-2xl")}
-                            onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer()}
-                            autoFocus
-                            spellCheck="false"
-                        />
-                        <Button onClick={handleCheckAnswer} size="lg" className={cn("shadow-xl", isFullscreen ? "h-24 w-24 rounded-3xl" : "h-16 w-16 p-0")}>
-                            <Send className={cn(isFullscreen ? "h-10 w-10" : "h-6 w-6")} />
-                        </Button>
-                    </div>
+              <div className="flex flex-col items-center gap-3 w-full max-w-md mt-2">
+                <div className="flex gap-2 sm:gap-3 w-full">
+                  <Input 
+                    value={userGuess}
+                    onChange={(e) => setUserGuess(e.target.value)}
+                    placeholder="Morphed word..."
+                    className="text-center font-black uppercase tracking-wider bg-card border-2 h-11 sm:h-14 text-lg sm:text-xl rounded-xl"
+                    onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer()}
+                    autoFocus
+                    spellCheck="false"
+                  />
+                  <Button onClick={handleCheckAnswer} className="shadow-lg h-11 sm:h-14 px-4 sm:px-5 rounded-xl font-bold bg-primary text-primary-foreground">
+                    <Send className="h-5 w-5" />
+                  </Button>
                 </div>
+              </div>
             ) : (
-                <Alert className={cn(
-                    "text-center border-4 rounded-[2rem] shadow-2xl animate-in fade-in zoom-in duration-300",
-                    isFullscreen ? "p-12 mt-12" : "mt-6",
-                    isCorrect ? "bg-green-500/20 border-green-500/50 text-foreground" : "bg-red-500/20 border-red-500/50 text-foreground"
-                )}>
-                    {isCorrect ? <Check className={cn(isFullscreen ? "h-12 w-12" : "h-6 w-6")} /> : <X className={cn(isFullscreen ? "h-12 w-12" : "h-6 w-6")} />}
-                    <AlertTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-5xl mb-4" : "text-xl mb-2")}>{isCorrect ? "MISSION SUCCESS!" : "DECODING ERROR!"}</AlertTitle>
-                    <AlertDescription className={cn(isFullscreen ? "text-3xl leading-relaxed" : "text-lg")}>
-                        <p className="mb-4">The target word was: <strong className="uppercase italic text-primary">{challenge.targetWord}</strong></p>
-                        <p className={cn("opacity-80 border-t-2 border-current/10 pt-4", isFullscreen ? "text-xl" : "text-sm")}><strong>Rule:</strong> {challenge.morphType}. {challenge.explanation}</p>
-                    </AlertDescription>
-                </Alert>
+              <Alert className={cn(
+                "text-center border-2 rounded-2xl shadow-lg animate-in fade-in zoom-in-95 duration-200 w-full max-w-xl",
+                isCorrect ? "bg-green-500/15 border-green-500/40 text-foreground" : "bg-red-500/15 border-red-500/40 text-foreground"
+              )}>
+                {isCorrect ? <Check className="h-5 w-5 text-green-500" /> : <X className="h-5 w-5 text-red-500" />}
+                <AlertTitle className="font-black uppercase tracking-tight text-base sm:text-lg mb-1">
+                  {isCorrect ? "MISSION SUCCESS!" : "DECODING ERROR!"}
+                </AlertTitle>
+                <AlertDescription className="text-xs sm:text-sm">
+                  <p className="mb-2">Target word: <strong className="uppercase italic text-primary">{challenge.targetWord}</strong></p>
+                  <p className="opacity-80 border-t border-border/20 pt-2 text-[11px] sm:text-xs">
+                    <strong>Rule:</strong> {challenge.morphType}. {challenge.explanation}
+                  </p>
+                </AlertDescription>
+              </Alert>
             )}
           </div>
         );
       case 'finished':
         const sorted = [...teams].sort((a, b) => b.score - a.score);
         return (
-          <div className="text-center flex flex-col items-center gap-8 animate-in zoom-in duration-500">
-            <Trophy className={cn("text-amber-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]", isFullscreen ? "h-48 w-48" : "h-24 w-24")} />
-            <div className="space-y-2">
-                <h2 className={cn("font-black uppercase tracking-tighter text-white", isFullscreen ? "text-7xl" : "text-4xl")}>Analysis Complete!</h2>
-                <p className={cn("font-black text-primary uppercase", isFullscreen ? "text-4xl" : "text-2xl")}>🎉 {sorted[0].name} is the Morph Master! 🎉</p>
+          <div className="text-center flex flex-col items-center gap-4 sm:gap-6 animate-in zoom-in-95 duration-300 w-full max-w-md mx-auto py-4">
+            <Trophy className="text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.4)] h-16 w-16 sm:h-20 sm:w-20" />
+            <div className="space-y-1">
+              <h2 className="font-black uppercase tracking-tight text-xl sm:text-3xl">Game Complete!</h2>
+              <p className="font-bold text-primary uppercase text-sm sm:text-lg">🎉 {sorted[0].name} is the Morph Master! 🎉</p>
             </div>
-            <Card className={cn("w-full max-w-sm p-6 bg-card/50", isFullscreen && "max-w-xl p-12")}>
-              <h3 className={cn("font-black uppercase tracking-widest text-muted-foreground mb-4", isFullscreen ? "text-2xl" : "text-sm")}>Final Ledger</h3>
-              <div className="flex flex-col gap-4">
+            <Card className="w-full p-4 sm:p-5 bg-card/60 rounded-2xl border border-border/20">
+              <h3 className="font-bold uppercase tracking-wider text-muted-foreground mb-3 text-xs sm:text-sm">Final Score</h3>
+              <div className="flex flex-col gap-2">
                 {sorted.map((team) => (
-                  <div key={team.name} className={cn("flex justify-between font-bold", isFullscreen ? "text-3xl" : "text-xl")}>
+                  <div key={team.name} className="flex justify-between font-bold text-sm sm:text-base">
                     <span>{team.name}:</span>
-                    <span className="text-primary">{team.score} points</span>
+                    <span className="text-primary">{team.score} pts</span>
                   </div>
                 ))}
               </div>
             </Card>
-            <Button onClick={resetGame} size="lg" className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                <Repeat className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
-                New Sequence
+            <Button onClick={resetGame} className="h-11 sm:h-12 px-6 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold shadow-lg">
+              <Repeat className="mr-2 h-4 w-4" />
+              New Game
             </Button>
           </div>
         );
       default:
         return (
-            <div className="flex flex-col items-center gap-4">
-                <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Transform words using prefixes and suffixes. Master morphology!</p>
-                <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                    <Sparkles className={cn("mr-2 h-5 w-5", isFullscreen && "h-10 w-10")} /> Initialize
-                </Button>
+          <div className="flex flex-col items-center gap-4 text-center max-w-md mx-auto py-6">
+            <p className="text-muted-foreground text-xs sm:text-base">
+              Transform words using prefixes and suffixes. Master English morphology!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button onClick={() => setGameState('instructions')} variant="outline" className="h-11 sm:h-12 px-6 rounded-xl font-bold">
+                <HelpCircle className="mr-2 h-4 w-4" /> How to Play
+              </Button>
+              <Button onClick={() => setGameState('setup')} className="h-11 sm:h-12 px-8 rounded-xl font-black bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg">
+                <Sparkles className="mr-2 h-5 w-5" /> Setup Game
+              </Button>
             </div>
+          </div>
         );
     }
   };
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
-        isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
-      )}>
-      <CardHeader className="text-center relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
-          onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
-        </Button>
-        {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
-            </div>
-        )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300",
+      isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background"
+    )}>
+      <CardHeader className="text-center relative px-4 pt-4 sm:pt-6 pb-2">
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1.5 z-20">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 sm:px-3 text-xs gap-1 text-muted-foreground hover:text-foreground"
+            onClick={() => setGameState(gameState === 'instructions' ? 'idle' : 'instructions')}
+          >
+            <HelpCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">Guide</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 sm:px-3 text-xs gap-1 text-muted-foreground hover:text-foreground"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+          </Button>
+        </div>
+
+        <div className="flex justify-center mb-2">
+          <Icon className="w-10 h-10 sm:w-14 sm:h-14 text-primary" />
+        </div>
+        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-2xl sm:text-4xl md:text-5xl" : "text-xl sm:text-3xl md:text-4xl")}>
+          {game.title}
+        </CardTitle>
+        <CardDescription className={cn("text-xs sm:text-sm md:text-base max-w-xl mx-auto", isFullscreen && "text-sm sm:text-base")}>
+          {game.description}
+        </CardDescription>
         <div className="flex justify-center pt-2">
-          <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{difficulty.toUpperCase()}</Badge>
+          <Badge variant="outline" className="text-xs sm:text-sm px-3 py-0.5">{difficulty.toUpperCase()}</Badge>
         </div>
       </CardHeader>
+
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[30rem] p-6"
+        "flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto",
+        isFullscreen ? "min-h-[60vh] max-w-5xl" : "min-h-[24rem]"
       )}>
         {renderContent()}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+
+      <CardFooter className="flex flex-wrap justify-between items-center gap-2 p-3 sm:p-6 border-t border-border/10">
+        <Button variant="outline" asChild size="sm" className="h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-xl">
           <Link href="/games">Back to Library</Link>
         </Button>
+
         {gameState === 'answered' && (
-          <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}>
-            Next Morph <Repeat className={cn("ml-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")} />
+          <Button onClick={handleNextTurn} size="sm" className="h-9 sm:h-10 px-4 sm:px-5 font-bold rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-md">
+            Next Morph <Repeat className="ml-1.5 h-4 w-4" />
           </Button>
         )}
+
         {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'setup' && (
-          <div className="flex gap-2">
-             <Button variant="ghost" onClick={handleNextTurn} title="Skip this word" size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "text-xl")}>
-                <SkipForward className={cn("mr-2 h-4 w-4", isFullscreen && "h-8 w-8")} /> Skip
+          <div className="flex gap-1.5">
+            <Button variant="ghost" onClick={handleNextTurn} title="Skip this word" size="sm" className="h-9 px-2.5 text-xs font-semibold">
+              <SkipForward className="mr-1 h-3.5 w-3.5" /> Skip
             </Button>
             <Button variant="ghost" onClick={() => {
-                try {
+              try {
                 localStorage.removeItem(LOCAL_STORAGE_KEY);
                 setUsedWords([]);
                 toast({ title: "History Cleared", description: "You can now see previous words again." });
-                } catch (e) {}
-            }} title="Reset challenge history" size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "text-xl")}>
-                <RotateCcw className={cn("mr-2 h-4 w-4", isFullscreen && "h-8 w-8")} /> Clear History
+              } catch (e) {}
+            }} title="Reset challenge history" size="sm" className="h-9 px-2.5 text-xs font-semibold">
+              <RotateCcw className="mr-1 h-3.5 w-3.5" /> Reset
             </Button>
           </div>
         )}

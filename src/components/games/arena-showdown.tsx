@@ -461,21 +461,21 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
   return (
     <div
       className={cn(
-        "w-full min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.18),rgba(255,255,255,0))] text-white flex flex-col items-center justify-center p-4 md:p-8 transition-all duration-500",
-        isFullscreen && "p-8 rounded-none border-none"
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.18),rgba(255,255,255,0))] text-white flex flex-col items-center justify-between p-1 sm:p-4 transition-all duration-300",
+        isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none p-2 sm:p-4"
       )}
     >
       <Card
         className={cn(
-          "w-full max-w-6xl bg-slate-900/60 border border-slate-800 backdrop-blur-md shadow-2xl relative overflow-hidden transition-all duration-500 flex flex-col",
-          isFullscreen ? "min-h-[90vh] rounded-2xl" : "rounded-3xl"
+          "w-full flex-1 max-w-full bg-slate-900/60 border border-slate-800 backdrop-blur-md shadow-2xl relative overflow-y-auto overflow-x-hidden transition-all duration-300 flex flex-col justify-between rounded-2xl md:rounded-3xl",
+          isFullscreen && "min-h-full rounded-none border-none"
         )}
       >
         {/* Fullscreen controls */}
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl z-50"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl z-50"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
@@ -486,14 +486,14 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
         <div className="absolute -top-12 -left-12 w-64 h-64 rounded-full blur-[100px] bg-purple-500/10 pointer-events-none -z-10" />
         <div className="absolute -bottom-12 -right-12 w-64 h-64 rounded-full blur-[100px] bg-indigo-500/10 pointer-events-none -z-10" />
 
-        <CardHeader className="text-center pb-4 border-b border-slate-850/60 relative">
-          <div className="flex justify-center mb-3">
-            <div className="p-3 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-2xl border border-indigo-500/30">
-              <SubjectIcon className="w-10 h-10 text-indigo-400" />
+        <CardHeader className="text-center pb-4 border-b border-slate-850/60 relative p-4 sm:p-6 shrink-0">
+          <div className="flex justify-center mb-2 sm:mb-3">
+            <div className="p-2.5 sm:p-3 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-2xl border border-indigo-500/30">
+              <SubjectIcon className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-400" />
             </div>
           </div>
-          <CardTitle className="text-3xl font-black uppercase tracking-tight text-white flex items-center justify-center gap-2">
-            <Swords className="w-6 h-6 text-indigo-400 animate-pulse" />
+          <CardTitle className="text-xl sm:text-3xl font-black uppercase tracking-tight text-white flex items-center justify-center gap-2">
+            <Swords className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400 animate-pulse" />
             <span>{subjectTitle} Showdown</span>
           </CardTitle>
           <CardDescription className="text-slate-400 text-xs font-bold uppercase tracking-wider mt-1">
@@ -593,12 +593,22 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
                   </div>
                 )}
 
+                {/* How to Play Card */}
+                <div className="p-3.5 rounded-xl bg-slate-950/60 border border-indigo-500/20 text-left text-xs text-slate-300 space-y-1.5">
+                  <p className="font-bold text-indigo-400 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5" /> How to Play
+                  </p>
+                  <p>• Answer questions correctly within the 15-second timer.</p>
+                  <p>• In Solo Mode, face off against LingoBot in speed and accuracy.</p>
+                  <p>• In Pass & Play, alternate answering turns with a friend locally.</p>
+                </div>
+
                 {/* Start Game Button */}
                 <Button
                   onClick={handleStartGame}
-                  className="w-full h-13 bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:brightness-110 text-white font-black uppercase tracking-wider text-sm shadow-xl rounded-2xl"
+                  className="w-full h-12 sm:h-14 bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:brightness-110 text-white font-black uppercase tracking-wider text-xs sm:text-sm shadow-xl rounded-xl"
                 >
-                  <Play className="mr-2 h-5 w-5" /> Let the Duel Begin!
+                  <Play className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Let the Duel Begin!
                 </Button>
               </motion.div>
             )}

@@ -6,7 +6,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { Sparkles, Trophy, Repeat, Maximize, Minimize, Orbit, Star, Timer } from "lucide-react";
+import { Sparkles, Trophy, Repeat, Maximize, Minimize, Orbit, Star, Timer, HelpCircle } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { cn } from "@/lib/utils";
@@ -176,11 +176,11 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 flex flex-col overflow-y-auto relative border-none shadow-2xl bg-indigo-950/20",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[700px]"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden relative border-none shadow-2xl bg-indigo-950/20 transition-all duration-300",
+      isFullscreen && "fixed inset-0 z-50 rounded-none min-h-screen max-w-none p-2 sm:p-6"
     )}>
       {/* Cosmic Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950">
+      <div className="absolute inset-0 z-0 overflow-hidden bg-slate-950 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/40 via-slate-900 to-black" />
         {[...Array(30)].map((_, i) => (
             <motion.div
@@ -198,36 +198,40 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
         ))}
       </div>
 
-      <CardHeader className="z-10 bg-indigo-950/40 backdrop-blur-md border-b border-indigo-500/20 relative">
-        <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" asChild className="text-indigo-300 hover:text-indigo-100 mr-2">
+      <CardHeader className="z-10 bg-indigo-950/40 backdrop-blur-md border-b border-indigo-500/20 relative p-3 sm:p-6 shrink-0">
+        <div className="flex justify-between items-center flex-wrap gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+                <Button variant="ghost" size="icon" asChild className="text-indigo-300 hover:text-indigo-100 h-8 w-8 sm:h-10 sm:w-10">
                     <Link href="/games">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                     </Link>
                 </Button>
-                <Orbit className="h-8 w-8 text-fuchsia-400 animate-[spin_10s_linear_infinite]" />
+                <Orbit className="h-6 w-6 sm:h-8 sm:w-8 text-fuchsia-400 animate-[spin_10s_linear_infinite]" />
                 <div>
-                    <CardTitle className="text-2xl font-black text-white tracking-widest uppercase">Vocab Vortex</CardTitle>
-                    <div className="flex gap-2">
-                        <Badge variant="outline" className="text-indigo-300 border-indigo-500/50">PHASE {round}/{ROUNDS}</Badge>
-                        <Badge variant="outline" className="text-fuchsia-400 border-fuchsia-500/50">MULTIPLIER x{combo}</Badge>
+                    <CardTitle className="text-lg sm:text-2xl font-black text-white tracking-widest uppercase">Vocab Vortex</CardTitle>
+                    <div className="flex gap-1.5 sm:gap-2">
+                        <Badge variant="outline" className="text-[10px] text-indigo-300 border-indigo-500/50">PHASE {round}/{ROUNDS}</Badge>
+                        <Badge variant="outline" className="text-[10px] text-fuchsia-400 border-fuchsia-500/50">x{combo} MULTI</Badge>
                     </div>
                 </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
+                <Button variant="ghost" size="sm" onClick={() => setGameState(gameState === 'instructions' ? 'idle' : 'instructions')} className="text-indigo-300 hover:text-white gap-1 text-xs sm:text-sm h-8 sm:h-9">
+                    <HelpCircle className="w-4 h-4" />
+                    <span className="hidden sm:inline">Directives</span>
+                </Button>
                 <div className="text-right">
-                    <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Aethereal Energy</p>
-                    <p className="text-2xl font-black text-white tabular-nums drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{score}</p>
+                    <p className="text-[9px] sm:text-[10px] font-bold text-indigo-300 uppercase tracking-widest">Energy</p>
+                    <p className="text-lg sm:text-2xl font-black text-white tabular-nums drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{score}</p>
                 </div>
-                <Button variant="ghost" size="icon" className="text-indigo-300 hover:text-white hover:bg-white/10" onClick={onToggleFullscreen}>
-                    {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+                <Button variant="ghost" size="icon" className="text-indigo-300 hover:text-white hover:bg-white/10 h-8 w-8 sm:h-10 sm:w-10" onClick={onToggleFullscreen}>
+                    {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </Button>
             </div>
         </div>
       </CardHeader>
 
-      <CardContent className={cn("flex-grow flex flex-col items-center justify-center p-6 z-10 relative overflow-y-auto", isFullscreen ? "min-h-[60vh]" : "min-h-[350px]")}>
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 z-10 relative overflow-y-auto">
         <AnimatePresence mode="wait">
           {gameState === "idle" && (
             <motion.div 
@@ -315,19 +319,19 @@ export function VocabVortex({ slug, onToggleFullscreen }: { slug: string; onTogg
                   </div>
                </motion.div>
 
-               <div className="grid grid-cols-2 gap-4 w-full max-w-2xl px-4">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full max-w-2xl px-2 sm:px-4 my-auto">
                   {currentProblem.options.map((opt, i) => (
                     <motion.div
                         key={opt}
-                        initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
+                        initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1, type: "spring" }}
+                        transition={{ delay: i * 0.05, type: "spring" }}
                     >
                         <Button
                             onClick={() => handleAnswer(opt)}
-                            className="w-full h-24 text-2xl md:text-3xl font-black bg-indigo-950/60 hover:bg-fuchsia-900/60 text-indigo-100 border border-indigo-500/30 hover:border-fuchsia-400 rounded-full transition-all group relative overflow-hidden backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_30px_rgba(192,38,211,0.4)] hover:-translate-y-1"
+                            className="w-full h-14 sm:h-20 text-base sm:text-2xl font-black bg-indigo-950/60 hover:bg-fuchsia-900/60 text-indigo-100 border border-indigo-500/30 hover:border-fuchsia-400 rounded-xl sm:rounded-full transition-all group relative overflow-hidden backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_30px_rgba(192,38,211,0.4)]"
                         >
-                            <span className="relative z-10">{opt}</span>
+                            <span className="relative z-10 px-2 truncate">{opt}</span>
                             <motion.div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         </Button>
                     </motion.div>

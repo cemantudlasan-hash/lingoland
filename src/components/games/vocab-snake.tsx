@@ -120,7 +120,7 @@ interface ChainItem {
   endLetter: string;
 }
 
-export function VocabSnake() {
+export function VocabSnake({ slug, onToggleFullscreen }: { slug?: string; onToggleFullscreen?: () => void } = {}) {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -128,6 +128,7 @@ export function VocabSnake() {
   // Fullscreen Container Ref
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   // ─── Setup & Lobby States ───
   const [gameState, setGameState] = useState<'lobby' | 'waiting_room' | 'playing' | 'ended'>('lobby');
@@ -894,8 +895,8 @@ export function VocabSnake() {
     <div
       ref={containerRef}
       className={cn(
-        "w-full min-h-screen relative overflow-hidden bg-gradient-to-br from-zinc-950 via-emerald-950/30 to-teal-950/60 p-4 sm:p-8 flex flex-col items-center justify-center transition-all duration-300",
-        isFullscreen && "fixed inset-0 z-50 p-6 overflow-y-auto min-h-screen bg-zinc-950"
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full relative overflow-y-auto overflow-x-hidden bg-gradient-to-br from-zinc-950 via-emerald-950/30 to-teal-950/60 p-3 sm:p-6 flex flex-col items-center justify-start rounded-2xl md:rounded-3xl border border-emerald-500/20 shadow-xl transition-all duration-300",
+        isFullscreen && "fixed inset-0 z-50 p-2 sm:p-6 overflow-y-auto min-h-screen rounded-none border-none max-w-none bg-zinc-950"
       )}
     >
       {/* Ambient Glow Backdrops */}
@@ -904,15 +905,15 @@ export function VocabSnake() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/20 via-zinc-950/80 to-zinc-950 pointer-events-none" />
 
       {/* Navigation & Fullscreen Header Bar */}
-      <div className="w-full max-w-[1380px] flex justify-between items-center gap-4 mb-6 relative z-30 flex-wrap">
-        <div className="flex items-center gap-3">
+      <div className="w-full max-w-[1380px] flex justify-between items-center gap-2 sm:gap-4 mb-4 sm:mb-6 relative z-30 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button
             onClick={() => router.push('/games')}
             variant="outline"
-            className="bg-zinc-900/90 border-zinc-800 text-zinc-300 hover:text-white rounded-2xl h-11 px-5 backdrop-blur-md transition-all hover:scale-105 shadow-md"
+            className="bg-zinc-900/90 border-zinc-800 text-zinc-300 hover:text-white rounded-2xl h-9 sm:h-11 px-3 sm:px-5 backdrop-blur-md transition-all hover:scale-105 shadow-md"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            <span className="text-xs font-bold uppercase tracking-wider">Back to Games Hub</span>
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">Back to Games Hub</span>
           </Button>
 
           {gameState === 'playing' && (
@@ -923,37 +924,63 @@ export function VocabSnake() {
                 }
               }}
               variant="ghost"
-              className="bg-rose-950/50 border border-rose-500/40 text-rose-300 hover:bg-rose-900/70 rounded-2xl h-11 px-4 backdrop-blur-md text-xs font-bold uppercase"
+              className="bg-rose-950/50 border border-rose-500/40 text-rose-300 hover:bg-rose-900/70 rounded-2xl h-9 sm:h-11 px-3 sm:px-4 backdrop-blur-md text-xs font-bold uppercase"
             >
-              <Home className="h-4 w-4 mr-2" /> Leave Match
+              <Home className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Leave Match</span>
             </Button>
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {isCurrentPlayerObserver && gameState === 'playing' && (
-            <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/50 px-4 py-2 font-black text-xs uppercase tracking-wider flex items-center gap-2 animate-pulse">
-              <Eye className="h-4 w-4 text-cyan-400" /> Teacher Spectator Mode
+            <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/50 px-3 py-1 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
+              <Eye className="h-3.5 w-3.5 text-cyan-400" /> <span className="hidden sm:inline">Spectator</span>
             </Badge>
           )}
 
           <Button
+            onClick={() => setShowHowToPlay(!showHowToPlay)}
+            variant="outline"
+            className="bg-zinc-900/90 border-zinc-800 text-emerald-400 hover:text-white rounded-2xl h-9 sm:h-11 px-3 sm:px-4 backdrop-blur-md text-xs font-bold uppercase"
+          >
+            <Info className="h-4 w-4 sm:mr-1.5" />
+            <span className="hidden sm:inline">How to Play</span>
+          </Button>
+
+          <Button
             onClick={() => setSoundEnabled(!soundEnabled)}
             variant="outline"
-            className="bg-zinc-900/90 border-zinc-800 text-zinc-300 hover:text-white rounded-2xl h-11 px-4 backdrop-blur-md"
+            className="bg-zinc-900/90 border-zinc-800 text-zinc-300 hover:text-white rounded-2xl h-9 sm:h-11 px-3 sm:px-4 backdrop-blur-md"
           >
-            {soundEnabled ? <Volume2 className="h-4 w-4 text-emerald-400 mr-2" /> : <VolumeX className="h-4 w-4 text-zinc-500 mr-2" />}
-            <span className="text-xs font-bold uppercase">{soundEnabled ? 'Sound On' : 'Muted'}</span>
+            {soundEnabled ? <Volume2 className="h-4 w-4 text-emerald-400 sm:mr-2" /> : <VolumeX className="h-4 w-4 text-zinc-500 sm:mr-2" />}
+            <span className="text-xs font-bold uppercase hidden sm:inline">{soundEnabled ? 'Sound On' : 'Muted'}</span>
           </Button>
           <Button
-            onClick={toggleFullscreen}
-            className="bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 font-extrabold rounded-2xl h-11 px-5 shadow-lg shadow-emerald-950/50 backdrop-blur-md transition-all hover:scale-105"
+            onClick={() => {
+              if (onToggleFullscreen) {
+                onToggleFullscreen();
+              } else {
+                toggleFullscreen();
+              }
+            }}
+            className="bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 font-extrabold rounded-2xl h-9 sm:h-11 px-3 sm:px-5 shadow-lg shadow-emerald-950/50 backdrop-blur-md transition-all hover:scale-105"
           >
-            {isFullscreen ? <Minimize className="h-4 w-4 text-emerald-400 mr-2" /> : <Maximize className="h-4 w-4 text-emerald-400 mr-2" />}
-            <span className="text-xs tracking-wider uppercase">{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Mode'}</span>
+            {isFullscreen ? <Minimize className="h-4 w-4 text-emerald-400 sm:mr-2" /> : <Maximize className="h-4 w-4 text-emerald-400 sm:mr-2" />}
+            <span className="text-xs tracking-wider uppercase hidden sm:inline">{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
           </Button>
         </div>
       </div>
+
+      {showHowToPlay && (
+        <div className="w-full max-w-[1380px] mb-6 p-4 sm:p-6 rounded-3xl bg-zinc-900/95 border border-emerald-500/40 text-emerald-100 text-xs sm:text-sm flex flex-col gap-2 relative z-30 shadow-2xl animate-in fade-in">
+          <div className="font-black text-emerald-400 flex items-center gap-2 text-sm sm:text-base">
+            <Info className="w-5 h-5" /> 🐍 Vocab Snake Rules & Instructions
+          </div>
+          <p>1. <strong>Word Chain Rule:</strong> Every valid word submitted must start with the exact final letter of the preceding word.</p>
+          <p>2. <strong>Theme & Real Words:</strong> Submissions must be real dictionary words matching the active topic/theme without repetitions.</p>
+          <p>3. <strong>Speed & Score:</strong> Faster submissions yield speed multipliers. Long and sophisticated words award bonus scale points!</p>
+        </div>
+      )}
 
       {/* ─── LOBBY VIEW ─── */}
       {gameState === 'lobby' && (

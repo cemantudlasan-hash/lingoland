@@ -296,6 +296,7 @@ export function TenseRunner() {
   const [gameState, setGameState] = useState<'start' | 'playing' | 'paused' | 'gameover'>('start');
   const [selectedCategory, setSelectedCategory] = useState<GrammarCategory>('all');
   const [difficulty, setDifficulty] = useState<'relaxed' | 'normal' | 'turbo'>('normal');
+  const [showGuide, setShowGuide] = useState(false);
 
   // Gameplay HUD States
   const [score, setScore] = useState(0);
@@ -1325,10 +1326,10 @@ export function TenseRunner() {
     <div
       ref={containerRef}
       className={cn(
-        'relative w-full mx-auto flex flex-col items-center select-none font-sans transition-all duration-300',
+        'relative w-full mx-auto flex flex-col justify-between select-none font-sans transition-all duration-300 overflow-x-hidden',
         isFullscreen
-          ? 'h-screen justify-center p-2 bg-slate-950'
-          : 'w-full min-h-[calc(100vh-64px)] px-1 sm:px-2 py-1'
+          ? 'fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-4 bg-slate-950 justify-between'
+          : 'w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full px-1 sm:px-3 py-1'
       )}
     >
       {/* ─── Top Control Bar ─── */}
@@ -1378,7 +1379,7 @@ export function TenseRunner() {
       </div>
 
       {/* ─── Main Game Canvas Box (Full width & height stretch) ─── */}
-      <div className="relative w-full flex-1 h-[76vh] min-h-[520px] max-h-[86vh] rounded-2xl overflow-hidden border-2 border-slate-800 shadow-2xl bg-slate-950 flex items-center justify-center">
+      <div className="relative w-full flex-1 h-[55vh] sm:h-[72vh] min-h-[340px] sm:min-h-[480px] max-h-[85vh] rounded-2xl overflow-hidden border-2 border-slate-800 shadow-2xl bg-slate-950 flex items-center justify-center">
         <canvas
           ref={canvasRef}
           className="w-full h-full"
@@ -1613,14 +1614,33 @@ export function TenseRunner() {
                 </div>
               </div>
 
-              {/* Start Button */}
-              <Button
-                size="lg"
-                className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-base rounded-xl shadow-lg shadow-cyan-500/25 transition-transform active:scale-95"
-                onClick={startGame}
-              >
-                <Play className="w-5 h-5 mr-2 fill-current" /> START RUNNING
-              </Button>
+              {/* Start & How to Play Buttons */}
+              <div className="flex flex-col sm:flex-row gap-2.5 w-full">
+                <Button
+                  size="lg"
+                  className="flex-1 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-sm sm:text-base rounded-xl shadow-lg shadow-cyan-500/25 transition-transform active:scale-95"
+                  onClick={startGame}
+                >
+                  <Play className="w-5 h-5 mr-2 fill-current" /> START RUNNING
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="sm:w-36 h-12 border-slate-700 bg-slate-900/80 text-cyan-300 font-bold rounded-xl text-xs sm:text-sm hover:bg-slate-800"
+                  onClick={() => setShowGuide(!showGuide)}
+                >
+                  <HelpCircle className="w-4 h-4 mr-1.5" /> Guide
+                </Button>
+              </div>
+
+              {showGuide && (
+                <div className="mt-3 p-3.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 text-left text-xs text-slate-300 space-y-1.5 w-full animate-in fade-in">
+                  <p className="font-bold text-cyan-400 uppercase tracking-wider text-[11px]">How to Play:</p>
+                  <p>• <strong>Jump / Double Jump:</strong> Press <kbd className="px-1 rounded bg-slate-800 text-white">Space</kbd> or <kbd className="px-1 rounded bg-slate-800 text-white">▲</kbd> or tap the Jump button.</p>
+                  <p>• <strong>Slide:</strong> Press <kbd className="px-1 rounded bg-slate-800 text-white">▼</kbd> or tap Slide to duck under barriers.</p>
+                  <p>• <strong>Grammar Portals:</strong> When a question prompt appears, jump into the portal with the correct verb form.</p>
+                </div>
+              )}
 
               <div className="mt-3 text-[11px] text-slate-400 font-medium">
                 Tip: Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-white">Space</kbd> or <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-white">▲</kbd> to Jump, <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-white">▼</kbd> to Slide.

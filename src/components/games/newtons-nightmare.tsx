@@ -24,6 +24,7 @@ export function NewtonsNightmare({ slug, onToggleFullscreen }: { slug: string; o
   const [timeLeft, setTimeLeft] = React.useState(15);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [resultStatus, setResultStatus] = React.useState<"correct" | "incorrect" | "timeout">("correct");
+  const [showHowToPlay, setShowHowToPlay] = React.useState(false);
   
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const game = getGameBySlug(slug);
@@ -171,8 +172,8 @@ export function NewtonsNightmare({ slug, onToggleFullscreen }: { slug: string; o
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 bg-[#0a0f1c] flex flex-col relative border-none overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[700px]"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden relative border-none shadow-2xl transition-all duration-500 bg-[#0a0f1c]",
+      isFullscreen ? "fixed inset-0 z-50 min-h-screen rounded-none" : "rounded-2xl md:rounded-3xl"
     )}>
       <div className="absolute inset-0 z-0">
         {[...Array(30)].map((_, i) => (
@@ -186,42 +187,45 @@ export function NewtonsNightmare({ slug, onToggleFullscreen }: { slug: string; o
         ))}
       </div>
 
-      <CardHeader className="z-10 bg-[#0a0f1c]/90 backdrop-blur-md relative border-b border-indigo-900/50">
-        <div className="flex justify-between items-center text-indigo-100">
-           <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" asChild className="text-indigo-400/50 hover:text-indigo-300">
-                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
+      <CardHeader className="z-10 bg-[#0a0f1c]/90 backdrop-blur-md relative border-b border-indigo-900/50 py-3 sm:py-4 px-3 sm:px-6 shrink-0">
+        <div className="flex justify-between items-center text-indigo-100 gap-2">
+           <div className="flex items-center gap-2 sm:gap-4">
+              <Button variant="ghost" size="icon" asChild className="text-indigo-400/50 hover:text-indigo-300 shrink-0">
+                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
               </Button>
-              <Rocket className="h-8 w-8 text-indigo-400" />
+              <Rocket className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-400 shrink-0" />
               <div>
-                <CardTitle className="text-2xl font-black uppercase text-indigo-300 font-mono tracking-tighter">Newton&apos;s Nightmare</CardTitle>
-                <Badge variant="outline" className="border-indigo-500/30 text-indigo-500 mt-1">Orbit {round}/10</Badge>
+                <CardTitle className="text-base sm:text-2xl font-black uppercase text-indigo-300 font-mono tracking-tighter">Newton&apos;s Nightmare</CardTitle>
+                <Badge variant="outline" className="border-indigo-500/30 text-indigo-500 mt-0.5 text-[9px] sm:text-xs">Orbit {round}/10</Badge>
               </div>
            </div>
-           <div className="flex items-center gap-6">
+           <div className="flex items-center gap-2 sm:gap-6 shrink-0">
               <div className="text-right">
-                 <p className="text-[10px] uppercase text-indigo-800 font-bold tracking-widest">Altitude Score</p>
-                 <p className="text-2xl font-black text-indigo-400 tabular-nums">{score}</p>
+                 <p className="text-[9px] sm:text-[10px] uppercase text-indigo-800 font-bold tracking-widest">Altitude Score</p>
+                 <p className="text-lg sm:text-2xl font-black text-indigo-400 tabular-nums">{score}</p>
               </div>
-              <Button variant="ghost" size="icon" className="text-indigo-600 hover:text-indigo-400" onClick={onToggleFullscreen}>
-                 {isFullscreen ? <Minimize /> : <Maximize />}
+              <Button variant="ghost" size="icon" className="text-indigo-400 hover:text-indigo-200 cursor-pointer" onClick={onToggleFullscreen}>
+                 {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
               </Button>
            </div>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col z-10 relative p-6 items-center justify-center">
+      <CardContent className="flex-grow flex flex-col z-10 relative p-3 sm:p-6 items-center justify-center w-full max-w-4xl mx-auto overflow-y-auto">
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
-                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}} className="text-center w-full max-w-md">
-                    <Satellite className="w-32 h-32 text-indigo-500 mx-auto mb-8 animate-bounce" />
-                    <h2 className="text-5xl font-black text-white uppercase mb-4 font-mono">Impending Collision</h2>
-                    <p className="text-indigo-200/60 mb-10 mx-auto lowercase">Select calculation engine difficulty level.</p>
-                    <div className="flex flex-col gap-4">
-                        <Button onClick={() => startGame("easy")} className="h-16 px-12 text-xl font-bold bg-[#0f172a] border border-green-500/50 hover:border-green-400 text-green-500 rounded-none font-mono uppercase tracking-widest transition-all">Basic Physics (Easy)</Button>
-                        <Button onClick={() => startGame("intermediate")} className="h-16 px-12 text-xl font-bold bg-[#0f172a] border border-indigo-500/50 hover:border-indigo-400 text-indigo-400 rounded-none font-mono uppercase tracking-widest transition-all">Classical Mechanics (Intermediate)</Button>
-                        <Button onClick={() => startGame("pro")} className="h-16 px-12 text-xl font-bold bg-[#0f172a] border border-red-500/50 hover:border-red-400 text-red-500 rounded-none font-mono uppercase tracking-widest transition-all">Advanced Theory (Pro)</Button>
-                        <Button variant="ghost" asChild className="mt-4 text-indigo-800 hover:text-indigo-600 uppercase tracking-widest font-mono">
+                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}} className="text-center w-full max-w-md px-2">
+                    <Satellite className="w-20 h-20 sm:w-32 sm:h-32 text-indigo-400 mx-auto mb-4 sm:mb-8 animate-bounce" />
+                    <h2 className="text-3xl sm:text-5xl font-black text-white uppercase mb-2 sm:mb-4 font-mono">Impending Collision</h2>
+                    <p className="text-indigo-200/60 mb-6 sm:mb-8 mx-auto text-xs sm:text-sm">Select calculation engine difficulty level.</p>
+                    <div className="flex flex-col gap-3">
+                        <Button onClick={() => startGame("easy")} className="h-12 sm:h-16 px-6 text-sm sm:text-xl font-bold bg-[#0f172a] border border-green-500/50 hover:border-green-400 text-green-400 rounded-xl font-mono uppercase tracking-widest transition-all cursor-pointer">Basic Physics (Easy)</Button>
+                        <Button onClick={() => startGame("intermediate")} className="h-12 sm:h-16 px-6 text-sm sm:text-xl font-bold bg-[#0f172a] border border-indigo-500/50 hover:border-indigo-400 text-indigo-300 rounded-xl font-mono uppercase tracking-widest transition-all cursor-pointer">Classical Mechanics (Intermediate)</Button>
+                        <Button onClick={() => startGame("pro")} className="h-12 sm:h-16 px-6 text-sm sm:text-xl font-bold bg-[#0f172a] border border-red-500/50 hover:border-red-400 text-red-400 rounded-xl font-mono uppercase tracking-widest transition-all cursor-pointer">Advanced Theory (Pro)</Button>
+                        <Button onClick={() => setShowHowToPlay(true)} variant="outline" className="h-12 text-sm font-bold border-indigo-500/40 text-indigo-300 hover:bg-indigo-950/40 rounded-xl font-mono uppercase tracking-wider cursor-pointer">
+                           How To Play
+                        </Button>
+                        <Button variant="ghost" asChild className="mt-2 text-indigo-400/60 hover:text-indigo-300 uppercase tracking-widest font-mono text-xs">
                            <Link href="/games">Back to Space Station</Link>
                         </Button>
                     </div>
@@ -230,32 +234,32 @@ export function NewtonsNightmare({ slug, onToggleFullscreen }: { slug: string; o
 
             {gameState === "playing" && currentProblem && (
                 <div className="w-full max-w-2xl text-center flex flex-col items-center">
-                    <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="mb-12 bg-[#121b33] p-8 border-2 border-indigo-900 shadow-2xl relative w-full">
-                        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-indigo-400" />
-                        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-indigo-400" />
-                        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-indigo-400" />
-                        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-indigo-400" />
+                    <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="mb-6 sm:mb-10 bg-[#121b33] p-4 sm:p-8 border-2 border-indigo-900 shadow-2xl relative w-full rounded-2xl">
+                        <div className="absolute top-0 left-0 w-3 h-3 sm:w-4 sm:h-4 border-t-2 border-l-2 border-indigo-400" />
+                        <div className="absolute top-0 right-0 w-3 h-3 sm:w-4 sm:h-4 border-t-2 border-r-2 border-indigo-400" />
+                        <div className="absolute bottom-0 left-0 w-3 h-3 sm:w-4 sm:h-4 border-b-2 border-l-2 border-indigo-400" />
+                        <div className="absolute bottom-0 right-0 w-3 h-3 sm:w-4 sm:h-4 border-b-2 border-r-2 border-indigo-400" />
                         
-                        <p className="text-indigo-500 font-bold uppercase tracking-widest text-sm mb-4 font-mono">Sensors Read:</p>
-                        <h1 className="text-2xl md:text-3xl font-bold text-indigo-100 font-mono tracking-tight">{currentProblem.q}</h1>
+                        <p className="text-indigo-400 font-bold uppercase tracking-widest text-xs sm:text-sm mb-2 font-mono">Sensors Read:</p>
+                        <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-indigo-100 font-mono tracking-tight">{currentProblem.q}</h1>
                     </motion.div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
                         {currentProblem.options.map((opt, i) => (
                             <motion.div key={opt} initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{delay: i*0.1}}>
-                                <Button onClick={() => handleChoice(opt)} className="w-full h-20 text-2xl font-bold font-mono bg-[#0f172a] hover:bg-indigo-600 text-indigo-100 border border-indigo-800 hover:border-indigo-400 transition-all rounded-none uppercase">
+                                <Button onClick={() => handleChoice(opt)} className="w-full h-14 sm:h-20 text-lg sm:text-2xl font-bold font-mono bg-[#0f172a] hover:bg-indigo-600 text-indigo-100 border border-indigo-800 hover:border-indigo-400 transition-all rounded-xl uppercase cursor-pointer">
                                     {opt}
                                 </Button>
                             </motion.div>
                         ))}
                     </div>
 
-                    <div className="mt-16 w-full max-w-md">
+                    <div className="mt-8 sm:mt-12 w-full max-w-md px-2">
                         <div className="flex justify-between text-xs font-black uppercase text-red-500 mb-2 font-mono">
                            <span>Impact In</span>
                            <span>{timeLeft.toFixed(1)}s</span>
                         </div>
-                        <Progress value={(timeLeft / getTimerLimit()) * 100} className="h-1 bg-[#0f172a] rounded-none">
+                        <Progress value={(timeLeft / getTimerLimit()) * 100} className="h-1.5 bg-[#0f172a] rounded-none">
                            <div className="h-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,1)]" />
                         </Progress>
                     </div>
@@ -312,6 +316,54 @@ export function NewtonsNightmare({ slug, onToggleFullscreen }: { slug: string; o
             )}
          </AnimatePresence>
       </CardContent>
+
+      {/* How to Play Modal */}
+      <AnimatePresence>
+        {showHowToPlay && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-[#0f172a] border border-indigo-500/40 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative space-y-5 text-left font-sans"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-indigo-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400">
+                    <Rocket className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">How To Play</h3>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowHowToPlay(false)} className="text-slate-400 hover:text-white">✕</Button>
+              </div>
+
+              <div className="space-y-4 text-sm text-slate-300">
+                <div className="p-3 bg-indigo-950/40 rounded-xl border border-indigo-500/20">
+                  <p className="font-bold text-indigo-200">🚀 Emergency Physics Calculations:</p>
+                  <p className="text-xs text-indigo-300/80 mt-1 leading-relaxed">
+                    A collision is imminent! Calculate the required physics parameters (Force = mass × acceleration, Speed = distance / time, Momentum, Kinetic Energy) to correct the satellite trajectory.
+                  </p>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <p className="font-black text-white uppercase tracking-wide">Select the Matching Value</p>
+                    <p className="text-slate-400 mt-1">Tap the calculated answer before the impact timer counts down to 0.</p>
+                  </div>
+                </div>
+              </div>
+
+              <Button onClick={() => setShowHowToPlay(false)} className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl cursor-pointer">
+                Enter Orbit
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Card>
   );
 }

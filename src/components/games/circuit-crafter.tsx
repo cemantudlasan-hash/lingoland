@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Sparkles, RotateCcw, Volume2, VolumeX, Maximize2, HelpCircle, 
-  ChevronRight, Coins, ArrowLeft, Lightbulb, Zap, Shield, ToggleLeft, ToggleRight
+  ChevronRight, Coins, ArrowLeft, Lightbulb, Zap, Shield, ToggleLeft, ToggleRight,
+  AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { audioEngine } from "../AudioEngine";

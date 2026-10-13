@@ -239,8 +239,8 @@ export function StatesOfMatter({ slug, onToggleFullscreen }: { slug: string; onT
 
   return (
     <div className={cn(
-      "w-full relative min-h-[40rem] flex flex-col justify-center items-center",
-      isFullscreen ? "min-h-screen bg-slate-950 p-4 sm:p-8" : "py-4"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between relative",
+      isFullscreen && "fixed inset-0 z-50 min-h-screen bg-slate-950"
     )}>
       <style>{`
         @keyframes matter-shake {
@@ -316,41 +316,34 @@ export function StatesOfMatter({ slug, onToggleFullscreen }: { slug: string; onT
       </div>
 
       <Card className={cn(
-          "w-full transition-all duration-500 flex flex-col overflow-hidden z-10 relative",
-          isFullscreen 
-              ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-center shadow-2xl" 
-              : "max-w-4xl mx-auto bg-card/85 backdrop-blur-sm border-border/25 shadow-xl",
+          "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/85 backdrop-blur-sm transition-all duration-300 z-10 relative",
+          isFullscreen && "min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-slate-950",
           triggerShake && "matter-animate-shake"
         )}>
-        <CardHeader className="text-center relative border-b border-white/5">
+        <CardHeader className="text-center relative border-b border-white/5 p-4 sm:p-6 pb-2">
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
             onClick={onToggleFullscreen}
           >
             {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
           </Button>
-          {!isFullscreen && (
-              <div className="flex justify-center mb-2">
-                  <Thermometer className="w-12 h-12 text-primary animate-pulse" />
-              </div>
-          )}
-          <CardTitle className={cn("font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-500", isFullscreen ? "text-5xl" : "text-3xl")}>{game.title}</CardTitle>
-          <CardDescription className={cn(isFullscreen && "text-xl mt-2")}>{game.description}</CardDescription>
+          <div className="flex justify-center mb-2">
+              <Thermometer className="w-10 h-10 sm:w-14 sm:h-14 text-primary animate-pulse" />
+          </div>
+          <CardTitle className={cn("font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-500", isFullscreen ? "text-2xl sm:text-4xl md:text-5xl" : "text-xl sm:text-3xl")}>{game.title}</CardTitle>
+          <CardDescription className="text-xs sm:text-sm md:text-base max-w-xl mx-auto">{game.description}</CardDescription>
           {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty' && (
               <div className="flex justify-center gap-2 pt-2">
-                  <Badge variant="outline" className={cn("font-bold uppercase", isFullscreen && "text-lg px-6 py-1")}>{difficulty}</Badge>
-                  <Badge variant="secondary" className={cn("font-bold", isFullscreen && "text-lg px-6 py-1")}>Round {round}/10</Badge>
+                  <Badge variant="outline" className="font-bold uppercase text-xs sm:text-sm">{difficulty}</Badge>
+                  <Badge variant="secondary" className="font-bold text-xs sm:text-sm">Round {round}/10</Badge>
               </div>
           )}
         </CardHeader>
 
-        <CardContent className={cn(
-            "space-y-6 text-center flex flex-col items-center justify-center relative",
-            isFullscreen ? "min-h-[55vh] max-w-4xl mx-auto w-full px-12" : "min-h-[28rem] p-6"
-        )}>
+        <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto relative">
           {gameState === "idle" && (
             <div className="flex flex-col items-center gap-4 animate-in fade-in duration-300">
               {isDailyBonus && (
@@ -439,7 +432,7 @@ export function StatesOfMatter({ slug, onToggleFullscreen }: { slug: string; onT
                       <p className={cn("font-semibold text-muted-foreground", isFullscreen ? "text-xl" : "text-base")}>{currentSubstance.description}</p>
                   </div>
 
-                  <div className={cn("grid grid-cols-2 sm:grid-cols-4 gap-4 w-full z-10 relative")}>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 w-full z-10 relative">
                       {(["Solid", "Liquid", "Gas", "Plasma"] as State[]).map(state => {
                           const IconComponent = STATE_ICONS[state];
                           return (
@@ -448,15 +441,14 @@ export function StatesOfMatter({ slug, onToggleFullscreen }: { slug: string; onT
                                   variant={gameState === 'answered' ? (state === currentSubstance.state ? 'secondary' : 'outline') : 'outline'}
                                   onClick={() => handleAnswer(state)}
                                   className={cn(
-                                      "h-auto flex flex-col gap-3 py-6 rounded-2xl border-2 transition-all shadow-md font-bold uppercase tracking-wider",
-                                      isFullscreen ? "py-8 text-xl" : "text-sm",
-                                      gameState === 'answered' && state === currentSubstance.state && "bg-green-500 text-white border-green-400 scale-105",
-                                      gameState === 'playing' && "hover:scale-105 hover:border-primary active:scale-95"
+                                      "h-auto min-h-[64px] sm:min-h-[84px] flex flex-col items-center justify-center gap-1.5 sm:gap-2 py-3 px-2 sm:py-5 sm:px-4 rounded-xl sm:rounded-2xl border-2 transition-all shadow-md font-bold uppercase tracking-wider text-xs sm:text-base",
+                                      gameState === 'answered' && state === currentSubstance.state && "bg-green-500 text-white border-green-400 scale-[1.02]",
+                                      gameState === 'playing' && "hover:scale-[1.02] hover:border-primary active:scale-95"
                                   )}
                                   disabled={gameState === 'answered'}
                               >
-                                  <IconComponent className={cn(isFullscreen ? "h-8 w-8" : "h-6 w-6")} />
-                                  {state}
+                                  <IconComponent className="h-5 w-5 sm:h-7 sm:w-7" />
+                                  <span>{state}</span>
                               </Button>
                           )
                       })}
@@ -464,14 +456,13 @@ export function StatesOfMatter({ slug, onToggleFullscreen }: { slug: string; onT
 
                   {gameState === 'answered' && (
                       <Alert className={cn(
-                          "w-full border-2 transition-all duration-300 shadow-lg text-left",
-                          isCorrect ? "bg-green-500/10 border-green-500/40 text-green-600 dark:text-green-400" : "bg-destructive/10 border-destructive/40 text-destructive",
-                          isFullscreen && "p-6 rounded-2xl"
+                          "w-full border-2 transition-all duration-300 shadow-lg text-left p-4 sm:p-6 rounded-2xl",
+                          isCorrect ? "bg-green-500/10 border-green-500/40 text-green-600 dark:text-green-400" : "bg-destructive/10 border-destructive/40 text-destructive"
                       )}>
                           {isCorrect ? <CheckCircle className="h-5 w-5 shrink-0" /> : <XCircle className="h-5 w-5 shrink-0" />}
-                          <AlertTitle className="font-black uppercase tracking-wider">{isCorrect ? "SYNCHRONIZATION COMPLETE" : "DATA CORRUPTION DETECTED"}</AlertTitle>
+                          <AlertTitle className="font-black uppercase tracking-wider text-sm sm:text-base">{isCorrect ? "SYNCHRONIZATION COMPLETE" : "DATA CORRUPTION DETECTED"}</AlertTitle>
                           <AlertDescription className="mt-1">
-                              <p className={cn("font-semibold text-foreground")}>{currentSubstance.explanation}</p>
+                              <p className="font-semibold text-foreground text-xs sm:text-sm">{currentSubstance.explanation}</p>
                           </AlertDescription>
                       </Alert>
                   )}
@@ -515,11 +506,11 @@ export function StatesOfMatter({ slug, onToggleFullscreen }: { slug: string; onT
           )}
         </CardContent>
 
-        <CardFooter className={cn("flex justify-between border-t border-white/5 p-6 z-10 relative", isFullscreen && "pb-10 max-w-5xl mx-auto w-full")}>
-          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-12 px-8 text-lg font-bold rounded-xl")}>
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-white/5 z-10 relative w-full shrink-0">
+          <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl font-bold">
             <Link href="/games">Abort Mission</Link>
           </Button>
-          {(gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty') && <p className="font-black text-primary uppercase tracking-wider">Research Points: {score}</p>}
+          {(gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty') && <p className="font-black text-primary uppercase tracking-wider text-xs sm:text-sm">Research Points: {score}</p>}
         </CardFooter>
       </Card>
     </div>
