@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
 
-export const GeneratorForm = dynamic(() => import('./generator-form').then(mod => mod.GeneratorForm), { 
+const GeneratorForm = dynamic(() => import('./generator-form').then(mod => mod.GeneratorForm), { 
     ssr: false,
     loading: () => <GeneratorSkeleton />
 });

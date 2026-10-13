@@ -118,8 +118,8 @@ export default function RubricsPage() {
   }, [scores]);
 
   return (
-    <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-8">
-      <Card className="print-hidden">
+    <div className="-m-3 md:-m-4 lg:-m-5 min-h-full w-full flex flex-col shrink-0 p-4 md:p-6 lg:p-8 space-y-8 pb-32">
+      <Card className="w-full shrink-0 print-hidden">
         <CardHeader
           className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white"
         >
@@ -221,7 +221,7 @@ export default function RubricsPage() {
       )}
 
       {rubric && (
-        <Card ref={rubricRef} className="printable-area bg-white text-black">
+        <Card ref={rubricRef} className="w-full shrink-0 printable-area bg-white text-black">
             <CardHeader>
                 <div className='flex justify-between items-start'>
                     <div>

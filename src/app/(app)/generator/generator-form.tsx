@@ -78,6 +78,10 @@ export function GeneratorForm() {
             details: { topic: values.topic, difficulty: values.difficultyLevel }
           });
         }
+        setTimeout(() => {
+          const exerciseCard = document.getElementById("exercise-outline-card");
+          exerciseCard?.scrollIntoView({ behavior: "smooth" });
+        }, 150);
       }
     } catch (e) {
       toast({
@@ -155,9 +159,9 @@ export function GeneratorForm() {
 
   return (
     <Form {...form}>
-        <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-8">
+        <div className="-m-3 md:-m-4 lg:-m-5 min-h-full w-full flex flex-col shrink-0 p-4 md:p-6 lg:p-8 space-y-8 pb-32">
             {/* Redesigned Header & Form Card */}
-            <Card className="border border-slate-800 bg-slate-900/60 backdrop-blur-md text-white rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-top duration-500">
+            <Card className="w-full shrink-0 border border-slate-800 bg-slate-900/60 backdrop-blur-md text-white rounded-3xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-top duration-500">
             <CardHeader className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white p-6 md:p-8 rounded-t-3xl border-b border-white/10">
                 <CardTitle className="text-2xl md:text-3xl font-black tracking-tight uppercase flex items-center gap-2">
                   <Sparkles className="h-6 w-6 text-purple-200 animate-pulse" />
@@ -249,11 +253,35 @@ export function GeneratorForm() {
 
             {/* Redesigned parsed rich-text exercise card */}
             {exercise && (
-            <Card className="border border-slate-800 bg-slate-900/60 backdrop-blur-md text-white rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-500">
-                <CardHeader className="border-b border-slate-800 bg-slate-950/40 py-5 px-6 md:px-8">
+            <Card id="exercise-outline-card" className="w-full shrink-0 border border-slate-800 bg-slate-900/60 backdrop-blur-md text-white rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-500">
+                <CardHeader className="border-b border-slate-800 bg-slate-950/40 py-5 px-6 md:px-8 flex flex-row items-center justify-between flex-wrap gap-4">
                   <CardTitle className="text-xl font-black tracking-tight text-slate-100 flex items-center gap-2">
                     ✨ Your Custom ESL Exercise Outline
                   </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      type="button"
+                      onClick={() => {
+                        const el = document.getElementById("answer-workspace");
+                        el?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      size="sm" 
+                      variant="outline" 
+                      className="h-9 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
+                    >
+                      Answer Workspace ↓
+                    </Button>
+                    <Button 
+                      type="button"
+                      onClick={handleDownload} 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-9 text-xs font-bold rounded-xl border-purple-500/30 bg-purple-950/40 text-purple-200 hover:bg-purple-900/60 hover:text-white"
+                    >
+                        <Download className="mr-1.5 h-3.5 w-3.5 text-purple-300" />
+                        Download (.doc)
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-6 pt-6 px-6 md:px-8 pb-8">
                 <div 
@@ -271,7 +299,7 @@ export function GeneratorForm() {
                   )}
                 />
                 
-                <FormItem>
+                <FormItem id="answer-workspace">
                     <FormLabel htmlFor="studentAnswer" className="text-sm font-bold text-slate-300 uppercase tracking-wider">Your Answer Workspace</FormLabel>
                     <Textarea
                         id="studentAnswer"
@@ -281,18 +309,36 @@ export function GeneratorForm() {
                         className="bg-slate-950 border-slate-800 text-white rounded-2xl min-h-[140px]"
                     />
                 </FormItem>
-                <div className="flex flex-wrap gap-2 pt-2">
-                    <Button onClick={handleGetHint} variant="outline" disabled={isHintLoading} className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white">
-                        {isHintLoading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                        <Lightbulb className="mr-2 h-4 w-4 text-yellow-500" />
-                        )}
-                        Get a Hint
-                    </Button>
-                    <Button onClick={handleDownload} variant="outline" className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white">
-                        <Download className="mr-2 h-4 w-4 text-purple-400" />
-                        Download Outline (.doc)
+                <div className="flex flex-wrap gap-2 pt-2 items-center justify-between">
+                    <div className="flex flex-wrap gap-2">
+                      <Button onClick={handleGetHint} variant="outline" disabled={isHintLoading} className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white">
+                          {isHintLoading ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                          <Lightbulb className="mr-2 h-4 w-4 text-yellow-500" />
+                          )}
+                          Get a Hint
+                      </Button>
+                      <Button onClick={handleDownload} variant="outline" className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white">
+                          <Download className="mr-2 h-4 w-4 text-purple-400" />
+                          Download Outline (.doc)
+                      </Button>
+                    </div>
+                    <Button 
+                      type="button" 
+                      onClick={() => {
+                        const mainEl = document.querySelector("main.overflow-y-auto");
+                        if (mainEl) {
+                          mainEl.scrollTo({ top: 0, behavior: "smooth" });
+                        } else {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }
+                      }}
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs text-slate-400 hover:text-white"
+                    >
+                      Back to Top ↑
                     </Button>
                 </div>
 
