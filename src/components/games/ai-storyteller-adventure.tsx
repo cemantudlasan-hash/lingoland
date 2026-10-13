@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import { 
   Compass, 
   Sparkles, 
@@ -72,7 +73,13 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
   // Sound controls (Text to Speech)
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
 
   // Initialize TTS
   useEffect(() => {
@@ -248,14 +255,19 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
   };
 
   return (
-    <div className="relative min-h-[calc(100dvh-4.5rem)] w-full flex-1 flex flex-col items-center justify-start p-3 sm:p-6 lg:p-8 text-white overflow-y-auto select-none bg-zinc-950/85 backdrop-blur-2xl rounded-2xl md:rounded-3xl border border-indigo-500/20 shadow-2xl">
+    <div className={cn(
+      "relative w-full flex-1 flex flex-col items-center justify-start p-3 sm:p-6 lg:p-8 text-white overflow-y-auto overflow-x-hidden select-none bg-zinc-950/85 backdrop-blur-2xl border border-indigo-500/20 shadow-2xl max-w-full",
+      isFullscreen 
+        ? "min-h-[100dvh] rounded-none border-none max-w-none" 
+        : "min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl"
+    )}>
       <ConstellationCanvas />
       
       {/* Background radial highlights */}
       <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 w-full flex-1 flex flex-col gap-6">
+      <div className="relative z-10 w-full flex-1 flex flex-col gap-4 sm:gap-6 max-w-full">
 
         
         <AnimatePresence mode="wait">
@@ -267,13 +279,20 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="w-full flex-1 flex flex-col gap-6"
+              className="w-full flex-1 flex flex-col gap-4 sm:gap-6"
             >
-              <div className="text-center space-y-2">
+              <div className="flex justify-between items-center w-full">
                 <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1 px-3">
                   Classroom RPG Game
                 </Badge>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-200 uppercase tracking-tight">
+                {onToggleFullscreen && (
+                  <Button variant="ghost" size="sm" onClick={onToggleFullscreen} className="h-8 px-2 text-slate-400 hover:text-white">
+                    <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
+                  </Button>
+                )}
+              </div>
+              <div className="text-center space-y-1.5 sm:space-y-2">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-200 uppercase tracking-tight">
                   AI Choose-Your-Own Adventure
                 </h1>
                 <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto font-medium leading-relaxed">
@@ -281,7 +300,7 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
                 </p>
               </div>
 
-              <Card className="bg-zinc-950/80 border-indigo-500/20 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 flex-1">
+              <Card className="bg-zinc-950/80 border-indigo-500/20 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 flex-1">
                 <CardContent className="space-y-6 p-0">
                   
                   {/* Genre Selections */}
@@ -408,19 +427,19 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
               className="w-full space-y-4"
             >
               {/* Stats / Header bar */}
-              <div className="bg-slate-900/60 border border-slate-850/80 rounded-2xl p-4 backdrop-blur-md flex justify-between items-center select-none">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-indigo-400" />
-                  <span className="text-xs font-black uppercase text-indigo-400 tracking-wider">Chapter {chapterNumber} of 4</span>
+              <div className="bg-slate-900/60 border border-slate-850/80 rounded-xl sm:rounded-2xl p-3 sm:p-4 backdrop-blur-md flex justify-between items-center select-none gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400 shrink-0" />
+                  <span className="text-[11px] sm:text-xs font-black uppercase text-indigo-400 tracking-wider">Chapter {chapterNumber} of 4</span>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
-                    <Coins className="h-4 w-4 text-amber-400 fill-amber-400" />
-                    <span className="text-amber-300 font-extrabold text-xs">+{coins} Lingo-Coins</span>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">
+                    <Coins className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400 fill-amber-400 shrink-0" />
+                    <span className="text-amber-300 font-extrabold text-[10px] sm:text-xs">+{coins} Coins</span>
                   </div>
                   {onToggleFullscreen && (
-                    <button onClick={onToggleFullscreen} className="text-slate-400 hover:text-slate-200 transition-colors">
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button onClick={onToggleFullscreen} className="text-slate-400 hover:text-slate-200 transition-colors p-1" title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                       </svg>
                     </button>
@@ -429,13 +448,13 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
               </div>
 
               {/* Chapter narrative Card */}
-              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl relative">
-                <CardHeader className="border-b border-slate-850 bg-slate-950/40 flex flex-row items-center justify-between py-5 px-6">
-                  <div>
-                    <CardTitle className="text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-indigo-300 to-indigo-400 tracking-wide">
+              <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl relative">
+                <CardHeader className="border-b border-slate-850 bg-slate-950/40 flex flex-row items-center justify-between py-3.5 px-4 sm:py-5 sm:px-6">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <CardTitle className="text-base sm:text-xl md:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-indigo-300 to-indigo-400 tracking-wide break-words leading-tight">
                       {chapterTitle}
                     </CardTitle>
-                    <CardDescription className="text-xs text-indigo-400 font-bold uppercase tracking-wider mt-0.5">{genre} Quest</CardDescription>
+                    <CardDescription className="text-[10px] sm:text-xs text-indigo-400 font-bold uppercase tracking-wider mt-0.5">{genre} Quest</CardDescription>
                   </div>
                   
                   {/* TTS Control Button */}
@@ -443,41 +462,42 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
                     variant="ghost"
                     size="icon"
                     onClick={() => handleSpeak(storyText)}
-                    className="h-9 w-9 rounded-xl border border-slate-800/80 hover:bg-slate-800 text-slate-400 hover:text-slate-200"
+                    className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl border border-slate-800/80 hover:bg-slate-800 text-slate-400 hover:text-slate-200 shrink-0"
                     title={isSpeaking ? "Pause Audio" : "Read Chapter Aloud"}
                   >
-                    {isSpeaking ? <VolumeX className="h-4.5 w-4.5 text-amber-400" /> : <Volume2 className="h-4.5 w-4.5" />}
+                    {isSpeaking ? <VolumeX className="h-4 w-4 text-amber-400" /> : <Volume2 className="h-4 w-4" />}
                   </Button>
                 </CardHeader>
-                <CardContent className="py-6 px-6 sm:px-8 space-y-4 select-text">
-                  <p className="text-slate-200 text-base leading-relaxed whitespace-pre-line font-medium text-justify">
+                <CardContent className="py-4 px-4 sm:py-6 sm:px-8 space-y-4 select-text">
+                  <p className="text-slate-200 text-sm sm:text-base leading-relaxed whitespace-pre-line font-medium text-left break-words">
                     {storyText}
                   </p>
                 </CardContent>
               </Card>
 
               {/* Choices list */}
-              <div className="space-y-2">
+              <div className="space-y-2 pt-1">
                 <Label className="text-xs font-black uppercase text-indigo-400 tracking-widest pl-1 select-none">
                   Choose Your Next Action Path:
                 </Label>
-                <div className="grid gap-2.5">
+                <div className="grid grid-cols-1 gap-2.5 sm:gap-3 w-full">
                   {choices.map((c, i) => (
                     <button
                       key={i}
+                      type="button"
                       onClick={() => handleSelectChoice(c)}
-                      className="group bg-slate-900/50 hover:bg-indigo-900/10 border border-slate-850 hover:border-indigo-500/40 p-4 rounded-2xl text-left transition-all duration-300 flex items-center justify-between gap-4 cursor-pointer"
+                      className="group w-full bg-slate-900/60 hover:bg-indigo-900/20 active:bg-indigo-900/30 border border-slate-800 hover:border-indigo-500/50 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl text-left transition-all duration-200 flex items-center justify-between gap-3 sm:gap-4 cursor-pointer shadow-md"
                     >
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[10px] font-black uppercase px-2 py-0.5 rounded">
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2">
+                          <Badge className="bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[10px] font-black uppercase px-2 py-0.5 rounded shrink-0">
                             Path {i + 1}
                           </Badge>
-                          <p className="font-extrabold text-sm text-slate-100 group-hover:text-indigo-300 transition-colors">
+                          <span className="font-extrabold text-xs sm:text-sm text-slate-100 group-hover:text-indigo-300 transition-colors break-words leading-tight flex-1">
                             {c.label}
-                          </p>
+                          </span>
                         </div>
-                        <p className="text-slate-450 text-xs font-medium truncate pr-4">
+                        <p className="text-slate-400 text-[11px] sm:text-xs font-medium break-words leading-relaxed pl-0.5">
                           {c.description}
                         </p>
                       </div>
@@ -498,44 +518,46 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
               exit={{ opacity: 0, scale: 0.98 }}
               className="w-full"
             >
-              <Card className="bg-slate-900/50 border-slate-850/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6">
-                <CardHeader className="p-0 border-b border-slate-800/60 pb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 animate-pulse">
-                      <Key className="h-5 w-5" />
+              <Card className="bg-slate-900/50 border-slate-850/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 space-y-4 sm:space-y-6">
+                <CardHeader className="p-0 border-b border-slate-800/60 pb-4 sm:pb-5">
+                  <div className="flex items-start gap-2.5 sm:gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 animate-pulse shrink-0">
+                      <Key className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg font-black uppercase tracking-wider text-slate-100 flex items-center gap-2">
-                        Grammar Lock: {selectedChoice.label}
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-sm sm:text-lg font-black uppercase tracking-wider text-slate-100 break-words leading-snug">
+                        Grammar Lock: <span className="text-indigo-300">{selectedChoice.label}</span>
                       </CardTitle>
-                      <p className="text-xs text-slate-400 font-semibold mt-0.5">Solve the linguistic challenge to progress down this story branch!</p>
+                      <p className="text-[11px] sm:text-xs text-slate-400 font-semibold mt-0.5 leading-tight">Solve the linguistic challenge to progress down this story branch!</p>
                     </div>
                   </div>
                 </CardHeader>
                 
-                <CardContent className="p-0 space-y-6">
+                <CardContent className="p-0 space-y-4 sm:space-y-6">
                   
                   {/* The incorrect sentence container */}
-                  <div className="bg-slate-950/80 border border-slate-850 rounded-2xl p-5 text-center space-y-3 relative overflow-hidden shadow-inner select-text">
-                    <div className="absolute top-0 left-0 bg-rose-500/10 text-rose-400 text-[9px] font-black uppercase px-2.5 py-0.5 rounded-br-lg border-r border-b border-rose-500/20 flex items-center gap-1">
-                      <ShieldAlert className="h-3 w-3" />
-                      Grammar Error
+                  <div className="bg-slate-950/80 border border-slate-850 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 text-center space-y-2 sm:space-y-3 relative overflow-hidden shadow-inner select-text">
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-800/60 pb-2">
+                      <span className="bg-rose-500/10 text-rose-400 text-[10px] font-black uppercase px-2 py-0.5 rounded border border-rose-500/20 flex items-center gap-1">
+                        <ShieldAlert className="h-3 w-3" />
+                        Grammar Error
+                      </span>
+                      <span className="text-[10px] sm:text-xs text-slate-500 font-black tracking-wider uppercase select-none">Incorrect Sentence</span>
                     </div>
-                    <span className="text-xs text-slate-500 font-black tracking-wider uppercase block pt-1 select-none">Incorrect Sentence:</span>
-                    <h3 className="text-xl md:text-2xl font-black text-rose-300 italic leading-snug tracking-wide">
+                    <h3 className="text-base sm:text-xl md:text-2xl font-black text-rose-300 italic leading-snug tracking-wide break-words px-1">
                       "{selectedChoice.challengeSentence}"
                     </h3>
                   </div>
 
                   {/* Input field */}
-                  <div className="space-y-2">
-                    <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider pl-1">Type the corrected version:</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-[11px] sm:text-xs font-black uppercase text-indigo-400 tracking-wider pl-1">Type the corrected version:</Label>
                     <Input
                       placeholder="Type the complete, grammatically correct sentence..."
                       value={lockInput}
                       onChange={(e) => setLockInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') handleSolveLock(); }}
-                      className="bg-slate-950 border-slate-850 rounded-xl h-12 text-slate-200 px-4 text-base focus:border-indigo-500"
+                      className="bg-slate-950 border-slate-850 rounded-xl h-11 sm:h-12 text-slate-200 px-3.5 sm:px-4 text-sm sm:text-base focus:border-indigo-500"
                     />
                   </div>
 
@@ -544,7 +566,7 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
                     <motion.div
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-indigo-500/5 border border-indigo-500/10 p-4 rounded-xl text-xs leading-relaxed text-indigo-300"
+                      className="bg-indigo-500/5 border border-indigo-500/10 p-3 sm:p-4 rounded-xl text-xs leading-relaxed text-indigo-300"
                     >
                       <span className="font-black text-[10px] tracking-wider uppercase text-amber-400 block mb-1">💡 Memory Aid Hint:</span>
                       To pick this lock, pay close attention to **verb conjugation**, **common prepositions**, or **irregular plurals**. 
@@ -554,18 +576,18 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
 
                 </CardContent>
 
-                <CardFooter className="p-0 pt-4 flex gap-3 select-none">
+                <CardFooter className="p-0 pt-3 sm:pt-4 flex flex-col sm:flex-row gap-2.5 sm:gap-3 select-none w-full">
                   <Button
                     variant="outline"
                     onClick={() => setGameState('playing')}
-                    className="bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-400 font-extrabold uppercase text-xs px-5 rounded-xl h-11"
+                    className="w-full sm:w-auto bg-slate-950 border-slate-850 hover:bg-slate-900 text-slate-400 font-extrabold uppercase text-xs px-5 rounded-xl h-11"
                   >
                     Go Back
                   </Button>
                   <Button
                     onClick={handleSolveLock}
                     disabled={!lockInput.trim()}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-wider rounded-xl h-11 shadow-md shadow-indigo-600/20"
+                    className="w-full sm:flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-wider rounded-xl h-11 shadow-md shadow-indigo-600/20"
                   >
                     Unlock Chapter Path
                   </Button>
