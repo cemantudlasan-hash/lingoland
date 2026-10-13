@@ -100,6 +100,10 @@ export default function LessonPlannerPage() {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('ai_usage_increment'));
       }
+      setTimeout(() => {
+        const planCard = document.getElementById("generated-lesson-plan-card");
+        planCard?.scrollIntoView({ behavior: "smooth" });
+      }, 150);
     } catch (error: any) {
       console.error(error);
       toast({
@@ -167,12 +171,12 @@ export default function LessonPlannerPage() {
   };
 
   return (
-    <div className="relative space-y-8 overflow-hidden pb-12">
+    <div className="-m-3 md:-m-4 lg:-m-5 min-h-full w-full flex flex-col shrink-0 p-4 md:p-6 lg:p-8 space-y-8 pb-36 relative">
       {/* Ambient pulsating background light bubbles */}
       <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none z-0" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none z-0" />
 
-      <Card className="relative z-10 bg-slate-900/40 border border-slate-850 backdrop-blur-lg rounded-3xl shadow-[0_30px_80px_rgba(99,102,241,0.15)] overflow-hidden">
+      <Card className="w-full shrink-0 relative z-10 bg-slate-900/40 border border-slate-850 backdrop-blur-lg rounded-3xl shadow-[0_30px_80px_rgba(99,102,241,0.15)] overflow-hidden">
         <CardHeader className="bg-slate-950/45 border-b border-slate-800/80 backdrop-blur-md p-6">
           <CardTitle className="text-2xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-300 to-indigo-500 flex items-center gap-2">
             <Wand2 className="h-6 w-6 text-purple-400 animate-pulse" /> Daily Lesson Plan Generator
@@ -314,8 +318,8 @@ export default function LessonPlannerPage() {
       )}
 
       {lessonPlan && (
-        <div className="relative z-10 space-y-6">
-            <Card className="bg-slate-900/50 border border-slate-850 backdrop-blur-lg rounded-3xl shadow-[0_30px_80px_rgba(99,102,241,0.15)] overflow-hidden mt-8">
+        <div id="generated-lesson-plan-card" className="w-full shrink-0 relative z-10 space-y-6">
+            <Card className="w-full shrink-0 bg-slate-900/50 border border-slate-850 backdrop-blur-lg rounded-3xl shadow-[0_30px_80px_rgba(99,102,241,0.15)] overflow-hidden mt-8">
             <CardHeader className="bg-slate-950/45 border-b border-slate-800/80 backdrop-blur-md p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex-1 w-full min-w-0">
@@ -417,6 +421,34 @@ export default function LessonPlannerPage() {
                     icon={FileText}
                 />
                 </div>
+                <div className="flex flex-wrap gap-2 pt-6 items-center justify-between border-t border-slate-800/80 mt-6">
+                    <div className="flex items-center gap-2">
+                        <Button onClick={handleExport} className="bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-550 hover:to-indigo-550 text-white font-extrabold h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-indigo-650/20 active:scale-95 transition-all text-xs uppercase tracking-wider px-4">
+                            <ImageDown className="mr-1.5 h-4 w-4 text-purple-300" />
+                            Export to JPG
+                        </Button>
+                        <Button onClick={handleWordExport} className="bg-slate-950 border border-slate-800 text-slate-350 hover:bg-slate-900 hover:text-white rounded-xl h-9 flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all text-xs uppercase tracking-wider px-4">
+                            <FileDown className="mr-1.5 h-4 w-4 text-indigo-400" />
+                            Export to DOC
+                        </Button>
+                    </div>
+                    <Button 
+                      type="button" 
+                      onClick={() => {
+                        const mainEl = document.querySelector("main.overflow-y-auto");
+                        if (mainEl) {
+                          mainEl.scrollTo({ top: 0, behavior: "smooth" });
+                        } else {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }
+                      }}
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs text-slate-400 hover:text-white"
+                    >
+                      Back to Top ↑
+                    </Button>
+                </div>
             </CardContent>
             </Card>
             
@@ -461,7 +493,7 @@ const PrintableLessonPlan = React.forwardRef<HTMLDivElement, { lessonPlan: Gener
                     <div>
                          <h3 className="text-xl font-bold mb-2 flex items-center gap-2"><Clock className="text-primary"/> Main Activities</h3>
                           {lessonPlan.mainActivities.map((act, i) => (
-                              <PrintSection key={i} title={`Activity ${i+1}`} content={act.activity} duration={act.duration} className="ml-4 border-l border-stone-200 pl-4" />
+                              <PrintSection key={i} title={`Activity ${i+1}`} content={act.activity} duration={act.duration} icon={Clock} className="ml-4 border-l border-stone-200 pl-4" />
                           ))}
                     </div>
                     <PrintSection title="Cool-Down" content={lessonPlan.coolDown.activity} duration={lessonPlan.coolDown.duration} icon={Clock}/>
@@ -478,7 +510,7 @@ const PrintableLessonPlan = React.forwardRef<HTMLDivElement, { lessonPlan: Gener
 });
 PrintableLessonPlan.displayName = "PrintableLessonPlan";
 
-function PrintSection({title, content, duration, icon: Icon, className, isOptional }: {title: string, content: string, duration?: number, icon: React.ElementType, className?: string, isOptional?: boolean}) {
+function PrintSection({title, content, duration, icon: Icon, className, isOptional }: {title: string, content: string, duration?: number, icon?: React.ElementType, className?: string, isOptional?: boolean}) {
     return (
         <div className={className}>
             <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
