@@ -171,7 +171,7 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
       className={cn(
         "w-full transition-all duration-500 flex flex-col justify-between bg-slate-950 text-slate-50 border-indigo-500/20 overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen
-          ? "min-h-screen rounded-none border-none max-w-none justify-center p-3 sm:p-8"
+          ? "min-h-screen rounded-none border-none max-w-none justify-start sm:justify-between p-3 sm:p-8"
           : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl shadow-indigo-500/10 border"
       )}
     >
@@ -208,7 +208,7 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
         )}
       </CardHeader>
 
-      <CardContent className={cn("flex flex-col items-center justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden", isFullscreen ? "min-h-[65vh]" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
+      <CardContent className={cn("flex flex-col items-center justify-start sm:justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden", isFullscreen ? "min-h-0 flex-1" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4 sm:gap-6 text-center max-w-lg py-4 w-full">
             <p className={cn("text-slate-300 text-sm sm:text-base", isFullscreen && "sm:text-2xl")}>
@@ -273,7 +273,7 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
           <div className="w-full max-w-5xl flex flex-col lg:flex-row items-center gap-8 lg:gap-12 mt-4">
             
             {/* SVG Interactive Coordinate Grid */}
-            <div className="relative w-64 h-64 md:w-80 md:h-80 border-2 border-indigo-500/30 rounded-2xl bg-slate-900/60 p-2 shadow-inner">
+            <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 border-2 border-indigo-500/30 rounded-2xl bg-slate-900/60 p-2 shadow-inner shrink-0">
               <svg viewBox="0 0 200 200" className="w-full h-full">
                 {/* Grid Lines */}
                 {Array.from({ length: 21 }).map((_, i) => {
@@ -378,7 +378,7 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
               </div>
 
               {/* Answers Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-4 w-full">
                 {shuffledOptions.map((opt) => {
                   const isCorrectAnswer = opt === currentQ.correctAnswer;
                   const isSelected = opt === selectedAnswer;
@@ -390,7 +390,7 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
                       onClick={() => handleAnswer(opt)}
                       disabled={gameState === "answered"}
                       className={cn(
-                        "h-16 text-lg font-black border-2 transition-all rounded-xl hover:scale-[1.02] shadow-md",
+                        "h-12 sm:h-16 text-sm sm:text-lg font-black border-2 transition-all rounded-xl hover:scale-[1.02] shadow-md w-full",
                         gameState === "playing"
                           ? "border-slate-800 bg-slate-900 hover:bg-indigo-950/30 hover:border-indigo-500 hover:text-indigo-200"
                           : isCorrectAnswer
@@ -426,20 +426,20 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
             <Button
               onClick={handleStartGame}
               size="lg"
-              className="h-16 px-12 text-lg font-black rounded-2xl uppercase shadow-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white"
+              className="w-full sm:w-auto h-12 sm:h-16 px-6 sm:px-12 text-sm sm:text-lg font-black rounded-2xl uppercase shadow-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white"
             >
-              <Repeat className="mr-3 h-5 w-5" /> Reset System
+              <Repeat className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" /> Reset System
             </Button>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="flex justify-between border-t border-indigo-950 pt-6">
-        <Button variant="outline" className="border-slate-800 hover:bg-slate-900 text-slate-300 hover:text-slate-100" asChild>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 border-t border-indigo-950 pt-4 sm:pt-6 p-4 sm:p-6 w-full">
+        <Button variant="outline" className="w-full sm:w-auto border-slate-800 hover:bg-slate-900 text-slate-300 hover:text-slate-100" asChild>
           <Link href="/games">Abort System</Link>
         </Button>
         {gameState !== "idle" && gameState !== "instructions" && (
-          <p className="font-black text-indigo-400 uppercase tracking-widest">
+          <p className="font-black text-indigo-400 uppercase tracking-widest text-xs sm:text-sm">
             Score: {score}
           </p>
         )}

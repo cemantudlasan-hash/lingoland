@@ -237,7 +237,7 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
   return (
     <Card className={cn(
       "w-full transition-all duration-500 bg-[#0f1710] flex flex-col relative border-none overflow-y-auto overflow-x-hidden max-w-full justify-between",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl"
+      isFullscreen ? "w-full flex-1 min-h-[100dvh] rounded-none border-none justify-start sm:justify-between" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl"
     )}>
       <div className="absolute inset-0 z-0 opacity-10" style={{ 
           backgroundImage: "radial-gradient(circle at center, #22c55e 2px, transparent 2px)", 
@@ -269,7 +269,10 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col z-10 relative p-3 sm:p-6 lg:p-8 items-center justify-center w-full max-w-full overflow-y-auto overflow-x-hidden min-h-[calc(100dvh-16rem)]">
+      <CardContent className={cn(
+        "flex-grow flex flex-col z-10 relative p-3 sm:p-6 lg:p-8 items-center justify-start sm:justify-center w-full max-w-full overflow-y-auto overflow-x-hidden",
+        isFullscreen ? "min-h-0 flex-1" : "min-h-[calc(100dvh-16rem)]"
+      )}>
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
                 <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:1.1}} className="text-center w-full max-w-md py-2">
@@ -374,11 +377,11 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
                         </>
                     )}
 
-                    <div className="flex flex-col items-center gap-4 mt-10">
-                        <Button onClick={nextRound} className="h-16 px-12 text-2xl font-black bg-green-700 text-white hover:bg-green-600 rounded-full shadow-2xl transition-all hover:scale-105 font-mono uppercase tracking-widest">
+                    <div className="flex flex-col items-center gap-3 sm:gap-4 mt-6 sm:mt-10 w-full">
+                        <Button onClick={nextRound} className="w-full sm:w-auto h-12 sm:h-16 px-6 sm:px-12 text-sm sm:text-2xl font-black bg-green-700 text-white hover:bg-green-600 rounded-full shadow-2xl transition-all hover:scale-105 font-mono uppercase tracking-widest">
                             {round >= 10 ? "Purify Sector" : "Next Sample"}
                         </Button>
-                        <Button variant="ghost" onClick={() => setGameState("idle")} className="text-green-700 hover:text-green-500 uppercase tracking-widest font-mono">
+                        <Button variant="ghost" onClick={() => setGameState("idle")} className="w-full sm:w-auto text-green-700 hover:text-green-500 uppercase tracking-widest font-mono text-xs sm:text-sm">
                             Reconfigure Protocol
                         </Button>
                     </div>
@@ -393,9 +396,9 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
                        <p className="text-sm font-black uppercase tracking-widest text-green-600 mb-4">Total Immunity Score</p>
                        <p className="text-7xl font-black text-white tabular-nums">{score}</p>
                     </div>
-                    <div className="flex gap-4 justify-center">
-                        <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="h-16 px-10 text-lg font-bold bg-green-700 hover:bg-green-600 text-white font-mono uppercase tracking-widest rounded-full transition-all hover:scale-105"><Activity className="mr-2 h-5 w-5"/> Rescan</Button>
-                        <Button variant="outline" asChild className="h-16 px-10 text-lg font-bold border-green-900/50 text-green-400 hover:bg-[#142215] rounded-full font-mono uppercase tracking-widest"><Link href="/games">Close Results</Link></Button>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full">
+                        <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="w-full sm:w-auto h-12 sm:h-16 px-6 sm:px-10 text-sm sm:text-lg font-bold bg-green-700 hover:bg-green-600 text-white font-mono uppercase tracking-widest rounded-full transition-all hover:scale-105"><Activity className="mr-2 h-4 w-4 sm:h-5 sm:w-5"/> Rescan</Button>
+                        <Button variant="outline" asChild className="w-full sm:w-auto h-12 sm:h-16 px-6 sm:px-10 text-sm sm:text-lg font-bold border-green-900/50 text-green-400 hover:bg-[#142215] rounded-full font-mono uppercase tracking-widest"><Link href="/games">Close Results</Link></Button>
                     </div>
                 </motion.div>
             )}

@@ -312,25 +312,25 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
 
             {gameState === 'playing' ? (
                 <div className="flex flex-col items-center gap-6 w-full max-w-2xl">
-                    <div className="flex gap-4 w-full">
+                    <div className="flex gap-2 sm:gap-4 w-full">
                         <Input 
                             value={userGuess}
                             onChange={(e) => setUserGuess(e.target.value)}
                             placeholder="Type the missing word..."
-                            className={cn("text-center font-black uppercase bg-card border-4 shadow-inner", isFullscreen ? "h-24 text-[4vw] rounded-3xl" : "h-16 text-2xl")}
+                            className={cn("text-center font-black uppercase bg-card border-2 sm:border-4 shadow-inner", isFullscreen ? "h-11 sm:h-24 text-sm sm:text-3xl rounded-xl sm:rounded-3xl" : "h-11 sm:h-16 text-base sm:text-2xl")}
                             onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer()}
                             autoFocus
                             spellCheck="false"
                         />
-                        <Button onClick={handleCheckAnswer} size="lg" className={cn("shadow-xl", isFullscreen ? "h-24 w-24 rounded-3xl" : "h-16 w-16 p-0")}>
-                            <Send className={cn(isFullscreen ? "h-10 w-10" : "h-6 w-6")} />
+                        <Button onClick={handleCheckAnswer} size="lg" className={cn("shadow-xl shrink-0", isFullscreen ? "h-11 w-11 sm:h-24 sm:w-24 rounded-xl sm:rounded-3xl" : "h-11 w-11 sm:h-16 sm:w-16 p-0")}>
+                            <Send className={cn(isFullscreen ? "h-5 w-5 sm:h-10 sm:w-10" : "h-5 w-5 sm:h-6 sm:w-6")} />
                         </Button>
                     </div>
-                    <div className="flex gap-4 w-full">
-                        <Button variant="outline" onClick={() => setShowHint(true)} className={cn("flex-1 font-black uppercase shadow-md", isFullscreen && "h-16 text-xl rounded-2xl")}>
-                            <Lightbulb className={cn("mr-2 h-5 w-5", isFullscreen && "h-8 w-8")} /> Hint
+                    <div className="flex gap-2 sm:gap-4 w-full">
+                        <Button variant="outline" onClick={() => setShowHint(true)} className={cn("flex-1 font-black uppercase shadow-md h-10 sm:h-12", isFullscreen && "sm:h-16 sm:text-xl sm:rounded-2xl")}>
+                            <Lightbulb className={cn("mr-2 h-4 w-4 sm:h-5 sm:w-5", isFullscreen && "sm:h-8 sm:w-8")} /> Hint
                         </Button>
-                        <Button variant="ghost" onClick={handleNextTurn} className={cn("flex-1 font-black uppercase", isFullscreen && "h-16 text-xl")}>
+                        <Button variant="ghost" onClick={handleNextTurn} className={cn("flex-1 font-black uppercase h-10 sm:h-12", isFullscreen && "sm:h-16 sm:text-xl")}>
                             Skip Case
                         </Button>
                     </div>
@@ -378,8 +378,8 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
                 ))}
               </div>
             </Card>
-            <Button onClick={resetGame} size="lg" className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                <Repeat className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
+            <Button onClick={resetGame} size="lg" className={cn("w-full sm:w-auto bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-12 sm:h-20 px-6 sm:px-16 text-base sm:text-3xl rounded-xl sm:rounded-3xl")}>
+                <Repeat className={cn("mr-2 sm:mr-3", isFullscreen ? "h-5 w-5 sm:h-10 sm:w-10" : "h-5 w-5")} />
                 New Investigation
             </Button>
           </div>
@@ -393,7 +393,7 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
     <Card className={cn(
         "w-full transition-all duration-500 flex flex-col justify-between overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center p-3 sm:p-8" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-start sm:justify-between p-3 sm:p-8" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
       <CardHeader className="text-center relative p-3 sm:p-6 pr-14 sm:pr-16">
@@ -418,18 +418,18 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
         </div>
       </CardHeader>
       <CardContent className={cn(
-          "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center w-full max-w-full overflow-y-auto overflow-x-hidden",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8"
+          "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-start sm:justify-center w-full max-w-full overflow-y-auto overflow-x-hidden",
+          isFullscreen ? "min-h-0 flex-1 max-w-6xl mx-auto w-full px-3 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8"
       )}>
         {renderContent()}
       </CardContent>
-      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 pt-4", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11", isFullscreen && "h-14 sm:h-16 px-6 sm:px-10 text-base sm:text-xl font-bold rounded-2xl")}>
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 p-3 sm:p-6 pt-3 sm:pt-4", isFullscreen && "max-w-6xl mx-auto w-full pb-4 sm:pb-16")}>
+        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl font-bold rounded-xl sm:rounded-2xl")}>
           <Link href="/games">Back to Games</Link>
         </Button>
         {gameState === 'answered' && (
-          <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-14 sm:h-16 px-8 sm:px-12 text-lg sm:text-2xl rounded-2xl")}>
-            Next Case <Repeat className={cn("ml-2", isFullscreen ? "h-6 w-6 sm:h-8 sm:w-8" : "h-4 w-4")} />
+          <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "sm:h-16 sm:px-12 sm:text-2xl rounded-xl sm:rounded-2xl")}>
+            Next Case <Repeat className={cn("ml-2", isFullscreen ? "h-5 w-5 sm:h-8 sm:w-8" : "h-4 w-4")} />
           </Button>
         )}
         {gameState !== 'setup' && (

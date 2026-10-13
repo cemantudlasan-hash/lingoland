@@ -1426,7 +1426,7 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
   return (
     <Card className={cn(
       "w-full transition-all duration-500 flex flex-col relative overflow-y-auto overflow-x-hidden max-w-full select-none border-slate-800/80 bg-slate-950 text-slate-100 justify-between",
-      isFullscreen ? "min-h-screen rounded-none border-none max-w-none justify-center" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl shadow-indigo-950/20"
+      isFullscreen ? "min-h-screen rounded-none border-none max-w-none justify-start sm:justify-between" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl shadow-indigo-950/20"
     )}>
       {/* Absolute Canvas Background */}
       <canvas 
@@ -1480,8 +1480,8 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
 
       {/* Main Content Area */}
       <CardContent className={cn(
-        "flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 z-10 flex-grow relative",
-        isFullscreen ? "min-h-[70vh]" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
+        "flex flex-col items-center justify-start sm:justify-center p-3 sm:p-6 lg:p-8 z-10 flex-grow relative overflow-y-auto overflow-x-hidden w-full max-w-full",
+        isFullscreen ? "min-h-0 flex-1" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
       )}>
         <AnimatePresence mode="wait">
           {/* 1. IDLE STATE */}
@@ -1663,7 +1663,7 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
               </div>
 
               {/* Space Arena (Canvas overlays ship and drifting portals) */}
-              <div className="w-full max-w-3xl relative h-[240px] md:h-[280px] bg-slate-950/40 border border-slate-900/60 rounded-3xl overflow-hidden flex items-center justify-center shadow-inner">
+              <div className="w-full max-w-3xl relative h-[180px] sm:h-[240px] md:h-[280px] bg-slate-950/40 border border-slate-900/60 rounded-3xl overflow-hidden flex items-center justify-center shadow-inner">
                 {/* Space Gridlines for depth perception */}
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-indigo-950/20 via-slate-950/10 to-transparent z-0 pointer-events-none" />
 
@@ -1744,7 +1744,7 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
                       disabled={selectedOption !== null}
                       onClick={() => handleAnswerSubmit(opt, pos)}
                       className={cn(
-                        "h-14 sm:h-20 md:h-24 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 font-extrabold text-xs sm:text-sm md:text-base flex flex-col items-center justify-center p-2 sm:p-3 relative shadow-lg hover:-translate-y-1 active:translate-y-0",
+                        "h-12 sm:h-20 md:h-24 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 font-extrabold text-xs sm:text-sm md:text-base flex flex-col items-center justify-center p-2 sm:p-3 relative shadow-lg hover:-translate-y-1 active:translate-y-0",
                         // Idle styles
                         "bg-slate-900/50 border-slate-800 text-slate-200 hover:bg-indigo-500/10 hover:border-indigo-500/40 hover:shadow-indigo-500/5",
                         // Selection states

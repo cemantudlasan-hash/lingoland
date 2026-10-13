@@ -354,29 +354,29 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
         );
       case 'instructions':
         return (
-          <div className={cn("flex flex-col items-center gap-6 text-center p-8 bg-muted/80 backdrop-blur rounded-2xl max-w-xl border border-border/20 shadow-xl animate-in fade-in duration-300", isFullscreen && "p-12 max-w-2xl scale-105")}>
-            <h3 className={cn("font-black uppercase text-primary tracking-wide", isFullscreen ? "text-3xl" : "text-xl")}>How to Play</h3>
-            <div className={cn("text-left space-y-3 font-medium text-muted-foreground", isFullscreen ? "text-lg" : "text-sm")}>
+          <div className={cn("flex flex-col items-center gap-4 sm:gap-6 text-center p-4 sm:p-8 bg-muted/80 backdrop-blur rounded-2xl max-w-xl border border-border/20 shadow-xl animate-in fade-in duration-300 w-full", isFullscreen && "p-4 sm:p-12 max-w-2xl sm:scale-105")}>
+            <h3 className={cn("font-black uppercase text-primary tracking-wide", isFullscreen ? "text-2xl sm:text-3xl" : "text-xl")}>How to Play</h3>
+            <div className={cn("text-left space-y-2.5 sm:space-y-3 font-medium text-muted-foreground", isFullscreen ? "text-sm sm:text-lg" : "text-sm")}>
               <p className="flex items-start gap-2.5">
-                <span className="flex items-center justify-center bg-primary text-primary-foreground h-6 w-6 rounded-full text-xs font-black shrink-0">1</span>
+                <span className="flex items-center justify-center bg-primary text-primary-foreground h-5 w-5 sm:h-6 sm:w-6 rounded-full text-xs font-black shrink-0">1</span>
                 <span>The AI will show a sequence of emojis representing a secret word or phrase.</span>
               </p>
               <p className="flex items-start gap-2.5">
-                <span className="flex items-center justify-center bg-primary text-primary-foreground h-6 w-6 rounded-full text-xs font-black shrink-0">2</span>
+                <span className="flex items-center justify-center bg-primary text-primary-foreground h-5 w-5 sm:h-6 sm:w-6 rounded-full text-xs font-black shrink-0">2</span>
                 <span>A category clue will be provided at the top to help guide your thoughts.</span>
               </p>
               <p className="flex items-start gap-2.5">
-                <span className="flex items-center justify-center bg-primary text-primary-foreground h-6 w-6 rounded-full text-xs font-black shrink-0">3</span>
+                <span className="flex items-center justify-center bg-primary text-primary-foreground h-5 w-5 sm:h-6 sm:w-6 rounded-full text-xs font-black shrink-0">3</span>
                 <span>On your team's turn, guess the English phrase before the timer runs out!</span>
               </p>
               <p className="flex items-start gap-2.5">
-                <span className="flex items-center justify-center bg-primary text-primary-foreground h-6 w-6 rounded-full text-xs font-black shrink-0">4</span>
+                <span className="flex items-center justify-center bg-primary text-primary-foreground h-5 w-5 sm:h-6 sm:w-6 rounded-full text-xs font-black shrink-0">4</span>
                 <span>Type your guess and press Enter or the Send button to lock in your answer.</span>
               </p>
             </div>
-            <div className="flex items-center gap-3 w-full">
-              <Button onClick={() => setGameState('setup')} variant="outline" size="lg" className={cn("w-1/3 font-bold", isFullscreen && "h-14 rounded-xl text-lg")}>Setup</Button>
-              <Button onClick={handleStartGame} size="lg" className={cn("w-2/3 bg-gradient-to-r from-primary to-indigo-600 font-bold", isFullscreen && "h-14 rounded-xl text-xl")}>Start Game</Button>
+            <div className="flex items-center gap-2.5 sm:gap-3 w-full">
+              <Button onClick={() => setGameState('setup')} variant="outline" size="lg" className={cn("w-1/3 font-bold h-10 sm:h-12 text-xs sm:text-base", isFullscreen && "h-11 sm:h-14 rounded-xl text-xs sm:text-lg")}>Setup</Button>
+              <Button onClick={handleStartGame} size="lg" className={cn("w-2/3 bg-gradient-to-r from-primary to-indigo-600 font-bold h-10 sm:h-12 text-xs sm:text-base", isFullscreen && "h-11 sm:h-14 rounded-xl text-xs sm:text-xl")}>Start Game</Button>
             </div>
           </div>
         );
@@ -453,27 +453,27 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
                     Category: {enigma.clue}
                 </div>
                 <div className={cn(
-                    "font-black p-4 sm:p-8 bg-card rounded-2xl shadow-2xl border-2 sm:border-4 transition-all duration-300 relative select-none max-w-full overflow-hidden text-center",
+                    "font-black p-3 sm:p-8 bg-card rounded-2xl shadow-2xl border-2 sm:border-4 transition-all duration-300 relative select-none max-w-full overflow-hidden text-center",
                     isCorrect === true ? "border-green-500 bg-green-500/10 enigma-animate-pop" : "border-primary/20",
                     isCorrect === false ? "border-red-500 bg-red-500/10" : "",
-                    isFullscreen ? "text-[8vw] p-8 sm:p-12 px-8 sm:px-20 rounded-3xl" : "text-4xl sm:text-6xl md:text-8xl"
+                    isFullscreen ? "text-3xl sm:text-[6vw] p-4 sm:p-12 px-4 sm:px-20 rounded-2xl sm:rounded-3xl" : "text-3xl sm:text-6xl md:text-8xl"
                 )}>
                     {enigma.emojis}
                 </div>
             </div>
 
             {gameState === 'playing' ? (
-                <div className="flex gap-2.5 w-full max-w-md mt-4 z-10 relative">
+                <div className="flex gap-2 sm:gap-2.5 w-full max-w-md mt-2 sm:mt-4 z-10 relative">
                     <Input 
                         value={userGuess}
                         onChange={(e) => setUserGuess(e.target.value)}
                         placeholder="Type your translation here..."
-                        className={cn("text-center shadow-lg font-semibold", isFullscreen ? "text-2xl h-16 rounded-xl" : "text-lg h-12 rounded-xl")}
+                        className={cn("text-center shadow-lg font-semibold", isFullscreen ? "text-sm sm:text-2xl h-11 sm:h-16 rounded-xl" : "text-base sm:text-lg h-11 sm:h-12 rounded-xl")}
                         onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer()}
                         autoFocus
                     />
-                    <Button onClick={handleCheckAnswer} size="lg" className={cn(isFullscreen ? "h-16 w-16 rounded-xl" : "h-12 w-12 rounded-xl", "p-0 bg-primary shadow-lg hover:scale-105 active:scale-95 transition-all")}>
-                        <Send className={cn(isFullscreen ? "h-8 w-8" : "h-5 w-5")} />
+                    <Button onClick={handleCheckAnswer} size="lg" className={cn(isFullscreen ? "h-11 w-11 sm:h-16 sm:w-16 rounded-xl" : "h-11 w-11 sm:h-12 sm:w-12 rounded-xl", "p-0 bg-primary shadow-lg hover:scale-105 active:scale-95 transition-all shrink-0")}>
+                        <Send className={cn(isFullscreen ? "h-5 w-5 sm:h-8 sm:w-8" : "h-5 w-5")} />
                     </Button>
                 </div>
             ) : (
@@ -638,7 +638,7 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
       <Card className={cn(
           "w-full transition-all duration-500 flex flex-col z-10 relative overflow-y-auto overflow-x-hidden max-w-full",
           isFullscreen 
-              ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-center shadow-2xl" 
+              ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-start sm:justify-center shadow-2xl" 
               : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/85 backdrop-blur-sm border-border/25 shadow-xl justify-between",
           triggerShake && "enigma-animate-shake"
         )}>
@@ -664,18 +664,18 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
           </div>
         </CardHeader>
         <CardContent className={cn(
-            "space-y-6 text-center flex flex-col items-center justify-center relative p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
-            isFullscreen ? "min-h-[55vh] max-w-4xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
+            "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-start sm:justify-center relative p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
+            isFullscreen ? "min-h-0 flex-1 max-w-4xl mx-auto w-full px-3 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
         )}>
           {renderContent()}
         </CardContent>
-        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 p-4 sm:p-6 pt-4 sm:pt-6 border-t border-border/5 z-10 relative w-full max-w-full", isFullscreen && "max-w-4xl mx-auto w-full pb-8 sm:pb-10")}>
-          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto", isFullscreen && "h-11 sm:h-12 px-6 sm:px-8 text-base sm:text-lg font-bold rounded-xl")}>
+        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 p-3 sm:p-6 pt-3 sm:pt-6 border-t border-border/5 z-10 relative w-full max-w-full", isFullscreen && "max-w-4xl mx-auto w-full pb-4 sm:pb-10")}>
+          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-12 px-4 sm:px-8 text-sm sm:text-lg font-bold rounded-xl")}>
             <Link href="/games">Back to Library</Link>
           </Button>
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto">
             {gameState === 'answered' && (
-              <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black hover:scale-105 active:scale-95 transition-all shadow-lg", isFullscreen && "h-11 sm:h-12 px-6 sm:px-10 text-base sm:text-lg rounded-xl")}>
+              <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black hover:scale-105 active:scale-95 transition-all shadow-lg h-10 sm:h-12 px-4 sm:px-10 text-sm sm:text-lg rounded-xl")}>
                 Next Enigma <Repeat className={cn("ml-2", isFullscreen ? "h-4 w-4 sm:h-5 sm:w-5" : "h-4 w-4")} />
               </Button>
             )}
@@ -686,7 +686,7 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
                   setUsedAnswers([]);
                   toast({ title: "History Cleared", description: "You can now see previous enigmas again." });
                 } catch (e) {}
-              }} title="Reset riddle history" size={isFullscreen ? "lg" : "default"} className={cn("text-muted-foreground hover:text-foreground text-xs sm:text-sm", isFullscreen && "text-base sm:text-lg")}>
+              }} title="Reset riddle history" size={isFullscreen ? "lg" : "default"} className={cn("text-muted-foreground hover:text-foreground text-xs sm:text-sm", isFullscreen && "text-xs sm:text-lg")}>
                 <RotateCcw className={cn("mr-1.5 sm:mr-2", isFullscreen ? "h-4 w-4 sm:h-5 sm:w-5" : "h-4 w-4")} /> Clear History
               </Button>
             )}

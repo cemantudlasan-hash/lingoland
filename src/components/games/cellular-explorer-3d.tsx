@@ -477,12 +477,12 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
                 </motion.div>
               </div>
 
-              <div className="absolute bottom-6 left-6 flex flex-col items-center gap-2 bg-black/60 p-4 rounded-3xl backdrop-blur-md border border-emerald-500/20 z-[70] shadow-2xl">
-                <Button variant="outline" size="icon" onClick={() => manualRotate('up')} className="h-10 w-10 rounded-full border-2 bg-white/10 text-white hover:bg-emerald-500 border-white/20"><ArrowUp className="w-4 h-4"/></Button>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="icon" onClick={() => manualRotate('left')} className="h-10 w-10 rounded-full border-2 bg-white/10 text-white hover:bg-emerald-500 border-white/20"><ArrowLeft className="w-4 h-4"/></Button>
-                  <Button variant="outline" size="icon" onClick={() => manualRotate('down')} className="h-10 w-10 rounded-full border-2 bg-white/10 text-white hover:bg-emerald-500 border-white/20"><ArrowDown className="w-4 h-4"/></Button>
-                  <Button variant="outline" size="icon" onClick={() => manualRotate('right')} className="h-10 w-10 rounded-full border-2 bg-white/10 text-white hover:bg-emerald-500 border-white/20"><ArrowRight className="w-4 h-4"/></Button>
+              <div className="absolute bottom-2 left-2 sm:bottom-6 sm:left-6 flex flex-col items-center gap-1 sm:gap-2 bg-black/60 p-2 sm:p-4 rounded-2xl sm:rounded-3xl backdrop-blur-md border border-emerald-500/20 z-[70] shadow-2xl scale-90 sm:scale-100 origin-bottom-left">
+                <Button variant="outline" size="icon" onClick={() => manualRotate('up')} className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 bg-white/10 text-white hover:bg-emerald-500 border-white/20"><ArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4"/></Button>
+                <div className="flex gap-1 sm:gap-2">
+                  <Button variant="outline" size="icon" onClick={() => manualRotate('left')} className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 bg-white/10 text-white hover:bg-emerald-500 border-white/20"><ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4"/></Button>
+                  <Button variant="outline" size="icon" onClick={() => manualRotate('down')} className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 bg-white/10 text-white hover:bg-emerald-500 border-white/20"><ArrowDown className="w-3.5 h-3.5 sm:w-4 sm:h-4"/></Button>
+                  <Button variant="outline" size="icon" onClick={() => manualRotate('right')} className="h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 bg-white/10 text-white hover:bg-emerald-500 border-white/20"><ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4"/></Button>
                 </div>
               </div>
             </div>
@@ -516,20 +516,20 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
                 </div>
               )}
 
-              <div className="flex gap-4 z-10 relative">
-                <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className="rounded-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold">NEW MISSION</Button>
-                <Button variant="outline" onClick={() => setGameState('idle')} size="lg" className="rounded-full border-emerald-500 text-emerald-400 hover:bg-emerald-500/10">RE-INITIALIZE</Button>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 z-10 relative w-full sm:w-auto justify-center">
+                <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className="rounded-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold h-11 sm:h-12 w-full sm:w-auto">NEW MISSION</Button>
+                <Button variant="outline" onClick={() => setGameState('idle')} size="lg" className="rounded-full border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 h-11 sm:h-12 w-full sm:w-auto">RE-INITIALIZE</Button>
               </div>
             </div>
           )}
         </CardContent>
 
-        <CardFooter className="bg-black/40 p-6 flex justify-between border-t border-emerald-500/20">
-          <Button variant="ghost" asChild className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"><Link href="/games">EXIT LAB</Link></Button>
+        <CardFooter className="bg-black/40 p-3 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 border-t border-emerald-500/20 w-full">
+          <Button variant="ghost" asChild className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 w-full sm:w-auto h-9 sm:h-10"><Link href="/games">EXIT LAB</Link></Button>
           {gameState === 'playing' && (
-            <div className="flex items-center gap-4 text-xs font-black text-emerald-400">
+            <div className="flex items-center gap-3 sm:gap-4 text-xs font-black text-emerald-400">
               <span>ORGANELLE {targetIndex + 1} / {nodes.length}</span>
-              <div className="w-32 h-3 bg-white/10 rounded-full overflow-hidden border border-emerald-500/20">
+              <div className="w-24 sm:w-32 h-2.5 sm:h-3 bg-white/10 rounded-full overflow-hidden border border-emerald-500/20">
                 <motion.div className="h-full bg-emerald-500 shadow-[0_0_10px_#10b981]" initial={{ width: 0 }} animate={{ width: `${(targetIndex / nodes.length) * 100}%` }} />
               </div>
             </div>

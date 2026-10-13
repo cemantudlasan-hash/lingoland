@@ -1353,7 +1353,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
   return (
     <Card className={cn(
       "w-full transition-all duration-500 bg-[#e4dfd5] text-[#2c2a27] flex flex-col relative border-4 sm:border-8 border-[#3c3831] overflow-y-auto overflow-x-hidden max-w-full justify-between",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl"
+      isFullscreen ? "w-full flex-1 min-h-[100dvh] rounded-none border-none" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl"
     )}>
       <div className="absolute inset-0 z-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_rgba(60,56,49,0.3)_100%)] pointer-events-none z-0" />
@@ -1545,9 +1545,9 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                            <p className="text-5xl sm:text-7xl font-black text-[#2c2a27] font-mono tabular-nums">{score}</p>
                            <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 text-red-800/80 font-serif text-xl sm:text-3xl transform -rotate-12 border-2 sm:border-4 border-red-800/80 p-1 sm:p-2 rounded tracking-widest uppercase">Verified</div>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center mt-6 sm:mt-10">
-                            <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="h-12 sm:h-16 px-6 sm:px-8 text-sm sm:text-lg font-bold bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif uppercase tracking-widest rounded-none transition-all hover:scale-105"><RefreshCw className="mr-2 h-4 w-4 sm:h-5 sm:w-5"/> Reopen File</Button>
-                            <Button variant="outline" asChild className="h-12 sm:h-16 px-6 sm:px-8 text-sm sm:text-lg font-bold border-2 border-[#8b8273] text-[#2c2a27] hover:bg-[#cfc5b4] font-serif uppercase tracking-widest rounded-none"><Link href="/games">File Away</Link></Button>
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center mt-4 sm:mt-10">
+                            <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="h-11 sm:h-16 px-4 sm:px-8 text-xs sm:text-lg font-bold bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif uppercase tracking-widest rounded-none transition-all hover:scale-105 w-full sm:w-auto"><RefreshCw className="mr-2 h-4 w-4 sm:h-5 sm:w-5"/> Reopen File</Button>
+                            <Button variant="outline" asChild className="h-11 sm:h-16 px-4 sm:px-8 text-xs sm:text-lg font-bold border-2 border-[#8b8273] text-[#2c2a27] hover:bg-[#cfc5b4] font-serif uppercase tracking-widest rounded-none w-full sm:w-auto"><Link href="/games">File Away</Link></Button>
                         </div>
                     </motion.div>
                 )}
@@ -1556,12 +1556,12 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
          </AnimatePresence>
       </CardContent>
 
-      <CardFooter className="flex justify-between border-t border-[#8b8273]/30 p-4 sm:p-6 z-10 bg-[#cfc5b4]/20">
-        <Button variant="outline" asChild className="border-[#8b8273] text-[#2c2a27] hover:bg-[#cfc5b4] font-serif uppercase tracking-widest"><Link href="/games">Abort Mission</Link></Button>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2.5 p-3 sm:p-6 border-t border-[#8b8273]/30 z-10 bg-[#cfc5b4]/20 w-full">
+        <Button variant="outline" asChild className="w-full sm:w-auto border-[#8b8273] text-[#2c2a27] hover:bg-[#cfc5b4] font-serif uppercase tracking-widest h-10 sm:h-12"><Link href="/games">Abort Mission</Link></Button>
         {gameMode === 'single' ? (
-          (gameState !== 'idle' && gameState !== 'finished') && <p className="font-black font-serif text-[#2c2a27]">CLUES: {score}</p>
+          (gameState !== 'idle' && gameState !== 'finished') && <p className="font-black font-serif text-[#2c2a27] text-xs sm:text-base">CLUES: {score}</p>
         ) : (
-          (multiplayerState === 'playing' || multiplayerState === 'finished') && <p className="font-black font-serif text-[#2c2a27]">CLUES: {score}</p>
+          (multiplayerState === 'playing' || multiplayerState === 'finished') && <p className="font-black font-serif text-[#2c2a27] text-xs sm:text-base">CLUES: {score}</p>
         )}
       </CardFooter>
     </Card>

@@ -489,11 +489,11 @@ export default function GamePage() {
           drag
           dragMomentum={false}
           dragElastic={0.05}
-          className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-auto cursor-move select-none touch-none"
+          className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-2 sm:gap-3 pointer-events-auto cursor-move select-none touch-none"
         >
           {/* Active Timer Box */}
           {!timerCompleted && (
-            <div className="flex flex-col gap-1.5 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white p-3.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.6)] w-64 transition-all duration-300">
+            <div className="flex flex-col gap-1.5 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white p-2.5 sm:p-3.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.6)] w-52 sm:w-64 transition-all duration-300">
               <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
                 <span className="flex items-center gap-1.5">
                   <Sparkles className={cn("h-3.5 w-3.5 text-amber-500", timerActive && "animate-spin")} />

@@ -533,13 +533,13 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
       </CardContent>
 
       <CardFooter className={cn(
-        "flex flex-wrap justify-between items-center gap-3 pt-6 w-full max-w-4xl mx-auto shrink-0",
-        isFullscreen ? "p-0 pt-6 pb-12" : "p-4 sm:p-6 pt-4"
+        "flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 w-full max-w-4xl mx-auto shrink-0",
+        isFullscreen ? "p-3 sm:p-0 pt-4 sm:pt-6 pb-4 sm:pb-12" : "p-4 sm:p-6 pt-4"
       )}>
-        <Button variant="outline" asChild size="default" className="rounded-xl font-bold text-xs sm:text-sm h-9 sm:h-10">
+        <Button variant="outline" asChild size="default" className="w-full sm:w-auto rounded-xl font-bold text-xs sm:text-sm h-9 sm:h-10">
           <Link href="/games">Back to Library</Link>
         </Button>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center justify-center gap-2 flex-wrap w-full sm:w-auto">
             {(gameState === 'playing' || gameState === 'answered' || gameState === 'selecting_category') && (
               <>
                 <Button variant="ghost" onClick={handleClearHistory} size="sm" className="rounded-xl font-bold text-xs h-9 text-muted-foreground hover:text-foreground">

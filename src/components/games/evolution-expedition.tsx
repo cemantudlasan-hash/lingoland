@@ -122,7 +122,7 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
   return (
     <Card className={cn(
       "w-full transition-all duration-500 flex flex-col overflow-y-auto overflow-x-hidden max-w-full bg-emerald-950 border-none",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl justify-between"
+      isFullscreen ? "w-full flex-1 min-h-[100dvh] rounded-none border-none justify-start sm:justify-between" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl justify-between"
     )}>
       {/* Dynamic Evolution Background */}
       <div className="absolute inset-0 z-0">
@@ -174,8 +174,8 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
       </CardHeader>
 
       <CardContent className={cn(
-        "flex-grow flex flex-col items-center justify-center p-4 sm:p-8 z-10 relative overflow-y-auto overflow-x-hidden max-w-full",
-        isFullscreen ? "p-4 sm:p-8" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
+        "flex-grow flex flex-col items-center justify-start sm:justify-center p-3 sm:p-8 z-10 relative overflow-y-auto overflow-x-hidden max-w-full",
+        isFullscreen ? "p-3 sm:p-8" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
       )}>
         <AnimatePresence mode="wait">
           {gameState === "idle" && (
@@ -252,7 +252,7 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
           )}
 
           {gameState === "playing" && (
-            <div className="w-full h-full flex flex-col items-center justify-between py-4 sm:py-8 gap-4 sm:gap-6">
+            <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-start sm:justify-between py-2 sm:py-8 gap-3 sm:gap-6">
                <div className="text-center space-y-2 sm:space-y-4 max-w-2xl">
                   <motion.div
                     key={currentStage.environment}
@@ -369,11 +369,11 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center">
-                <Button onClick={() => { setScore(0); setCurrentStageIndex(0); setGameState('idle'); }} className="h-14 sm:h-20 px-8 sm:px-12 text-lg sm:text-2xl font-black bg-emerald-500 text-emerald-950 hover:bg-emerald-400 rounded-2xl sm:rounded-3xl flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center w-full">
+                <Button onClick={() => { setScore(0); setCurrentStageIndex(0); setGameState('idle'); }} className="w-full sm:w-auto h-12 sm:h-20 px-6 sm:px-12 text-base sm:text-2xl font-black bg-emerald-500 text-emerald-950 hover:bg-emerald-400 rounded-xl sm:rounded-3xl flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95">
                     <Repeat className="h-5 w-5 sm:h-8 sm:w-8" /> RE-EVOLVE
                 </Button>
-                <Button variant="outline" asChild className="h-14 sm:h-20 px-8 sm:px-12 text-lg sm:text-2xl font-black border-white/20 text-white hover:bg-white/10 rounded-2xl sm:rounded-3xl transition-all hover:scale-105">
+                <Button variant="outline" asChild className="w-full sm:w-auto h-12 sm:h-20 px-6 sm:px-12 text-base sm:text-2xl font-black border-white/20 text-white hover:bg-white/10 rounded-xl sm:rounded-3xl transition-all hover:scale-105">
                     <Link href="/games">EXIT BIOME</Link>
                 </Button>
               </div>
@@ -382,8 +382,8 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
         </AnimatePresence>
       </CardContent>
 
-      <CardFooter className="z-10 bg-emerald-950/80 backdrop-blur-md border-t border-white/5 py-4 flex justify-between items-center">
-        <div className="text-emerald-100/20 text-[10px] font-black uppercase tracking-[0.5em]">
+      <CardFooter className="z-10 bg-emerald-950/80 backdrop-blur-md border-t border-white/5 py-3 sm:py-4 px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <div className="text-emerald-100/20 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.5em] text-center sm:text-left">
             Evolution Expedition // Genome Link Alpha
         </div>
         <div className="flex gap-4">

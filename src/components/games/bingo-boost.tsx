@@ -720,14 +720,14 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
                 <p className={cn("text-slate-300 font-medium leading-relaxed", isFullscreen ? "text-2xl" : "text-base")}>
                   Ready for a premium game of interactive vocabulary Bingo? Re-engineered with modern review sheets, dynamic word banks, and custom reward states.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-                    <Button onClick={() => setGameState('instructions')} className={cn("bg-gradient-to-r from-purple-500 to-indigo-650 hover:from-purple-400 hover:to-indigo-550 text-white font-black shadow-xl rounded-xl h-12 px-6", isFullscreen && "h-16 px-12 text-xl rounded-2xl")}>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full justify-center">
+                    <Button onClick={() => setGameState('instructions')} className={cn("bg-gradient-to-r from-purple-500 to-indigo-650 hover:from-purple-400 hover:to-indigo-550 text-white font-black shadow-xl rounded-xl h-11 sm:h-12 px-5 sm:px-6", isFullscreen && "sm:h-16 sm:px-12 sm:text-xl sm:rounded-2xl")}>
                         <Sparkles className="mr-2 h-5 w-5" /> Start Solo Game
                     </Button>
-                    <Button onClick={() => setGameState('instructions')} variant="secondary" className={cn("font-bold rounded-xl h-12 px-6", isFullscreen && "h-16 px-12 text-xl rounded-2xl")}>
+                    <Button onClick={() => setGameState('instructions')} variant="secondary" className={cn("font-bold rounded-xl h-11 sm:h-12 px-5 sm:px-6", isFullscreen && "sm:h-16 sm:px-12 sm:text-xl sm:rounded-2xl")}>
                         <BookOpen className="mr-2 h-5 w-5" /> How to Play
                     </Button>
-                     <Button onClick={() => setGameState('selecting_print_difficulty')} variant="outline" className={cn("border-slate-800 text-slate-300 hover:bg-slate-850 hover:text-white font-black rounded-xl h-12 px-6", isFullscreen && "h-16 px-12 text-xl rounded-2xl")}>
+                     <Button onClick={() => setGameState('selecting_print_difficulty')} variant="outline" className={cn("border-slate-800 text-slate-300 hover:bg-slate-850 hover:text-white font-black rounded-xl h-11 sm:h-12 px-5 sm:px-6", isFullscreen && "sm:h-16 sm:px-12 sm:text-xl sm:rounded-2xl")}>
                         <Printer className="mr-2 h-5 w-5" /> Print Card Set
                     </Button>
                 </div>
@@ -1014,12 +1014,12 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
         )}
       </CardContent>
 
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-6 border-t border-slate-850/60 pb-6 p-6 md:p-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild className="h-10 border-slate-850 text-slate-400 hover:bg-slate-850 hover:text-white rounded-xl">
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 pt-4 sm:pt-6 border-t border-slate-850/60 pb-4 sm:pb-6 p-4 sm:p-8", isFullscreen && "max-w-6xl mx-auto w-full pb-8 sm:pb-16")}>
+        <Button variant="outline" asChild className="w-full sm:w-auto h-10 border-slate-850 text-slate-400 hover:bg-slate-850 hover:text-white rounded-xl">
           <Link href="/games">Back to Games</Link>
         </Button>
         {gameState !== "idle" && (
-            <Button variant="secondary" onClick={resetGame} className="h-10 bg-slate-850 text-slate-300 hover:bg-slate-800 rounded-xl">Abort Session</Button>
+            <Button variant="secondary" onClick={resetGame} className="w-full sm:w-auto h-10 bg-slate-850 text-slate-300 hover:bg-slate-800 rounded-xl">Abort Session</Button>
         )}
       </CardFooter>
       {renderPrintPortal()}

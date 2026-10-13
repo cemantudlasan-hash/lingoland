@@ -218,11 +218,11 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
           <div className="flex flex-col items-center gap-4">
             <p className={cn("text-muted-foreground", isFullscreen ? "text-xl sm:text-3xl" : "text-sm sm:text-base")}>Ready to connect the words?</p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-16 sm:h-20 px-8 sm:px-16 text-xl sm:text-3xl rounded-2xl sm:rounded-3xl")}>
-                <Sparkles className={cn("mr-2 sm:mr-3", isFullscreen ? "h-6 w-6 sm:h-10 sm:w-10" : "h-4 w-4 sm:h-5 sm:w-5")} /> Start Game
+              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl h-11 sm:h-12 w-full sm:w-auto", isFullscreen && "sm:h-20 sm:px-16 sm:text-3xl sm:rounded-3xl")}>
+                <Sparkles className={cn("mr-2 sm:mr-3", isFullscreen ? "h-5 w-5 sm:h-10 sm:w-10" : "h-4 w-4 sm:h-5 sm:w-5")} /> Start Game
               </Button>
-              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} variant="secondary" className={cn("font-bold shadow-md", isFullscreen && "h-16 sm:h-20 px-8 sm:px-16 text-xl sm:text-3xl rounded-2xl sm:rounded-3xl")}>
-                <BookOpen className={cn("mr-2 sm:mr-3", isFullscreen ? "h-6 w-6 sm:h-10 sm:w-10" : "h-4 w-4 sm:h-5 sm:w-5")} /> How to Play
+              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} variant="secondary" className={cn("font-bold shadow-md h-11 sm:h-12 w-full sm:w-auto", isFullscreen && "sm:h-20 sm:px-16 sm:text-3xl sm:rounded-3xl")}>
+                <BookOpen className={cn("mr-2 sm:mr-3", isFullscreen ? "h-5 w-5 sm:h-10 sm:w-10" : "h-4 w-4 sm:h-5 sm:w-5")} /> How to Play
               </Button>
             </div>
           </div>
@@ -230,32 +230,32 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
         {gameState === 'instructions' && (
              <div className={cn(
                  "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-2xl mx-auto border border-border/20 shadow-inner w-full",
-                 isFullscreen ? "p-6 sm:p-16 max-w-5xl" : "p-4 sm:p-8 max-w-lg"
+                 isFullscreen ? "p-4 sm:p-16 max-w-5xl" : "p-4 sm:p-8 max-w-lg"
              )}>
-                <h3 className={cn("font-bold text-center mb-2 sm:mb-4", isFullscreen ? "text-2xl sm:text-4xl" : "text-lg sm:text-xl")}>How to Play</h3>
-                <div className={cn("text-left space-y-3 sm:space-y-4", isFullscreen ? "text-base sm:text-2xl" : "text-xs sm:text-base")}>
+                <h3 className={cn("font-bold text-center mb-2 sm:mb-4", isFullscreen ? "text-xl sm:text-4xl" : "text-lg sm:text-xl")}>How to Play</h3>
+                <div className={cn("text-left space-y-3 sm:space-y-4", isFullscreen ? "text-sm sm:text-2xl" : "text-xs sm:text-base")}>
                     <p>1. The AI generates a crossword puzzle based on your difficulty and theme.</p>
                     <p>2. Read the "Across" and "Down" clues to figure out the words.</p>
                     <p>3. Click on a square in the grid and type your letter.</p>
                     <p>4. Click "Check Puzzle" to verify. Correct letters turn green.</p>
                 </div>
-                <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className={cn("mt-4 sm:mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black w-full sm:w-auto", isFullscreen && "h-16 sm:h-20 px-8 sm:px-16 text-xl sm:text-3xl rounded-2xl sm:rounded-3xl")}>Let's Play!</Button>
+                <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className={cn("mt-4 sm:mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black w-full sm:w-auto h-11 sm:h-12 text-sm sm:text-base rounded-xl sm:rounded-2xl", isFullscreen && "sm:h-20 sm:px-16 sm:text-3xl sm:rounded-3xl")}>Let's Play!</Button>
             </div>
         )}
         {gameState === 'selecting_difficulty' && (
               <div className="flex flex-col items-center gap-6 sm:gap-8 w-full max-w-md">
                 <div className="space-y-3 sm:space-y-4 text-center w-full">
-                    <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-xl sm:text-3xl" : "text-xs sm:text-sm")}>1. Choose Difficulty</p>
+                    <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-sm sm:text-3xl" : "text-xs sm:text-sm")}>1. Choose Difficulty</p>
                     <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
                         {["beginner", "intermediate", "advanced"].map(level => (
-                            <Button key={level} onClick={() => setDifficulty(level as SkillLevel)} variant={difficulty === level ? 'default' : 'outline'} className={cn("font-black uppercase text-xs sm:text-sm", isFullscreen && "h-14 sm:h-16 px-6 sm:px-10 text-base sm:text-xl rounded-2xl border-4")}>{level}</Button>
+                            <Button key={level} onClick={() => setDifficulty(level as SkillLevel)} variant={difficulty === level ? 'default' : 'outline'} className={cn("font-black uppercase text-xs sm:text-sm h-10 sm:h-12 px-3 sm:px-6 rounded-xl", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl sm:rounded-2xl sm:border-4")}>{level}</Button>
                         ))}
                     </div>
                 </div>
                 <div className="space-y-3 sm:space-y-4 text-center w-full">
-                    <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-xl sm:text-3xl" : "text-xs sm:text-sm")}>2. Choose Theme</p>
+                    <p className={cn("text-muted-foreground font-black uppercase tracking-widest", isFullscreen ? "text-sm sm:text-3xl" : "text-xs sm:text-sm")}>2. Choose Theme</p>
                     <Select value={theme} onValueChange={setTheme}>
-                        <SelectTrigger className={cn("w-full max-w-[280px] mx-auto", isFullscreen && "sm:w-[400px] h-14 sm:h-16 text-base sm:text-xl")}>
+                        <SelectTrigger className={cn("w-full max-w-[280px] mx-auto", isFullscreen && "sm:w-[400px] sm:h-16 sm:text-xl")}>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -263,13 +263,13 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                         </SelectContent>
                     </Select>
                 </div>
-                <Button onClick={handleStartGame} size="lg" disabled={!difficulty} className={cn("mt-4 sm:mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black w-full sm:w-auto", isFullscreen && "h-16 sm:h-20 px-8 sm:px-16 text-xl sm:text-3xl rounded-2xl sm:rounded-3xl shadow-xl")}>Generate Puzzle</Button>
+                <Button onClick={handleStartGame} size="lg" disabled={!difficulty} className={cn("mt-2 sm:mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black w-full sm:w-auto h-11 sm:h-14 text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-xl", isFullscreen && "sm:h-20 sm:px-16 sm:text-3xl sm:rounded-3xl")}>Generate Puzzle</Button>
               </div>
         )}
         {gameState === 'loading' && (
             <div className="flex flex-col items-center justify-center gap-4 sm:gap-6">
-                <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-16 w-16 sm:h-24 sm:w-24" : "h-10 w-10 sm:h-12 sm:w-12")} />
-                <p className={cn("text-muted-foreground animate-pulse text-sm sm:text-base", isFullscreen ? "text-xl sm:text-3xl" : "text-base sm:text-lg")}>Mapping interconnected vocabulary...</p>
+                <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-14 w-14 sm:h-24 sm:w-24" : "h-10 w-10 sm:h-12 sm:w-12")} />
+                <p className={cn("text-muted-foreground animate-pulse text-xs sm:text-base", isFullscreen ? "text-base sm:text-3xl" : "text-base sm:text-lg")}>Mapping interconnected vocabulary...</p>
             </div>
         )}
         
@@ -277,7 +277,7 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
           <div className={cn("flex w-full max-w-full flex-col items-center gap-6 sm:gap-8 lg:flex-row lg:items-start lg:justify-center overflow-x-hidden", isFullscreen && "max-w-7xl")}>
             <div className="w-full max-w-full overflow-x-auto flex justify-center py-2">
               <div
-                className={cn("grid gap-1 rounded-2xl sm:rounded-3xl border-2 sm:border-4 bg-background p-2 sm:p-4 shadow-2xl", isFullscreen && "gap-1.5 sm:gap-2 p-3 sm:p-6")}
+                className={cn("grid gap-1 rounded-2xl sm:rounded-3xl border-2 sm:border-4 bg-background p-2 sm:p-4 shadow-2xl", isFullscreen && "gap-1 sm:gap-2 p-2 sm:p-6")}
                 style={{
                   gridTemplateColumns: `repeat(${grid[0]?.length || 10}, 1fr)`,
                 }}
@@ -288,7 +288,7 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                       return (
                         <div
                           key={`${rowIndex}-${colIndex}`}
-                          className={cn("bg-transparent", isFullscreen ? "h-10 w-10 sm:h-14 sm:w-14" : "h-6 w-6 sm:h-8 sm:h-8 md:h-10 md:w-10")}
+                          className={cn("bg-transparent", isFullscreen ? "h-7 w-7 sm:h-11 sm:w-11 md:h-14 md:w-14" : "h-6 w-6 sm:h-8 sm:h-8 md:h-10 md:w-10")}
                         />
                       );
                     }
@@ -302,10 +302,10 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                     return (
                       <div
                         key={`${rowIndex}-${colIndex}`}
-                        className={cn("relative", isFullscreen ? "h-10 w-10 sm:h-14 sm:w-14" : "h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10")}
+                        className={cn("relative", isFullscreen ? "h-7 w-7 sm:h-11 sm:w-11 md:h-14 md:w-14" : "h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10")}
                       >
                         {clueNumber && (
-                          <span className={cn("absolute top-0 left-0.5 font-black text-muted-foreground", isFullscreen ? "text-[10px] sm:text-sm" : "text-[7px] sm:text-[8px] md:text-[10px]")}>
+                          <span className={cn("absolute top-0 left-0.5 font-black text-muted-foreground", isFullscreen ? "text-[8px] sm:text-sm" : "text-[7px] sm:text-[8px] md:text-[10px]")}>
                             {clueNumber}
                           </span>
                         )}
@@ -324,7 +324,7 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                           }
                           className={cn(
                             'h-full w-full bg-white text-center font-black uppercase text-black dark:bg-card-foreground/10 border sm:border-2 rounded transition-all',
-                            isFullscreen ? "text-base sm:text-3xl" : "text-xs sm:text-base md:text-lg",
+                            isFullscreen ? "text-xs sm:text-2xl md:text-3xl" : "text-xs sm:text-base md:text-lg",
                             cell.isCorrect === true && 'bg-green-500 text-white border-green-600',
                             cell.isCorrect === false && 'bg-red-500 text-white border-red-600',
                             activeCell?.row === rowIndex && activeCell?.col === colIndex && 'ring-2 sm:ring-4 ring-primary border-primary'
@@ -336,12 +336,12 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                 )}
               </div>
             </div>
-            <div className={cn("w-full flex-1 rounded-2xl sm:rounded-3xl bg-muted/20 border-2 sm:border-4 p-4 sm:p-6 shadow-inner", isFullscreen ? "h-[50vh] sm:h-[60vh] max-w-xl" : "lg:max-w-md h-64 sm:h-80 md:h-96")}>
+            <div className={cn("w-full flex-1 rounded-2xl sm:rounded-3xl bg-muted/20 border-2 sm:border-4 p-3 sm:p-6 shadow-inner", isFullscreen ? "h-56 sm:h-[60vh] max-w-xl" : "lg:max-w-md h-64 sm:h-80 md:h-96")}>
                 <ScrollArea className="h-full pr-2 sm:pr-4">
-                    <div className={cn("flex flex-col gap-6 sm:gap-8", isFullscreen && "gap-8 sm:gap-12")}>
+                    <div className={cn("flex flex-col gap-4 sm:gap-8", isFullscreen && "gap-6 sm:gap-12")}>
                         <div className="text-left">
-                             <h3 className={cn("border-b-2 sm:border-b-4 border-primary font-black uppercase tracking-widest text-primary mb-3 sm:mb-4", isFullscreen ? "text-lg sm:text-2xl" : "text-sm sm:text-lg")}>Across</h3>
-                             <div className={cn("space-y-2 sm:space-y-3", isFullscreen ? "text-base sm:text-xl" : "text-xs sm:text-sm")}>
+                             <h3 className={cn("border-b-2 sm:border-b-4 border-primary font-black uppercase tracking-widest text-primary mb-2 sm:mb-4", isFullscreen ? "text-base sm:text-2xl" : "text-sm sm:text-lg")}>Across</h3>
+                             <div className={cn("space-y-1.5 sm:space-y-3", isFullscreen ? "text-xs sm:text-xl" : "text-xs sm:text-sm")}>
                                 {clues.across.map((c) => (
                                 <p key={c.number}>
                                     <strong className="text-primary">{c.number}.</strong> {c.clue}
@@ -350,8 +350,8 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                             </div>
                         </div>
                          <div className="text-left">
-                             <h3 className={cn("border-b-2 sm:border-b-4 border-primary font-black uppercase tracking-widest text-primary mb-3 sm:mb-4", isFullscreen ? "text-lg sm:text-2xl" : "text-sm sm:text-lg")}>Down</h3>
-                             <div className={cn("space-y-2 sm:space-y-3", isFullscreen ? "text-base sm:text-xl" : "text-xs sm:text-sm")}>
+                             <h3 className={cn("border-b-2 sm:border-b-4 border-primary font-black uppercase tracking-widest text-primary mb-2 sm:mb-4", isFullscreen ? "text-base sm:text-2xl" : "text-sm sm:text-lg")}>Down</h3>
+                             <div className={cn("space-y-1.5 sm:space-y-3", isFullscreen ? "text-xs sm:text-xl" : "text-xs sm:text-sm")}>
                                 {clues.down.map((c) => (
                                 <p key={c.number}>
                                     <strong className="text-primary">{c.number}.</strong> {c.clue}
@@ -365,21 +365,21 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
           </div>
         )}
       </CardContent>
-      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 p-4 sm:p-6 pt-4 sm:pt-8 w-full max-w-full", isFullscreen && "max-w-7xl mx-auto w-full pb-8 sm:pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto", isFullscreen && "h-12 sm:h-16 px-6 sm:px-10 text-base sm:text-xl font-bold rounded-2xl")}>
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 p-3 sm:p-6 pt-3 sm:pt-8 w-full max-w-full", isFullscreen && "max-w-7xl mx-auto w-full pb-6 sm:pb-16")}>
+        <Button variant="outline" asChild size="default" className={cn("w-full sm:w-auto h-9 sm:h-12 px-4 sm:px-6 text-xs sm:text-sm font-bold rounded-xl", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl sm:rounded-2xl")}>
           <Link href="/games">Back to Library</Link>
         </Button>
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 w-full sm:w-auto">
             {gameState === 'playing' && (
                 <>
-                    <Button variant="secondary" onClick={handleRevealLetter} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-12 sm:h-16 px-6 sm:px-10 text-base sm:text-xl font-bold rounded-2xl")}><HelpCircle className="mr-1.5 sm:mr-2 h-4 w-4"/>Reveal</Button>
-                    <Button onClick={handleCheckAnswers} size={isFullscreen ? "lg" : "default"} className={cn("bg-green-600 hover:bg-green-700 text-white font-black", isFullscreen && "h-12 sm:h-16 px-6 sm:px-12 text-base sm:text-2xl rounded-2xl")}><Check className="mr-1.5 sm:mr-2 h-4 w-4"/>Analyze Grid</Button>
-                    <Button onClick={handleStartGame} variant="secondary" size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-12 sm:h-16 px-6 sm:px-10 text-base sm:text-xl font-bold rounded-2xl")}><Repeat className="mr-1.5 sm:mr-2 h-4 w-4"/>Reroll</Button>
+                    <Button variant="secondary" onClick={handleRevealLetter} size="default" className={cn("h-9 sm:h-12 px-2.5 sm:px-5 text-xs sm:text-sm font-bold rounded-xl", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl sm:rounded-2xl")}><HelpCircle className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"/>Reveal</Button>
+                    <Button onClick={handleCheckAnswers} size="default" className={cn("bg-green-600 hover:bg-green-700 text-white font-black h-9 sm:h-12 px-3 sm:px-6 text-xs sm:text-sm rounded-xl", isFullscreen && "sm:h-16 sm:px-12 sm:text-2xl sm:rounded-2xl")}><Check className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"/>Analyze Grid</Button>
+                    <Button onClick={handleStartGame} variant="secondary" size="default" className={cn("h-9 sm:h-12 px-2.5 sm:px-5 text-xs sm:text-sm font-bold rounded-xl", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl sm:rounded-2xl")}><Repeat className="mr-1 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4"/>Reroll</Button>
                 </>
             )}
-            {gameState === 'finished' && <Button onClick={handleStartGame} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-12 sm:h-16 px-6 sm:px-12 text-base sm:text-2xl rounded-2xl")}><Repeat className="mr-1.5 sm:mr-2 h-4 w-4"/>New Puzzle</Button>}
+            {gameState === 'finished' && <Button onClick={handleStartGame} size="default" className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl h-10 sm:h-14 px-4 sm:px-8 text-xs sm:text-lg rounded-xl", isFullscreen && "sm:h-16 sm:px-12 sm:text-2xl sm:rounded-2xl")}><Repeat className="mr-1.5 sm:mr-2 h-4 w-4"/>New Puzzle</Button>}
             {gameState !== 'idle' && gameState !== 'instructions' && (
-                <Button variant="outline" size="icon" onClick={resetGame} className={cn(isFullscreen && "h-12 w-12 sm:h-16 sm:w-16")}><RotateCcw className={cn("h-4 w-4", isFullscreen && "sm:h-8 sm:w-8")}/></Button>
+                <Button variant="outline" size="icon" onClick={resetGame} className={cn("h-9 w-9 sm:h-12 sm:w-12 rounded-xl", isFullscreen && "sm:h-16 sm:w-16 sm:rounded-2xl")}><RotateCcw className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", isFullscreen && "sm:h-8 sm:w-8")}/></Button>
             )}
         </div>
       </CardFooter>

@@ -132,7 +132,7 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
   return (
     <Card className={cn(
       "w-full transition-all duration-500 bg-[#3a2f28] flex flex-col relative border-none overflow-y-auto overflow-x-hidden max-w-full",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl justify-between"
+      isFullscreen ? "w-full flex-1 min-h-[100dvh] rounded-none border-none justify-between" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl justify-between"
     )}>
       <div className="absolute inset-0 z-0 opacity-10 mix-blend-overlay" style={{
          backgroundImage: "linear-gradient(45deg, #1c1511 25%, transparent 25%, transparent 75%, #1c1511 75%, #1c1511), linear-gradient(45deg, #1c1511 25%, transparent 25%, transparent 75%, #1c1511 75%, #1c1511)",
@@ -166,8 +166,8 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
       </CardHeader>
 
       <CardContent className={cn(
-        "flex-grow flex flex-col z-10 relative items-center justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
-        isFullscreen ? "p-4 sm:p-6" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
+        "flex-grow flex flex-col z-10 relative items-center justify-start sm:justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
+        isFullscreen ? "p-3 sm:p-6" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
       )}>
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
@@ -274,11 +274,11 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
                         </>
                     )}
 
-                    <div className="flex flex-col items-center gap-3 sm:gap-4 mt-6 sm:mt-10">
-                        <Button onClick={nextRound} className="h-12 sm:h-16 px-8 sm:px-12 text-base sm:text-2xl font-black bg-[#cca766] text-[#1c1511] hover:bg-[#b89f78] rounded-md shadow-2xl transition-all hover:scale-105 font-serif uppercase tracking-widest">
+                    <div className="flex flex-col items-center gap-3 sm:gap-4 mt-6 sm:mt-10 w-full">
+                        <Button onClick={nextRound} className="w-full sm:w-auto h-12 sm:h-16 px-6 sm:px-12 text-sm sm:text-2xl font-black bg-[#cca766] text-[#1c1511] hover:bg-[#b89f78] rounded-md shadow-2xl transition-all hover:scale-105 font-serif uppercase tracking-widest">
                             {round >= 10 ? "Finish Siege" : "Next Wave"}
                         </Button>
-                        <Button variant="ghost" onClick={() => setGameState("idle")} className="text-[#8c7a61] hover:text-[#cca766] uppercase tracking-widest font-serif text-xs sm:text-sm">
+                        <Button variant="ghost" onClick={() => setGameState("idle")} className="w-full sm:w-auto text-[#8c7a61] hover:text-[#cca766] uppercase tracking-widest font-serif text-xs sm:text-sm">
                             Change Formation
                         </Button>
                     </div>
@@ -292,9 +292,9 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
                        <p className="text-xs sm:text-sm font-black uppercase tracking-widest text-[#8c7a61] mb-2 sm:mb-4 font-serif">Total Defense Score</p>
                        <p className="text-5xl sm:text-7xl font-black text-white font-serif tabular-nums">{score}</p>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                        <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="h-12 sm:h-16 px-6 sm:px-10 text-sm sm:text-lg font-bold bg-[#cca766] hover:bg-[#b89f78] text-[#1c1511] font-serif uppercase tracking-widest rounded-md border-b-4 border-[#8c7a61] transition-all hover:scale-105"><Repeat className="mr-2 h-4 w-4 sm:h-5 sm:w-5"/> New Siege</Button>
-                        <Button variant="outline" asChild className="h-12 sm:h-16 px-6 sm:px-10 text-sm sm:text-lg font-bold border-2 border-[#5c4f42] text-[#cca766] hover:bg-[#1c1511] rounded-md font-serif uppercase tracking-widest"><Link href="/games">Retreat</Link></Button>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full">
+                        <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="w-full sm:w-auto h-12 sm:h-16 px-6 sm:px-10 text-sm sm:text-lg font-bold bg-[#cca766] hover:bg-[#b89f78] text-[#1c1511] font-serif uppercase tracking-widest rounded-md border-b-4 border-[#8c7a61] transition-all hover:scale-105"><Repeat className="mr-2 h-4 w-4 sm:h-5 sm:w-5"/> New Siege</Button>
+                        <Button variant="outline" asChild className="w-full sm:w-auto h-12 sm:h-16 px-6 sm:px-10 text-sm sm:text-lg font-bold border-2 border-[#5c4f42] text-[#cca766] hover:bg-[#1c1511] rounded-md font-serif uppercase tracking-widest"><Link href="/games">Retreat</Link></Button>
                     </div>
                 </motion.div>
             )}

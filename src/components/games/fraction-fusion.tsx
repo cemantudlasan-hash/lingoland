@@ -265,7 +265,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
     }
     
     return (
-      <svg viewBox="0 0 220 220" className={cn("drop-shadow-2xl relative transition-all duration-300", isCorrect === true ? "scale-105" : "", isFullscreen ? "w-64 h-64 sm:w-96 sm:h-96" : "w-36 h-36 sm:w-48 sm:h-48 md:w-64 md:h-64")}>
+      <svg viewBox="0 0 220 220" className={cn("drop-shadow-2xl relative transition-all duration-300", isCorrect === true ? "scale-105" : "", isFullscreen ? "w-36 h-36 sm:w-80 sm:h-80 md:w-96 md:h-96" : "w-32 h-32 sm:w-48 sm:h-48 md:w-64 md:h-64")}>
         {slices}
       </svg>
     );
@@ -275,7 +275,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
 
   return (
     <div className={cn(
-      "w-full max-w-full relative flex flex-col justify-center items-center flex-1 overflow-x-hidden",
+      "w-full max-w-full relative flex flex-col justify-start sm:justify-center items-center flex-1 overflow-x-hidden",
       isFullscreen ? "min-h-screen bg-slate-950 p-2 sm:p-8" : "py-0 sm:py-4"
     )}>
       <style>{`
@@ -361,7 +361,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
       <Card className={cn(
           "w-full transition-all duration-500 flex flex-col overflow-y-auto overflow-x-hidden max-w-full z-10 relative",
           isFullscreen 
-              ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-center shadow-2xl" 
+              ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-start sm:justify-center shadow-2xl" 
               : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/85 backdrop-blur-sm border-border/25 shadow-xl justify-between",
           triggerShake && "math-animate-shake"
         )}>
@@ -381,7 +381,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
           )}
         </CardHeader>
 
-        <CardContent className={cn("flex flex-col items-center justify-center relative p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden", isFullscreen ? "min-h-[55vh] max-w-4xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
+        <CardContent className={cn("flex flex-col items-center justify-start sm:justify-center relative p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden", isFullscreen ? "min-h-0 flex-1 max-w-4xl mx-auto w-full px-3 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
           {gameState === "idle" && (
             <div className="flex flex-col items-center gap-4 animate-in fade-in duration-300 text-center">
               {isDailyBonus && (
@@ -392,11 +392,11 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
               )}
               <p className={cn("text-muted-foreground font-semibold text-xs sm:text-base", isFullscreen ? "text-lg sm:text-2xl" : "text-xs sm:text-base")}>Match pie chart representations to their numeric fractions.</p>
               <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mt-2 w-full sm:w-auto">
-                <Button onClick={() => setGameState('instructions')} variant="outline" size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto font-bold border-border/40 hover:bg-muted", isFullscreen && "h-12 sm:h-14 rounded-xl text-base sm:text-lg px-6 sm:px-8")}>
+                <Button onClick={() => setGameState('instructions')} variant="outline" size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto font-bold border-border/40 hover:bg-muted", isFullscreen && "h-11 sm:h-14 rounded-xl text-sm sm:text-lg px-5 sm:px-8")}>
                   <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   How to Play
                 </Button>
-                <Button onClick={() => setGameState('selecting_difficulty')} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-lg hover:scale-105 active:scale-95 transition-all", isFullscreen && "h-12 sm:h-14 rounded-xl text-base sm:text-xl px-8 sm:px-12")}>
+                <Button onClick={() => setGameState('selecting_difficulty')} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-lg hover:scale-105 active:scale-95 transition-all", isFullscreen && "h-11 sm:h-14 rounded-xl text-sm sm:text-xl px-6 sm:px-12")}>
                   <Play className={cn("mr-2 h-4 w-4 sm:h-5 sm:w-5 fill-white")} />
                   Start Game
                 </Button>
@@ -407,7 +407,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
           {gameState === "instructions" && (
                <div className={cn(
                    "flex flex-col items-center justify-center gap-4 sm:gap-6 text-center bg-muted/60 backdrop-blur-sm rounded-2xl border border-border/20 shadow-xl mx-auto animate-in fade-in duration-300 w-full",
-                   isFullscreen ? "p-6 sm:p-12 max-w-2xl scale-105" : "p-4 sm:p-8 max-w-xl"
+                   isFullscreen ? "p-4 sm:p-12 max-w-2xl sm:scale-105" : "p-4 sm:p-8 max-w-xl"
                )}>
                   <h3 className={cn("font-black uppercase tracking-wider text-center text-primary", isFullscreen ? "text-2xl sm:text-3xl" : "text-lg sm:text-xl")}>HOW TO PLAY</h3>
                   <div className={cn("text-left space-y-2.5 sm:space-y-3 font-medium text-muted-foreground", isFullscreen ? "text-base sm:text-lg" : "text-xs sm:text-sm")}>
@@ -429,8 +429,8 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
                       </p>
                   </div>
                   <div className="flex items-center gap-2.5 sm:gap-3 w-full">
-                    <Button onClick={() => setGameState('idle')} variant="outline" size="lg" className={cn("w-1/3 font-bold h-10 sm:h-12 text-xs sm:text-base", isFullscreen && "h-12 sm:h-14 rounded-xl text-base sm:text-lg")}>Back</Button>
-                    <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className={cn("w-2/3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold h-10 sm:h-12 text-xs sm:text-base", isFullscreen && "h-12 sm:h-14 rounded-xl text-base sm:text-xl")}>Select Difficulty</Button>
+                    <Button onClick={() => setGameState('idle')} variant="outline" size="lg" className={cn("w-1/3 font-bold h-10 sm:h-12 text-xs sm:text-base", isFullscreen && "h-11 sm:h-14 rounded-xl text-xs sm:text-lg")}>Back</Button>
+                    <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className={cn("w-2/3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold h-10 sm:h-12 text-xs sm:text-base", isFullscreen && "h-11 sm:h-14 rounded-xl text-xs sm:text-xl")}>Select Difficulty</Button>
                   </div>
               </div>
           )}
@@ -440,7 +440,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
               <p className={cn("text-muted-foreground font-black uppercase tracking-widest text-[10px] sm:text-xs", isFullscreen ? "text-base sm:text-xl" : "text-[10px] sm:text-xs")}>Choose Challenge Level</p>
               <div className="grid grid-cols-1 gap-2.5 sm:gap-3 w-full">
                 {['beginner', 'intermediate', 'advanced'].map(level => (
-                  <Button key={level} onClick={() => handleStartGame(level as SkillLevel)} className={cn("h-12 sm:h-16 text-base sm:text-xl font-bold uppercase tracking-widest border-2 hover:border-primary hover:bg-primary/5 transition-all shadow-md rounded-xl", isFullscreen && "h-16 sm:h-20 rounded-xl text-lg sm:text-2xl")}>
+                  <Button key={level} onClick={() => handleStartGame(level as SkillLevel)} className={cn("h-12 sm:h-16 text-base sm:text-xl font-bold uppercase tracking-widest border-2 hover:border-primary hover:bg-primary/5 transition-all shadow-md rounded-xl", isFullscreen && "h-12 sm:h-20 rounded-xl text-base sm:text-2xl")}>
                     {level}
                   </Button>
                 ))}
@@ -449,7 +449,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
           )}
 
           {(gameState === "playing" || gameState === "answered") && problem && (
-            <div className="w-full flex flex-col items-center gap-4 sm:gap-8 max-w-4xl relative">
+            <div className="w-full flex flex-col items-center gap-3 sm:gap-8 max-w-4xl relative">
               {/* Confetti Particles Container */}
               {particles.map((p) => (
                 <span
@@ -491,21 +491,21 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
                   </div>
               </div>
 
-              <div className="animate-in zoom-in duration-500 z-10 relative my-2 sm:my-0">
+              <div className="animate-in zoom-in duration-500 z-10 relative my-1 sm:my-0">
                   {renderPie(problem.numerator, problem.denominator)}
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-4 w-full max-w-2xl z-10 relative">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full max-w-2xl z-10 relative">
                   {problem.options.map(opt => (
                       <Button
                           key={opt}
                           variant={gameState === 'answered' ? (opt === `${problem.numerator}/${problem.denominator}` ? 'secondary' : 'destructive') : 'outline'}
                           onClick={() => handleAnswer(opt)}
                           className={cn(
-                              "h-14 sm:h-20 text-xl sm:text-3xl font-black rounded-xl sm:rounded-2xl transition-all border-2 shadow-md",
+                              "h-11 sm:h-20 text-lg sm:text-3xl font-black rounded-xl sm:rounded-2xl transition-all border-2 shadow-md",
                               gameState === 'answered' && opt === `${problem.numerator}/${problem.denominator}` && "bg-green-500 text-white border-green-400 scale-105",
                               gameState === 'playing' && "hover:scale-105 hover:border-primary active:scale-95",
-                              isFullscreen && "h-16 sm:h-28 text-2xl sm:text-5xl"
+                              isFullscreen && "h-12 sm:h-28 text-base sm:text-5xl"
                           )}
                           disabled={gameState === 'answered'}
                       >
@@ -516,11 +516,11 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
 
               {gameState === 'answered' && (
                   <div className={cn(
-                      "w-full max-w-lg p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 animate-in zoom-in duration-300 shadow-lg flex items-center justify-center gap-2 sm:gap-3 z-10 relative",
+                      "w-full max-w-lg p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border-2 animate-in zoom-in duration-300 shadow-lg flex items-center justify-center gap-2 sm:gap-3 z-10 relative",
                       isCorrect ? "bg-green-500/10 border-green-500/40 text-green-600 dark:text-green-400" : "bg-destructive/10 border-destructive/40 text-destructive"
                   )}>
-                      {isCorrect ? <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" /> : <XCircle className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />}
-                      <span className={cn("font-black uppercase tracking-wider text-sm sm:text-lg")}>
+                      {isCorrect ? <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 shrink-0" /> : <XCircle className="h-4 w-4 sm:h-6 sm:w-6 shrink-0" />}
+                      <span className={cn("font-black uppercase tracking-wider text-xs sm:text-lg")}>
                           {isCorrect ? "FUSION SUCCESSFUL" : "EQUATION OVERFLOW"}
                       </span>
                   </div>
@@ -530,10 +530,10 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
 
           {gameState === "finished" && (
               <div className="text-center flex flex-col items-center gap-4 sm:gap-6 w-full max-w-xl mx-auto px-4 py-4 sm:py-6 animate-in fade-in duration-500">
-                  <Trophy className={cn("text-amber-400 animate-bounce", isFullscreen ? "h-24 w-24 sm:h-36 sm:w-36" : "h-16 w-16 sm:h-20 sm:w-20")} />
+                  <Trophy className={cn("text-amber-400 animate-bounce", isFullscreen ? "h-20 w-20 sm:h-36 sm:w-36" : "h-16 w-16 sm:h-20 sm:w-20")} />
                   <div className="space-y-1">
-                      <h2 className={cn("font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500 animate-pulse", isFullscreen ? "text-3xl sm:text-5xl" : "text-2xl sm:text-4xl")}>Analysis Complete</h2>
-                      <p className={cn("font-black text-primary uppercase text-base sm:text-xl", isFullscreen ? "text-xl sm:text-2xl" : "text-base sm:text-xl")}>Final Score: {score}</p>
+                      <h2 className={cn("font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500 animate-pulse", isFullscreen ? "text-2xl sm:text-5xl" : "text-2xl sm:text-4xl")}>Analysis Complete</h2>
+                      <p className={cn("font-black text-primary uppercase text-sm sm:text-xl", isFullscreen ? "text-base sm:text-2xl" : "text-base sm:text-xl")}>Final Score: {score}</p>
                   </div>
 
                   {/* Daily Bonus Claimed Banner */}
@@ -558,15 +558,15 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
                     </div>
                   )}
 
-                  <Button onClick={() => setGameState('idle')} size="lg" className={cn("bg-gradient-to-r from-primary to-indigo-600 font-bold z-10 shadow-lg hover:scale-105 active:scale-95 transition-all h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg rounded-xl")}>
-                      <Repeat className={cn("mr-2 sm:mr-3", isFullscreen ? "h-5 w-5" : "h-4 w-4")} /> Restart System
+                  <Button onClick={() => setGameState('idle')} size="lg" className={cn("bg-gradient-to-r from-primary to-indigo-600 font-bold z-10 shadow-lg hover:scale-105 active:scale-95 transition-all h-11 sm:h-14 px-6 sm:px-10 text-sm sm:text-lg rounded-xl")}>
+                      <Repeat className={cn("mr-2 sm:mr-3", isFullscreen ? "h-4 w-4 sm:h-5 sm:w-5" : "h-4 w-4")} /> Restart System
                   </Button>
               </div>
           )}
         </CardContent>
 
-        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 border-t border-white/5 p-4 sm:p-6 z-10 relative w-full max-w-full", isFullscreen && "pb-8 sm:pb-10 max-w-5xl mx-auto w-full")}>
-          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto", isFullscreen && "h-11 sm:h-12 px-6 sm:px-8 text-base sm:text-lg font-bold rounded-xl")}>
+        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 border-t border-white/5 p-3 sm:p-6 z-10 relative w-full max-w-full", isFullscreen && "pb-4 sm:pb-10 max-w-5xl mx-auto w-full")}>
+          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-12 px-4 sm:px-8 text-sm sm:text-lg font-bold rounded-xl")}>
             <Link href="/games">Abort Mission</Link>
           </Button>
           {(gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty') && <p className="font-black text-primary uppercase tracking-widest text-xs sm:text-base">Score: {score}</p>}
