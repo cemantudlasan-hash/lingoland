@@ -376,28 +376,28 @@ export function MathMissionSituations({ slug, onToggleFullscreen }: { slug: stri
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden transition-all duration-500 shadow-xl",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-5xl mx-auto bg-card shadow-xl"
+            ? "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none bg-background p-2 sm:p-6" 
+            : "rounded-2xl md:rounded-3xl bg-card"
       )}>
-      <CardHeader className="text-center relative border-b border-white/5">
+      <CardHeader className="text-center relative border-b border-white/5 py-3 sm:py-6 px-4">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+          className="absolute top-3 sm:top-4 right-3 sm:right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
         </Button>
         {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
+            <div className="flex justify-center mb-2 sm:mb-4">
+                <Icon className="w-10 h-10 sm:w-14 sm:h-14 text-primary" />
             </div>
         )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game?.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game?.description}</CardDescription>
+        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-3xl sm:text-5xl" : "text-xl sm:text-3xl")}>{game?.title}</CardTitle>
+        <CardDescription className={cn("text-xs sm:text-sm max-w-xl mx-auto", isFullscreen && "text-base sm:text-xl mt-1")}>{game?.description}</CardDescription>
         {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty' && (
             <div className="flex justify-center gap-2 mt-2">
                 <Badge variant="outline" className="uppercase">{difficulty}</Badge>
@@ -410,23 +410,24 @@ export function MathMissionSituations({ slug, onToggleFullscreen }: { slug: stri
       </CardHeader>
 
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center p-6",
-          isFullscreen ? "min-h-[75vh]" : "min-h-[35rem]"
+          "space-y-6 text-center flex-1 flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-6xl mx-auto overflow-y-auto"
       )}>
         {gameState === "idle" && (
-          <div className="flex flex-col items-center gap-4">
-            <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Are you ready to crack the situational codes?</p>
-            <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-              <Sparkles className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
-              Initialize Mission
-            </Button>
+          <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+            <p className={cn("text-muted-foreground", isFullscreen ? "text-xl sm:text-2xl" : "text-sm sm:text-base")}>Are you ready to crack the situational codes?</p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl flex-1", isFullscreen && "h-16 px-10 text-xl rounded-2xl")}>
+                <Sparkles className="mr-2 h-5 w-5" />
+                Initialize Mission
+              </Button>
+            </div>
           </div>
         )}
 
         {gameState === "instructions" && (
              <div className={cn(
-                 "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-[2rem] border-4 border-primary/20 shadow-inner mx-auto",
-                 isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-xl"
+                 "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-2xl sm:rounded-[2rem] border-2 sm:border-4 border-primary/20 shadow-inner mx-auto w-full",
+                 isFullscreen ? "p-8 sm:p-14 max-w-4xl" : "p-6 sm:p-8 max-w-xl"
              )}>
                 <h3 className={cn("font-black uppercase tracking-widest text-center mb-4 text-primary", isFullscreen ? "text-4xl" : "text-xl")}>OPERATIONAL MANUAL</h3>
                 <div className={cn("text-left space-y-4 font-medium", isFullscreen ? "text-2xl" : "text-base")}>
@@ -518,8 +519,8 @@ export function MathMissionSituations({ slug, onToggleFullscreen }: { slug: stri
                             </div>
                         </div>
                         <div className={cn(
-                            "w-full bg-white rounded-[2rem] border-4 border-foreground/10 overflow-hidden shadow-2xl",
-                            isFullscreen ? "h-[55vh]" : "h-[30rem]"
+                            "w-full bg-white rounded-2xl sm:rounded-[2rem] border-2 sm:border-4 border-foreground/10 overflow-hidden shadow-2xl",
+                            isFullscreen ? "h-[35vh] sm:h-[45vh] lg:h-[55vh]" : "h-[200px] sm:h-[260px] lg:h-[28rem]"
                         )}>
                             <DynamicCanvas
                                 ref={canvasRef}
@@ -546,13 +547,18 @@ export function MathMissionSituations({ slug, onToggleFullscreen }: { slug: stri
         )}
       </CardContent>
 
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8 border-t border-white/5 bg-black/5 p-8", isFullscreen && "max-w-7xl mx-auto w-full pb-16 bg-transparent border-none")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 sm:pt-6 border-t border-white/5 bg-black/5 p-4 sm:p-6 w-full max-w-6xl mx-auto shrink-0", isFullscreen && "bg-transparent border-none")}>
+        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto cursor-pointer", isFullscreen && "h-12 sm:h-16 px-8 sm:px-10 text-base sm:text-xl font-bold rounded-2xl")}>
           <Link href="/games">Abort Mission</Link>
         </Button>
+        {gameState === 'idle' && (
+          <Button variant="ghost" onClick={() => setGameState('instructions')} className="text-primary hover:text-primary/80 font-bold text-sm cursor-pointer">
+            How to Play
+          </Button>
+        )}
         {gameState === 'answered' && (
-            <Button onClick={() => startRound(difficulty)} size={isFullscreen ? "lg" : "default"} className={cn("bg-primary text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}>
-                Next Scenario <Repeat className={cn("ml-3", isFullscreen ? "h-8 w-8" : "h-4 w-4")} />
+            <Button onClick={() => startRound(difficulty)} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto bg-primary text-white font-black shadow-xl cursor-pointer", isFullscreen && "h-12 sm:h-16 px-8 sm:px-12 text-lg sm:text-2xl rounded-2xl")}>
+                Next Scenario <Repeat className={cn("ml-2 sm:ml-3", isFullscreen ? "h-6 w-6" : "h-4 w-4")} />
             </Button>
         )}
       </CardFooter>

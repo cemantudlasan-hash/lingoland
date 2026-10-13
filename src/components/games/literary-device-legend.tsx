@@ -161,58 +161,51 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
   return (
     <Card
       className={cn(
-        "w-full transition-all duration-500 flex flex-col bg-slate-950 text-slate-50 border-purple-500/20",
+        "w-full transition-all duration-500 flex flex-col justify-between overflow-y-auto overflow-x-hidden bg-slate-950 text-slate-50 border-purple-500/20",
         isFullscreen
-          ? "min-h-screen rounded-none border-none max-w-none justify-center p-8"
-          : "max-w-4xl mx-auto shadow-2xl shadow-purple-500/10 border"
+          ? "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6"
+          : "flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full rounded-2xl md:rounded-3xl shadow-2xl shadow-purple-500/10 border"
       )}
     >
-      <CardHeader className="text-center relative border-b border-purple-950 pb-6">
+      <CardHeader className="text-center relative border-b border-purple-950 p-3 sm:p-6 shrink-0">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-slate-400 hover:text-slate-100 z-[100]"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 h-8 px-2 gap-1 text-slate-400 hover:text-slate-100 z-20"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
         </Button>
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <Gamepad2 className="w-10 h-10 text-purple-400 animate-bounce" />
+        <div className="flex items-center justify-center gap-2 mb-1 sm:mb-2">
+          <Gamepad2 className="w-8 h-8 sm:w-10 sm:h-10 text-purple-400 animate-bounce" />
         </div>
         <CardTitle
-          className={cn(
-            "font-black uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400",
-            isFullscreen ? "text-5xl" : "text-3xl"
-          )}
+          className="font-black uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 text-xl sm:text-3xl md:text-5xl"
         >
           {game.title}
         </CardTitle>
         {gameState !== "idle" && gameState !== "instructions" && (
-          <div className="flex justify-center gap-3 mt-4">
-            <Badge variant="secondary" className="bg-purple-900/50 text-purple-200 border-purple-800">
+          <div className="flex justify-center gap-2 mt-2 sm:mt-4 flex-wrap">
+            <Badge variant="secondary" className="bg-purple-900/50 text-purple-200 border-purple-800 text-xs px-2.5 py-0.5">
               Round {round}/{ROUNDS_COUNT}
             </Badge>
-            <Badge variant="outline" className="border-fuchsia-800 text-fuchsia-300">
+            <Badge variant="outline" className="border-fuchsia-800 text-fuchsia-300 text-xs px-2.5 py-0.5">
               Score: {score}
             </Badge>
           </div>
         )}
       </CardHeader>
 
-      <CardContent className={cn("flex flex-col items-center justify-center p-6", isFullscreen ? "min-h-[65vh]" : "min-h-[450px]")}>
+      <CardContent className="flex-1 flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
         {gameState === "idle" && (
-          <div className="flex flex-col items-center gap-6 text-center max-w-lg">
-            <p className={cn("text-slate-300", isFullscreen ? "text-2xl" : "text-base")}>
+          <div className="flex flex-col items-center gap-3 sm:gap-6 text-center max-w-lg my-auto py-2">
+            <p className="text-slate-300 text-xs sm:text-base leading-relaxed">
               Duel with sentences, parse metaphors, and identify similes, hyperboles, and personification in an arcade linguistic showdown.
             </p>
             <Button
               onClick={() => setGameState("instructions")}
-              size={isFullscreen ? "lg" : "default"}
-              className={cn(
-                "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-purple-500/20 transition-all duration-300 hover:scale-105",
-                isFullscreen && "h-20 px-16 text-2xl rounded-2xl"
-              )}
+              className="bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 hover:opacity-90 text-white font-black uppercase tracking-wider shadow-lg shadow-purple-500/20 transition-all duration-300 hover:scale-105 h-11 sm:h-14 px-8 sm:px-14 text-sm sm:text-lg rounded-xl"
             >
               Insert Coin
             </Button>
@@ -220,16 +213,11 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
         )}
 
         {gameState === "instructions" && (
-          <div
-            className={cn(
-              "flex flex-col items-center justify-center gap-6 text-center bg-purple-950/20 rounded-3xl border border-purple-500/10 shadow-inner w-full",
-              isFullscreen ? "p-16 max-w-4xl" : "p-8 max-w-2xl"
-            )}
-          >
-            <h3 className={cn("font-black uppercase tracking-widest text-purple-400 mb-2", isFullscreen ? "text-4xl" : "text-2xl")}>
+          <div className="flex flex-col items-center justify-center gap-3 sm:gap-5 text-center bg-purple-950/20 rounded-2xl sm:rounded-3xl border border-purple-500/10 shadow-inner w-full p-4 sm:p-8 max-w-xl my-auto">
+            <h3 className="font-black uppercase tracking-wider text-purple-400 text-lg sm:text-2xl">
               Arcade Instructions
             </h3>
-            <div className={cn("text-left space-y-4 text-slate-300 font-medium", isFullscreen ? "text-xl" : "text-sm md:text-base")}>
+            <div className="text-left space-y-2.5 text-slate-300 text-xs sm:text-sm bg-black/40 p-3 sm:p-4 rounded-xl border border-purple-900/30 w-full">
               <p>📖 **Read the Quote**: Analyze the target sentence or passage highlighted on the display screen.</p>
               <p>🎯 **Identify Devices**: Recognize Similes, Metaphors, Personifications, Hyperboles, or Oxymorons.</p>
               <p>💡 **Learn Explanations**: Review the device mechanics and details shown after selecting your answer.</p>
@@ -237,11 +225,7 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
             </div>
             <Button
               onClick={handleStartGame}
-              size="lg"
-              className={cn(
-                "mt-6 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-black uppercase tracking-widest",
-                isFullscreen && "h-20 px-16 text-2xl rounded-2xl"
-              )}
+              className="w-full h-11 sm:h-14 text-xs sm:text-base bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-black uppercase tracking-wider rounded-xl"
             >
               Start Duel
             </Button>
@@ -249,11 +233,11 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
         )}
 
         {(gameState === "playing" || gameState === "answered") && currentQ && (
-          <div className="w-full max-w-4xl space-y-6 flex flex-col mt-4">
+          <div className="w-full max-w-3xl space-y-3 sm:space-y-6 flex flex-col my-auto py-2">
             
             {/* Timer Progress */}
             <div className="space-y-1">
-              <div className="flex justify-between font-black uppercase text-xs tracking-widest text-slate-400">
+              <div className="flex justify-between font-black uppercase text-[10px] sm:text-xs tracking-wider text-slate-400">
                 <span>Arcade CPU Sync</span>
                 <span className={cn(timeLeft <= 5 && "text-rose-500 animate-pulse")}>{timeLeft}s</span>
               </div>
@@ -261,24 +245,23 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
             </div>
 
             {/* Target Quote Display Box */}
-            <div className="p-8 rounded-3xl border-2 border-purple-500/30 bg-slate-900/60 shadow-inner flex flex-col items-center justify-center min-h-[140px] relative overflow-hidden">
-              {/* Glowing arcade background strip */}
+            <div className="p-4 sm:p-8 rounded-2xl sm:rounded-3xl border-2 border-purple-500/30 bg-slate-900/60 shadow-inner flex flex-col items-center justify-center min-h-[90px] sm:min-h-[130px] relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-pink-500/5 pointer-events-none" />
-              <blockquote className={cn("font-extrabold italic text-center text-slate-100", isFullscreen ? "text-4xl" : "text-xl md:text-2xl")}>
+              <blockquote className="font-extrabold italic text-center text-slate-100 text-base sm:text-2xl leading-relaxed break-words">
                 &ldquo;{currentQ.quote}&rdquo;
               </blockquote>
             </div>
 
             {/* Explanations Display */}
             {gameState === "answered" && (
-              <div className="p-4 rounded-xl border border-purple-500/20 bg-purple-950/20 text-purple-200 text-sm font-semibold animate-in fade-in slide-in-from-top-2 duration-300">
-                <span className="font-black text-purple-400 uppercase tracking-widest mr-2">Analysis:</span>
+              <div className="p-3 sm:p-4 rounded-xl border border-purple-500/20 bg-purple-950/30 text-purple-200 text-xs sm:text-sm font-semibold animate-in fade-in duration-200">
+                <span className="font-black text-purple-400 uppercase tracking-wider mr-1.5">Analysis:</span>
                 {currentQ.explanation}
               </div>
             )}
 
             {/* Answers Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
               {shuffledOptions.map((opt) => {
                 const isCorrectAnswer = opt === currentQ.correctAnswer;
                 const isSelected = opt === selectedAnswer;
@@ -290,11 +273,11 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
                     onClick={() => handleAnswer(opt)}
                     disabled={gameState === "answered"}
                     className={cn(
-                      "h-16 text-lg font-black border-2 transition-all rounded-xl hover:scale-[1.02] shadow-md",
+                      "h-12 sm:h-16 text-sm sm:text-lg font-black border-2 transition-all rounded-xl hover:scale-[1.01] shadow-md break-words",
                       gameState === "playing"
                         ? "border-slate-800 bg-slate-900 hover:bg-purple-950/30 hover:border-purple-500 hover:text-purple-200"
                         : isCorrectAnswer
-                        ? "bg-emerald-950/60 border-emerald-500 text-emerald-200 scale-105"
+                        ? "bg-emerald-950/60 border-emerald-500 text-emerald-200 scale-102"
                         : isSelected
                         ? "bg-rose-950/60 border-rose-500 text-rose-200"
                         : "border-slate-800 bg-slate-900/30 opacity-60"
@@ -302,8 +285,8 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
                   >
                     <span className="flex items-center justify-between w-full">
                       <span>{opt}</span>
-                      {gameState === "answered" && isCorrectAnswer && <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 ml-2" />}
-                      {gameState === "answered" && isSelected && !isCorrectAnswer && <XCircle className="w-5 h-5 text-rose-400 shrink-0 ml-2" />}
+                      {gameState === "answered" && isCorrectAnswer && <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0 ml-2" />}
+                      {gameState === "answered" && isSelected && !isCorrectAnswer && <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-rose-400 shrink-0 ml-2" />}
                     </span>
                   </Button>
                 );
@@ -314,32 +297,31 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
         )}
 
         {gameState === "finished" && (
-          <div className="text-center flex flex-col items-center gap-8 animate-in zoom-in duration-500">
-            <Trophy className="w-28 h-28 text-yellow-400 animate-bounce" />
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-purple-400 to-pink-400">
+          <div className="text-center flex flex-col items-center gap-4 sm:gap-6 animate-in zoom-in duration-300 my-auto py-2">
+            <Trophy className="w-16 h-16 sm:w-24 sm:h-24 text-yellow-400 animate-bounce" />
+            <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-purple-400 to-pink-400">
               Duel Complete
             </h2>
-            <div className="p-8 bg-purple-950/20 rounded-3xl border-2 border-purple-500/20 max-w-sm">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Final Arcade Score</p>
-              <p className="text-6xl font-black text-purple-400">{score}</p>
+            <div className="p-4 sm:p-8 bg-purple-950/20 rounded-2xl sm:rounded-3xl border-2 border-purple-500/20 max-w-xs w-full">
+              <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Final Arcade Score</p>
+              <p className="text-4xl sm:text-6xl font-black text-purple-400">{score}</p>
             </div>
             <Button
               onClick={handleStartGame}
-              size="lg"
-              className="h-16 px-12 text-lg font-black rounded-2xl uppercase shadow-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white"
+              className="h-11 sm:h-14 px-8 sm:px-12 text-xs sm:text-base font-black rounded-xl uppercase shadow-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white"
             >
-              <Repeat className="mr-3 h-5 w-5" /> Insert Coin
+              <Repeat className="mr-2 h-4 w-4" /> Insert Coin
             </Button>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="flex justify-between border-t border-purple-950 pt-6">
-        <Button variant="outline" className="border-slate-800 hover:bg-slate-900 text-slate-300 hover:text-slate-100" asChild>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2.5 p-3 sm:p-6 border-t border-purple-950 w-full shrink-0 max-w-4xl mx-auto">
+        <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-12 text-xs font-bold rounded-xl border-slate-800 hover:bg-slate-900 text-slate-300 hover:text-slate-100" asChild>
           <Link href="/games">Leave Cabinet</Link>
         </Button>
         {gameState !== "idle" && gameState !== "instructions" && (
-          <p className="font-black text-purple-400 uppercase tracking-widest">
+          <p className="font-black text-purple-400 uppercase tracking-wider text-xs sm:text-sm">
             Score: {score}
           </p>
         )}

@@ -96,6 +96,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
   React.useEffect(() => { livesRef.current = lives; }, [lives]);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [gameOverReason, setGameOverReason] = React.useState<GameOverReason>('hit');
+  const [showHowToPlay, setShowHowToPlay] = React.useState(false);
 
   React.useEffect(() => {
     const handler = () => {
@@ -2122,12 +2123,11 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
 
       <div
         className={cn(
-          'md3d-card w-full',
+          'md3d-card w-full flex-1 flex flex-col justify-between overflow-hidden',
           isFullscreen
-            ? 'rounded-none border-none h-full'
-            : 'max-w-[95%] xl:max-w-[90%] 2xl:max-w-[1440px] mx-auto rounded-3xl'
+            ? 'fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none'
+            : 'min-h-[calc(100dvh-4.5rem)] max-w-full rounded-2xl md:rounded-3xl'
         )}
-        style={isFullscreen ? { height: '100%' } : {}}
       >
         {/* ── Header ── */}
         <div className="flex-shrink-0 text-center pb-2 pt-4 px-4 relative border-b border-purple-500/10">
@@ -2157,8 +2157,7 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
         {/* ── Game Content (fills remaining vertical space) ── */}
         <div
           className={cn(
-            'relative w-full overflow-hidden flex flex-col items-center justify-center bg-slate-950',
-            isFullscreen ? 'flex-1' : 'h-[360px] sm:h-[450px] md:h-[520px] lg:h-[600px] xl:h-[680px] 2xl:h-[760px]'
+            'relative w-full flex-1 overflow-hidden flex flex-col items-center justify-center bg-slate-950 min-h-[350px]'
           )}
         >
           {gameMode === 'multi' ? (
@@ -2441,13 +2440,21 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg justify-center">
                     <Button
                       onClick={startGame}
                       size="lg"
-                      className="bg-gradient-to-r from-purple-500 to-indigo-650 hover:scale-105 transition-all duration-300 font-black tracking-widest text-white shadow-xl shadow-purple-500/10 border border-purple-400/20 px-8 py-6 rounded-2xl text-base cursor-pointer"
+                      className="bg-gradient-to-r from-purple-500 to-indigo-650 hover:scale-105 transition-all duration-300 font-black tracking-widest text-white shadow-xl shadow-purple-500/10 border border-purple-400/20 px-6 py-6 rounded-2xl text-base cursor-pointer flex-1"
                     >
                       SOLO SIMULATION
+                    </Button>
+                    <Button
+                      onClick={() => setShowHowToPlay(true)}
+                      size="lg"
+                      variant="outline"
+                      className="bg-slate-900/80 border border-purple-500/30 text-purple-300 hover:bg-purple-950/40 hover:scale-105 transition-all duration-300 font-black tracking-widest px-6 py-6 rounded-2xl text-base cursor-pointer"
+                    >
+                      HOW TO PLAY
                     </Button>
                     <Button
                       onClick={() => {
@@ -2455,9 +2462,9 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
                         setMultiplayerState('mode_select');
                       }}
                       size="lg"
-                      className="bg-slate-900 border border-purple-500/30 text-purple-300 hover:bg-slate-800 hover:scale-105 transition-all duration-300 font-black tracking-widest px-8 py-6 rounded-2xl text-base flex items-center gap-2 cursor-pointer"
+                      className="bg-slate-900 border border-purple-500/30 text-purple-300 hover:bg-slate-800 hover:scale-105 transition-all duration-300 font-black tracking-widest px-6 py-6 rounded-2xl text-base flex items-center justify-center gap-2 cursor-pointer flex-1"
                     >
-                      <Users className="w-5 h-5" /> MULTIPLAYER LOBBY
+                      <Users className="w-5 h-5" /> MULTIPLAYER
                     </Button>
                   </div>
                 </div>
@@ -2535,15 +2542,10 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
             {gameState === 'idle' && (
               <Button
                 variant="ghost"
-                onClick={() => {
-                  toast({
-                    title: 'How to Play',
-                    description: 'Use WASD or Arrow Keys to move. Collect the correct-colored sphere that matches the answer. Dodge gray paper planes!',
-                  });
-                }}
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 text-sm animate-pulse"
+                onClick={() => setShowHowToPlay(true)}
+                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 text-sm animate-pulse cursor-pointer"
               >
-                INSTRUCTIONS
+                HOW TO PLAY
               </Button>
             )}
           </div>
@@ -2561,6 +2563,81 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
             </div>
           )}
         </div>
+
+        {/* How to Play Modal */}
+        <AnimatePresence>
+          {showHowToPlay && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[150] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="bg-slate-900 border border-purple-500/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative space-y-5 text-left"
+              >
+                <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-400">
+                      <Gamepad2 className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">How To Play Math Dash 3D</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowHowToPlay(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    ✕
+                  </Button>
+                </div>
+
+                <div className="space-y-4 text-sm text-slate-300">
+                  <div className="p-3 bg-purple-950/40 rounded-xl border border-purple-500/20">
+                    <p className="font-bold text-purple-200">🎯 Objective:</p>
+                    <p className="text-xs text-purple-300/80 mt-1 leading-relaxed">
+                      Solve the math problem displayed in the top HUD by steering your student avatar into the glowing sphere with the correct answer.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 bg-slate-950/50 rounded-xl border border-slate-800">
+                      <p className="font-black text-white uppercase tracking-wide">🔴 🟢 🔵 Color Spheres</p>
+                      <p className="text-slate-400 mt-1">
+                        Each sphere color corresponds to an answer shown on your HUD (Red, Green, Blue).
+                      </p>
+                    </div>
+                    <div className="p-3 bg-slate-950/50 rounded-xl border border-slate-800">
+                      <p className="font-black text-white uppercase tracking-wide">✈️ Dodge Paper Planes</p>
+                      <p className="text-slate-400 mt-1">
+                        Rogue paper airplanes are flying across the classroom! Don't collide with them or lose a life.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-indigo-950/30 rounded-xl border border-indigo-500/20 text-xs">
+                    <p className="font-bold text-indigo-300">📱 Controls:</p>
+                    <ul className="list-disc list-inside mt-1 space-y-1 text-slate-300">
+                      <li><strong>Desktop:</strong> Use <code className="bg-slate-800 px-1 py-0.5 rounded text-purple-300">W, A, S, D</code> or Arrow keys.</li>
+                      <li><strong>Mobile / Touch:</strong> Use the on-screen directional buttons (D-pad) in the bottom-right corner!</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => setShowHowToPlay(false)}
+                  className="w-full h-12 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl cursor-pointer"
+                >
+                  Got It, Let's Play!
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -114,77 +114,64 @@ export function GrammarGuru({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full transition-all duration-500 flex flex-col overflow-y-auto overflow-x-hidden justify-between",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-3xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            ? "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none bg-background p-2 sm:p-6" 
+            : "flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-lg rounded-2xl md:rounded-3xl"
       )}>
-      <CardHeader className="text-center relative">
+      <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 h-8 px-2 gap-1 text-muted-foreground hover:text-foreground z-20"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
         </Button>
-        {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
-            </div>
-        )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-7xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-3xl mt-4 opacity-80")}>{game.description}</CardDescription>
+        <div className="flex justify-center mb-2 sm:mb-4">
+            <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
+        </div>
+        <CardTitle className="font-black tracking-tight uppercase text-xl sm:text-3xl md:text-5xl">{game.title}</CardTitle>
+        <CardDescription className="text-xs sm:text-base mt-1 max-w-xl mx-auto">{game.description}</CardDescription>
         <div className="flex justify-center pt-2">
-            <Badge variant="outline" className={cn(isFullscreen && "text-2xl px-8 py-2 border-2")}>{game.level.toUpperCase()}</Badge>
+            <Badge variant="outline" className="text-xs sm:text-sm px-3 py-0.5 sm:px-4 sm:py-1">{game.level.toUpperCase()}</Badge>
         </div>
       </CardHeader>
-      <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[20rem]"
-      )}>
+      <CardContent className="flex-1 flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
         {gameState === "idle" && (
-          <div className="flex flex-col items-center gap-4">
-            <p className={cn("text-muted-foreground", isFullscreen ? "text-4xl mb-8" : "text-base")}>Ready to test your grammar skills?</p>
-            <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black", isFullscreen && "h-24 px-20 text-4xl rounded-3xl")}>
-              <Sparkles className={cn("mr-4", isFullscreen ? "h-12 w-12" : "h-5 w-5")} />
+          <div className="flex flex-col items-center gap-3 sm:gap-4 text-center my-auto">
+            <p className="text-muted-foreground text-sm sm:text-xl">Ready to test your grammar skills?</p>
+            <Button onClick={() => setGameState('instructions')} className="h-11 sm:h-14 px-6 sm:px-12 text-sm sm:text-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black rounded-xl">
+              <Sparkles className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
               Start Game
             </Button>
           </div>
         )}
         {gameState === "instructions" && (
-             <div className={cn(
-                 "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20 shadow-inner",
-                 isFullscreen ? "p-20 max-w-5xl" : "p-8 max-w-lg"
-             )}>
-                <h3 className={cn("font-bold text-center mb-6", isFullscreen ? "text-5xl" : "text-xl")}>How to Play</h3>
-                <div className={cn("text-left space-y-6", isFullscreen ? "text-3xl" : "text-base")}>
-                    <p>1. Find the mistake in the sentence provided by the AI.</p>
-                    <p>2. Type the correct version of the sentence in the box.</p>
-                    <p>3. Check your answer to see the rule and learn!</p>
+             <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 text-center bg-muted/50 rounded-2xl mx-auto border border-border/20 shadow-inner p-4 sm:p-8 max-w-lg w-full my-auto">
+                <h3 className="font-bold text-center text-lg sm:text-2xl">How to Play</h3>
+                <div className="text-left space-y-2 sm:space-y-3 text-xs sm:text-base text-muted-foreground w-full bg-background/50 p-3 sm:p-4 rounded-xl border border-border/20">
+                    <p>1. Find the grammatical error in the AI-generated sentence.</p>
+                    <p>2. Edit and type the corrected sentence into the text box.</p>
+                    <p>3. Submit to verify against the correct rule and receive explanations.</p>
                 </div>
-                <Button onClick={handleStartGame} size="lg" className={cn("mt-12 bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black", isFullscreen && "h-24 px-20 text-4xl rounded-3xl")}>Initialize</Button>
+                <Button onClick={handleStartGame} className="w-full h-11 sm:h-14 text-sm sm:text-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl">Initialize Mission</Button>
             </div>
         )}
         {gameState === "loading" && (
-          <div className="flex flex-col items-center justify-center gap-8">
-            <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-32 w-32" : "h-12 w-12")} />
-            <p className={cn("text-muted-foreground font-black animate-pulse uppercase tracking-widest", isFullscreen ? "text-4xl" : "text-lg")}>Analyzing syntax...</p>
+          <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 my-auto">
+            <Loader2 className="animate-spin text-primary h-10 w-10 sm:h-16 sm:w-16" />
+            <p className="text-muted-foreground font-black animate-pulse uppercase tracking-wider text-xs sm:text-lg">Analyzing syntax...</p>
           </div>
         )}
         {(gameState === "playing" || gameState === "answered") && exercise && (
-          <div className="space-y-8 text-left w-full">
-            <p className={cn("font-black text-muted-foreground uppercase tracking-widest", isFullscreen ? "text-5xl mb-10" : "text-xs")}>Fix the sentence:</p>
+          <div className="space-y-4 sm:space-y-6 text-left w-full my-auto">
+            <p className="font-black text-muted-foreground uppercase tracking-wider text-xs sm:text-sm">Fix the sentence:</p>
             <Textarea 
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
-                className={cn(
-                    "font-black bg-muted/20 backdrop-blur-sm rounded-[2rem] border-4 focus-visible:ring-primary shadow-inner transition-all",
-                    isFullscreen 
-                      ? "text-[6vw] md:text-[6vw] p-12 min-h-[400px] text-center leading-tight flex items-center justify-center" 
-                      : "text-2xl p-6 min-h-[150px]"
-                )}
+                className="font-bold bg-muted/20 backdrop-blur-sm rounded-xl sm:rounded-2xl border-2 sm:border-4 focus-visible:ring-primary shadow-inner transition-all text-base sm:text-2xl p-3 sm:p-6 min-h-[120px] sm:min-h-[160px] leading-relaxed break-words"
                 disabled={gameState === "answered"}
                 spellCheck="false"
             />
@@ -192,13 +179,13 @@ export function GrammarGuru({ slug, onToggleFullscreen }: { slug: string; onTogg
           </div>
         )}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-6xl mx-auto w-full pb-20")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-20 px-12 text-2xl font-bold rounded-[1.5rem]")}>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto">
+        <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold rounded-xl">
           <Link href="/games">Back to Library</Link>
         </Button>
-        <div className="flex gap-4">
-            {gameState === 'playing' && <Button onClick={handleCheckAnswer} disabled={!userAnswer.trim()} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-[1.5rem]")}>Check Answer</Button>}
-            {gameState === 'answered' && <Button onClick={handleStartGame} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-[1.5rem]")}><Repeat className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-4 w-4")}/>Next Mission</Button>}
+        <div className="flex gap-3 w-full sm:w-auto">
+            {gameState === 'playing' && <Button onClick={handleCheckAnswer} disabled={!userAnswer.trim()} className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl">Check Answer</Button>}
+            {gameState === 'answered' && <Button onClick={handleStartGame} className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl"><Repeat className="mr-2 h-4 w-4"/>Next Mission</Button>}
         </div>
       </CardFooter>
     </Card>

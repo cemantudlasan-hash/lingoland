@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Maximize2, Minimize2, ArrowLeft, Flame, Sparkles, Trophy, ListChecks, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 type Difficulty = "easy" | "medium" | "hard";
 
@@ -142,6 +143,7 @@ export function MysticSynonymSpire() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wrongAnswer, setWrongAnswer] = useState<{ selected: string; correct: string } | null>(null);
   const [stairsBuilt, setStairsBuilt] = useState(0);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [currentRound, setCurrentRound] = useState(1);
@@ -236,29 +238,104 @@ export function MysticSynonymSpire() {
 
   if (!difficulty) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 bg-indigo-950 p-8 rounded-xl border border-purple-500/30">
-        <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)] text-center">
+      <div className="flex flex-col items-center justify-center w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full space-y-6 sm:space-y-8 bg-indigo-950 p-4 sm:p-8 rounded-2xl md:rounded-3xl border border-purple-500/30 text-center relative overflow-hidden">
+        {/* Magical Background Elements */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(107,33,168,0.3),transparent_70%)] pointer-events-none" />
+
+        <h1 className="text-3xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
           Mystic Synonym Spire
         </h1>
-        <p className="text-purple-100/70 text-center max-w-md">
+        <p className="text-purple-100/70 max-w-md text-sm sm:text-base px-2">
           Build a magical bridge by selecting the correct synonyms and antonyms. How high can you climb?
         </p>
-        <div className="flex gap-4 flex-wrap justify-center">
-          <Button onClick={() => setDifficulty("easy")} className="bg-indigo-900 border border-purple-500 text-purple-300 hover:bg-purple-900 transition-all uppercase tracking-widest shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+        <div className="flex gap-3 flex-wrap justify-center w-full max-w-md">
+          <Button onClick={() => setDifficulty("easy")} className="flex-1 min-w-[120px] h-12 sm:h-14 bg-indigo-900 border border-purple-500 text-purple-200 hover:bg-purple-900 transition-all uppercase tracking-wider text-xs sm:text-sm shadow-[0_0_10px_rgba(168,85,247,0.3)] cursor-pointer">
             Easy (10 Rnds)
           </Button>
-          <Button onClick={() => setDifficulty("medium")} className="bg-indigo-900 border border-purple-500 text-purple-300 hover:bg-purple-900 transition-all uppercase tracking-widest shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+          <Button onClick={() => setDifficulty("medium")} className="flex-1 min-w-[120px] h-12 sm:h-14 bg-indigo-900 border border-purple-500 text-purple-200 hover:bg-purple-900 transition-all uppercase tracking-wider text-xs sm:text-sm shadow-[0_0_10px_rgba(168,85,247,0.3)] cursor-pointer">
             Medium (20 Rnds)
           </Button>
-          <Button onClick={() => setDifficulty("hard")} className="bg-indigo-900 border border-purple-500 text-purple-300 hover:bg-purple-900 transition-all uppercase tracking-widest shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+          <Button onClick={() => setDifficulty("hard")} className="flex-1 min-w-[120px] h-12 sm:h-14 bg-indigo-900 border border-purple-500 text-purple-200 hover:bg-purple-900 transition-all uppercase tracking-wider text-xs sm:text-sm shadow-[0_0_10px_rgba(168,85,247,0.3)] cursor-pointer">
             Hard (30 Rnds)
           </Button>
         </div>
-        <Link href="/games">
-          <Button variant="ghost" className="text-indigo-400 hover:text-indigo-200">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Library
+        <div className="flex gap-4 items-center">
+          <Button onClick={() => setShowHowToPlay(true)} variant="outline" className="border-purple-500/40 text-purple-300 hover:bg-purple-900/40 text-xs sm:text-sm font-sans font-bold cursor-pointer">
+            How to Play
           </Button>
-        </Link>
+          <Link href="/games">
+            <Button variant="ghost" className="text-indigo-400 hover:text-indigo-200 text-xs sm:text-sm cursor-pointer">
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Library
+            </Button>
+          </Link>
+        </div>
+
+        {/* How to Play Modal */}
+        <AnimatePresence>
+          {showHowToPlay && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[150] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="bg-slate-900 border border-purple-500/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative space-y-5 text-left font-sans"
+              >
+                <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-400">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">How To Play</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowHowToPlay(false)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    ✕
+                  </Button>
+                </div>
+
+                <div className="space-y-4 text-sm text-slate-300">
+                  <div className="p-3 bg-purple-950/40 rounded-xl border border-purple-500/20">
+                    <p className="font-bold text-purple-200">🏰 The Quest:</p>
+                    <p className="text-xs text-purple-300/80 mt-1 leading-relaxed">
+                      Ascend to the summit of the Mystic Spire by selecting the exact Synonym or Antonym requested for each ancient word!
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                      <p className="font-black text-white uppercase tracking-wide">✨ Watch the Prompt</p>
+                      <p className="text-slate-400 mt-1">
+                        Pay close attention to whether the question asks for a <strong>SYNONYM</strong> (same meaning) or an <strong>ANTONYM</strong> (opposite meaning).
+                      </p>
+                    </div>
+                    <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                      <p className="font-black text-white uppercase tracking-wide">🪜 Building Stairs</p>
+                      <p className="text-slate-400 mt-1">
+                        Every correct choice awards +50 points and creates a step on your staircase. A wrong choice costs 1 step!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => setShowHowToPlay(false)}
+                  className="w-full h-12 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl cursor-pointer"
+                >
+                  Start Ascension
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -266,7 +343,10 @@ export function MysticSynonymSpire() {
   return (
     <div 
       ref={containerRef} 
-      className={`relative flex flex-col items-center w-full min-h-[70vh] bg-[#0b0c10] font-serif transition-all overflow-hidden ${isFullscreen ? 'h-screen overflow-y-auto' : 'rounded-xl border border-purple-500/30'}`}
+      className={cn(
+        "relative flex flex-col items-center justify-between w-full min-h-[calc(100dvh-4.5rem)] max-w-full bg-[#0b0c10] font-serif transition-all overflow-y-auto overflow-x-hidden",
+        isFullscreen ? "fixed inset-0 z-50 min-h-screen rounded-none border-none" : "rounded-2xl md:rounded-3xl border border-purple-500/30"
+      )}
     >
       {/* Magical Background Elements */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(107,33,168,0.2),transparent_70%)] pointer-events-none" />
@@ -293,69 +373,72 @@ export function MysticSynonymSpire() {
       ))}
 
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-20 bg-[#0b0c10]/80 backdrop-blur-sm border-b border-purple-500/20">
-        <div className="flex items-center gap-4">
-          {!isFullscreen && (
-            <Button variant="ghost" size="icon" onClick={() => setDifficulty(null)} className="text-purple-500 hover:bg-indigo-900 hover:text-purple-300">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          )}
-          <Badge variant="outline" className="text-purple-300 border-purple-500/50 uppercase tracking-widest">
+      <div className="w-full p-3 sm:p-4 flex justify-between items-center z-20 bg-[#0b0c10]/90 backdrop-blur-sm border-b border-purple-500/20 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Button variant="ghost" size="icon" onClick={() => setDifficulty(null)} className="text-purple-400 hover:bg-indigo-900 hover:text-purple-200 h-8 w-8 sm:h-9 sm:w-9 cursor-pointer">
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+          <Badge variant="outline" className="text-purple-300 border-purple-500/50 uppercase tracking-widest text-[10px] sm:text-xs">
             {difficulty}
           </Badge>
           {!isGameOver && (
-            <span className="text-purple-300 font-bold tracking-widest">Round: {currentRound}/{totalRounds} | Score: {score}</span>
+            <span className="text-purple-300 font-bold tracking-wider text-xs sm:text-sm font-sans">R{currentRound}/{totalRounds} | {score} pts</span>
           )}
         </div>
-        <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="text-purple-500 hover:bg-indigo-900">
-          {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-        </Button>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setShowHowToPlay(true)} className="text-purple-400 hover:text-purple-200 font-sans text-xs cursor-pointer">
+            Help
+          </Button>
+          <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="text-purple-400 hover:bg-indigo-900 h-8 w-8 sm:h-9 sm:w-9 cursor-pointer">
+            {isFullscreen ? <Minimize2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />}
+          </Button>
+        </div>
       </div>
 
       {!isGameOver && (
         <>
           {/* Visual Tower/Stairs area */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-1/2 flex flex-col-reverse items-center justify-start pb-4 z-0 opacity-50">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-1/2 flex flex-col-reverse items-center justify-start pb-4 z-0 opacity-40 pointer-events-none">
              <AnimatePresence>
                 {Array.from({ length: Math.min(stairsBuilt, 5) }).map((_, i) => (
                   <motion.div
                     key={stairsBuilt - i}
                     initial={{ opacity: 0, y: 20, scale: 0.8 }}
                     animate={{ opacity: 1 - (i * 0.15), y: 0, scale: 1 - (i * 0.05) }}
-                    className="w-48 h-6 bg-gradient-to-r from-purple-800 to-indigo-800 border-t border-purple-400 rounded-sm mb-2 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                    className="w-40 sm:w-48 h-5 sm:h-6 bg-gradient-to-r from-purple-800 to-indigo-800 border-t border-purple-400 rounded-sm mb-2 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
                   />
                 ))}
              </AnimatePresence>
              {stairsBuilt > 5 && (
-                <div className="w-48 h-6 bg-transparent border-t border-dashed border-purple-500/30 mb-2 flex justify-center items-center">
+                <div className="w-40 sm:w-48 h-5 sm:h-6 bg-transparent border-t border-dashed border-purple-500/30 mb-2 flex justify-center items-center">
                   <Sparkles className="w-4 h-4 text-purple-500/50" />
                 </div>
              )}
           </div>
 
           {/* Question Card */}
-          <div className="relative z-10 flex flex-col items-center w-full max-w-2xl mt-24 px-4">
+          <div className="relative z-10 flex flex-col items-center w-full max-w-2xl my-auto py-6 px-3 sm:px-4">
             {currentQ && !wrongAnswer && (
               <motion.div
                 key={currentQ.word}
                 initial={{ opacity: 0, scale: 0.95, filter: "blur(4px)" }}
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                className="w-full bg-indigo-950/60 backdrop-blur-xl border border-purple-500/40 p-8 rounded-2xl shadow-[0_0_40px_rgba(107,33,168,0.4)] flex flex-col items-center"
+                className="w-full bg-indigo-950/70 backdrop-blur-xl border border-purple-500/40 p-5 sm:p-8 rounded-2xl shadow-[0_0_40px_rgba(107,33,168,0.4)] flex flex-col items-center"
               >
-                <div className="flex items-center gap-2 mb-2 text-purple-300/80 uppercase tracking-[0.2em] text-sm">
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-purple-300/80 uppercase tracking-[0.2em] text-xs sm:text-sm font-sans">
                   <Flame className="w-4 h-4 text-pink-500" />
                   Find the {currentQ.type}
                 </div>
-                <h2 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-300 text-center mb-8 pb-2 drop-shadow-md">
+                <h2 className="text-3xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-300 text-center mb-6 sm:mb-8 pb-1 drop-shadow-md">
                   {currentQ.word}
                 </h2>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
                   {currentQ.options.map((opt, i) => (
                     <Button
                       key={i}
                       onClick={() => handleOptionClick(opt)}
-                      className="h-14 text-lg bg-indigo-900/40 border border-purple-500/30 text-purple-100 hover:bg-purple-600 hover:text-white hover:border-pink-400 transition-all shadow-md hover:shadow-[0_0_20px_rgba(236,72,153,0.5)]"
+                      className="h-12 sm:h-14 text-base sm:text-lg bg-indigo-900/50 border border-purple-500/30 text-purple-100 hover:bg-purple-600 hover:text-white hover:border-pink-400 transition-all shadow-md hover:shadow-[0_0_20px_rgba(236,72,153,0.5)] cursor-pointer"
                     >
                       {opt}
                     </Button>
@@ -436,11 +519,78 @@ export function MysticSynonymSpire() {
               </p>
               <Button 
                 onClick={closeWrongModal}
-                className="w-full bg-indigo-900 border border-purple-700 hover:bg-purple-800 text-white"
+                className="w-full bg-indigo-900 border border-purple-700 hover:bg-purple-800 text-white cursor-pointer"
               >
                 Rebuild Bridge
               </Button>
             </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* How to Play Modal (Accessible anytime) */}
+      <AnimatePresence>
+        {showHowToPlay && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-slate-900 border border-purple-500/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative space-y-5 text-left font-sans"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-400">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">How To Play</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowHowToPlay(false)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              <div className="space-y-4 text-sm text-slate-300">
+                <div className="p-3 bg-purple-950/40 rounded-xl border border-purple-500/20">
+                  <p className="font-bold text-purple-200">🏰 The Quest:</p>
+                  <p className="text-xs text-purple-300/80 mt-1 leading-relaxed">
+                    Ascend to the summit of the Mystic Spire by selecting the exact Synonym or Antonym requested for each ancient word!
+                  </p>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <p className="font-black text-white uppercase tracking-wide">✨ Watch the Prompt</p>
+                    <p className="text-slate-400 mt-1">
+                      Pay close attention to whether the question asks for a <strong>SYNONYM</strong> (same meaning) or an <strong>ANTONYM</strong> (opposite meaning).
+                    </p>
+                  </div>
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <p className="font-black text-white uppercase tracking-wide">🪜 Building Stairs</p>
+                    <p className="text-slate-400 mt-1">
+                      Every correct choice awards +50 points and creates a step on your staircase. A wrong choice costs 1 step!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => setShowHowToPlay(false)}
+                className="w-full h-12 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl cursor-pointer"
+              >
+                Close
+              </Button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

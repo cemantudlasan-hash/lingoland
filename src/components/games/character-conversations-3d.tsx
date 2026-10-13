@@ -561,31 +561,31 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
 
   return (
     <div className={cn(
-      "w-full transition-all duration-500 flex flex-col items-center bg-slate-950 text-white relative overflow-hidden",
+      "w-full transition-all duration-500 flex flex-col items-center bg-slate-950 text-white relative overflow-y-auto overflow-x-hidden",
       isFullscreen 
-        ? "min-h-screen rounded-none border-none p-8 max-w-none justify-center" 
-        : "max-w-4xl mx-auto rounded-3xl p-6 border border-slate-800 shadow-2xl min-h-[620px]"
+        ? "fixed inset-0 z-50 min-h-screen rounded-none border-none p-3 sm:p-8 max-w-none justify-start sm:justify-center" 
+        : "flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full rounded-2xl md:rounded-3xl p-3 sm:p-6 border border-slate-800 shadow-2xl"
     )}>
       {/* Glow Effects */}
       <div className="absolute top-0 right-0 w-72 h-72 bg-purple-600/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <div className="w-full flex items-center justify-between border-b border-slate-900 pb-4 mb-6 z-10 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 rounded-xl">
-            <MessageSquare className="h-6 w-6 text-purple-400" />
+      <div className="w-full flex items-center justify-between border-b border-slate-900 pb-3 sm:pb-4 mb-4 sm:mb-6 z-10 shrink-0 gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="p-2 sm:p-2.5 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/30 rounded-xl shrink-0">
+            <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400" />
           </div>
-          <div>
-            <h2 className="text-xl font-black uppercase tracking-tight bg-gradient-to-r from-purple-300 via-indigo-300 to-pink-300 bg-clip-text text-transparent">Interactive Character Conversations</h2>
-            <p className="text-xs text-slate-400">Talk to Clef the AI, learn conversational social cues and perfect phonetics!</p>
+          <div className="min-w-0">
+            <h2 className="text-sm sm:text-xl font-black uppercase tracking-tight bg-gradient-to-r from-purple-300 via-indigo-300 to-pink-300 bg-clip-text text-transparent truncate">Character Conversations</h2>
+            <p className="text-[10px] sm:text-xs text-slate-400 truncate">Talk to Clef the AI, master conversational social cues!</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {onToggleFullscreen && (
-            <button onClick={onToggleFullscreen} className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 border border-slate-800/50 transition-colors">
-              {isFullscreen ? <Minimize className="h-4.5 w-4.5" /> : <Maximize className="h-4.5 w-4.5" />}
+            <button onClick={onToggleFullscreen} className="h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 border border-slate-800/50 transition-colors">
+              {isFullscreen ? <Minimize className="h-4 w-4 sm:h-4.5 sm:w-4.5" /> : <Maximize className="h-4 w-4 sm:h-4.5 sm:w-4.5" />}
             </button>
           )}
         </div>
@@ -823,9 +823,9 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
               </div>
             )}
 
-            <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 flex-grow">
+            <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-6 flex-grow">
               {/* Left Side: Modernized Clef AI Hologram Stage */}
-              <div className="md:col-span-5 flex flex-col items-center justify-center bg-slate-950/40 border border-slate-900/80 rounded-3xl p-6 relative overflow-hidden min-h-[300px] shadow-inner">
+              <div className="md:col-span-5 flex flex-col items-center justify-center bg-slate-950/40 border border-slate-900/80 rounded-2xl sm:rounded-3xl p-3 sm:p-6 relative overflow-hidden min-h-[170px] sm:min-h-[240px] md:min-h-[300px] shadow-inner">
                 {/* 3D Stage Container */}
                 <div 
                   className="relative [transform-style:preserve-3d] w-full h-full flex flex-col items-center justify-center transition-all duration-500"
@@ -836,9 +836,9 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
               </div>
 
               {/* Right Side: Speech & Options Panel */}
-              <div className="md:col-span-7 flex flex-col gap-4">
+              <div className="md:col-span-7 flex flex-col gap-2.5 sm:gap-4">
                 {/* Character Dialogue Bubble */}
-                <div className="bg-slate-900 border border-slate-850 rounded-3xl p-5 relative min-h-[100px] flex flex-col justify-center shadow-xl">
+                <div className="bg-slate-900 border border-slate-850 rounded-2xl sm:rounded-3xl p-3 sm:p-5 relative min-h-[70px] sm:min-h-[100px] flex flex-col justify-center shadow-xl">
                   <div 
                     className="flex items-center gap-1.5 text-[9px] uppercase font-black tracking-widest text-purple-400 mb-1 cursor-pointer w-fit hover:text-purple-300 transition-colors" 
                     onClick={() => speakText(activeNode.characterText)}
@@ -846,7 +846,7 @@ export function CharacterConversations3D({ onToggleFullscreen }: { slug: string;
                     <span>Clef</span>
                     <Volume2 className={cn("h-3.5 w-3.5", speakActive && "animate-bounce")} />
                   </div>
-                  <p className="text-sm font-semibold leading-relaxed text-slate-100 italic">
+                  <p className="text-xs sm:text-sm font-semibold leading-relaxed text-slate-100 italic break-words">
                     "{activeNode.characterText}"
                   </p>
                   <div className="absolute top-1/2 -left-2.5 w-3 h-3 bg-slate-900 border-l border-b border-slate-850 transform -translate-y-1/2 rotate-45 hidden md:block" />

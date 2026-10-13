@@ -156,13 +156,10 @@ export function ListeningLabyrinth({ slug, onToggleFullscreen }: { slug: string;
 
   const renderCell = (cell: number, x: number, y: number) => {
     const isPlayerHere = playerPosition.x === x && playerPosition.y === y;
-    const baseClasses = cn(
-        "flex items-center justify-center rounded-2xl transition-all duration-300 shadow-lg border-4",
-        isFullscreen ? "w-20 h-20" : "w-10 h-10 md:w-12 md:h-12"
-    );
+    const baseClasses = "flex items-center justify-center rounded-lg sm:rounded-xl transition-all duration-200 shadow-sm border-2 sm:border-4 w-8 h-8 sm:w-11 sm:h-11 md:w-14 md:h-14";
     
     if (isPlayerHere) {
-        return <div className={cn(baseClasses, "bg-primary text-primary-foreground border-primary scale-110 z-10")}><Rabbit className={cn(isFullscreen ? "w-12 h-12" : "w-6 h-6")}/></div>;
+        return <div className={cn(baseClasses, "bg-primary text-primary-foreground border-primary scale-105 z-10")}><Rabbit className="w-4 h-4 sm:w-6 sm:h-6"/></div>;
     }
 
     const hasBeenVisited = path.slice(0, currentStep + 1).some(p => p.x === x && p.y === y);
@@ -173,9 +170,9 @@ export function ListeningLabyrinth({ slug, onToggleFullscreen }: { slug: string;
         case 1:
             return <div className={cn(baseClasses, "bg-slate-800 border-slate-900 shadow-inner")}></div>;
         case 2:
-            return <div className={cn(baseClasses, "bg-amber-400 border-amber-500 text-amber-900")}><Snail className={cn(isFullscreen ? "w-12 h-12" : "w-6 h-6")}/></div>;
+            return <div className={cn(baseClasses, "bg-amber-400 border-amber-500 text-amber-900")}><Snail className="w-4 h-4 sm:w-6 sm:h-6"/></div>;
         case 3:
-            return <div className={cn(baseClasses, "bg-green-500 border-green-600 text-white")}><CheckCircle className={cn(isFullscreen ? "w-12 h-12" : "w-6 h-6")}/></div>;
+            return <div className={cn(baseClasses, "bg-green-500 border-green-600 text-white")}><CheckCircle className="w-4 h-4 sm:w-6 sm:h-6"/></div>;
         default:
              return <div className={cn(baseClasses, "bg-white")}></div>;
     }
@@ -183,118 +180,109 @@ export function ListeningLabyrinth({ slug, onToggleFullscreen }: { slug: string;
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full transition-all duration-500 flex flex-col overflow-y-auto overflow-x-hidden justify-between",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            ? "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none bg-background p-2 sm:p-6" 
+            : "flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-lg rounded-2xl md:rounded-3xl"
       )}>
-      <CardHeader className="text-center relative">
+      <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 h-8 px-2 gap-1 text-muted-foreground hover:text-foreground z-20"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
         </Button>
-        {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
-            </div>
-        )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+        <div className="flex justify-center mb-2 sm:mb-4">
+            <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
+        </div>
+        <CardTitle className="font-black tracking-tight uppercase text-xl sm:text-3xl md:text-5xl">{game.title}</CardTitle>
+        <CardDescription className="text-xs sm:text-base mt-1 max-w-xl mx-auto">{game.description}</CardDescription>
         <div className="flex justify-center pt-2">
-            <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{game.level.toUpperCase()}</Badge>
+            <Badge variant="outline" className="text-xs sm:text-sm px-3 py-0.5">{game.level.toUpperCase()}</Badge>
         </div>
       </CardHeader>
-      <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[20rem] p-6"
-      )}>
+      <CardContent className="space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center flex-1 w-full max-w-4xl mx-auto p-2 sm:p-6 overflow-y-auto">
         {gameState === "idle" && (
-            <div className="flex flex-col items-center gap-4">
-                <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Follow the voice to escape the maze!</p>
-                <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                    <Sparkles className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
+            <div className="flex flex-col items-center gap-3 sm:gap-4 my-auto">
+                <p className="text-muted-foreground text-sm sm:text-xl">Follow the voice to escape the maze!</p>
+                <Button onClick={() => setGameState('instructions')} className="h-11 sm:h-14 px-6 sm:px-12 text-sm sm:text-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl rounded-xl">
+                    <Sparkles className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
                     Initialize Game
                 </Button>
             </div>
         )}
         {gameState === "instructions" && (
-             <div className={cn(
-                 "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20 shadow-inner",
-                 isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-lg"
-             )}>
-                <h3 className={cn("font-bold text-center mb-4", isFullscreen ? "text-4xl" : "text-xl")}>How to Play</h3>
-                <div className={cn("text-left space-y-4", isFullscreen ? "text-2xl" : "text-base")}>
-                    <p>1. Click 'Listen' to hear the next navigation command.</p>
-                    <p>2. Use the controls to move your character across the grid.</p>
+             <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 text-center bg-muted/50 rounded-2xl mx-auto border border-border/20 shadow-inner p-4 sm:p-8 max-w-lg w-full my-auto">
+                <h3 className="font-bold text-center text-lg sm:text-2xl">How to Play</h3>
+                <div className="text-left space-y-2 sm:space-y-3 text-xs sm:text-sm text-muted-foreground bg-background/50 p-3 sm:p-4 rounded-xl border border-border/20 w-full">
+                    <p>1. Click 'Listen' to hear the next audio navigation command.</p>
+                    <p>2. Use the arrow D-pad to move your rabbit character through the corridor.</p>
                     <p>3. Reach the green marker to clear the labyrinth!</p>
                 </div>
-                <Button onClick={handleStartGame} size="lg" className={cn("mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl shadow-xl")}>Enter Maze</Button>
+                <Button onClick={handleStartGame} className="w-full h-11 sm:h-14 text-sm sm:text-base bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black rounded-xl shadow-xl">Enter Maze</Button>
             </div>
         )}
         {gameState === "loading" && (
-            <div className="flex flex-col items-center justify-center gap-6">
-                <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-24 w-24" : "h-12 w-12")} />
-                <p className={cn("text-muted-foreground animate-pulse", isFullscreen ? "text-3xl" : "text-lg")}>Constructing procedural maze...</p>
+            <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 my-auto">
+                <Loader2 className="animate-spin text-primary h-10 w-10 sm:h-16 sm:w-16" />
+                <p className="text-muted-foreground animate-pulse text-xs sm:text-base">Constructing procedural maze...</p>
             </div>
         )}
         {(gameState === "playing" || gameState === "finished") && (
-            <div className={cn("flex flex-col items-center gap-10 w-full", isFullscreen && "max-w-5xl")}>
-                <div className={cn("grid gap-2 p-4 bg-muted/20 rounded-[2rem] border-4 border-primary/20 shadow-inner", isFullscreen && "gap-4 p-8")} style={{gridTemplateColumns: `repeat(${MAZE_SIZE}, minmax(0, 1fr))`}}>
+            <div className="flex flex-col items-center gap-4 sm:gap-8 w-full my-auto">
+                <div className="grid gap-1 sm:gap-2 p-2 sm:p-4 bg-muted/20 rounded-2xl sm:rounded-[2rem] border-2 sm:border-4 border-primary/20 shadow-inner" style={{gridTemplateColumns: `repeat(${MAZE_SIZE}, minmax(0, 1fr))`}}>
                     {maze.map((row, y) => row.map((cell, x) => (
                         <div key={`${x}-${y}`}>{renderCell(cell, x, y)}</div>
                     )))}
                 </div>
                 
-                <div className="flex flex-col md:flex-row items-center gap-12 w-full justify-center">
-                    <div className="flex flex-col items-center gap-4">
-                        <p className={cn("font-black uppercase tracking-widest text-muted-foreground", isFullscreen ? "text-2xl" : "text-xs")}>Step {currentStep + 1} / {directions.length + 1}</p>
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 w-full justify-center">
+                    <div className="flex flex-col items-center gap-2 sm:gap-3">
+                        <p className="font-black uppercase tracking-wider text-muted-foreground text-[10px] sm:text-xs">Step {currentStep + 1} / {directions.length + 1}</p>
                         <Button 
                             onClick={() => speakDirection(currentStep)} 
                             disabled={isSpeaking || gameState === 'finished'}
-                            size="lg"
-                            className={cn("font-black uppercase shadow-xl h-16 px-10", isFullscreen && "h-24 px-16 text-2xl rounded-3xl")}
+                            className="font-black uppercase shadow-lg h-11 sm:h-14 px-5 sm:px-8 text-xs sm:text-sm rounded-xl"
                         >
-                            {isSpeaking ? <Loader2 className="mr-3 animate-spin" /> : <Volume2 className="mr-3" />}
+                            {isSpeaking ? <Loader2 className="mr-2 animate-spin h-4 w-4" /> : <Volume2 className="mr-2 h-4 w-4" />}
                             Listen to Direction
                         </Button>
                     </div>
 
-                    <div className={cn("grid grid-cols-3 gap-3", isFullscreen ? "w-80 gap-6" : "w-48")}>
+                    <div className="grid grid-cols-3 gap-2 w-36 sm:w-44">
                         <div />
-                        <Button size="icon" onClick={() => handleUserMove("Up")} disabled={isSpeaking} className={cn("shadow-lg", isFullscreen ? "h-20 w-20" : "h-12 w-12")}><MoveUp/></Button>
+                        <Button size="icon" onClick={() => handleUserMove("Up")} disabled={isSpeaking} className="shadow-md h-10 w-10 sm:h-12 sm:w-12 rounded-xl"><MoveUp className="h-4 w-4 sm:h-5 sm:w-5"/></Button>
                         <div />
-                        <Button size="icon" onClick={() => handleUserMove("Left")} disabled={isSpeaking} className={cn("shadow-lg", isFullscreen ? "h-20 w-20" : "h-12 w-12")}><MoveLeft/></Button>
-                        <Button size="icon" onClick={() => handleUserMove("Down")} disabled={isSpeaking} className={cn("shadow-lg", isFullscreen ? "h-20 w-20" : "h-12 w-12")}><MoveDown/></Button>
-                        <Button size="icon" onClick={() => handleUserMove("Right")} disabled={isSpeaking} className={cn("shadow-lg", isFullscreen ? "h-20 w-20" : "h-12 w-12")}><MoveRight/></Button>
+                        <Button size="icon" onClick={() => handleUserMove("Left")} disabled={isSpeaking} className="shadow-md h-10 w-10 sm:h-12 sm:w-12 rounded-xl"><MoveLeft className="h-4 w-4 sm:h-5 sm:w-5"/></Button>
+                        <Button size="icon" onClick={() => handleUserMove("Down")} disabled={isSpeaking} className="shadow-md h-10 w-10 sm:h-12 sm:w-12 rounded-xl"><MoveDown className="h-4 w-4 sm:h-5 sm:w-5"/></Button>
+                        <Button size="icon" onClick={() => handleUserMove("Right")} disabled={isSpeaking} className="shadow-md h-10 w-10 sm:h-12 sm:w-12 rounded-xl"><MoveRight className="h-4 w-4 sm:h-5 sm:w-5"/></Button>
                     </div>
                 </div>
             </div>
         )}
          {gameState === "finished" && (
-             <div className="flex flex-col items-center gap-8 animate-in zoom-in duration-500">
-                <CheckCircle className={cn("text-green-500 drop-shadow-[0_0_20px_rgba(34,197,94,0.5)]", isFullscreen ? "h-48 w-48" : "h-24 w-24")}/>
-                <div className="space-y-2">
-                    <h2 className={cn("font-black uppercase tracking-tighter text-white", isFullscreen ? "text-7xl" : "text-4xl")}>Path Cleared!</h2>
-                    <p className={cn("font-black text-primary uppercase", isFullscreen ? "text-4xl" : "text-2xl")}>Mission Accomplished</p>
+             <div className="flex flex-col items-center gap-4 sm:gap-6 animate-in zoom-in duration-300 my-auto">
+                <CheckCircle className="text-green-500 drop-shadow-[0_0_20px_rgba(34,197,94,0.5)] h-16 w-16 sm:h-24 sm:w-24"/>
+                <div className="space-y-1">
+                    <h2 className="font-black uppercase tracking-tight text-white text-2xl sm:text-4xl">Path Cleared!</h2>
+                    <p className="font-black text-primary uppercase text-base sm:text-xl">Mission Accomplished</p>
                 </div>
-                <Button onClick={handleStartGame} size="lg" className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                    <Repeat className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
+                <Button onClick={handleStartGame} className="h-11 sm:h-14 px-6 sm:px-12 text-xs sm:text-base bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl rounded-xl">
+                    <Repeat className="mr-2 h-4 w-4" />
                     Play Again
                 </Button>
             </div>
         )}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto">
+        <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold rounded-xl">
             <Link href="/games">Back to Library</Link>
         </Button>
         {gameState !== 'idle' && gameState !== 'instructions' && (
-            <Button variant="secondary" onClick={handleStartGame} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}><Repeat className="mr-2"/>Reset Maze</Button>
+            <Button variant="secondary" onClick={handleStartGame} className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold rounded-xl"><Repeat className="mr-2 h-4 w-4"/>Reset Maze</Button>
         )}
       </CardFooter>
     </Card>

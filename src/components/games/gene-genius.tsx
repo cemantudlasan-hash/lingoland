@@ -537,57 +537,54 @@ export function GeneGenius({ slug, onToggleFullscreen }: { slug: string; onToggl
   return (
     <Card
       className={cn(
-        "w-full transition-all duration-500 flex flex-col bg-slate-950 text-slate-50 border-emerald-500/20",
+        "w-full transition-all duration-500 flex flex-col justify-between bg-slate-950 text-slate-50 border-emerald-500/20 overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen
-          ? "min-h-screen rounded-none border-none max-w-none justify-center p-8"
-          : "max-w-4xl mx-auto shadow-2xl shadow-emerald-500/10 border"
+          ? "min-h-screen rounded-none border-none p-3 sm:p-6"
+          : "flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl border"
       )}
     >
-      <CardHeader className="text-center relative border-b border-emerald-950 pb-6">
+      <CardHeader className="text-center relative border-b border-emerald-950 pb-4 p-3 sm:p-6 shrink-0">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-slate-400 hover:text-slate-100 z-[100]"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-slate-400 hover:text-slate-100 z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
         </Button>
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <Dna className="w-10 h-10 text-emerald-400 animate-pulse" />
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Dna className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400 animate-pulse" />
         </div>
         <CardTitle
           className={cn(
-            "font-black uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400",
-            isFullscreen ? "text-5xl" : "text-3xl"
+            "font-black uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 text-xl sm:text-3xl md:text-4xl"
           )}
         >
           {game.title}
         </CardTitle>
         {gameState !== "idle" && gameState !== "instructions" && (
-          <div className="flex justify-center gap-3 mt-4">
-            <Badge variant="secondary" className="bg-emerald-900/50 text-emerald-200 border-emerald-800">
+          <div className="flex justify-center gap-2.5 mt-2">
+            <Badge variant="secondary" className="bg-emerald-900/50 text-emerald-200 border-emerald-800 text-[10px] sm:text-xs">
               Round {round}/{ROUNDS_COUNT}
             </Badge>
-            <Badge variant="outline" className="border-teal-800 text-teal-300">
+            <Badge variant="outline" className="border-teal-800 text-teal-300 text-[10px] sm:text-xs">
               Score: {score}
             </Badge>
           </div>
         )}
       </CardHeader>
 
-      <CardContent className={cn("flex flex-col items-center justify-center p-6", isFullscreen ? "min-h-[65vh]" : "min-h-[450px]")}>
+      <CardContent className={cn("flex-1 flex flex-col items-center justify-start sm:justify-center p-3 sm:p-6 w-full max-w-full overflow-y-auto overflow-x-hidden min-h-0")}>
         {gameState === "idle" && (
-          <div className="flex flex-col items-center gap-6 text-center max-w-lg">
-            <p className={cn("text-slate-300", isFullscreen ? "text-2xl" : "text-base")}>
+          <div className="flex flex-col items-center gap-5 text-center max-w-lg my-auto py-6">
+            <p className={cn("text-slate-300 text-xs sm:text-base leading-relaxed")}>
               Step into the biolab. Cross parental alleles, complete Punnett squares, and analyze the resulting phenotypes.
             </p>
             <Button
               onClick={() => setGameState("instructions")}
-              size={isFullscreen ? "lg" : "default"}
               className={cn(
-                "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-105",
-                isFullscreen && "h-20 px-16 text-2xl rounded-2xl"
+                "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-105 h-12 sm:h-16 px-8 sm:px-14 text-xs sm:text-lg rounded-xl sm:rounded-2xl"
               )}
             >
               Access Biolab
@@ -598,14 +595,13 @@ export function GeneGenius({ slug, onToggleFullscreen }: { slug: string; onToggl
         {gameState === "instructions" && (
           <div
             className={cn(
-              "flex flex-col items-center justify-center gap-6 text-center bg-emerald-950/20 rounded-3xl border border-emerald-500/10 shadow-inner w-full",
-              isFullscreen ? "p-16 max-w-4xl" : "p-8 max-w-2xl"
+              "flex flex-col items-center justify-center gap-4 sm:gap-6 text-center bg-emerald-950/20 rounded-2xl sm:rounded-3xl border border-emerald-500/10 shadow-inner w-full p-4 sm:p-8 max-w-2xl my-auto"
             )}
           >
-            <h3 className={cn("font-black uppercase tracking-widest text-emerald-400 mb-2", isFullscreen ? "text-4xl" : "text-2xl")}>
+            <h3 className={cn("font-black uppercase tracking-widest text-emerald-400 text-lg sm:text-2xl")}>
               Biolab Instructions
             </h3>
-            <div className={cn("text-left space-y-4 text-slate-300 font-medium", isFullscreen ? "text-xl" : "text-sm md:text-base")}>
+            <div className={cn("text-left space-y-3 sm:space-y-4 text-slate-300 font-medium text-xs sm:text-sm leading-relaxed")}>
               <p>🧬 **Cross Alleles**: Examine the parent genotypes listed at the top and left of the grid.</p>
               <p>📊 **Punnett Grid**: Solve the intersections to determine offspring genotypes (BB, Bb, bb).</p>
               <p>🔬 **Analyze Ratios**: Calculate genotype ratios or phenotype probabilities requested by the prompt.</p>
@@ -613,10 +609,8 @@ export function GeneGenius({ slug, onToggleFullscreen }: { slug: string; onToggl
             </div>
             <Button
               onClick={handleStartGame}
-              size="lg"
               className={cn(
-                "mt-6 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-black uppercase tracking-widest",
-                isFullscreen && "h-20 px-16 text-2xl rounded-2xl"
+                "mt-4 sm:mt-6 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white font-black uppercase tracking-widest h-12 sm:h-14 px-8 sm:px-12 text-xs sm:text-base rounded-xl"
               )}
             >
               Start Simulation
@@ -746,12 +740,12 @@ export function GeneGenius({ slug, onToggleFullscreen }: { slug: string; onToggl
         )}
       </CardContent>
 
-      <CardFooter className="flex justify-between border-t border-emerald-950 pt-6">
-        <Button variant="outline" className="border-slate-800 hover:bg-slate-900 text-slate-300 hover:text-slate-100" asChild>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 border-t border-emerald-950 pt-4 p-3 sm:p-6 w-full shrink-0">
+        <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold border-slate-800 hover:bg-slate-900 text-slate-300 hover:text-slate-100 rounded-xl" asChild>
           <Link href="/games">Shutdown Biolab</Link>
         </Button>
         {gameState !== "idle" && gameState !== "instructions" && (
-          <p className="font-black text-emerald-400 uppercase tracking-widest">
+          <p className="font-black text-emerald-400 uppercase tracking-widest text-xs sm:text-sm">
             Score: {score}
           </p>
         )}

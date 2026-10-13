@@ -319,35 +319,34 @@ export function GeometryGalaxy3D({ slug, onToggleFullscreen }: { slug: string; o
       `}</style>
 
       <Card className={cn(
-        "w-full overflow-hidden bg-slate-950/90 backdrop-blur-md border-sky-500/20 shadow-2xl relative text-white transition-all duration-500 z-10",
-        isFullscreen ? "h-screen rounded-none border-none" : "max-w-4xl mx-auto rounded-xl border",
+        "w-full flex-1 flex flex-col justify-between overflow-y-auto overflow-x-hidden bg-slate-950/90 backdrop-blur-md border-sky-500/20 shadow-2xl relative text-white transition-all duration-500 z-10 max-w-full",
+        isFullscreen ? "min-h-screen rounded-none border-none p-2 sm:p-6" : "min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl border",
         triggerShake && "galaxy-animate-shake"
       )}>
-        <CardHeader className="text-center relative">
+        <CardHeader className="text-center relative p-3 sm:p-6 pb-2 shrink-0">
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-4 h-auto p-2 gap-1 text-sky-400/70 hover:text-sky-400 z-[100]"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-sky-400/70 hover:text-sky-400 z-[100]"
             onClick={onToggleFullscreen}
           >
             {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
           </Button>
-          <div className="flex justify-center mb-2">
-            <Telescope className="w-12 h-12 text-sky-400" />
+          <div className="flex justify-center mb-1">
+            <Telescope className="w-8 h-8 sm:w-10 sm:h-10 text-sky-400" />
           </div>
-          <CardTitle className="text-3xl font-black italic uppercase">GEOMETRY GALAXY 3D</CardTitle>
-          <CardDescription className="text-sky-200">Scan the galaxy to identify 3D shapes by their properties.</CardDescription>
+          <CardTitle className="text-xl sm:text-3xl font-black italic uppercase">GEOMETRY GALAXY 3D</CardTitle>
+          <CardDescription className="text-sky-200 text-xs sm:text-sm">Scan the galaxy to identify 3D shapes by their properties.</CardDescription>
           {difficulty && (
-            <div className="flex justify-center pt-2">
-              <Badge variant="outline" className="border-sky-500 text-sky-400">{difficulty.toUpperCase()}</Badge>
+            <div className="flex justify-center pt-1.5">
+              <Badge variant="outline" className="border-sky-500 text-sky-400 text-[10px] sm:text-xs">{difficulty.toUpperCase()}</Badge>
             </div>
           )}
         </CardHeader>
 
         <CardContent className={cn(
-          "flex flex-col items-center justify-center relative p-0 overflow-hidden select-none touch-none",
-          isFullscreen ? "min-h-[calc(100vh-200px)]" : "min-h-[600px]"
+          "flex-1 flex flex-col items-center justify-start sm:justify-center relative p-2 sm:p-4 overflow-y-auto overflow-x-hidden select-none touch-none min-h-0 w-full"
         )}>
           <AnimatePresence>
             {feedback && (
@@ -418,29 +417,29 @@ export function GeometryGalaxy3D({ slug, onToggleFullscreen }: { slug: string; o
           )}
 
           {gameState === 'playing' && nodes[targetIndex] && (
-            <div className="w-full h-full flex flex-col items-center p-4">
-              <div className="w-full max-w-4xl flex justify-between items-center mb-4 px-4 bg-black/40 p-3 rounded-2xl border border-sky-500/20 shadow-lg relative z-[60]">
+            <div className="w-full h-full flex flex-col items-center p-2 sm:p-4 relative">
+              <div className="w-full max-w-2xl flex justify-between items-center mb-3 px-3 py-2 bg-black/60 rounded-xl border border-sky-500/20 shadow-lg relative z-[60]">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase text-sky-400 tracking-widest">DATA POINTS</span>
-                  <span className="text-3xl font-black">{score}</span>
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-sky-400 tracking-widest">DATA POINTS</span>
+                  <span className="text-xl sm:text-3xl font-black">{score}</span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-black uppercase text-sky-400 tracking-widest">OXYGEN REMAINING</span>
-                  <div className="flex items-center gap-2">
-                    <Timer className={cn("w-6 h-6", timeLeft < 10 ? "text-red-500 animate-bounce" : "text-sky-400")} />
-                    <span className={cn("text-3xl font-black", timeLeft < 10 && "text-red-500")}>{timeLeft}s</span>
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase text-sky-400 tracking-widest">OXYGEN REMAINING</span>
+                  <div className="flex items-center gap-1.5">
+                    <Timer className={cn("w-4 h-4 sm:w-5 sm:h-5", timeLeft < 10 ? "text-red-500 animate-bounce" : "text-sky-400")} />
+                    <span className={cn("text-xl sm:text-3xl font-black", timeLeft < 10 && "text-red-500")}>{timeLeft}s</span>
                   </div>
                 </div>
               </div>
 
-              <div className="w-full max-w-2xl border-4 p-6 rounded-3xl text-center mb-8 shadow-2xl bg-sky-900/40 border-sky-500/40 backdrop-blur-sm relative z-[60]">
-                <span className="text-[10px] font-black uppercase text-sky-400 tracking-[0.3em] mb-2 block">IDENTIFY THIS SOLID</span>
-                <p className="text-xl font-bold italic leading-tight">"{nodes[targetIndex].property}"</p>
+              <div className="w-full max-w-xl border-2 sm:border-4 p-3 sm:p-5 rounded-2xl text-center mb-4 shadow-xl bg-sky-900/40 border-sky-500/40 backdrop-blur-sm relative z-[60]">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase text-sky-400 tracking-[0.2em] mb-1 block">IDENTIFY THIS SOLID</span>
+                <p className="text-sm sm:text-lg font-bold italic leading-snug break-words">"{nodes[targetIndex].property}"</p>
               </div>
 
               <div 
                 onMouseDown={(e) => handleStartDrag(e.clientX, e.clientY)}
-                className={cn("relative w-full aspect-square max-w-[450px] select-none touch-none", isDragging ? "cursor-grabbing" : "cursor-grab")}
+                className={cn("relative w-full aspect-square max-w-[300px] sm:max-w-[420px] select-none touch-none my-auto", isDragging ? "cursor-grabbing" : "cursor-grab")}
                 style={{ perspective: '1200px' }}
               >
                 <motion.div className="w-full h-full relative flex items-center justify-center pointer-events-none" style={{ transformStyle: 'preserve-3d', rotateX: rotateXValue, rotateY: rotateYValue }}>
@@ -451,7 +450,7 @@ export function GeometryGalaxy3D({ slug, onToggleFullscreen }: { slug: string; o
                         key={node.id}
                         onClick={() => handleNodeClick(node)}
                         className={cn(
-                          "absolute p-4 rounded-xl text-lg font-black transition-all duration-500 border-4 whitespace-nowrap shadow-2xl pointer-events-auto",
+                          "absolute px-2.5 py-1.5 sm:p-3.5 rounded-lg sm:rounded-xl text-xs sm:text-base font-black transition-all duration-500 border-2 sm:border-4 whitespace-nowrap shadow-xl pointer-events-auto",
                           isCompleted ? "bg-sky-500/20 border-sky-500/40 text-sky-500/40 scale-75 pointer-events-none" : "bg-white text-slate-950 border-sky-500 hover:bg-sky-500 hover:text-white"
                         )}
                         style={{ x: node.x, y: node.y, z: node.z, rotateX: invRotateX, rotateY: invRotateY, transformStyle: 'preserve-3d', zIndex: Math.round(node.z + 500), scale: (node.z + 600) / 600, opacity: (node.z + 400) / 600 }}
@@ -463,59 +462,59 @@ export function GeometryGalaxy3D({ slug, onToggleFullscreen }: { slug: string; o
                 </motion.div>
               </div>
 
-              <div className="absolute bottom-6 left-6 flex flex-col items-center gap-2 bg-black/60 p-4 rounded-3xl backdrop-blur-md border border-sky-500/20 z-[70] shadow-2xl">
-                <Button variant="outline" size="icon" onClick={() => manualRotate('up')} className="h-10 w-10 rounded-full border-2 bg-white/10 text-white hover:bg-sky-500 border-white/20"><ArrowUp className="w-4 h-4"/></Button>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="icon" onClick={() => manualRotate('left')} className="h-10 w-10 rounded-full border-2 bg-white/10 text-white hover:bg-sky-500 border-white/20"><ArrowLeft className="w-4 h-4"/></Button>
-                  <Button variant="outline" size="icon" onClick={() => manualRotate('down')} className="h-10 w-10 rounded-full border-2 bg-white/10 text-white hover:bg-sky-500 border-white/20"><ArrowDown className="w-4 h-4"/></Button>
-                  <Button variant="outline" size="icon" onClick={() => manualRotate('right')} className="h-10 w-10 rounded-full border-2 bg-white/10 text-white hover:bg-sky-500 border-white/20"><ArrowRight className="w-4 h-4"/></Button>
+              <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 flex flex-col items-center gap-1.5 bg-black/70 p-2 sm:p-3 rounded-2xl backdrop-blur-md border border-sky-500/20 z-[70] shadow-xl">
+                <Button variant="outline" size="icon" onClick={() => manualRotate('up')} className="h-7 w-7 sm:h-9 sm:w-9 rounded-full border bg-white/10 text-white hover:bg-sky-500 border-white/20"><ArrowUp className="w-3 h-3 sm:w-4 sm:h-4"/></Button>
+                <div className="flex gap-1.5">
+                  <Button variant="outline" size="icon" onClick={() => manualRotate('left')} className="h-7 w-7 sm:h-9 sm:w-9 rounded-full border bg-white/10 text-white hover:bg-sky-500 border-white/20"><ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4"/></Button>
+                  <Button variant="outline" size="icon" onClick={() => manualRotate('down')} className="h-7 w-7 sm:h-9 sm:w-9 rounded-full border bg-white/10 text-white hover:bg-sky-500 border-white/20"><ArrowDown className="w-3 h-3 sm:w-4 sm:h-4"/></Button>
+                  <Button variant="outline" size="icon" onClick={() => manualRotate('right')} className="h-7 w-7 sm:h-9 sm:w-9 rounded-full border bg-white/10 text-white hover:bg-sky-500 border-white/20"><ArrowRight className="w-3 h-3 sm:w-4 sm:h-4"/></Button>
                 </div>
               </div>
             </div>
           )}
 
           {gameState === 'finished' && (
-            <div className="flex flex-col items-center gap-8 px-6 text-center w-full max-w-xl mx-auto py-6 animate-in fade-in duration-500">
-              <Trophy className="w-32 h-32 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] animate-bounce" />
-              <h2 className="text-4xl font-black uppercase">SECTOR CLEARED</h2>
-              <p className="text-xl">Mission Score: <span className="text-sky-400 text-3xl font-black">{score} pts</span></p>
+            <div className="flex flex-col items-center gap-6 px-4 text-center w-full max-w-xl mx-auto py-6 animate-in fade-in duration-500 my-auto">
+              <Trophy className="w-20 h-20 sm:w-28 sm:h-28 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] animate-bounce" />
+              <h2 className="text-2xl sm:text-4xl font-black uppercase">SECTOR CLEARED</h2>
+              <p className="text-base sm:text-xl">Mission Score: <span className="text-sky-400 text-2xl sm:text-3xl font-black">{score} pts</span></p>
 
               {/* Daily Bonus Claimed Banner */}
               {isDailyBonus && (
-                <div className="relative w-full bg-gradient-to-r from-amber-500/10 via-yellow-500/20 to-amber-500/10 border-2 border-amber-500/40 rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-3 overflow-hidden animate-in zoom-in-95 duration-500 my-2 z-10">
+                <div className="relative w-full bg-gradient-to-r from-amber-500/10 via-yellow-500/20 to-amber-500/10 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col items-center gap-2.5 overflow-hidden animate-in zoom-in-95 duration-500 my-2 z-10">
                   <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-2 left-6 text-sm animate-bounce" style={{ animationDelay: '100ms' }}>🪙</div>
                     <div className="absolute bottom-4 right-12 text-sm animate-bounce" style={{ animationDelay: '300ms' }}>⭐</div>
                     <div className="absolute top-6 right-8 text-sm animate-bounce" style={{ animationDelay: '500ms' }}>🪙</div>
                     <div className="absolute bottom-2 left-10 text-sm animate-bounce" style={{ animationDelay: '700ms' }}>⭐</div>
                   </div>
-                  <div className="galaxy-glow-coin bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 p-4 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/40 relative">
-                    <Coins className="h-10 w-10 fill-amber-950 text-amber-950 animate-spin" style={{ animationDuration: '5s' }} />
+                  <div className="galaxy-glow-coin bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 p-3 sm:p-4 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/40 relative">
+                    <Coins className="h-8 w-8 sm:h-10 sm:w-10 fill-amber-950 text-amber-950 animate-spin" style={{ animationDuration: '5s' }} />
                     <span className="absolute -top-1 -right-2 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-background shadow">
                       CLAIMED
                     </span>
                   </div>
-                  <h3 className="text-lg font-black text-amber-400 tracking-wide uppercase">Daily Bonus Coins Claimed!</h3>
-                  <p className="text-sm font-semibold text-muted-foreground text-center max-w-xs leading-relaxed">
+                  <h3 className="text-base sm:text-lg font-black text-amber-400 tracking-wide uppercase">Daily Bonus Coins Claimed!</h3>
+                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground text-center max-w-xs leading-relaxed">
                     You completed the Daily Game and earned <span className="text-yellow-400 font-black">+{dailyBonusAmount} Lingo-Coins</span> for your pet!
                   </p>
                 </div>
               )}
 
-              <div className="flex gap-4 z-10 relative">
-                <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className="rounded-full bg-sky-500 text-white font-bold">NEW SECTOR</Button>
-                <Button variant="outline" onClick={() => setGameState('idle')} size="lg" className="rounded-full border-sky-500 text-sky-400 hover:bg-sky-500/10">RETURN TO BASE</Button>
+              <div className="flex flex-col sm:flex-row gap-3 z-10 relative w-full justify-center">
+                <Button onClick={() => setGameState('selecting_difficulty')} className="h-11 sm:h-12 text-xs sm:text-sm rounded-xl bg-sky-500 text-white font-bold">NEW SECTOR</Button>
+                <Button variant="outline" onClick={() => setGameState('idle')} className="h-11 sm:h-12 text-xs sm:text-sm rounded-xl border-sky-500 text-sky-400 hover:bg-sky-500/10">RETURN TO BASE</Button>
               </div>
             </div>
           )}
         </CardContent>
 
-        <CardFooter className="bg-black/40 p-6 flex justify-between border-t border-sky-500/20">
-          <Button variant="ghost" asChild className="text-sky-400 hover:text-sky-300 hover:bg-sky-500/10"><Link href="/games">EXIT GALAXY</Link></Button>
+        <CardFooter className="bg-black/40 p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2.5 border-t border-sky-500/20 w-full shrink-0">
+          <Button variant="ghost" asChild className="w-full sm:w-auto h-10 text-xs sm:text-sm text-sky-400 hover:text-sky-300 hover:bg-sky-500/10"><Link href="/games">EXIT GALAXY</Link></Button>
           {gameState === 'playing' && (
-            <div className="flex items-center gap-4 text-xs font-black text-sky-400">
+            <div className="flex items-center gap-3 text-[11px] sm:text-xs font-black text-sky-400 w-full sm:w-auto justify-between sm:justify-end">
               <span>SHAPE {targetIndex + 1} / {nodes.length}</span>
-              <div className="w-32 h-3 bg-white/10 rounded-full overflow-hidden border border-sky-500/20">
+              <div className="w-24 sm:w-32 h-2.5 bg-white/10 rounded-full overflow-hidden border border-sky-500/20">
                 <motion.div className="h-full bg-sky-500 shadow-[0_0_10px_#0ea5e9]" initial={{ width: 0 }} animate={{ width: `${(targetIndex / nodes.length) * 100}%` }} />
               </div>
             </div>

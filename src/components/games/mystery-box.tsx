@@ -321,10 +321,10 @@ export function MysteryBox({ slug, onToggleFullscreen }: { slug: string; onToggl
               IT'S <span className="text-primary">{teams[currentTurn].name}'S</span> TURN!
             </div>
             <div className={cn(
-                "grid gap-4",
+                "grid gap-2 sm:gap-3 max-w-full justify-center",
                 isFullscreen 
-                    ? "grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-6" 
-                    : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-2"
+                    ? "grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-9" 
+                    : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7"
             )}>
               {boxes.map((box) => (
                 <button
@@ -332,8 +332,8 @@ export function MysteryBox({ slug, onToggleFullscreen }: { slug: string; onToggl
                   onClick={() => handleBoxClick(box)}
                   disabled={box.opened}
                   className={cn(
-                    'flex items-center justify-center rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-110 font-black text-white border-4 border-white/10',
-                    isFullscreen ? "w-24 h-24 text-4xl" : "w-16 h-16 text-xl",
+                    'flex items-center justify-center rounded-xl sm:rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 font-black text-white border-2 sm:border-4 border-white/10 cursor-pointer',
+                    isFullscreen ? "w-14 h-14 sm:w-20 sm:h-20 text-xl sm:text-3xl" : "w-14 h-14 sm:w-16 sm:h-16 text-lg sm:text-xl",
                     box.opened
                       ? 'bg-muted cursor-not-allowed opacity-30 border-none'
                       : 'bg-gradient-to-br from-purple-600 to-indigo-700 hover:shadow-indigo-500/50'
@@ -373,11 +373,16 @@ export function MysteryBox({ slug, onToggleFullscreen }: { slug: string; onToggl
         );
       default:
         return (
-          <div className="flex flex-col items-center gap-4">
-            <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Unlock the linguistic vaults. Test your luck!</p>
-            <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-              <Sparkles className={cn("mr-2", isFullscreen ? "h-10 w-10" : "h-5 w-5")} /> Initialize
-            </Button>
+          <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+            <p className={cn("text-muted-foreground", isFullscreen ? "text-xl sm:text-2xl" : "text-sm sm:text-base")}>Unlock the linguistic vaults. Test your luck!</p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <Button onClick={() => setGameState('setup')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black flex-1", isFullscreen && "h-16 px-10 text-xl rounded-2xl")}>
+                <Sparkles className="mr-2 h-5 w-5" /> Quick Start
+              </Button>
+              <Button onClick={() => setGameState('instructions')} variant="outline" size={isFullscreen ? "lg" : "default"} className={cn("border-purple-500/40 text-purple-300 font-bold flex-1", isFullscreen && "h-16 px-10 text-xl rounded-2xl")}>
+                <HelpCircle className="mr-2 h-5 w-5" /> How To Play
+              </Button>
+            </div>
           </div>
         );
     }
@@ -386,37 +391,36 @@ export function MysteryBox({ slug, onToggleFullscreen }: { slug: string; onToggl
   return (
     <>
       <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden transition-all duration-500 shadow-lg",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            ? "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none bg-background p-2 sm:p-6" 
+            : "rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20"
       )}>
-        <CardHeader className="text-center relative">
+        <CardHeader className="text-center relative py-3 sm:py-6 px-4">
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+            className="absolute top-3 sm:top-4 right-3 sm:right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
             onClick={onToggleFullscreen}
           >
             {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
           </Button>
           {!isFullscreen && (
-              <div className="flex justify-center mb-4">
-                  <Icon className="w-16 h-16 text-primary" />
+              <div className="flex justify-center mb-2 sm:mb-4">
+                  <Icon className="w-10 h-10 sm:w-14 sm:h-14 text-primary" />
               </div>
           )}
-          <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-          <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+          <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-3xl sm:text-6xl" : "text-xl sm:text-3xl")}>{game.title}</CardTitle>
+          <CardDescription className={cn("text-xs sm:text-sm max-w-xl mx-auto", isFullscreen && "text-base sm:text-2xl mt-1")}>{game.description}</CardDescription>
         </CardHeader>
         <CardContent className={cn(
-            "space-y-6 text-center flex flex-col items-center justify-center",
-            isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[24rem] p-6"
+            "space-y-4 sm:space-y-6 text-center flex-1 flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-5xl mx-auto overflow-y-auto"
         )}>
           {gameState !== 'setup' && gameState !== 'loading' && gameState !== 'instructions' && gameState !== 'idle' && (
             <div
               className={cn(
-                'w-full grid gap-4 mb-8 text-lg font-black text-center',
+                'w-full grid gap-2 sm:gap-4 mb-4 sm:mb-8 text-sm sm:text-lg font-black text-center',
                 teams.length === 2 && 'grid-cols-2',
                 teams.length === 3 && 'grid-cols-3',
                 teams.length >= 4 && 'grid-cols-4',
@@ -427,30 +431,35 @@ export function MysteryBox({ slug, onToggleFullscreen }: { slug: string; onToggl
                 <div
                   key={index}
                   className={cn(
-                    'p-4 rounded-2xl border-4 transition-all duration-300',
+                    'p-2 sm:p-4 rounded-xl sm:rounded-2xl border-2 sm:border-4 transition-all duration-300',
                     currentTurn === index
                       ? 'border-primary bg-primary/10 scale-105 shadow-lg shadow-primary/20'
                       : 'border-transparent bg-muted/50 opacity-70',
-                    isFullscreen && "p-6 text-2xl"
+                    isFullscreen && "p-4 sm:p-6 text-lg sm:text-2xl"
                   )}
                 >
-                  <p className="truncate uppercase tracking-widest">{team.name}</p>
-                  <p className={cn("text-primary", isFullscreen ? "text-4xl" : "text-xl")}>{team.score} pts</p>
+                  <p className="truncate uppercase tracking-widest text-xs sm:text-base">{team.name}</p>
+                  <p className={cn("text-primary font-mono", isFullscreen ? "text-xl sm:text-4xl" : "text-base sm:text-xl")}>{team.score} pts</p>
                 </div>
               ))}
             </div>
           )}
           {renderContent()}
         </CardContent>
-        <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 sm:pt-6 border-t border-border/10 p-4 sm:p-6 w-full max-w-5xl mx-auto shrink-0", isFullscreen && "border-none bg-transparent")}>
+          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto cursor-pointer", isFullscreen && "h-12 sm:h-16 px-8 text-base sm:text-xl font-bold rounded-2xl")}>
             <Link href="/games">Back to Library</Link>
           </Button>
+          {gameState === 'idle' && (
+            <Button variant="ghost" onClick={() => setGameState('instructions')} className="text-primary hover:text-primary/80 font-bold text-sm cursor-pointer">
+              How to Play
+            </Button>
+          )}
           {gameState !== 'setup' &&
             gameState !== 'loading' &&
             gameState !== 'instructions' &&
             gameState !== 'idle' && (
-              <Button variant="secondary" onClick={resetGame} size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 text-xl font-bold rounded-2xl")}>
+              <Button variant="secondary" onClick={resetGame} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto cursor-pointer", isFullscreen && "h-12 sm:h-16 text-xl font-bold rounded-2xl")}>
                 Reset Session
               </Button>
             )}

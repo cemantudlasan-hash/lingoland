@@ -34,6 +34,7 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
   const [timeLeft, setTimeLeft] = React.useState(15);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [resultStatus, setResultStatus] = React.useState<"correct" | "incorrect" | "timeout">("correct");
+  const [showHowToPlay, setShowHowToPlay] = React.useState(false);
   
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
@@ -238,48 +239,51 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 bg-slate-900 flex flex-col relative border-none overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[700px]"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden relative border-none shadow-2xl transition-all duration-500 bg-slate-900",
+      isFullscreen ? "fixed inset-0 z-50 min-h-screen rounded-none" : "rounded-2xl md:rounded-3xl"
     )}>
       <div className="absolute inset-0 pointer-events-none z-0" style={{ backgroundImage: "radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1), rgba(15, 23, 42, 1))" }}></div>
       <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: "linear-gradient(rgba(139, 92, 246, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(139, 92, 246, 0.2) 1px, transparent 1px)", backgroundSize: "30px 30px" }} />
 
-      <CardHeader className="z-10 bg-slate-950/80 backdrop-blur-md relative border-b border-violet-500/20">
-        <div className="flex justify-between items-center text-violet-100">
-           <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" asChild className="text-violet-500/50 hover:text-violet-400">
-                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
+      <CardHeader className="z-10 bg-slate-950/80 backdrop-blur-md relative border-b border-violet-500/20 py-3 sm:py-4 px-3 sm:px-6 shrink-0">
+        <div className="flex justify-between items-center text-violet-100 gap-2">
+           <div className="flex items-center gap-2 sm:gap-4">
+              <Button variant="ghost" size="icon" asChild className="text-violet-500/50 hover:text-violet-400 shrink-0">
+                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
               </Button>
-              <FlaskConical className="h-8 w-8 text-violet-400" />
+              <FlaskConical className="h-6 w-6 sm:h-8 sm:w-8 text-violet-400 shrink-0" />
               <div>
-                <CardTitle className="text-2xl font-black uppercase text-violet-300 tracking-widest font-mono">Molecule Maker</CardTitle>
-                <Badge variant="outline" className="border-violet-500/30 text-violet-400 mt-1">Synthesis {round}/10</Badge>
+                <CardTitle className="text-base sm:text-2xl font-black uppercase text-violet-300 tracking-wider sm:tracking-widest font-mono">Molecule Maker</CardTitle>
+                <Badge variant="outline" className="border-violet-500/30 text-violet-400 mt-0.5 text-[9px] sm:text-xs">Synthesis {round}/10</Badge>
               </div>
            </div>
-           <div className="flex items-center gap-6">
+           <div className="flex items-center gap-3 sm:gap-6 shrink-0">
               <div className="text-right">
-                 <p className="text-[10px] uppercase text-violet-500 font-bold tracking-widest">Yield</p>
-                 <p className="text-2xl font-black text-violet-300 tabular-nums">{score}</p>
+                 <p className="text-[9px] sm:text-[10px] uppercase text-violet-500 font-bold tracking-widest">Yield</p>
+                 <p className="text-lg sm:text-2xl font-black text-violet-300 tabular-nums">{score}</p>
               </div>
-              <Button variant="ghost" size="icon" className="text-violet-500" onClick={onToggleFullscreen}>
-                 {isFullscreen ? <Minimize /> : <Maximize />}
+              <Button variant="ghost" size="icon" className="text-violet-500 cursor-pointer" onClick={onToggleFullscreen}>
+                 {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
               </Button>
            </div>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col z-10 relative p-6 items-center justify-center">
+      <CardContent className="flex-grow flex flex-col z-10 relative p-3 sm:p-6 items-center justify-center w-full max-w-4xl mx-auto overflow-y-auto">
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
-                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, y:-20}} className="text-center bg-slate-900/60 p-12 rounded-[40px] backdrop-blur-sm border border-violet-500/30 shadow-[0_0_50px_rgba(139,92,246,0.15)] w-full max-w-md">
-                    <Atom className="w-32 h-32 text-violet-400 mx-auto animate-spin-slow mb-6" style={{ animationDuration: '10s' }} />
-                    <h2 className="text-4xl font-black text-white uppercase mb-4 font-mono tracking-widest">Lab System Offline</h2>
-                    <p className="text-violet-300/60 mb-10 mx-auto lowercase">Select complexity level to initialize synthesizer.</p>
-                    <div className="flex flex-col gap-4">
-                        <Button onClick={() => startGame("easy")} className="h-16 px-12 text-xl font-bold bg-slate-950 border-2 border-green-500/30 hover:border-green-500 text-green-400 rounded-xl font-mono uppercase tracking-widest transition-all">Basic Compounds (Easy)</Button>
-                        <Button onClick={() => startGame("intermediate")} className="h-16 px-12 text-xl font-bold bg-slate-950 border-2 border-violet-500/30 hover:border-violet-500 text-violet-400 rounded-xl font-mono uppercase tracking-widest transition-all">Organic Chemistry (Intermediate)</Button>
-                        <Button onClick={() => startGame("pro")} className="h-16 px-12 text-xl font-bold bg-slate-950 border-2 border-red-500/30 hover:border-red-500 text-red-400 rounded-xl font-mono uppercase tracking-widest transition-all">Biochemistry (Pro)</Button>
-                        <Button variant="ghost" asChild className="mt-4 text-violet-500/50 hover:text-violet-300 uppercase tracking-widest font-mono">
+                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, y:-20}} className="text-center bg-slate-900/60 p-6 sm:p-12 rounded-2xl sm:rounded-[40px] backdrop-blur-sm border border-violet-500/30 shadow-[0_0_50px_rgba(139,92,246,0.15)] w-full max-w-md">
+                    <Atom className="w-20 h-20 sm:w-32 sm:h-32 text-violet-400 mx-auto animate-spin-slow mb-4 sm:mb-6" style={{ animationDuration: '10s' }} />
+                    <h2 className="text-2xl sm:text-4xl font-black text-white uppercase mb-2 sm:mb-4 font-mono tracking-wider sm:tracking-widest">Lab System Offline</h2>
+                    <p className="text-violet-300/60 mb-6 sm:mb-8 mx-auto text-xs sm:text-sm">Select complexity level to initialize synthesizer.</p>
+                    <div className="flex flex-col gap-3">
+                        <Button onClick={() => startGame("easy")} className="h-12 sm:h-16 px-6 text-sm sm:text-xl font-bold bg-slate-950 border-2 border-green-500/30 hover:border-green-500 text-green-400 rounded-xl font-mono uppercase tracking-widest transition-all cursor-pointer">Basic Compounds (Easy)</Button>
+                        <Button onClick={() => startGame("intermediate")} className="h-12 sm:h-16 px-6 text-sm sm:text-xl font-bold bg-slate-950 border-2 border-violet-500/30 hover:border-violet-500 text-violet-400 rounded-xl font-mono uppercase tracking-widest transition-all cursor-pointer">Organic Chemistry (Intermediate)</Button>
+                        <Button onClick={() => startGame("pro")} className="h-12 sm:h-16 px-6 text-sm sm:text-xl font-bold bg-slate-950 border-2 border-red-500/30 hover:border-red-500 text-red-400 rounded-xl font-mono uppercase tracking-widest transition-all cursor-pointer">Biochemistry (Pro)</Button>
+                        <Button onClick={() => setShowHowToPlay(true)} variant="outline" className="h-12 text-sm font-bold border-violet-500/40 text-violet-300 hover:bg-violet-950/40 rounded-xl font-mono uppercase tracking-wider cursor-pointer">
+                           How To Play
+                        </Button>
+                        <Button variant="ghost" asChild className="mt-2 text-violet-500/50 hover:text-violet-300 uppercase tracking-widest font-mono text-xs">
                            <Link href="/games">Back to Lab Entrance</Link>
                         </Button>
                     </div>
@@ -288,24 +292,24 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
 
             {gameState === "playing" && currentProblem && (
                 <div className="w-full max-w-3xl text-center">
-                    <motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="bg-slate-950 border border-violet-500/50 p-8 rounded-[32px] mb-12 shadow-[0_0_30px_rgba(139,92,246,0.2)]">
-                        <p className="text-violet-500 font-bold uppercase tracking-widest text-sm mb-4">Target Compound</p>
-                        <h1 className="text-4xl md:text-5xl font-black text-white tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{currentProblem.name}</h1>
+                    <motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="bg-slate-950 border border-violet-500/50 p-4 sm:p-8 rounded-2xl sm:rounded-[32px] mb-4 sm:mb-8 shadow-[0_0_30px_rgba(139,92,246,0.2)]">
+                        <p className="text-violet-500 font-bold uppercase tracking-widest text-xs sm:text-sm mb-2 sm:mb-4">Target Compound</p>
+                        <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-wider sm:tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{currentProblem.name}</h1>
                     </motion.div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
                         {currentProblem.options.map((opt, i) => (
                             <motion.div key={opt} initial={{opacity:0, scale:0.8}} animate={{opacity:1, scale:1}} transition={{delay: i*0.1}}>
-                                <Button onClick={() => handleChoice(opt)} className="w-full min-h-[80px] h-auto py-4 text-3xl font-mono font-bold bg-slate-800/80 hover:bg-violet-600 hover:scale-105 text-violet-100 border border-violet-500/30 transition-all rounded-2xl">
+                                <Button onClick={() => handleChoice(opt)} className="w-full min-h-[60px] sm:min-h-[80px] h-auto py-3 sm:py-4 text-xl sm:text-3xl font-mono font-bold bg-slate-800/80 hover:bg-violet-600 hover:scale-[1.02] text-violet-100 border border-violet-500/30 transition-all rounded-xl sm:rounded-2xl cursor-pointer">
                                     {opt.split(/([0-9]+)/).map((part, index) => 
-                                        part.match(/[0-9]+/) ? <sub key={index} className="text-xl relative top-2">{part}</sub> : <span key={index}>{part}</span>
+                                        part.match(/[0-9]+/) ? <sub key={index} className="text-sm sm:text-xl relative top-1 sm:top-2">{part}</sub> : <span key={index}>{part}</span>
                                     )}
                                 </Button>
                             </motion.div>
                         ))}
                     </div>
 
-                    <div className="mt-16 max-w-md mx-auto relative">
+                    <div className="mt-6 sm:mt-12 max-w-md mx-auto relative px-2">
                         <div className="flex justify-between text-xs font-black uppercase text-violet-500 mb-2">
                            <span>Containment Strength</span>
                            <span>{timeLeft.toFixed(1)}s</span>
@@ -366,8 +370,81 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
                     </div>
                 </motion.div>
             )}
-         </AnimatePresence>
+          </AnimatePresence>
       </CardContent>
+
+      {/* How to Play Modal */}
+      <AnimatePresence>
+        {showHowToPlay && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-slate-900 border border-violet-500/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative space-y-5 text-left"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-violet-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-violet-500/20 text-violet-400">
+                    <FlaskConical className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">How To Play Molecule Maker</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowHowToPlay(false)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              <div className="space-y-4 text-sm text-slate-300 font-sans">
+                <div className="p-3 bg-violet-950/40 rounded-xl border border-violet-500/20">
+                  <p className="font-bold text-violet-200">🧪 Mission:</p>
+                  <p className="text-xs text-violet-300/80 mt-1 leading-relaxed">
+                    Identify the correct chemical formula for the displayed target compound before containment strength is depleted.
+                  </p>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <p className="font-black text-white uppercase tracking-wide">1. Read the Compound Name</p>
+                    <p className="text-slate-400 mt-1">
+                      Check the target compound (e.g. Water, Carbon Dioxide, Ethanol, Glucose).
+                    </p>
+                  </div>
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <p className="font-black text-white uppercase tracking-wide">2. Select the Formula</p>
+                    <p className="text-slate-400 mt-1">
+                      Tap the matching chemical formula among the 4 options. Be mindful of subscripts!
+                    </p>
+                  </div>
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <p className="font-black text-white uppercase tracking-wide">3. Beat the Containment Timer</p>
+                    <p className="text-slate-400 mt-1">
+                      Faster syntheses yield higher lab points! Complete all 10 rounds to finalize the batch.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => setShowHowToPlay(false)}
+                className="w-full h-12 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl cursor-pointer"
+              >
+                Understood, Enter Lab!
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Card>
   );
 }

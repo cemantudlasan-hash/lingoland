@@ -144,8 +144,8 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 flex flex-col overflow-y-auto relative border-none shadow-2xl",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen bg-black" : "max-w-4xl mx-auto min-h-[500px] h-[600px] md:h-[700px] bg-zinc-950"
+      "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden relative border-none shadow-2xl transition-all duration-500",
+      isFullscreen ? "fixed inset-0 z-50 rounded-none min-h-screen bg-black" : "rounded-2xl md:rounded-3xl bg-zinc-950"
     )}>
       {/* Cyberpunk Grid Background Effect */}
       <div className="absolute inset-0 z-0 opacity-20">
@@ -153,36 +153,36 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent" />
       </div>
 
-      <CardHeader className="z-10 bg-black/60 backdrop-blur-md border-b border-green-500/20 relative">
-        <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" asChild className="text-green-500/50 hover:text-green-400 mr-2">
+      <CardHeader className="z-10 bg-black/60 backdrop-blur-md border-b border-green-500/20 relative py-3 sm:py-4 px-3 sm:px-6">
+        <div className="flex justify-between items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+                <Button variant="ghost" size="icon" asChild className="text-green-500/50 hover:text-green-400 shrink-0">
                     <Link href="/games">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                     </Link>
                 </Button>
-                <Grid3X3 className="h-8 w-8 text-green-500 shadow-green-500/50 drop-shadow-md" />
+                <Grid3X3 className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 shadow-green-500/50 drop-shadow-md shrink-0" />
                 <div>
-                    <CardTitle className="text-2xl font-black text-white tracking-[0.2em] uppercase font-mono">Math Matrix</CardTitle>
-                    <div className="flex gap-2 mt-1">
-                        <Badge variant="outline" className="text-green-400 border-green-400/50 font-mono">SECTOR {round}/{ROUNDS}</Badge>
-                        <Badge variant="outline" className="text-yellow-400 border-yellow-400/50 font-mono">CHAIN x{combo}</Badge>
+                    <CardTitle className="text-lg sm:text-2xl font-black text-white tracking-[0.15em] sm:tracking-[0.2em] uppercase font-mono">Math Matrix</CardTitle>
+                    <div className="flex gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
+                        <Badge variant="outline" className="text-green-400 border-green-400/50 font-mono text-[9px] sm:text-xs py-0 px-1.5">SECTOR {round}/{ROUNDS}</Badge>
+                        <Badge variant="outline" className="text-yellow-400 border-yellow-400/50 font-mono text-[9px] sm:text-xs py-0 px-1.5">CHAIN x{combo}</Badge>
                     </div>
                 </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                 <div className="text-right">
-                    <p className="text-[10px] font-bold text-green-500/50 uppercase tracking-widest">Score</p>
-                    <p className="text-2xl font-black text-white tabular-nums font-mono">{score}</p>
+                    <p className="text-[9px] sm:text-[10px] font-bold text-green-500/50 uppercase tracking-widest">Score</p>
+                    <p className="text-lg sm:text-2xl font-black text-white tabular-nums font-mono">{score}</p>
                 </div>
-                <Button variant="ghost" size="icon" className="text-green-500/50 hover:text-green-400" onClick={onToggleFullscreen}>
-                    {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+                <Button variant="ghost" size="icon" className="text-green-500/50 hover:text-green-400 cursor-pointer" onClick={onToggleFullscreen}>
+                    {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </Button>
             </div>
         </div>
       </CardHeader>
 
-      <CardContent className={cn("flex-grow flex flex-col items-center justify-center p-6 z-10 relative overflow-y-auto", isFullscreen ? "min-h-[60vh]" : "min-h-[350px]")}>
+      <CardContent className={cn("flex-grow flex flex-col items-center justify-center p-4 sm:p-6 z-10 relative overflow-y-auto w-full max-w-4xl mx-auto", isFullscreen ? "min-h-[60vh]" : "min-h-[350px]")}>
         <AnimatePresence mode="wait">
           {gameState === "idle" && (
             <motion.div 
@@ -246,18 +246,18 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
           )}
 
           {gameState === "playing" && currentProblem && (
-            <div className="w-full h-full flex flex-col items-center justify-center relative pb-16 sm:pb-24">
+            <div className="w-full h-full flex flex-col items-center justify-center relative py-2 sm:py-4">
                <motion.div
                   key={currentProblem.id}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: "spring", damping: 20 }}
-                  className="mb-4 sm:mb-12 w-full max-w-xs sm:max-w-md px-4"
+                  className="mb-3 sm:mb-6 w-full max-w-[220px] sm:max-w-xs md:max-w-sm px-2"
                >
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {currentProblem.grid.map((val, idx) => (
                         <div key={idx} className={cn(
-                            "aspect-square flex items-center justify-center text-3xl sm:text-5xl md:text-7xl font-bold font-mono border-2 rounded-xl backdrop-blur-sm",
+                            "aspect-square flex items-center justify-center text-2xl sm:text-4xl md:text-5xl font-bold font-mono border-2 rounded-xl backdrop-blur-sm",
                             val === null 
                                 ? "border-red-500 bg-red-500/10 text-red-500 shadow-[inset_0_0_20px_rgba(239,68,68,0.3)] animate-pulse" 
                                 : "border-green-500/40 bg-green-900/20 text-white shadow-[0_0_15px_rgba(34,197,94,0.2)]"
@@ -268,7 +268,7 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
                   </div>
                </motion.div>
 
-               <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-md sm:max-w-xl px-4">
+               <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full max-w-sm sm:max-w-md px-2">
                   {currentProblem.options.map((opt, i) => (
                     <motion.div
                         key={opt}
@@ -278,7 +278,7 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
                     >
                         <Button
                             onClick={() => handleAnswer(opt)}
-                            className="w-full h-14 sm:h-20 md:h-24 text-xl sm:text-3xl md:text-4xl font-black font-mono bg-zinc-900/80 hover:bg-green-900/40 text-white border border-zinc-700 hover:border-green-400 rounded-lg transition-all group overflow-hidden relative"
+                            className="w-full h-12 sm:h-16 md:h-20 text-lg sm:text-2xl md:text-3xl font-black font-mono bg-zinc-900/80 hover:bg-green-900/40 text-white border border-zinc-700 hover:border-green-400 rounded-lg transition-all group overflow-hidden relative cursor-pointer"
                         >
                             <span className="relative z-10">{opt}</span>
                             <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -287,8 +287,8 @@ export function MathMatrix({ slug, onToggleFullscreen }: { slug: string; onToggl
                   ))}
                </div>
 
-               {/* Relative layout for progress bar ensures it flows below the options without absolute overlaps on mobile */}
-               <div className="absolute bottom-2 sm:bottom-6 left-0 right-0 px-6 sm:px-12">
+               {/* In-flow progress bar ensures no overlap with options on any screen size */}
+               <div className="w-full max-w-sm sm:max-w-md px-2 mt-4 sm:mt-6">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-zinc-500 text-[10px] sm:text-xs font-black uppercase tracking-widest font-mono">Uplink Stability</span>
                     <span className="text-green-400 text-xs sm:text-sm font-black tabular-nums font-mono">{timeLeft.toFixed(1)}s</span>
