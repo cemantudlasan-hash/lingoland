@@ -677,10 +677,10 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col relative overflow-hidden",
+        "w-full transition-all duration-500 flex flex-col relative overflow-hidden justify-between",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-slate-950 justify-center p-8" 
-            : "max-w-6xl mx-auto bg-slate-900/40 backdrop-blur-md border border-slate-800 shadow-2xl rounded-3xl"
+            : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] bg-slate-900/40 backdrop-blur-md border border-slate-800 shadow-2xl rounded-2xl md:rounded-3xl"
       )}>
       
       {/* Decorative glows */}
@@ -712,17 +712,20 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
       </CardHeader>
 
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center flex-grow p-6 md:p-8",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[26rem]"
+          "space-y-6 text-center flex flex-col items-center justify-center flex-grow p-4 sm:p-6 lg:p-8",
+          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
       )}>
         {gameState === "idle" && (
-            <div className="flex flex-col items-center gap-6 max-w-md py-6">
+            <div className="flex flex-col items-center gap-6 max-w-lg py-6">
                 <p className={cn("text-slate-300 font-medium leading-relaxed", isFullscreen ? "text-2xl" : "text-base")}>
                   Ready for a premium game of interactive vocabulary Bingo? Re-engineered with modern review sheets, dynamic word banks, and custom reward states.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
                     <Button onClick={() => setGameState('instructions')} className={cn("bg-gradient-to-r from-purple-500 to-indigo-650 hover:from-purple-400 hover:to-indigo-550 text-white font-black shadow-xl rounded-xl h-12 px-6", isFullscreen && "h-16 px-12 text-xl rounded-2xl")}>
                         <Sparkles className="mr-2 h-5 w-5" /> Start Solo Game
+                    </Button>
+                    <Button onClick={() => setGameState('instructions')} variant="secondary" className={cn("font-bold rounded-xl h-12 px-6", isFullscreen && "h-16 px-12 text-xl rounded-2xl")}>
+                        <BookOpen className="mr-2 h-5 w-5" /> How to Play
                     </Button>
                      <Button onClick={() => setGameState('selecting_print_difficulty')} variant="outline" className={cn("border-slate-800 text-slate-300 hover:bg-slate-850 hover:text-white font-black rounded-xl h-12 px-6", isFullscreen && "h-16 px-12 text-xl rounded-2xl")}>
                         <Printer className="mr-2 h-5 w-5" /> Print Card Set

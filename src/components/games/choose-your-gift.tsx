@@ -23,7 +23,7 @@ import {
 } from '../ui/dialog';
 import { generateGrammarPair } from '@/ai/flows/generate-verb-pair';
 import type { GenerateGrammarPairOutput } from '@/ai/flows/schemas/verb-pair-schema';
-import { Loader2, Sparkles, UserPlus, Trash2, Repeat, Gift, Bomb, Timer, Maximize, Minimize, Trophy } from 'lucide-react';
+import { Loader2, Sparkles, UserPlus, Trash2, Repeat, Gift, Bomb, Timer, Maximize, Minimize, Trophy, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -234,7 +234,12 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
                             Add Team
                         </Button>
                     </div>
-                    <Button onClick={handleStartGame} size="lg" className="w-full h-14 font-black uppercase text-xl rounded-2xl shadow-lg mt-4">Begin Mission</Button>
+                    <div className="flex flex-col gap-2.5 w-full mt-4">
+                        <Button onClick={handleStartGame} size="lg" className="w-full h-14 font-black uppercase text-xl rounded-2xl shadow-lg">Begin Mission</Button>
+                        <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full h-12 font-bold uppercase rounded-2xl">
+                            <BookOpen className="mr-2 h-5 w-5" /> How to Play
+                        </Button>
+                    </div>
                 </div>
             );
         case 'instructions':
@@ -342,10 +347,10 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
 
   return (
       <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full transition-all duration-500 flex flex-col justify-between",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
           <CardHeader className="text-center relative">
               <Button
@@ -367,7 +372,7 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
           </CardHeader>
           <CardContent className={cn(
               "space-y-6 text-center flex flex-col items-center justify-center",
-              isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[24rem] p-6"
+              isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
           )}>
               {gameState !== 'setup' && gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'loading' && (
                   <div className={cn(

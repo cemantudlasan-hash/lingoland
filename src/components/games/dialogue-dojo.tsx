@@ -16,7 +16,7 @@ import {
 import { Button } from "../ui/button";
 import { generateConversationChallenge } from "@/ai/flows/generate-conversation-challenge";
 import type { GenerateConversationChallengeOutput } from "@/ai/flows/schemas/conversation-schema";
-import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, User, Utensils, Plane, Briefcase, GraduationCap, Users, HeartPulse, RotateCcw, ShoppingBag, Home, Bike, Laptop, Coins, Trophy } from "lucide-react";
+import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, User, Utensils, Plane, Briefcase, GraduationCap, Users, HeartPulse, RotateCcw, ShoppingBag, Home, Bike, Laptop, Coins, Trophy, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -281,10 +281,10 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-300 flex flex-col",
+        "w-full transition-all duration-300 flex flex-col justify-between",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-start p-3 sm:p-5 md:p-8 overflow-y-auto" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
       {/* Top Header: Compact HUD in fullscreen or during active gameplay; Standard banner on idle/instructions */}
       {isFullscreen || isPlaying ? (
@@ -366,16 +366,22 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
       )}
 
       <CardContent className={cn(
-          "w-full max-w-4xl mx-auto flex flex-col items-center justify-start flex-1 gap-5",
-          isFullscreen ? "p-0 pt-2" : "p-4 sm:p-6 pt-0 min-h-[20rem]"
+          "w-full flex-1 flex flex-col items-center justify-start gap-5",
+          isFullscreen ? "p-0 pt-2" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8 pt-0"
       )}>
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4 py-8">
             <p className="text-muted-foreground text-sm sm:text-base md:text-lg">Master the art of conversation with AI.</p>
-            <Button onClick={() => setGameState('instructions')} size="lg" className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl rounded-2xl h-14 px-8 text-lg">
-              <Sparkles className="mr-2 h-5 w-5" />
-              Enter Dojo
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button onClick={() => setGameState('instructions')} size="lg" className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl rounded-2xl h-14 px-8 text-lg">
+                <Sparkles className="mr-2 h-5 w-5" />
+                Enter Dojo
+              </Button>
+              <Button onClick={() => setGameState('instructions')} size="lg" variant="secondary" className="font-bold rounded-2xl h-14 px-8 text-lg shadow-md">
+                <BookOpen className="mr-2 h-5 w-5" />
+                How to Play
+              </Button>
+            </div>
           </div>
         )}
 

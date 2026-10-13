@@ -6,7 +6,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { Dna, Sparkles, Timer, Trophy, Repeat, Maximize, Minimize, Bug, Fish, Bird, PawPrint } from "lucide-react";
+import { Dna, Sparkles, Timer, Trophy, Repeat, Maximize, Minimize, Bug, Fish, Bird, PawPrint, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -122,7 +122,7 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
   return (
     <Card className={cn(
       "w-full transition-all duration-500 flex flex-col overflow-y-auto bg-emerald-950 border-none",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[750px] shadow-2xl"
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl justify-between"
     )}>
       {/* Dynamic Evolution Background */}
       <div className="absolute inset-0 z-0">
@@ -173,7 +173,10 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-8 z-10 relative overflow-y-auto">
+      <CardContent className={cn(
+        "flex-grow flex flex-col items-center justify-center p-8 z-10 relative overflow-y-auto",
+        isFullscreen ? "p-8" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
+      )}>
         <AnimatePresence mode="wait">
           {gameState === "idle" && (
             <motion.div 
@@ -196,12 +199,21 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
               <p className="text-emerald-100/60 max-w-md mx-auto text-xl font-medium">
                 The earth is changing. You must master DNA rewriting to survive the eras.
               </p>
-              <Button 
-                onClick={() => setGameState('instructions')} 
-                className="h-24 px-16 text-3xl font-black bg-emerald-500 hover:bg-emerald-400 text-emerald-950 rounded-[32px] shadow-[0_20px_50px_rgba(16,185,129,0.3)] transition-all hover:scale-105 active:scale-95"
-              >
-                BEGIN EPOCH
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button 
+                  onClick={() => setGameState('instructions')} 
+                  variant="outline"
+                  className="h-16 sm:h-20 px-8 text-xl font-black border-2 border-emerald-400/50 text-emerald-300 hover:bg-emerald-900/60 rounded-3xl transition-all"
+                >
+                  <BookOpen className="mr-2 h-6 w-6" /> HOW TO PLAY
+                </Button>
+                <Button 
+                  onClick={() => setGameState('playing')} 
+                  className="h-16 sm:h-20 px-12 text-2xl font-black bg-emerald-500 hover:bg-emerald-400 text-emerald-950 rounded-3xl shadow-[0_20px_50px_rgba(16,185,129,0.3)] transition-all hover:scale-105 active:scale-95"
+                >
+                  BEGIN EPOCH
+                </Button>
+              </div>
             </motion.div>
           )}
 
@@ -213,7 +225,7 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
               exit={{ opacity: 0, y: -30 }}
               className="bg-emerald-900/20 backdrop-blur-2xl border border-white/10 p-12 rounded-[50px] max-w-2xl w-full shadow-2xl"
             >
-              <h3 className="text-4xl font-black text-white uppercase mb-8 italic">Mission Strategy</h3>
+              <h3 className="text-4xl font-black text-white uppercase mb-8 italic">How to Play (Mission Strategy)</h3>
               <div className="space-y-8 text-xl text-emerald-100/70 font-medium">
                 <div className="flex gap-6 items-start">
                   <div className="h-10 w-10 bg-emerald-500 text-emerald-950 flex items-center justify-center rounded-2xl font-black shrink-0">I</div>
@@ -228,9 +240,14 @@ export function EvolutionExpedition({ slug, onToggleFullscreen }: { slug: string
                   <p>Complete all 5 major evolutionary leaps to reach the apex of life.</p>
                 </div>
               </div>
-              <Button onClick={() => setGameState('playing')} className="w-full mt-12 h-20 text-2xl font-black bg-white text-emerald-900 hover:bg-emerald-400 hover:text-emerald-950 transition-colors uppercase tracking-widest rounded-3xl">
-                I am Ready to Survive
-              </Button>
+              <div className="flex items-center gap-4 mt-12">
+                <Button onClick={() => setGameState('idle')} variant="outline" className="w-1/3 h-16 text-lg font-black border-white/20 text-white hover:bg-white/10 uppercase tracking-wider rounded-2xl">
+                  Back
+                </Button>
+                <Button onClick={() => setGameState('playing')} className="w-2/3 h-16 text-xl font-black bg-emerald-500 text-emerald-950 hover:bg-emerald-400 transition-colors uppercase tracking-widest rounded-2xl shadow-lg">
+                  Start Evolution
+                </Button>
+              </div>
             </motion.div>
           )}
 

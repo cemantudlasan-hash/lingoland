@@ -322,7 +322,7 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
       <Card 
         className={cn(
           "w-full overflow-hidden bg-[#020617] border-emerald-500/20 shadow-2xl relative text-white transition-all duration-500 z-10",
-          isFullscreen ? "h-screen rounded-none border-none" : "max-w-4xl mx-auto rounded-xl border",
+          isFullscreen ? "h-screen rounded-none border-none" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl border",
           triggerShake && "science-animate-shake"
         )}
         style={{
@@ -358,7 +358,7 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
 
         <CardContent className={cn(
           "flex flex-col items-center justify-center relative p-0 overflow-hidden select-none touch-none",
-          isFullscreen ? "min-h-[calc(100vh-200px)]" : "min-h-[600px]"
+          isFullscreen ? "min-h-[calc(100vh-200px)]" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
         )}>
           <AnimatePresence>
             {feedback && (
@@ -399,14 +399,17 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
                   ⭐ Daily Bonus: Earn +{dailyBonusAmount} Coins!
                 </Badge>
               )}
-              <Button onClick={() => setGameState('instructions')} size="lg" className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-[0_0_20px_rgba(16,185,129,0.3)]">INITIALIZE SCANNER</Button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button onClick={() => setGameState('instructions')} size="lg" className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-[0_0_20px_rgba(16,185,129,0.3)]">INITIALIZE SCANNER</Button>
+                <Button onClick={() => setGameState('instructions')} size="lg" variant="outline" className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 font-bold">HOW TO PLAY</Button>
+              </div>
             </div>
           )}
 
           {gameState === 'instructions' && (
             <div className="max-w-md space-y-6 text-center px-6">
               <div className="bg-black/40 backdrop-blur-md p-6 rounded-2xl border-2 border-emerald-500/30">
-                <h3 className="text-xl font-bold mb-4 uppercase text-emerald-400">LAB PROTOCOL</h3>
+                <h3 className="text-xl font-bold mb-4 uppercase text-emerald-400">HOW TO PLAY (LAB PROTOCOL)</h3>
                 <ul className="text-left space-y-3 text-sm text-emerald-50/90">
                   <li>1. Read the <strong>Organelle Function</strong> at the top.</li>
                   <li>2. Drag to rotate the 3D cell structure.</li>

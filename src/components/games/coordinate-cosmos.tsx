@@ -4,7 +4,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { Maximize, Minimize, Trophy, Sparkles, Repeat, Compass, CheckCircle2, XCircle } from "lucide-react";
+import { Maximize, Minimize, Trophy, Sparkles, Repeat, Compass, CheckCircle2, XCircle, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
@@ -169,10 +169,10 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
   return (
     <Card
       className={cn(
-        "w-full transition-all duration-500 flex flex-col bg-slate-950 text-slate-50 border-indigo-500/20",
+        "w-full transition-all duration-500 flex flex-col justify-between bg-slate-950 text-slate-50 border-indigo-500/20",
         isFullscreen
           ? "min-h-screen rounded-none border-none max-w-none justify-center p-8"
-          : "max-w-4xl mx-auto shadow-2xl shadow-indigo-500/10 border"
+          : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl shadow-indigo-500/10 border"
       )}
     >
       <CardHeader className="text-center relative border-b border-indigo-950 pb-6">
@@ -208,22 +208,35 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
         )}
       </CardHeader>
 
-      <CardContent className={cn("flex flex-col items-center justify-center p-6", isFullscreen ? "min-h-[65vh]" : "min-h-[450px]")}>
+      <CardContent className={cn("flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8", isFullscreen ? "min-h-[65vh]" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-6 text-center max-w-lg">
             <p className={cn("text-slate-300", isFullscreen ? "text-2xl" : "text-base")}>
               Unlock coordinates, align vectors, and navigate through the quadrants of deep space.
             </p>
-            <Button
-              onClick={() => setGameState("instructions")}
-              size={isFullscreen ? "lg" : "default"}
-              className={cn(
-                "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:scale-105",
-                isFullscreen && "h-20 px-16 text-2xl rounded-2xl"
-              )}
-            >
-              Initialize System
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                onClick={handleStartGame}
+                size={isFullscreen ? "lg" : "default"}
+                className={cn(
+                  "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:scale-105",
+                  isFullscreen && "h-20 px-16 text-2xl rounded-2xl"
+                )}
+              >
+                Initialize System
+              </Button>
+              <Button
+                onClick={() => setGameState("instructions")}
+                size={isFullscreen ? "lg" : "default"}
+                variant="outline"
+                className={cn(
+                  "border-indigo-500/40 text-indigo-300 hover:bg-indigo-950 font-bold uppercase tracking-wider",
+                  isFullscreen && "h-20 px-16 text-2xl rounded-2xl"
+                )}
+              >
+                <BookOpen className="mr-2 h-5 w-5" /> How to Play
+              </Button>
+            </div>
           </div>
         )}
 
@@ -235,7 +248,7 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
             )}
           >
             <h3 className={cn("font-black uppercase tracking-widest text-indigo-400 mb-2", isFullscreen ? "text-4xl" : "text-2xl")}>
-              Navigational Briefing
+              How to Play (Navigational Briefing)
             </h3>
             <div className={cn("text-left space-y-4 text-slate-300 font-medium", isFullscreen ? "text-xl" : "text-sm md:text-base")}>
               <p>🛰️ **Identify Quadrants**: Correctly locate points in Quadrants I, II, III, or IV.</p>

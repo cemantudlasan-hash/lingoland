@@ -21,7 +21,8 @@ import {
   Trash2,
   Settings,
   Loader2,
-  Trophy
+  Trophy,
+  BookOpen
 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
@@ -104,7 +105,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
   const [gameMode, setGameMode] = React.useState<'single' | 'multi'>('single');
 
   // Single player states
-  const [gameState, setGameState] = React.useState<"idle" | "playing" | "showing_result" | "finished">("idle");
+  const [gameState, setGameState] = React.useState<"idle" | "instructions" | "playing" | "showing_result" | "finished">("idle");
   const [difficulty, setDifficulty] = React.useState<Difficulty>("easy");
   const [currentProblem, setCurrentProblem] = React.useState<{type: string, data: number[], a: string, options: string[]} | null>(null);
   const [score, setScore] = React.useState(0);
@@ -1351,8 +1352,8 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 bg-[#e4dfd5] text-[#2c2a27] flex flex-col relative border-4 sm:border-8 border-[#3c3831] overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-auto min-h-[600px] md:h-[700px]"
+      "w-full transition-all duration-500 bg-[#e4dfd5] text-[#2c2a27] flex flex-col relative border-4 sm:border-8 border-[#3c3831] overflow-hidden justify-between",
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl"
     )}>
       <div className="absolute inset-0 z-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_rgba(60,56,49,0.3)_100%)] pointer-events-none z-0" />
@@ -1385,7 +1386,7 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow overflow-y-auto min-h-0 w-full flex flex-col z-10 relative p-4 sm:p-6 items-center justify-start md:justify-center">
+      <CardContent className="flex-grow overflow-y-auto min-h-0 w-full flex flex-col z-10 relative p-4 sm:p-6 lg:p-8 items-center justify-start md:justify-center min-h-[calc(100dvh-16rem)]">
          <AnimatePresence mode="wait">
             {gameMode === 'multi' ? (
               <>
@@ -1401,8 +1402,8 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                     <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, y:20}} className="text-center w-full max-w-md">
                         <Fingerprint className="w-20 h-20 sm:w-32 sm:h-32 text-[#5c5448] mx-auto mb-4 sm:mb-8 drop-shadow-md opacity-80" />
                         <h2 className="text-2xl sm:text-5xl font-black uppercase mb-2 sm:mb-4 font-serif tracking-widest text-[#2c2a27]">Solve The Case</h2>
-                        <p className="text-[#5c5448] text-xs sm:text-base mb-6 sm:mb-10 mx-auto lowercase font-serif">Choose single player mission or multiplayer battle room.</p>
-                        <div className="flex flex-col gap-4">
+                        <p className="text-[#5c5448] text-xs sm:text-base mb-6 sm:mb-8 mx-auto lowercase font-serif">Choose single player mission or multiplayer battle room.</p>
+                        <div className="flex flex-col gap-3">
                             <Button 
                               onClick={() => {
                                 setGameMode('single');
@@ -1412,6 +1413,15 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                               className="h-12 sm:h-16 px-6 sm:px-12 text-sm sm:text-xl font-bold bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] border-2 border-transparent font-serif uppercase tracking-[0.2em] transition-all"
                             >
                               Solo Investigation
+                            </Button>
+                            <Button 
+                              onClick={() => {
+                                setGameState('instructions');
+                              }} 
+                              variant="outline"
+                              className="h-12 sm:h-16 px-6 sm:px-12 text-sm sm:text-xl font-bold bg-[#cfc5b4]/40 hover:bg-[#cfc5b4] text-[#2c2a27] border-2 border-[#8b8273] font-serif uppercase tracking-[0.15em] transition-all"
+                            >
+                              <BookOpen className="mr-2 h-5 w-5" /> How to Play
                             </Button>
                             <Button 
                               onClick={() => {
@@ -1427,6 +1437,35 @@ export function DataDetective({ slug, onToggleFullscreen }: { slug: string; onTo
                             </Button>
                         </div>
                     </motion.div>
+                )}
+
+                {gameState === "instructions" && (
+                  <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.95}} className="w-full max-w-2xl bg-white/95 p-6 sm:p-10 rounded-2xl border-2 sm:border-4 border-[#2c2a27] shadow-xl text-center">
+                    <FileSearch className="w-16 h-16 text-[#5c5448] mx-auto mb-4" />
+                    <h2 className="text-2xl sm:text-4xl font-black uppercase text-[#2c2a27] font-serif tracking-widest mb-4">
+                      How to Play (Case Briefing)
+                    </h2>
+                    <div className="text-left space-y-3 sm:space-y-4 text-xs sm:text-base text-[#5c5448] font-serif leading-relaxed mb-6">
+                      <p>1. Examine the numerical evidence values revealed on each case file.</p>
+                      <p>2. Calculate the target statistic requested by headquarters:</p>
+                      <div className="pl-4 space-y-1 text-[#2c2a27] font-mono text-xs sm:text-sm">
+                        <p>• <strong>Mean</strong>: Calculate the sum of all numbers divided by count.</p>
+                        <p>• <strong>Median</strong>: Find the middle value after sorting the data set.</p>
+                        <p>• <strong>Mode</strong>: Identify the number that occurs most frequently.</p>
+                        <p>• <strong>Range</strong>: Compute the difference between highest and lowest value.</p>
+                      </div>
+                      <p>3. Select the accurate calculation before the investigation countdown expires.</p>
+                      <p>4. Secure maximum clues across 10 evidence rounds to close the file!</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <Button onClick={() => { setGameMode('single'); startGame("easy"); }} className="h-12 sm:h-14 px-8 text-sm sm:text-lg font-black uppercase bg-[#2c2a27] hover:bg-[#4a4740] text-[#e4dfd5] font-serif">
+                        Start Solo Case
+                      </Button>
+                      <Button onClick={() => setGameState('idle')} variant="outline" className="h-12 sm:h-14 px-8 text-sm sm:text-lg font-bold border border-[#8b8273] font-serif">
+                        Back to Menu
+                      </Button>
+                    </div>
+                  </motion.div>
                 )}
 
                 {gameState === "playing" && currentProblem && (

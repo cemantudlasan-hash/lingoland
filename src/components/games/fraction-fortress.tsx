@@ -6,7 +6,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { Castle, Shield, Target, Crosshair, Maximize, Minimize, Repeat } from "lucide-react";
+import { Castle, Shield, Target, Crosshair, Maximize, Minimize, Repeat, BookOpen } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 type Difficulty = "easy" | "intermediate" | "pro";
 
 export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
-  const [gameState, setGameState] = React.useState<"idle" | "playing" | "showing_result" | "finished">("idle");
+  const [gameState, setGameState] = React.useState<"idle" | "instructions" | "playing" | "showing_result" | "finished">("idle");
   const [difficulty, setDifficulty] = React.useState<Difficulty>("easy");
   const [currentProblem, setCurrentProblem] = React.useState<{q: string, a: string, options: string[]} | null>(null);
   const [score, setScore] = React.useState(0);
@@ -132,7 +132,7 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
   return (
     <Card className={cn(
       "w-full transition-all duration-500 bg-[#3a2f28] flex flex-col relative border-none overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[700px]"
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl justify-between"
     )}>
       <div className="absolute inset-0 z-0 opacity-10 mix-blend-overlay" style={{
          backgroundImage: "linear-gradient(45deg, #1c1511 25%, transparent 25%, transparent 75%, #1c1511 75%, #1c1511), linear-gradient(45deg, #1c1511 25%, transparent 25%, transparent 75%, #1c1511 75%, #1c1511)",
@@ -165,19 +165,56 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col z-10 relative p-6 items-center justify-center">
+      <CardContent className={cn(
+        "flex-grow flex flex-col z-10 relative items-center justify-center",
+        isFullscreen ? "p-6" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
+      )}>
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
                 <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:1.1}} className="text-center w-full max-w-md">
                     <Shield className="w-32 h-32 text-[#cca766] mx-auto mb-8 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" />
                     <h2 className="text-4xl font-black text-white uppercase mb-4 font-serif">Defend The Keep</h2>
-                    <p className="text-[#b89f78] mb-10 mx-auto lowercase font-serif">Select your defensive formation difficulty.</p>
-                    <div className="flex flex-col gap-4">
-                        <Button onClick={() => startGame("easy")} className="h-16 text-xl font-bold bg-[#1c1511] hover:bg-[#3a6e34] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Squire (Easy)</Button>
-                        <Button onClick={() => startGame("intermediate")} className="h-16 text-xl font-bold bg-[#1c1511] hover:bg-[#6e6334] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Knight (Intermediate)</Button>
-                        <Button onClick={() => startGame("pro")} className="h-16 text-xl font-bold bg-[#1c1511] hover:bg-[#8c3123] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Royal Elite (Pro)</Button>
-                        <Button variant="ghost" asChild className="mt-4 text-[#8c7a61] hover:text-[#cca766] uppercase tracking-widest font-serif">
+                    <p className="text-[#b89f78] mb-8 mx-auto font-serif">Select difficulty or review siege tactics before fighting.</p>
+                    <div className="flex flex-col gap-3">
+                        <Button onClick={() => setGameState("instructions")} variant="outline" className="h-14 text-lg font-bold border-2 border-[#b89f78]/60 text-[#cca766] hover:bg-[#2d241d] rounded-md font-serif uppercase tracking-widest transition-all shadow-md">
+                            <BookOpen className="mr-2 h-5 w-5 text-[#cca766]" /> How to Play
+                        </Button>
+                        <Button onClick={() => startGame("easy")} className="h-14 text-lg font-bold bg-[#1c1511] hover:bg-[#3a6e34] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Squire (Easy)</Button>
+                        <Button onClick={() => startGame("intermediate")} className="h-14 text-lg font-bold bg-[#1c1511] hover:bg-[#6e6334] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Knight (Intermediate)</Button>
+                        <Button onClick={() => startGame("pro")} className="h-14 text-lg font-bold bg-[#1c1511] hover:bg-[#8c3123] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Royal Elite (Pro)</Button>
+                        <Button variant="ghost" asChild className="mt-2 text-[#8c7a61] hover:text-[#cca766] uppercase tracking-widest font-serif">
                            <Link href="/games">Back to Kingdom</Link>
+                        </Button>
+                    </div>
+                </motion.div>
+            )}
+
+            {gameState === "instructions" && (
+                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}} className="bg-[#2d241d]/95 p-8 sm:p-12 rounded-xl text-center border-4 border-[#5c4f42] shadow-2xl w-full max-w-xl">
+                    <div className="flex items-center justify-center gap-3 mb-6">
+                        <Castle className="h-8 w-8 text-[#cca766]" />
+                        <h3 className="text-3xl font-black uppercase text-[#e8dcc4] font-serif tracking-widest">How to Play</h3>
+                    </div>
+                    <div className="text-left space-y-4 font-serif text-[#e8dcc4]/85 text-base sm:text-lg mb-8">
+                        <div className="flex items-start gap-3">
+                            <span className="flex items-center justify-center bg-[#cca766] text-[#1c1511] h-7 w-7 rounded-full text-sm font-black shrink-0">1</span>
+                            <p>Enemy siege engines propel incoming fraction projectiles at the fortress walls.</p>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <span className="flex items-center justify-center bg-[#cca766] text-[#1c1511] h-7 w-7 rounded-full text-sm font-black shrink-0">2</span>
+                            <p>Identify the mathematically equivalent fraction among the 4 defensive counter-ballistas before the breach timer expires.</p>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <span className="flex items-center justify-center bg-[#cca766] text-[#1c1511] h-7 w-7 rounded-full text-sm font-black shrink-0">3</span>
+                            <p>Defend across all 10 siege waves. Swift and precise calculations earn maximum fortress defense honors!</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button onClick={() => setGameState('idle')} variant="outline" className="w-1/3 h-14 font-bold font-serif uppercase tracking-wider border-[#5c4f42] text-[#e8dcc4] hover:bg-[#1c1511]">
+                            Back
+                        </Button>
+                        <Button onClick={() => startGame("easy")} className="w-2/3 h-14 font-bold font-serif uppercase tracking-widest bg-[#cca766] hover:bg-[#b89f78] text-[#1c1511] shadow-lg">
+                            Defend the Keep
                         </Button>
                     </div>
                 </motion.div>

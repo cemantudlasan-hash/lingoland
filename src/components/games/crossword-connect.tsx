@@ -12,7 +12,7 @@ import {
 } from "../ui/card";
 import { Button } from "../ui/button";
 import { generateCrosswordPuzzle } from "@/ai/flows/generate-crossword-puzzle";
-import { Loader2, Sparkles, HelpCircle, Check, Repeat, RotateCcw, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles, HelpCircle, Check, Repeat, RotateCcw, Maximize, Minimize, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -181,10 +181,10 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full transition-all duration-500 flex flex-col justify-between",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
       <CardHeader className="text-center relative">
         <Button
@@ -212,14 +212,19 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
       </CardHeader>
       <CardContent className={cn(
           "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-7xl mx-auto w-full px-12" : "min-h-[24rem] p-6"
+          isFullscreen ? "min-h-[60vh] max-w-7xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
       )}>
         {gameState === 'idle' && (
           <div className="flex flex-col items-center gap-4">
             <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Ready to connect the words?</p>
-            <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-              <Sparkles className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} /> Start Game
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
+                <Sparkles className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} /> Start Game
+              </Button>
+              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} variant="secondary" className={cn("font-bold shadow-md", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
+                <BookOpen className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} /> How to Play
+              </Button>
+            </div>
           </div>
         )}
         {gameState === 'instructions' && (

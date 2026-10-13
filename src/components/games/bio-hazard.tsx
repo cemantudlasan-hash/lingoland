@@ -6,7 +6,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { Activity, ShieldAlert, Maximize, Minimize, Crosshair } from "lucide-react";
+import { Activity, ShieldAlert, Maximize, Minimize, Crosshair, BookOpen } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ interface BioProblem {
 }
 
 export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
-  const [gameState, setGameState] = React.useState<"idle" | "playing" | "showing_result" | "finished">("idle");
+  const [gameState, setGameState] = React.useState<"idle" | "instructions" | "playing" | "showing_result" | "finished">("idle");
   const [difficulty, setDifficulty] = React.useState<Difficulty>("easy");
   const [currentProblem, setCurrentProblem] = React.useState<{q: string, a: string, options: string[]} | null>(null);
   const [score, setScore] = React.useState(0);
@@ -236,8 +236,8 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 bg-[#0f1710] flex flex-col relative border-none overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "max-w-4xl mx-auto h-[700px]"
+      "w-full transition-all duration-500 bg-[#0f1710] flex flex-col relative border-none overflow-hidden justify-between",
+      isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl"
     )}>
       <div className="absolute inset-0 z-0 opacity-10" style={{ 
           backgroundImage: "radial-gradient(circle at center, #22c55e 2px, transparent 2px)", 
@@ -269,19 +269,52 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col z-10 relative p-6 items-center justify-center">
+      <CardContent className="flex-grow flex flex-col z-10 relative p-4 sm:p-6 lg:p-8 items-center justify-center w-full min-h-[calc(100dvh-16rem)]">
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
                 <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:1.1}} className="text-center w-full max-w-md">
                     <ShieldAlert className="w-32 h-32 text-green-500 mx-auto mb-8 drop-shadow-[0_0_30px_rgba(34,197,94,0.4)]" />
                     <h2 className="text-5xl font-black text-white uppercase mb-4 font-mono">Microscopic Threat</h2>
-                    <p className="text-green-200/60 mb-10 mx-auto lowercase">Select containment protocol level to begin scan.</p>
-                    <div className="flex flex-col gap-4">
-                        <Button onClick={() => startGame("easy")} className="h-16 px-12 text-xl font-bold bg-[#142215] border-2 border-green-500/30 hover:border-green-500 text-green-400 rounded-full font-mono uppercase tracking-widest transition-all">Level 1 Protocol (Easy)</Button>
-                        <Button onClick={() => startGame("intermediate")} className="h-16 px-12 text-xl font-bold bg-[#142215] border-2 border-yellow-500/30 hover:border-yellow-500 text-yellow-400 rounded-full font-mono uppercase tracking-widest transition-all">Level 2 Protocol (Intermediate)</Button>
-                        <Button onClick={() => startGame("pro")} className="h-16 px-12 text-xl font-bold bg-[#142215] border-2 border-red-500/30 hover:border-red-500 text-red-400 rounded-full font-mono uppercase tracking-widest transition-all">Pro Protocol (Extreme)</Button>
-                        <Button variant="ghost" asChild className="mt-4 text-green-700 hover:text-green-500 uppercase tracking-widest font-mono">
+                    <p className="text-green-200/60 mb-8 mx-auto lowercase">Select containment protocol level to begin scan.</p>
+                    <div className="flex flex-col gap-3">
+                        <Button onClick={() => startGame("easy")} className="h-14 px-12 text-lg font-bold bg-[#142215] border-2 border-green-500/30 hover:border-green-500 text-green-400 rounded-full font-mono uppercase tracking-widest transition-all">Level 1 Protocol (Easy)</Button>
+                        <Button onClick={() => startGame("intermediate")} className="h-14 px-12 text-lg font-bold bg-[#142215] border-2 border-yellow-500/30 hover:border-yellow-500 text-yellow-400 rounded-full font-mono uppercase tracking-widest transition-all">Level 2 Protocol (Intermediate)</Button>
+                        <Button onClick={() => startGame("pro")} className="h-14 px-12 text-lg font-bold bg-[#142215] border-2 border-red-500/30 hover:border-red-500 text-red-400 rounded-full font-mono uppercase tracking-widest transition-all">Pro Protocol (Extreme)</Button>
+                        <Button onClick={() => setGameState("instructions")} variant="outline" className="h-14 px-12 text-lg font-bold bg-[#142215]/80 border-2 border-green-500/30 hover:border-green-400 text-green-300 rounded-full font-mono uppercase tracking-widest transition-all">
+                            <BookOpen className="mr-2 h-5 w-5" /> How to Play
+                        </Button>
+                        <Button variant="ghost" asChild className="mt-2 text-green-700 hover:text-green-500 uppercase tracking-widest font-mono">
                            <Link href="/games">Back to Sector Entrance</Link>
+                        </Button>
+                    </div>
+                </motion.div>
+            )}
+
+            {gameState === "instructions" && (
+                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.95}} className="text-center w-full max-w-xl bg-[#142215]/90 p-8 sm:p-10 rounded-3xl border border-green-500/30 shadow-2xl">
+                    <ShieldAlert className="w-16 h-16 text-green-400 mx-auto mb-4" />
+                    <h2 className="text-3xl font-black text-white uppercase mb-4 font-mono">Containment Protocol (How to Play)</h2>
+                    <div className="text-left space-y-4 text-green-200/80 text-sm sm:text-base font-mono mb-8">
+                        <p className="flex items-start gap-3">
+                            <span className="h-6 w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
+                            <span>A biological query sample will be identified for containment.</span>
+                        </p>
+                        <p className="flex items-start gap-3">
+                            <span className="h-6 w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
+                            <span>Target and select the correct biological term to neutralize the sample.</span>
+                        </p>
+                        <p className="flex items-start gap-3">
+                            <span className="h-6 w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
+                            <span>Respond quickly before the mutation countdown reaches 0 to secure speed bonuses.</span>
+                        </p>
+                        <p className="flex items-start gap-3">
+                            <span className="h-6 w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">4</span>
+                            <span>Neutralize all 10 pathogen samples across the laboratory to purify the sector.</span>
+                        </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <Button onClick={() => setGameState("idle")} className="h-12 px-8 text-base font-bold bg-green-700 hover:bg-green-600 text-white rounded-full font-mono uppercase tracking-widest">
+                            Proceed to Protocols
                         </Button>
                     </div>
                 </motion.div>

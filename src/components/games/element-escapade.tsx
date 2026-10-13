@@ -14,7 +14,7 @@ import {
   CardFooter,
 } from "../ui/card";
 import { Button } from "../ui/button";
-import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, Atom, FlaskConical, Trophy } from "lucide-react";
+import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize, Atom, FlaskConical, Trophy, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -133,8 +133,8 @@ export function ElementEscapade({ slug, onToggleFullscreen }: { slug: string; on
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col overflow-hidden",
-        isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-[#0f172a] justify-center text-white" : "max-w-4xl mx-auto bg-card shadow-2xl"
+        "w-full transition-all duration-500 flex flex-col justify-between overflow-hidden",
+        isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-[#0f172a] justify-center text-white" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card shadow-2xl"
       )}>
       <CardHeader className="text-center relative border-b border-white/10 bg-black/20">
         <Button variant="ghost" size="sm" className="absolute top-4 right-4 text-white/50 hover:text-white" onClick={onToggleFullscreen}>
@@ -149,14 +149,20 @@ export function ElementEscapade({ slug, onToggleFullscreen }: { slug: string; on
         {(gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty') && <div className="flex justify-center gap-2 mt-2"><Badge variant="outline" className="border-sky-500 text-sky-400">{difficulty.toUpperCase()}</Badge><Badge variant="secondary">Round {round}/10</Badge></div>}
       </CardHeader>
 
-      <CardContent className={cn("flex flex-col items-center justify-center p-8", isFullscreen ? "min-h-[70vh] gap-12" : "min-h-[400px] gap-6")}>
+      <CardContent className={cn("flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8", isFullscreen ? "min-h-[70vh] gap-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] gap-6")}>
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4">
             <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Ready to identify elements by their atomic signatures?</p>
-            <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-              <Sparkles className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
-              Start Mission
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button onClick={() => setGameState('selecting_difficulty')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
+                <Sparkles className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
+                Start Mission
+              </Button>
+              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} variant="secondary" className={cn("font-bold shadow-md", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
+                <BookOpen className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
+                How to Play
+              </Button>
+            </div>
           </div>
         )}
 

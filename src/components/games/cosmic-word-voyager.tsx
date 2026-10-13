@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { 
   Rocket, Shield, Coins, Trophy, Maximize2, Minimize2, 
-  RotateCcw, Sparkles, AlertTriangle, ArrowLeft, CheckCircle2, XCircle
+  RotateCcw, Sparkles, AlertTriangle, ArrowLeft, CheckCircle2, XCircle, BookOpen
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore } from "@/firebase";
@@ -1425,8 +1425,8 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 flex flex-col relative overflow-hidden select-none border-slate-800/80 bg-slate-950 text-slate-100",
-      isFullscreen ? "min-h-screen rounded-none border-none max-w-none justify-center" : "max-w-4xl mx-auto shadow-2xl shadow-indigo-950/20"
+      "w-full transition-all duration-500 flex flex-col relative overflow-hidden select-none border-slate-800/80 bg-slate-950 text-slate-100 justify-between",
+      isFullscreen ? "min-h-screen rounded-none border-none max-w-none justify-center" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl shadow-indigo-950/20"
     )}>
       {/* Absolute Canvas Background */}
       <canvas 
@@ -1480,8 +1480,8 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
 
       {/* Main Content Area */}
       <CardContent className={cn(
-        "flex flex-col items-center justify-center p-4 md:p-8 z-10 flex-grow relative min-h-[450px]",
-        isFullscreen ? "min-h-[70vh]" : "min-h-[450px]"
+        "flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 z-10 flex-grow relative",
+        isFullscreen ? "min-h-[70vh]" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
       )}>
         <AnimatePresence mode="wait">
           {/* 1. IDLE STATE */}
@@ -1507,12 +1507,19 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm mt-4">
+              <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mt-4">
                 <Button 
                   onClick={() => setGameState("instructions")} 
                   className="flex-1 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-extrabold uppercase rounded-xl hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-indigo-500/20"
                 >
                   Initiate Voyage
+                </Button>
+                <Button 
+                  onClick={() => setGameState("instructions")} 
+                  variant="outline"
+                  className="flex-1 h-12 border-indigo-500/30 text-indigo-300 hover:bg-slate-900 font-extrabold uppercase rounded-xl"
+                >
+                  <BookOpen className="mr-2 h-4 w-4" /> How to Play
                 </Button>
               </div>
             </motion.div>
@@ -1529,7 +1536,7 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
             >
               <div className="text-center">
                 <Badge className="bg-indigo-500/20 border-indigo-500/30 text-indigo-300 font-bold uppercase tracking-wider mb-2">
-                  FLIGHT INSTRUCTION MANUAL
+                  HOW TO PLAY (FLIGHT INSTRUCTION MANUAL)
                 </Badge>
                 <h2 className="text-2xl md:text-3xl font-black uppercase text-foreground">Mission Briefing</h2>
               </div>

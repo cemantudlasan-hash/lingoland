@@ -29,6 +29,7 @@ import {
   Fingerprint,
   Maximize,
   Minimize,
+  BookOpen,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -248,7 +249,12 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
                 <UserPlus className="mr-2" /> Add Team
               </Button>
             </div>
-            <Button onClick={() => setGameState('instructions')} size="lg" className="w-full mt-4 h-14 font-black uppercase text-xl rounded-2xl shadow-lg">Next</Button>
+            <div className="flex flex-col gap-2.5 w-full mt-4">
+              <Button onClick={() => setGameState('instructions')} size="lg" className="w-full h-14 font-black uppercase text-xl rounded-2xl shadow-lg">Next</Button>
+              <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full h-12 font-bold uppercase rounded-2xl">
+                <BookOpen className="mr-2 h-5 w-5" /> How to Play
+              </Button>
+            </div>
           </div>
         );
       case 'instructions':
@@ -385,10 +391,10 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col",
+        "w-full transition-all duration-500 flex flex-col justify-between",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
-            : "max-w-4xl mx-auto bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
+            : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
       <CardHeader className="text-center relative">
         <Button
@@ -413,7 +419,7 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
       </CardHeader>
       <CardContent className={cn(
           "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "min-h-[30rem] p-6"
+          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
       )}>
         {renderContent()}
       </CardContent>

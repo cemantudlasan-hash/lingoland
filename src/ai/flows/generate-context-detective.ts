@@ -61,3 +61,6 @@ export async function generateContextDetective(
 ): Promise<GenerateContextDetectiveOutput> {
   return generateContextDetectiveFlow(input);
 }
+
+export type { GenerateContextDetectiveOutput, GenerateContextDetectiveInput };
+

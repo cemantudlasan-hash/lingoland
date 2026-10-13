@@ -27,6 +27,8 @@ import {
   Maximize,
   Minimize,
   Coins,
+  BookOpen,
+  Play,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -340,7 +342,14 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
                 <UserPlus className="mr-2" /> Add Team
               </Button>
             </div>
-            <Button onClick={() => setGameState('instructions')} size="lg" className={cn("w-full bg-primary font-bold mt-2", isFullscreen && "h-14 rounded-xl text-xl")}>Next</Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mt-2">
+              <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className={cn("font-bold border-border/40 hover:bg-muted", isFullscreen && "h-14 rounded-xl text-lg")}>
+                <BookOpen className="mr-2 h-5 w-5 text-primary" /> How to Play
+              </Button>
+              <Button onClick={handleStartGame} size="lg" className={cn("bg-gradient-to-r from-primary to-indigo-600 font-bold text-white shadow-lg", isFullscreen && "h-14 rounded-xl text-lg")}>
+                <Play className="mr-2 h-5 w-5 fill-white" /> Start Game
+              </Button>
+            </div>
           </div>
         );
       case 'instructions':
@@ -365,7 +374,10 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
                 <span>Type your guess and press Enter or the Send button to lock in your answer.</span>
               </p>
             </div>
-            <Button onClick={handleStartGame} size="lg" className={cn("w-full bg-gradient-to-r from-primary to-indigo-600 font-bold", isFullscreen && "h-14 rounded-xl text-xl")}>Start Game</Button>
+            <div className="flex items-center gap-3 w-full">
+              <Button onClick={() => setGameState('setup')} variant="outline" size="lg" className={cn("w-1/3 font-bold", isFullscreen && "h-14 rounded-xl text-lg")}>Setup</Button>
+              <Button onClick={handleStartGame} size="lg" className={cn("w-2/3 bg-gradient-to-r from-primary to-indigo-600 font-bold", isFullscreen && "h-14 rounded-xl text-xl")}>Start Game</Button>
+            </div>
           </div>
         );
       case 'loading':
@@ -627,7 +639,7 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
           "w-full transition-all duration-500 flex flex-col z-10 relative overflow-hidden",
           isFullscreen 
               ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-center shadow-2xl" 
-              : "max-w-4xl mx-auto bg-card/85 backdrop-blur-sm border-border/25 shadow-xl",
+              : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/85 backdrop-blur-sm border-border/25 shadow-xl justify-between",
           triggerShake && "enigma-animate-shake"
         )}>
         <CardHeader className="text-center relative border-b border-border/5">
@@ -653,7 +665,7 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
         </CardHeader>
         <CardContent className={cn(
             "space-y-6 text-center flex flex-col items-center justify-center relative",
-            isFullscreen ? "min-h-[55vh] max-w-4xl mx-auto w-full px-12" : "min-h-[28rem] p-6"
+            isFullscreen ? "min-h-[55vh] max-w-4xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
         )}>
           {renderContent()}
         </CardContent>

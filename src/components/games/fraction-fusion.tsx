@@ -12,7 +12,7 @@ import {
   CardFooter,
 } from '../ui/card';
 import { Button } from '../ui/button';
-import { Loader2, Sparkles, CheckCircle, XCircle, Repeat, Maximize, Minimize, PieChart, Trophy, Coins } from 'lucide-react';
+import { Loader2, Sparkles, CheckCircle, XCircle, Repeat, Maximize, Minimize, PieChart, Trophy, Coins, BookOpen, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
@@ -362,7 +362,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
           "w-full transition-all duration-500 flex flex-col overflow-hidden z-10 relative",
           isFullscreen 
               ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-center shadow-2xl" 
-              : "max-w-4xl mx-auto bg-card/85 backdrop-blur-sm border-border/25 shadow-xl",
+              : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/85 backdrop-blur-sm border-border/25 shadow-xl justify-between",
           triggerShake && "math-animate-shake"
         )}>
         <CardHeader className="text-center relative border-b border-white/5">
@@ -381,7 +381,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
           )}
         </CardHeader>
 
-        <CardContent className={cn("flex flex-col items-center justify-center relative", isFullscreen ? "min-h-[55vh] max-w-4xl mx-auto w-full px-12" : "min-h-[28rem] p-6")}>
+        <CardContent className={cn("flex flex-col items-center justify-center relative", isFullscreen ? "min-h-[55vh] max-w-4xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8")}>
           {gameState === "idle" && (
             <div className="flex flex-col items-center gap-4 animate-in fade-in duration-300">
               {isDailyBonus && (
@@ -391,10 +391,16 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
                 </Badge>
               )}
               <p className={cn("text-muted-foreground font-semibold", isFullscreen ? "text-2xl" : "text-base")}>Match pie chart representations to their numeric fractions.</p>
-              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-lg hover:scale-105 active:scale-95 transition-all", isFullscreen && "h-14 rounded-xl text-xl px-12")}>
-                <Sparkles className={cn("mr-3", isFullscreen ? "h-6 w-6" : "h-4 w-4")} />
-                Initialize
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center gap-4 mt-2">
+                <Button onClick={() => setGameState('instructions')} variant="outline" size={isFullscreen ? "lg" : "default"} className={cn("font-bold border-border/40 hover:bg-muted", isFullscreen && "h-14 rounded-xl text-lg px-8")}>
+                  <BookOpen className="mr-2 h-5 w-5 text-primary" />
+                  How to Play
+                </Button>
+                <Button onClick={() => setGameState('selecting_difficulty')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-lg hover:scale-105 active:scale-95 transition-all", isFullscreen && "h-14 rounded-xl text-xl px-12")}>
+                  <Play className={cn("mr-2 h-5 w-5 fill-white")} />
+                  Start Game
+                </Button>
+              </div>
             </div>
           )}
 
@@ -403,7 +409,7 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
                    "flex flex-col items-center justify-center gap-6 text-center bg-muted/60 backdrop-blur-sm rounded-2xl border border-border/20 shadow-xl mx-auto animate-in fade-in duration-300",
                    isFullscreen ? "p-12 max-w-2xl scale-105" : "p-8 max-w-xl"
                )}>
-                  <h3 className={cn("font-black uppercase tracking-wider text-center text-primary", isFullscreen ? "text-3xl" : "text-xl")}>MISSION BRIEFING</h3>
+                  <h3 className={cn("font-black uppercase tracking-wider text-center text-primary", isFullscreen ? "text-3xl" : "text-xl")}>HOW TO PLAY (MISSION BRIEFING)</h3>
                   <div className={cn("text-left space-y-3 font-medium text-muted-foreground", isFullscreen ? "text-lg" : "text-sm")}>
                       <p className="flex items-start gap-2.5">
                         <span className="flex items-center justify-center bg-primary text-primary-foreground h-6 w-6 rounded-full text-xs font-black shrink-0">1</span>
@@ -422,7 +428,10 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
                         <span>Choose the correct fraction expression before the 15-second timer runs out.</span>
                       </p>
                   </div>
-                  <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className={cn("w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold", isFullscreen && "h-14 rounded-xl text-xl")}>Select Difficulty</Button>
+                  <div className="flex items-center gap-3 w-full">
+                    <Button onClick={() => setGameState('idle')} variant="outline" size="lg" className={cn("w-1/3 font-bold", isFullscreen && "h-14 rounded-xl text-lg")}>Back</Button>
+                    <Button onClick={() => setGameState('selecting_difficulty')} size="lg" className={cn("w-2/3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold", isFullscreen && "h-14 rounded-xl text-xl")}>Select Difficulty</Button>
+                  </div>
               </div>
           )}
 
