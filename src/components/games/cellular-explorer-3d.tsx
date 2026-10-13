@@ -278,8 +278,8 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
 
   return (
     <div className={cn(
-      "w-full relative min-h-[40rem] flex flex-col justify-center items-center",
-      isFullscreen ? "min-h-screen bg-slate-950 p-4 sm:p-8" : "py-4"
+      "w-full max-w-full relative min-h-[auto] md:min-h-[40rem] flex flex-col justify-center items-center overflow-x-hidden",
+      isFullscreen ? "min-h-screen bg-slate-950 p-2 sm:p-8" : "py-2 sm:py-4"
     )}>
       <style>{`
         @keyframes science-shake {
@@ -321,7 +321,7 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
 
       <Card 
         className={cn(
-          "w-full overflow-hidden bg-[#020617] border-emerald-500/20 shadow-2xl relative text-white transition-all duration-500 z-10",
+          "w-full max-w-full overflow-y-auto overflow-x-hidden bg-[#020617] border-emerald-500/20 shadow-2xl relative text-white transition-all duration-500 z-10",
           isFullscreen ? "h-screen rounded-none border-none" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl border",
           triggerShake && "science-animate-shake"
         )}
@@ -334,30 +334,30 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
           backgroundSize: '40px 40px, 100% 100%, 100% 100%'
         }}
       >
-        <CardHeader className="text-center bg-black/20 backdrop-blur-sm border-b border-emerald-500/10 relative">
+        <CardHeader className="text-center bg-black/20 backdrop-blur-sm border-b border-emerald-500/10 relative p-3 sm:p-6 pr-14 sm:pr-16">
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-4 h-auto p-2 gap-1 text-emerald-400/70 hover:text-emerald-400 z-[100]"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1 text-emerald-400/70 hover:text-emerald-400 z-[100]"
             onClick={onToggleFullscreen}
           >
             {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
           </Button>
-          <div className="flex justify-center mb-2">
-            <Microscope className="w-12 h-12 text-emerald-400" />
+          <div className="flex justify-center mb-1">
+            <Microscope className="w-8 h-8 sm:w-12 sm:h-12 text-emerald-400" />
           </div>
-          <CardTitle className="text-3xl font-black italic uppercase tracking-wider">CELLULAR EXPLORER 3D</CardTitle>
-          <CardDescription className="text-emerald-200/70">Navigate the biological void to identify organelles.</CardDescription>
+          <CardTitle className="text-xl sm:text-2xl md:text-3xl font-black italic uppercase tracking-wider">CELLULAR EXPLORER 3D</CardTitle>
+          <CardDescription className="text-emerald-200/70 text-xs sm:text-sm">Navigate the biological void to identify organelles.</CardDescription>
           {difficulty && (
             <div className="flex justify-center pt-2">
-              <Badge variant="outline" className="border-emerald-500 text-emerald-400">{difficulty.toUpperCase()}</Badge>
+              <Badge variant="outline" className="border-emerald-500 text-emerald-400 text-xs">{difficulty.toUpperCase()}</Badge>
             </div>
           )}
         </CardHeader>
 
         <CardContent className={cn(
-          "flex flex-col items-center justify-center relative p-0 overflow-hidden select-none touch-none",
+          "flex flex-col items-center justify-center relative p-2 sm:p-4 overflow-y-auto overflow-x-hidden select-none w-full max-w-full",
           isFullscreen ? "min-h-[calc(100vh-200px)]" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
         )}>
           <AnimatePresence>

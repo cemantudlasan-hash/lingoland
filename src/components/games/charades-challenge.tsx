@@ -112,46 +112,46 @@ export function CharadesChallenge({ slug, onToggleFullscreen }: { slug: string; 
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col justify-between",
+        "w-full transition-all duration-500 flex flex-col justify-between overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center p-3 sm:p-8" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
-      <CardHeader className="text-center relative">
+      <CardHeader className="text-center relative p-3 sm:p-6 pr-14 sm:pr-16">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
         </Button>
         {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
+            <div className="flex justify-center mb-1 sm:mb-4">
+                <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
             </div>
         )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+        <CardTitle className={cn("font-black tracking-tight uppercase text-xl sm:text-2xl md:text-3xl", isFullscreen && "text-2xl sm:text-5xl md:text-6xl")}>{game.title}</CardTitle>
+        <CardDescription className={cn("text-xs sm:text-sm", isFullscreen && "text-sm sm:text-2xl mt-2")}>{game.description}</CardDescription>
         <div className="flex justify-center pt-2">
-            <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{difficulty || game.level.toUpperCase()}</Badge>
+            <Badge variant="outline" className={cn("text-xs", isFullscreen && "text-base sm:text-xl px-4 sm:px-6 py-1")}>{difficulty || game.level.toUpperCase()}</Badge>
         </div>
       </CardHeader>
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
+          "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center w-full max-w-full overflow-y-auto overflow-x-hidden",
+          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8"
       )}>
         {gameState === "idle" && (
-          <div className="flex flex-col items-center gap-4">
-            <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Ready to express yourself without words?</p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                <Sparkles className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
+          <div className="flex flex-col items-center gap-4 w-full max-w-md py-4">
+            <p className={cn("text-muted-foreground text-sm sm:text-base", isFullscreen && "sm:text-2xl")}>Ready to express yourself without words?</p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
+              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl h-11 sm:h-12 w-full sm:w-auto", isFullscreen && "h-14 sm:h-20 px-8 sm:px-16 text-lg sm:text-3xl rounded-3xl")}>
+                <Sparkles className={cn("mr-2 sm:mr-3", isFullscreen ? "h-6 w-6 sm:h-10 sm:w-10" : "h-4 w-4 sm:h-5 sm:w-5")} />
                 Start Challenge
               </Button>
-              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} variant="secondary" className={cn("font-bold shadow-md", isFullscreen && "h-20 px-16 text-3xl rounded-3xl")}>
-                <BookOpen className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
+              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} variant="secondary" className={cn("font-bold shadow-md h-11 sm:h-12 w-full sm:w-auto", isFullscreen && "h-14 sm:h-20 px-8 sm:px-16 text-lg sm:text-3xl rounded-3xl")}>
+                <BookOpen className={cn("mr-2 sm:mr-3", isFullscreen ? "h-6 w-6 sm:h-10 sm:w-10" : "h-4 w-4 sm:h-5 sm:w-5")} />
                 How to Play
               </Button>
             </div>

@@ -453,10 +453,10 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
                     Category: {enigma.clue}
                 </div>
                 <div className={cn(
-                    "font-black p-8 bg-card rounded-2xl shadow-2xl border-4 transition-all duration-300 relative select-none",
+                    "font-black p-4 sm:p-8 bg-card rounded-2xl shadow-2xl border-2 sm:border-4 transition-all duration-300 relative select-none max-w-full overflow-hidden text-center",
                     isCorrect === true ? "border-green-500 bg-green-500/10 enigma-animate-pop" : "border-primary/20",
                     isCorrect === false ? "border-red-500 bg-red-500/10" : "",
-                    isFullscreen ? "text-[8vw] p-12 px-20 rounded-3xl" : "text-7xl md:text-8xl"
+                    isFullscreen ? "text-[8vw] p-8 sm:p-12 px-8 sm:px-20 rounded-3xl" : "text-4xl sm:text-6xl md:text-8xl"
                 )}>
                     {enigma.emojis}
                 </div>
@@ -552,8 +552,8 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   return (
     <div className={cn(
-      "w-full relative min-h-[40rem] flex flex-col justify-center items-center",
-      isFullscreen ? "min-h-screen bg-slate-950 p-4 sm:p-8" : "py-4"
+      "w-full max-w-full relative flex flex-col justify-center items-center flex-1 overflow-x-hidden",
+      isFullscreen ? "min-h-screen bg-slate-950 p-2 sm:p-8" : "py-0 sm:py-4"
     )}>
       <style>{`
         @keyframes enigma-shake {
@@ -636,59 +636,61 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
       </div>
 
       <Card className={cn(
-          "w-full transition-all duration-500 flex flex-col z-10 relative overflow-hidden",
+          "w-full transition-all duration-500 flex flex-col z-10 relative overflow-y-auto overflow-x-hidden max-w-full",
           isFullscreen 
               ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-center shadow-2xl" 
               : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/85 backdrop-blur-sm border-border/25 shadow-xl justify-between",
           triggerShake && "enigma-animate-shake"
         )}>
-        <CardHeader className="text-center relative border-b border-border/5">
+        <CardHeader className="text-center relative border-b border-border/5 pr-14 sm:pr-16 p-4 sm:p-6">
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
             onClick={onToggleFullscreen}
           >
             {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
           </Button>
           {!isFullscreen && (
-              <div className="flex justify-center mb-2">
-                  <Icon className="w-12 h-12 text-primary" />
+              <div className="flex justify-center mb-1 sm:mb-2">
+                  <Icon className="w-8 h-8 sm:w-12 sm:h-12 text-primary" />
               </div>
           )}
-          <CardTitle className={cn("font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500", isFullscreen ? "text-5xl" : "text-3xl")}>{game.title}</CardTitle>
-          <CardDescription className={cn(isFullscreen && "text-xl mt-2")}>{game.description}</CardDescription>
+          <CardTitle className={cn("font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500", isFullscreen ? "text-3xl sm:text-5xl" : "text-xl sm:text-2xl md:text-3xl")}>{game.title}</CardTitle>
+          <CardDescription className={cn("text-xs sm:text-sm", isFullscreen && "text-base sm:text-xl mt-1 sm:mt-2")}>{game.description}</CardDescription>
           <div className="flex justify-center pt-2">
-            <Badge variant="outline" className={cn("font-bold", isFullscreen && "text-lg px-6 py-1")}>{difficulty.toUpperCase()}</Badge>
+            <Badge variant="outline" className={cn("font-bold text-xs", isFullscreen && "text-base sm:text-lg px-4 sm:px-6 py-1")}>{difficulty.toUpperCase()}</Badge>
           </div>
         </CardHeader>
         <CardContent className={cn(
-            "space-y-6 text-center flex flex-col items-center justify-center relative",
-            isFullscreen ? "min-h-[55vh] max-w-4xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
+            "space-y-6 text-center flex flex-col items-center justify-center relative p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
+            isFullscreen ? "min-h-[55vh] max-w-4xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
         )}>
           {renderContent()}
         </CardContent>
-        <CardFooter className={cn("flex justify-between items-center gap-4 pt-6 border-t border-border/5 z-10 relative", isFullscreen && "max-w-4xl mx-auto w-full pb-10")}>
-          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-12 px-8 text-lg font-bold rounded-xl")}>
+        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 p-4 sm:p-6 pt-4 sm:pt-6 border-t border-border/5 z-10 relative w-full max-w-full", isFullscreen && "max-w-4xl mx-auto w-full pb-8 sm:pb-10")}>
+          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto", isFullscreen && "h-11 sm:h-12 px-6 sm:px-8 text-base sm:text-lg font-bold rounded-xl")}>
             <Link href="/games">Back to Library</Link>
           </Button>
-          {gameState === 'answered' && (
-            <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black hover:scale-105 active:scale-95 transition-all shadow-lg", isFullscreen && "h-12 px-10 text-lg rounded-xl")}>
-              Next Enigma <Repeat className={cn("ml-2", isFullscreen ? "h-5 w-5" : "h-4 w-4")} />
-            </Button>
-          )}
-          {gameState !== 'setup' && (
-            <Button variant="ghost" onClick={() => {
-              try {
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
-                setUsedAnswers([]);
-                toast({ title: "History Cleared", description: "You can now see previous enigmas again." });
-              } catch (e) {}
-            }} title="Reset riddle history" size={isFullscreen ? "lg" : "default"} className={cn("text-muted-foreground hover:text-foreground", isFullscreen && "text-lg")}>
-              <RotateCcw className={cn("mr-2", isFullscreen ? "h-5 w-5" : "h-4 w-4")} /> Clear History
-            </Button>
-          )}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto">
+            {gameState === 'answered' && (
+              <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black hover:scale-105 active:scale-95 transition-all shadow-lg", isFullscreen && "h-11 sm:h-12 px-6 sm:px-10 text-base sm:text-lg rounded-xl")}>
+                Next Enigma <Repeat className={cn("ml-2", isFullscreen ? "h-4 w-4 sm:h-5 sm:w-5" : "h-4 w-4")} />
+              </Button>
+            )}
+            {gameState !== 'setup' && (
+              <Button variant="ghost" onClick={() => {
+                try {
+                  localStorage.removeItem(LOCAL_STORAGE_KEY);
+                  setUsedAnswers([]);
+                  toast({ title: "History Cleared", description: "You can now see previous enigmas again." });
+                } catch (e) {}
+              }} title="Reset riddle history" size={isFullscreen ? "lg" : "default"} className={cn("text-muted-foreground hover:text-foreground text-xs sm:text-sm", isFullscreen && "text-base sm:text-lg")}>
+                <RotateCcw className={cn("mr-1.5 sm:mr-2", isFullscreen ? "h-4 w-4 sm:h-5 sm:w-5" : "h-4 w-4")} /> Clear History
+              </Button>
+            )}
+          </div>
         </CardFooter>
       </Card>
     </div>

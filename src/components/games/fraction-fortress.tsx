@@ -131,7 +131,7 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 bg-[#3a2f28] flex flex-col relative border-none overflow-hidden",
+      "w-full transition-all duration-500 bg-[#3a2f28] flex flex-col relative border-none overflow-y-auto overflow-x-hidden max-w-full",
       isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl justify-between"
     )}>
       <div className="absolute inset-0 z-0 opacity-10 mix-blend-overlay" style={{
@@ -141,48 +141,48 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
       }} />
       <div className="absolute inset-x-0 bottom-0 top-0 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-0" />
 
-      <CardHeader className="z-10 bg-[#2d241d]/90 backdrop-blur-md relative border-b border-[#5c4f42]">
-        <div className="flex justify-between items-center text-[#e8dcc4]">
-           <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" asChild className="text-[#8c7a61] hover:text-[#cca766]">
-                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
+      <CardHeader className="z-10 bg-[#2d241d]/90 backdrop-blur-md relative border-b border-[#5c4f42] p-3 sm:p-6 w-full max-w-full">
+        <div className="flex justify-between items-center text-[#e8dcc4] gap-2">
+           <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <Button variant="ghost" size="icon" asChild className="text-[#8c7a61] hover:text-[#cca766] shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
               </Button>
-              <Castle className="h-8 w-8 text-[#b89f78]" />
-              <div>
-                <CardTitle className="text-2xl font-black uppercase text-[#e8dcc4] font-serif tracking-widest">Fraction Fortress</CardTitle>
-                <Badge variant="outline" className="border-[#8c7a61] text-[#b89f78] mt-1 bg-[#1a1511]">Wave {round}/10</Badge>
+              <Castle className="h-5 w-5 sm:h-8 sm:w-8 text-[#b89f78] shrink-0" />
+              <div className="min-w-0">
+                <CardTitle className="text-sm sm:text-2xl font-black uppercase text-[#e8dcc4] font-serif tracking-tight sm:tracking-widest truncate">Fraction Fortress</CardTitle>
+                <Badge variant="outline" className="border-[#8c7a61] text-[#b89f78] mt-0.5 sm:mt-1 bg-[#1a1511] text-[8px] sm:text-xs">Wave {round}/10</Badge>
               </div>
            </div>
-           <div className="flex items-center gap-6">
+           <div className="flex items-center gap-2 sm:gap-6 shrink-0">
               <div className="text-right">
-                 <p className="text-[10px] uppercase text-[#8c7a61] font-bold tracking-widest">Defense Points</p>
-                 <p className="text-2xl font-black text-[#cca766] tabular-nums">{score}</p>
+                 <p className="text-[7px] sm:text-[10px] uppercase text-[#8c7a61] font-bold tracking-widest">Defense Points</p>
+                 <p className="text-sm sm:text-2xl font-black text-[#cca766] tabular-nums leading-none">{score}</p>
               </div>
-              <Button variant="ghost" size="icon" className="text-[#8c7a61] hover:text-[#cca766]" onClick={onToggleFullscreen}>
-                 {isFullscreen ? <Minimize /> : <Maximize />}
+              <Button variant="ghost" size="icon" className="text-[#8c7a61] hover:text-[#cca766] h-8 w-8 sm:h-10 sm:w-10" onClick={onToggleFullscreen}>
+                 {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
               </Button>
            </div>
         </div>
       </CardHeader>
 
       <CardContent className={cn(
-        "flex-grow flex flex-col z-10 relative items-center justify-center",
-        isFullscreen ? "p-6" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
+        "flex-grow flex flex-col z-10 relative items-center justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
+        isFullscreen ? "p-4 sm:p-6" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
       )}>
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
                 <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:1.1}} className="text-center w-full max-w-md">
-                    <Shield className="w-32 h-32 text-[#cca766] mx-auto mb-8 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" />
-                    <h2 className="text-4xl font-black text-white uppercase mb-4 font-serif">Defend The Keep</h2>
-                    <p className="text-[#b89f78] mb-8 mx-auto font-serif">Select difficulty or review siege tactics before fighting.</p>
-                    <div className="flex flex-col gap-3">
-                        <Button onClick={() => setGameState("instructions")} variant="outline" className="h-14 text-lg font-bold border-2 border-[#b89f78]/60 text-[#cca766] hover:bg-[#2d241d] rounded-md font-serif uppercase tracking-widest transition-all shadow-md">
-                            <BookOpen className="mr-2 h-5 w-5 text-[#cca766]" /> How to Play
+                    <Shield className="w-20 h-20 sm:w-32 sm:h-32 text-[#cca766] mx-auto mb-4 sm:mb-8 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" />
+                    <h2 className="text-2xl sm:text-4xl font-black text-white uppercase mb-2 sm:mb-4 font-serif">Defend The Keep</h2>
+                    <p className="text-[#b89f78] text-xs sm:text-base mb-6 sm:mb-8 mx-auto font-serif">Select difficulty or review siege tactics before fighting.</p>
+                    <div className="flex flex-col gap-2.5 sm:gap-3">
+                        <Button onClick={() => setGameState("instructions")} variant="outline" className="h-12 sm:h-14 text-sm sm:text-lg font-bold border-2 border-[#b89f78]/60 text-[#cca766] hover:bg-[#2d241d] rounded-md font-serif uppercase tracking-widest transition-all shadow-md">
+                            <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#cca766]" /> How to Play
                         </Button>
-                        <Button onClick={() => startGame("easy")} className="h-14 text-lg font-bold bg-[#1c1511] hover:bg-[#3a6e34] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Squire (Easy)</Button>
-                        <Button onClick={() => startGame("intermediate")} className="h-14 text-lg font-bold bg-[#1c1511] hover:bg-[#6e6334] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Knight (Intermediate)</Button>
-                        <Button onClick={() => startGame("pro")} className="h-14 text-lg font-bold bg-[#1c1511] hover:bg-[#8c3123] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Royal Elite (Pro)</Button>
-                        <Button variant="ghost" asChild className="mt-2 text-[#8c7a61] hover:text-[#cca766] uppercase tracking-widest font-serif">
+                        <Button onClick={() => startGame("easy")} className="h-12 sm:h-14 text-sm sm:text-lg font-bold bg-[#1c1511] hover:bg-[#3a6e34] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Squire (Easy)</Button>
+                        <Button onClick={() => startGame("intermediate")} className="h-12 sm:h-14 text-sm sm:text-lg font-bold bg-[#1c1511] hover:bg-[#6e6334] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Knight (Intermediate)</Button>
+                        <Button onClick={() => startGame("pro")} className="h-12 sm:h-14 text-sm sm:text-lg font-bold bg-[#1c1511] hover:bg-[#8c3123] text-[#e8dcc4] border-2 border-[#5c4f42] rounded-md font-serif uppercase tracking-widest transition-all shadow-lg">Royal Elite (Pro)</Button>
+                        <Button variant="ghost" asChild className="mt-2 text-[#8c7a61] hover:text-[#cca766] uppercase tracking-widest font-serif text-xs sm:text-sm">
                            <Link href="/games">Back to Kingdom</Link>
                         </Button>
                     </div>
@@ -190,31 +190,31 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
             )}
 
             {gameState === "instructions" && (
-                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}} className="bg-[#2d241d]/95 p-8 sm:p-12 rounded-xl text-center border-4 border-[#5c4f42] shadow-2xl w-full max-w-xl">
-                    <div className="flex items-center justify-center gap-3 mb-6">
-                        <Castle className="h-8 w-8 text-[#cca766]" />
-                        <h3 className="text-3xl font-black uppercase text-[#e8dcc4] font-serif tracking-widest">How to Play</h3>
+                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}} className="bg-[#2d241d]/95 p-6 sm:p-12 rounded-xl text-center border-2 sm:border-4 border-[#5c4f42] shadow-2xl w-full max-w-xl">
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                        <Castle className="h-6 w-6 sm:h-8 sm:w-8 text-[#cca766]" />
+                        <h3 className="text-xl sm:text-3xl font-black uppercase text-[#e8dcc4] font-serif tracking-widest">How to Play</h3>
                     </div>
-                    <div className="text-left space-y-4 font-serif text-[#e8dcc4]/85 text-base sm:text-lg mb-8">
-                        <div className="flex items-start gap-3">
-                            <span className="flex items-center justify-center bg-[#cca766] text-[#1c1511] h-7 w-7 rounded-full text-sm font-black shrink-0">1</span>
+                    <div className="text-left space-y-3 sm:space-y-4 font-serif text-[#e8dcc4]/85 text-xs sm:text-base mb-6 sm:mb-8">
+                        <div className="flex items-start gap-2 sm:gap-3">
+                            <span className="flex items-center justify-center bg-[#cca766] text-[#1c1511] h-6 w-6 sm:h-7 sm:w-7 rounded-full text-xs font-black shrink-0">1</span>
                             <p>Enemy siege engines propel incoming fraction projectiles at the fortress walls.</p>
                         </div>
-                        <div className="flex items-start gap-3">
-                            <span className="flex items-center justify-center bg-[#cca766] text-[#1c1511] h-7 w-7 rounded-full text-sm font-black shrink-0">2</span>
+                        <div className="flex items-start gap-2 sm:gap-3">
+                            <span className="flex items-center justify-center bg-[#cca766] text-[#1c1511] h-6 w-6 sm:h-7 sm:w-7 rounded-full text-xs font-black shrink-0">2</span>
                             <p>Identify the mathematically equivalent fraction among the 4 defensive counter-ballistas before the breach timer expires.</p>
                         </div>
-                        <div className="flex items-start gap-3">
-                            <span className="flex items-center justify-center bg-[#cca766] text-[#1c1511] h-7 w-7 rounded-full text-sm font-black shrink-0">3</span>
+                        <div className="flex items-start gap-2 sm:gap-3">
+                            <span className="flex items-center justify-center bg-[#cca766] text-[#1c1511] h-6 w-6 sm:h-7 sm:w-7 rounded-full text-xs font-black shrink-0">3</span>
                             <p>Defend across all 10 siege waves. Swift and precise calculations earn maximum fortress defense honors!</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Button onClick={() => setGameState('idle')} variant="outline" className="w-1/3 h-14 font-bold font-serif uppercase tracking-wider border-[#5c4f42] text-[#e8dcc4] hover:bg-[#1c1511]">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <Button onClick={() => setGameState('idle')} variant="outline" className="w-1/3 h-12 sm:h-14 text-xs sm:text-base font-bold font-serif uppercase tracking-wider border-[#5c4f42] text-[#e8dcc4] hover:bg-[#1c1511]">
                             Back
                         </Button>
-                        <Button onClick={() => startGame("easy")} className="w-2/3 h-14 font-bold font-serif uppercase tracking-widest bg-[#cca766] hover:bg-[#b89f78] text-[#1c1511] shadow-lg">
-                            Defend the Keep
+                        <Button onClick={() => startGame("easy")} className="w-2/3 h-12 sm:h-14 text-xs sm:text-base font-bold font-serif uppercase tracking-widest bg-[#cca766] hover:bg-[#b89f78] text-[#1c1511] shadow-lg">
+                            Defend Keep
                         </Button>
                     </div>
                 </motion.div>
@@ -222,15 +222,15 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
 
             {gameState === "playing" && currentProblem && (
                 <div className="w-full max-w-xl text-center flex flex-col items-center">
-                    <motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="mb-12 bg-[#2d241d]/90 p-8 rounded-xl border-4 border-[#5c4f42] shadow-2xl w-full">
-                        <p className="text-[#b89f78] font-bold uppercase tracking-widest text-xs mb-4 font-serif">Incoming Target Equivalent</p>
-                        <h1 className="text-6xl font-black text-white drop-shadow-md font-serif tracking-widest">{currentProblem.q}</h1>
+                    <motion.div initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} className="mb-4 sm:mb-12 bg-[#2d241d]/90 p-4 sm:p-8 rounded-xl border-2 sm:border-4 border-[#5c4f42] shadow-2xl w-full">
+                        <p className="text-[#b89f78] font-bold uppercase tracking-widest text-[10px] sm:text-xs mb-2 sm:mb-4 font-serif">Incoming Target Equivalent</p>
+                        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white drop-shadow-md font-serif tracking-widest">{currentProblem.q}</h1>
                     </motion.div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
                         {currentProblem.options.map((opt, i) => (
                             <motion.div key={opt} initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} transition={{delay: i*0.1}}>
-                                <Button onClick={() => handleChoice(opt)} className="group w-full h-24 text-3xl font-black font-serif bg-[#1c1511] hover:bg-[#8c3123] text-[#e8dcc4] border-2 border-[#5c4f42] hover:border-[#a63a2a] transition-all rounded-md flex items-center justify-center relative overflow-hidden shadow-lg">
+                                <Button onClick={() => handleChoice(opt)} className="group w-full h-14 sm:h-20 md:h-24 text-xl sm:text-3xl font-black font-serif bg-[#1c1511] hover:bg-[#8c3123] text-[#e8dcc4] border-2 border-[#5c4f42] hover:border-[#a63a2a] transition-all rounded-md flex items-center justify-center relative overflow-hidden shadow-lg">
                                     <Target className="absolute w-24 h-24 text-white/5 opacity-0 group-hover:opacity-100 transition-opacity rotate-45" />
                                     <span className="relative z-10">{opt}</span>
                                 </Button>
@@ -238,8 +238,8 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
                         ))}
                     </div>
 
-                    <div className="mt-16 w-full max-w-md bg-[#1c1511] p-2 rounded-md border border-[#5c4f42]">
-                        <div className="flex justify-between text-xs font-black uppercase text-[#cca766] mb-2 font-serif">
+                    <div className="mt-6 sm:mt-16 w-full max-w-md bg-[#1c1511] p-2 rounded-md border border-[#5c4f42]">
+                        <div className="flex justify-between text-xs font-black uppercase text-[#cca766] mb-1 sm:mb-2 font-serif">
                            <span>Breach In</span>
                            <span>{timeLeft.toFixed(1)}s</span>
                         </div>
@@ -251,34 +251,34 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
             )}
 
             {gameState === "showing_result" && (
-                <motion.div initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.8, opacity:0}} className="bg-[#2d241d]/95 p-16 rounded-xl text-center border-4 border-[#5c4f42] shadow-2xl w-full max-w-2xl">
+                <motion.div initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.8, opacity:0}} className="bg-[#2d241d]/95 p-6 sm:p-16 rounded-xl text-center border-2 sm:border-4 border-[#5c4f42] shadow-2xl w-full max-w-2xl">
                     {resultStatus === "correct" && (
                         <>
-                           <Crosshair className="w-24 h-24 text-green-500 mx-auto mb-6 drop-shadow-md" />
-                           <h2 className="text-4xl font-black text-green-500 uppercase tracking-widest font-serif">Target Destroyed!</h2>
-                           <p className="text-3xl text-[#cca766] mt-6 tabular-nums">+{score} POINTS</p>
+                           <Crosshair className="w-16 h-16 sm:w-24 sm:h-24 text-green-500 mx-auto mb-4 sm:mb-6 drop-shadow-md" />
+                           <h2 className="text-2xl sm:text-4xl font-black text-green-500 uppercase tracking-widest font-serif">Target Destroyed!</h2>
+                           <p className="text-xl sm:text-3xl text-[#cca766] mt-4 sm:mt-6 tabular-nums">+{score} POINTS</p>
                         </>
                     )}
                     {resultStatus === "incorrect" && (
                         <>
-                           <Shield className="w-24 h-24 text-red-500 mx-auto mb-6 drop-shadow-md rotate-180" />
-                           <h2 className="text-4xl font-black text-red-500 uppercase tracking-widest font-serif">Direct Hit Sustained!</h2>
-                           <p className="text-xl text-[#b89f78] mt-4 font-serif">Correct Armor: <span className="text-white font-bold bg-black/40 px-4 py-2 ml-2 text-2xl">{currentProblem?.a}</span></p>
+                           <Shield className="w-16 h-16 sm:w-24 sm:h-24 text-red-500 mx-auto mb-4 sm:mb-6 drop-shadow-md rotate-180" />
+                           <h2 className="text-2xl sm:text-4xl font-black text-red-500 uppercase tracking-widest font-serif">Direct Hit Sustained!</h2>
+                           <p className="text-sm sm:text-xl text-[#b89f78] mt-3 sm:mt-4 font-serif">Correct Armor: <span className="text-white font-bold bg-black/40 px-2 sm:px-4 py-1 sm:py-2 ml-2 text-lg sm:text-2xl">{currentProblem?.a}</span></p>
                         </>
                     )}
                     {resultStatus === "timeout" && (
                         <>
-                           <Shield className="w-24 h-24 text-orange-500 mx-auto mb-6 drop-shadow-md" />
-                           <h2 className="text-4xl font-black text-orange-500 uppercase tracking-widest font-serif">Walls Breached!</h2>
-                           <p className="text-xl text-[#b89f78] mt-4 font-serif">Correct Armor: <span className="text-white font-bold bg-black/40 px-4 py-2 ml-2 text-2xl">{currentProblem?.a}</span></p>
+                           <Shield className="w-16 h-16 sm:w-24 sm:h-24 text-orange-500 mx-auto mb-4 sm:mb-6 drop-shadow-md" />
+                           <h2 className="text-2xl sm:text-4xl font-black text-orange-500 uppercase tracking-widest font-serif">Walls Breached!</h2>
+                           <p className="text-sm sm:text-xl text-[#b89f78] mt-3 sm:mt-4 font-serif">Correct Armor: <span className="text-white font-bold bg-black/40 px-2 sm:px-4 py-1 sm:py-2 ml-2 text-lg sm:text-2xl">{currentProblem?.a}</span></p>
                         </>
                     )}
 
-                    <div className="flex flex-col items-center gap-4 mt-10">
-                        <Button onClick={nextRound} className="h-16 px-12 text-2xl font-black bg-[#cca766] text-[#1c1511] hover:bg-[#b89f78] rounded-md shadow-2xl transition-all hover:scale-105 font-serif uppercase tracking-widest">
+                    <div className="flex flex-col items-center gap-3 sm:gap-4 mt-6 sm:mt-10">
+                        <Button onClick={nextRound} className="h-12 sm:h-16 px-8 sm:px-12 text-base sm:text-2xl font-black bg-[#cca766] text-[#1c1511] hover:bg-[#b89f78] rounded-md shadow-2xl transition-all hover:scale-105 font-serif uppercase tracking-widest">
                             {round >= 10 ? "Finish Siege" : "Next Wave"}
                         </Button>
-                        <Button variant="ghost" onClick={() => setGameState("idle")} className="text-[#8c7a61] hover:text-[#cca766] uppercase tracking-widest font-serif">
+                        <Button variant="ghost" onClick={() => setGameState("idle")} className="text-[#8c7a61] hover:text-[#cca766] uppercase tracking-widest font-serif text-xs sm:text-sm">
                             Change Formation
                         </Button>
                     </div>
@@ -286,15 +286,15 @@ export function FractionFortress({ slug, onToggleFullscreen }: { slug: string; o
             )}
 
             {gameState === "finished" && (
-                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="text-center w-full max-w-xl mx-auto bg-[#2d241d] p-16 rounded-xl border-4 border-[#5c4f42] shadow-2xl">
-                    <h2 className="text-5xl font-black text-[#cca766] uppercase font-serif tracking-widest mb-8">Siege Ended</h2>
-                    <div className="bg-[#1c1511] border-2 border-[#5c4f42] rounded-md p-10 mb-12 shadow-inner">
-                       <p className="text-sm font-black uppercase tracking-widest text-[#8c7a61] mb-4 font-serif">Total Defense Score</p>
-                       <p className="text-7xl font-black text-white font-serif tabular-nums">{score}</p>
+                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="text-center w-full max-w-xl mx-auto bg-[#2d241d] p-6 sm:p-16 rounded-xl border-2 sm:border-4 border-[#5c4f42] shadow-2xl">
+                    <h2 className="text-3xl sm:text-5xl font-black text-[#cca766] uppercase font-serif tracking-widest mb-4 sm:mb-8">Siege Ended</h2>
+                    <div className="bg-[#1c1511] border-2 border-[#5c4f42] rounded-md p-6 sm:p-10 mb-6 sm:mb-12 shadow-inner">
+                       <p className="text-xs sm:text-sm font-black uppercase tracking-widest text-[#8c7a61] mb-2 sm:mb-4 font-serif">Total Defense Score</p>
+                       <p className="text-5xl sm:text-7xl font-black text-white font-serif tabular-nums">{score}</p>
                     </div>
-                    <div className="flex gap-4 justify-center">
-                        <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="h-16 px-10 text-lg font-bold bg-[#cca766] hover:bg-[#b89f78] text-[#1c1511] font-serif uppercase tracking-widest rounded-md border-b-4 border-[#8c7a61] transition-all hover:scale-105"><Repeat className="mr-2 h-5 w-5"/> New Siege</Button>
-                        <Button variant="outline" asChild className="h-16 px-10 text-lg font-bold border-2 border-[#5c4f42] text-[#cca766] hover:bg-[#1c1511] rounded-md font-serif uppercase tracking-widest"><Link href="/games">Retreat</Link></Button>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                        <Button onClick={() => {setGameState("idle"); setScore(0); setRound(0);}} className="h-12 sm:h-16 px-6 sm:px-10 text-sm sm:text-lg font-bold bg-[#cca766] hover:bg-[#b89f78] text-[#1c1511] font-serif uppercase tracking-widest rounded-md border-b-4 border-[#8c7a61] transition-all hover:scale-105"><Repeat className="mr-2 h-4 w-4 sm:h-5 sm:w-5"/> New Siege</Button>
+                        <Button variant="outline" asChild className="h-12 sm:h-16 px-6 sm:px-10 text-sm sm:text-lg font-bold border-2 border-[#5c4f42] text-[#cca766] hover:bg-[#1c1511] rounded-md font-serif uppercase tracking-widest"><Link href="/games">Retreat</Link></Button>
                     </div>
                 </motion.div>
             )}

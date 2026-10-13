@@ -236,7 +236,7 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 bg-[#0f1710] flex flex-col relative border-none overflow-hidden justify-between",
+      "w-full transition-all duration-500 bg-[#0f1710] flex flex-col relative border-none overflow-y-auto overflow-x-hidden max-w-full justify-between",
       isFullscreen ? "fixed inset-0 z-50 rounded-none h-screen" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl"
     )}>
       <div className="absolute inset-0 z-0 opacity-10" style={{ 
@@ -245,45 +245,45 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
       }} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_#0f1710_80%)] pointer-events-none z-0" />
 
-      <CardHeader className="z-10 bg-[#0f1710]/90 backdrop-blur-md relative border-b border-green-900/50">
-        <div className="flex justify-between items-center text-green-100">
-           <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" asChild className="text-green-500/50 hover:text-green-400">
-                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
+      <CardHeader className="z-10 bg-[#0f1710]/90 backdrop-blur-md relative border-b border-green-900/50 p-3 sm:p-6">
+        <div className="flex justify-between items-center text-green-100 gap-2">
+           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <Button variant="ghost" size="icon" asChild className="text-green-500/50 hover:text-green-400 h-8 w-8 sm:h-10 sm:w-10 shrink-0">
+                  <Link href="/games"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg></Link>
               </Button>
-              <Activity className="h-8 w-8 text-green-500" />
-              <div>
-                <CardTitle className="text-2xl font-black uppercase text-green-400 font-mono tracking-tighter">Bio Hazard</CardTitle>
-                <Badge variant="outline" className="border-green-500/30 text-green-500 mt-1">Sample {round}/10</Badge>
+              <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 shrink-0" />
+              <div className="min-w-0">
+                <CardTitle className="text-lg sm:text-2xl font-black uppercase text-green-400 font-mono tracking-tighter truncate">Bio Hazard</CardTitle>
+                <Badge variant="outline" className="border-green-500/30 text-green-500 mt-0.5 text-[10px] sm:text-xs">Sample {round}/10</Badge>
               </div>
            </div>
-           <div className="flex items-center gap-6">
+           <div className="flex items-center gap-3 sm:gap-6 shrink-0">
               <div className="text-right">
-                 <p className="text-[10px] uppercase text-green-800 font-bold tracking-widest">Immunity Score</p>
-                 <p className="text-2xl font-black text-green-400 tabular-nums">{score}</p>
+                 <p className="text-[9px] sm:text-[10px] uppercase text-green-800 font-bold tracking-widest">Immunity</p>
+                 <p className="text-lg sm:text-2xl font-black text-green-400 tabular-nums">{score}</p>
               </div>
-              <Button variant="ghost" size="icon" className="text-green-600 hover:text-green-400" onClick={onToggleFullscreen}>
-                 {isFullscreen ? <Minimize /> : <Maximize />}
+              <Button variant="ghost" size="icon" className="text-green-600 hover:text-green-400 h-8 w-8 sm:h-10 sm:w-10" onClick={onToggleFullscreen}>
+                 {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
               </Button>
            </div>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col z-10 relative p-4 sm:p-6 lg:p-8 items-center justify-center w-full min-h-[calc(100dvh-16rem)]">
+      <CardContent className="flex-grow flex flex-col z-10 relative p-3 sm:p-6 lg:p-8 items-center justify-center w-full max-w-full overflow-y-auto overflow-x-hidden min-h-[calc(100dvh-16rem)]">
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
-                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:1.1}} className="text-center w-full max-w-md">
-                    <ShieldAlert className="w-32 h-32 text-green-500 mx-auto mb-8 drop-shadow-[0_0_30px_rgba(34,197,94,0.4)]" />
-                    <h2 className="text-5xl font-black text-white uppercase mb-4 font-mono">Microscopic Threat</h2>
-                    <p className="text-green-200/60 mb-8 mx-auto lowercase">Select containment protocol level to begin scan.</p>
-                    <div className="flex flex-col gap-3">
-                        <Button onClick={() => startGame("easy")} className="h-14 px-12 text-lg font-bold bg-[#142215] border-2 border-green-500/30 hover:border-green-500 text-green-400 rounded-full font-mono uppercase tracking-widest transition-all">Level 1 Protocol (Easy)</Button>
-                        <Button onClick={() => startGame("intermediate")} className="h-14 px-12 text-lg font-bold bg-[#142215] border-2 border-yellow-500/30 hover:border-yellow-500 text-yellow-400 rounded-full font-mono uppercase tracking-widest transition-all">Level 2 Protocol (Intermediate)</Button>
-                        <Button onClick={() => startGame("pro")} className="h-14 px-12 text-lg font-bold bg-[#142215] border-2 border-red-500/30 hover:border-red-500 text-red-400 rounded-full font-mono uppercase tracking-widest transition-all">Pro Protocol (Extreme)</Button>
-                        <Button onClick={() => setGameState("instructions")} variant="outline" className="h-14 px-12 text-lg font-bold bg-[#142215]/80 border-2 border-green-500/30 hover:border-green-400 text-green-300 rounded-full font-mono uppercase tracking-widest transition-all">
-                            <BookOpen className="mr-2 h-5 w-5" /> How to Play
+                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:1.1}} className="text-center w-full max-w-md py-2">
+                    <ShieldAlert className="w-20 h-20 sm:w-28 sm:h-28 text-green-500 mx-auto mb-4 sm:mb-6 drop-shadow-[0_0_30px_rgba(34,197,94,0.4)]" />
+                    <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase mb-2 font-mono">Microscopic Threat</h2>
+                    <p className="text-green-200/60 mb-6 mx-auto text-xs sm:text-sm lowercase">Select containment protocol level to begin scan.</p>
+                    <div className="flex flex-col gap-2.5 w-full">
+                        <Button onClick={() => startGame("easy")} className="h-11 sm:h-13 px-6 sm:px-12 text-sm sm:text-base font-bold bg-[#142215] border-2 border-green-500/30 hover:border-green-500 text-green-400 rounded-full font-mono uppercase tracking-widest transition-all">Level 1 (Easy)</Button>
+                        <Button onClick={() => startGame("intermediate")} className="h-11 sm:h-13 px-6 sm:px-12 text-sm sm:text-base font-bold bg-[#142215] border-2 border-yellow-500/30 hover:border-yellow-500 text-yellow-400 rounded-full font-mono uppercase tracking-widest transition-all">Level 2 (Intermediate)</Button>
+                        <Button onClick={() => startGame("pro")} className="h-11 sm:h-13 px-6 sm:px-12 text-sm sm:text-base font-bold bg-[#142215] border-2 border-red-500/30 hover:border-red-500 text-red-400 rounded-full font-mono uppercase tracking-widest transition-all">Pro (Extreme)</Button>
+                        <Button onClick={() => setGameState("instructions")} variant="outline" className="h-11 sm:h-13 px-6 sm:px-12 text-sm sm:text-base font-bold bg-[#142215]/80 border-2 border-green-500/30 hover:border-green-400 text-green-300 rounded-full font-mono uppercase tracking-widest transition-all">
+                            <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> How to Play
                         </Button>
-                        <Button variant="ghost" asChild className="mt-2 text-green-700 hover:text-green-500 uppercase tracking-widest font-mono">
+                        <Button variant="ghost" asChild className="mt-1 text-green-700 hover:text-green-500 uppercase tracking-widest font-mono text-xs">
                            <Link href="/games">Back to Sector Entrance</Link>
                         </Button>
                     </div>
@@ -291,29 +291,29 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
             )}
 
             {gameState === "instructions" && (
-                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.95}} className="text-center w-full max-w-xl bg-[#142215]/90 p-8 sm:p-10 rounded-3xl border border-green-500/30 shadow-2xl">
-                    <ShieldAlert className="w-16 h-16 text-green-400 mx-auto mb-4" />
-                    <h2 className="text-3xl font-black text-white uppercase mb-4 font-mono">Containment Protocol (How to Play)</h2>
-                    <div className="text-left space-y-4 text-green-200/80 text-sm sm:text-base font-mono mb-8">
-                        <p className="flex items-start gap-3">
-                            <span className="h-6 w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
+                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.95}} className="text-center w-full max-w-xl bg-[#142215]/90 p-4 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl border border-green-500/30 shadow-2xl">
+                    <ShieldAlert className="w-12 h-12 sm:w-16 sm:h-16 text-green-400 mx-auto mb-3" />
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white uppercase mb-4 font-mono">Containment Protocol (How to Play)</h2>
+                    <div className="text-left space-y-3 sm:space-y-4 text-green-200/80 text-xs sm:text-sm md:text-base font-mono mb-6 sm:mb-8">
+                        <p className="flex items-start gap-2.5">
+                            <span className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
                             <span>A biological query sample will be identified for containment.</span>
                         </p>
-                        <p className="flex items-start gap-3">
-                            <span className="h-6 w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
+                        <p className="flex items-start gap-2.5">
+                            <span className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
                             <span>Target and select the correct biological term to neutralize the sample.</span>
                         </p>
-                        <p className="flex items-start gap-3">
-                            <span className="h-6 w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
+                        <p className="flex items-start gap-2.5">
+                            <span className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
                             <span>Respond quickly before the mutation countdown reaches 0 to secure speed bonuses.</span>
                         </p>
-                        <p className="flex items-start gap-3">
-                            <span className="h-6 w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">4</span>
+                        <p className="flex items-start gap-2.5">
+                            <span className="h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-green-500/20 text-green-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">4</span>
                             <span>Neutralize all 10 pathogen samples across the laboratory to purify the sector.</span>
                         </p>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button onClick={() => setGameState("idle")} className="h-12 px-8 text-base font-bold bg-green-700 hover:bg-green-600 text-white rounded-full font-mono uppercase tracking-widest">
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <Button onClick={() => setGameState("idle")} className="h-11 sm:h-12 px-8 text-sm sm:text-base font-bold bg-green-700 hover:bg-green-600 text-white rounded-full font-mono uppercase tracking-widest">
                             Proceed to Protocols
                         </Button>
                     </div>
@@ -322,28 +322,28 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
 
             {gameState === "playing" && currentProblem && (
                 <div className="w-full max-w-2xl text-center flex flex-col items-center">
-                    <motion.div initial={{opacity:0, y:-10}} animate={{opacity:1, y:0}} className="mb-12 bg-[#142215]/80 p-8 rounded-3xl border border-green-500/30 w-full shadow-2xl">
-                        <p className="text-green-600 font-black uppercase tracking-widest text-xs mb-4">Sample Query</p>
-                        <h1 className="text-3xl md:text-4xl font-bold text-green-100 drop-shadow-[0_0_10px_rgba(34,197,94,0.3)] leading-tight">{currentProblem.q}</h1>
+                    <motion.div initial={{opacity:0, y:-10}} animate={{opacity:1, y:0}} className="mb-4 sm:mb-8 bg-[#142215]/80 p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-green-500/30 w-full shadow-2xl">
+                        <p className="text-green-600 font-black uppercase tracking-widest text-[10px] sm:text-xs mb-2 sm:mb-4">Sample Query</p>
+                        <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-green-100 drop-shadow-[0_0_10px_rgba(34,197,94,0.3)] leading-tight">{currentProblem.q}</h1>
                     </motion.div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 w-full">
                         {currentProblem.options.map((opt, i) => (
                             <motion.div key={opt} initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} transition={{delay: i*0.1}}>
-                                <Button onClick={() => handleChoice(opt)} className="group w-full h-auto min-h-[70px] py-4 px-6 text-xl font-bold bg-[#142215]/80 hover:bg-green-800 text-green-50 border border-green-800 hover:border-green-400 transition-all rounded-[30px] flex items-center justify-center gap-4 relative overflow-hidden">
-                                    <Crosshair className="w-5 h-5 text-green-600 group-hover:text-green-300 relative z-10 hidden sm:block" />
-                                    <span className="relative z-10">{opt}</span>
+                                <Button onClick={() => handleChoice(opt)} className="group w-full h-auto min-h-[52px] sm:min-h-[70px] py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-lg md:text-xl font-bold bg-[#142215]/80 hover:bg-green-800 text-green-50 border border-green-800 hover:border-green-400 transition-all rounded-xl sm:rounded-[30px] flex items-center justify-center gap-2 sm:gap-4 relative overflow-hidden">
+                                    <Crosshair className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 group-hover:text-green-300 relative z-10 hidden sm:block" />
+                                    <span className="relative z-10 text-center break-words">{opt}</span>
                                 </Button>
                             </motion.div>
                         ))}
                     </div>
 
-                    <div className="mt-16 w-full max-w-md">
-                        <div className="flex justify-between text-[10px] font-black uppercase text-green-600 mb-2">
+                    <div className="mt-6 sm:mt-12 w-full max-w-md">
+                        <div className="flex justify-between text-[10px] font-black uppercase text-green-600 mb-1.5">
                            <span>Mutation Countdown</span>
                            <span>{timeLeft.toFixed(1)}s</span>
                         </div>
-                        <Progress value={(timeLeft / getTimerLimit()) * 100} className="h-1 bg-[#142215] rounded-full overflow-hidden">
+                        <Progress value={(timeLeft / getTimerLimit()) * 100} className="h-1.5 bg-[#142215] rounded-full overflow-hidden">
                            <div className="h-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,1)]" />
                         </Progress>
                     </div>
@@ -351,19 +351,19 @@ export function BioHazard({ slug, onToggleFullscreen }: { slug: string; onToggle
             )}
 
             {gameState === "showing_result" && (
-                <motion.div initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.8, opacity:0}} className="bg-[#0f1710]/95 p-16 rounded-[50px] text-center border border-green-900/50 shadow-[0_0_50px_rgba(34,197,94,0.2)] w-full max-w-2xl">
+                <motion.div initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.8, opacity:0}} className="bg-[#0f1710]/95 p-6 sm:p-12 md:p-16 rounded-2xl sm:rounded-[50px] text-center border border-green-900/50 shadow-[0_0_50px_rgba(34,197,94,0.2)] w-full max-w-2xl">
                     {resultStatus === "correct" && (
                         <>
-                           <Activity className="w-24 h-24 text-green-400 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(74,222,128,0.5)]" />
-                           <h2 className="text-4xl font-black text-green-400 uppercase tracking-widest font-mono">Neutralized!</h2>
-                           <p className="text-3xl text-green-100 mt-6 tabular-nums">+{score} IMMUNITY</p>
+                           <Activity className="w-16 h-16 sm:w-24 sm:h-24 text-green-400 mx-auto mb-4 sm:mb-6 drop-shadow-[0_0_20px_rgba(74,222,128,0.5)]" />
+                           <h2 className="text-2xl sm:text-4xl font-black text-green-400 uppercase tracking-widest font-mono">Neutralized!</h2>
+                           <p className="text-xl sm:text-3xl text-green-100 mt-4 sm:mt-6 tabular-nums">+{score} IMMUNITY</p>
                         </>
                     )}
                     {resultStatus === "incorrect" && (
                         <>
-                           <ShieldAlert className="w-24 h-24 text-red-500 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]" />
-                           <h2 className="text-4xl font-black text-red-500 uppercase tracking-widest font-mono">Infection Spread</h2>
-                           <p className="text-xl text-green-100/50 mt-4">Correct Answer: <span className="text-green-400 font-bold bg-black/40 px-4 py-2 rounded-xl">{currentProblem?.a}</span></p>
+                           <ShieldAlert className="w-16 h-16 sm:w-24 sm:h-24 text-red-500 mx-auto mb-4 sm:mb-6 drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]" />
+                           <h2 className="text-2xl sm:text-4xl font-black text-red-500 uppercase tracking-widest font-mono">Infection Spread</h2>
+                           <p className="text-sm sm:text-xl text-green-100/50 mt-3 sm:mt-4">Correct Answer: <span className="text-green-400 font-bold bg-black/40 px-3 py-1 sm:px-4 sm:py-2 rounded-xl">{currentProblem?.a}</span></p>
                         </>
                     )}
                     {resultStatus === "timeout" && (

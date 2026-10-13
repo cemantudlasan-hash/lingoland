@@ -234,10 +234,10 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
                             Add Team
                         </Button>
                     </div>
-                    <div className="flex flex-col gap-2.5 w-full mt-4">
-                        <Button onClick={handleStartGame} size="lg" className="w-full h-14 font-black uppercase text-xl rounded-2xl shadow-lg">Begin Mission</Button>
-                        <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full h-12 font-bold uppercase rounded-2xl">
-                            <BookOpen className="mr-2 h-5 w-5" /> How to Play
+                    <div className="flex flex-col sm:flex-row gap-2.5 w-full mt-4">
+                        <Button onClick={handleStartGame} size="lg" className="w-full sm:w-1/2 h-11 sm:h-14 font-black uppercase text-base sm:text-xl rounded-xl sm:rounded-2xl shadow-lg">Begin Mission</Button>
+                        <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full sm:w-1/2 h-11 sm:h-12 font-bold uppercase rounded-xl sm:rounded-2xl text-xs sm:text-sm">
+                            <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> How to Play
                         </Button>
                     </div>
                 </div>
@@ -245,43 +245,43 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
         case 'instructions':
              return (
                 <div className={cn(
-                    "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20 shadow-inner",
-                    isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-lg"
+                    "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-2xl mx-auto border border-border/20 shadow-inner w-full max-w-lg p-4 sm:p-8",
+                    isFullscreen && "p-8 sm:p-16 max-w-5xl"
                 )}>
-                    <h3 className={cn("font-black uppercase tracking-widest text-center mb-4", isFullscreen ? "text-4xl" : "text-xl")}>How to Play</h3>
-                    <div className={cn("text-left space-y-4", isFullscreen ? "text-2xl" : "text-base")}>
+                    <h3 className={cn("font-black uppercase tracking-widest text-center mb-2 sm:mb-4 text-base sm:text-xl", isFullscreen && "text-xl sm:text-4xl")}>How to Play</h3>
+                    <div className={cn("text-left space-y-3 sm:space-y-4 text-xs sm:text-base", isFullscreen && "sm:text-2xl")}>
                        <p>1. The game will show a focus word for the round. Discuss its usage with your class.</p>
                         <p>2. You have 30 seconds to choose one of the two mystery gifts.</p>
                         <p>3. One gift contains a <strong>correct</strong> sentence (+ Points), and the other is <strong>incorrect</strong> (- Points).</p>
                         <p>4. The team with the highest capital at the end wins!</p>
                     </div>
-                    <Button onClick={() => { setRound(0); prepareNextRound(); }} size="lg" className={cn("mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl shadow-xl")}>Let's Play!</Button>
+                    <Button onClick={() => { setRound(0); prepareNextRound(); }} size="lg" className={cn("mt-4 sm:mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black h-11 sm:h-12 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl", isFullscreen && "h-14 sm:h-20 sm:text-3xl rounded-3xl shadow-xl")}>Let's Play!</Button>
                 </div>
             );
         case 'loading':
             return (
                 <div className="flex flex-col items-center justify-center gap-6">
                     <Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-24 w-24" : "h-12 w-12")} />
-                    <p className={cn("text-muted-foreground animate-pulse font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-lg")}>Packaging linguistic gifts...</p>
+                    <p className={cn("text-muted-foreground animate-pulse font-black uppercase tracking-widest text-xs sm:text-base", isFullscreen && "text-lg sm:text-3xl")}>Packaging linguistic gifts...</p>
                 </div>
             );
         case 'playing':
             return (
-                <div className="w-full flex flex-col items-center gap-8 max-w-5xl">
-                    <h3 className={cn("font-black uppercase tracking-widest text-muted-foreground", isFullscreen ? "text-3xl" : "text-xl")}>Round {round}: The word is <span className="text-primary italic">"{currentItem}"</span></h3>
+                <div className="w-full flex flex-col items-center gap-4 sm:gap-8 max-w-5xl px-2">
+                    <h3 className={cn("font-black uppercase tracking-widest text-muted-foreground text-center text-sm sm:text-xl", isFullscreen && "text-xl sm:text-3xl")}>Round {round}: The word is <span className="text-primary italic">"{currentItem}"</span></h3>
                     <div className={cn("flex flex-col items-center gap-2", isFullscreen && "gap-4")}>
-                        <p className={cn("font-black uppercase tracking-widest text-primary", isFullscreen ? "text-4xl" : "text-2xl")}>{teams[currentTurn].name}, choose your prize!</p>
-                        <div className="flex items-center gap-3 text-muted-foreground bg-muted p-2 px-4 rounded-full border-2 border-primary/10">
-                            <Timer className={cn(isFullscreen ? "h-8 w-8" : "h-5 w-5")}/>
-                            <span className={cn("font-mono font-black", isFullscreen ? "text-4xl" : "text-xl")}>{timeLeft}s</span>
+                        <p className={cn("font-black uppercase tracking-widest text-primary text-center text-base sm:text-2xl", isFullscreen && "text-xl sm:text-4xl")}>{teams[currentTurn].name}, choose your prize!</p>
+                        <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground bg-muted p-1.5 sm:p-2 px-3 sm:px-4 rounded-full border-2 border-primary/10">
+                            <Timer className={cn(isFullscreen ? "h-6 w-6 sm:h-8 sm:w-8" : "h-4 w-4 sm:h-5 sm:w-5")}/>
+                            <span className={cn("font-mono font-black text-sm sm:text-xl", isFullscreen && "text-2xl sm:text-4xl")}>{timeLeft}s</span>
                         </div>
                     </div>
-                     <div className={cn("flex gap-12 mt-10 justify-center", isFullscreen && "gap-24")}>
-                        <button key={0} onClick={() => handleChooseGift(gifts[0])} className="transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_30px_rgba(251,191,36,0.4)]">
-                            <Gift className={cn("text-yellow-400 drop-shadow-lg", isFullscreen ? "w-64 h-64" : "w-40 h-40")} />
+                     <div className={cn("flex gap-6 sm:gap-12 mt-4 sm:mt-10 justify-center items-center", isFullscreen && "gap-12 sm:gap-24")}>
+                        <button key={0} onClick={() => handleChooseGift(gifts[0])} className="transition-all duration-300 hover:scale-110 active:scale-95 hover:drop-shadow-[0_0_30px_rgba(251,191,36,0.4)]">
+                            <Gift className={cn("text-yellow-400 drop-shadow-lg", isFullscreen ? "w-40 h-40 sm:w-64 sm:h-64" : "w-24 h-24 sm:w-40 sm:h-40")} />
                         </button>
-                        <button key={1} onClick={() => handleChooseGift(gifts[1])} className="transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_30px_rgba(239,68,68,0.4)]">
-                            <Gift className={cn("text-red-500 drop-shadow-lg", isFullscreen ? "w-64 h-64" : "w-40 h-40")} />
+                        <button key={1} onClick={() => handleChooseGift(gifts[1])} className="transition-all duration-300 hover:scale-110 active:scale-95 hover:drop-shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+                            <Gift className={cn("text-red-500 drop-shadow-lg", isFullscreen ? "w-40 h-40 sm:w-64 sm:h-64" : "w-24 h-24 sm:w-40 sm:h-40")} />
                         </button>
                     </div>
                 </div>
@@ -347,32 +347,32 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
 
   return (
       <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col justify-between",
+        "w-full transition-all duration-500 flex flex-col justify-between overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center p-3 sm:p-8" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
-          <CardHeader className="text-center relative">
+          <CardHeader className="text-center relative p-3 sm:p-6 pr-14 sm:pr-16">
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
                 onClick={onToggleFullscreen}
               >
                 {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
                 <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
               </Button>
               {!isFullscreen && (
-                  <div className="flex justify-center mb-4">
-                      <Icon className="w-16 h-16 text-primary" />
+                  <div className="flex justify-center mb-1 sm:mb-4">
+                      <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
                   </div>
               )}
-              <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-              <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+              <CardTitle className={cn("font-black tracking-tight uppercase text-xl sm:text-2xl md:text-3xl", isFullscreen && "text-2xl sm:text-5xl md:text-6xl")}>{game.title}</CardTitle>
+              <CardDescription className={cn("text-xs sm:text-sm", isFullscreen && "text-sm sm:text-2xl mt-2")}>{game.description}</CardDescription>
           </CardHeader>
           <CardContent className={cn(
-              "space-y-6 text-center flex flex-col items-center justify-center",
-              isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
+              "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center w-full max-w-full overflow-y-auto overflow-x-hidden",
+              isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8"
           )}>
               {gameState !== 'setup' && gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'loading' && (
                   <div className={cn(

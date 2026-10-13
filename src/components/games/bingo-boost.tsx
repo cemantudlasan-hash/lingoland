@@ -677,9 +677,9 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col relative overflow-hidden justify-between",
+        "w-full transition-all duration-500 flex flex-col relative overflow-y-auto overflow-x-hidden max-w-full justify-between",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-slate-950 justify-center p-8" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-slate-950 justify-center p-3 sm:p-8" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] bg-slate-900/40 backdrop-blur-md border border-slate-800 shadow-2xl rounded-2xl md:rounded-3xl"
       )}>
       
@@ -687,33 +687,33 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
       <div className="absolute top-0 left-[20%] w-72 h-72 rounded-full blur-[120px] bg-purple-500/10 pointer-events-none -z-10" />
       <div className="absolute bottom-0 right-[20%] w-72 h-72 rounded-full blur-[120px] bg-indigo-500/10 pointer-events-none -z-10" />
 
-      <CardHeader className="text-center relative border-b border-slate-850/60 pb-6">
+      <CardHeader className="text-center relative border-b border-slate-850/60 pb-4 pt-4 px-4 sm:px-6 pr-14 sm:pr-16">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1.5 text-slate-450 hover:text-white hover:bg-slate-800 rounded-xl z-[100]"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1.5 text-slate-450 hover:text-white hover:bg-slate-800 rounded-xl z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
         </Button>
         {!isFullscreen && (
-            <div className="flex justify-center mb-2">
-                <Icon className="w-14 h-14 text-indigo-400 animate-pulse" />
+            <div className="flex justify-center mb-1">
+                <Icon className="w-10 h-10 sm:w-14 sm:h-14 text-indigo-400 animate-pulse" />
             </div>
         )}
-        <CardTitle className={cn("font-black tracking-tight text-white uppercase", isFullscreen ? "text-5xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn("text-slate-400 text-sm mt-1", isFullscreen && "text-lg")}>{game.description}</CardDescription>
+        <CardTitle className={cn("font-black tracking-tight text-white uppercase text-xl sm:text-2xl md:text-3xl", isFullscreen && "text-2xl sm:text-4xl md:text-5xl")}>{game.title}</CardTitle>
+        <CardDescription className={cn("text-slate-400 text-xs sm:text-sm mt-1", isFullscreen && "text-sm sm:text-base")}>{game.description}</CardDescription>
         {difficulty && (
             <div className="flex justify-center pt-2">
-                <Badge variant="outline" className={cn("bg-indigo-500/10 border-indigo-500/20 text-indigo-300 font-extrabold uppercase", isFullscreen && "text-base px-6 py-1")}>{difficulty}</Badge>
+                <Badge variant="outline" className={cn("bg-indigo-500/10 border-indigo-500/20 text-indigo-300 font-extrabold uppercase text-xs", isFullscreen && "text-sm px-4 py-1")}>{difficulty}</Badge>
             </div>
         )}
       </CardHeader>
 
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center flex-grow p-4 sm:p-6 lg:p-8",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
+          "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center flex-grow p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
+          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
       )}>
         {gameState === "idle" && (
             <div className="flex flex-col items-center gap-6 max-w-lg py-6">
@@ -814,71 +814,71 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full items-start">
             
             {/* Left/Center Column: Bingo board and gameplay (8 cols) */}
-            <div className="lg:col-span-8 flex flex-col items-center gap-8 w-full">
+            <div className="lg:col-span-8 flex flex-col items-center gap-4 sm:gap-8 w-full max-w-full">
               
-              {/* Centered Question / Correct Answer Call Card - Enlarged & Longer */}
-              <div className="p-10 md:p-12 rounded-[2rem] bg-slate-900/60 border border-slate-800 backdrop-blur-sm w-full text-center shadow-lg relative min-h-[280px] flex flex-col justify-between">
+              {/* Centered Question / Correct Answer Call Card */}
+              <div className="p-4 sm:p-8 md:p-12 rounded-2xl md:rounded-[2rem] bg-slate-900/60 border border-slate-800 backdrop-blur-sm w-full text-center shadow-lg relative min-h-[220px] sm:min-h-[280px] flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between gap-1.5 text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-4 w-full">
+                  <div className="flex items-center justify-between gap-1.5 text-[10px] sm:text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-3 w-full">
                     <div className="flex items-center gap-1.5">
-                      <BookOpen className="h-4 w-4" />
-                      <span>Drawn question {currentDefinitionIndex + 1} / {definitions.length}</span>
+                      <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span>Drawn {currentDefinitionIndex + 1} / {definitions.length}</span>
                     </div>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={handlePrintCurrentGameCards}
-                      className="h-8 gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg flex items-center"
+                      className="h-7 sm:h-8 gap-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg flex items-center text-xs"
                     >
-                      <Printer className="h-4 w-4" />
-                      <span>Print Cards</span>
+                      <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Print Cards</span>
                     </Button>
                   </div>
-                  <h4 className="font-extrabold text-white text-2xl md:text-3xl lg:text-4xl leading-relaxed italic px-4 min-h-[100px] flex items-center justify-center">
+                  <h4 className="font-extrabold text-white text-lg sm:text-2xl md:text-3xl lg:text-4xl leading-snug sm:leading-relaxed italic px-2 min-h-[70px] sm:min-h-[100px] flex items-center justify-center">
                     "{definitions[currentDefinitionIndex].definition}"
                   </h4>
                 </div>
                 
-                <div className="flex flex-col items-center gap-4 mt-6">
-                  <div className="flex items-center justify-center gap-3 flex-wrap">
-                    <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].definition)} disabled={isSpeaking} className="h-12 w-12 rounded-full bg-slate-850 hover:bg-slate-800 text-indigo-300" title="Speak Definition">
-                      <Volume2 className="h-6 w-6" />
+                <div className="flex flex-col items-center gap-3 sm:gap-4 mt-4 sm:mt-6">
+                  <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap w-full">
+                    <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].definition)} disabled={isSpeaking} className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-slate-850 hover:bg-slate-800 text-indigo-300" title="Speak Definition">
+                      <Volume2 className="h-5 w-5 sm:h-6 sm:w-6" />
                     </Button>
                     
                     {/* Dynamic Correct Answer Indicator (Hides by default, reveals on toggle) */}
                     {showAnswer ? (
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 px-8 py-3 rounded-2xl flex items-center gap-3 animate-in fade-in zoom-in-95 shadow-md">
-                        <span className="text-xs uppercase font-black tracking-widest text-emerald-450">Correct Word:</span>
-                        <span className="text-xl md:text-2xl font-black text-emerald-350 uppercase tracking-wide">{definitions[currentDefinitionIndex].word}</span>
-                        <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].word)} disabled={isSpeaking} className="h-8 w-8 rounded-full hover:bg-emerald-500/20 text-emerald-400 p-0 ml-1.5" title="Speak Word">
-                          <Volume2 className="h-5 w-5" />
+                      <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 sm:px-8 py-2 sm:py-3 rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3 animate-in fade-in zoom-in-95 shadow-md max-w-full">
+                        <span className="text-[10px] sm:text-xs uppercase font-black tracking-widest text-emerald-450">Word:</span>
+                        <span className="text-base sm:text-xl md:text-2xl font-black text-emerald-350 uppercase tracking-wide truncate">{definitions[currentDefinitionIndex].word}</span>
+                        <Button size="sm" variant="ghost" onClick={() => speakDefinition(definitions[currentDefinitionIndex].word)} disabled={isSpeaking} className="h-7 w-7 sm:h-8 sm:w-8 rounded-full hover:bg-emerald-500/20 text-emerald-400 p-0 ml-1" title="Speak Word">
+                          <Volume2 className="h-4 w-4 sm:h-5 sm:w-5" />
                         </Button>
                       </div>
                     ) : (
                       <Button 
-                        size="lg" 
+                        size="default" 
                         onClick={() => setShowAnswer(true)} 
-                        className="bg-indigo-650 hover:bg-indigo-600 text-white font-black h-13 px-8 rounded-2xl text-base flex items-center gap-2 shadow-lg active:scale-95 transition-all"
+                        className="bg-indigo-650 hover:bg-indigo-600 text-white font-black h-10 sm:h-12 px-5 sm:px-8 rounded-xl sm:rounded-2xl text-sm sm:text-base flex items-center gap-2 shadow-lg active:scale-95 transition-all"
                       >
-                        <Sparkles className="h-5 w-5" />
+                        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
                         <span>Reveal Answer</span>
                       </Button>
                     )}
                   </div>
 
-                  <div className="w-full pt-4 border-t border-slate-850/60 flex items-center justify-between gap-4">
-                    <div className="text-xs text-slate-500 font-bold max-w-sm text-left leading-normal">
+                  <div className="w-full pt-3 sm:pt-4 border-t border-slate-850/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="text-[11px] sm:text-xs text-slate-400 font-bold max-w-sm text-center sm:text-left leading-normal">
                       {showAnswer ? (
-                        <span className="text-emerald-450 font-extrabold">📌 Find "{definitions[currentDefinitionIndex].word}" on your grid, mark it, and click draw to proceed.</span>
+                        <span className="text-emerald-450 font-extrabold">📌 Find "{definitions[currentDefinitionIndex].word}" on your grid & click draw.</span>
                       ) : (
-                        <span>💡 Students guess the target word first. Teacher click Reveal to verify.</span>
+                        <span>💡 Guess the target word first. Tap Reveal to verify.</span>
                       )}
                     </div>
                     
                     {/* Draw Next word button */}
                     <Button 
                       onClick={handleNextWord} 
-                      className="h-12 px-6 bg-gradient-to-r from-indigo-650 to-indigo-850 hover:opacity-90 font-black rounded-xl text-sm flex items-center gap-2 text-white shadow-lg active:scale-95"
+                      className="w-full sm:w-auto h-10 sm:h-12 px-6 bg-gradient-to-r from-indigo-650 to-indigo-850 hover:opacity-90 font-black rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 text-white shadow-lg active:scale-95"
                     >
                       <span>Next Word</span>
                       <ArrowRight className="h-4 w-4" />
@@ -888,8 +888,8 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
               </div>
 
               {/* Resized Widescreen 5x5 Grid */}
-              <div className="p-6 rounded-[2.5rem] bg-slate-950/40 border border-slate-850/80 shadow-inner flex justify-center items-center w-full max-w-[620px]">
-                <div className="grid gap-3 w-full" style={{ gridTemplateColumns: `repeat(${BINGO_SIZE}, 1fr)` }}>
+              <div className="p-2 sm:p-4 md:p-6 rounded-2xl md:rounded-[2.5rem] bg-slate-950/40 border border-slate-850/80 shadow-inner flex justify-center items-center w-full max-w-[620px]">
+                <div className="grid gap-1 sm:gap-2 md:gap-3 w-full" style={{ gridTemplateColumns: `repeat(${BINGO_SIZE}, 1fr)` }}>
                   {board.map((row, rowIndex) =>
                     row.map((cell, colIndex) => {
                       const isFree = cell.word === "FREE";
@@ -899,7 +899,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
                           key={`${rowIndex}-${colIndex}`}
                           variant={cell.marked ? "default" : "outline"}
                           className={cn(
-                            "h-20 sm:h-24 w-full text-[10px] sm:text-xs md:text-sm font-black uppercase text-center break-words whitespace-normal shadow-lg transition-all rounded-2xl p-2",
+                            "h-12 sm:h-16 md:h-20 lg:h-24 w-full text-[8px] sm:text-[10px] md:text-xs lg:text-sm font-black uppercase text-center break-words whitespace-normal shadow-md transition-all rounded-lg sm:rounded-xl md:rounded-2xl p-1 sm:p-2",
                             isFree && "bg-gradient-to-br from-indigo-500 to-indigo-650 text-white border-none cursor-default shadow-indigo-500/10",
                             cell.marked && !isFree && "bg-gradient-to-br from-emerald-500 to-emerald-650 border-none text-white scale-[0.96] cursor-default shadow-emerald-500/10"
                           )}

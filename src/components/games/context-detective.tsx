@@ -249,10 +249,10 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
                 <UserPlus className="mr-2" /> Add Team
               </Button>
             </div>
-            <div className="flex flex-col gap-2.5 w-full mt-4">
-              <Button onClick={() => setGameState('instructions')} size="lg" className="w-full h-14 font-black uppercase text-xl rounded-2xl shadow-lg">Next</Button>
-              <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full h-12 font-bold uppercase rounded-2xl">
-                <BookOpen className="mr-2 h-5 w-5" /> How to Play
+            <div className="flex flex-col sm:flex-row gap-2.5 w-full mt-4">
+              <Button onClick={() => setGameState('instructions')} size="lg" className="w-full sm:w-1/2 h-11 sm:h-14 font-black uppercase text-base sm:text-xl rounded-xl sm:rounded-2xl shadow-lg">Next</Button>
+              <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full sm:w-1/2 h-11 sm:h-12 font-bold uppercase rounded-xl sm:rounded-2xl text-xs sm:text-sm">
+                <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> How to Play
               </Button>
             </div>
           </div>
@@ -260,17 +260,17 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
       case 'instructions':
         return (
           <div className={cn(
-              "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-lg mx-auto border border-border/20 shadow-inner",
-              isFullscreen ? "p-16 max-w-5xl" : "p-8 max-w-lg"
+              "flex flex-col items-center justify-center gap-4 text-center bg-muted/50 rounded-2xl mx-auto border border-border/20 shadow-inner w-full max-w-lg p-4 sm:p-8",
+              isFullscreen && "p-8 sm:p-16 max-w-5xl"
           )}>
-            <h3 className={cn("font-black uppercase tracking-widest text-center mb-4", isFullscreen ? "text-4xl" : "text-xl")}>How to Play</h3>
-            <div className={cn("text-left space-y-4", isFullscreen ? "text-2xl" : "text-base")}>
+            <h3 className={cn("font-black uppercase tracking-widest text-center mb-2 sm:mb-4 text-base sm:text-xl", isFullscreen && "text-xl sm:text-4xl")}>How to Play</h3>
+            <div className={cn("text-left space-y-3 sm:space-y-4 text-xs sm:text-base", isFullscreen && "sm:text-2xl")}>
               <p>1. The AI will show a short paragraph with a missing word (represented by ____).</p>
               <p>2. Read the paragraph carefully and use the surrounding words as "clues".</p>
               <p>3. Guess the English word that correctly completes the story!</p>
               <p>4. You have 60 seconds. Type your guess and press Enter or Send.</p>
             </div>
-            <Button onClick={handleStartGame} size="lg" className={cn("mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black", isFullscreen && "h-20 px-16 text-3xl rounded-3xl shadow-xl")}>Start Investigation</Button>
+            <Button onClick={handleStartGame} size="lg" className={cn("mt-4 sm:mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black h-11 sm:h-12 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl", isFullscreen && "h-14 sm:h-20 sm:text-3xl rounded-3xl shadow-xl")}>Start Investigation</Button>
           </div>
         );
       case 'loading':
@@ -391,45 +391,45 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-500 flex flex-col justify-between",
+        "w-full transition-all duration-500 flex flex-col justify-between overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center p-3 sm:p-8" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
-      <CardHeader className="text-center relative">
+      <CardHeader className="text-center relative p-3 sm:p-6 pr-14 sm:pr-16">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
         </Button>
         {!isFullscreen && (
-            <div className="flex justify-center mb-4">
-                <Icon className="w-16 h-16 text-primary" />
+            <div className="flex justify-center mb-1 sm:mb-4">
+                <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
             </div>
         )}
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-6xl" : "text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className={cn(isFullscreen && "text-2xl mt-2")}>{game.description}</CardDescription>
+        <CardTitle className={cn("font-black tracking-tight uppercase text-xl sm:text-2xl md:text-3xl", isFullscreen && "text-2xl sm:text-5xl md:text-6xl")}>{game.title}</CardTitle>
+        <CardDescription className={cn("text-xs sm:text-sm", isFullscreen && "text-sm sm:text-2xl mt-2")}>{game.description}</CardDescription>
         <div className="flex justify-center pt-2">
-          <Badge variant="outline" className={cn(isFullscreen && "text-xl px-6 py-1")}>{difficulty.toUpperCase()}</Badge>
+          <Badge variant="outline" className={cn("text-xs", isFullscreen && "text-base sm:text-xl px-4 sm:px-6 py-1")}>{difficulty.toUpperCase()}</Badge>
         </div>
       </CardHeader>
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8"
+          "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center w-full max-w-full overflow-y-auto overflow-x-hidden",
+          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8"
       )}>
         {renderContent()}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
-        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 pt-4", isFullscreen && "max-w-6xl mx-auto w-full pb-16")}>
+        <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11", isFullscreen && "h-14 sm:h-16 px-6 sm:px-10 text-base sm:text-xl font-bold rounded-2xl")}>
           <Link href="/games">Back to Games</Link>
         </Button>
         {gameState === 'answered' && (
-          <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-16 px-12 text-2xl rounded-2xl")}>
-            Next Case <Repeat className={cn("ml-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")} />
+          <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-14 sm:h-16 px-8 sm:px-12 text-lg sm:text-2xl rounded-2xl")}>
+            Next Case <Repeat className={cn("ml-2", isFullscreen ? "h-6 w-6 sm:h-8 sm:w-8" : "h-4 w-4")} />
           </Button>
         )}
         {gameState !== 'setup' && (
@@ -439,8 +439,8 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
               setUsedAnswers([]);
               toast({ title: "History Cleared", description: "You can now solve previous cases again." });
             } catch (e) {}
-          }} title="Reset case history" size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "text-xl")}>
-            <RotateCcw className={cn("mr-2", isFullscreen ? "h-6 w-6" : "h-4 w-4")} /> Clear History
+          }} title="Reset case history" size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto text-xs sm:text-sm", isFullscreen && "text-base sm:text-xl")}>
+            <RotateCcw className={cn("mr-2", isFullscreen ? "h-5 w-5 sm:h-6 sm:w-6" : "h-3.5 w-3.5 sm:h-4 sm:w-4")} /> Clear History
           </Button>
         )}
       </CardFooter>

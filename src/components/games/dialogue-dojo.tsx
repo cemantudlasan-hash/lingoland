@@ -281,35 +281,35 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
 
   return (
     <Card className={cn(
-        "w-full transition-all duration-300 flex flex-col justify-between",
+        "w-full transition-all duration-300 flex flex-col justify-between overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen 
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-start p-3 sm:p-5 md:p-8 overflow-y-auto" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
       {/* Top Header: Compact HUD in fullscreen or during active gameplay; Standard banner on idle/instructions */}
       {isFullscreen || isPlaying ? (
-        <div className="w-full max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3 pb-3 mb-2 border-b border-border/40 shrink-0">
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
-              <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+        <div className="w-full max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2.5 p-3 sm:p-4 pb-3 mb-2 border-b border-border/40 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <Icon className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base sm:text-lg md:text-xl font-black uppercase tracking-tight text-foreground">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-lg md:text-xl font-black uppercase tracking-tight text-foreground truncate">
                   {game.title}
                 </h2>
-                <Badge variant="outline" className="text-[10px] sm:text-xs font-bold uppercase border-primary/40 text-primary px-2 py-0">
+                <Badge variant="outline" className="text-[9px] sm:text-xs font-bold uppercase border-primary/40 text-primary px-1.5 sm:px-2 py-0">
                   {difficulty}
                 </Badge>
                 {(gameState === 'playing' || gameState === 'answered') && (
                   <>
-                    <Badge variant="secondary" className="text-[10px] sm:text-xs font-bold px-2 py-0">
+                    <Badge variant="secondary" className="text-[9px] sm:text-xs font-bold px-1.5 sm:px-2 py-0">
                       {category}
                     </Badge>
-                    <Badge className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] sm:text-xs px-2 py-0">
+                    <Badge className="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[9px] sm:text-xs px-1.5 sm:px-2 py-0">
                       Round {currentRound} of {maxRounds}
                     </Badge>
-                    <Badge variant="outline" className="border-amber-500/50 text-amber-500 font-black text-[10px] sm:text-xs px-2 py-0">
+                    <Badge variant="outline" className="border-amber-500/50 text-amber-500 font-black text-[9px] sm:text-xs px-1.5 sm:px-2 py-0">
                       Score: {score}/{currentRound - (gameState === 'playing' ? 1 : 0)}
                     </Badge>
                   </>
@@ -321,13 +321,13 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {(gameState === 'playing' || gameState === 'answered') && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setGameState('selecting_category')}
-                className="text-xs h-8 sm:h-9 px-2.5 sm:px-3 text-muted-foreground hover:text-foreground"
+                className="text-[11px] sm:text-xs h-7 sm:h-9 px-2 sm:px-3 text-muted-foreground hover:text-foreground"
               >
                 <span className="hidden sm:inline">Switch</span> Category
               </Button>
@@ -335,39 +335,39 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
             <Button
               variant="outline"
               size="sm"
-              className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 font-bold text-xs"
+              className="h-7 sm:h-9 px-2 sm:px-3 gap-1 font-bold text-[11px] sm:text-xs"
               onClick={onToggleFullscreen}
             >
-              {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize className="h-3.5 w-3.5" />}
-              <span className="uppercase">{isFullscreen ? "Exit Full" : "Fullscreen"}</span>
+              {isFullscreen ? <Minimize className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : <Maximize className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
+              <span className="uppercase">{isFullscreen ? "Exit" : "Full"}</span>
             </Button>
           </div>
         </div>
       ) : (
-        <CardHeader className="text-center relative">
+        <CardHeader className="text-center relative pr-14 sm:pr-16 p-4 sm:p-6">
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
             onClick={onToggleFullscreen}
           >
             {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
           </Button>
-          <div className="flex justify-center mb-4">
-            <Icon className="w-16 h-16 text-primary" />
+          <div className="flex justify-center mb-2 sm:mb-4">
+            <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
           </div>
-          <CardTitle className="font-black tracking-tight uppercase text-3xl md:text-4xl">{game.title}</CardTitle>
-          <CardDescription className="text-base md:text-lg max-w-xl mx-auto">{game.description}</CardDescription>
-          <div className="flex justify-center pt-2 gap-2 flex-wrap">
+          <CardTitle className="font-black tracking-tight uppercase text-xl sm:text-3xl md:text-4xl">{game.title}</CardTitle>
+          <CardDescription className="text-xs sm:text-base md:text-lg max-w-xl mx-auto">{game.description}</CardDescription>
+          <div className="flex justify-center pt-2 gap-1.5 sm:gap-2 flex-wrap">
             <Badge variant="outline">{difficulty.toUpperCase()}</Badge>
           </div>
         </CardHeader>
       )}
 
       <CardContent className={cn(
-          "w-full flex-1 flex flex-col items-center justify-start gap-5",
-          isFullscreen ? "p-0 pt-2" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-4 sm:p-6 lg:p-8 pt-0"
+          "w-full flex-1 flex flex-col items-center justify-start gap-4 sm:gap-5 overflow-y-auto overflow-x-hidden max-w-full",
+          isFullscreen ? "p-0 pt-2" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8 pt-0"
       )}>
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4 py-8">
@@ -564,13 +564,13 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-card/95 border-2 border-primary/30 max-w-lg w-full rounded-[2.5rem] p-8 md:p-10 shadow-2xl flex flex-col items-center text-center relative overflow-hidden"
+              className="bg-card/95 border-2 border-primary/30 max-w-lg w-full max-h-[90vh] overflow-y-auto rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 md:p-10 shadow-2xl flex flex-col items-center text-center relative"
             >
               {/* Animated sparkles background effect */}
               <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 via-transparent to-indigo-500/10 pointer-events-none" />
               
-              <div className="bg-primary/10 p-6 rounded-full border-4 border-primary mb-6 animate-bounce">
-                <Trophy className="h-16 w-16 text-primary" />
+              <div className="bg-primary/10 p-4 sm:p-6 rounded-full border-4 border-primary mb-4 sm:mb-6 animate-bounce">
+                <Trophy className="h-10 w-10 sm:h-16 sm:w-16 text-primary" />
               </div>
 
               <h2 className="text-3xl font-black uppercase tracking-tight bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-500 bg-clip-text text-transparent mb-2">

@@ -1425,7 +1425,7 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
 
   return (
     <Card className={cn(
-      "w-full transition-all duration-500 flex flex-col relative overflow-hidden select-none border-slate-800/80 bg-slate-950 text-slate-100 justify-between",
+      "w-full transition-all duration-500 flex flex-col relative overflow-y-auto overflow-x-hidden max-w-full select-none border-slate-800/80 bg-slate-950 text-slate-100 justify-between",
       isFullscreen ? "min-h-screen rounded-none border-none max-w-none justify-center" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl shadow-indigo-950/20"
     )}>
       {/* Absolute Canvas Background */}
@@ -1435,33 +1435,33 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
       />
 
       {/* Top Controls Header */}
-      <div className="flex justify-between items-center p-4 border-b border-slate-800/50 z-10 bg-slate-950/70 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <Rocket className="h-5 w-5 text-indigo-400" />
-          <span className="font-extrabold tracking-wider bg-gradient-to-r from-indigo-300 to-cyan-300 bg-clip-text text-transparent uppercase text-xs md:text-sm">
+      <div className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-2 p-3 sm:p-4 border-b border-slate-800/50 z-10 bg-slate-950/70 backdrop-blur-sm pr-12 sm:pr-4">
+        <div className="flex items-center gap-2 shrink-0">
+          <Rocket className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
+          <span className="font-extrabold tracking-wider bg-gradient-to-r from-indigo-300 to-cyan-300 bg-clip-text text-transparent uppercase text-[11px] sm:text-xs md:text-sm">
             COSMIC WORD VOYAGER
           </span>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {gameState === "playing" && (
-            <div className="flex items-center gap-4 text-xs md:text-sm font-semibold">
-              <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full">
-                <Badge variant="outline" className="border-indigo-500/20 text-indigo-400 p-0 text-[10px]">
-                  ROUND {questionIndex + 1}/10
+            <div className="flex items-center gap-1.5 sm:gap-3 text-[10px] sm:text-xs md:text-sm font-semibold flex-wrap">
+              <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">
+                <Badge variant="outline" className="border-indigo-500/20 text-indigo-400 p-0 text-[9px] sm:text-[10px]">
+                  R {questionIndex + 1}/10
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full">
-                <Coins className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+              <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">
+                <Coins className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-400 fill-amber-400" />
                 <span className="text-amber-300 font-bold">{score} pts</span>
               </div>
 
               <div className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all duration-300",
+                "flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full border transition-all duration-300",
                 shield <= 20 ? "bg-red-500/10 border-red-500/30 text-red-400 animate-pulse" : "bg-slate-900 border-slate-800 text-cyan-400"
               )}>
-                <Shield className="h-3.5 w-3.5 fill-current" />
+                <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current" />
                 <span className="font-bold">{shield}%</span>
               </div>
             </div>
@@ -1731,7 +1731,7 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
               )}
 
               {/* Portal Hypergates Options (Drifting cards) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 w-full max-w-3xl">
                 {currentQuestion.options.map((opt, idx) => {
                   const positions: ("left" | "center" | "right")[] = ["left", "center", "right"];
                   const pos = positions[idx] || "center";
@@ -1744,7 +1744,7 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
                       disabled={selectedOption !== null}
                       onClick={() => handleAnswerSubmit(opt, pos)}
                       className={cn(
-                        "h-20 md:h-24 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 font-extrabold text-sm md:text-base flex flex-col items-center justify-center p-3 relative shadow-lg hover:-translate-y-1 active:translate-y-0",
+                        "h-14 sm:h-20 md:h-24 rounded-2xl border-2 backdrop-blur-md transition-all duration-300 font-extrabold text-xs sm:text-sm md:text-base flex flex-col items-center justify-center p-2 sm:p-3 relative shadow-lg hover:-translate-y-1 active:translate-y-0",
                         // Idle styles
                         "bg-slate-900/50 border-slate-800 text-slate-200 hover:bg-indigo-500/10 hover:border-indigo-500/40 hover:shadow-indigo-500/5",
                         // Selection states
@@ -1754,10 +1754,10 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
                         selectedOption !== null && !isSelected && !isCorrectAnswer && "opacity-40"
                       )}
                     >
-                      <span className="text-[10px] font-black uppercase text-indigo-400/70 tracking-widest absolute top-2">
+                      <span className="text-[9px] sm:text-[10px] font-black uppercase text-indigo-400/70 tracking-widest absolute top-1.5 sm:top-2">
                         PORTAL {idx + 1}
                       </span>
-                      <span className="truncate max-w-full pt-2">{opt}</span>
+                      <span className="truncate max-w-full pt-2 sm:pt-2">{opt}</span>
                     </Button>
                   );
                 })}
@@ -1863,9 +1863,9 @@ export function CosmicWordVoyager({ slug, onToggleFullscreen }: { slug: string; 
       </CardContent>
 
       {/* Footer Details */}
-      <CardFooter className="flex justify-between items-center border-t border-slate-800/30 p-4 bg-slate-950/50 backdrop-blur-sm z-10 text-[10px] md:text-xs text-slate-500">
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2 border-t border-slate-800/30 p-3 sm:p-4 bg-slate-950/50 backdrop-blur-sm z-10 text-[10px] md:text-xs text-slate-500 text-center sm:text-left">
         <span>Sector Level: <span className="uppercase text-slate-400 font-bold">{difficulty}</span></span>
-        <span>Steer: <kbd className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-400 text-[9px]">←</kbd> <kbd className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-400 text-[9px]">↑</kbd> <kbd className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-400 text-[9px]">→</kbd> or mouse-clicks</span>
+        <span>Steer: <kbd className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-400 text-[9px]">←</kbd> <kbd className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-400 text-[9px]">↑</kbd> <kbd className="px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded text-slate-400 text-[9px]">→</kbd> or tap portals</span>
       </CardFooter>
     </Card>
   );

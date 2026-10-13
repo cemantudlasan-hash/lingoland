@@ -169,58 +169,58 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
   return (
     <Card
       className={cn(
-        "w-full transition-all duration-500 flex flex-col justify-between bg-slate-950 text-slate-50 border-indigo-500/20",
+        "w-full transition-all duration-500 flex flex-col justify-between bg-slate-950 text-slate-50 border-indigo-500/20 overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen
-          ? "min-h-screen rounded-none border-none max-w-none justify-center p-8"
+          ? "min-h-screen rounded-none border-none max-w-none justify-center p-3 sm:p-8"
           : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl shadow-indigo-500/10 border"
       )}
     >
-      <CardHeader className="text-center relative border-b border-indigo-950 pb-6">
+      <CardHeader className="text-center relative border-b border-indigo-950 p-3 sm:p-6 pb-4 pr-14 sm:pr-16">
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-4 right-4 h-auto p-2 gap-1 text-slate-400 hover:text-slate-100 z-[100]"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1 text-slate-400 hover:text-slate-100 z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
         </Button>
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <Compass className="w-10 h-10 text-indigo-400 animate-spin" style={{ animationDuration: "10s" }} />
+        <div className="flex items-center justify-center gap-3 mb-1">
+          <Compass className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-400 animate-spin" style={{ animationDuration: "10s" }} />
         </div>
         <CardTitle
           className={cn(
-            "font-black uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400",
-            isFullscreen ? "text-5xl" : "text-3xl"
+            "font-black uppercase tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 text-xl sm:text-2xl md:text-3xl",
+            isFullscreen && "text-2xl sm:text-4xl md:text-5xl"
           )}
         >
           {game.title}
         </CardTitle>
         {gameState !== "idle" && gameState !== "instructions" && (
-          <div className="flex justify-center gap-3 mt-4">
-            <Badge variant="secondary" className="bg-indigo-900/50 text-indigo-200 border-indigo-800">
+          <div className="flex justify-center gap-3 mt-2 sm:mt-4">
+            <Badge variant="secondary" className="bg-indigo-900/50 text-indigo-200 border-indigo-800 text-xs">
               Round {round}/{ROUNDS_COUNT}
             </Badge>
-            <Badge variant="outline" className="border-purple-800 text-purple-300">
+            <Badge variant="outline" className="border-purple-800 text-purple-300 text-xs">
               Score: {score}
             </Badge>
           </div>
         )}
       </CardHeader>
 
-      <CardContent className={cn("flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8", isFullscreen ? "min-h-[65vh]" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
+      <CardContent className={cn("flex flex-col items-center justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden", isFullscreen ? "min-h-[65vh]" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
         {gameState === "idle" && (
-          <div className="flex flex-col items-center gap-6 text-center max-w-lg">
-            <p className={cn("text-slate-300", isFullscreen ? "text-2xl" : "text-base")}>
+          <div className="flex flex-col items-center gap-4 sm:gap-6 text-center max-w-lg py-4 w-full">
+            <p className={cn("text-slate-300 text-sm sm:text-base", isFullscreen && "sm:text-2xl")}>
               Unlock coordinates, align vectors, and navigate through the quadrants of deep space.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
               <Button
                 onClick={handleStartGame}
                 size={isFullscreen ? "lg" : "default"}
                 className={cn(
-                  "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:scale-105",
-                  isFullscreen && "h-20 px-16 text-2xl rounded-2xl"
+                  "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:scale-105 h-11 sm:h-12 text-sm sm:text-base w-full sm:w-auto",
+                  isFullscreen && "h-14 sm:h-20 px-8 sm:px-16 text-lg sm:text-2xl rounded-2xl"
                 )}
               >
                 Initialize System
@@ -230,11 +230,11 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
                 size={isFullscreen ? "lg" : "default"}
                 variant="outline"
                 className={cn(
-                  "border-indigo-500/40 text-indigo-300 hover:bg-indigo-950 font-bold uppercase tracking-wider",
-                  isFullscreen && "h-20 px-16 text-2xl rounded-2xl"
+                  "border-indigo-500/40 text-indigo-300 hover:bg-indigo-950 font-bold uppercase tracking-wider h-11 sm:h-12 text-sm sm:text-base w-full sm:w-auto",
+                  isFullscreen && "h-14 sm:h-20 px-8 sm:px-16 text-lg sm:text-2xl rounded-2xl"
                 )}
               >
-                <BookOpen className="mr-2 h-5 w-5" /> How to Play
+                <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> How to Play
               </Button>
             </div>
           </div>
