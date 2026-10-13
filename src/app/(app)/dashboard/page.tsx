@@ -163,9 +163,9 @@ function DashboardPageComponent() {
 
   if (isAdmin) {
     return (
-      <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-6 animate-in fade-in duration-500">
+      <div className="-m-3 md:-m-4 lg:-m-5 min-h-[calc(100svh-4rem)] md:min-h-[calc(100svh-4.5rem)] flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-6 animate-in fade-in duration-500 pb-10">
         {/* Bento Grid Header */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
           {/* Welcome Admin Box */}
           <div className="glass-card p-6 md:col-span-2 rounded-3xl flex flex-col justify-between relative overflow-hidden group shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-600/10 opacity-50 pointer-events-none" />
@@ -220,61 +220,67 @@ function DashboardPageComponent() {
           </div>
         </div>
 
-        {isDataLoading && <div className="flex justify-center p-8"><Loader2 className="animate-spin text-indigo-400" /></div>}
+        {isDataLoading && (
+          <div className="flex-1 flex justify-center items-center p-8 min-h-[300px]">
+            <Loader2 className="animate-spin text-indigo-400 h-8 w-8" />
+          </div>
+        )}
 
         {stats && (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-            {/* Bento Stat Card 1 */}
-            <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Total Interactions</span>
-                  <h4 className="text-3xl font-black text-white mt-1">+{stats.totalEvents}</h4>
+          <div className="flex-1 flex flex-col gap-6">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-3 shrink-0">
+              {/* Bento Stat Card 1 */}
+              <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Total Interactions</span>
+                    <h4 className="text-3xl font-black text-white mt-1">+{stats.totalEvents}</h4>
+                  </div>
+                  <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                    <BarChart className="h-5 w-5 text-indigo-400" />
+                  </div>
                 </div>
-                <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-                  <BarChart className="h-5 w-5 text-indigo-400" />
-                </div>
+                <p className="text-xs text-zinc-500 font-medium mt-4">Across all active classrooms and guests.</p>
               </div>
-              <p className="text-xs text-zinc-500 font-medium mt-4">Across all active classrooms and guests.</p>
+
+              {/* Bento Stat Card 2 */}
+              <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Most Popular Game</span>
+                    <h4 className="text-lg font-black text-white truncate max-w-[200px] mt-1" title={stats.mostPlayedGame}>{stats.mostPlayedGame}</h4>
+                  </div>
+                  <div className="p-2.5 bg-green-500/10 rounded-xl border border-green-500/20">
+                    <Gamepad2 className="h-5 w-5 text-green-400" />
+                  </div>
+                </div>
+                <p className="text-xs text-zinc-500 font-medium mt-4">Highest engagement game in LingoLand.</p>
+              </div>
+
+              {/* Bento Stat Card 3 */}
+              <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Highest Read Article</span>
+                    <h4 className="text-lg font-black text-white truncate max-w-[200px] mt-1" title={stats.mostReadArticle}>{stats.mostReadArticle}</h4>
+                  </div>
+                  <div className="p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                    <BookCheck className="h-5 w-5 text-purple-400" />
+                  </div>
+                </div>
+                <p className="text-xs text-zinc-500 font-medium mt-4">Top read resource in Reader hub.</p>
+              </div>
             </div>
 
-            {/* Bento Stat Card 2 */}
-            <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Most Popular Game</span>
-                  <h4 className="text-lg font-black text-white truncate max-w-[200px] mt-1" title={stats.mostPlayedGame}>{stats.mostPlayedGame}</h4>
-                </div>
-                <div className="p-2.5 bg-green-500/10 rounded-xl border border-green-500/20">
-                  <Gamepad2 className="h-5 w-5 text-green-400" />
-                </div>
-              </div>
-              <p className="text-xs text-zinc-500 font-medium mt-4">Highest engagement game in LingoLand.</p>
-            </div>
-
-            {/* Bento Stat Card 3 */}
-            <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Highest Read Article</span>
-                  <h4 className="text-lg font-black text-white truncate max-w-[200px] mt-1" title={stats.mostReadArticle}>{stats.mostReadArticle}</h4>
-                </div>
-                <div className="p-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20">
-                  <BookCheck className="h-5 w-5 text-purple-400" />
-                </div>
-              </div>
-              <p className="text-xs text-zinc-500 font-medium mt-4">Top read resource in Reader hub.</p>
-            </div>
-
-            {/* Large Activity Chart Bento Box */}
-            <div className="glass-card p-6 rounded-3xl md:col-span-3 border border-white/5 shadow-2xl relative overflow-hidden">
+            {/* Large Activity Chart Bento Box - stretched to bottom */}
+            <div className="glass-card p-6 md:p-8 rounded-3xl flex-1 flex flex-col justify-between border border-white/5 shadow-2xl relative overflow-hidden min-h-[420px] md:min-h-[480px]">
               <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
-              <div className="mb-6">
+              <div className="mb-4 shrink-0">
                 <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Weekly Performance</span>
                 <h3 className="text-xl font-black text-white">Global Activity Register</h3>
                 <p className="text-xs text-zinc-400 mt-0.5">Games played and smart exercises generated.</p>
               </div>
-              <div className="w-full h-80 bg-zinc-950/20 p-2 rounded-2xl border border-zinc-900/60">
+              <div className="w-full flex-1 min-h-[300px] md:min-h-[380px] bg-zinc-950/20 p-2 sm:p-4 rounded-2xl border border-zinc-900/60">
                 <DashboardChart data={stats.weeklyChartData} />
               </div>
             </div>
@@ -286,9 +292,9 @@ function DashboardPageComponent() {
 
   // Default dashboard for regular users
   return (
-    <div className="-m-3 md:-m-4 lg:-m-5 min-h-full flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-6 animate-in fade-in duration-500">
+    <div className="-m-3 md:-m-4 lg:-m-5 min-h-[calc(100svh-4rem)] md:min-h-[calc(100svh-4.5rem)] flex-1 flex flex-col p-4 md:p-6 lg:p-8 space-y-6 animate-in fade-in duration-500 pb-10">
       {/* Bento Grid Header */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
         {/* Welcome Card Box */}
         <div className="glass-card p-6 md:col-span-2 rounded-3xl flex flex-col justify-between relative overflow-hidden group shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-600/10 opacity-50 pointer-events-none" />
@@ -302,7 +308,7 @@ function DashboardPageComponent() {
             </p>
           </div>
           <div className="mt-4 relative z-10 flex items-center gap-2 text-xs text-indigo-300 font-bold">
-            <Sparkles className="h-4 w-4 animate-pulse text-amber-405" />
+            <Sparkles className="h-4 w-4 animate-pulse text-amber-400" />
             AI Study Buddy Online
           </div>
         </div>
@@ -330,66 +336,72 @@ function DashboardPageComponent() {
         )}
       </div>
 
-      {isDataLoading && <div className="flex justify-center p-8"><Loader2 className="animate-spin text-indigo-400" /></div>}
+      {isDataLoading && (
+        <div className="flex-1 flex justify-center items-center p-8 min-h-[300px]">
+          <Loader2 className="animate-spin text-indigo-400 h-8 w-8" />
+        </div>
+      )}
 
       {stats && (
-        <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-          {/* Bento Stat Card 1 - Games Completed */}
-          <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Recommended Lessons Completed</span>
-                <h4 className="text-3xl font-black text-white mt-1">+{stats.quizzesPassed}</h4>
-              </div>
-              <div className="p-2.5 bg-green-500/10 rounded-xl border border-green-500/20">
-                <Trophy className="h-5 w-5 text-green-400" />
-              </div>
-            </div>
-            <p className="text-xs text-zinc-500 font-medium mt-4">Real-time educational mission count.</p>
-          </div>
-
-          {/* Bento Stat Card 2 - New Words & Articles Read */}
-          <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">New Words & Reads</span>
-                <h4 className="text-3xl font-black text-white mt-1">+{stats.articlesRead}</h4>
-              </div>
-              <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-                <BookCheck className="h-5 w-5 text-indigo-400" />
-              </div>
-            </div>
-            <p className="text-xs text-zinc-500 font-medium mt-4">Your reading and vocab history.</p>
-          </div>
-
-          {/* Bento Card 3 - Recommended Lesson Quick Link */}
-          <div className="glass-card p-6 rounded-3xl flex flex-col justify-between border border-indigo-500/20 hover:-translate-y-1 transition-all duration-300 shadow-2xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-indigo-500/5 opacity-40 pointer-events-none" />
-            <div className="space-y-1 relative z-10">
+        <div className="flex-1 flex flex-col gap-6">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-3 shrink-0">
+            {/* Bento Stat Card 1 - Games Completed */}
+            <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
               <div className="flex justify-between items-start">
-                <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Recommended Lesson</span>
-                <BookOpen className="h-4 w-4 text-indigo-400" />
+                <div>
+                  <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">Recommended Lessons Completed</span>
+                  <h4 className="text-3xl font-black text-white mt-1">+{stats.quizzesPassed}</h4>
+                </div>
+                <div className="p-2.5 bg-green-500/10 rounded-xl border border-green-500/20">
+                  <Trophy className="h-5 w-5 text-green-400" />
+                </div>
               </div>
-              <h4 className="text-base font-bold text-white mt-1">Vocab Voyage</h4>
-              <p className="text-[10px] text-zinc-400 italic">Advanced Vocabulary & Context</p>
+              <p className="text-xs text-zinc-500 font-medium mt-4">Real-time educational mission count.</p>
             </div>
-            <div className="mt-4 relative z-10">
-              <Button onClick={() => router.push("/games")} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:opacity-90 font-extrabold h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10 transition-all hover:scale-[1.02] text-xs">
-                Play Lesson Now
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
+
+            {/* Bento Stat Card 2 - New Words & Articles Read */}
+            <div className="glass-card p-6 rounded-3xl flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-[10px] uppercase font-black tracking-widest text-zinc-400">New Words & Reads</span>
+                  <h4 className="text-3xl font-black text-white mt-1">+{stats.articlesRead}</h4>
+                </div>
+                <div className="p-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                  <BookCheck className="h-5 w-5 text-indigo-400" />
+                </div>
+              </div>
+              <p className="text-xs text-zinc-500 font-medium mt-4">Your reading and vocab history.</p>
+            </div>
+
+            {/* Bento Card 3 - Recommended Lesson Quick Link */}
+            <div className="glass-card p-6 rounded-3xl flex flex-col justify-between border border-indigo-500/20 hover:-translate-y-1 transition-all duration-300 shadow-2xl relative overflow-hidden group">
+              <div className="absolute inset-0 bg-indigo-500/5 opacity-40 pointer-events-none" />
+              <div className="space-y-1 relative z-10">
+                <div className="flex justify-between items-start">
+                  <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Recommended Lesson</span>
+                  <BookOpen className="h-4 w-4 text-indigo-400" />
+                </div>
+                <h4 className="text-base font-bold text-white mt-1">Vocab Voyage</h4>
+                <p className="text-[10px] text-zinc-400 italic">Advanced Vocabulary & Context</p>
+              </div>
+              <div className="mt-4 relative z-10">
+                <Button onClick={() => router.push("/games")} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:opacity-90 font-extrabold h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10 transition-all hover:scale-[1.02] text-xs">
+                  Play Lesson Now
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Weekly Progress Chart Bento Box */}
-          <div className="glass-card p-6 rounded-3xl md:col-span-3 border border-white/5 shadow-2xl relative overflow-hidden">
+          {/* Weekly Progress Chart Bento Box - stretched to bottom */}
+          <div className="glass-card p-6 md:p-8 rounded-3xl flex-1 flex flex-col justify-between border border-white/5 shadow-2xl relative overflow-hidden min-h-[420px] md:min-h-[480px]">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
-            <div className="mb-6">
+            <div className="mb-4 shrink-0">
               <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Analytics Tracker</span>
               <h3 className="text-xl font-black text-white">Your Weekly Progress</h3>
               <p className="text-xs text-zinc-400 mt-0.5">Track your interaction and learning metrics over the past 7 days.</p>
             </div>
-            <div className="w-full h-80 bg-zinc-950/20 p-2 rounded-2xl border border-zinc-900/60">
+            <div className="w-full flex-1 min-h-[300px] md:min-h-[380px] bg-zinc-950/20 p-2 sm:p-4 rounded-2xl border border-zinc-900/60">
               <DashboardChart data={stats.weeklyChartData} />
             </div>
           </div>

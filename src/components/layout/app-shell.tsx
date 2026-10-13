@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <SidebarInset>
         <div className="flex h-screen min-h-svh flex-col">
           <AppHeader />
-          <main className="flex-1 overflow-y-auto p-3 md:p-4 lg:p-5 relative">
+          <main className="flex-1 overflow-y-auto p-3 md:p-4 lg:p-5 relative flex flex-col">
             {children}
           </main>
         </div>

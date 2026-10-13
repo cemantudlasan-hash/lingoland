@@ -39,7 +39,7 @@ export default function StudentsRecordPage() {
 
   // If authenticated, display the redesigned premium Students Record dashboard
   return (
-    <div className="flex-grow overflow-y-auto w-full p-4 md:p-8 relative">
+    <div className="flex-grow overflow-y-auto w-full p-4 md:p-8 relative min-h-[calc(100svh-4.5rem)] pb-16">
       {/* Dynamic atmospheric background glows */}
       <div className="absolute top-[-5%] left-[5%] w-80 h-80 rounded-full blur-[140px] bg-purple-500/10 pointer-events-none -z-10" />
       <div className="absolute bottom-[-5%] right-[5%] w-80 h-80 rounded-full blur-[140px] bg-indigo-500/10 pointer-events-none -z-10" />
