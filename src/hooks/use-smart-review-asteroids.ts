@@ -62,33 +62,68 @@ export function useSmartReviewAsteroids() {
       return;
     }
 
-    // Query active asteroids ready for review: user_id match & next_review_at <= now
+    let activeUnsubscribe: (() => void) | null = null;
+
+    const processSnapshot = (snapshot: any, clientFilter = false) => {
+      const now = Date.now();
+      const items: AsteroidItem[] = [];
+      snapshot.forEach((d: any) => {
+        const data = d.data() as any;
+        if (clientFilter) {
+          const reviewTime = data.next_review_at?.toDate
+            ? data.next_review_at.toDate().getTime()
+            : (data.next_review_at ? new Date(data.next_review_at).getTime() : 0);
+          if (reviewTime <= now) {
+            items.push({ id: d.id, ...data });
+          }
+        } else {
+          items.push({ id: d.id, ...data });
+        }
+      });
+      setAsteroids(items);
+      setIsLoading(false);
+      setError(null);
+    };
+
+    // Primary query using composite index (user_id == uid and next_review_at <= now)
     const nowTimestamp = Timestamp.fromDate(new Date());
-    const asteroidsQuery = query(
+    const compositeQuery = query(
       collection(firestore, "user_asteroids"),
       where("user_id", "==", user.uid),
       where("next_review_at", "<=", nowTimestamp)
     );
 
-    const unsubscribe = onSnapshot(
-      asteroidsQuery,
+    activeUnsubscribe = onSnapshot(
+      compositeQuery,
       (snapshot) => {
-        const items: AsteroidItem[] = [];
-        snapshot.forEach((d) => {
-          items.push({ id: d.id, ...(d.data() as any) });
-        });
-        setAsteroids(items);
-        setIsLoading(false);
-        setError(null);
+        processSnapshot(snapshot, false);
       },
       (err) => {
-        console.error("Firestore Asteroids onSnapshot listener error:", err);
-        setError(err.message);
-        setIsLoading(false);
+        // If composite index is still building or missing, fallback to single-field query
+        console.warn("Composite index building in background; using client-filtered query:", err.message);
+        const fallbackQuery = query(
+          collection(firestore, "user_asteroids"),
+          where("user_id", "==", user.uid)
+        );
+        activeUnsubscribe = onSnapshot(
+          fallbackQuery,
+          (fallbackSnapshot) => {
+            processSnapshot(fallbackSnapshot, true);
+          },
+          (fallbackErr) => {
+            console.error("Firestore Asteroids fallback listener error:", fallbackErr);
+            setError(fallbackErr.message);
+            setIsLoading(false);
+          }
+        );
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      if (activeUnsubscribe) {
+        activeUnsubscribe();
+      }
+    };
   }, [firestore, user?.uid]);
 
   // Client-side helper to submit answer according to SM-2 specifications
