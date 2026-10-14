@@ -47,7 +47,7 @@ import { HolidayCountdown } from "@/components/layout/HolidayCountdown";
 import { BeautifulCalendar } from "@/components/layout/BeautifulCalendar";
 import { BeautifulWeather } from "@/components/layout/BeautifulWeather";
 import { LoginCarousel } from "@/components/layout/login-carousel";
-import { Metaverse3DCanvas } from "@/components/layout/Metaverse3DCanvas";
+import { LoginCockpit3DBackground } from "@/components/layout/LoginCockpit3DBackground";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
 
@@ -92,7 +92,7 @@ function LoginForm() {
         description: error,
       });
     } else {
-      router.push("/dashboard");
+      router.push("/");
     }
   };
 
@@ -455,6 +455,24 @@ export default function AuthPage() {
   const [activeSideNav, setActiveSideNav] = useState("signin");
   const router = useRouter();
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode') || params.get('tab');
+      if (mode === 'signup' || mode === 'register') {
+        setActiveTab('signup');
+      } else if (mode === 'signin' || mode === 'login') {
+        setActiveTab('signin');
+      }
+      if (window.location.hash === '#login-card-section' || mode) {
+        setTimeout(() => {
+          const el = document.getElementById('login-card-section');
+          el?.scrollIntoView({ behavior: 'smooth' });
+        }, 200);
+      }
+    }
+  }, []);
+
   const firestore = useFirestore();
   const loginFormRef = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -469,49 +487,16 @@ export default function AuthPage() {
   const handleGuestLogin = () => {
     setAuthAction('login');
     loginAsGuest();
-    router.push("/games");
+    router.push("/");
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col bg-[#030712] text-slate-100 font-sans select-none overflow-x-hidden">
-      {/* 1. ENHANCED 4K METAVERSE BACKGROUND with Cinematic Ambient Drift */}
-      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <img 
-          src="/lingolandverse-metaverse.jpg" 
-          alt="LingoLandVerse 4K Background"
-          className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none will-change-transform"
-          style={{
-            imageRendering: '-webkit-optimize-contrast',
-            filter: 'contrast(1.08) saturate(1.15) brightness(1.02)',
-            animation: 'lingoland-ambient-drift 40s ease-in-out infinite alternate',
-            transformOrigin: 'center center',
-          }}
-        />
-
-        {/* Shimmer Light Sweeping Across Globe Routes */}
-        <div 
-          className="absolute bottom-[22%] left-1/4 right-1/4 h-32 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent blur-3xl pointer-events-none"
-          style={{ animation: 'light-sweep 10s ease-in-out infinite' }}
-        />
-
-        {/* Ambient Aurora Glow in Horizon */}
-        <div 
-          className="absolute top-[35%] left-[20%] w-[500px] h-[300px] rounded-full blur-[140px] opacity-40 mix-blend-screen pointer-events-none"
-          style={{
-            background: 'radial-gradient(circle, rgba(34, 211, 238, 0.6) 0%, rgba(168, 85, 247, 0.3) 50%, transparent 70%)',
-            animation: 'lingoland-aurora-glow 16s ease-in-out infinite alternate',
-          }}
-        />
-
-        {/* Contrast Vignette to ensure complete readability of cards & video */}
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-
-        {/* Interactive Canvas for 3D Holographic Globe, Traveling Data Beams & Shooting Stars */}
-        <Metaverse3DCanvas intensity={1.0} />
-      </div>
+    <div className="relative min-h-screen w-full flex flex-col bg-transparent text-slate-100 font-sans select-none overflow-x-hidden">
+      {/* 1. ULTRA-REALISTIC 4K COCKPIT OBSERVATORY BACKGROUND with 3D Constellation & Galaxy Animation */}
+      <LoginCockpit3DBackground />
 
       {/* 2. TOP NAVIGATION BAR (Attached flush to the top) */}
-      <header className="relative w-full h-16 px-4 md:px-8 flex items-center justify-between border-b border-white/10 bg-black/60 backdrop-blur-md sticky top-0 z-50">
+      <header className="relative w-full h-16 px-4 md:px-8 flex items-center justify-between border-b border-cyan-500/20 bg-slate-950/40 backdrop-blur-xl sticky top-0 z-50">
         {/* Left: Glowing Planetary Orbit Icon */}
         <div 
           onClick={() => router.push('/')}
@@ -617,7 +602,7 @@ export default function AuthPage() {
       </header>
 
       {/* 3. DESKTOP SIDEBAR - Docked flush from top-16 header to bottom-14 dock */}
-      <aside className="fixed left-0 top-16 bottom-14 w-20 border-r border-white/10 bg-black/75 backdrop-blur-xl hidden md:flex flex-col items-center py-6 gap-6 z-40">
+      <aside className="fixed left-0 top-16 bottom-14 w-20 border-r border-cyan-500/20 bg-slate-950/40 backdrop-blur-xl hidden md:flex flex-col items-center py-6 gap-6 z-40">
         <button 
           onClick={() => { 
             setActiveSideNav("signin"); 
@@ -715,10 +700,10 @@ export default function AuthPage() {
 
               {/* Right Column (1-span wide): The Dedicated Login Portal Card */}
               <div id="login-card-section" className="xl:col-span-1 w-full">
-                <Card className="border border-teal-500/35 bg-zinc-950/85 backdrop-blur-2xl shadow-[0_0_50px_rgba(20,184,166,0.25)] relative overflow-hidden rounded-2xl">
+                <Card className="border border-cyan-500/40 bg-slate-950/80 backdrop-blur-3xl shadow-[0_0_70px_rgba(6,182,212,0.3)] relative overflow-hidden rounded-3xl">
                   {/* Subtle Neon Edge Glow */}
-                  <div className="absolute -top-16 -right-16 w-36 h-36 bg-teal-500/20 blur-3xl rounded-full pointer-events-none" />
-                  <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-cyan-500/20 blur-3xl rounded-full pointer-events-none" />
+                  <div className="absolute -top-16 -right-16 w-44 h-44 bg-cyan-500/25 blur-3xl rounded-full pointer-events-none" />
+                  <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-purple-500/25 blur-3xl rounded-full pointer-events-none" />
 
                   <CardHeader className="text-center pb-4 pt-6 px-6 relative z-10">
                     <div className="flex justify-center mb-3">
@@ -727,20 +712,20 @@ export default function AuthPage() {
                         alt="LingoLandVerse Logo"
                         width={120}
                         height={120}
-                        className="object-contain drop-shadow-[0_0_15px_rgba(20,184,166,0.4)]"
+                        className="object-contain drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]"
                         priority
                       />
                     </div>
                     {/* Dynamic Title (Admin configurable in /admin) */}
-                    <CardTitle className="text-xl md:text-2xl font-black tracking-tight bg-gradient-to-r from-white via-teal-200 to-cyan-400 bg-clip-text text-transparent whitespace-pre-wrap">
+                    <CardTitle className="text-xl md:text-2xl font-black tracking-tight text-white drop-shadow-[0_0_15px_rgba(56,189,248,0.85)] whitespace-pre-wrap">
                       {title}
                     </CardTitle>
                     {/* Dynamic Subtitle / Description (Admin configurable in /admin) */}
-                    <CardDescription className="text-zinc-300 text-xs md:text-sm mt-1.5 whitespace-pre-wrap leading-relaxed">
+                    <CardDescription className="text-slate-300 text-xs md:text-sm mt-1.5 whitespace-pre-wrap leading-relaxed">
                       {description}
                     </CardDescription>
                     {/* Dynamic Credits */}
-                    <p className="text-xs text-teal-400/90 font-semibold pt-1 whitespace-pre-wrap">{credits}</p>
+                    <p className="text-xs text-cyan-400 font-semibold pt-1 whitespace-pre-wrap">{credits}</p>
                   </CardHeader>
 
                   <CardContent className="px-6 pb-6 relative z-10 space-y-4">
@@ -762,14 +747,14 @@ export default function AuthPage() {
                     )}
 
                     <Tabs value={activeTab} onValueChange={setActiveTab}>
-                      <TabsList className="grid w-full grid-cols-3 bg-black/70 p-1 border border-teal-500/20 rounded-xl">
-                        <TabsTrigger value="signin" className="rounded-lg text-xs font-bold data-[state=active]:bg-teal-500 data-[state=active]:text-black">
-                          Sign In
+                      <TabsList className="grid w-full grid-cols-3 bg-slate-900/80 p-1 border border-cyan-500/30 rounded-2xl shadow-inner">
+                        <TabsTrigger value="signin" className="rounded-xl text-xs font-bold data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+                          Pilot Sign In
                         </TabsTrigger>
-                        <TabsTrigger value="signup" className="rounded-lg text-xs font-bold data-[state=active]:bg-teal-500 data-[state=active]:text-black">
-                          Sign Up
+                        <TabsTrigger value="signup" className="rounded-xl text-xs font-bold data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+                          New Cadet
                         </TabsTrigger>
-                        <TabsTrigger value="demo" className="rounded-lg text-xs font-bold text-teal-300 data-[state=active]:bg-teal-500 data-[state=active]:text-black">
+                        <TabsTrigger value="demo" className="rounded-xl text-xs font-bold text-cyan-300 data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.5)]">
                           Try Demo
                         </TabsTrigger>
                       </TabsList>
@@ -803,11 +788,10 @@ export default function AuthPage() {
                     <Button 
                       variant="secondary" 
                       onClick={handleGuestLogin} 
-                      disabled={isGuest}
-                      className="w-full border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-200 font-extrabold h-11 rounded-xl shadow-inner transition-all hover:scale-[1.02] active:scale-95 text-xs"
+                      className="w-full border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-200 font-extrabold h-11 rounded-xl shadow-inner transition-all hover:scale-[1.02] active:scale-95 text-xs cursor-pointer"
                     >
                       <LogIn className="mr-2 h-4 w-4 text-teal-300" /> 
-                      {isGuest ? "Browsing as Guest" : "Explore as Guest (Instant Access)"}
+                      Explore as Guest (Instant Access)
                     </Button>
 
                     {/* Live Visitor Counter */}
@@ -822,7 +806,7 @@ export default function AuthPage() {
       </div>
 
       {/* 5. CONNECTED BOTTOM DOCK BAR - Spans full width, connects seamlessly with sidebar */}
-      <footer className="fixed left-0 right-0 bottom-0 h-14 border-t border-white/10 bg-black/75 backdrop-blur-xl z-40 flex items-center justify-between">
+      <footer className="fixed left-0 right-0 bottom-0 h-14 border-t border-cyan-500/20 bg-slate-950/40 backdrop-blur-xl z-40 flex items-center justify-between">
         {/* Desktop View: System Ticker & Explore Button */}
         <div className="hidden md:flex items-center justify-between w-full pl-24 pr-6">
           <div className="flex items-center gap-4 text-xs text-zinc-300">

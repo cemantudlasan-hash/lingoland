@@ -174,7 +174,7 @@ export function LoginCarousel() {
   const resolvedImageUrl = resolveImageUrl(currentSlide.mediaUrl);
 
   return (
-    <div className="relative w-full bg-zinc-950/40 backdrop-blur-md rounded-2xl border border-white/5 overflow-hidden shadow-2xl p-4 flex flex-col md:flex-row gap-6 min-h-[220px]">
+    <div className="relative w-full bg-slate-950/35 backdrop-blur-xl rounded-2xl border border-cyan-500/20 overflow-hidden shadow-[0_0_35px_rgba(6,182,212,0.15)] p-4 flex flex-col md:flex-row gap-6 min-h-[220px]">
       <div 
         onClick={() => {
           if (currentSlide.mediaUrl) {
@@ -182,7 +182,7 @@ export function LoginCarousel() {
           }
         }}
         title="Click to open link in a new tab"
-        className="relative w-full md:w-1/2 h-[180px] md:h-[260px] lg:h-[320px] rounded-xl overflow-hidden bg-zinc-900 border border-white/5 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+        className="relative w-full md:w-1/2 h-[180px] md:h-[260px] lg:h-[320px] rounded-xl overflow-hidden bg-slate-900/40 border border-cyan-500/20 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
       >
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div

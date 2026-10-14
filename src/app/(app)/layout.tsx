@@ -6,13 +6,8 @@ import { DailyLoginModal } from "@/components/layout/daily-login-modal";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="h-screen" suppressHydrationWarning>
-        <AppShell>
-            {children}
-            <DailyLoginModal />
-            <DonationPopup />
-            <FloatingPetWidget />
-        </AppShell>
+    <div className="min-h-screen w-full" suppressHydrationWarning>
+      <AppShell>{children}</AppShell>
     </div>
   );
 }

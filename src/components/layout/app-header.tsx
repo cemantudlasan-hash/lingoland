@@ -1,6 +1,5 @@
 'use client';
 
-import { useSidebar } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { signOut } from "@/lib/auth";
-import { User as UserIcon, Coffee, Megaphone, Bell, Trash2, GraduationCap, PanelLeft } from "lucide-react";
+import { User as UserIcon, Coffee, Megaphone, Bell, Trash2, GraduationCap, ArrowLeft, LogOut } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "../ui/badge";
@@ -86,7 +85,6 @@ export function AppHeader() {
   const { user, userProfile, isGuest, logoutGuest, isAdmin, setAuthAction } = useAuth();
   const title = getTitleForPathname(pathname);
   const firestore = useFirestore();
-  const { toggleSidebar } = useSidebar();
 
   const [announcement, setAnnouncement] = useState<{ text: string; isActive: boolean } | null>(null);
   const [isClearAlertOpen, setIsClearAlertOpen] = useState(false);
@@ -239,16 +237,16 @@ export function AppHeader() {
 
 
   const handleLogout = async () => {
-    setAuthAction('logout');
-    if (isGuest) {
-      logoutGuest();
-    } else {
-      await signOut();
-    }
-    // Allow the logout animation to play completely for 2.5s before redirecting
-    setTimeout(() => {
+    try {
+      setAuthAction('logout');
+      if (isGuest) {
+        logoutGuest();
+      } else {
+        await signOut();
+      }
+    } finally {
       window.location.href = '/auth';
-    }, 2500);
+    }
   };
   
   const handleSupportClick = () => {
@@ -365,17 +363,27 @@ export function AppHeader() {
         return (
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0">
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 border border-cyan-500/40 bg-slate-900/60 hover:bg-slate-800/80">
                     <Avatar className="h-10 w-10">
-                        <AvatarFallback>G</AvatarFallback>
+                        <AvatarFallback className="bg-cyan-950 text-cyan-300 font-bold">G</AvatarFallback>
                     </Avatar>
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Guest Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => router.push('/auth')}>Login/Sign Up</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-56 p-1.5 border border-cyan-500/30 bg-slate-950/95 backdrop-blur-2xl text-white rounded-2xl shadow-xl">
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        try {
+                          setAuthAction('logout');
+                          logoutGuest();
+                        } finally {
+                          window.location.href = '/auth#login-card-section';
+                        }
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-rose-300 hover:text-rose-100 hover:bg-rose-500/20 rounded-xl transition-all cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-400" />
+                      <span>Sign-Out as a Guest</span>
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         );
@@ -408,16 +416,22 @@ export function AppHeader() {
         </div>
       )}
       <div className="relative z-10 flex h-16 w-full items-center justify-between px-4 sm:px-6 bg-slate-950/30 backdrop-blur-md">
-        <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={toggleSidebar} className="group -ml-2 px-2 text-sidebar-foreground gap-2 transition-all hover:bg-card/20">
-                <PanelLeft className="h-5 w-5 text-primary group-hover:animate-none animate-pulse" />
-                <div className="flex flex-col items-start">
-                    <span className="font-semibold text-sm leading-none">Menu</span>
-                    <span className="text-[10px] text-muted-foreground leading-none hidden md:block mt-1">Hover left edge</span>
-                </div>
+        <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/')}
+              className="group px-3 py-1.5 h-10 rounded-2xl border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/70 text-cyan-300 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.25)] transition-all hover:scale-105 active:scale-95 gap-2 font-bold text-xs"
+              title="Return to Menu & Cosmic Cockpit"
+            >
+              <ArrowLeft className="h-4 w-4 text-cyan-400 group-hover:-translate-x-1 transition-transform" />
+              <span className="tracking-wide">Back to Menu</span>
             </Button>
             <div className="h-6 w-px bg-border/50 hidden md:block mx-1"></div>
-            <div className="items-center gap-2.5 px-3 py-1.5 rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-slate-900/70 via-indigo-950/40 to-slate-900/70 backdrop-blur-md shadow-sm hidden md:flex">
+            <div
+              className="items-center gap-2.5 px-3 py-1.5 rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-slate-900/70 via-indigo-950/40 to-slate-900/70 backdrop-blur-md shadow-sm hidden md:flex cursor-pointer transition-all hover:border-indigo-400/50"
+              onClick={() => router.push('/')}
+              title="Return to Menu"
+            >
                 <div className="p-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 shrink-0">
                   <Image
                     src="/logo.png"

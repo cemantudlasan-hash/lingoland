@@ -48,3 +48,6 @@ scratch_auth.html
 # python
 __pycache__/
 *.pyc
+
+# scratch scripts
+/scratch/

@@ -152,7 +152,7 @@ function DashboardPageComponent() {
 
   useEffect(() => {
       if (isGuest) {
-          router.replace('/games');
+          router.replace('/');
       }
   }, [isGuest, router]);
   

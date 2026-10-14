@@ -184,13 +184,14 @@ export function AppSidebar() {
     setAuthAction('logout');
     if (isGuest) {
         logoutGuest();
+        window.location.href = '/auth#login-card-section';
     } else {
         await signOut();
+        // Allow the logout animation to play completely for 2.5s before redirecting
+        setTimeout(() => {
+          window.location.href = '/auth#login-card-section';
+        }, 2500);
     }
-    // Allow the logout animation to play completely for 2.5s before redirecting
-    setTimeout(() => {
-      window.location.href = '/auth';
-    }, 2500);
   };
   
   const baseItems = (user && !isGuest) ? [...privateItems, ...publicItems] : publicItems;
@@ -281,9 +282,9 @@ export function AppSidebar() {
             </SidebarMenuItem>
             {user || isGuest ? (
                   <SidebarMenuItem>
-                      <SidebarMenuButton onClick={handleLogout}>
+                      <SidebarMenuButton onClick={handleLogout} className={isGuest ? "text-rose-400 hover:text-rose-300" : ""}>
                           <LogOut />
-                          <span>Logout</span>
+                          <span>{isGuest ? "Sign-Out as a Guest" : "Logout"}</span>
                       </SidebarMenuButton>
                   </SidebarMenuItem>
             ) : (

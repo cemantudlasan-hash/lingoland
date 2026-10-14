@@ -455,7 +455,7 @@ export default function PlexusBackground() {
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, []);
+  }, [pathname]);
 
   if (pathname === '/auth' || pathname === '/login') {
     return null;
