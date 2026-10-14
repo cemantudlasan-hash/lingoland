@@ -19,6 +19,7 @@ const FlashcardContentSchema = z.object({
   exampleSentence: z.string().describe('An example sentence showing the word used in a natural context (different from the highlighted context, but matching its grammatical usage).'),
   hint: z.string().describe('A short mnemonic or memory aid to help the student learn and recall this word.'),
   emoji: z.string().describe('A single representative emoji that visually captures the meaning of this word or phrase. E.g. "happy" -> "😊", "tree" -> "🌳", "science" -> "🔬".'),
+  pronunciation: z.string().optional().describe('Accurate phonetic pronunciation or IPA transcription of the word, e.g. "/ɪɡˈzɔːstɪd/" or "ig-ZAW-stid".'),
 });
 
 const GenerateFlashcardOutputSchema = z.object({
@@ -45,6 +46,7 @@ Provide:
 3. A brand new example sentence demonstrating its usage.
 4. A memorable, creative mnemonic hint or memory aid.
 5. A single representative emoji that visually represents the word or phrase.
+6. An accurate phonetic pronunciation guide (IPA or phonetic respelling, e.g. /ɪɡˈzɔːstɪd/ or "ig-ZAW-stid").
 `,
 });
 
