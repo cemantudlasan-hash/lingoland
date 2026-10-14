@@ -465,10 +465,11 @@ export default function AuthPage() {
         setActiveTab('signin');
       }
       if (window.location.hash === '#login-card-section' || mode) {
+        const el = document.getElementById('login-card-section');
+        el?.scrollIntoView({ behavior: 'smooth' });
         setTimeout(() => {
-          const el = document.getElementById('login-card-section');
-          el?.scrollIntoView({ behavior: 'smooth' });
-        }, 200);
+          document.getElementById('login-card-section')?.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
       }
     }
   }, []);

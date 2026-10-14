@@ -34,6 +34,9 @@ export async function signUpWithEmail(email: string, password: string) {
     const { auth } = initializeFirebase();
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await createUserProfile(userCredential.user);
+    if (typeof window !== 'undefined') {
+      document.cookie = "lingoland_auth=1; path=/; max-age=31536000; SameSite=Lax";
+    }
     return { user: userCredential.user, error: null };
   } catch (e) {
     const error = e as AuthError;
@@ -45,6 +48,9 @@ export async function signInWithEmail(email: string, password: string) {
   try {
     const { auth } = initializeFirebase();
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    if (typeof window !== 'undefined') {
+      document.cookie = "lingoland_auth=1; path=/; max-age=31536000; SameSite=Lax";
+    }
     return { user: userCredential.user, error: null };
   } catch (e) {
      const error = e as AuthError;
@@ -57,6 +63,8 @@ export async function signOut() {
     const { auth } = initializeFirebase();
     await firebaseSignOut(auth);
     if (typeof window !== 'undefined') {
+      document.cookie = "lingoland_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+      sessionStorage.removeItem('isGuest');
       sessionStorage.removeItem('ai_usage_count');
       sessionStorage.removeItem('ai_popup_shown');
       sessionStorage.removeItem('donation_popup_shown');

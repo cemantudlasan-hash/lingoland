@@ -121,7 +121,7 @@ const ALL_PLATFORM_MENUS = [
 
 export default function LingoLandVerseHomePage() {
   const router = useRouter();
-  const { user, isGuest, isAdmin, logoutGuest, setAuthAction } = useAuth();
+  const { user, isGuest, isAdmin, isLoading, logoutGuest, setAuthAction } = useAuth();
   const { toast } = useToast();
   const { activeAsteroids, scheduledAsteroids } = useSmartReviewAsteroids();
   const firestore = useFirestore();
@@ -291,6 +291,25 @@ export default function LingoLandVerseHomePage() {
       setIsAuthLoading(false);
     }
   };
+
+  // Redirect unauthenticated visitors directly to sign-in
+  useEffect(() => {
+    if (!isLoading && !user && !isGuest) {
+      router.replace('/auth#login-card-section');
+    }
+  }, [isLoading, user, isGuest, router]);
+
+  // Prevent flashing the new layout if unauthenticated
+  if (isLoading || (!user && !isGuest)) {
+    return (
+      <div className="min-h-screen w-full bg-[#030712] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-cyan-300 font-mono tracking-widest uppercase">Connecting to LingoLandVerse...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen w-full bg-[#030712] text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">

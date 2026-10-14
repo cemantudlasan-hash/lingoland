@@ -96,6 +96,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (user) {
         setIsGuest(false); // Real user logged in, not a guest
         sessionStorage.removeItem('isGuest');
+        if (typeof window !== 'undefined') {
+          document.cookie = "lingoland_auth=1; path=/; max-age=31536000; SameSite=Lax";
+        }
         setIsAdmin(user.email === ADMIN_EMAIL);
         // Clear companion closed state and donation triggers on login
         clearCompanionAndDonationSession();
@@ -106,6 +109,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // We should ensure they are not considered a guest unless they explicitly log in as one.
         if (sessionStorage.getItem('isGuest') !== 'true') {
             setIsGuest(false);
+            if (typeof window !== 'undefined') {
+              document.cookie = "lingoland_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+            }
         }
         setIsAdmin(false);
         setUserProfile(null);
@@ -124,6 +130,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setIsGuest(true);
     sessionStorage.setItem('isGuest', 'true');
+    if (typeof window !== 'undefined') {
+      document.cookie = "lingoland_auth=1; path=/; max-age=31536000; SameSite=Lax";
+    }
     // Clear companion closed state and donation triggers on guest login
     clearCompanionAndDonationSession();
   };
@@ -131,6 +140,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logoutGuest = () => {
     setIsGuest(false);
     sessionStorage.removeItem('isGuest');
+    if (typeof window !== 'undefined') {
+      document.cookie = "lingoland_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+    }
     // Clear companion closed state and donation triggers on guest logout
     clearCompanionAndDonationSession();
   };
