@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 import firebase_admin
@@ -95,6 +96,13 @@ class FirebaseAsteroidSRSEngine:
                 },
             }
 
+        # Shuffle options so Letter A is not predictably the answer
+        if "challenge_payload" in ai_evaluation and "options" in ai_evaluation["challenge_payload"]:
+            opts = ai_evaluation["challenge_payload"]["options"]
+            if isinstance(opts, list):
+                random.shuffle(opts)
+                ai_evaluation["challenge_payload"]["options"] = opts
+
         now_utc = datetime.now(timezone.utc)
         next_review = now_utc + timedelta(minutes=self.srs_intervals[1])
         asteroid_doc_id = f"{user_id}_{word.lower().strip()}"
@@ -169,7 +177,17 @@ class FirebaseAsteroidSRSEngine:
                 }
 
             next_review = now_utc + timedelta(minutes=self.srs_intervals[next_stage])
-            doc_ref.update({"srs_stage": next_stage, "next_review_at": next_review})
+            evolved_challenge = self._generate_stage_challenge(word, correct_answer, next_stage)
+
+            doc_ref.update({
+                "srs_stage": next_stage,
+                "next_review_at": next_review,
+                "challenge_data": {
+                    "error_analysis": f"Progressed to Stage {next_stage} Spaced-Repetition cycle.",
+                    "game_type": "MULTIPLE_CHOICE",
+                    "challenge_payload": evolved_challenge,
+                },
+            })
             return {
                 "status": "PROMOTED",
                 "word": word,
@@ -179,12 +197,72 @@ class FirebaseAsteroidSRSEngine:
         else:
             # Demote back to Stage 1 interval (5 minutes)
             next_review = now_utc + timedelta(minutes=self.srs_intervals[1])
-            doc_ref.update({"srs_stage": 1, "next_review_at": next_review})
+            reset_challenge = self._generate_stage_challenge(word, correct_answer, 1)
+
+            doc_ref.update({
+                "srs_stage": 1,
+                "next_review_at": next_review,
+                "challenge_data": {
+                    "error_analysis": "Incorrect review. Demoted back to Stage 1 (5m reset).",
+                    "game_type": "MULTIPLE_CHOICE",
+                    "challenge_payload": reset_challenge,
+                },
+            })
             return {
                 "status": "DEMOTED",
                 "word": word,
                 "current_stage": 1,
                 "next_review_at": next_review.isoformat(),
+            }
+
+    def _generate_stage_challenge(self, word: str, definition: str, target_stage: int) -> Dict[str, Any]:
+        """
+        Generates progressive, non-repetitive micro-challenges for each SRS stage.
+        """
+        clean_word = word.strip()
+        if target_stage == 1:
+            options = [
+                definition,
+                f"Opposite or contradictory meaning to '{clean_word}'",
+                "An unrelated grammatical distractor",
+            ]
+            random.shuffle(options)
+            return {
+                "question": f"Stage 1 Recall: What is the accurate meaning of '{clean_word}'?",
+                "options": options,
+                "correct_answer": definition,
+            }
+        elif target_stage == 2:
+            options = [clean_word, "ambiguous", "superficial"]
+            random.shuffle(options)
+            return {
+                "question": f"Stage 2 Context: Complete the sentence: 'The speaker gave a ________ explanation that enlightened everyone.'",
+                "options": options,
+                "correct_answer": clean_word,
+            }
+        elif target_stage == 3:
+            options = [
+                f"Closest natural synonym for '{clean_word}'",
+                "Direct contrary antonym",
+                "Irrelevant concept",
+            ]
+            random.shuffle(options)
+            return {
+                "question": f"Stage 3 Nuance: Which concept best reflects the authentic usage of '{clean_word}'?",
+                "options": options,
+                "correct_answer": f"Closest natural synonym for '{clean_word}'",
+            }
+        else:
+            options = [
+                f"\"Her dedication was {clean_word.lower()}, serving as an inspiration to her peers.\"",
+                f"\"The bridge was built out of {clean_word.lower()} and stone.\"",
+                f"\"He spoke with great {clean_word.lower()} while driving the train.\"",
+            ]
+            random.shuffle(options)
+            return {
+                "question": f"Stage 4 Mastery: Which sentence uses '{clean_word}' in an authentic ESL context?",
+                "options": options,
+                "correct_answer": f"\"Her dedication was {clean_word.lower()}, serving as an inspiration to her peers.\"",
             }
 
 
