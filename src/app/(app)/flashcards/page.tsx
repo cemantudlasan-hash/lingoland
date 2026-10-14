@@ -538,13 +538,13 @@ export default function FlashcardsPage() {
     card.translation.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 3D Flip Card Style Configuration (Larger size and enhanced glassmorphism)
+  // 3D Flip Card Style Configuration (Expansive for desktop & responsive)
   const cardStyle: React.CSSProperties = {
-    perspective: "1200px",
+    perspective: "1400px",
     width: "100%",
-    maxWidth: "580px",
-    height: "380px",
-    minHeight: "360px",
+    maxWidth: "960px",
+    height: "480px",
+    minHeight: "420px",
     position: "relative",
     cursor: "pointer",
   };
@@ -566,12 +566,12 @@ export default function FlashcardsPage() {
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "28px 32px",
-    borderRadius: "28px",
-    border: "1px solid rgba(99, 102, 241, 0.28)",
-    background: "linear-gradient(165deg, rgba(15, 23, 42, 0.88), rgba(10, 16, 32, 0.96))",
-    backdropFilter: "blur(16px)",
-    boxShadow: "0 20px 45px -12px rgba(0,0,0,0.65), 0 0 30px rgba(99,102,241,0.12)",
+    padding: "32px 40px",
+    borderRadius: "32px",
+    border: "1px solid rgba(99, 102, 241, 0.3)",
+    background: "linear-gradient(165deg, rgba(15, 23, 42, 0.90), rgba(10, 16, 32, 0.98))",
+    backdropFilter: "blur(20px)",
+    boxShadow: "0 25px 60px -15px rgba(0,0,0,0.7), 0 0 35px rgba(99,102,241,0.15)",
   };
 
   const faceStyleBack: React.CSSProperties = {
@@ -582,31 +582,31 @@ export default function FlashcardsPage() {
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "28px 32px",
-    borderRadius: "28px",
-    border: "1px solid rgba(168, 85, 247, 0.28)",
-    background: "linear-gradient(165deg, rgba(16, 13, 33, 0.92), rgba(9, 14, 30, 0.97))",
-    backdropFilter: "blur(16px)",
+    padding: "32px 40px",
+    borderRadius: "32px",
+    border: "1px solid rgba(168, 85, 247, 0.3)",
+    background: "linear-gradient(165deg, rgba(16, 13, 33, 0.94), rgba(9, 14, 30, 0.98))",
+    backdropFilter: "blur(20px)",
     transform: "rotateY(180deg)",
-    boxShadow: "0 20px 45px -12px rgba(0,0,0,0.65), 0 0 30px rgba(168,85,247,0.12)",
+    boxShadow: "0 25px 60px -15px rgba(0,0,0,0.7), 0 0 35px rgba(168,85,247,0.15)",
   };
 
   return (
-    <div className="relative -m-3 md:-m-4 lg:-m-5 min-h-[calc(100vh-4.25rem)] flex-1 flex flex-col py-4 px-4 md:px-8">
+    <div className="relative -m-3 md:-m-4 lg:-m-5 min-h-[calc(100vh-4.25rem)] flex-1 flex flex-col py-4 px-3 md:px-6 lg:px-8">
       <ConstellationCanvas />
 
-      <div className="w-full max-w-5xl mx-auto relative z-10 flex-1 flex flex-col space-y-4">
+      <div className="w-full max-w-[1440px] 2xl:max-w-[1600px] mx-auto relative z-10 flex-1 flex flex-col space-y-4">
         <header className="text-center space-y-1.5 select-none shrink-0">
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight font-sans bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight font-sans bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
             Dynamic Flashcard Generator
           </h1>
-          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-lg mx-auto leading-relaxed">
+          <p className="text-xs md:text-sm text-slate-400 font-medium max-w-xl mx-auto leading-relaxed">
             AI-assisted spaced-repetition reviewer to memorize vocabulary, highlight translations, and study custom cards.
           </p>
         </header>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col space-y-3">
-          <TabsList className="grid w-full grid-cols-3 bg-slate-950/80 border border-slate-900 rounded-2xl p-1.5 h-14 backdrop-blur-md shadow-2xl shrink-0">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col space-y-4">
+          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-3 bg-slate-950/80 border border-slate-900 rounded-2xl p-1.5 h-14 backdrop-blur-md shadow-2xl shrink-0">
             <TabsTrigger
               value="review"
               className="rounded-xl font-extrabold text-xs tracking-wider uppercase transition-all duration-300 text-slate-400 hover:text-slate-200 data-[state=active]:bg-indigo-500/10 data-[state=active]:text-indigo-400 data-[state=active]:border data-[state=active]:border-indigo-500/30"
@@ -629,7 +629,7 @@ export default function FlashcardsPage() {
 
           {/* STUDY ROOM / REVIEW TAB */}
           <TabsContent value="review" className="mt-0 pt-2 flex-1 flex flex-col data-[state=inactive]:hidden">
-            <Card className="bg-slate-900/45 border border-slate-800/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl flex-1 flex flex-col items-center justify-between min-h-[580px] md:min-h-[640px] w-full mb-2">
+            <Card className="bg-slate-900/50 border border-slate-800/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 lg:p-10 shadow-2xl flex-1 flex flex-col items-center justify-between min-h-[640px] md:min-h-[720px] w-full mb-2">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center gap-3 my-auto py-16">
                   <Loader2 className="h-10 w-10 text-indigo-500 animate-spin" />
@@ -660,20 +660,20 @@ export default function FlashcardsPage() {
                   )}
                 </div>
               ) : (
-                <div className="w-full flex-1 flex flex-col items-center justify-between py-2 gap-4">
+                <div className="w-full flex-1 flex flex-col items-center justify-between py-2 gap-5">
                   {/* Progress Indicators */}
-                  <div className="w-full max-w-xl flex flex-col gap-2 select-none px-2">
-                    <div className="flex justify-between items-center text-xs font-bold text-slate-400">
-                      <span className="flex items-center gap-1.5 uppercase tracking-wider text-[11px] text-slate-400 font-extrabold">
-                        <Layers className="h-3.5 w-3.5 text-indigo-400" /> Study Room Review
+                  <div className="w-full max-w-3xl lg:max-w-4xl flex flex-col gap-2.5 select-none px-2">
+                    <div className="flex justify-between items-center text-xs md:text-sm font-bold text-slate-400">
+                      <span className="flex items-center gap-2 uppercase tracking-wider text-xs md:text-sm text-slate-400 font-extrabold">
+                        <Layers className="h-4 w-4 text-indigo-400" /> Study Room Review
                       </span>
-                      <span className="bg-indigo-500/15 text-indigo-300 border border-indigo-500/25 px-2.5 py-0.5 rounded-full text-[11px] font-black">
+                      <span className="bg-indigo-500/15 text-indigo-300 border border-indigo-500/25 px-3 py-1 rounded-full text-xs font-black">
                         Card {reviewIndex + 1} of {dueCards.length}
                       </span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-950/80 rounded-full overflow-hidden border border-slate-800/80">
+                    <div className="w-full h-2 bg-slate-950/80 rounded-full overflow-hidden border border-slate-800/80">
                       <div
-                        className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300 rounded-full"
+                        className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-300 rounded-full"
                         style={{ width: `${((reviewIndex + 1) / dueCards.length) * 100}%` }}
                       />
                     </div>
@@ -685,17 +685,17 @@ export default function FlashcardsPage() {
                       {/* FRONT FACE */}
                       <div style={faceStyleFront}>
                         <div className="w-full flex items-center justify-between select-none">
-                          <span className="text-xs font-black text-indigo-400 tracking-widest uppercase flex items-center gap-1.5 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                            <Layers className="h-3.5 w-3.5" /> Box {dueCards[reviewIndex].box}
+                          <span className="text-xs md:text-sm font-black text-indigo-400 tracking-widest uppercase flex items-center gap-2 bg-indigo-500/15 px-3.5 py-1.5 rounded-full border border-indigo-500/25">
+                            <Layers className="h-4 w-4" /> Box {dueCards[reviewIndex].box}
                           </span>
-                          <span className="text-[11px] font-bold text-slate-500">
+                          <span className="text-xs font-bold text-slate-500">
                             Click to flip
                           </span>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center gap-3 w-full my-auto select-text">
+                        <div className="flex flex-col items-center justify-center gap-3 md:gap-4 w-full my-auto select-text">
                           {dueCards[reviewIndex].imageUrl ? (
-                            <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-950 flex items-center justify-center shadow-xl select-none animate-in zoom-in duration-300">
+                            <div className="w-32 h-32 md:w-40 md:h-40 lg:w-44 lg:h-44 rounded-3xl overflow-hidden border border-slate-700/80 bg-slate-950 flex items-center justify-center shadow-2xl select-none animate-in zoom-in duration-300">
                               <img
                                 src={dueCards[reviewIndex].imageUrl}
                                 alt={dueCards[reviewIndex].word}
@@ -705,19 +705,19 @@ export default function FlashcardsPage() {
                           ) : (
                             /* @ts-ignore */
                             dueCards[reviewIndex].emoji && (
-                              <span className="text-6xl md:text-7xl select-none animate-bounce drop-shadow-md">
+                              <span className="text-7xl md:text-8xl lg:text-9xl select-none animate-bounce drop-shadow-xl">
                                 {dueCards[reviewIndex].emoji}
                               </span>
                             )
                           )}
-                          <h2 className="text-4xl md:text-5xl font-black leading-tight tracking-wide px-2 bg-gradient-to-r from-amber-200 via-amber-300 to-yellow-400 bg-clip-text text-transparent capitalize text-center drop-shadow">
+                          <h2 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-wide px-4 bg-gradient-to-r from-amber-200 via-amber-300 to-yellow-400 bg-clip-text text-transparent capitalize text-center drop-shadow-md">
                             {dueCards[reviewIndex].word}
                           </h2>
 
                           {/* Word Pronunciation Row */}
-                          <div className="flex items-center gap-2.5 mt-1 select-none flex-wrap justify-center">
+                          <div className="flex items-center gap-3 mt-1 select-none flex-wrap justify-center">
                             {dueCards[reviewIndex].pronunciation && (
-                              <span className="text-sm font-mono text-indigo-300/90 bg-indigo-950/60 border border-indigo-500/30 px-3 py-1 rounded-full shadow-inner">
+                              <span className="text-base md:text-lg font-mono text-indigo-300/90 bg-indigo-950/70 border border-indigo-500/30 px-4 py-1.5 rounded-full shadow-inner">
                                 {dueCards[reviewIndex].pronunciation}
                               </span>
                             )}
@@ -726,30 +726,30 @@ export default function FlashcardsPage() {
                               onClick={(e) => speakWord(dueCards[reviewIndex].word, e)}
                               title="Listen to word pronunciation"
                               className={cn(
-                                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 shadow-md",
+                                "flex items-center gap-2 px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all duration-300 shadow-md",
                                 isSpeaking
                                   ? "bg-amber-400 text-slate-950 font-black scale-105 ring-2 ring-amber-300 shadow-amber-400/30"
                                   : "bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-500/40 hover:scale-105 active:scale-95"
                               )}
                             >
-                              <Volume2 className={cn("h-4 w-4", isSpeaking && "animate-pulse")} />
+                              <Volume2 className={cn("h-4 w-4 md:h-5 md:w-5", isSpeaking && "animate-pulse")} />
                               <span>{isSpeaking ? "Speaking..." : "Pronounce"}</span>
                             </button>
                           </div>
                         </div>
 
-                        <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5 select-none bg-slate-950/50 border border-slate-800/80 px-3.5 py-1.5 rounded-full">
+                        <div className="text-xs md:text-sm font-bold text-slate-400 flex items-center gap-2 select-none bg-slate-950/50 border border-slate-800/80 px-4 py-1.5 rounded-full">
                           <RotateCcw className="h-3.5 w-3.5 text-indigo-400" /> Click card to flip & reveal details
                         </div>
                       </div>
 
                       {/* BACK FACE */}
                       <div style={faceStyleBack}>
-                        <div className="w-full flex items-center justify-between select-none border-b border-slate-800/80 pb-2.5">
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-lg font-black text-amber-300 capitalize">{dueCards[reviewIndex].word}</span>
+                        <div className="w-full flex items-center justify-between select-none border-b border-slate-800/80 pb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl md:text-3xl font-black text-amber-300 capitalize">{dueCards[reviewIndex].word}</span>
                             {dueCards[reviewIndex].pronunciation && (
-                              <span className="text-xs font-mono text-purple-300/90 bg-purple-950/50 px-2.5 py-0.5 rounded border border-purple-500/25">
+                              <span className="text-xs md:text-sm font-mono text-purple-300/90 bg-purple-950/50 px-3 py-1 rounded-full border border-purple-500/25">
                                 {dueCards[reviewIndex].pronunciation}
                               </span>
                             )}
@@ -757,7 +757,7 @@ export default function FlashcardsPage() {
                           <button
                             type="button"
                             onClick={(e) => speakWord(dueCards[reviewIndex].word, e)}
-                            className="p-1.5 text-indigo-300 hover:text-white hover:bg-indigo-500/20 rounded-lg flex items-center gap-1 text-xs font-bold transition-colors"
+                            className="px-3.5 py-1.5 text-indigo-300 hover:text-white hover:bg-indigo-500/20 rounded-xl flex items-center gap-1.5 text-xs md:text-sm font-bold transition-colors border border-indigo-500/20"
                             title="Listen to word pronunciation"
                           >
                             <Volume2 className={cn("h-4 w-4", isSpeaking && "animate-pulse text-amber-400")} />
@@ -765,35 +765,41 @@ export default function FlashcardsPage() {
                           </button>
                         </div>
 
-                        <div className="w-full space-y-3.5 text-center overflow-y-auto max-h-[230px] px-2 select-text my-auto">
-                          <div className="space-y-1">
-                            <h4 className="text-[11px] font-extrabold text-purple-400 tracking-wider uppercase">Definition</h4>
-                            <p className="text-slate-100 text-sm md:text-base leading-relaxed font-semibold">
-                              {dueCards[reviewIndex].definition}
-                            </p>
-                          </div>
-                          <div className="space-y-1">
-                            <h4 className="text-[11px] font-extrabold text-indigo-400 tracking-wider uppercase">Translation</h4>
-                            <p className="text-indigo-200 text-sm md:text-base font-semibold">
-                              {dueCards[reviewIndex].translation}
-                            </p>
-                          </div>
-                          {dueCards[reviewIndex].exampleSentence && (
-                            <div className="space-y-1 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60">
-                              <h4 className="text-[10px] font-extrabold text-pink-400 tracking-wider uppercase">Example</h4>
-                              <p className="text-slate-350 text-xs md:text-sm italic leading-relaxed">
-                                "{dueCards[reviewIndex].exampleSentence}"
+                        {/* Back Face Details - Responsive 2-column Grid for wide screens */}
+                        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 my-auto text-left overflow-y-auto max-h-[300px] px-1 select-text">
+                          <div className="space-y-3.5">
+                            <div className="space-y-1 bg-slate-950/40 p-3.5 rounded-2xl border border-slate-850/80">
+                              <h4 className="text-[11px] md:text-xs font-black text-purple-400 tracking-wider uppercase">Definition (English)</h4>
+                              <p className="text-slate-100 text-sm md:text-base leading-relaxed font-semibold">
+                                {dueCards[reviewIndex].definition}
                               </p>
                             </div>
-                          )}
-                          {dueCards[reviewIndex].hint && (
-                            <div className="text-xs bg-purple-950/30 border border-purple-500/20 p-2.5 rounded-xl text-purple-200">
-                              💡 {dueCards[reviewIndex].hint}
+                            <div className="space-y-1 bg-indigo-950/20 p-3.5 rounded-2xl border border-indigo-500/20">
+                              <h4 className="text-[11px] md:text-xs font-black text-indigo-400 tracking-wider uppercase">Translation / Synonym</h4>
+                              <p className="text-indigo-200 text-sm md:text-base font-semibold">
+                                {dueCards[reviewIndex].translation}
+                              </p>
                             </div>
-                          )}
+                          </div>
+
+                          <div className="space-y-3.5">
+                            {dueCards[reviewIndex].exampleSentence ? (
+                              <div className="space-y-1 bg-slate-950/40 p-3.5 rounded-2xl border border-slate-800/60">
+                                <h4 className="text-[11px] md:text-xs font-black text-pink-400 tracking-wider uppercase">Example in Context</h4>
+                                <p className="text-slate-350 text-xs md:text-sm italic leading-relaxed">
+                                  "{dueCards[reviewIndex].exampleSentence}"
+                                </p>
+                              </div>
+                            ) : null}
+                            {dueCards[reviewIndex].hint && (
+                              <div className="text-xs md:text-sm bg-purple-950/30 border border-purple-500/20 p-3.5 rounded-2xl text-purple-200">
+                                💡 <span className="font-bold">Memory Aid:</span> {dueCards[reviewIndex].hint}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="text-xs font-bold text-slate-400 select-none pt-2 flex items-center gap-1.5">
+                        <div className="text-xs md:text-sm font-bold text-slate-400 select-none pt-2 flex items-center gap-1.5">
                           <RotateCcw className="h-3.5 w-3.5 text-purple-400" /> Click card to flip back
                         </div>
                       </div>
@@ -801,7 +807,7 @@ export default function FlashcardsPage() {
                   </div>
 
                   {/* Leitner Box Rating Controls */}
-                  <div className="w-full max-w-md pt-2 select-none">
+                  <div className="w-full max-w-xl md:max-w-2xl pt-2 select-none">
                     {isFlipped ? (
                       <div className="flex flex-wrap gap-3 justify-center w-full animate-in fade-in zoom-in-95 duration-200">
                         <Button
@@ -809,7 +815,7 @@ export default function FlashcardsPage() {
                             e.stopPropagation();
                             handleRateCard(dueCards[reviewIndex], false);
                           }}
-                          className="bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-300 font-bold px-4 rounded-xl flex-1 h-12 shadow-lg hover:scale-[1.02] transition-transform"
+                          className="bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-300 font-bold px-4 rounded-xl flex-1 h-13 text-sm md:text-base shadow-lg hover:scale-[1.02] transition-transform"
                         >
                           Again (Forgot)
                         </Button>
@@ -818,7 +824,7 @@ export default function FlashcardsPage() {
                             e.stopPropagation();
                             handleRateCard(dueCards[reviewIndex], true);
                           }}
-                          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold px-4 rounded-xl flex-1 h-12 shadow-lg hover:scale-[1.02] transition-transform"
+                          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold px-4 rounded-xl flex-1 h-13 text-sm md:text-base shadow-lg hover:scale-[1.02] transition-transform"
                         >
                           Good (Next)
                         </Button>
@@ -827,7 +833,7 @@ export default function FlashcardsPage() {
                             e.stopPropagation();
                             handleRateCard(dueCards[reviewIndex], true, true);
                           }}
-                          className="bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-bold px-4 rounded-xl flex-1 h-12 shadow-lg hover:scale-[1.02] transition-transform"
+                          className="bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-bold px-4 rounded-xl flex-1 h-13 text-sm md:text-base shadow-lg hover:scale-[1.02] transition-transform"
                         >
                           Easy (Jump)
                         </Button>
@@ -838,7 +844,7 @@ export default function FlashcardsPage() {
                           type="button"
                           onClick={() => setIsFlipped(true)}
                           variant="outline"
-                          className="bg-indigo-600/20 hover:bg-indigo-600/30 border-indigo-500/40 text-indigo-200 font-bold h-11 px-6 rounded-xl shadow-md transition-all hover:scale-105"
+                          className="bg-indigo-600/20 hover:bg-indigo-600/30 border-indigo-500/40 text-indigo-200 font-bold h-12 px-7 text-sm md:text-base rounded-2xl shadow-md transition-all hover:scale-105"
                         >
                           <RotateCcw className="mr-2 h-4 w-4" /> Flip Card to Reveal
                         </Button>
@@ -846,7 +852,7 @@ export default function FlashcardsPage() {
                           type="button"
                           onClick={(e) => speakWord(dueCards[reviewIndex].word, e)}
                           variant="outline"
-                          className="bg-slate-950/70 hover:bg-slate-900 border-slate-800 text-slate-300 font-bold h-11 px-4 rounded-xl shadow-md"
+                          className="bg-slate-950/70 hover:bg-slate-900 border-slate-800 text-slate-300 font-bold h-12 px-5 text-sm md:text-base rounded-2xl shadow-md"
                           title="Listen to pronunciation"
                         >
                           <Volume2 className={cn("h-4 w-4 mr-2 text-indigo-400", isSpeaking && "animate-pulse")} />
@@ -1106,7 +1112,7 @@ export default function FlashcardsPage() {
                 <p className="text-xs text-slate-600 mt-1">Start adding them manually or highlighting in Reader!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative">
                 {filteredCards.map((card) => (
                   <div key={card.id} className="space-y-4">
                     {/* Visual Card component */}
