@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Trophy, Zap, BookCheck, RotateCw, BarChart, Users, Gamepad2, Loader2, Trash2, ArrowRight, BookOpen, Sparkles } from "lucide-react";
 import { DashboardChart } from "@/components/dashboard-chart";
+import { SmartReviewAsteroidsWidget } from "@/components/dashboard/smart-review-asteroids";
 import { useAuth } from "@/context/auth-context";
 import dynamic from 'next/dynamic';
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -272,6 +273,9 @@ function DashboardPageComponent() {
               </div>
             </div>
 
+            {/* AI Smart-Review Asteroids (SRS) Section */}
+            <SmartReviewAsteroidsWidget />
+
             {/* Large Activity Chart Bento Box - stretched to bottom */}
             <div className="glass-card p-6 md:p-8 rounded-3xl flex-1 flex flex-col justify-between border border-white/5 shadow-2xl relative overflow-hidden min-h-[420px] md:min-h-[480px]">
               <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
@@ -392,6 +396,9 @@ function DashboardPageComponent() {
               </div>
             </div>
           </div>
+
+          {/* AI Smart-Review Asteroids (SRS) Section */}
+          <SmartReviewAsteroidsWidget />
 
           {/* Weekly Progress Chart Bento Box - stretched to bottom */}
           <div className="glass-card p-6 md:p-8 rounded-3xl flex-1 flex flex-col justify-between border border-white/5 shadow-2xl relative overflow-hidden min-h-[420px] md:min-h-[480px]">

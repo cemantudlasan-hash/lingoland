@@ -7,6 +7,10 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email == "cemantudlasan2@gmail.com";
     }
 
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
@@ -230,6 +234,26 @@ service cloud.firestore {
       allow delete: if request.auth != null && (
         resource.data.creatorId == request.auth.uid || isAdmin()
       );
+    }
+
+    match /user_asteroids/{asteroidId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.user_id);
+
+      allow create: if isAuthenticated() 
+                    && isOwner(request.resource.data.user_id)
+                    && request.resource.data.srs_stage == 1
+                    && request.resource.data.word is string
+                    && request.resource.data.next_review_at is timestamp;
+
+      allow update: if isAuthenticated() 
+                    && isOwner(resource.data.user_id)
+                    && request.resource.data.user_id == resource.data.user_id
+                    && request.resource.data.word == resource.data.word
+                    && request.resource.data.srs_stage >= 1 
+                    && request.resource.data.srs_stage <= 5
+                    && request.resource.data.next_review_at is timestamp;
+
+      allow delete: if isAuthenticated() && isOwner(resource.data.user_id);
     }
   }
 }
