@@ -928,7 +928,7 @@ export default function MarketplacePage() {
 
   if (!user || isGuest) {
     return (
-      <div className="relative min-h-[92vh] w-full p-6 text-white overflow-hidden bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-teal-500/30 flex items-center justify-center shadow-2xl">
+      <div className="relative min-h-[92vh] w-full p-4 sm:p-6 pb-28 sm:pb-12 text-white bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-teal-500/30 flex items-center justify-center shadow-2xl">
         <ConstellationCanvas />
         <Card className="bg-zinc-950/95 border-teal-500/30 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 max-w-xl mx-auto w-full text-center space-y-6 select-none relative z-10">
           <div className="w-16 h-16 mx-auto rounded-full bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 select-none shadow-[0_0_20px_rgba(20,184,166,0.3)]">
@@ -967,18 +967,20 @@ export default function MarketplacePage() {
 
   if (activeChatTutor) {
     return (
-      <div className="relative min-h-[85vh] w-full p-2 sm:p-4 text-white overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900">
+      <div className="relative min-h-[85vh] w-full p-2 sm:p-4 pb-28 sm:pb-12 text-white bg-slate-950/20 rounded-3xl border border-slate-900 flex flex-col flex-1">
         <ConstellationCanvas />
-        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 w-full flex flex-col h-full min-h-[70vh]">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-3xl">
+          <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl" />
+        </div>
+        <div className="relative z-10 w-full flex flex-col flex-1 min-h-[70vh]">
           <AnimatePresence mode="wait">
             <motion.div
               key="chat"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="flex flex-col h-[78vh] max-h-[78vh] w-full"
+              className="flex flex-col flex-1 w-full min-h-[70vh]"
             >
               {/* Chat Header */}
               <div className="bg-slate-950/60 border border-slate-850/80 rounded-2xl p-4.5 backdrop-blur-md flex items-center justify-between select-none">
@@ -1017,7 +1019,7 @@ export default function MarketplacePage() {
               </div>
 
               {/* Chat messages viewport */}
-              <div className="flex-grow overflow-y-auto p-4 space-y-4 my-3 bg-slate-900/20 border border-slate-850/65 backdrop-blur-sm rounded-3xl select-text relative max-h-[50vh] min-h-[40vh]">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 my-3 bg-slate-900/20 border border-slate-850/65 backdrop-blur-sm rounded-3xl select-text relative min-h-[350px] max-h-[58vh]">
                 <AnimatePresence initial={false}>
                   {chatMessages.map((msg, idx) => {
                     const isUser = msg.role === 'user';
@@ -1124,21 +1126,23 @@ export default function MarketplacePage() {
   }
 
   return (
-    <div className="relative min-h-[92vh] w-full p-2 sm:p-4 text-white overflow-hidden bg-slate-950/20 rounded-3xl border border-slate-900">
+    <div className="relative min-h-[92vh] w-full p-2 sm:p-4 text-white bg-slate-950/20 rounded-3xl border border-slate-900 flex flex-col flex-1">
       <ConstellationCanvas />
       
-      {/* Ambient background glow highlights */}
-      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Ambient background glow highlights safely clipped */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-3xl">
+        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl" />
+      </div>
 
-      <div className="relative z-10 w-full flex flex-col h-full min-h-[85vh]">
+      <div className="relative z-10 w-full flex flex-col flex-1 pb-28 sm:pb-16">
         <AnimatePresence mode="wait">
           <motion.div
             key="marketplace"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="space-y-6 flex flex-col h-full"
+            className="space-y-6 flex flex-col flex-1 w-full"
           >
             {/* Header dashboard layout */}
             <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
