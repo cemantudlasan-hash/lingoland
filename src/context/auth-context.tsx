@@ -91,7 +91,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsGuest(true);
     }
 
+    const safetyTimer = setTimeout(() => {
+      setIsLoading((prev) => {
+        if (prev) {
+          console.warn("[Auth] Firebase auth state listener timed out, falling back to guest/unauthenticated");
+          return false;
+        }
+        return false;
+      });
+    }, 1500);
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      clearTimeout(safetyTimer);
       setUser(user);
       if (user) {
         setIsGuest(false); // Real user logged in, not a guest
@@ -121,7 +132,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(safetyTimer);
+      unsubscribe();
+    };
   }, [clearCompanionAndDonationSession]);
 
   const loginAsGuest = () => {

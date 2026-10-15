@@ -19,11 +19,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
   
   if (isLoading && !authAction) {
-    return null; // Don't render the shell while auth is loading, AuthProvider will show its own screen
+    return (
+      <div className="flex h-screen min-h-svh flex-col bg-background text-foreground items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-medium text-muted-foreground animate-pulse">Loading LingoLand...</p>
+        </div>
+      </div>
+    );
   }
 
   if (pathname === '/') {
-    return <div className="min-h-screen w-full overflow-x-hidden">{children}</div>;
+    return (
+      <div className="min-h-screen w-full overflow-x-hidden relative">
+        {children}
+        <FloatingPetWidget />
+      </div>
+    );
   }
 
   // Inside tabs/pages: no sidebar is rendered. Header has "Back to Menu" button returning to cockpit.

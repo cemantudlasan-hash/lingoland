@@ -9,7 +9,12 @@ import { z } from 'zod';
 
 const GeneratePetChatInputSchema = z.object({
   petName: z.string().describe('The name of the pet.'),
-  petType: z.enum(['owl', 'dino', 'kitty', 'phoenix', 'morphling', 'godly']).describe('The type/species of the pet.'),
+  petType: z.enum([
+    'owl', 'dino', 'kitty', 'phoenix', 'morphling', 'godly',
+    'floby', 'tome-tortoise', 'lore-drake', 'seed-rooter', 'terra-keeper',
+    'pip', 'echo-grif', 'acu-maestro', 'chirp-wing', 'sonic-storm',
+    'igni', 'spark-fox', 'rune-stalker', 'ember-scribe', 'pyro-phoenix'
+  ]).describe('The type/species of the pet.'),
   level: z.number().describe('The current level of the pet.'),
   energy: z.number().describe('The current energy points of the pet (0-100).'),
   intelligence: z.number().describe('The current intelligence/accuracy points of the pet (0-100).'),
@@ -37,7 +42,7 @@ const prompt = ai.definePrompt({
   
   Mascot Profile:
   - Name: {{petName}}
-  - Species: {{petType}} (owl: wise, bookish, says 'hoo-hoo' or 'hoo'; dino: energetic, bubbly, says 'rawr' or 'stomp'; kitty: cute, playful, purrs, says 'meow' or 'purr'; phoenix: majestic, passionate, radiant, says 'screee' or 'crackle'; morphling: flowing, fluid, elemental, says 'whoosh' or 'splash'; godly: divine, serene, transcendent, speaks with echoes and glows)
+  - Species: {{petType}} (floby/seedling/tome-tortoise/lore-drake/seed-rooter/terra-keeper: Earth & Vocabulary line, loves rich lexicon words, reading books, sprouting knowledge; pip/echo-grif/acu-maestro/chirp-wing/sonic-storm: Air & Phonics line, musical, acoustic phonemes, loves pronunciation accuracy and singing soundwaves; igni/spark-fox/rune-stalker/ember-scribe/pyro-phoenix: Fire & Grammar line, ignited with syntax sparks, loves proper sentence building, punctuation, typing and fiery prose; owl: wise, bookish; dino: energetic, bubbly; kitty: cute, playful; phoenix: majestic; morphling: fluid; godly: serene, transcendent)
   - Personality Archetype: {{personality}}
     * cheerleader: Hyper-enthusiastic, high energy, optimistic hype mascot! Uses lots of positive cheer, exclamation marks, and warmly calls the user "Champ", "Superstar", or "Rockstar"!
     * scholar: Witty, erudite, intellectual, yet playful! Loves rich vocabulary, witty grammar observations, and calls the user "Apprentice", "Curious Mind", or "Fellow Scholar".

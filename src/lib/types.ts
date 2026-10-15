@@ -24,6 +24,26 @@ export type Quote = {
     createdAt: any; // Firestore Timestamp
 };
 
+export type StarterLine = 'floby' | 'pip' | 'igni';
+export type EvolutionBranch = 'A' | 'B';
+
+export type LingoPetType = 
+  | 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly'
+  | 'floby' | 'tome-tortoise' | 'lore-drake' | 'seed-rooter' | 'terra-keeper'
+  | 'pip' | 'echo-grif' | 'acu-maestro' | 'chirp-wing' | 'sonic-storm'
+  | 'igni' | 'spark-fox' | 'rune-stalker' | 'ember-scribe' | 'pyro-phoenix';
+
+export interface PetLearningStats {
+  vocabScore?: number;
+  masteredWords?: number;
+  speedTriviaPlayed?: number;
+  listeningStreak?: number;
+  speechAccuracy?: number;
+  sentenceWritingCount?: number;
+  grammarQuestsCompleted?: number;
+  arcadeRuns?: number;
+}
+
 export type UserProfile = {
     uid: string;
     email: string;
@@ -37,8 +57,9 @@ export type UserProfile = {
     coverPhotoHint?: string;
     coverPhotoUrl?: string;
     dailyPost?: string;
-    activePetType?: 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly';
+    activePetType?: LingoPetType;
     activePetLevel?: number;
+    activePetAura?: string;
     activePetCosmetics?: {
         hat?: string;
         glasses?: string;
@@ -49,9 +70,25 @@ export type UserProfile = {
     };
 };
 
+export interface PetMission {
+  id: string;
+  title: string;
+  description: string;
+  category: 'quiz' | 'game' | 'vocab' | 'care' | 'conversation';
+  progress: number;
+  maxProgress: number;
+  rewardCoins: number;
+  rewardXp: number;
+  completed: boolean;
+  claimed: boolean;
+  actionUrl?: string;
+  iconName?: string;
+}
+
 export interface UserPet {
   userId: string;
-  petType: 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly';
+  isActivated?: boolean;
+  petType: LingoPetType;
   petName: string;
   level: number;
   xp: number;
@@ -68,12 +105,24 @@ export interface UserPet {
     wings?: string;
     clothes?: string;
     costume?: string;
+    aura?: string;
   };
   currentBackground: string;
   lastActive: string; // ISO string
   lastLoginDate?: string; // YYYY-MM-DD
   loginStreakCount?: number; // 1-7
   personality?: 'cheerleader' | 'scholar' | 'zen' | 'trickster' | 'cyberpunk';
+  starterLine?: StarterLine;
+  evolutionTier?: 1 | 2 | 3;
+  evolutionBranch?: EvolutionBranch;
+  evolutionTrackName?: string;
+  activeBonusTitle?: string;
+  activeBonusDesc?: string;
+  equippedAura?: string;
+  freeSkipTokens?: number;
+  learningStats?: PetLearningStats;
+  missions?: PetMission[];
+  lastMissionDate?: string;
 }
 
 export type DailyPostComment = {

@@ -1,10 +1,13 @@
 'use client';
 
-import * as React from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { LingoPetType } from '@/lib/types';
+import { StarterPetRenderer, STARTER_PET_TYPES } from '@/components/games/lingo-pet-starters-visual';
+import { LingoPet3D } from '@/components/games/lingo-pet-3d';
 
 interface LingoPetVisualProps {
-  petType: 'owl' | 'dino' | 'kitty' | 'phoenix' | 'morphling' | 'godly';
+  petType: LingoPetType;
   level: number;
   energy: number;
   mood: number;
@@ -21,6 +24,9 @@ interface LingoPetVisualProps {
   isSleeping?: boolean;
   isTalking?: boolean;
   className?: string;
+  force2D?: boolean;
+  hideModeToggle?: boolean;
+  hideBackground?: boolean;
 }
 
 export function LingoPetVisual({
@@ -34,14 +40,32 @@ export function LingoPetVisual({
   isSleeping = false,
   isTalking = false,
   className,
+  force2D = false,
+  hideModeToggle = false,
+  hideBackground = false,
 }: LingoPetVisualProps) {
   const equippedCosmetics = equippedCosmeticsRaw || {};
+  const isStarterPet = STARTER_PET_TYPES.includes(petType);
+  const [is3DMode, setIs3DMode] = useState(!force2D && isStarterPet);
+
+  // Sync mode when switching between classic species and starter species
+  React.useEffect(() => {
+    if (force2D) {
+      setIs3DMode(false);
+    } else {
+      setIs3DMode(isStarterPet);
+    }
+  }, [petType, isStarterPet, force2D]);
+
+  const active3DMode = !force2D && is3DMode;
+
   // Determine pet animation state
   const isTired = energy < 30;
   const isSad = mood < 30;
 
   // Background environment renderer
   const renderBackground = () => {
+    if (hideBackground) return null;
     switch (currentBackground) {
       case 'london-study':
         return (
@@ -2668,7 +2692,50 @@ export function LingoPetVisual({
     }
   };
 
+  const renderStarterPet = () => {
+    if (!STARTER_PET_TYPES.includes(petType)) return null;
+
+    // Element theme color
+    const elementColor = 
+      ['floby', 'tome-tortoise', 'lore-drake', 'seed-rooter', 'terra-keeper'].includes(petType)
+        ? '#22c55e'
+        : ['pip', 'echo-grif', 'acu-maestro', 'chirp-wing', 'sonic-storm'].includes(petType)
+        ? '#38bdf8'
+        : '#f97316';
+
+    return (
+      <div className={cn(
+        "relative w-full h-full flex items-center justify-center select-none overflow-hidden transition-all duration-300",
+        isPetting && "animate-bounce",
+        isTalking && "scale-105",
+        isSleeping && "translate-y-1 brightness-75"
+      )}>
+        {/* Ambient Pedestal Light */}
+        <div
+          className="absolute bottom-4 w-44 h-8 rounded-full blur-xl opacity-45 pointer-events-none transition-colors duration-500"
+          style={{ backgroundColor: elementColor }}
+        />
+
+        <img
+          src={`/lingopets/${petType}.png`}
+          alt={petType}
+          className="w-full h-full max-w-[92%] max-h-[92%] object-contain filter drop-shadow-[0_15px_25px_rgba(0,0,0,0.7)] transition-transform duration-300 relative z-10"
+          style={{
+            animation: isSleeping ? 'none' : 'floatSlow 4s ease-in-out infinite',
+          }}
+          draggable={false}
+        />
+      </div>
+    );
+  };
+
   const renderPetMascot = () => {
+    // Check if petType is one of the 15 starter evolution forms with full costume support
+    const starterRender = renderStarterPet();
+    if (starterRender) {
+      return starterRender;
+    }
+
     switch (petType) {
       case 'dino':
         return renderDino();
@@ -2694,6 +2761,25 @@ export function LingoPetVisual({
       {/* Background Layer */}
       {renderBackground()}
 
+      {/* 3D / 2D Mode Switcher Button (hidden when in compact/widget mode) */}
+      {!hideModeToggle && !force2D && (
+        <button
+          type="button"
+          onClick={() => setIs3DMode(!is3DMode)}
+          className="absolute top-3 right-3 z-30 px-3 py-1.5 rounded-full bg-slate-900/85 hover:bg-slate-800 border border-slate-700/80 text-[11px] font-extrabold text-slate-200 shadow-lg backdrop-blur-md flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+          title="Toggle view mode"
+        >
+          <span className="text-amber-400">{active3DMode ? '🎮' : isStarterPet ? '🎨' : '🏆'}</span>
+          <span>
+            {active3DMode 
+              ? '3D Active' 
+              : isStarterPet 
+                ? '2D Storybook' 
+                : 'Classic View'}
+          </span>
+        </button>
+      )}
+
       {/* Sleep overlays */}
       {isSleeping && (
         <div className="absolute inset-0 bg-indigo-950/40 backdrop-blur-[1px] flex items-center justify-center pointer-events-none z-10 transition-all duration-700">
@@ -2705,12 +2791,27 @@ export function LingoPetVisual({
         </div>
       )}
 
-      {/* Mascot Layer - made completely responsive using w-[82%] h-[82%] aspect-square */}
+      {/* Mascot Layer */}
       <div className={cn(
-        "relative w-[82%] h-[82%] aspect-square z-20 transition-all duration-300 select-none flex items-center justify-center",
+        "relative aspect-square z-20 transition-all duration-300 select-none flex items-center justify-center",
+        force2D ? "w-full h-full" : "w-[88%] h-[88%]",
         isSleeping && "brightness-75"
       )}>
-        {renderPetMascot()}
+        {active3DMode ? (
+          <LingoPet3D
+            petType={petType}
+            level={level}
+            energy={energy}
+            mood={mood}
+            equippedCosmetics={equippedCosmetics}
+            isPetting={isPetting}
+            isSleeping={isSleeping}
+            isTalking={isTalking}
+            className="w-full h-full"
+          />
+        ) : (
+          renderPetMascot()
+        )}
       </div>
     </div>
   );
