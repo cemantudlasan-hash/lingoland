@@ -51,7 +51,7 @@ export function GroupMaker() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 p-4 rounded-lg">
+    <div className="flex flex-col items-center gap-6 p-2 sm:p-4 rounded-lg w-full pb-12 sm:pb-4">
       <div className="w-full max-w-lg flex flex-col md:flex-row gap-4 items-center">
         <div className="flex-grow w-full space-y-2">
             <Label htmlFor="num-groups">Number of Groups</Label>

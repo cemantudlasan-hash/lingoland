@@ -987,12 +987,14 @@ export default function StorytellingPage() {
   const themeConfig = getGenreTheme();
 
   return (
-    <div className="relative -m-3 md:-m-4 lg:-m-5 min-h-[calc(100vh-4.5rem)] flex-1 flex flex-col p-4 sm:p-8 md:p-10 lg:p-12 text-white overflow-hidden bg-slate-950/20">
+    <div className="relative -m-3 md:-m-4 lg:-m-5 min-h-[calc(100vh-4.5rem)] flex-1 flex flex-col p-3 sm:p-6 md:p-10 lg:p-12 pb-28 sm:pb-16 text-white bg-slate-950/20">
       <ConstellationCanvas />
       
-      {/* Background ambient highlights */}
-      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Background ambient highlights safely clipped */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl" />
+      </div>
 
       <div className="relative z-10 w-full flex-1 flex flex-col">
         
@@ -1005,7 +1007,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="space-y-6 sm:space-y-8 w-full max-w-[1700px] mx-auto flex-1 flex flex-col justify-center py-4 sm:py-8"
+              className="space-y-6 sm:space-y-8 w-full max-w-[1700px] mx-auto flex-1 flex flex-col justify-start py-4 sm:py-8 pb-16"
             >
               <div className="text-center space-y-3 select-none">
                 <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1.5 px-4 text-xs">
@@ -1622,7 +1624,7 @@ export default function StorytellingPage() {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full max-w-[1700px] mx-auto space-y-8 text-center select-none flex-1 flex flex-col justify-center py-6 sm:py-10"
+              className="w-full max-w-[1700px] mx-auto space-y-8 text-center select-none flex-1 flex flex-col justify-start py-6 sm:py-10 pb-16"
             >
               <Card className="bg-slate-900/40 border-slate-850/80 backdrop-blur-xl rounded-3xl p-8 sm:p-12 lg:p-14 shadow-2xl space-y-8">
                 

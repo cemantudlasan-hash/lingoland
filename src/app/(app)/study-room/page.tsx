@@ -62,10 +62,12 @@ export default function StudyRoomPage() {
   // ── GUEST / LOGGED OUT ──────────────────────────────────────────────────────
   if (!user || isGuest) {
     return (
-      <div className="relative min-h-[88vh] w-full flex flex-col items-center justify-center overflow-hidden bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-indigo-500/25 text-white p-8 shadow-2xl">
+      <div className="relative min-h-[88vh] w-full flex flex-col items-center justify-center bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-indigo-500/25 text-white p-6 sm:p-8 pb-28 sm:pb-12 shadow-2xl">
         <ConstellationCanvas />
-        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-3xl">
+          <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -115,12 +117,14 @@ export default function StudyRoomPage() {
 
   // ── AUTHENTICATED LAUNCHER ──────────────────────────────────────────────────
   return (
-    <div className="relative min-h-[88vh] w-full overflow-hidden bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-indigo-500/25 text-white flex flex-col shadow-2xl">
+    <div className="relative min-h-[88vh] w-full bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-indigo-500/25 text-white flex flex-col shadow-2xl flex-1">
       <ConstellationCanvas />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-3xl">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+      </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center flex-1 gap-10 p-6 sm:p-12 text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center flex-1 gap-8 sm:gap-10 p-4 sm:p-12 pb-28 sm:pb-16 text-center">
 
         {/* Hero */}
         <motion.div

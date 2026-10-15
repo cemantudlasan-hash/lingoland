@@ -78,8 +78,8 @@ export default function ClassroomToolsPage() {
     <div 
         ref={containerRef}
         className={cn(
-          "relative w-full transition-all duration-500 flex flex-col h-auto md:h-[calc(100vh-130px)] min-h-[550px]", 
-          isFullscreen && "bg-background p-6 w-screen h-screen flex flex-col items-center justify-start overflow-y-auto"
+          "relative w-full transition-all duration-500 flex flex-col h-auto md:h-[calc(100vh-130px)] min-h-[550px] pb-28 md:pb-0", 
+          isFullscreen && "bg-background p-6 w-screen h-screen flex flex-col items-center justify-start overflow-y-auto pb-6"
         )}
         data-fullscreen-container={isFullscreen}
     >
@@ -118,7 +118,7 @@ export default function ClassroomToolsPage() {
                         <CardTitle>Classroom Dashboard</CardTitle>
                         <CardDescription>A landing page for your students as they enter the room.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow min-h-0 overflow-hidden p-3 md:p-6">
+                    <CardContent className="flex-grow min-h-0 overflow-y-auto p-3 md:p-6">
                         <MorningDashboard />
                     </CardContent>
                 </Card>
@@ -130,7 +130,7 @@ export default function ClassroomToolsPage() {
                         <CardTitle>Classroom Timer</CardTitle>
                         <CardDescription>A simple timer for classroom activities.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex items-center justify-center min-h-0 overflow-y-auto">
+                    <CardContent className="flex-grow flex flex-col items-center justify-start sm:justify-center min-h-0 overflow-y-auto p-4 pb-16 sm:pb-6">
                         <TimerTool />
                     </CardContent>
                 </Card>
@@ -142,7 +142,7 @@ export default function ClassroomToolsPage() {
                         <CardTitle>Random Name Picker</CardTitle>
                         <CardDescription>Quickly and fairly select a student for a task.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex items-center justify-center min-h-0 overflow-y-auto">
+                    <CardContent className="flex-grow flex flex-col items-center justify-start sm:justify-center min-h-0 overflow-y-auto p-4 pb-16 sm:pb-6">
                         <RandomNamePicker />
                     </CardContent>
                 </Card>
@@ -154,8 +154,8 @@ export default function ClassroomToolsPage() {
                         <CardTitle>Group Maker</CardTitle>
                         <CardDescription>Randomly assign students into groups.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow overflow-y-auto min-h-0">
-                        <div className="min-h-full flex items-center justify-center w-full">
+                    <CardContent className="flex-grow overflow-y-auto min-h-0 p-3 sm:p-6">
+                        <div className="min-h-full flex flex-col items-center justify-start w-full pb-16 sm:pb-4">
                             <GroupMaker />
                         </div>
                     </CardContent>
@@ -168,7 +168,7 @@ export default function ClassroomToolsPage() {
                         <CardTitle>Scoreboard</CardTitle>
                         <CardDescription>Keep track of team scores during classroom games.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex items-center justify-center min-h-0 overflow-y-auto">
+                    <CardContent className="flex-grow flex flex-col items-center justify-start sm:justify-center min-h-0 overflow-y-auto p-4 pb-16 sm:pb-6">
                         <Scoreboard />
                     </CardContent>
                 </Card>

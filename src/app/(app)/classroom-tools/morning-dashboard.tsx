@@ -116,7 +116,7 @@ export function MorningDashboard() {
       </div>
 
       <div className={cn(
-        "flex-grow rounded-2xl shadow-2xl p-6 md:p-10 flex flex-col gap-6 transition-all duration-500 overflow-hidden",
+        "flex-grow rounded-2xl shadow-2xl p-4 sm:p-6 md:p-10 flex flex-col gap-6 transition-all duration-500 overflow-visible md:overflow-hidden pb-12 md:pb-6",
         data.theme
       )}>
         {/* Header Row */}
