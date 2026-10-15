@@ -504,7 +504,7 @@ const generateSimulatedStory = (
   }
 
   return {
-    title,
+    title: finalTitle,
     narrativeBlocks,
     vocabulary
   };
@@ -1013,7 +1013,7 @@ export default function StorytellingPage() {
                 <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1.5 px-4 text-xs">
                   Interactive Story Reader
                 </Badge>
-                <h1 className="text-4xl md:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-200 uppercase tracking-tight">
+                <h1 className="text-2xl sm:text-4xl md:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-200 uppercase tracking-tight break-words">
                   Visual Novel Storyteller
                 </h1>
                 <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto font-medium leading-relaxed">
@@ -1082,11 +1082,11 @@ export default function StorytellingPage() {
                   {/* Select Preset vs AI source */}
                   <div className="space-y-3 select-none">
                     <Label className="text-xs font-black uppercase text-indigo-400 tracking-wider">1. Select Campaign Source</Label>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <button
                         type="button"
                         onClick={() => setSource('preset')}
-                        className={`py-4 px-6 rounded-2xl border text-sm sm:text-base font-bold uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
+                        className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl border text-xs sm:text-sm md:text-base font-bold uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
                           source === 'preset'
                             ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/10'
                             : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
@@ -1097,7 +1097,7 @@ export default function StorytellingPage() {
                       <button
                         type="button"
                         onClick={() => setSource('ai')}
-                        className={`py-4 px-6 rounded-2xl border text-sm sm:text-base font-bold uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
+                        className={`py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl border text-xs sm:text-sm md:text-base font-bold uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
                           source === 'ai'
                             ? 'bg-indigo-500/15 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/10'
                             : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'
@@ -1365,10 +1365,10 @@ export default function StorytellingPage() {
                 <CardFooter className="p-0 pt-8 sm:pt-10">
                   <Button
                     onClick={handleLaunchReader}
-                    className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-sm sm:text-base tracking-wider h-14 sm:h-16 rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.005] active:scale-[0.995]"
+                    className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs sm:text-sm md:text-base tracking-wider h-auto min-h-[3.25rem] sm:min-h-[3.75rem] py-3.5 px-4 rounded-2xl shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.005] active:scale-[0.995] text-center whitespace-normal"
                   >
-                    <BookOpen className="h-5 w-5 fill-current" />
-                    Launch Episode {episodeNumber} Reader
+                    <BookOpen className="h-5 w-5 fill-current shrink-0" />
+                    <span>Launch Episode {episodeNumber} Reader</span>
                   </Button>
                 </CardFooter>
               </Card>
@@ -1487,10 +1487,10 @@ export default function StorytellingPage() {
               )}
 
               {/* Progress and settings bar */}
-              <div className="bg-slate-950/60 border border-slate-850 p-5 sm:p-6 rounded-2xl flex justify-between items-center shadow-md select-none">
-                <div className="min-w-0 pr-4">
+              <div className="bg-slate-950/60 border border-slate-850 p-3.5 sm:p-5 md:p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 shadow-md select-none">
+                <div className="min-w-0 w-full sm:w-auto">
                   <div className="flex items-center gap-2.5">
-                    <BookOpen className="h-5 w-5 text-indigo-400" />
+                    <BookOpen className="h-5 w-5 text-indigo-400 shrink-0" />
                     <h3 className="text-base sm:text-lg font-black text-slate-100 truncate">{activeStory.title}</h3>
                   </div>
                   <div className="flex items-center gap-2 mt-1.5 select-none">
@@ -1503,15 +1503,15 @@ export default function StorytellingPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap sm:flex-nowrap justify-end w-full sm:w-auto">
                   {/* Bookmark & Pause Button */}
                   <Button
                     variant="ghost"
                     onClick={handleBookmarkAndExit}
-                    className="h-10 px-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition-colors flex items-center gap-1.5 text-xs font-black uppercase tracking-wider"
+                    className="h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 transition-colors flex items-center gap-1.5 text-xs font-black uppercase tracking-wider"
                     title="Bookmark progress and pause"
                   >
-                    <Bookmark className="h-4 w-4 text-amber-400 fill-amber-400/40" />
+                    <Bookmark className="h-4 w-4 text-amber-400 fill-amber-400/40 shrink-0" />
                     <span className="hidden sm:inline">Bookmark</span>
                   </Button>
 
@@ -1520,12 +1520,12 @@ export default function StorytellingPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setMusicEnabled(!musicEnabled)}
-                    className={`h-10 w-10 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
+                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
                       musicEnabled ? 'bg-indigo-500/15 border-indigo-500/35 text-indigo-400' : 'text-slate-400 hover:text-slate-200'
                     }`}
                     title={musicEnabled ? 'Mute ambient music' : 'Play ambient music'}
                   >
-                    <Music className={`h-4.5 w-4.5 ${musicEnabled ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
+                    <Music className={`h-4 w-4 sm:h-4.5 sm:w-4.5 ${musicEnabled ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
                   </Button>
 
                   {/* TTS Vocal Toggle */}
@@ -1533,12 +1533,12 @@ export default function StorytellingPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleSpeak(activeStory.narrativeBlocks[blockIndex], true)}
-                    className={`h-10 w-10 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
+                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-800 hover:bg-slate-800 transition-colors ${
                       isSpeaking ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'text-slate-400 hover:text-slate-200'
                     }`}
                     title={isSpeaking ? 'Stop AI voice' : 'Read aloud with AI voice'}
                   >
-                    {isSpeaking ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    {isSpeaking ? <VolumeX className="h-4.5 w-4.5 sm:h-5 sm:w-5" /> : <Volume2 className="h-4.5 w-4.5 sm:h-5 sm:w-5" />}
                   </Button>
 
                   {/* Fullscreen Mode Toggle */}
@@ -1546,15 +1546,15 @@ export default function StorytellingPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsFullscreen(!isFullscreen)}
-                    className="h-10 w-10 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200"
+                    className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200"
                     title={isFullscreen ? 'Minimize Screen' : 'Maximize Fullscreen'}
                   >
                     {isFullscreen ? (
-                      <svg className="h-5 w-5 text-indigo-455" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-indigo-455" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     ) : (
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-4.5 w-4.5 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                       </svg>
                     )}
@@ -1562,7 +1562,7 @@ export default function StorytellingPage() {
 
                   <button
                     onClick={() => { setIsFullscreen(false); setReadState('config'); }}
-                    className="text-xs font-black uppercase text-slate-500 hover:text-slate-350 transition-colors p-2"
+                    className="text-xs font-black uppercase text-slate-500 hover:text-slate-350 transition-colors p-1.5 sm:p-2"
                   >
                     Exit
                   </button>

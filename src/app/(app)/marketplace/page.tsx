@@ -1147,9 +1147,9 @@ export default function MarketplacePage() {
             {/* Header dashboard layout */}
             <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
               <div className="space-y-1">
-                <h1 className="text-3xl font-extrabold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent flex items-center gap-2.5">
-                  <Store className="h-7 w-7 text-indigo-400" />
-                  Tutor Marketplace
+                <h1 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent flex items-center gap-2.5 break-words">
+                  <Store className="h-7 w-7 text-indigo-400 shrink-0" />
+                  <span>Tutor Marketplace</span>
                 </h1>
                 <p className="text-xs text-slate-400 mt-1">
                   Enable shared intelligence: Create and publish AI subject tutors, or activate ones shared by others!
@@ -1157,10 +1157,10 @@ export default function MarketplacePage() {
               </div>
               
               {/* Visual state selector tabs */}
-              <div className="bg-slate-950/80 border border-slate-850 p-1.5 rounded-2xl flex flex-wrap items-center shadow-lg backdrop-blur-md gap-1 select-none">
+              <div className="bg-slate-950/80 border border-slate-850 p-1.5 rounded-2xl flex items-center shadow-lg backdrop-blur-md gap-1 select-none overflow-x-auto max-w-full scrollbar-none flex-nowrap sm:flex-wrap">
                 <button
                   onClick={() => setActiveTab('browse')}
-                  className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 ${
+                  className={`px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 shrink-0 ${
                     activeTab === 'browse'
                       ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
                       : 'text-slate-500 hover:text-slate-300'
@@ -1171,7 +1171,7 @@ export default function MarketplacePage() {
                 
                 <button
                   onClick={() => setActiveTab('peer-listings')}
-                  className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 ${
+                  className={`px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 shrink-0 ${
                     activeTab === 'peer-listings'
                       ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
                       : 'text-slate-500 hover:text-slate-300'
@@ -1182,7 +1182,7 @@ export default function MarketplacePage() {
 
                 <button
                   onClick={() => setActiveTab('peer-create')}
-                  className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1 ${
+                  className={`px-3 sm:px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1 shrink-0 ${
                     activeTab === 'peer-create'
                       ? 'bg-gradient-to-r from-purple-500/20 to-indigo-600/20 border border-indigo-500/30 text-indigo-300'
                       : 'text-slate-500 hover:text-slate-300'
@@ -1301,16 +1301,16 @@ export default function MarketplacePage() {
                           </p>
                         </CardContent>
 
-                        <CardFooter className="p-5 pt-3 border-t border-slate-850 bg-slate-950/15 flex items-center justify-between gap-4 select-none">
-                          <div className="flex items-center gap-3 text-slate-500 text-[10px] font-extrabold">
+                        <CardFooter className="p-4 sm:p-5 pt-3 border-t border-slate-850 bg-slate-950/15 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 select-none">
+                          <div className="flex items-center justify-between sm:justify-start gap-3 text-slate-500 text-[10px] font-extrabold">
                             <span className="flex items-center gap-1">
                               <Download className="h-3 w-3 shrink-0" />
                               <span>{t.downloads.toLocaleString()} downloads</span>
                             </span>
-                            <span className="truncate max-w-[90px]">By {t.author}</span>
+                            <span className="truncate max-w-[110px]">By {t.author}</span>
                           </div>
                           
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                             {isAdmin && (
                               <>
                                 <Button
@@ -1335,7 +1335,7 @@ export default function MarketplacePage() {
                             )}
                             <Button
                               onClick={() => handleStartChat(t)}
-                              className="h-8 px-4 text-xs font-black uppercase rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5 shrink-0"
+                              className="h-8 px-4 text-xs font-black uppercase rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 flex-1 sm:flex-initial"
                             >
                               <MessageSquare className="h-3.5 w-3.5 fill-current" />
                               <span>Activate & Chat</span>
@@ -1458,8 +1458,8 @@ export default function MarketplacePage() {
                           </p>
                         </CardContent>
 
-                        <CardFooter className="p-5 pt-3 border-t border-slate-850 bg-slate-950/15 flex flex-col gap-3 select-none">
-                          <div className="flex items-center justify-between w-full gap-4">
+                        <CardFooter className="p-4 sm:p-5 pt-3 border-t border-slate-850 bg-slate-950/15 flex flex-col gap-3 select-none">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full gap-2.5">
                             <div className="flex-1 min-w-0 text-slate-500 text-[10px] font-extrabold truncate">
                               {listing.type === 'teacher' ? (
                                 <span className="text-emerald-455 font-bold flex items-center gap-1">
@@ -1474,7 +1474,7 @@ export default function MarketplacePage() {
                             
                             <Button
                               onClick={() => setActivePeerListing(listing)}
-                              className={`h-8 px-4 text-xs font-black uppercase rounded-xl text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5 shrink-0 ${
+                              className={`h-8 px-4 text-xs font-black uppercase rounded-xl text-white hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 w-full sm:w-auto ${
                                 listing.type === 'teacher' 
                                   ? 'bg-gradient-to-r from-emerald-600 to-teal-600 shadow-md shadow-emerald-600/10' 
                                   : 'bg-gradient-to-r from-purple-500 to-indigo-600 shadow-md shadow-indigo-600/10'

@@ -52,25 +52,25 @@ export function GroupMaker() {
 
   return (
     <div className="flex flex-col items-center gap-6 p-2 sm:p-4 rounded-lg w-full pb-12 sm:pb-4">
-      <div className="w-full max-w-lg flex flex-col md:flex-row gap-4 items-center">
+      <div className="w-full max-w-lg flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-end">
         <div className="flex-grow w-full space-y-2">
-            <Label htmlFor="num-groups">Number of Groups</Label>
+            <Label htmlFor="num-groups" className="text-xs sm:text-sm font-bold">Number of Groups</Label>
             <Input 
                 id="num-groups"
                 type="number"
                 value={numberOfGroups}
                 onChange={(e) => setNumberOfGroups(Math.max(1, parseInt(e.target.value) || 1))}
                 min="1"
-                className="w-full"
+                className="w-full h-11"
             />
         </div>
-        <Button onClick={handleGenerateGroups} size="lg" className="w-full md:w-auto mt-auto">
-          <Shuffle className="mr-2" />
+        <Button onClick={handleGenerateGroups} size="lg" className="w-full sm:w-auto h-11 shrink-0 flex items-center justify-center">
+          <Shuffle className="mr-2 h-4 w-4" />
           Generate Groups
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full max-w-4xl">
         <div className="space-y-4">
           <h3 className="font-bold">Student List ({nameList.length})</h3>
           <Textarea 

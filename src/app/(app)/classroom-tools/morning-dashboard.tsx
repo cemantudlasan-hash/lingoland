@@ -86,13 +86,13 @@ export function MorningDashboard() {
 
   return (
     <div className="w-full h-full flex flex-col gap-4 min-h-0">
-      <div className="flex justify-between items-center bg-muted/50 p-2 rounded-lg border flex-shrink-0">
+      <div className="flex flex-wrap justify-between items-center gap-2 bg-muted/50 p-2 rounded-lg border flex-shrink-0">
         <div className="flex gap-2">
             <Button variant={isEditing ? "default" : "outline"} onClick={() => setIsEditing(!isEditing)} size="sm">
                 {isEditing ? <><Save className="mr-2 h-4 w-4"/> View Board</> : <><Edit3 className="mr-2 h-4 w-4"/> Edit Board</>}
             </Button>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
             {isEditing && (
                 <div className="flex items-center gap-2">
                     <Label className="text-xs font-bold hidden sm:inline">Theme Picker:</Label>
@@ -121,7 +121,7 @@ export function MorningDashboard() {
       )}>
         {/* Header Row */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-current/20 pb-6 flex-shrink-0">
-            <div className="space-y-1">
+            <div className="space-y-1 w-full md:w-auto">
                 {isEditing ? (
                     <div className="space-y-1">
                         <Label className="text-xs opacity-70">Board Title</Label>
@@ -132,16 +132,16 @@ export function MorningDashboard() {
                         />
                     </div>
                 ) : (
-                    <h2 className="text-3xl md:text-5xl font-black tracking-tight uppercase leading-none truncate max-w-[60vw]">{data.title}</h2>
+                    <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight uppercase leading-tight break-words max-w-full">{data.title}</h2>
                 )}
                 <div className="flex items-center gap-2 opacity-80 font-bold">
                     <Calendar className="h-4 w-4 md:h-5 md:w-5" />
-                    <p className="text-base md:text-xl">{time.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <p className="text-sm sm:text-base md:text-xl">{time.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
             </div>
-            <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-3 md:p-4 rounded-3xl border border-white/20 shadow-xl min-w-[180px] justify-center flex-shrink-0">
-                <Clock className="h-6 w-6 md:h-8 md:w-8" />
-                <span className="text-3xl md:text-5xl font-mono font-black">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            <div className="flex items-center gap-2.5 sm:gap-4 bg-white/10 backdrop-blur-md p-2.5 sm:p-3 md:p-4 rounded-2xl sm:rounded-3xl border border-white/20 shadow-xl min-w-0 sm:min-w-[180px] justify-center flex-shrink-0">
+                <Clock className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8" />
+                <span className="text-2xl sm:text-3xl md:text-5xl font-mono font-black">{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
         </div>
 
@@ -162,8 +162,8 @@ export function MorningDashboard() {
                                 placeholder="Type today's bell ringer question..."
                             />
                         ) : (
-                            <div className="h-full flex items-center justify-center text-center px-4">
-                                <p className="text-2xl md:text-4xl lg:text-5xl font-medium leading-tight italic">
+                            <div className="h-full flex items-center justify-center text-center px-2 sm:px-4">
+                                <p className="text-lg sm:text-2xl md:text-4xl lg:text-5xl font-medium leading-relaxed italic break-words">
                                     "{data.bellRinger}"
                                 </p>
                             </div>
@@ -203,7 +203,7 @@ export function MorningDashboard() {
                 </Card>
 
                 {/* Reminders Sticky Note */}
-                <Card className="bg-yellow-300 text-black border-none -rotate-1 shadow-2xl rounded-sm relative before:absolute before:top-0 before:right-0 before:w-8 before:h-8 before:bg-yellow-400 before:shadow-[-2px_2px_5px_rgba(0,0,0,0.1)] before:rounded-bl-lg flex flex-col min-h-0 flex-1">
+                <Card className="bg-yellow-300 text-black border-none rotate-0 sm:-rotate-1 shadow-2xl rounded-sm relative before:absolute before:top-0 before:right-0 before:w-8 before:h-8 before:bg-yellow-400 before:shadow-[-2px_2px_5px_rgba(0,0,0,0.1)] before:rounded-bl-lg flex flex-col min-h-0 flex-1">
                     <div className="p-5 md:p-6 flex flex-col h-full">
                         <h3 className="text-lg md:text-xl font-black flex items-center gap-2 mb-3 border-b border-black/10 pb-2 uppercase flex-shrink-0">
                             <StickyNote className="h-4 w-4 md:h-5 md:w-5" /> Reminders

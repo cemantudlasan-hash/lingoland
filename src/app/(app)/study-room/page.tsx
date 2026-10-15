@@ -85,7 +85,7 @@ export default function StudyRoomPage() {
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-3xl font-black tracking-tight text-white">Acoustic Study Room</h2>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white break-words">Acoustic Study Room</h2>
             <p className="text-sm text-indigo-300 font-bold uppercase tracking-widest">Members Only</p>
           </div>
 
@@ -105,7 +105,7 @@ export default function StudyRoomPage() {
 
           <Link
             href="/auth"
-            className="flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-[0_0_24px_theme(colors.indigo.500/0.35)] transition-all duration-200 hover:scale-105 active:scale-95"
+            className="flex items-center justify-center gap-2 px-6 sm:px-7 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm shadow-[0_0_24px_theme(colors.indigo.500/0.35)] transition-all duration-200 hover:scale-105 active:scale-95 w-full max-w-xs sm:w-auto"
           >
             <LogIn className="w-4 h-4" />
             Sign In to Access
@@ -138,7 +138,7 @@ export default function StudyRoomPage() {
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-purple-300 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-purple-300 bg-clip-text text-transparent break-words">
               Acoustic Study Room
             </h1>
             <p className="text-indigo-200 font-bold text-sm uppercase tracking-widest drop-shadow-sm">
@@ -158,12 +158,12 @@ export default function StudyRoomPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
-          className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 w-full max-w-2xl"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-2xl"
         >
           {FEATURES.map(({ icon: Icon, label, desc }) => (
             <div
               key={label}
-              className="flex flex-col gap-1.5 p-4 rounded-2xl bg-zinc-900/90 border border-white/15 hover:border-indigo-500/60 hover:bg-zinc-850/90 transition-all text-left shadow-lg"
+              className="flex flex-col gap-1.5 p-3.5 sm:p-4 rounded-2xl bg-zinc-900/90 border border-white/15 hover:border-indigo-500/60 hover:bg-zinc-850/90 transition-all text-left shadow-lg"
             >
               <div className="flex items-center gap-2">
                 <Icon className="w-4 h-4 text-indigo-400 shrink-0" />
@@ -179,16 +179,16 @@ export default function StudyRoomPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, delay: 0.25, ease: 'easeOut' }}
-          className="flex flex-col items-center gap-3"
+          className="flex flex-col items-center gap-3 w-full"
         >
           <button
             id="launch-study-room-btn"
             onClick={launchStudyRoom}
-            className="group relative flex items-center gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-size-200 hover:bg-right text-white font-black text-lg shadow-[0_0_40px_theme(colors.indigo.500/0.5)] hover:shadow-[0_0_60px_theme(colors.indigo.500/0.7)] transition-all duration-300 hover:scale-105 active:scale-95 border border-indigo-400/30"
+            className="group relative flex items-center justify-center gap-2.5 sm:gap-3 w-full max-w-xs sm:max-w-sm sm:w-auto px-6 sm:px-10 py-3.5 sm:py-5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-size-200 hover:bg-right text-white font-black text-base sm:text-lg shadow-[0_0_40px_theme(colors.indigo.500/0.5)] hover:shadow-[0_0_60px_theme(colors.indigo.500/0.7)] transition-all duration-300 hover:scale-105 active:scale-95 border border-indigo-400/30"
           >
-            <ExternalLink className="w-5 h-5 group-hover:rotate-12 transition-transform duration-200" />
-            {launched ? 'Open Again →' : 'Launch Study Room'}
-            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+            <ExternalLink className="w-5 h-5 group-hover:rotate-12 transition-transform duration-200 shrink-0" />
+            <span>{launched ? 'Open Again →' : 'Launch Study Room'}</span>
+            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200 shrink-0" />
           </button>
 
           {launched ? (
