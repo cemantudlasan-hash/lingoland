@@ -190,8 +190,9 @@ function AuthGuard({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isLoading) {
       const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-      if(isProtectedRoute && !user && !isGuest) {
-          router.replace('/auth');
+      const isCockpitMenu = pathname === '/';
+      if ((isCockpitMenu || isProtectedRoute) && !user && !isGuest) {
+        router.replace('/auth');
       }
     }
   }, [isLoading, user, isGuest, pathname, router]);

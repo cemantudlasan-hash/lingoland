@@ -12,19 +12,19 @@ import { DailyLoginModal } from "@/components/layout/daily-login-modal";
 export function AppShell({ children }: { children: ReactNode }) {
   const isMounted = useIsMounted();
   const pathname = usePathname();
-  const { isLoading, authAction } = useAuth();
+  const { user, isGuest, isLoading, authAction } = useAuth();
+
+  if (!isMounted) {
+    return null;
+  }
 
   if (pathname === '/') {
     return (
       <div className="min-h-screen w-full overflow-x-hidden relative" suppressHydrationWarning>
         {children}
-        {isMounted && <FloatingPetWidget />}
+        {(user || isGuest) && <FloatingPetWidget />}
       </div>
     );
-  }
-
-  if (!isMounted) {
-    return null;
   }
 
   if (isLoading && !authAction) {

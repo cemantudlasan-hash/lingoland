@@ -82,7 +82,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useSmartReviewAsteroids } from "@/hooks/use-smart-review-asteroids";
-import { AuthGateModal } from "@/components/auth/auth-gate-modal";
 
 // Complete 27-item platform menu directory
 const ALL_PLATFORM_MENUS = [
@@ -296,6 +295,28 @@ export default function LingoLandVerseHomePage() {
     }
   };
 
+  useEffect(() => {
+    if (!isLoading && !user && !isGuest) {
+      router.replace('/auth');
+    }
+  }, [isLoading, user, isGuest, router]);
+
+  if (isLoading || (!user && !isGuest)) {
+    return (
+      <div className="flex h-screen min-h-svh flex-col bg-slate-950 text-foreground items-center justify-center relative overflow-hidden select-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-950/40 via-slate-950 to-slate-950 pointer-events-none" />
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <div className="relative w-14 h-14 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full border-2 border-cyan-400/20 border-t-cyan-400 animate-spin" />
+            <div className="absolute w-8 h-8 rounded-full border-2 border-indigo-400/30 border-b-indigo-400 animate-spin [animation-direction:reverse] [animation-duration:1.5s]" />
+          </div>
+          <p className="text-xs font-mono uppercase tracking-widest text-cyan-300 animate-pulse">
+            Connecting to Cosmic Cockpit...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen w-full bg-[#030712] text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
@@ -855,12 +876,6 @@ export default function LingoLandVerseHomePage() {
           </div>
         </div>
       </footer>
-
-      {/* MANDATORY ACCESS GATE: Only authorized users (logged-in account or explore as guest) can access the Homepage or Menu */}
-      <AuthGateModal
-        open={!isLoading && !user && !isGuest}
-        canDismiss={false}
-      />
 
       {/* 4. PREMIUM GLASSMORPHISM AUTHENTICATION MODAL (With vibrant neon-glowing typography) */}
       <Dialog

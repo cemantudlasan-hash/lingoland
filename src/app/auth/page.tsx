@@ -449,7 +449,7 @@ function InteractiveDemo({ onGoToSignup }: { onGoToSignup: () => void }) {
 
 
 export default function AuthPage() {
-  const { user, isGuest, loginAsGuest, setAuthAction } = useAuth();
+  const { user, isGuest, loginAsGuest, logoutGuest, setAuthAction } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("signin");
   const [activeSideNav, setActiveSideNav] = useState("signin");
@@ -730,17 +730,32 @@ export default function AuthPage() {
                   </CardHeader>
 
                   <CardContent className="px-6 pb-6 relative z-10 space-y-4">
-                    {user && (
-                      <div className="p-3 rounded-xl bg-teal-500/15 border border-teal-500/30 text-xs space-y-2">
-                        <div className="flex items-center justify-between text-teal-300 font-semibold">
-                          <span className="truncate">Active: {user.email || 'Agent'}</span>
-                          <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse shrink-0" />
+                    {(user || isGuest) && (
+                      <div className="p-3.5 rounded-2xl bg-cyan-950/60 border border-cyan-400/40 text-xs space-y-2.5 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+                        <div className="flex items-center justify-between text-cyan-300 font-bold">
+                          <span className="truncate">
+                            {user ? `Active Pilot: ${user.email || 'Cadet'}` : 'Exploring as Guest Cadet'}
+                          </span>
+                          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse shrink-0" />
                         </div>
                         <div className="flex gap-2">
-                          <Button onClick={() => router.push('/dashboard')} className="flex-1 h-8 text-xs bg-teal-500 hover:bg-teal-400 text-black font-bold">
-                            Go to Dashboard
+                          <Button 
+                            onClick={() => router.push('/')} 
+                            className="flex-1 h-9 text-xs bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-300 hover:to-cyan-300 text-slate-950 font-black rounded-xl shadow-md cursor-pointer"
+                          >
+                            Return to Menu / Cockpit
                           </Button>
-                          <Button onClick={() => signOut()} variant="outline" className="h-8 text-xs border-zinc-800 text-zinc-300">
+                          <Button 
+                            onClick={async () => {
+                              if (isGuest) {
+                                logoutGuest();
+                              } else {
+                                await signOut();
+                              }
+                            }} 
+                            variant="outline" 
+                            className="h-9 text-xs border-cyan-500/30 hover:border-rose-400 text-slate-300 hover:text-rose-300 rounded-xl cursor-pointer"
+                          >
                             Sign Out
                           </Button>
                         </div>
