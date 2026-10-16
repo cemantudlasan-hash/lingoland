@@ -430,10 +430,20 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
       return;
     }
 
+    const maxChars = formImageUrl ? 200 : 350;
+    if (formMessage.trim().length > maxChars) {
+      toast({
+        title: "Message Exceeds Limit",
+        description: `Please limit message to ${maxChars} characters so all text remains visible on the slide.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSavingAnnouncement(true);
     const updated: StationAnnouncement = {
-      title: formTitle.trim(),
-      message: formMessage.trim(),
+      title: formTitle.trim().slice(0, 75),
+      message: formMessage.trim().slice(0, maxChars),
       badge: formBadge.trim() || "Official Directive",
       imageUrl: formImageUrl.trim(),
       updatedAt: Date.now(),
@@ -671,14 +681,14 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                   )}
                 </div>
 
-                <h4 className="font-black text-sm text-white group-hover:text-amber-300 transition-colors line-clamp-1 mb-2">
+                <h4 className="font-black text-sm text-white group-hover:text-amber-300 transition-colors line-clamp-2 mb-2">
                   {announcement.title}
                 </h4>
 
                 {/* Optional Photo or Texts Only Layout */}
                 {announcement.imageUrl ? (
                   <div className="space-y-2">
-                    <div className="relative w-full h-48 sm:h-52 rounded-2xl overflow-hidden border border-amber-500/35 bg-slate-950/90 group/img shadow-[0_0_25px_rgba(245,158,11,0.2)] flex items-center justify-center">
+                    <div className="relative w-full h-40 sm:h-44 rounded-2xl overflow-hidden border border-amber-500/35 bg-slate-950/90 group/img shadow-[0_0_25px_rgba(245,158,11,0.2)] flex items-center justify-center">
                       {/* Ambient blurred backdrop for seamless edge-to-edge aesthetic */}
                       <Image
                         src={announcement.imageUrl}
@@ -702,9 +712,12 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                         <span>Transmission Visual</span>
                       </div>
                     </div>
-                    <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed mt-2">
-                      {announcement.message}
-                    </p>
+                    {/* Full announcement message: all text visible without cut-off or clipping */}
+                    <div className="max-h-[85px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pr-0.5 mt-1.5">
+                      <p className="text-[11px] sm:text-xs text-slate-200 leading-snug font-normal break-words">
+                        {announcement.message}
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <div className="py-2">
@@ -1017,9 +1030,15 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
             </div>
 
             <div>
-              <Label className="text-xs text-slate-300 font-bold mb-1 block">Title / Headline</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label className="text-xs text-slate-300 font-bold block">Title / Headline</Label>
+                <span className="text-[10px] font-mono text-slate-400">
+                  {formTitle.length} / 75 chars
+                </span>
+              </div>
               <Input
                 value={formTitle}
+                maxLength={75}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="Enter compelling announcement title..."
                 className="bg-slate-900 border-white/10 text-white h-9 text-xs rounded-xl focus:border-amber-400"
@@ -1027,14 +1046,37 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
             </div>
 
             <div>
-              <Label className="text-xs text-slate-300 font-bold mb-1 block">Message / Directive</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label className="text-xs text-slate-300 font-bold block">Message / Directive</Label>
+                <span
+                  className={`text-[10px] font-mono font-bold ${
+                    formMessage.length >= (formImageUrl ? 200 : 350)
+                      ? "text-amber-400"
+                      : "text-slate-400"
+                  }`}
+                >
+                  {formMessage.length} / {formImageUrl ? 200 : 350} chars
+                </span>
+              </div>
               <Textarea
                 rows={3}
                 value={formMessage}
+                maxLength={formImageUrl ? 200 : 350}
                 onChange={(e) => setFormMessage(e.target.value)}
                 placeholder="Write your announcement details here..."
                 className="bg-slate-900 border-white/10 text-white text-xs rounded-xl focus:border-amber-400 resize-none"
               />
+              <p className="text-[10px] text-slate-400 mt-1">
+                {formImageUrl ? (
+                  <span className="text-amber-300/90 font-medium">
+                    ⚡ With photo: Limited to 200 chars so all text remains fully visible without cut-off.
+                  </span>
+                ) : (
+                  <span>
+                    ℹ️ Text only: Up to 350 chars with seamless scrollable card layout.
+                  </span>
+                )}
+              </p>
             </div>
 
             {/* Photo Upload / Text-Only Options */}
