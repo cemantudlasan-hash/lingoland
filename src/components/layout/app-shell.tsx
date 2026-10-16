@@ -12,6 +12,8 @@ import { DailyLoginModal } from "@/components/layout/daily-login-modal";
 export function AppShell({ children }: { children: ReactNode }) {
   const isMounted = useIsMounted();
   const pathname = usePathname();
+  const { isLoading, authAction } = useAuth();
+
   if (pathname === '/') {
     return (
       <div className="min-h-screen w-full overflow-x-hidden relative" suppressHydrationWarning>
@@ -25,7 +27,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     return null;
   }
 
-  const { isLoading, authAction } = useAuth();
   if (isLoading && !authAction) {
     return (
       <div className="flex h-screen min-h-svh flex-col bg-background text-foreground items-center justify-center">
