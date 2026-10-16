@@ -346,20 +346,20 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
   }, [firestore]);
 
   // ----------------------------------------------------
-  // Autoplay Rotation Timer (every 8 seconds, pauses on hover / modal / video)
+  // Autoplay Rotation Timer (every 10 seconds, cycles through all slides including video, then loops back to slide 0 repeatedly)
   // ----------------------------------------------------
 
   useEffect(() => {
-    if (isPaused || isEditAnnouncementOpen || isEditVideoOpen || currentSlide === 3) {
+    if (isPaused || isEditAnnouncementOpen || isEditVideoOpen) {
       return;
     }
 
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % 4);
-    }, 8500);
+    }, 10000);
 
     return () => clearInterval(timer);
-  }, [isPaused, isEditAnnouncementOpen, isEditVideoOpen, currentSlide]);
+  }, [isPaused, isEditAnnouncementOpen, isEditVideoOpen]);
 
   const handleNextSlide = () => setCurrentSlide((prev) => (prev + 1) % 4);
   const handlePrevSlide = () => setCurrentSlide((prev) => (prev - 1 + 4) % 4);
@@ -549,7 +549,7 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="glass-card border border-white/10 hover:border-purple-400/40 bg-slate-950/60 backdrop-blur-2xl rounded-3xl p-5 shadow-2xl transition-all duration-300 flex-1 flex flex-col justify-between relative overflow-hidden group min-h-[380px]"
+      className="glass-card border border-white/10 hover:border-purple-400/40 bg-slate-950/60 backdrop-blur-2xl rounded-3xl p-5 shadow-2xl transition-all duration-300 flex-1 flex flex-col justify-between relative overflow-hidden group min-h-[420px]"
     >
       {/* Background Cosmic Sheen */}
       <div className="absolute -top-24 -right-24 w-52 h-52 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
@@ -558,8 +558,8 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
       {/* SLIDESHOW TOP BAR: Indicators & Navigation Controls */}
       {/* ---------------------------------------------------- */}
       <div className="flex items-center justify-between gap-2 pb-3 border-b border-white/[0.08] relative z-10">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+        {/* Category Pills without scrollbars */}
+        <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
           <button
             onClick={() => setCurrentSlide(0)}
             className={`px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wide uppercase transition-all flex items-center gap-1 shrink-0 ${
@@ -635,7 +635,7 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
       {/* ---------------------------------------------------- */}
       {/* SLIDE CONTENT AREA (Framer Motion Switcher) */}
       {/* ---------------------------------------------------- */}
-      <div className="flex-1 flex flex-col justify-between py-2 relative z-10 min-h-[260px]">
+      <div className="flex-1 flex flex-col justify-between py-2 relative z-10 min-h-[280px]">
         <AnimatePresence mode="wait">
           {/* ==================================================== */}
           {/* SLIDE 0: ANNOUNCEMENT (Admin Edit + Photo / Texts Only) */}
@@ -671,35 +671,45 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                   )}
                 </div>
 
-                <h4 className="font-black text-sm text-white group-hover:text-amber-300 transition-colors line-clamp-1 mb-1.5">
+                <h4 className="font-black text-sm text-white group-hover:text-amber-300 transition-colors line-clamp-1 mb-2">
                   {announcement.title}
                 </h4>
 
                 {/* Optional Photo or Texts Only Layout */}
                 {announcement.imageUrl ? (
                   <div className="space-y-2">
-                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-amber-500/30 bg-slate-900 group/img shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+                    <div className="relative w-full h-48 sm:h-52 rounded-2xl overflow-hidden border border-amber-500/35 bg-slate-950/90 group/img shadow-[0_0_25px_rgba(245,158,11,0.2)] flex items-center justify-center">
+                      {/* Ambient blurred backdrop for seamless edge-to-edge aesthetic */}
+                      <Image
+                        src={announcement.imageUrl}
+                        alt=""
+                        fill
+                        className="object-cover blur-md opacity-30 scale-110 pointer-events-none"
+                        unoptimized={announcement.imageUrl.startsWith("data:")}
+                        aria-hidden="true"
+                      />
+                      {/* Crisp centered image: full content/logo visible without cropping */}
                       <Image
                         src={announcement.imageUrl}
                         alt={announcement.title}
                         fill
-                        className="object-cover group-hover/img:scale-105 transition-transform duration-500"
+                        className="object-contain p-1.5 group-hover/img:scale-105 transition-transform duration-500 relative z-10"
                         unoptimized={announcement.imageUrl.startsWith("data:")}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
-                      <div className="absolute bottom-1.5 left-2 right-2 flex items-center justify-between text-[9px] text-amber-200/90 font-mono">
+                      {/* Sleek top-right visual feed badge */}
+                      <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5 bg-slate-950/85 border border-amber-400/40 px-2 py-0.5 rounded-full text-[9px] text-amber-300 font-mono backdrop-blur-md shadow-md">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                         <span>Transmission Visual</span>
-                        <span className="bg-slate-950/80 px-1.5 py-0.5 rounded">HQ Feed</span>
                       </div>
                     </div>
-                    <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed mt-2">
                       {announcement.message}
                     </p>
                   </div>
                 ) : (
                   <div className="py-2">
-                    <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900/60 to-purple-950/20 border border-amber-500/20 shadow-inner">
-                      <p className="text-[11px] text-slate-200 leading-relaxed max-h-[140px] overflow-y-auto no-scrollbar">
+                    <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900/60 to-purple-950/20 border border-amber-500/20 shadow-inner">
+                      <p className="text-[11px] text-slate-200 leading-relaxed max-h-[160px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                         {announcement.message}
                       </p>
                     </div>
