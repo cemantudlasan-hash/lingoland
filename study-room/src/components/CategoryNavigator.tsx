@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { BookOpen, Brain, Headphones, Mic, Sparkles, CheckCircle2, ChevronRight, Search, Globe, MessageCircle } from "lucide-react";
-import { Lesson, LC_Category, LC_Level, UserStats, TargetLang } from "../types";
+import { Lesson, LC_Category, LC_Level, UserStats, TargetLang, TargetLanguage } from "../types";
 import LanguageCertificate from "./LanguageCertificate";
+import { LANGUAGES } from "./LanguageSelector";
 
 interface CategoryNavigatorProps {
   lessons: Lesson[];
@@ -11,6 +12,8 @@ interface CategoryNavigatorProps {
   selectedLevel: LC_Level | "all";
   setSelectedLevel: (level: LC_Level | "all") => void;
   onSelectLesson: (lesson: Lesson) => void;
+  currentLanguage?: TargetLanguage;
+  onLanguageChange?: (lang: TargetLanguage) => void;
 }
 
 const LANG_META: Record<TargetLang, { flag: string; name: string; color: string; bg: string }> = {
@@ -24,6 +27,17 @@ const LANG_META: Record<TargetLang, { flag: string; name: string; color: string;
   german:     { flag: "🇩🇪", name: "German",     color: "text-violet-750", bg: "bg-violet-50 border-violet-700" },
 };
 
+const CODE_TO_LANG: Record<string, TargetLang> = {
+  th: "thai",
+  ko: "korean",
+  ja: "japanese",
+  fr: "french",
+  es: "spanish",
+  zh: "chinese",
+  vi: "vietnamese",
+  de: "german",
+};
+
 export default function CategoryNavigator({
   lessons,
   stats,
@@ -32,6 +46,8 @@ export default function CategoryNavigator({
   selectedLevel,
   setSelectedLevel,
   onSelectLesson,
+  currentLanguage,
+  onLanguageChange,
 }: CategoryNavigatorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [mainTab, setMainTab] = useState<"syllabus" | "languages">("languages");
@@ -46,6 +62,26 @@ export default function CategoryNavigator({
       setMainTab("languages");
     }
   }, [englishLessons.length, langLessons.length]);
+
+  // Sync activeLang when currentLanguage shifts from dropdown
+  useEffect(() => {
+    if (currentLanguage) {
+      const target = CODE_TO_LANG[currentLanguage.code];
+      if (target) {
+        setActiveLang(target);
+      }
+    }
+  }, [currentLanguage?.code]);
+
+  const handleSelectLangTab = (langKey: TargetLang | "all") => {
+    setActiveLang(langKey);
+    if (langKey !== "all" && onLanguageChange) {
+      const match = LANGUAGES.find((l) => CODE_TO_LANG[l.code] === langKey);
+      if (match) {
+        onLanguageChange(match);
+      }
+    }
+  };
 
   const categories: Array<{ id: LC_Category | "all"; label: string; icon: any }> = [
     { id: "all", label: "All Lessons", icon: Sparkles },
@@ -296,7 +332,7 @@ export default function CategoryNavigator({
             <div className="flex flex-wrap gap-2.5 sm:gap-3">
               <button
                 id="lang-filter-all"
-                onClick={() => setActiveLang("all")}
+                onClick={() => handleSelectLangTab("all")}
                 className={`px-4 py-2 rounded-xl border-2 border-slate-900 text-xs font-black uppercase tracking-wider font-display transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] ${
                   activeLang === "all" ? "bg-slate-950 text-white" : "bg-white text-slate-700 hover:bg-slate-50"
                 }`}
@@ -310,7 +346,7 @@ export default function CategoryNavigator({
                   <button
                     key={code}
                     id={`lang-filter-${code}`}
-                    onClick={() => setActiveLang(code)}
+                    onClick={() => handleSelectLangTab(code)}
                     className={`px-3.5 sm:px-4 py-2 rounded-xl border-2 border-slate-900 text-xs font-black uppercase tracking-wider font-display transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] ${
                       isActive ? `${meta.bg} ${meta.color} shadow-none translate-x-[1px] translate-y-[1px]` : "bg-white text-slate-700 hover:bg-slate-50"
                     }`}
@@ -390,7 +426,7 @@ export default function CategoryNavigator({
                     .map(([code, meta]) => (
                       <button
                         key={code}
-                        onClick={() => setActiveLang(code)}
+                        onClick={() => handleSelectLangTab(code)}
                         className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-slate-900 bg-slate-50 hover:bg-indigo-50 text-slate-800 text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                       >
                         <span>{meta.flag}</span>

@@ -38,13 +38,13 @@ export function StudyRoomLoadingScreen({ statusText }: StudyRoomLoadingScreenPro
             className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none"
             style={{ 
               left: '51.66%', 
-              top: '55.16%', 
-              width: '12.8%', 
-              height: '23.4%' 
+              top: '58.63%', 
+              width: '11.5%', 
+              height: '21.0%' 
             }}
           >
             {/* Dark backing to mask the static pixels under the spinning segments */}
-            <div className="absolute inset-[8%] rounded-full bg-[#0a1e2f] shadow-[inset_0_0_15px_rgba(6,182,212,0.4)]" />
+            <div className="absolute inset-0 rounded-full bg-[#0a1e2f] shadow-[inset_0_0_12px_rgba(6,182,212,0.5)]" />
 
             {/* Glowing animated rotating 12-segment radial spinner */}
             <svg 
@@ -54,14 +54,14 @@ export function StudyRoomLoadingScreen({ statusText }: StudyRoomLoadingScreenPro
             >
               {Array.from({ length: 12 }).map((_, i) => {
                 const angle = (i * 360) / 12;
-                const opacity = Math.max(0.12, (i + 1) / 12);
+                const opacity = Math.max(0.18, (i + 1) / 12);
                 return (
                   <rect
                     key={i}
                     x="45"
-                    y="7"
+                    y="6"
                     width="10"
-                    height="19"
+                    height="21"
                     rx="5"
                     fill="currentColor"
                     opacity={opacity}
@@ -72,15 +72,15 @@ export function StudyRoomLoadingScreen({ statusText }: StudyRoomLoadingScreenPro
             </svg>
 
             {/* Inner pulsing cyan energy core */}
-            <div className="absolute w-6 h-6 rounded-full bg-cyan-400/25 blur-[2px] animate-pulse" />
+            <div className="absolute w-6 h-6 rounded-full bg-cyan-400/30 blur-[2px] animate-pulse" />
           </div>
 
           {/* Animated concentric pulse along the outer circular HUD ring */}
           <div 
             className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-400/30 animate-pulse pointer-events-none shadow-[0_0_30px_rgba(6,182,212,0.25)]"
             style={{ 
-              left: '52.0%', 
-              top: '55.0%', 
+              left: '51.66%', 
+              top: '58.63%', 
               width: '43.5%', 
               height: '79.0%',
               animationDuration: '2.5s' 

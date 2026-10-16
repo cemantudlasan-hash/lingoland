@@ -101,25 +101,25 @@ export default function App() {
     }
   }, [user]);
 
-  // Refetch lessons when selected language shifts
+  // Fetch all language lessons on mount (Thai, Korean, Japanese, etc.)
   useEffect(() => {
     const fetchLessons = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/lessons?lang=${currentLanguage.code}`);
+        const res = await fetch('/api/lessons?lang=all');
         if (res.ok) {
           const lessonsData = await res.json();
           setLessons(lessonsData);
         }
       } catch (err) {
-        console.error("Failed fetching lessons for language:", err);
+        console.error("Failed fetching lessons:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchLessons();
-  }, [currentLanguage.code]);
+  }, []);
 
   // Sync user completed lesson points locally
   const handleLessonCompleted = async (xpReward: number) => {
@@ -258,7 +258,7 @@ export default function App() {
 
       <div className="relative z-10 flex flex-col gap-6 w-full max-w-[1780px] mx-auto flex-1">
         {/* Upper Navigation Header bar inside the Bento wrapper */}
-        <header className="w-full bg-white/95 backdrop-blur-md border-2 border-slate-900 p-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col lg:flex-row gap-4 justify-between items-center">
+        <header className="relative z-40 w-full bg-white/95 backdrop-blur-md border-2 border-slate-900 p-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col lg:flex-row gap-4 justify-between items-center">
           {/* Logo Brand Title */}
           <div className="flex items-center gap-3">
             <span className="w-10 h-10 rounded-xl bg-indigo-600 border-2 border-slate-900 text-white flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] shrink-0">
@@ -329,7 +329,7 @@ export default function App() {
         </header>
 
         {/* Main Container Layout content Area */}
-        <main className="flex-1 w-full mx-auto flex flex-col gap-6">
+        <main className="relative z-10 flex-1 w-full mx-auto flex flex-col gap-6">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24 space-y-4 bg-white/95 backdrop-blur-md border-2 border-slate-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
               <div className="relative w-16 h-16 flex items-center justify-center">
@@ -399,6 +399,8 @@ export default function App() {
                 selectedLevel={selectedLevel}
                 setSelectedLevel={setSelectedLevel}
                 onSelectLesson={setSelectedLesson}
+                currentLanguage={currentLanguage}
+                onLanguageChange={setCurrentLanguage}
               />
             </div>
           )}

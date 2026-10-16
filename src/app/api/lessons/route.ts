@@ -3,7 +3,7 @@ import { languageModules } from "@/data/languageModules";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const langCode = searchParams.get("lang") || "th";
+  const langCode = searchParams.get("lang") || "all";
 
   const codeMap: Record<string, string> = {
     th: "thai",
@@ -16,10 +16,11 @@ export async function GET(req: NextRequest) {
     de: "german",
   };
 
-  const langId = codeMap[langCode] || "thai";
-  const moduleData = languageModules.find((m) => m.id === langId);
+  const modulesToMap = langCode === "all"
+    ? languageModules
+    : languageModules.filter((m) => m.id === (codeMap[langCode] || langCode));
 
-  if (!moduleData) {
+  if (!modulesToMap.length) {
     return NextResponse.json([]);
   }
 
@@ -33,11 +34,13 @@ export async function GET(req: NextRequest) {
     return copy;
   };
 
-  const mappedLessons = moduleData.lessons.map((lesson) => {
-    const categoryMap: Record<string, string> = {
-      vocabulary: "vocabulary",
-      grammar: "grammar",
-      conversation: "conversation",
+  const allMappedLessons = modulesToMap.flatMap((moduleData) => {
+    const langId = moduleData.id;
+    return moduleData.lessons.map((lesson) => {
+      const categoryMap: Record<string, string> = {
+        vocabulary: "vocabulary",
+        grammar: "grammar",
+        conversation: "conversation",
       culture: "vocabulary",
       pronunciation: "pronunciation",
     };
@@ -208,7 +211,8 @@ export async function GET(req: NextRequest) {
       targetLang: langId,
       content: content,
     };
+    });
   });
 
-  return NextResponse.json(mappedLessons);
+  return NextResponse.json(allMappedLessons);
 }

@@ -42,7 +42,7 @@ export default function LanguageSelector({ currentLanguage, onLanguageChange }: 
   };
 
   return (
-    <div className="relative">
+    <div className="relative z-50">
       <button
         id="language-selector-btn"
         onClick={() => setIsOpen(!isOpen)}
@@ -57,10 +57,10 @@ export default function LanguageSelector({ currentLanguage, onLanguageChange }: 
       {isOpen && (
         <>
           <div 
-            className="fixed inset-0 z-10" 
+            className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)} 
           />
-          <div className="absolute right-0 mt-2 w-64 bg-white border-2 border-slate-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] z-20 overflow-hidden divide-y-2 divide-slate-900 animate-fade-in font-display">
+          <div className="absolute right-0 top-full mt-2 w-72 bg-white border-2 border-slate-900 rounded-2xl shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] z-50 overflow-hidden divide-y-2 divide-slate-900 animate-fade-in font-display">
             <div className="px-4 py-2.5 bg-slate-100 text-xs text-slate-800 font-extrabold tracking-wider uppercase border-b-2 border-slate-900">
               {detectedLoc || "Select Interface Locale"}
             </div>
