@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { signInWithEmail, signUpWithEmail, signOut } from "@/lib/auth";
 import { CockpitHologram3D } from "@/components/layout/CockpitHologram3D";
 import { AlienMarketAnimation, RocketLaunchAnimation, ConstellationAnimation } from "@/components/layout/BottomCardsAnimation3D";
 import { CockpitSlideshow } from "@/components/layout/CockpitSlideshow";
+import { ClefConversationBubble } from "@/components/layout/ClefConversationBubble";
 import { useFirestore } from "@/firebase";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
@@ -126,6 +127,7 @@ export default function LingoLandVerseHomePage() {
   const { toast } = useToast();
   const { activeAsteroids, scheduledAsteroids } = useSmartReviewAsteroids();
   const firestore = useFirestore();
+  const cockpitHeroRef = useRef<HTMLDivElement>(null);
 
   // Navigation Drawer States
   const [isAllMenusOpen, setIsAllMenusOpen] = useState(false);
@@ -647,7 +649,7 @@ export default function LingoLandVerseHomePage() {
           </aside>
 
           {/* Center Cockpit Hero (Astronaut Owl + Holographic Constellation Globe) */}
-          <div className="lg:col-span-7 xl:col-span-7 relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl flex flex-col justify-end min-h-[360px] md:min-h-[460px] group">
+          <div ref={cockpitHeroRef} className="lg:col-span-7 xl:col-span-7 relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl flex flex-col justify-end min-h-[360px] md:min-h-[460px] group">
             {/* Background Panorama Image */}
             <div className="absolute inset-0">
               <Image
@@ -663,31 +665,8 @@ export default function LingoLandVerseHomePage() {
             {/* Ultra-realistic 3D Holographic Constellation & Orbit Animation */}
             <CockpitHologram3D className="z-[5]" />
 
-            {/* Clef Conversation Bubble Above His Head */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.85, y: 10 }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                y: [0, -4, 0],
-              }}
-              transition={{
-                y: { repeat: Infinity, duration: 2.8, ease: "easeInOut" },
-                default: { duration: 0.4 },
-              }}
-              className="absolute top-[20%] sm:top-[22%] md:top-[24%] right-[16%] sm:right-[18%] md:right-[20%] lg:right-[18%] xl:right-[19%] z-20 pointer-events-auto select-none group/clef"
-              title="Clef, your LingoLandVerse Copilot"
-            >
-              <div className="relative bg-slate-950/90 hover:bg-slate-900 border-2 border-cyan-400 text-white px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.6)] backdrop-blur-xl transition-all duration-300 hover:scale-105 flex items-center gap-1.5">
-                <span className="text-xs sm:text-sm">👋</span>
-                <span className="text-xs sm:text-sm font-black tracking-wide text-white drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] whitespace-nowrap">
-                  Hi, my name is <span className="text-cyan-300 font-extrabold">Clef</span>!
-                </span>
-                {/* Speech Bubble Pointer / Tail pointing down to helmet */}
-                <div className="absolute -bottom-2.5 left-6 sm:left-8 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[9px] border-t-cyan-400" />
-                <div className="absolute -bottom-2 left-[25px] sm:left-[33px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] border-t-slate-950" />
-              </div>
-            </motion.div>
+            {/* Dynamically Anchored Clef Conversation Bubble (Tracks helmet across all screen sizes) */}
+            <ClefConversationBubble containerRef={cockpitHeroRef} />
 
             {/* Interactive Hologram Indicator Overlay */}
             <div className="relative z-10 p-6 sm:p-8 flex items-end justify-between">
