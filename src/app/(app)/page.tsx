@@ -8,6 +8,7 @@ import { useAuth } from "@/context/auth-context";
 import { signInWithEmail, signUpWithEmail, signOut } from "@/lib/auth";
 import { CockpitHologram3D } from "@/components/layout/CockpitHologram3D";
 import { AlienMarketAnimation, RocketLaunchAnimation, ConstellationAnimation } from "@/components/layout/BottomCardsAnimation3D";
+import { CockpitSlideshow } from "@/components/layout/CockpitSlideshow";
 import { useFirestore } from "@/firebase";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
@@ -662,6 +663,32 @@ export default function LingoLandVerseHomePage() {
             {/* Ultra-realistic 3D Holographic Constellation & Orbit Animation */}
             <CockpitHologram3D className="z-[5]" />
 
+            {/* Clef Conversation Bubble Above His Head */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85, y: 10 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: [0, -4, 0],
+              }}
+              transition={{
+                y: { repeat: Infinity, duration: 2.8, ease: "easeInOut" },
+                default: { duration: 0.4 },
+              }}
+              className="absolute top-[20%] sm:top-[22%] md:top-[24%] right-[16%] sm:right-[18%] md:right-[20%] lg:right-[18%] xl:right-[19%] z-20 pointer-events-auto select-none group/clef"
+              title="Clef, your LingoLandVerse Copilot"
+            >
+              <div className="relative bg-slate-950/90 hover:bg-slate-900 border-2 border-cyan-400 text-white px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.6)] backdrop-blur-xl transition-all duration-300 hover:scale-105 flex items-center gap-1.5">
+                <span className="text-xs sm:text-sm">👋</span>
+                <span className="text-xs sm:text-sm font-black tracking-wide text-white drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] whitespace-nowrap">
+                  Hi, my name is <span className="text-cyan-300 font-extrabold">Clef</span>!
+                </span>
+                {/* Speech Bubble Pointer / Tail pointing down to helmet */}
+                <div className="absolute -bottom-2.5 left-6 sm:left-8 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[9px] border-t-cyan-400" />
+                <div className="absolute -bottom-2 left-[25px] sm:left-[33px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] border-t-slate-950" />
+              </div>
+            </motion.div>
+
             {/* Interactive Hologram Indicator Overlay */}
             <div className="relative z-10 p-6 sm:p-8 flex items-end justify-between">
               <div className="glass-card p-4 rounded-2xl border border-cyan-400/30 bg-slate-950/60 backdrop-blur-xl max-w-sm shadow-[0_0_25px_rgba(34,211,238,0.2)]">
@@ -713,78 +740,13 @@ export default function LingoLandVerseHomePage() {
               </div>
             </div>
 
-            {/* Widget 2: AI Smart-Review Asteroids */}
-            <div
-              onClick={() => router.push("/dashboard")}
-              className="glass-card border border-white/10 hover:border-purple-400/40 bg-slate-950/60 backdrop-blur-2xl rounded-3xl p-5 shadow-2xl cursor-pointer transition-all hover:-translate-y-1 flex-1 flex flex-col justify-between group"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-black text-sm text-white group-hover:text-purple-300 transition-colors">
-                    AI Smart-Review Asteroids
-                  </h4>
-                  <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/30 text-[10px] font-black px-2 py-0.5 rounded-full">
-                    {activeAsteroids.length} Ready &bull; {scheduledAsteroids.length} Orbit
-                  </Badge>
-                </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Real-time SM-2 spaced repetition tracking your vocabulary mistakes.
-                </p>
-              </div>
-
-              {/* Graphic container with mystery cube and orbiting rocks */}
-              <div className="my-3 py-4 flex items-center justify-center relative">
-                <div className="relative w-28 h-28 flex items-center justify-center">
-                  {/* Orbital ring */}
-                  <div className="absolute inset-0 rounded-full border border-dashed border-indigo-400/30 animate-[spin_20s_linear_infinite]" />
-
-                  {/* Orbiting asteroid rocks with question marks */}
-                  <span className="absolute -top-1 left-2 text-xs opacity-70 animate-pulse">🪨 ?</span>
-                  <span className="absolute top-2 -right-1 text-xs opacity-80 animate-pulse">☄️ ?</span>
-                  <span className="absolute -bottom-2 right-4 text-xs opacity-70 animate-pulse">🪨 ?</span>
-                  <span className="absolute bottom-2 -left-2 text-xs opacity-80 animate-pulse">☄️ ?</span>
-
-                  {/* Central glowing cube */}
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 p-[1.5px] shadow-[0_0_25px_rgba(168,85,247,0.5)] group-hover:scale-110 transition-transform">
-                    <div className="w-full h-full rounded-[14px] bg-slate-950/90 flex items-center justify-center text-lg">
-                      🎮
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Glassy Glowing Box with text link See dashboard */}
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!user || isGuest) {
-                    setAuthNotice("Command Dashboard requires a registered Pilot account. Please sign in or enroll.");
-                    setIsAuthModalOpen(true);
-                  } else {
-                    router.push("/dashboard");
-                  }
-                }}
-                className="mb-2 px-3.5 py-2 rounded-xl border border-cyan-400/40 bg-gradient-to-r from-cyan-950/60 via-slate-900/80 to-indigo-950/60 hover:from-cyan-900/70 hover:to-indigo-900/70 backdrop-blur-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center justify-between transition-all hover:scale-[1.02] cursor-pointer group/link"
-                title="Go to User Dashboard"
-              >
-                <div className="flex items-center gap-2">
-                  <LayoutDashboard className="w-3.5 h-3.5 text-cyan-400 group-hover/link:animate-pulse" />
-                  <span className="text-xs font-black text-cyan-300 group-hover/link:text-white tracking-wide">
-                    See dashboard
-                  </span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-cyan-400 group-hover/link:translate-x-1 transition-transform" />
-              </div>
-
-              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
-                <span className="text-[10px] font-bold text-amber-400 flex items-center gap-1">
-                  <Flame className="w-3 h-3" /> Intercept Missions
-                </span>
-                <span className="text-[10px] font-black uppercase text-cyan-400 group-hover:underline">
-                  Launch &rarr;
-                </span>
-              </div>
-            </div>
+            {/* Widget 2: Interactive Cockpit Slideshow (Notice, Top Game, Asteroids, Video) */}
+            <CockpitSlideshow
+              onOpenDashboardAuthNotice={() => {
+                setAuthNotice("Command Dashboard requires a registered Pilot account. Please sign in or enroll.");
+                setIsAuthModalOpen(true);
+              }}
+            />
           </aside>
         </div>
 
