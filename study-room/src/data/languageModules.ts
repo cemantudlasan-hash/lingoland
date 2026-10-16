@@ -25,6 +25,362 @@ export interface LanguageModule {
 
 export const languageModules: LanguageModule[] = [
   {
+    id: 'english',
+    language: 'English',
+    flag: '🇬🇧',
+    color: '#1e3a8a',
+    gradient: 'from-blue-700 to-indigo-600',
+    lessons: [
+      {
+        id: 'en-01',
+        title: 'Mastering English Verb Tenses: Present vs. Past',
+        description: 'Understand the essential mechanics of Simple Present, Present Continuous, and Past Simple',
+        type: 'grammar',
+        difficulty: 'beginner',
+        duration: '15 min',
+        content: {
+          intro: 'English verb tenses allow speakers to place actions clearly in time. Learn when to use simple present habits versus ongoing present actions and completed past events.',
+          keyPhrases: [
+            { native: 'I work at a tech company in London.', romanized: 'Present Simple', english: 'Expresses permanent routine or fact' },
+            { native: 'She is currently developing a new application.', romanized: 'Present Continuous', english: 'Describes an action happening right now' },
+            { native: 'We completed the presentation yesterday afternoon.', romanized: 'Past Simple', english: 'Refers to a finished event in the past' },
+            { native: 'Have you ever travelled to Southeast Asia?', romanized: 'Present Perfect', english: 'Asks about life experience at an unspecified time' }
+          ],
+          tips: [
+            'Use Present Simple for daily routines, permanent states, and universal truths.',
+            'Use Present Continuous with time signals like "right now", "currently", or "at the moment".',
+            'Regular past verbs add -ed, while irregular verbs change forms entirely (e.g. go -> went).'
+          ],
+          practice: 'Write 3 sentences describing what you do every day, what you are doing right now, and what you accomplished yesterday.'
+        }
+      },
+      {
+        id: 'en-02',
+        title: 'Modal Verbs & Polite Requests (Could, Would, Should)',
+        description: 'Sound natural and diplomatic using English modal auxiliary verbs',
+        type: 'grammar',
+        difficulty: 'intermediate',
+        duration: '15 min',
+        content: {
+          intro: 'Modal verbs alter the tone of your message from direct to courteous, helpful, and diplomatic. Mastering them is essential for natural English communication.',
+          keyPhrases: [
+            { native: 'Could you please send over the latest financial report?', romanized: 'Polite Request', english: 'Could you please send over the latest financial report?' },
+            { native: 'Would you mind if I opened the window?', romanized: 'Courteous Inquiry', english: 'Would you mind if I opened the window?' },
+            { native: 'You should double-check the figures before submission.', romanized: 'Constructive Advice', english: 'You should double-check the figures before submission.' },
+            { native: 'I would be delighted to assist you with the project.', romanized: 'Willingness / Offer', english: 'I would be delighted to assist you with the project.' }
+          ],
+          tips: [
+            '"Could you" and "Would you mind" are significantly more polite in business settings than "Can you".',
+            '"Would you mind" is always followed by a gerund verb (-ing form): "Would you mind helping me?"',
+            'Never add an -s to a modal verb (he should, never he shoulds).'
+          ],
+          practice: 'Transform 3 direct demands into polite requests using "Could you please..." and "Would you mind...".'
+        }
+      },
+      {
+        id: 'en-03',
+        title: 'Conditional Clauses: Real vs. Hypothetical Situations',
+        description: 'Master First, Second, and Third Conditionals for discussing possibilities and outcomes',
+        type: 'grammar',
+        difficulty: 'advanced',
+        duration: '20 min',
+        content: {
+          intro: 'Conditionals express cause-and-effect relationships. Learn how native speakers shift tenses to convey realistic future outcomes versus imaginary hypothetical scenarios.',
+          keyPhrases: [
+            { native: 'If we launch next week, we will capture early market demand.', romanized: 'First Conditional (Real)', english: 'Real possibility in the present or future' },
+            { native: 'If I had more resources, I would expand our research team.', romanized: 'Second Conditional (Unreal)', english: 'Hypothetical or unlikely present situation' },
+            { native: 'If we had booked earlier, we would have saved twenty percent.', romanized: 'Third Conditional (Past Regret)', english: 'Impossible change to a past event' },
+            { native: 'Unless we receive approval today, the deadline will slip.', romanized: 'Negative Condition', english: '"Unless" equals "if not"' }
+          ],
+          tips: [
+            'Never place "will" or "would" inside the "if" clause itself.',
+            'In Second Conditional, formal English uses "were" for all subjects: "If I were you..."',
+            'Use "unless" to emphasize that an outcome will only occur if a condition is met.'
+          ],
+          practice: 'Formulate one realistic plan using First Conditional and one hypothetical wish using Second Conditional.'
+        }
+      },
+      {
+        id: 'en-04',
+        title: 'Passive Voice in Corporate & Academic Writing',
+        description: 'Shift focus from the actor to the action in formal English documentation',
+        type: 'grammar',
+        difficulty: 'advanced',
+        duration: '18 min',
+        content: {
+          intro: 'The passive voice is widely used in scientific papers, corporate audits, and news broadcasts when the action itself is more significant than who performed it.',
+          keyPhrases: [
+            { native: 'The quarterly audit was conducted by an external consultancy.', romanized: 'Passive with Agent', english: 'Focuses on the audit rather than the auditors' },
+            { native: 'Significant progress has been made toward our sustainability targets.', romanized: 'Present Perfect Passive', english: 'Highlights ongoing achievements' },
+            { native: 'All confidential files must be encrypted before transmission.', romanized: 'Modal Passive', english: 'Establishes general compliance protocol' },
+            { native: 'It is widely believed that artificial intelligence will transform logistics.', romanized: 'Impersonal Passive', english: 'Reports collective perspective objectively' }
+          ],
+          tips: [
+            'Structure: Form of "to be" + Past Participle (V3).',
+            'Use the passive voice when the agent is unknown, obvious, or intentionally anonymous.',
+            'Avoid overusing passive voice in casual dialogue; keep it for reports, policies, and formal articles.'
+          ],
+          practice: 'Convert 3 active sentences into polished formal passive statements.'
+        }
+      },
+      {
+        id: 'en-05',
+        title: 'Essential Workplace & Professional Vocabulary',
+        description: 'High-frequency corporate terms, project milestones, and business idioms',
+        type: 'vocabulary',
+        difficulty: 'intermediate',
+        duration: '15 min',
+        content: {
+          intro: 'Communicate smoothly in corporate meetings, emails, and presentations with these fundamental business English terms.',
+          keyPhrases: [
+            { native: 'Deliverables', romanized: '[dɪˈlɪv.ər.ə.bəlz]', english: 'Tangible products or completed outcomes of a project' },
+            { native: 'Bandwidth', romanized: '[ˈbænd.wɪtθ]', english: 'Available time or capacity to handle work' },
+            { native: 'Leverage', romanized: '[ˈliː.vər.ɪdʒ]', english: 'To utilize an existing asset or skill for maximum advantage' },
+            { native: 'Bottleneck', romanized: '[ˈbɒt.əl.nek]', english: 'A stage that slows down the entire workflow' },
+            { native: 'Touch base', romanized: '[tʌtʃ beɪs]', english: 'Briefly contact or reconnect to discuss status' }
+          ],
+          tips: [
+            '"Deliverables" is commonly used during project sprint reviews and contract specifications.',
+            '"Bandwidth" originally referred to data transmission but is now standard for personal workload.',
+            'Combine "touch base" with timeframes: "Let\'s touch base on Friday afternoon."'
+          ],
+          practice: 'Write an email paragraph updating a colleague using "deliverables", "touch base", and "bandwidth".'
+        }
+      },
+      {
+        id: 'en-06',
+        title: 'Top 30 English Phrasal Verbs in Context',
+        description: 'Master multi-word verbs like figure out, look forward to, and bring up',
+        type: 'vocabulary',
+        difficulty: 'intermediate',
+        duration: '16 min',
+        content: {
+          intro: 'Phrasal verbs are combinations of verbs with prepositions or adverbs that create completely new meanings. They are central to sounding natural in everyday spoken English.',
+          keyPhrases: [
+            { native: 'Figure out', romanized: 'To solve or understand', english: 'We need to figure out why the system crashed.' },
+            { native: 'Bring up', romanized: 'To mention a topic', english: 'I will bring up the budget proposal in tomorrow\'s meeting.' },
+            { native: 'Look forward to', romanized: 'To anticipate with pleasure', english: 'I really look forward to collaborating with your team.' },
+            { native: 'Call off', romanized: 'To cancel an event', english: 'They had to call off the outdoor conference due to the storm.' },
+            { native: 'Put off', romanized: 'To postpone or delay', english: 'Never put off until tomorrow what you can finish today.' }
+          ],
+          tips: [
+            '"Look forward to" must be followed by a noun or -ing verb: "I look forward to meeting you."',
+            'Separable phrasal verbs can sandwich a pronoun: "Turn it on", not "Turn on it".',
+            'Learn phrasal verbs in real context sentences rather than memorizing isolated lists.'
+          ],
+          practice: 'Create 3 dialogue lines using "figure out", "look forward to", and "call off".'
+        }
+      },
+      {
+        id: 'en-07',
+        title: 'Academic & Formal Linking Connectors',
+        description: 'Enhance writing coherence with transition words like furthermore, nevertheless, and consequently',
+        type: 'vocabulary',
+        difficulty: 'advanced',
+        duration: '16 min',
+        content: {
+          intro: 'Transition words guide your reader through complex reasoning and arguments. Discover how to contrast ideas, add supporting evidence, and conclude persuasively.',
+          keyPhrases: [
+            { native: 'Furthermore', romanized: 'In addition / moreover', english: 'The strategy reduces overhead; furthermore, it speeds delivery.' },
+            { native: 'Nevertheless', romanized: 'Despite that / however', english: 'The experiment was risky; nevertheless, it yielded breakthroughs.' },
+            { native: 'Consequently', romanized: 'As a result', english: 'Interest rates rose; consequently, borrowing slowed down.' },
+            { native: 'In light of', romanized: 'Considering that', english: 'In light of recent user feedback, we are refining the user interface.' }
+          ],
+          tips: [
+            'Place a semicolon before "furthermore" or "consequently" and a comma immediately after when linking clauses.',
+            '"Nevertheless" introduces an unexpected contrast despite prior evidence.',
+            'Use "in light of" followed by a noun phrase to justify managerial or design decisions.'
+          ],
+          practice: 'Draft a short persuasive summary linking 3 points with "furthermore", "nevertheless", and "consequently".'
+        }
+      },
+      {
+        id: 'en-08',
+        title: 'Everyday Idiomatic Expressions & Casual Slang',
+        description: 'Sound like a native speaker with colorful daily conversational idioms',
+        type: 'vocabulary',
+        difficulty: 'beginner',
+        duration: '12 min',
+        content: {
+          intro: 'Idioms are figurative expressions whose meanings cannot be understood from individual words alone. Learn these widely used daily English phrases.',
+          keyPhrases: [
+            { native: 'Piece of cake', romanized: 'Extremely easy', english: 'The certification exam was a piece of cake once I studied.' },
+            { native: 'Bite the bullet', romanized: 'Face a tough situation bravely', english: 'I have to bite the bullet and apologize to the client.' },
+            { native: 'Under the weather', romanized: 'Feeling slightly ill', english: 'I stayed home today because I felt under the weather.' },
+            { native: 'Hit the nail on the head', romanized: 'Describe exactly what is true', english: 'Her analysis hit the nail on the head.' }
+          ],
+          tips: [
+            'Idioms make conversation colorful and friendly when used in informal settings.',
+            'Avoid translating idioms word-for-word into your native language; memorize them as complete mental units.',
+            '"Bite the bullet" originates from military surgery before modern anesthesia.'
+          ],
+          practice: 'Write a message to a friend explaining why you took a day off using "under the weather".'
+        }
+      },
+      {
+        id: 'en-09',
+        title: 'Silent Letters & Tricky English Spellings',
+        description: 'Demystify silent K, B, W, G, and H in common English words',
+        type: 'pronunciation',
+        difficulty: 'beginner',
+        duration: '14 min',
+        content: {
+          intro: 'English spelling preserves centuries of historical roots, resulting in silent letters that are written but never pronounced. Master these high-frequency patterns.',
+          keyPhrases: [
+            { native: 'Knight, Knee, Knife', romanized: '[naɪt], [niː], [naɪf]', english: 'Silent initial "K" before "N"' },
+            { native: 'Doubt, Subtle, Debt', romanized: '[daʊt], [ˈsʌt.əl], [det]', english: 'Silent "B" following vowels or preceding "T"' },
+            { native: 'Write, Wrong, Wrist', romanized: '[raɪt], [rɒŋ], [rɪst]', english: 'Silent initial "W" before "R"' },
+            { native: 'Hour, Honest, Honor', romanized: '[aʊər], [ˈɒn.ɪst], [ˈɒn.ər]', english: 'Silent initial "H" in French-origin words' }
+          ],
+          tips: [
+            'Notice that silent "K" words always begin with "kn-".',
+            'In "hour" and "honest", use "an" instead of "a": "an hour", "an honest mistake".',
+            'Listen carefully to native voice playback and mirror the mouth movement.'
+          ],
+          practice: 'Read aloud: "The honest knight knew the subtle knife was wrong."'
+        }
+      },
+      {
+        id: 'en-10',
+        title: 'Vowel Sounds & The Elusive Schwa [ə]',
+        description: 'Master the most frequent vowel sound in spoken English for effortless rhythm',
+        type: 'pronunciation',
+        difficulty: 'intermediate',
+        duration: '15 min',
+        content: {
+          intro: 'The "Schwa" sound [ə] appears in unstressed syllables in almost every multi-syllable English word. Mastering the schwa transforms robotic speech into relaxed native flow.',
+          keyPhrases: [
+            { native: 'About, Around, Again', romanized: '[əˈbaʊt], [əˈraʊnd], [əˈɡen]', english: 'Unstressed initial vowel reduces to schwa' },
+            { native: 'Banana, Canada, Camera', romanized: '[bəˈnɑː.nə], [ˈkæn.ə.də], [ˈkæm.rə]', english: 'Unstressed inner vowels become relaxed schwa' },
+            { native: 'Doctor, Water, Father', romanized: '[ˈdɒk.tər], [ˈwɔː.tər], [ˈfɑː.ðər]', english: 'Unstressed ending syllables' },
+            { native: 'Cup of coffee, Piece of cake', romanized: '[kʌp əv ˈkɒf.i], [piːs əv keɪk]', english: '"Of" reduces to [əv] in continuous speech' }
+          ],
+          tips: [
+            'To pronounce the schwa: keep your tongue and lips completely relaxed in the center of your mouth.',
+            'Never stress a schwa vowel; let it glide past quickly without extra volume.',
+            'English is a stress-timed language: stressed words get full vowels, unstressed words get reduced.'
+          ],
+          practice: 'Say: "I bought a cup of coffee around seven o\'clock" with relaxed schwas.'
+        }
+      },
+      {
+        id: 'en-11',
+        title: 'Intonation & Word Stress for Clear Speech',
+        description: 'Understand rising vs. falling pitch, sentence emphasis, and semantic shifts',
+        type: 'pronunciation',
+        difficulty: 'intermediate',
+        duration: '16 min',
+        content: {
+          intro: 'Changing which word you emphasize completely changes the implied meaning of an English sentence. Learn how to use vocal pitch to sound confident and unambiguous.',
+          keyPhrases: [
+            { native: 'I didn\'t SAY you were late.', romanized: 'Pitch on "say"', english: 'Implies: I might have written or thought it, but didn\'t say it' },
+            { native: 'I didn\'t say YOU were late.', romanized: 'Pitch on "you"', english: 'Implies: Someone else was late, not you' },
+            { native: 'Could you give me a hand with this?', romanized: 'Rising intonation (?)', english: 'Yes/No questions end with rising pitch' },
+            { native: 'Where did you put the report?', romanized: 'Falling intonation (.)', english: 'Wh- questions end with falling pitch' }
+          ],
+          tips: [
+            'Yes/No questions naturally rise in pitch at the end.',
+            'Wh- questions (Who, What, Where, Why, How) rise early and fall firmly at the end.',
+            'Content words (nouns, main verbs, adjectives) carry stress; function words (to, a, in) are weak.'
+          ],
+          practice: 'Record yourself saying "I didn\'t take your phone" placing emphasis on 4 different words.'
+        }
+      },
+      {
+        id: 'en-12',
+        title: 'Connected Speech: Blending & Contractions',
+        description: 'Learn how native speakers link consonant to vowel and swallow sounds',
+        type: 'pronunciation',
+        difficulty: 'advanced',
+        duration: '18 min',
+        content: {
+          intro: 'Native speakers do not pronounce words in isolation. They blend sounds across word boundaries through linking, elision, and assimilation for fluid speech.',
+          keyPhrases: [
+            { native: 'Hold on a second', romanized: '[həʊld-ɒn-ə-sek.ənd]', english: 'Consonant links smoothly to vowel (Hold-on-a)' },
+            { native: 'What are you going to do?', romanized: '[wʌtʃə ɡənə duː]', english: 'Reduces to "Whatcha gonna do?" in fast speech' },
+            { native: 'Don\'t you know?', romanized: '[dəʊnt-juː -> dəʊntʃuː]', english: 'T + Y blends into "ch" sound [tʃ]' },
+            { native: 'Next door, Last night', romanized: '[neks-dɔːr], [lɑːs-naɪt]', english: 'Final "t" sound is dropped before another consonant' }
+          ],
+          tips: [
+            'Linking occurs whenever a word ends in a consonant and the next begins with a vowel.',
+            'You do not have to speak with extreme slang, but recognizing connected speech dramatically improves listening comprehension.',
+            'Practice continuous shadow-reading along with audio.'
+          ],
+          practice: 'Listen to the audio clip and practice smooth linking: "Tell-him-about-it".'
+        }
+      },
+      {
+        id: 'en-13',
+        title: 'Small Talk, Networking & Breaking the Ice',
+        description: 'Initiate polite, engaging conversations at social gatherings and business events',
+        type: 'conversation',
+        difficulty: 'beginner',
+        duration: '15 min',
+        content: {
+          intro: 'Small talk is the universal bridge to building professional rapport and friendships. Learn open-ended questions, active listening cues, and graceful exits.',
+          keyPhrases: [
+            { native: 'Have you been to one of these summits before?', romanized: 'Icebreaker Question', english: 'Easy entry question to initiate conversation' },
+            { native: 'What brings you to our city this week?', romanized: 'Open Inquiry', english: 'Invites the other person to share background' },
+            { native: 'That sounds fascinating! How did you get into that field?', romanized: 'Active Listening', english: 'Demonstrates genuine engagement' },
+            { native: 'It was great chatting with you; let\'s exchange cards before we head out.', romanized: 'Graceful Closing', english: 'Polite conclusion with follow-up action' }
+          ],
+          tips: [
+            'Use the "FORM" formula for small talk topics: Family, Occupation, Recreation, Motivation.',
+            'Ask open-ended questions starting with "What" or "How" rather than yes/no questions.',
+            'Offer your own brief detail before asking, so the conversation feels reciprocal.'
+          ],
+          practice: 'Roleplay introducing yourself to a foreign colleague at a coffee break.'
+        }
+      },
+      {
+        id: 'en-14',
+        title: 'Job Interview Dialogue & Confident Responses',
+        description: 'Answer behavioral interview questions using the STAR framework',
+        type: 'conversation',
+        difficulty: 'intermediate',
+        duration: '18 min',
+        content: {
+          intro: 'Excel in international job interviews with structured, persuasive answers that highlight your strengths, problem-solving abilities, and culture fit.',
+          keyPhrases: [
+            { native: 'Could you walk me through your background and key achievements?', romanized: 'Interviewer Prompt', english: 'Common opening request' },
+            { native: 'In my previous position, I spearheaded a team that increased retention by 25%.', romanized: 'Candidate Statement', english: 'Action verb + quantified result' },
+            { native: 'When faced with tight deadlines, I prioritize high-impact deliverables.', romanized: 'Behavioral Answer', english: 'Shows structured problem-solving' },
+            { native: 'What does success look like for this role in the first six months?', romanized: 'Candidate Question', english: 'Demonstrates proactive foresight' }
+          ],
+          tips: [
+            'Use the STAR method: Situation, Task, Action, Result.',
+            'Use strong action verbs: "spearheaded", "orchestrated", "optimized", "streamlined".',
+            'Always prepare 2-3 thoughtful questions to ask the interviewer at the end.'
+          ],
+          practice: 'Prepare a 60-second answer to "Tell me about a time you handled a difficult project."'
+        }
+      },
+      {
+        id: 'en-15',
+        title: 'Negotiating & Diplomatically Expressing Disagreement',
+        description: 'Reach win-win agreements while preserving professional relationships',
+        type: 'conversation',
+        difficulty: 'advanced',
+        duration: '20 min',
+        content: {
+          intro: 'Professional disagreement requires diplomacy and tact. Learn how native speakers soften criticisms, propose alternatives, and steer discussions toward consensus.',
+          keyPhrases: [
+            { native: 'I see your point, but from an operational perspective, we should reconsider.', romanized: 'Diplomatic Pivot', english: 'Acknowledges first before presenting contrast' },
+            { native: 'With respect, I have reservations about committing to that timeline.', romanized: 'Courteous Hesitation', english: 'Polite expression of concern' },
+            { native: 'Could we meet halfway on the licensing terms?', romanized: 'Compromise Proposal', english: 'Suggests a balanced middle ground' },
+            { native: 'If you can expedite shipment, we can agree to the suggested price.', romanized: 'Conditional Concession', english: 'Gives something only in return for value' }
+          ],
+          tips: [
+            'Start by validating the other party\'s intention: "I understand the goal..."',
+            'Replace "You are wrong" with "I see it somewhat differently based on our latest data."',
+            'Never make a concession without asking for an equivalent benefit in return.'
+          ],
+          practice: 'Draft a diplomatic response to a vendor requesting a 15% price increase.'
+        }
+      }
+    ]
+  },
+  {
     id: 'thai',
     language: 'Thai',
     flag: '🇹🇭',

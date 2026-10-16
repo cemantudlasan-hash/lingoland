@@ -17,14 +17,16 @@ interface LanguageCertificateProps {
   flag: string;
   onClose: () => void;
   score?: number;
+  totalQuestions?: number;
+  userName?: string;
 }
 
-export default function LanguageCertificate({ language, flag, onClose, score }: LanguageCertificateProps) {
+export default function LanguageCertificate({ language, flag, onClose, score, totalQuestions = 40, userName }: LanguageCertificateProps) {
   const [form, setForm] = useState<CertificateData>({
-    fullName: "",
+    fullName: userName || "",
     courseName: `${language} Language Mastery`,
     completionDate: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
-    score: score !== undefined ? `Score: ${score}/30` : "Score: 30/30",
+    score: score !== undefined ? `Score: ${score}/${totalQuestions}` : `Score: ${totalQuestions}/${totalQuestions}`,
     showSeal: true,
     sealStyle: "logo",
   });

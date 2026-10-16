@@ -354,6 +354,7 @@ export default function App() {
               stats={stats}
               onExamCompleted={handleExamCompleted}
               onBack={() => setActiveTab("syllabus")}
+              user={user}
             />
           ) : activeTab === "study-room" ? (
             /* STUDY ROOM PORTAL PANEL (with Firebase, Realtime Bulletin and TTS Audio integrations) */

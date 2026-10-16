@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
   const langCode = searchParams.get("lang") || "all";
 
   const codeMap: Record<string, string> = {
+    en: "english",
     th: "thai",
     ko: "korean",
     ja: "japanese",
@@ -208,7 +209,7 @@ export async function GET(req: NextRequest) {
       xpReward:
         lesson.difficulty === "advanced" ? 200 : lesson.difficulty === "intermediate" ? 185 : 150,
       estimatedMinutes: estimatedMinutes,
-      targetLang: langId,
+      targetLang: langId === "english" ? undefined : langId,
       content: content,
     };
     });

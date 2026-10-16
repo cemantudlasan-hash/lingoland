@@ -54,12 +54,14 @@ export default function CategoryNavigator({
   const [activeLang, setActiveLang] = useState<TargetLang | "all">("all");
   const [certLang, setCertLang] = useState<TargetLang | null>(null);
 
-  const englishLessons = lessons.filter((l) => !l.targetLang);
-  const langLessons = lessons.filter((l) => !!l.targetLang);
+  const englishLessons = lessons.filter((l) => !l.targetLang || l.targetLang === "english");
+  const langLessons = lessons.filter((l) => !!l.targetLang && l.targetLang !== "english");
 
   useEffect(() => {
     if (englishLessons.length === 0 && langLessons.length > 0) {
       setMainTab("languages");
+    } else if (englishLessons.length > 0) {
+      // If English lessons exist, allow users to access the English syllabus smoothly
     }
   }, [englishLessons.length, langLessons.length]);
 
