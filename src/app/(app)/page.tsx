@@ -82,6 +82,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useSmartReviewAsteroids } from "@/hooks/use-smart-review-asteroids";
+import { AuthGateModal } from "@/components/auth/auth-gate-modal";
 
 // Complete 27-item platform menu directory
 const ALL_PLATFORM_MENUS = [
@@ -820,7 +821,19 @@ export default function LingoLandVerseHomePage() {
             <span className="text-slate-600 hidden sm:inline">•</span>
             <span className="text-slate-400">Educational Universe for ESL Learners &amp; Educators</span>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 font-medium">
+          <div className="flex flex-wrap items-center justify-center gap-5 sm:gap-7 font-medium">
+            <Link
+              href="/apps"
+              className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
+            >
+              Explore Apps &amp; Tools (All 26 Menus)
+            </Link>
+            <Link
+              href="/blog"
+              className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
+            >
+              Educational Universe Blog
+            </Link>
             <Link
               href="/about"
               className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
@@ -842,6 +855,12 @@ export default function LingoLandVerseHomePage() {
           </div>
         </div>
       </footer>
+
+      {/* MANDATORY ACCESS GATE: Only authorized users (logged-in account or explore as guest) can access the Homepage or Menu */}
+      <AuthGateModal
+        open={!isLoading && !user && !isGuest}
+        canDismiss={false}
+      />
 
       {/* 4. PREMIUM GLASSMORPHISM AUTHENTICATION MODAL (With vibrant neon-glowing typography) */}
       <Dialog

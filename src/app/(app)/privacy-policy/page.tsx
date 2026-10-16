@@ -55,7 +55,7 @@ export default function PrivacyPolicyPage() {
               <span className="text-cyan-400 font-mono text-base">01.</span> Introduction &amp; Scope
             </h2>
             <p>
-              Welcome to <strong>LingoLandVerse</strong> (&quot;LingoLandVerse.com&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), operated by creator and educational technologist <strong>Cem Antudlasan</strong>. This Privacy Policy governs all aspects of your access to our online language learning universe, including our 79+ gamified learning worlds, AI-assisted curriculum generators, Acoustic Study Room, companion pets, and language certification modules.
+              Welcome to <strong>LingoLandVerse</strong> (&quot;LingoLandVerse.com&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;), operated by creator and educational technologist <strong>Ceman Tudlasan</strong>. This Privacy Policy governs all aspects of your access to our online language learning universe, including our 79+ gamified learning worlds, AI-assisted curriculum generators, Acoustic Study Room, companion pets, and language certification modules.
             </p>
             <p>
               By accessing or using LingoLandVerse, you consent to the data collection, cookie usage, and advertising practices described in this document.
@@ -175,7 +175,7 @@ export default function PrivacyPolicyPage() {
               If you have any questions, concerns, or requests regarding this Privacy Policy or our advertising disclosures, please reach out directly:
             </p>
             <div className="pt-2 text-xs space-y-1 text-slate-300 font-mono">
-              <p><strong className="text-white">Operator:</strong> Cem Antudlasan (LingoLandVerse Founder &amp; Lead Educator)</p>
+              <p><strong className="text-white">Operator:</strong> Ceman Tudlasan (LingoLandVerse Founder &amp; Lead Educator)</p>
               <p><strong className="text-white">Email:</strong> <a href="mailto:cemantudlasan@gmail.com" className="text-cyan-400 underline">cemantudlasan@gmail.com</a></p>
               <p><strong className="text-white">Website:</strong> <a href="https://lingolandverse.com" className="text-cyan-400 underline">https://lingolandverse.com</a></p>
             </div>

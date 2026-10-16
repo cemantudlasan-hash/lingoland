@@ -78,7 +78,7 @@ export default function AboutUsPage() {
               Pioneering the Future of ESL Language Immersion
             </h1>
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
-              LingoLandVerse was founded by educator and technologist <strong>Cem Antudlasan</strong> to transform second-language acquisition from rigid rote memorization into an interstellar adventure powered by gaming mechanics, acoustic soundscapes, and companion motivation.
+              LingoLandVerse was founded by educator and technologist <strong>Ceman Tudlasan</strong> to transform second-language acquisition from rigid rote memorization into an interstellar adventure powered by gaming mechanics, acoustic soundscapes, and companion motivation.
             </p>
           </div>
         </div>
@@ -165,16 +165,16 @@ export default function AboutUsPage() {
 
             <div className="space-y-3 text-sm text-slate-300 leading-relaxed">
               <h3 className="text-lg font-black text-white tracking-tight">
-                Cem Antudlasan
+                Ceman Tudlasan
               </h3>
               <p className="text-xs font-bold uppercase tracking-wider text-cyan-400 font-mono">
                 Founder, Lead Educational Technologist &amp; Full-Stack Architect
               </p>
               <p>
-                Cem Antudlasan is an educator and software engineer dedicated to building immersive educational technology. Observing how modern students struggled with disengagement in conventional language learning apps, Cem architected LingoLandVerse as an open, free, and deeply engaging metaverse that combines gaming mechanics with acoustic phonetics.
+                Ceman Tudlasan is an educator and software engineer dedicated to building immersive educational technology. Observing how modern students struggled with disengagement in conventional language learning apps, Ceman architected LingoLandVerse as an open, free, and deeply engaging metaverse that combines gaming mechanics with acoustic phonetics.
               </p>
               <p className="text-xs text-slate-400">
-                Operating under the <strong>LingoLandVerse Educational Consortium</strong>, Cem directly manages platform infrastructure, curriculum alignment, soundscape synthesis algorithms, and academic compliance.
+                Operating under the <strong>LingoLandVerse Educational Consortium</strong>, Ceman directly manages platform infrastructure, curriculum alignment, soundscape synthesis algorithms, and academic compliance.
               </p>
             </div>
           </div>
@@ -250,7 +250,7 @@ export default function AboutUsPage() {
                   <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto animate-bounce" />
                   <h3 className="text-lg font-bold text-white">Transmission Received! 🛸</h3>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Thank you for reaching out to the LingoLandVerse team. Your message has been routed to Cem Antudlasan and you will receive a response shortly.
+                    Thank you for reaching out to the LingoLandVerse team. Your message has been routed to Ceman Tudlasan and you will receive a response shortly.
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}

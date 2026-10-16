@@ -141,7 +141,7 @@ export default function TermsAndConditionsPage() {
               <span className="text-cyan-400 font-mono text-base">06.</span> Intellectual Property Rights
             </h2>
             <p>
-              All original visual assets, sound design, game source code, curriculum taxonomies, UI components, and space universe lore are the exclusive intellectual property of <strong>LingoLandVerse</strong> and creator <strong>Cem Antudlasan</strong>. You may not reproduce, decompile, scrape, or distribute these materials without explicit prior written authorization.
+              All original visual assets, sound design, game source code, curriculum taxonomies, UI components, and space universe lore are the exclusive intellectual property of <strong>LingoLandVerse</strong> and creator <strong>Ceman Tudlasan</strong>. You may not reproduce, decompile, scrape, or distribute these materials without explicit prior written authorization.
             </p>
           </section>
 
@@ -164,7 +164,7 @@ export default function TermsAndConditionsPage() {
               We reserve the right to suspend or terminate accounts that persistently violate these rules of conduct. For inquiries regarding these terms:
             </p>
             <div className="pt-2 text-xs space-y-1 text-slate-300 font-mono">
-              <p><strong className="text-white">Administrator:</strong> Cem Antudlasan</p>
+              <p><strong className="text-white">Administrator:</strong> Ceman Tudlasan</p>
               <p><strong className="text-white">Email:</strong> <a href="mailto:cemantudlasan@gmail.com" className="text-cyan-400 underline">cemantudlasan@gmail.com</a></p>
               <p><strong className="text-white">Website:</strong> <a href="https://lingolandverse.com" className="text-cyan-400 underline">https://lingolandverse.com</a></p>
             </div>

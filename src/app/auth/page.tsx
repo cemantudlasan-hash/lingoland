@@ -817,6 +817,20 @@ export default function AuthPage() {
             </span>
             <span className="text-zinc-600">•</span>
             <Link 
+              href="/apps" 
+              className="text-zinc-300 hover:text-teal-300 hover:underline transition-colors font-medium"
+            >
+              Explore Apps &amp; Tools (All 26 Menus)
+            </Link>
+            <span className="text-zinc-600">•</span>
+            <Link 
+              href="/blog" 
+              className="text-zinc-300 hover:text-teal-300 hover:underline transition-colors font-medium"
+            >
+              Educational Universe Blog
+            </Link>
+            <span className="text-zinc-600">•</span>
+            <Link 
               href="/about" 
               className="text-zinc-300 hover:text-teal-300 hover:underline transition-colors font-medium"
             >
@@ -899,17 +913,25 @@ export default function AuthPage() {
               <ChevronRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="flex items-center justify-center gap-3 text-[10px] text-zinc-400 pt-0.5 border-t border-white/[0.06] w-full">
+          <div className="flex flex-wrap items-center justify-center gap-2.5 text-[10px] text-zinc-400 pt-0.5 border-t border-white/[0.06] w-full">
+            <Link href="/apps" className="hover:text-teal-300 transition-colors">
+              Apps
+            </Link>
+            <span className="text-zinc-600">•</span>
+            <Link href="/blog" className="hover:text-teal-300 transition-colors">
+              Blog
+            </Link>
+            <span className="text-zinc-600">•</span>
             <Link href="/about" className="hover:text-teal-300 transition-colors">
               About Us
             </Link>
             <span className="text-zinc-600">•</span>
             <Link href="/terms" className="hover:text-teal-300 transition-colors">
-              Terms and Conditions
+              Terms
             </Link>
             <span className="text-zinc-600">•</span>
             <Link href="/privacy-policy" className="hover:text-teal-300 transition-colors">
-              Privacy Policy
+              Privacy
             </Link>
           </div>
         </div>

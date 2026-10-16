@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { InternalQuery } from "@/firebase/firestore/use-collection";
 import { allGames } from "@/lib/games";
+import { AuthGateModal } from "@/components/auth/auth-gate-modal";
 
 const pageTitles: { [key: string]: string } = {
   "/": "LingoLandVerse Home",
@@ -89,6 +90,15 @@ export function AppHeader() {
   const [announcement, setAnnouncement] = useState<{ text: string; isActive: boolean } | null>(null);
   const [isClearAlertOpen, setIsClearAlertOpen] = useState(false);
   const [activeReminders, setActiveReminders] = useState<{ id: string; title: string; content: string }[]>([]);
+  const [isAuthGateOpen, setIsAuthGateOpen] = useState(false);
+
+  const handleReturnToMenu = () => {
+    if (!user && !isGuest) {
+      setIsAuthGateOpen(true);
+      return;
+    }
+    router.push('/');
+  };
 
 
   const notificationsQuery = useMemoFirebase(() => {
@@ -419,7 +429,7 @@ export function AppHeader() {
         <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              onClick={() => router.push('/')}
+              onClick={handleReturnToMenu}
               className="group px-3 py-1.5 h-10 rounded-2xl border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/70 text-cyan-300 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.25)] transition-all hover:scale-105 active:scale-95 gap-2 font-bold text-xs"
               title="Return to Menu & Cosmic Cockpit"
             >
@@ -429,7 +439,7 @@ export function AppHeader() {
             <div className="h-6 w-px bg-border/50 hidden md:block mx-1"></div>
             <div
               className="items-center gap-2.5 px-3 py-1.5 rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-slate-900/70 via-indigo-950/40 to-slate-900/70 backdrop-blur-md shadow-sm hidden md:flex cursor-pointer transition-all hover:border-indigo-400/50"
-              onClick={() => router.push('/')}
+              onClick={handleReturnToMenu}
               title="Return to Menu"
             >
                 <div className="p-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 shrink-0">
@@ -479,6 +489,16 @@ export function AppHeader() {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      <AuthGateModal
+        open={isAuthGateOpen}
+        onOpenChange={setIsAuthGateOpen}
+        canDismiss={true}
+        onGuestSuccess={() => {
+          setIsAuthGateOpen(false);
+          router.push('/');
+        }}
+      />
     </header>
   );
 }
