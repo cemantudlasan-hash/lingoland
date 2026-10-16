@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
+import { StudyRoomLoadingScreen } from '@/components/study-room/StudyRoomLoadingScreen';
 import Link from 'next/link';
 
 const STUDY_ROOM_LOCAL_PATH = '/study-room-app/index.html';
@@ -18,7 +19,17 @@ const STUDY_ROOM_LOCAL_PATH = '/study-room-app/index.html';
 export default function StudyRoomPage() {
   const { user, isLoading, isGuest } = useAuth();
   const [iframeKey, setIframeKey] = useState(0);
+  const [isEnteringLoading, setIsEnteringLoading] = useState(true);
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  // Animated loading screen when entering or reloading the Acoustic Study Room
+  useEffect(() => {
+    setIsEnteringLoading(true);
+    const timer = setTimeout(() => {
+      setIsEnteringLoading(false);
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [iframeKey]);
 
   // Sync user info into localStorage for instant same-origin sharing
   useEffect(() => {
@@ -47,6 +58,7 @@ export default function StudyRoomPage() {
   };
 
   const handleReload = () => {
+    setIsEnteringLoading(true);
     setIframeKey((prev) => prev + 1);
   };
 
@@ -69,8 +81,8 @@ export default function StudyRoomPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-[80vh]">
-        <Loader2 className="animate-spin h-8 w-8 text-indigo-500" />
+      <div className="relative min-h-[88vh] w-full flex flex-col items-center justify-center rounded-3xl overflow-hidden">
+        <StudyRoomLoadingScreen statusText="Connecting to LingoLandverse..." />
       </div>
     );
   }
@@ -177,6 +189,12 @@ export default function StudyRoomPage() {
 
       {/* Embedded Study Room: 100% Reliable, Zero White Screen on Android, iOS & Mac OS */}
       <div className="w-full flex-1 min-h-[82vh] sm:min-h-[88vh] rounded-3xl border-2 border-indigo-500/30 overflow-hidden bg-slate-950 shadow-[0_10px_40px_rgba(0,0,0,0.6)] relative">
+        <AnimatePresence>
+          {isEnteringLoading && (
+            <StudyRoomLoadingScreen statusText="Creating Your Study Room" />
+          )}
+        </AnimatePresence>
+
         <iframe
           key={iframeKey}
           ref={iframeRef}
@@ -184,7 +202,7 @@ export default function StudyRoomPage() {
           src={studyRoomSrc}
           onLoad={handleIframeLoad}
           title="Acoustic Study Room - Syllabus Gateway Hub"
-          className="w-full h-full min-h-[82vh] sm:min-h-[88vh] border-0 bg-slate-50"
+          className="w-full h-full min-h-[82vh] sm:min-h-[88vh] border-0"
           allow="microphone; autoplay; clipboard-write; fullscreen"
         />
       </div>

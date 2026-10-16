@@ -7506,6 +7506,79 @@ var languageModules = [
         }
       },
       {
+        id: "th-01b",
+        title: "Thai Alphabet Intermediate: Vowels & Classes",
+        description: "Master the 3 consonant classes (Mid, High, Low) and essential short/long vowel pairs",
+        type: "pronunciation",
+        difficulty: "intermediate",
+        duration: "20 min",
+        content: {
+          intro: "Thai consonants are divided into 3 classes: Middle, High, and Low. When combined with short or long vowels, these classes dictate the innate tone of every syllable.",
+          keyPhrases: [
+            { native: "\u0E15", romanized: "T (Tao - Turtle)", english: "Mid Class Consonant" },
+            { native: "\u0E1A", romanized: "B (Baimai - Leaf)", english: "Mid Class Consonant" },
+            { native: "\u0E1B", romanized: "P (Pla - Fish)", english: "Mid Class Consonant" },
+            { native: "\u0E2D", romanized: "O (Ang - Basin)", english: "Mid Class Consonant / Vowel Carrier" },
+            { native: "\u0E09", romanized: "Ch (Ching - Cymbals)", english: "High Class Consonant" },
+            { native: "\u0E16", romanized: "Th (Thung - Bag)", english: "High Class Consonant" },
+            { native: "\u0E1C", romanized: "Ph (Phueng - Bee)", english: "High Class Consonant" },
+            { native: "\u0E2A", romanized: "S (Sua - Tiger)", english: "High Class Consonant" },
+            { native: "\u0E2B", romanized: "H (Hip - Chest)", english: "High Class Consonant" },
+            { native: "\u0E04", romanized: "Kh (Khwai - Buffalo)", english: "Low Class Consonant" },
+            { native: "\u0E21", romanized: "M (Ma - Horse)", english: "Low Class Sonorant Consonant" },
+            { native: "\u0E19", romanized: "N (Nu - Mouse)", english: "Low Class Sonorant Consonant" },
+            { native: "\u0E23", romanized: "R (Rua - Boat)", english: "Low Class Sonorant Consonant" },
+            { native: "\u0E27", romanized: "W (Waen - Ring)", english: "Low Class Sonorant Consonant" },
+            { native: "\u0E30", romanized: "Sara A", english: "Short Vowel sound (as in cup)" },
+            { native: "\u0E32", romanized: "Sara Aa", english: "Long Vowel sound (as in father)" },
+            { native: "\u0E34", romanized: "Sara I", english: "Short Vowel sound (as in sit)" },
+            { native: "\u0E35", romanized: "Sara Ee", english: "Long Vowel sound (as in see)" },
+            { native: "\u0E38", romanized: "Sara U", english: "Short Vowel sound (as in put)" },
+            { native: "\u0E39", romanized: "Sara Oo", english: "Long Vowel sound (as in moon)" }
+          ],
+          tips: [
+            "Middle class consonants (\u0E01 \u0E08 \u0E14 \u0E15 \u0E0E \u0E0F \u0E1A \u0E1B \u0E2D) are the most predictable: they can produce all 5 tones with tone marks.",
+            "High class consonants start with a rising tone when unmarked in live syllables.",
+            "Vowel length matters: short vowels create dead syllables (abrupt stops), while long vowels create live syllables."
+          ],
+          practice: "Say each consonant paired with Sara Aa (e.g. \u0E01\u0E32, \u0E02\u0E32, \u0E04\u0E32) and listen for how consonant class changes the base tone."
+        }
+      },
+      {
+        id: "th-01c",
+        title: "Thai Alphabet Pro: 44 Consonants & Tone Mastery",
+        description: "Complete unabridged masterclass: all 44 consonants, tone marks (\u0E48 \u0E49 \u0E4A \u0E4B), silent markers, and tone calculation matrices",
+        type: "pronunciation",
+        difficulty: "advanced",
+        duration: "30 min",
+        content: {
+          intro: "Complete Thai script mastery. Learn the complete inventory of all 44 consonants, the 4 tonal accent marks, the silent Karan marker (\u0E4C), and the algorithmic tone calculation matrix.",
+          keyPhrases: [
+            { native: "\u0E01 \u0E02 \u0E03 \u0E04 \u0E05 \u0E06 \u0E07", romanized: "K, Kh, Kh, Kh, Kh, Kh, Ng", english: "Guttural & Velar Series (\u0E01-\u0E07)" },
+            { native: "\u0E08 \u0E09 \u0E0A \u0E0B \u0E0C \u0E0D", romanized: "J, Ch, Ch, S, Ch, Y", english: "Palatal Series (\u0E08-\u0E0D)" },
+            { native: "\u0E0E \u0E0F \u0E10 \u0E11 \u0E12 \u0E13", romanized: "D, T, Th, Th, Th, N", english: "Retroflex Series (Formal loanwords \u0E0E-\u0E13)" },
+            { native: "\u0E14 \u0E15 \u0E16 \u0E17 \u0E18 \u0E19", romanized: "D, T, Th, Th, Th, N", english: "Dental Series (\u0E14-\u0E19)" },
+            { native: "\u0E1A \u0E1B \u0E1C \u0E1D \u0E1E \u0E1F \u0E20 \u0E21", romanized: "B, P, Ph, F, Ph, F, Ph, M", english: "Labial Series (\u0E1A-\u0E21)" },
+            { native: "\u0E22 \u0E23 \u0E25 \u0E27", romanized: "Y, R, L, W", english: "Semivowels & Liquids (\u0E22-\u0E27)" },
+            { native: "\u0E28 \u0E29 \u0E2A \u0E2B \u0E2C \u0E2D \u0E2E", romanized: "S, S, S, H, L, O, H", english: "Sibilants & Glottals (\u0E28-\u0E2E)" },
+            { native: "\u0E44\u0E21\u0E49\u0E40\u0E2D\u0E01 ( -\u0E48 )", romanized: "Mai Ek", english: "Tone Mark 1: Produces Low tone (Mid/High class) or Falling tone (Low class)" },
+            { native: "\u0E44\u0E21\u0E49\u0E42\u0E17 ( -\u0E49 )", romanized: "Mai Tho", english: "Tone Mark 2: Produces Falling tone (Mid/High class) or High tone (Low class)" },
+            { native: "\u0E44\u0E21\u0E49\u0E15\u0E23\u0E35 ( -\u0E4A )", romanized: "Mai Tri", english: "Tone Mark 3: Produces High tone (Exclusive to Mid class)" },
+            { native: "\u0E44\u0E21\u0E49\u0E08\u0E31\u0E15\u0E27\u0E32 ( -\u0E4B )", romanized: "Mai Chattawa", english: "Tone Mark 4: Produces Rising tone (Exclusive to Mid class)" },
+            { native: "\u0E01\u0E32\u0E23\u0E31\u0E19\u0E15\u0E4C ( -\u0E4C )", romanized: "Thanthakhat / Karan", english: "Silent Marker: Silences the consonant over which it sits" },
+            { native: "\u0E2B \u0E19\u0E33", romanized: "Ho Nam", english: "Silent Leading H: Converts low class consonants to high class tone behavior" },
+            { native: "\u0E04\u0E33\u0E40\u0E1B\u0E47\u0E19 (Live)", romanized: "Kham Pen", english: "Live Syllables: End in long vowels or sonorants (-m, -n, -ng, -w, -y)" },
+            { native: "\u0E04\u0E33\u0E15\u0E32\u0E22 (Dead)", romanized: "Kham Tai", english: "Dead Syllables: End in short vowels or stop consonants (-k, -t, -p)" }
+          ],
+          tips: [
+            "There are 44 consonants total: 9 Middle class, 11 High class, and 24 Low class (split into 14 paired and 10 single sonorants).",
+            "Tone calculation formula: [Consonant Class] + [Syllable Type: Live vs Dead] + [Vowel Length: Short vs Long] + [Tone Mark if present].",
+            "\u0E03 (Khor Khuat) and \u0E05 (Khor Khon) are obsolete in modern typography but preserved in the traditional 44 alphabet alphabetarium."
+          ],
+          practice: "Practice deciphering tone rules on sample words: \u0E02\u0E49\u0E32\u0E27 (High class + Mai Tho = Falling tone), \u0E21\u0E32 (Low class + Live = Mid tone), \u0E21\u0E32\u0E01 (Low class + Dead long = Falling tone)."
+        }
+      },
+      {
         id: "th-02",
         title: "Greetings & Politeness",
         description: "Essential Thai greetings and polite expressions",
