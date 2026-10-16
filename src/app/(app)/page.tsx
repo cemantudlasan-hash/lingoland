@@ -332,12 +332,6 @@ export default function LingoLandVerseHomePage() {
         {/* Navigation Links + Utility Controls */}
         <div className="flex items-center gap-5 sm:gap-8">
           <nav className="hidden sm:flex items-center gap-6 md:gap-8 text-xs md:text-sm font-semibold text-slate-300">
-            <button
-              onClick={() => setInfoModal("about")}
-              className="hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all"
-            >
-              About
-            </button>
             {user && !isGuest && (
               <button
                 onClick={() => setInfoModal("leaderboard")}
@@ -817,6 +811,37 @@ export default function LingoLandVerseHomePage() {
           </div>
         </div>
       </div>
+
+      {/* 3. HOMEPAGE FOOTER (Compliance & Policy Links for Google AdSense) */}
+      <footer className="relative z-20 w-full border-t border-white/[0.08] bg-slate-950/70 backdrop-blur-xl py-6 px-4 sm:px-8 lg:px-12 mt-auto">
+        <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          <div className="flex flex-wrap items-center gap-2 text-center md:text-left">
+            <span className="font-semibold text-slate-300">© 2026 LingoLandVerse</span>
+            <span className="text-slate-600 hidden sm:inline">•</span>
+            <span className="text-slate-400">Educational Universe for ESL Learners &amp; Educators</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 font-medium">
+            <Link
+              href="/about"
+              className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
+            >
+              About Us
+            </Link>
+            <Link
+              href="/terms"
+              className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
+            >
+              Terms and Conditions
+            </Link>
+            <Link
+              href="/privacy-policy"
+              className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
+            >
+              Privacy Policy
+            </Link>
+          </div>
+        </div>
+      </footer>
 
       {/* 4. PREMIUM GLASSMORPHISM AUTHENTICATION MODAL (With vibrant neon-glowing typography) */}
       <Dialog

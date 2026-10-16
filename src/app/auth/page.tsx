@@ -807,20 +807,35 @@ export default function AuthPage() {
       </div>
 
       {/* 5. CONNECTED BOTTOM DOCK BAR - Spans full width, connects seamlessly with sidebar */}
-      <footer className="fixed left-0 right-0 bottom-0 h-14 border-t border-cyan-500/20 bg-slate-950/40 backdrop-blur-xl z-40 flex items-center justify-between">
-        {/* Desktop View: System Ticker & Explore Button */}
+      <footer className="fixed left-0 right-0 bottom-0 min-h-14 py-1.5 md:py-0 border-t border-cyan-500/20 bg-slate-950/85 backdrop-blur-xl z-40 flex items-center justify-between">
+        {/* Desktop View: System Links & Explore Button */}
         <div className="hidden md:flex items-center justify-between w-full pl-24 pr-6">
           <div className="flex items-center gap-4 text-xs text-zinc-300">
-            <span className="flex items-center gap-1.5 font-semibold">
+            <span className="flex items-center gap-1.5 font-semibold text-white">
               <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping" />
-              Next-Gen Language Learning • 79+ Subject Worlds
+              LingoLandVerse
             </span>
-            <span className="hidden lg:inline-flex items-center gap-1 text-zinc-400">
-              <Globe className="w-3.5 h-3.5 text-teal-400" /> Global ESL
-            </span>
-            <span className="hidden lg:inline-flex items-center gap-1 text-zinc-400">
-              <Layers className="w-3.5 h-3.5 text-cyan-400" /> Real-time Speech AI
-            </span>
+            <span className="text-zinc-600">•</span>
+            <Link 
+              href="/about" 
+              className="text-zinc-300 hover:text-teal-300 hover:underline transition-colors font-medium"
+            >
+              About Us
+            </Link>
+            <span className="text-zinc-600">•</span>
+            <Link 
+              href="/terms" 
+              className="text-zinc-300 hover:text-teal-300 hover:underline transition-colors font-medium"
+            >
+              Terms and Conditions
+            </Link>
+            <span className="text-zinc-600">•</span>
+            <Link 
+              href="/privacy-policy" 
+              className="text-zinc-300 hover:text-teal-300 hover:underline transition-colors font-medium"
+            >
+              Privacy Policy
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">
@@ -834,54 +849,69 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* Mobile View: Auto-Arranging High-Tech Dock Navigation */}
-        <div className="flex md:hidden items-center justify-around w-full px-2 py-1">
-          <button 
-            onClick={() => { 
-              setActiveSideNav("signin"); 
-              if (user) {
-                router.push('/profile');
-              } else {
-                document.getElementById('login-card-section')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${activeSideNav === 'signin' || activeSideNav === 'profile' ? 'text-teal-400 bg-teal-500/10' : 'text-zinc-400'}`}
-            title={user ? "Profile" : "Sign-In"}
-          >
-            {user ? <User className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
-            <span className="text-[10px] font-medium">{user ? "Profile" : "Sign-In"}</span>
-          </button>
-          <button 
-            onClick={() => { setActiveSideNav("courses"); router.push('/language-modules'); }}
-            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${activeSideNav === 'courses' ? 'text-teal-400 bg-teal-500/10' : 'text-zinc-400'}`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span className="text-[10px] font-medium">Courses</span>
-          </button>
-          <button 
-            onClick={() => { setActiveSideNav("community"); router.push('/lounge'); }}
-            className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${activeSideNav === 'community' ? 'text-teal-400 bg-teal-500/10' : 'text-zinc-400'}`}
-          >
-            <Users className="w-4 h-4" />
-            <span className="text-[10px] font-medium">Community</span>
-          </button>
-          <a 
-            href="https://www.myhomeworkhub.co.in" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors text-zinc-400 hover:text-cyan-300"
-            title="HomeworkHub"
-          >
-            <GraduationCap className="w-4 h-4" />
-            <span className="text-[10px] font-medium">HomeworkHub</span>
-          </a>
-          <Link 
-            href="/games"
-            className="flex items-center gap-1 text-[10px] font-bold text-teal-300 bg-teal-500/20 border border-teal-500/30 px-2.5 py-1 rounded-lg"
-          >
-            <span>Games</span>
-            <ChevronRight className="w-3 h-3" />
-          </Link>
+        {/* Mobile View: Auto-Arranging High-Tech Dock Navigation & Compliance Text Links */}
+        <div className="flex md:hidden flex-col items-center justify-center w-full px-2 py-1 gap-1">
+          <div className="flex items-center justify-around w-full">
+            <button 
+              onClick={() => { 
+                setActiveSideNav("signin"); 
+                if (user) {
+                  router.push('/profile');
+                } else {
+                  document.getElementById('login-card-section')?.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${activeSideNav === 'signin' || activeSideNav === 'profile' ? 'text-teal-400 bg-teal-500/10' : 'text-zinc-400'}`}
+              title={user ? "Profile" : "Sign-In"}
+            >
+              {user ? <User className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+              <span className="text-[10px] font-medium">{user ? "Profile" : "Sign-In"}</span>
+            </button>
+            <button 
+              onClick={() => { setActiveSideNav("courses"); router.push('/language-modules'); }}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${activeSideNav === 'courses' ? 'text-teal-400 bg-teal-500/10' : 'text-zinc-400'}`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span className="text-[10px] font-medium">Courses</span>
+            </button>
+            <button 
+              onClick={() => { setActiveSideNav("community"); router.push('/lounge'); }}
+              className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors ${activeSideNav === 'community' ? 'text-teal-400 bg-teal-500/10' : 'text-zinc-400'}`}
+            >
+              <Users className="w-4 h-4" />
+              <span className="text-[10px] font-medium">Community</span>
+            </button>
+            <a 
+              href="https://www.myhomeworkhub.co.in" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg transition-colors text-zinc-400 hover:text-cyan-300"
+              title="HomeworkHub"
+            >
+              <GraduationCap className="w-4 h-4" />
+              <span className="text-[10px] font-medium">HomeworkHub</span>
+            </a>
+            <Link 
+              href="/games"
+              className="flex items-center gap-1 text-[10px] font-bold text-teal-300 bg-teal-500/20 border border-teal-500/30 px-2.5 py-1 rounded-lg"
+            >
+              <span>Games</span>
+              <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="flex items-center justify-center gap-3 text-[10px] text-zinc-400 pt-0.5 border-t border-white/[0.06] w-full">
+            <Link href="/about" className="hover:text-teal-300 transition-colors">
+              About Us
+            </Link>
+            <span className="text-zinc-600">•</span>
+            <Link href="/terms" className="hover:text-teal-300 transition-colors">
+              Terms and Conditions
+            </Link>
+            <span className="text-zinc-600">•</span>
+            <Link href="/privacy-policy" className="hover:text-teal-300 transition-colors">
+              Privacy Policy
+            </Link>
+          </div>
         </div>
       </footer>
     </div>
