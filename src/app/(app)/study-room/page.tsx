@@ -18,13 +18,53 @@ const STUDY_ROOM_LOCAL_PATH = '/study-room-app/index.html';
 export default function StudyRoomPage() {
   const { user, isLoading, isGuest } = useAuth();
   const [iframeKey, setIframeKey] = useState(0);
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  // Sync user info into localStorage for instant same-origin sharing
+  useEffect(() => {
+    if (user) {
+      try {
+        localStorage.setItem(
+          'study_room_sync_user',
+          JSON.stringify({
+            uid: user.uid,
+            email: user.email || '',
+            displayName: user.displayName || 'Lingo Student',
+            photoURL: user.photoURL || '',
+          })
+        );
+      } catch (_) {}
+    }
+  }, [user]);
+
+  // Construct iframe src with encoded auth parameters
+  const studyRoomSrc = user
+    ? `${STUDY_ROOM_LOCAL_PATH}?uid=${encodeURIComponent(user.uid)}&email=${encodeURIComponent(user.email || '')}&name=${encodeURIComponent(user.displayName || 'Lingo Student')}&photo=${encodeURIComponent(user.photoURL || '')}`
+    : STUDY_ROOM_LOCAL_PATH;
 
   const handleOpenExternal = () => {
-    window.open(STUDY_ROOM_LOCAL_PATH, '_blank', 'noopener,noreferrer');
+    window.open(studyRoomSrc, '_blank', 'noopener,noreferrer');
   };
 
   const handleReload = () => {
     setIframeKey((prev) => prev + 1);
+  };
+
+  const handleIframeLoad = () => {
+    if (user && iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        {
+          type: 'SYNC_USER',
+          user: {
+            uid: user.uid,
+            email: user.email || '',
+            displayName: user.displayName || 'Lingo Student',
+            photoURL: user.photoURL || '',
+          },
+        },
+        '*'
+      );
+    }
   };
 
   if (isLoading) {
@@ -139,11 +179,13 @@ export default function StudyRoomPage() {
       <div className="w-full flex-1 min-h-[82vh] sm:min-h-[88vh] rounded-3xl border-2 border-indigo-500/30 overflow-hidden bg-slate-950 shadow-[0_10px_40px_rgba(0,0,0,0.6)] relative">
         <iframe
           key={iframeKey}
+          ref={iframeRef}
           id="study-room-frame"
-          src={STUDY_ROOM_LOCAL_PATH}
+          src={studyRoomSrc}
+          onLoad={handleIframeLoad}
           title="Acoustic Study Room - Syllabus Gateway Hub"
           className="w-full h-full min-h-[82vh] sm:min-h-[88vh] border-0 bg-slate-50"
-          allow="microphone; speech-synthesis; clipboard-write; autoplay"
+          allow="microphone; autoplay; clipboard-write; fullscreen"
         />
       </div>
     </div>

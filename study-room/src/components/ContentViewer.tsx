@@ -121,9 +121,15 @@ export default function ContentViewer({
     handleFetchTranslation();
   }, [lesson.id, targetLanguage.code]);
 
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
   // Clean speech and sounds on unmount
   useEffect(() => {
     return () => {
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      }
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
@@ -131,119 +137,108 @@ export default function ContentViewer({
     };
   }, []);
 
-  // Text to Speech
-  const speakLine = async (text: string, speaker: string, index: number) => {
-    setPlayingLineIndex(index);
+  const cleanTextToSpeak = (rawText: string) => {
+    let cleaned = rawText.trim();
+    // Strip speaker prefixes like "A: " or "👤 Sarah: "
+    cleaned = cleaned.replace(/^[👤\s]*[A-Za-z0-9\s]+:\s*/, '');
+    // Extract native part before parentheses/hyphens if formatted with pronunciation
+    const parts = cleaned.split(/[\(\-\—]/);
+    if (parts[0] && parts[0].trim().length > 0) {
+      cleaned = parts[0].trim();
+    }
+    return cleaned || rawText;
+  };
+
+  const playTtsAudio = async (text: string, langCode: string, onEnd?: () => void) => {
+    // Stop any ongoing playback
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch (_) {}
     }
 
-    if (lesson.targetLang && 'speechSynthesis' in window) {
-      let textToSpeak = text;
-      const parts = text.split(/[\(\-\—]/);
-      if (parts[0]) {
-        textToSpeak = parts[0].trim();
-      }
+    const textToSpeak = cleanTextToSpeak(text);
+    const targetLang = langCode || targetLanguage?.code || 'th';
 
-      const localeMap: Record<string, string> = {
-        th: "th-TH",
-        ko: "ko-KR",
-        ja: "ja-JP",
-        es: "es-ES",
-        fr: "fr-FR",
-        vi: "vi-VN",
-        zh: "zh-CN",
-        de: "de-DE",
-      };
-      
-      const u = new SpeechSynthesisUtterance(textToSpeak);
-      u.lang = localeMap[targetLanguage.code] || "en-US";
-      u.rate = 0.85;
-      u.onend = () => setPlayingLineIndex(null);
-      u.onerror = () => setPlayingLineIndex(null);
-      window.speechSynthesis.speak(u);
-      return;
-    }
-
+    // 1. Primary: Stream real native audio from /api/tts
     try {
-      // Determine unique voice names for distinct baristas/sarah
-      const voiceNameMap: Record<string, string> = {
-        "Barista": "Zephyr",
-        "Sarah": "Kore",
-        "Gate Announcer": "Fenrir",
-      };
-      const requestedSpeaker = voiceNameMap[speaker] || "Kore";
-
-      const res = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, speakerName: requestedSpeaker }),
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textToSpeak, lang: targetLang }),
       });
 
       if (res.ok) {
         const data = await res.json();
         if (data.audio) {
-          const audioUrl = `data:audio/wav;base64,${data.audio}`;
-          const audio = new Audio(audioUrl);
-          audio.onended = () => setPlayingLineIndex(null);
+          const mime = data.mime || 'audio/mpeg';
+          const audio = new Audio(`data:${mime};base64,${data.audio}`);
+          currentAudioRef.current = audio;
+          audio.onended = () => {
+            currentAudioRef.current = null;
+            onEnd?.();
+          };
+          audio.onerror = () => {
+            currentAudioRef.current = null;
+            onEnd?.();
+          };
           await audio.play();
-          return;
+          return true;
         }
       }
-    } catch (e) {
-      console.warn("Failing back to standard browser TTS speech synthesis:", e);
+    } catch (err) {
+      console.warn('API TTS failed, falling back to Web Speech API:', err);
     }
 
-    // Web speech API Browser Fallback
-    if ("speechSynthesis" in window) {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      u.rate = 0.9; // clear educational speed
-      u.onend = () => setPlayingLineIndex(null);
-      u.onerror = () => setPlayingLineIndex(null);
-      window.speechSynthesis.speak(u);
+    // 2. Fallback: Browser Web Speech API
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.resume();
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(textToSpeak);
+        const localeMap: Record<string, string> = {
+          th: 'th-TH',
+          ko: 'ko-KR',
+          ja: 'ja-JP',
+          es: 'es-ES',
+          fr: 'fr-FR',
+          vi: 'vi-VN',
+          zh: 'zh-CN',
+          de: 'de-DE',
+          en: 'en-US',
+        };
+        u.lang = localeMap[targetLang] || 'en-US';
+        u.rate = 0.85;
+        u.onend = () => onEnd?.();
+        u.onerror = () => onEnd?.();
+        window.speechSynthesis.speak(u);
+        return true;
+      } catch (e) {
+        console.warn('SpeechSynthesis error:', e);
+        onEnd?.();
+      }
     } else {
-      setPlayingLineIndex(null);
+      onEnd?.();
     }
+    return false;
   };
 
-  const speakSingleWord = (word: string) => {
+  // Text to Speech for dialogue lines
+  const speakLine = async (text: string, speaker: string, index: number) => {
+    setPlayingLineIndex(index);
+    const lang = lesson.targetLang ? targetLanguage.code : 'en';
+    await playTtsAudio(text, lang, () => setPlayingLineIndex(null));
+  };
+
+  // Text to Speech for words and sentences
+  const speakSingleWord = async (word: string) => {
     setPlayingWord(word);
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      let textToSpeak = word;
-      if (lesson.targetLang) {
-        const parts = word.split(/[\(\-\—]/);
-        if (parts[0]) {
-          textToSpeak = parts[0].trim();
-        }
-      }
-
-      const u = new SpeechSynthesisUtterance(textToSpeak);
-
-      if (lesson.targetLang) {
-        const localeMap: Record<string, string> = {
-          th: "th-TH",
-          ko: "ko-KR",
-          ja: "ja-JP",
-          es: "es-ES",
-          fr: "fr-FR",
-          vi: "vi-VN",
-          zh: "zh-CN",
-          de: "de-DE",
-        };
-        u.lang = localeMap[targetLanguage.code] || "en-US";
-      } else {
-        u.lang = "en-US";
-      }
-
-      u.rate = 0.8;
-      u.onend = () => setPlayingWord(null);
-      u.onerror = () => setPlayingWord(null);
-      window.speechSynthesis.speak(u);
-    } else {
-      setPlayingWord(null);
-    }
+    const lang = lesson.targetLang ? targetLanguage.code : 'en';
+    await playTtsAudio(word, lang, () => setPlayingWord(null));
   };
 
   // Web Audio Analyser for waves rendering

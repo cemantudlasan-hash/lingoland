@@ -13,7 +13,7 @@ import { User as FirebaseUser } from "firebase/auth";
 export default function App() {
   // Lessons and State lists
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState<UserStats>({
     completedLessons: [],
     streakCount: 0,
@@ -25,24 +25,56 @@ export default function App() {
     examAttempts: {},
   });
   const [currentLanguage, setCurrentLanguage] = useState<TargetLanguage>(LANGUAGES[0]); // default Thai
-
-  // Active navigator selection states
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<LC_Category | "all">("all");
   const [selectedLevel, setSelectedLevel] = useState<LC_Level | "all">("all");
-
-  // Selection tab state ("syllabus", "study-room", or "exams")
   const [activeTab, setActiveTab] = useState<"syllabus" | "study-room" | "exams">("syllabus");
-
-  // Loading indicator states
   const [loading, setLoading] = useState(true);
 
-  // Subscribe to Firebase Auth state shifts
+  // Subscribe to Firebase Auth state shifts and LingoLand parent sync
   useEffect(() => {
+    // 1. Check URL parameters from parent iframe
+    const params = new URLSearchParams(window.location.search);
+    const urlUid = params.get("uid");
+    if (urlUid) {
+      setUser({
+        uid: urlUid,
+        email: params.get("email") || "",
+        displayName: params.get("name") || "Lingo Student",
+        photoURL: params.get("photo") || "",
+      });
+    } else {
+      // 2. Check localStorage for synchronized session
+      try {
+        const stored = localStorage.getItem("study_room_sync_user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.uid) {
+            setUser(parsed);
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 3. Listen to message events from parent Next.js container
+    const handleMsg = (e: MessageEvent) => {
+      if (e.data?.type === "SYNC_USER" && e.data?.user?.uid) {
+        setUser(e.data.user);
+      }
+    };
+    window.addEventListener("message", handleMsg);
+
+    // 4. Firebase Auth local subscription
     const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
-      setUser(firebaseUser);
+      if (firebaseUser) {
+        setUser(firebaseUser);
+      }
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("message", handleMsg);
+    };
   }, []);
 
   // Fetch initial user progress stats on mount / user shift
@@ -318,6 +350,7 @@ export default function App() {
           <StudyRoom
             stats={stats}
             onStatsSynced={(cloudStats) => setStats(cloudStats)}
+            user={user}
           />
         ) : (
           /* MAIN DIRECTORY VIEW SYLLABUS LIST */

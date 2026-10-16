@@ -43,6 +43,7 @@ import { UserStats } from "../types";
 interface StudyRoomProps {
   stats: UserStats;
   onStatsSynced: (cloudStats: UserStats) => void;
+  user?: any;
 }
 
 interface StudyNote {
@@ -54,8 +55,8 @@ interface StudyNote {
   language?: string;
 }
 
-export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+export default function StudyRoom({ stats, onStatsSynced, user: propUser }: StudyRoomProps) {
+  const [user, setUser] = useState<any>(propUser || null);
   const [authLoading, setAuthLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "synced" | "error">("idle");
   const [notes, setNotes] = useState<StudyNote[]>([]);
@@ -69,13 +70,61 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
   // TTS audio playback states
   const [playingNoteId, setPlayingNoteId] = useState<string | null>(null);
 
-  // 1. Subscribe to Auth status shifts
+  // Sync propUser if changed
   useEffect(() => {
+    if (propUser) {
+      setUser(propUser);
+      setAuthLoading(false);
+    }
+  }, [propUser]);
+
+  // 1. Subscribe to Auth status shifts and external LingoLand sync
+  useEffect(() => {
+    // Check URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const urlUid = params.get("uid");
+    if (urlUid) {
+      setUser({
+        uid: urlUid,
+        email: params.get("email") || "",
+        displayName: params.get("name") || "Lingo Student",
+        photoURL: params.get("photo") || "",
+      });
+      setAuthLoading(false);
+    } else {
+      // Check localStorage
+      try {
+        const stored = localStorage.getItem("study_room_sync_user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.uid) {
+            setUser(parsed);
+            setAuthLoading(false);
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Listen to parent frame postMessage
+    const handleMsg = (e: MessageEvent) => {
+      if (e.data?.type === "SYNC_USER" && e.data?.user?.uid) {
+        setUser(e.data.user);
+        setAuthLoading(false);
+      }
+    };
+    window.addEventListener("message", handleMsg);
+
     const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
-      setUser(firebaseUser);
+      if (firebaseUser) {
+        setUser(firebaseUser);
+      }
       setAuthLoading(false);
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener("message", handleMsg);
+    };
   }, []);
 
   // 2. Fetch/Write stats whenever user logs in or local stats update
@@ -242,9 +291,22 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
   };
 
   // Play pronunciation via target language acoustic TTS
-  const playSpeech = async (text: string, noteId: string) => {
+  const playSpeech = async (text: string, noteId: string, noteLang?: string) => {
     if (playingNoteId) return; // Prevent double trigger
     setPlayingNoteId(noteId);
+
+    const codeMap: Record<string, string> = {
+      Thai: "th",
+      Korean: "ko",
+      Japanese: "ja",
+      Spanish: "es",
+      French: "fr",
+      Vietnamese: "vi",
+      Chinese: "zh",
+      German: "de",
+      English: "en",
+    };
+    const targetLang = noteLang ? (codeMap[noteLang] || "th") : "th";
 
     try {
       const res = await fetch("/api/tts", {
@@ -252,6 +314,7 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           text, 
+          lang: targetLang,
           speakerName: "Zephyr" 
         }),
       });
@@ -259,9 +322,11 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
       if (res.ok) {
         const data = await res.json();
         if (data.audio) {
-          const audioUrl = `data:audio/wav;base64,${data.audio}`;
+          const mime = data.mime || "audio/mpeg";
+          const audioUrl = `data:${mime};base64,${data.audio}`;
           const audio = new Audio(audioUrl);
           audio.onended = () => setPlayingNoteId(null);
+          audio.onerror = () => setPlayingNoteId(null);
           await audio.play();
           return;
         }
@@ -272,13 +337,29 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
 
     // Browser WebSpeech backup fallback if API fails
     if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US";
-      utterance.rate = 0.95;
-      utterance.onend = () => setPlayingNoteId(null);
-      utterance.onerror = () => setPlayingNoteId(null);
-      window.speechSynthesis.speak(utterance);
+      try {
+        window.speechSynthesis.resume();
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        const localeMap: Record<string, string> = {
+          th: "th-TH",
+          ko: "ko-KR",
+          ja: "ja-JP",
+          es: "es-ES",
+          fr: "fr-FR",
+          vi: "vi-VN",
+          zh: "zh-CN",
+          de: "de-DE",
+          en: "en-US",
+        };
+        utterance.lang = localeMap[targetLang] || "en-US";
+        utterance.rate = 0.9;
+        utterance.onend = () => setPlayingNoteId(null);
+        utterance.onerror = () => setPlayingNoteId(null);
+        window.speechSynthesis.speak(utterance);
+      } catch (_) {
+        setPlayingNoteId(null);
+      }
     } else {
       setPlayingNoteId(null);
     }
@@ -342,7 +423,7 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
 
             <button
               onClick={handleLogin}
-              className="w-full flex items-center justify-center gap-3 bg-indigo-650 hover:bg-indigo-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 px-6 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_rgba(15,23,42,1)] active:translate-y-0.5 active:shadow-none duration-150 transition-all cursor-pointer"
+              className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 px-6 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_rgba(15,23,42,1)] active:translate-y-0.5 active:shadow-none duration-150 transition-all cursor-pointer"
             >
               <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
                 <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.856 0-8.8-3.943-8.8-9.0s3.944-9.0 8.8-9.0c2.41 0 4.417.857 6.012 2.378L21.4 1.13C18.945-.965 15.65 0 12.24 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12c6.685 0 12-4.8 12-12 0-.829-.074-1.636-.214-2.378H12.24Z"/>
@@ -578,10 +659,10 @@ export default function StudyRoom({ stats, onStatsSynced }: StudyRoomProps) {
 
                           <button
                             id={`listen-${note.id}`}
-                            onClick={() => playSpeech(note.content, note.id)}
+                            onClick={() => playSpeech(note.content, note.id, note.language)}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-slate-900 text-[10px] font-black uppercase tracking-wider font-display shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-y-[1px] cursor-pointer transition-all ${
                               isPlaying 
-                                ? "bg-indigo-650 text-white animate-pulse" 
+                                ? "bg-indigo-600 text-white animate-pulse" 
                                 : "bg-white text-slate-900 hover:bg-slate-50"
                             }`}
                           >
