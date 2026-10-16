@@ -11,13 +11,21 @@ import { DailyLoginModal } from "@/components/layout/daily-login-modal";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const isMounted = useIsMounted();
-  const { isLoading, authAction } = useAuth();
   const pathname = usePathname();
+  if (pathname === '/') {
+    return (
+      <div className="min-h-screen w-full overflow-x-hidden relative" suppressHydrationWarning>
+        {children}
+        {isMounted && <FloatingPetWidget />}
+      </div>
+    );
+  }
 
   if (!isMounted) {
     return null;
   }
-  
+
+  const { isLoading, authAction } = useAuth();
   if (isLoading && !authAction) {
     return (
       <div className="flex h-screen min-h-svh flex-col bg-background text-foreground items-center justify-center">
@@ -25,15 +33,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm font-medium text-muted-foreground animate-pulse">Loading LingoLand...</p>
         </div>
-      </div>
-    );
-  }
-
-  if (pathname === '/') {
-    return (
-      <div className="min-h-screen w-full overflow-x-hidden relative">
-        {children}
-        <FloatingPetWidget />
       </div>
     );
   }
