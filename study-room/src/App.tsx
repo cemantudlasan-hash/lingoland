@@ -256,7 +256,7 @@ export default function App() {
       {/* Subtle translucent dark overlay for contrast and depth */}
       <div className="fixed inset-0 bg-slate-950/25 pointer-events-none backdrop-blur-[0.5px]" />
 
-      <div className="relative z-10 flex flex-col gap-6 max-w-7xl w-full mx-auto flex-1">
+      <div className="relative z-10 flex flex-col gap-6 w-full max-w-[1780px] mx-auto flex-1">
         {/* Upper Navigation Header bar inside the Bento wrapper */}
         <header className="w-full bg-white/95 backdrop-blur-md border-2 border-slate-900 p-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex flex-col lg:flex-row gap-4 justify-between items-center">
           {/* Logo Brand Title */}

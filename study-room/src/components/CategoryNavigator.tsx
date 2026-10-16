@@ -104,7 +104,7 @@ export default function CategoryNavigator({
         id={`lesson-card-${lesson.id}`}
         onClick={() => onSelectLesson(lesson)}
         className={`group relative border-2 border-slate-900 rounded-2xl p-5 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:-translate-x-[1px] hover:-translate-y-[1px] duration-150 transition-all cursor-pointer flex flex-col justify-between ${
-          isCompleted ? "bg-emerald-50/50 hover:bg-emerald-50" : "bg-white hover:bg-indigo-50/20"
+          isCompleted ? "bg-emerald-50 hover:bg-emerald-100" : "bg-white hover:bg-indigo-50"
         }`}
       >
         {isCompleted && (
@@ -278,7 +278,7 @@ export default function CategoryNavigator({
                 <p className="text-xs text-slate-500 max-w-xs mx-auto mt-1">Try adjusting your active category or level filters to view additional options.</p>
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredEnglishLessons.map(renderLessonCard)}
               </div>
             )}
@@ -293,7 +293,7 @@ export default function CategoryNavigator({
             <label className="text-xs font-black text-slate-900 uppercase tracking-widest block mb-3 font-display">
               Select Language
             </label>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5 sm:gap-3">
               <button
                 id="lang-filter-all"
                 onClick={() => setActiveLang("all")}
@@ -311,7 +311,7 @@ export default function CategoryNavigator({
                     key={code}
                     id={`lang-filter-${code}`}
                     onClick={() => setActiveLang(code)}
-                    className={`px-4 py-2 rounded-xl border-2 border-slate-900 text-xs font-black uppercase tracking-wider font-display transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] ${
+                    className={`px-3.5 sm:px-4 py-2 rounded-xl border-2 border-slate-900 text-xs font-black uppercase tracking-wider font-display transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] ${
                       isActive ? `${meta.bg} ${meta.color} shadow-none translate-x-[1px] translate-y-[1px]` : "bg-white text-slate-700 hover:bg-slate-50"
                     }`}
                   >
@@ -335,52 +335,109 @@ export default function CategoryNavigator({
 
           {/* Grouped view when "All" selected */}
           {activeLang === "all" ? (
-            <div className="space-y-10">
-              {(Object.entries(LANG_META) as [TargetLang, typeof LANG_META[TargetLang]][]).map(([code, meta]) => {
-                const group = langLessons.filter((l) => l.targetLang === code);
-                const completedCount = group.filter((l) => stats.completedLessons.includes(l.id)).length;
-                return (
-                  <div key={code} className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className={`text-sm font-black uppercase tracking-wider font-display flex items-center gap-2 ${meta.color}`}>
-                        <span className="text-2xl leading-none">{meta.flag}</span>
-                        {meta.name} Language Modules
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        {completedCount === group.length && group.length > 0 && (
-                          <button
-                            onClick={() => setCertLang(code as TargetLang)}
-                            className="bg-amber-400 hover:bg-amber-300 text-slate-900 border-2 border-slate-900 px-3 py-1 text-xs font-black uppercase tracking-wider rounded-lg shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5"
-                          >
-                            <Sparkles className="w-3.5 h-3.5" />
-                            Get Certificate
-                          </button>
-                        )}
-                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider bg-white border-2 border-slate-900 px-2 py-1 rounded-lg shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
-                          {completedCount}/{group.length} completed
-                        </span>
+            <div className="space-y-8">
+              {(Object.entries(LANG_META) as [TargetLang, typeof LANG_META[TargetLang]][])
+                .filter(([code]) => langLessons.filter((l) => l.targetLang === code).length > 0)
+                .map(([code, meta]) => {
+                  const group = langLessons.filter((l) => l.targetLang === code);
+                  const completedCount = group.filter((l) => stats.completedLessons.includes(l.id)).length;
+                  return (
+                    <div key={code} className="space-y-4">
+                      {/* Solid, non-transparent header card */}
+                      <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex items-center justify-between flex-wrap gap-3">
+                        <h3 className={`text-sm sm:text-base font-black uppercase tracking-wider font-display flex items-center gap-2.5 ${meta.color}`}>
+                          <span className="text-2xl leading-none">{meta.flag}</span>
+                          {meta.name} Language Modules
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          {completedCount === group.length && group.length > 0 && (
+                            <button
+                              onClick={() => setCertLang(code as TargetLang)}
+                              className="bg-amber-400 hover:bg-amber-300 text-slate-900 border-2 border-slate-900 px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-lg shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              Get Certificate
+                            </button>
+                          )}
+                          <span className="text-xs font-black text-slate-700 uppercase tracking-wider bg-slate-100 border-2 border-slate-900 px-3 py-1 rounded-lg shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]">
+                            {completedCount}/{group.length} completed
+                          </span>
+                        </div>
+                      </div>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {group.map(renderLessonCard)}
                       </div>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {group.map(renderLessonCard)}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+
+              {/* Bottom solid card for languages in studio production — 100% visible, never transparent */}
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-5 sm:p-6 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] space-y-3.5">
+                <div className="flex items-center gap-2.5">
+                  <span className="p-1.5 rounded-lg border border-slate-900 bg-amber-100 text-amber-900">
+                    <Sparkles className="w-4 h-4" />
+                  </span>
+                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest font-display">
+                    Upcoming Language Studios in Production
+                  </h4>
+                </div>
+                <p className="text-xs font-medium text-slate-600 leading-relaxed">
+                  Audio recordings and interactive drills are actively being recorded in the studio for these additional languages:
+                </p>
+                <div className="flex flex-wrap gap-2.5 pt-1">
+                  {(Object.entries(LANG_META) as [TargetLang, typeof LANG_META[TargetLang]][])
+                    .filter(([c]) => langLessons.filter((l) => l.targetLang === c).length === 0)
+                    .map(([code, meta]) => (
+                      <button
+                        key={code}
+                        onClick={() => setActiveLang(code)}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-slate-900 bg-slate-50 hover:bg-indigo-50 text-slate-800 text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                      >
+                        <span>{meta.flag}</span>
+                        <span>{meta.name}</span>
+                        <span className="text-[10px] text-indigo-600 font-extrabold">• In Production</span>
+                      </button>
+                    ))}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest font-display">
-                  {LANG_META[activeLang].flag} {LANG_META[activeLang].name} Modules ({filteredLangLessons.length})
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex items-center justify-between flex-wrap gap-3">
+                <h3 className={`text-sm sm:text-base font-black uppercase tracking-wider font-display flex items-center gap-2.5 ${LANG_META[activeLang].color}`}>
+                  <span className="text-2xl leading-none">{LANG_META[activeLang].flag}</span>
+                  {LANG_META[activeLang].name} Modules ({filteredLangLessons.length})
                 </h3>
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                <span className="text-xs font-black text-slate-700 uppercase tracking-wider bg-slate-100 border-2 border-slate-900 px-3 py-1 rounded-lg shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]">
                   {filteredLangLessons.filter((l) => stats.completedLessons.includes(l.id)).length}/{filteredLangLessons.length} completed
                 </span>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {filteredLangLessons.map(renderLessonCard)}
-              </div>
+
+              {filteredLangLessons.length === 0 ? (
+                <div className="bg-white border-2 border-slate-900 rounded-2xl p-8 sm:p-12 text-center shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] space-y-4">
+                  <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 border-2 border-slate-900 flex items-center justify-center text-3xl shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]">
+                    {LANG_META[activeLang].flag}
+                  </div>
+                  <div className="space-y-1.5">
+                    <h4 className="text-base font-black uppercase font-display text-slate-900">
+                      {LANG_META[activeLang].name} Modules In Studio Production
+                    </h4>
+                    <p className="text-xs font-medium text-slate-600 max-w-md mx-auto leading-relaxed">
+                      Syllabuses, voice audio clips, and pronunciation drills for {LANG_META[activeLang].name} are currently being mastered in the acoustic studio.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setActiveLang("thai")}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl border-2 border-slate-900 font-black text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                  >
+                    <span>🇹🇭 Explore 19 Thai Modules</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredLangLessons.map(renderLessonCard)}
+                </div>
+              )}
             </div>
           )}
         </div>
