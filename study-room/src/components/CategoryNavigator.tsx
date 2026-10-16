@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BookOpen, Brain, Headphones, Mic, Sparkles, CheckCircle2, ChevronRight, Search, Globe, MessageCircle } from "lucide-react";
 import { Lesson, LC_Category, LC_Level, UserStats, TargetLang } from "../types";
 import LanguageCertificate from "./LanguageCertificate";
@@ -34,9 +34,18 @@ export default function CategoryNavigator({
   onSelectLesson,
 }: CategoryNavigatorProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [mainTab, setMainTab] = useState<"syllabus" | "languages">("syllabus");
+  const [mainTab, setMainTab] = useState<"syllabus" | "languages">("languages");
   const [activeLang, setActiveLang] = useState<TargetLang | "all">("all");
   const [certLang, setCertLang] = useState<TargetLang | null>(null);
+
+  const englishLessons = lessons.filter((l) => !l.targetLang);
+  const langLessons = lessons.filter((l) => !!l.targetLang);
+
+  useEffect(() => {
+    if (englishLessons.length === 0 && langLessons.length > 0) {
+      setMainTab("languages");
+    }
+  }, [englishLessons.length, langLessons.length]);
 
   const categories: Array<{ id: LC_Category | "all"; label: string; icon: any }> = [
     { id: "all", label: "All Lessons", icon: Sparkles },
@@ -52,9 +61,6 @@ export default function CategoryNavigator({
     { id: "intermediate", label: "Intermediate" },
     { id: "advanced", label: "Advanced" },
   ];
-
-  const englishLessons = lessons.filter((l) => !l.targetLang);
-  const langLessons = lessons.filter((l) => !!l.targetLang);
 
   const filteredEnglishLessons = englishLessons.filter((lesson) => {
     const categoryMatch = selectedCategory === "all" || lesson.category === selectedCategory;

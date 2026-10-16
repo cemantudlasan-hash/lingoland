@@ -2,54 +2,30 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Loader2, GraduationCap, Lock, LogIn, ExternalLink,
   BookOpen, MessageCircle, Globe, Brain, Mic, Headphones,
-  Sparkles, ChevronRight, Zap
+  Sparkles, ChevronRight, Zap, RotateCw, Maximize2
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
 import Link from 'next/link';
 
-const STUDIO_URL = 'https://studio--lingoland-kpvxp.us-central1.hosted.app';
-
-const FEATURES = [
-  { icon: Globe,       label: '7 Languages',        desc: 'Thai, Korean, Japanese, French, Spanish, Chinese & Vietnamese' },
-  { icon: Brain,       label: '33 Modules',          desc: 'Vocabulary, grammar, conversation & culture lessons' },
-  { icon: Sparkles,    label: '330 Quiz Questions',  desc: 'Interactive quizzes with detailed explanations' },
-  { icon: Mic,         label: 'Text-to-Speech',      desc: 'Listen to every dialogue line with AI voice' },
-  { icon: MessageCircle, label: 'Conversations',     desc: 'Real-life dialogue scenarios for every language' },
-  { icon: Zap,         label: 'XP & Progress',       desc: 'Earn XP, track streaks and completed modules' },
-];
+const STUDY_ROOM_LOCAL_PATH = '/study-room-app/index.html';
 
 export default function StudyRoomPage() {
   const { user, isLoading, isGuest } = useAuth();
-  const [launched, setLaunched] = useState(false);
-  const [studyRoomUrl, setStudyRoomUrl] = useState(STUDIO_URL);
+  const [iframeKey, setIframeKey] = useState(0);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        setStudyRoomUrl(process.env.NEXT_PUBLIC_STUDY_ROOM_URL || 'http://localhost:3000');
-      }
-    }
-  }, []);
-
-  const launchStudyRoom = () => {
-    window.open(studyRoomUrl, '_blank', 'noopener,noreferrer');
-    setLaunched(true);
+  const handleOpenExternal = () => {
+    window.open(STUDY_ROOM_LOCAL_PATH, '_blank', 'noopener,noreferrer');
   };
 
-  // Auto-launch hint on first load for authenticated users
-  useEffect(() => {
-    if (user && !isGuest && studyRoomUrl) {
-      // Pre-warm the URL so opening is instant
-      const link = document.createElement('link');
-      link.rel = 'prefetch';
-      link.href = studyRoomUrl;
-      document.head.appendChild(link);
-    }
-  }, [user, isGuest, studyRoomUrl]);
+  const handleReload = () => {
+    setIframeKey((prev) => prev + 1);
+  };
 
   if (isLoading) {
     return (
@@ -59,8 +35,8 @@ export default function StudyRoomPage() {
     );
   }
 
-  // ── GUEST / LOGGED OUT ──────────────────────────────────────────────────────
-  if (!user || isGuest) {
+  // ── LOGGED OUT (neither user nor guest) ─────────────────────────────────────
+  if (!user && !isGuest) {
     return (
       <div className="relative min-h-[88vh] w-full flex flex-col items-center justify-center bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-indigo-500/25 text-white p-6 sm:p-8 pb-28 sm:pb-12 shadow-2xl">
         <ConstellationCanvas />
@@ -115,93 +91,60 @@ export default function StudyRoomPage() {
     );
   }
 
-  // ── AUTHENTICATED LAUNCHER ──────────────────────────────────────────────────
+  // ── AUTHENTICATED: DIRECT IN-APP SYLLABUS GATEWAY HUB ────────────────────────
   return (
-    <div className="relative min-h-[88vh] w-full bg-zinc-950/90 backdrop-blur-2xl rounded-3xl border border-indigo-500/25 text-white flex flex-col shadow-2xl flex-1">
-      <ConstellationCanvas />
-      <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-3xl">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+    <div className="relative min-h-[88vh] w-full flex flex-col gap-3 flex-1">
+      {/* Top Cockpit Navigation & Control Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-1 py-1">
+        <div className="flex items-center gap-2.5">
+          <Badge className="bg-gradient-to-r from-indigo-500/25 to-purple-500/25 text-indigo-200 border-indigo-400/40 text-xs font-black px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-[0_0_15px_rgba(99,102,241,0.25)]">
+            <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Syllabus Gateway Hub</span>
+          </Badge>
+          {isGuest && (
+            <Badge variant="outline" className="text-[10px] text-amber-300 border-amber-500/30 bg-amber-500/10 font-bold">
+              Guest Mode
+            </Badge>
+          )}
+          <span className="text-[11px] text-slate-400 font-medium hidden md:inline">
+            Acoustic Language Learning & Certification Suite
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReload}
+            className="h-8 px-2.5 text-xs bg-slate-900/80 hover:bg-slate-800 text-slate-300 border-white/10 rounded-xl transition-all"
+            title="Reload Study Room"
+          >
+            <RotateCw className="w-3.5 h-3.5 mr-1 text-indigo-400" />
+            <span className="text-[11px]">Reload</span>
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={handleOpenExternal}
+            className="h-8 px-3 text-xs bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.35)] transition-all hover:scale-105 active:scale-95"
+            title="Open in Full Screen Tab"
+          >
+            <Maximize2 className="w-3.5 h-3.5 mr-1.5" />
+            <span className="text-[11px]">Full Screen Tab</span>
+          </Button>
+        </div>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center flex-1 gap-8 sm:gap-10 p-4 sm:p-12 pb-28 sm:pb-16 text-center">
-
-        {/* Hero */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="flex flex-col items-center gap-5"
-        >
-          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 flex items-center justify-center shadow-[0_0_60px_theme(colors.indigo.500/0.5)] border border-indigo-400/30">
-            <GraduationCap className="w-12 h-12 text-white" />
-          </div>
-
-          <div className="space-y-2">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-purple-300 bg-clip-text text-transparent break-words">
-              Acoustic Study Room
-            </h1>
-            <p className="text-indigo-200 font-bold text-sm uppercase tracking-widest drop-shadow-sm">
-              AI-Powered Language Learning
-            </p>
-          </div>
-
-          <p className="text-zinc-200 text-sm sm:text-base max-w-lg leading-relaxed font-medium drop-shadow-sm">
-            Explore <span className="text-white font-extrabold">7 languages</span>, 
-            complete <span className="text-white font-extrabold">33 interactive modules</span>, 
-            and practice real conversations with AI text-to-speech in your own dedicated study environment.
-          </p>
-        </motion.div>
-
-        {/* Feature grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-2xl"
-        >
-          {FEATURES.map(({ icon: Icon, label, desc }) => (
-            <div
-              key={label}
-              className="flex flex-col gap-1.5 p-3.5 sm:p-4 rounded-2xl bg-zinc-900/90 border border-white/15 hover:border-indigo-500/60 hover:bg-zinc-850/90 transition-all text-left shadow-lg"
-            >
-              <div className="flex items-center gap-2">
-                <Icon className="w-4 h-4 text-indigo-400 shrink-0" />
-                <span className="text-xs font-black text-white uppercase tracking-wider">{label}</span>
-              </div>
-              <p className="text-xs text-zinc-300 font-medium leading-relaxed">{desc}</p>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Launch button */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.25, ease: 'easeOut' }}
-          className="flex flex-col items-center gap-3 w-full"
-        >
-          <button
-            id="launch-study-room-btn"
-            onClick={launchStudyRoom}
-            className="group relative flex items-center justify-center gap-2.5 sm:gap-3 w-full max-w-xs sm:max-w-sm sm:w-auto px-6 sm:px-10 py-3.5 sm:py-5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-size-200 hover:bg-right text-white font-black text-base sm:text-lg shadow-[0_0_40px_theme(colors.indigo.500/0.5)] hover:shadow-[0_0_60px_theme(colors.indigo.500/0.7)] transition-all duration-300 hover:scale-105 active:scale-95 border border-indigo-400/30"
-          >
-            <ExternalLink className="w-5 h-5 group-hover:rotate-12 transition-transform duration-200 shrink-0" />
-            <span>{launched ? 'Open Again →' : 'Launch Study Room'}</span>
-            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200 shrink-0" />
-          </button>
-
-          {launched ? (
-            <p className="text-xs text-emerald-400 font-bold animate-pulse">
-              ✓ Study Room opened in a new tab!
-            </p>
-          ) : (
-            <p className="text-xs text-zinc-400 font-medium">
-              Opens in a new tab for the best experience
-            </p>
-          )}
-        </motion.div>
-
+      {/* Embedded Study Room: 100% Reliable, Zero White Screen on Android, iOS & Mac OS */}
+      <div className="w-full flex-1 min-h-[82vh] sm:min-h-[88vh] rounded-3xl border-2 border-indigo-500/30 overflow-hidden bg-slate-950 shadow-[0_10px_40px_rgba(0,0,0,0.6)] relative">
+        <iframe
+          key={iframeKey}
+          id="study-room-frame"
+          src={STUDY_ROOM_LOCAL_PATH}
+          title="Acoustic Study Room - Syllabus Gateway Hub"
+          className="w-full h-full min-h-[82vh] sm:min-h-[88vh] border-0 bg-slate-50"
+          allow="microphone; speech-synthesis; clipboard-write; autoplay"
+        />
       </div>
     </div>
   );

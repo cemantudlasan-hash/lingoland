@@ -39,7 +39,7 @@ const AuthContext = createContext<AuthContextType>({
     setAuthAction: () => {},
 });
 
-const protectedRoutes = ['/dashboard', '/profile', '/study-room'];
+const protectedRoutes = ['/dashboard', '/profile'];
 
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {

@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/study-room-app',
+        destination: '/study-room-app/index.html',
+      },
+      {
+        source: '/study-room-app/',
+        destination: '/study-room-app/index.html',
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     config.resolve.alias.canvas = false;
     // Prevent Three.js from being bundled server-side (it uses browser-only APIs)
