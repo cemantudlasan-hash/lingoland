@@ -6,7 +6,7 @@ export const ai = genkit({
   model: 'googleai/gemini-2.5-flash',
 });
 
-// Deployment Version: 2.5.3 (Final Restoration)
+// Deployment Version: 2.5.4 (Restored Gemini API Key Secrets)
 
 
 
