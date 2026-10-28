@@ -690,58 +690,58 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
       {/* ---------------------------------------------------- */}
       {/* SLIDESHOW TOP BAR: Indicators & Navigation Controls */}
       {/* ---------------------------------------------------- */}
-      <div className="flex items-center justify-between gap-2 pb-3 border-b border-white/[0.08] relative z-10">
+      <div className="flex items-center justify-between gap-2 pb-3 border-b border-white/[0.08] relative z-10 shrink-0">
         {/* Category Pills without scrollbars */}
         <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
           <button
             onClick={() => setCurrentSlide(0)}
-            className={`px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wide uppercase transition-all flex items-center gap-1 shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl text-[10px] xl:text-[11px] font-black tracking-wide uppercase transition-all flex items-center gap-1.5 shrink-0 ${
               currentSlide === 0
-                ? "bg-amber-500/20 text-amber-300 border border-amber-400/40 shadow-[0_0_10px_rgba(245,158,11,0.3)]"
-                : "bg-white/5 text-slate-400 hover:text-slate-200 border border-transparent"
+                ? "bg-amber-500/25 text-amber-200 border border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.35)]"
+                : "bg-slate-900/80 text-slate-300 hover:text-white border border-white/10 hover:border-amber-400/30"
             }`}
             title="Station Directive Announcement"
           >
-            <Megaphone className="w-3 h-3 text-amber-400" />
+            <Megaphone className="w-3.5 h-3.5 text-amber-400" />
             <span>Notice</span>
           </button>
 
           <button
             onClick={() => setCurrentSlide(1)}
-            className={`px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wide uppercase transition-all flex items-center gap-1 shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl text-[10px] xl:text-[11px] font-black tracking-wide uppercase transition-all flex items-center gap-1.5 shrink-0 ${
               currentSlide === 1
-                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
-                : "bg-white/5 text-slate-400 hover:text-slate-200 border border-transparent"
+                ? "bg-emerald-500/25 text-emerald-200 border border-emerald-400/50 shadow-[0_0_12px_rgba(16,185,129,0.35)]"
+                : "bg-slate-900/80 text-slate-300 hover:text-white border border-white/10 hover:border-emerald-400/30"
             }`}
-            title="Weekly Top Game of the Week"
+            title="Weekly Top 3 Games of the Week"
           >
-            <Trophy className="w-3 h-3 text-emerald-400" />
+            <Trophy className="w-3.5 h-3.5 text-emerald-400" />
             <span>Top Game</span>
           </button>
 
           <button
             onClick={() => setCurrentSlide(2)}
-            className={`px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wide uppercase transition-all flex items-center gap-1 shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl text-[10px] xl:text-[11px] font-black tracking-wide uppercase transition-all flex items-center gap-1.5 shrink-0 ${
               currentSlide === 2
-                ? "bg-purple-500/20 text-purple-300 border border-purple-400/40 shadow-[0_0_10px_rgba(168,85,247,0.3)]"
-                : "bg-white/5 text-slate-400 hover:text-slate-200 border border-transparent"
+                ? "bg-purple-500/25 text-purple-200 border border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.35)]"
+                : "bg-slate-900/80 text-slate-300 hover:text-white border border-white/10 hover:border-purple-400/30"
             }`}
             title="AI Smart-Review Asteroids"
           >
-            <Sparkles className="w-3 h-3 text-purple-400" />
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
             <span>Asteroids</span>
           </button>
 
           <button
             onClick={() => setCurrentSlide(3)}
-            className={`px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wide uppercase transition-all flex items-center gap-1 shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl text-[10px] xl:text-[11px] font-black tracking-wide uppercase transition-all flex items-center gap-1.5 shrink-0 ${
               currentSlide === 3
-                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
-                : "bg-white/5 text-slate-400 hover:text-slate-200 border border-transparent"
+                ? "bg-cyan-500/25 text-cyan-200 border border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.35)]"
+                : "bg-slate-900/80 text-slate-300 hover:text-white border border-white/10 hover:border-cyan-400/30"
             }`}
             title="Transmission Video Player"
           >
-            <Video className="w-3 h-3 text-cyan-400" />
+            <Video className="w-3.5 h-3.5 text-cyan-400" />
             <span>Video</span>
           </button>
         </div>
@@ -750,14 +750,14 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={handlePrevSlide}
-            className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-lg bg-slate-900/80 border border-white/10 hover:bg-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
             title="Previous Slide"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleNextSlide}
-            className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-lg bg-slate-900/80 border border-white/10 hover:bg-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
             title="Next Slide"
           >
             <ChevronRight className="w-3.5 h-3.5" />
@@ -768,7 +768,7 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
       {/* ---------------------------------------------------- */}
       {/* SLIDE CONTENT AREA (Framer Motion Switcher) */}
       {/* ---------------------------------------------------- */}
-      <div className="flex-1 flex flex-col justify-between py-2 relative z-10 min-h-[280px]">
+      <div className="flex-1 flex flex-col justify-between py-2 relative z-10 min-h-[340px]">
         <AnimatePresence mode="wait">
           {/* ==================================================== */}
           {/* SLIDE 0: ANNOUNCEMENT (Admin Edit + Photo / Texts Only) */}
@@ -780,11 +780,11 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
-              className="flex-1 flex flex-col justify-between"
+              className="flex-1 flex flex-col justify-between gap-2"
             >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Badge className="bg-amber-500/15 text-amber-300 border-amber-400/30 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+              <div className="flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-2 shrink-0">
+                  <Badge className="bg-amber-500/15 text-amber-300 border-amber-400/30 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
                     <Radio className="w-2.5 h-2.5 animate-pulse text-amber-400" />
                     {announcement.badge || "Station Announcement"}
                   </Badge>
@@ -804,14 +804,14 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                   )}
                 </div>
 
-                <h4 className="font-black text-sm text-white group-hover:text-amber-300 transition-colors line-clamp-2 mb-2">
+                <h4 className="font-black text-sm xl:text-base text-white group-hover:text-amber-300 transition-colors line-clamp-2 mb-2 shrink-0">
                   {announcement.title}
                 </h4>
 
                 {/* Optional Photo or Texts Only Layout */}
                 {announcement.imageUrl ? (
-                  <div className="space-y-2">
-                    <div className="relative w-full h-40 sm:h-44 rounded-2xl overflow-hidden border border-amber-500/35 bg-slate-950/90 group/img shadow-[0_0_25px_rgba(245,158,11,0.2)] flex items-center justify-center">
+                  <div className="flex-1 flex flex-col gap-2.5">
+                    <div className="relative w-full flex-1 min-h-[195px] xl:min-h-[215px] rounded-2xl overflow-hidden border border-amber-500/35 bg-slate-950/90 group/img shadow-[0_0_25px_rgba(245,158,11,0.2)] flex items-center justify-center">
                       {/* Ambient blurred backdrop for seamless edge-to-edge aesthetic */}
                       <Image
                         src={announcement.imageUrl}
@@ -826,26 +826,26 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                         src={announcement.imageUrl}
                         alt={announcement.title}
                         fill
-                        className="object-contain p-1.5 group-hover/img:scale-105 transition-transform duration-500 relative z-10"
+                        className="object-contain p-2 group-hover/img:scale-105 transition-transform duration-500 relative z-10"
                         unoptimized={announcement.imageUrl.startsWith("data:")}
                       />
                       {/* Sleek top-right visual feed badge */}
-                      <div className="absolute top-2 right-2 z-20 flex items-center gap-1.5 bg-slate-950/85 border border-amber-400/40 px-2 py-0.5 rounded-full text-[9px] text-amber-300 font-mono backdrop-blur-md shadow-md">
+                      <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5 bg-slate-950/85 border border-amber-400/40 px-2.5 py-0.5 rounded-full text-[9px] text-amber-300 font-mono backdrop-blur-md shadow-md">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                         <span>Transmission Visual</span>
                       </div>
                     </div>
-                    {/* Full announcement message: all text visible without cut-off or clipping */}
-                    <div className="max-h-[85px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pr-0.5 mt-1.5">
-                      <p className="text-[11px] sm:text-xs text-slate-200 leading-snug font-normal break-words">
+                    {/* Full announcement message inside styled highlight card */}
+                    <div className="p-2.5 xl:p-3 rounded-xl bg-amber-950/25 border border-amber-500/25 max-h-[95px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden shrink-0">
+                      <p className="text-xs xl:text-[13px] text-slate-100 leading-relaxed font-medium break-words">
                         {announcement.message}
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="py-2">
-                    <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900/60 to-purple-950/20 border border-amber-500/20 shadow-inner">
-                      <p className="text-[11px] text-slate-200 leading-relaxed max-h-[160px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="flex-1 flex flex-col py-1">
+                    <div className="flex-1 p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900/60 to-purple-950/20 border border-amber-500/25 shadow-inner flex items-center">
+                      <p className="text-xs xl:text-sm text-slate-100 leading-relaxed max-h-[240px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                         {announcement.message}
                       </p>
                     </div>
@@ -854,7 +854,7 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
               </div>
 
               {/* Slide Footer */}
-              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between mt-2">
+              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between shrink-0">
                 <span className="text-[10px] font-bold text-amber-400 flex items-center gap-1">
                   <Megaphone className="w-3 h-3" /> Station Directive
                 </span>
@@ -875,11 +875,11 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
-              className="flex-1 flex flex-col justify-between"
+              className="flex-1 flex flex-col justify-between gap-2.5"
             >
-              <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <Badge className="bg-gradient-to-r from-amber-500/20 to-emerald-500/20 text-amber-300 border-amber-400/40 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
+              <div className="flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-2.5 shrink-0">
+                  <Badge className="bg-gradient-to-r from-amber-500/20 to-emerald-500/20 text-amber-300 border-amber-400/40 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
                     <Trophy className="w-2.5 h-2.5 text-amber-400" />
                     Top 3 Games • Week #{topWeeklyGames[0]?.weekNumber || 1}
                   </Badge>
@@ -889,34 +889,34 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                   </Badge>
                 </div>
 
-                {/* Top 3 Ranked Games List (1st, 2nd, 3rd Most Played) */}
-                <div className="space-y-2">
+                {/* Top 3 Ranked Games List (1st, 2nd, 3rd Most Played) stretched cleanly across vertical space */}
+                <div className="flex-1 flex flex-col justify-between gap-2.5">
                   {topWeeklyGames.slice(0, 3).map((gameItem, index) => {
                     const rankConfig =
                       index === 0
                         ? {
                             medal: "🥇",
                             rankLabel: "1st",
-                            border: "border-amber-400/40 hover:border-amber-300",
-                            bg: "bg-gradient-to-r from-amber-500/15 via-slate-900/80 to-emerald-950/30",
-                            badgeBg: "bg-amber-500/20 text-amber-300 border-amber-400/40",
+                            border: "border-amber-400/45 hover:border-amber-300",
+                            bg: "bg-gradient-to-r from-amber-500/18 via-slate-900/85 to-emerald-950/35",
+                            badgeBg: "bg-amber-500/25 text-amber-300 border-amber-400/50",
                             playColor: "text-amber-300",
                           }
                         : index === 1
                         ? {
                             medal: "🥈",
                             rankLabel: "2nd",
-                            border: "border-cyan-400/30 hover:border-cyan-300",
-                            bg: "bg-gradient-to-r from-cyan-500/10 via-slate-900/80 to-slate-900/60",
-                            badgeBg: "bg-cyan-500/20 text-cyan-200 border-cyan-400/30",
+                            border: "border-cyan-400/35 hover:border-cyan-300",
+                            bg: "bg-gradient-to-r from-cyan-500/12 via-slate-900/85 to-slate-900/65",
+                            badgeBg: "bg-cyan-500/25 text-cyan-200 border-cyan-400/40",
                             playColor: "text-cyan-300",
                           }
                         : {
                             medal: "🥉",
                             rankLabel: "3rd",
-                            border: "border-purple-400/30 hover:border-purple-300",
-                            bg: "bg-gradient-to-r from-purple-500/10 via-slate-900/80 to-slate-900/60",
-                            badgeBg: "bg-purple-500/20 text-purple-200 border-purple-400/30",
+                            border: "border-purple-400/35 hover:border-purple-300",
+                            bg: "bg-gradient-to-r from-purple-500/12 via-slate-900/85 to-slate-900/65",
+                            badgeBg: "bg-purple-500/25 text-purple-200 border-purple-400/40",
                             playColor: "text-purple-300",
                           };
 
@@ -927,33 +927,36 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                           e.stopPropagation();
                           router.push(`/games/${gameItem.slug}`);
                         }}
-                        className={`p-2.5 rounded-2xl border ${rankConfig.border} ${rankConfig.bg} flex items-center justify-between gap-2.5 cursor-pointer transition-all hover:scale-[1.01] group/rank`}
+                        className={`flex-1 p-3 xl:p-3.5 rounded-2xl border ${rankConfig.border} ${rankConfig.bg} flex items-center justify-between gap-3 cursor-pointer transition-all hover:scale-[1.01] group/rank shadow-md`}
                         title={`Launch ${rankConfig.rankLabel} Most Played Game: ${gameItem.title}`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div
-                            className={`px-2 py-1 rounded-xl border ${rankConfig.badgeBg} flex flex-col items-center justify-center shrink-0 min-w-[40px]`}
+                            className={`px-2.5 py-1.5 rounded-xl border ${rankConfig.badgeBg} flex flex-col items-center justify-center shrink-0 min-w-[46px]`}
                           >
-                            <span className="text-xs leading-none">{rankConfig.medal}</span>
-                            <span className="text-[9px] font-black uppercase tracking-tighter mt-0.5">
+                            <span className="text-sm xl:text-base leading-none">{rankConfig.medal}</span>
+                            <span className="text-[10px] font-black uppercase tracking-tighter mt-0.5">
                               {rankConfig.rankLabel}
                             </span>
                           </div>
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
-                              <h4 className="font-black text-xs sm:text-[13px] text-white group-hover/rank:text-emerald-300 transition-colors truncate">
+                              <h4 className="font-black text-xs sm:text-sm xl:text-[15px] text-white group-hover/rank:text-emerald-300 transition-colors truncate">
                                 {gameItem.title}
                               </h4>
                             </div>
-                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <p className="text-[10px] xl:text-[11px] text-slate-300/90 line-clamp-1 mt-0.5">
+                              {gameItem.description}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                               {gameItem.subject && (
-                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">
+                                <span className="text-[9px] xl:text-[10px] font-extrabold text-cyan-300/90 uppercase tracking-wider">
                                   {gameItem.subject}
                                 </span>
                               )}
                               <span className="text-[9px] text-slate-500">&bull;</span>
-                              <span className={`text-[10px] font-black ${rankConfig.playColor}`}>
+                              <span className={`text-[10px] xl:text-[11px] font-black ${rankConfig.playColor}`}>
                                 {gameItem.playCount.toLocaleString()}{" "}
                                 {gameItem.playCount === 1 ? "play" : "plays"} this week
                               </span>
@@ -961,8 +964,8 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                           </div>
                         </div>
 
-                        <div className="w-7 h-7 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 group-hover/rank:bg-emerald-500 group-hover/rank:text-slate-950 flex items-center justify-center shrink-0 transition-all">
-                          <Play className="w-3 h-3 fill-current" />
+                        <div className="w-8 h-8 xl:w-9 xl:h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 group-hover/rank:bg-emerald-500 group-hover/rank:text-slate-950 flex items-center justify-center shrink-0 transition-all shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                          <Play className="w-3.5 h-3.5 fill-current" />
                         </div>
                       </div>
                     );
@@ -970,20 +973,20 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                 </div>
               </div>
 
-              {/* Action Button: Launch #1 Game or Browse All */}
-              <div className="mt-2.5 pt-2 border-t border-white/[0.08] flex items-center gap-2">
+              {/* Action Button: Launch #1 Game */}
+              <div className="pt-2 border-t border-white/[0.08] flex items-center gap-2 shrink-0">
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
                     router.push(`/games/${topWeeklyGames[0]?.slug || "grammar-guru"}`);
                   }}
-                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black rounded-xl h-8 text-[11px] shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center justify-between px-3"
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black rounded-xl h-9 xl:h-10 text-xs shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center justify-between px-3.5"
                 >
                   <span className="flex items-center gap-1.5 truncate">
-                    <Play className="w-3 h-3 fill-current shrink-0" />
+                    <Play className="w-3.5 h-3.5 fill-current shrink-0" />
                     <span className="truncate">Play #1: {topWeeklyGames[0]?.title || "Top Game"}</span>
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                  <ArrowRight className="w-4 h-4 shrink-0" />
                 </Button>
               </div>
             </motion.div>
@@ -999,68 +1002,87 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
-              className="flex-1 flex flex-col justify-between"
+              className="flex-1 flex flex-col justify-between gap-2.5"
             >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-black text-sm text-white group-hover:text-purple-300 transition-colors">
+              <div className="shrink-0">
+                <div className="flex items-center justify-between mb-1.5">
+                  <h4 className="font-black text-sm xl:text-base text-white group-hover:text-purple-300 transition-colors">
                     AI Smart-Review Asteroids
                   </h4>
-                  <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/30 text-[10px] font-black px-2 py-0.5 rounded-full">
+                  <Badge className="bg-purple-500/20 text-purple-200 border-purple-400/40 text-[10px] xl:text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.25)]">
                     {activeAsteroids.length} Ready &bull; {scheduledAsteroids.length} Orbit
                   </Badge>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed">
                   Real-time SM-2 spaced repetition tracking your vocabulary mistakes.
                 </p>
               </div>
 
-              {/* Graphic container with mystery cube and orbiting rocks */}
-              <div className="my-1.5 py-2 flex items-center justify-center relative">
-                <div className="relative w-24 h-24 flex items-center justify-center">
-                  {/* Orbital ring */}
-                  <div className="absolute inset-0 rounded-full border border-dashed border-indigo-400/30 animate-[spin_20s_linear_infinite]" />
+              {/* Enlarged Radar Graphic Container with Mystery Cube, Orbiting Rocks & Telemetry */}
+              <div className="flex-1 my-1 p-4 rounded-2xl bg-gradient-to-b from-purple-950/35 via-slate-900/75 to-indigo-950/35 border border-purple-500/30 flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
+                {/* Subtle Radar Grid Background */}
+                <div className="relative w-36 h-36 xl:w-44 xl:h-44 flex items-center justify-center">
+                  {/* Outer Orbital Ring */}
+                  <div className="absolute inset-0 rounded-full border border-dashed border-purple-400/35 animate-[spin_24s_linear_infinite]" />
+                  {/* Inner Orbital Ring */}
+                  <div className="absolute inset-4 rounded-full border border-indigo-400/25 animate-[spin_16s_linear_infinite_reverse]" />
 
-                  {/* Orbiting asteroid rocks with question marks */}
-                  <span className="absolute -top-1 left-2 text-xs opacity-70 animate-pulse">🪨 ?</span>
-                  <span className="absolute top-2 -right-1 text-xs opacity-80 animate-pulse">☄️ ?</span>
-                  <span className="absolute -bottom-2 right-4 text-xs opacity-70 animate-pulse">🪨 ?</span>
-                  <span className="absolute bottom-2 -left-2 text-xs opacity-80 animate-pulse">☄️ ?</span>
+                  {/* Orbiting Asteroid Rocks with Question Marks (Bigger & Clearer) */}
+                  <span className="absolute -top-1 left-4 text-base xl:text-lg opacity-90 animate-pulse drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]">
+                    🪨 ?
+                  </span>
+                  <span className="absolute top-3 -right-2 text-base xl:text-lg opacity-95 animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                    ☄️ ?
+                  </span>
+                  <span className="absolute -bottom-1 right-5 text-base xl:text-lg opacity-90 animate-pulse drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]">
+                    🪨 ?
+                  </span>
+                  <span className="absolute bottom-3 -left-2 text-base xl:text-lg opacity-95 animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                    ☄️ ?
+                  </span>
 
-                  {/* Central glowing cube */}
-                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 p-[1.5px] shadow-[0_0_20px_rgba(168,85,247,0.5)] group-hover:scale-110 transition-transform">
-                    <div className="w-full h-full rounded-[14px] bg-slate-950/90 flex items-center justify-center text-base">
+                  {/* Central Glowing Cube (Enlarged) */}
+                  <div className="w-16 h-16 xl:w-20 xl:h-20 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 p-[2px] shadow-[0_0_30px_rgba(168,85,247,0.6)] group-hover:scale-110 transition-transform">
+                    <div className="w-full h-full rounded-[14px] bg-slate-950/90 flex items-center justify-center text-2xl xl:text-3xl">
                       🎮
                     </div>
                   </div>
                 </div>
+
+                {/* Live Telemetry Status Bar inside Radar Box */}
+                <div className="mt-3 flex items-center gap-3 text-[11px] font-bold text-purple-200/90 bg-slate-950/70 border border-purple-400/30 px-3.5 py-1 rounded-full">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span>SM-2 Memory Radar Active • {activeAsteroids.length} Intercepts Ready</span>
+                </div>
               </div>
 
               {/* Glassy Glowing Box with text link See dashboard */}
-              <div
-                onClick={handleNavigateDashboard}
-                className="mb-1.5 px-3.5 py-2 rounded-xl border border-cyan-400/40 bg-gradient-to-r from-cyan-950/60 via-slate-900/80 to-indigo-950/60 hover:from-cyan-900/70 hover:to-indigo-900/70 backdrop-blur-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center justify-between transition-all hover:scale-[1.02] cursor-pointer group/link"
-                title="Go to User Dashboard"
-              >
-                <div className="flex items-center gap-2">
-                  <LayoutDashboard className="w-3.5 h-3.5 text-cyan-400 group-hover/link:animate-pulse" />
-                  <span className="text-xs font-black text-cyan-300 group-hover/link:text-white tracking-wide">
-                    See dashboard
+              <div className="space-y-2 shrink-0">
+                <div
+                  onClick={handleNavigateDashboard}
+                  className="px-4 py-2.5 xl:py-3 rounded-xl border border-cyan-400/50 bg-gradient-to-r from-cyan-950/70 via-slate-900/85 to-indigo-950/70 hover:from-cyan-900/80 hover:to-indigo-900/80 backdrop-blur-xl shadow-[0_0_18px_rgba(6,182,212,0.3)] flex items-center justify-between transition-all hover:scale-[1.02] cursor-pointer group/link"
+                  title="Go to User Dashboard"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <LayoutDashboard className="w-4 h-4 text-cyan-400 group-hover/link:animate-pulse" />
+                    <span className="text-xs xl:text-sm font-black text-cyan-200 group-hover/link:text-white tracking-wide">
+                      See dashboard
+                    </span>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-cyan-400 group-hover/link:translate-x-1 transition-transform" />
+                </div>
+
+                <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-amber-400 flex items-center gap-1">
+                    <Flame className="w-3 h-3" /> Intercept Missions
+                  </span>
+                  <span
+                    onClick={handleNavigateDashboard}
+                    className="text-[10px] font-black uppercase text-cyan-400 group-hover:underline cursor-pointer"
+                  >
+                    Launch &rarr;
                   </span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-cyan-400 group-hover/link:translate-x-1 transition-transform" />
-              </div>
-
-              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
-                <span className="text-[10px] font-bold text-amber-400 flex items-center gap-1">
-                  <Flame className="w-3 h-3" /> Intercept Missions
-                </span>
-                <span
-                  onClick={handleNavigateDashboard}
-                  className="text-[10px] font-black uppercase text-cyan-400 group-hover:underline cursor-pointer"
-                >
-                  Launch &rarr;
-                </span>
               </div>
             </motion.div>
           )}
@@ -1075,11 +1097,11 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
-              className="flex-1 flex flex-col justify-between"
+              className="flex-1 flex flex-col justify-between gap-2"
             >
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-400/40 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+              <div className="flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-1.5 shrink-0">
+                  <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-400/40 text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1">
                     <Video className="w-2.5 h-2.5 text-cyan-400" />
                     Station Video Transmission
                   </Badge>
@@ -1100,21 +1122,21 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                 </div>
 
                 {/* DESCRIPTION ABOVE THE VIDEO (as specifically requested) */}
-                <div className="mb-2 px-2.5 py-1.5 rounded-xl bg-cyan-950/30 border border-cyan-500/20 shadow-inner">
-                  <p className="text-[11px] text-cyan-200/90 leading-tight line-clamp-2 font-medium">
+                <div className="mb-2 px-3 py-2 rounded-xl bg-cyan-950/35 border border-cyan-500/25 shadow-inner shrink-0">
+                  <p className="text-xs text-cyan-100 leading-snug line-clamp-2 font-medium">
                     {videoConfig.description}
                   </p>
                 </div>
 
-                {/* AUTOPLAY VIDEO EMBED CONTAINER */}
-                <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-cyan-500/40 bg-black shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+                {/* AUTOPLAY VIDEO EMBED CONTAINER — Stretched to fill remaining vertical space down to footer */}
+                <div className="relative w-full flex-1 min-h-[225px] xl:min-h-[250px] rounded-2xl overflow-hidden border border-cyan-500/40 bg-black shadow-[0_0_20px_rgba(6,182,212,0.25)]">
                   {ytVideoId ? (
                     <iframe
                       src={`https://www.youtube-nocookie.com/embed/${ytVideoId}?autoplay=${
                         videoConfig.autoplay ? 1 : 0
                       }&mute=1&loop=1&playlist=${ytVideoId}&controls=1&playsinline=1&modestbranding=1&rel=0`}
                       title="LingoLandVerse Video Stream"
-                      className="w-full h-full border-0"
+                      className="absolute inset-0 w-full h-full border-0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
                     />
@@ -1126,14 +1148,14 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                       loop
                       playsInline
                       controls
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
                   )}
                 </div>
               </div>
 
               {/* Video Slide Footer */}
-              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between mt-2">
+              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between shrink-0">
                 <span className="text-[10px] text-slate-400 flex items-center gap-1 font-mono">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
                   {videoConfig.autoplay ? "Autoplay Ready (Muted)" : "Interactive Stream"}

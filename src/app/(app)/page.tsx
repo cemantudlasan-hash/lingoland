@@ -528,7 +528,7 @@ export default function LingoLandVerseHomePage() {
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 xl:gap-6 items-stretch min-h-[420px] xl:min-h-[480px]">
           {/* Left Vertical Dock (Glassmorphism Pill Navigation) */}
           <aside className="lg:col-span-2 xl:col-span-2 flex flex-col">
-            <div className="glass-card flex-1 border border-white/10 bg-slate-950/60 backdrop-blur-2xl rounded-3xl p-3.5 flex flex-col justify-between gap-2 shadow-2xl">
+            <div className="glass-card flex-1 border border-white/10 bg-slate-950/60 backdrop-blur-2xl rounded-3xl p-3.5 xl:p-4 flex flex-col justify-between gap-2.5 xl:gap-3 shadow-2xl">
               {/* Item 1: Dashboard (Active State) */}
               <button
                 onClick={() => {
@@ -539,58 +539,85 @@ export default function LingoLandVerseHomePage() {
                     router.push("/dashboard");
                   }
                 }}
-                className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-400 text-white shadow-[0_0_20px_rgba(34,211,238,0.35)] transition-all hover:scale-[1.02]"
+                className="w-full flex-1 flex items-center justify-between px-4 py-3.5 xl:py-4 rounded-2xl bg-gradient-to-r from-cyan-500/25 via-blue-600/20 to-slate-900/80 border border-cyan-400/80 text-white shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all hover:scale-[1.02] group"
               >
-                <div className="w-7 h-7 rounded-lg bg-cyan-400/20 flex items-center justify-center text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
-                  <LayoutDashboard className="w-4 h-4" />
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-cyan-400/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] group-hover:scale-110 transition-transform shrink-0">
+                    <LayoutDashboard className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <span className="font-extrabold text-sm xl:text-[15px] tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] block">
+                      Dashboard
+                    </span>
+                    <span className="text-[10px] xl:text-[11px] text-cyan-200/80 font-medium block">
+                      Mission Center
+                    </span>
+                  </div>
                 </div>
-                <span className="font-extrabold text-sm tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
-                  Dashboard
-                </span>
+                <ChevronRight className="w-4 h-4 text-cyan-300/70 group-hover:translate-x-0.5 transition-transform shrink-0" />
               </button>
 
               {/* Item 2: Cosmic Codex / Dictionary */}
               <button
                 onClick={() => router.push("/reader")}
-                className="w-full flex items-start gap-3.5 px-4 py-3 rounded-2xl text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent hover:border-purple-500/30 transition-all text-left group"
+                className="w-full flex-1 flex items-center justify-between px-4 py-3.5 xl:py-4 rounded-2xl bg-gradient-to-r from-purple-950/45 via-slate-900/75 to-slate-900/60 hover:from-purple-900/55 hover:to-slate-900/80 text-white border border-purple-500/35 hover:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.18)] transition-all hover:scale-[1.02] text-left group"
               >
-                <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] group-hover:scale-110 transition-transform">
-                  <BookOpen className="w-4 h-4" />
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-purple-500/20 border border-purple-400/35 flex items-center justify-center text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] group-hover:scale-110 transition-transform shrink-0">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="font-extrabold text-sm xl:text-[15px] tracking-wide text-white block">
+                      Cosmic Codex
+                    </span>
+                    <span className="text-[10px] xl:text-[11px] text-purple-200/80 font-medium block">
+                      Dictionary &amp; Reader
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-bold text-xs tracking-wide text-white block">
-                    Cosmic Codex
-                  </span>
-                  <span className="text-[10px] text-slate-400 block -mt-0.5">
-                    Dictionary
-                  </span>
-                </div>
+                <ChevronRight className="w-4 h-4 text-purple-300/70 group-hover:translate-x-0.5 transition-transform shrink-0" />
               </button>
 
               {/* Item 3: Galactic Games */}
               <button
                 onClick={() => router.push("/games")}
-                className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent hover:border-violet-500/30 transition-all group"
+                className="w-full flex-1 flex items-center justify-between px-4 py-3.5 xl:py-4 rounded-2xl bg-gradient-to-r from-violet-950/45 via-slate-900/75 to-slate-900/60 hover:from-violet-900/55 hover:to-slate-900/80 text-white border border-violet-500/35 hover:border-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.18)] transition-all hover:scale-[1.02] text-left group"
               >
-                <div className="w-7 h-7 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.8)] group-hover:scale-110 transition-transform">
-                  <Gamepad2 className="w-4 h-4" />
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-violet-500/20 border border-violet-400/35 flex items-center justify-center text-violet-300 drop-shadow-[0_0_8px_rgba(139,92,246,0.8)] group-hover:scale-110 transition-transform shrink-0">
+                    <Gamepad2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="font-extrabold text-sm xl:text-[15px] tracking-wide text-white block">
+                      Galactic Games
+                    </span>
+                    <span className="text-[10px] xl:text-[11px] text-violet-200/80 font-medium block">
+                      79+ Arcade Modules
+                    </span>
+                  </div>
                 </div>
-                <span className="font-bold text-xs tracking-wide text-white">
-                  Galactic Games
-                </span>
+                <ChevronRight className="w-4 h-4 text-violet-300/70 group-hover:translate-x-0.5 transition-transform shrink-0" />
               </button>
 
               {/* Item 4: Speaking Lab */}
               <button
                 onClick={() => router.push("/roleplay-workspace")}
-                className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent hover:border-cyan-500/30 transition-all group"
+                className="w-full flex-1 flex items-center justify-between px-4 py-3.5 xl:py-4 rounded-2xl bg-gradient-to-r from-cyan-950/45 via-slate-900/75 to-slate-900/60 hover:from-cyan-900/55 hover:to-slate-900/80 text-white border border-cyan-500/35 hover:border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.18)] transition-all hover:scale-[1.02] text-left group"
               >
-                <div className="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)] group-hover:scale-110 transition-transform">
-                  <Mic className="w-4 h-4" />
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/35 flex items-center justify-center text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)] group-hover:scale-110 transition-transform shrink-0">
+                    <Mic className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="font-extrabold text-sm xl:text-[15px] tracking-wide text-white block">
+                      Speaking Lab
+                    </span>
+                    <span className="text-[10px] xl:text-[11px] text-cyan-200/80 font-medium block">
+                      AI Voice &amp; Roleplay
+                    </span>
+                  </div>
                 </div>
-                <span className="font-bold text-xs tracking-wide text-white">
-                  Speaking Lab
-                </span>
+                <ChevronRight className="w-4 h-4 text-cyan-300/70 group-hover:translate-x-0.5 transition-transform shrink-0" />
               </button>
 
               {/* Item 5: Profile + 4K Badge */}
@@ -603,17 +630,22 @@ export default function LingoLandVerseHomePage() {
                     router.push("/profile");
                   }
                 }}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent hover:border-pink-500/30 transition-all group"
+                className="w-full flex-1 flex items-center justify-between px-4 py-3.5 xl:py-4 rounded-2xl bg-gradient-to-r from-pink-950/45 via-slate-900/75 to-slate-900/60 hover:from-pink-900/55 hover:to-slate-900/80 text-white border border-pink-500/35 hover:border-pink-400 shadow-[0_0_15px_rgba(244,63,94,0.18)] transition-all hover:scale-[1.02] text-left group"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="w-7 h-7 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.8)] group-hover:scale-110 transition-transform">
-                    <User className="w-4 h-4" />
+                  <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-pink-500/20 border border-pink-400/35 flex items-center justify-center text-pink-300 drop-shadow-[0_0_8px_rgba(244,63,94,0.8)] group-hover:scale-110 transition-transform shrink-0">
+                    <User className="w-5 h-5" />
                   </div>
-                  <span className="font-bold text-xs tracking-wide text-white">
-                    Profile
-                  </span>
+                  <div>
+                    <span className="font-extrabold text-sm xl:text-[15px] tracking-wide text-white block">
+                      Profile
+                    </span>
+                    <span className="text-[10px] xl:text-[11px] text-pink-200/80 font-medium block">
+                      Pilot Dossier &amp; ID
+                    </span>
+                  </div>
                 </div>
-                <Badge className="bg-cyan-950/60 text-cyan-300 border-cyan-500/40 text-[9px] font-black px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(6,182,212,0.4)]">
+                <Badge className="bg-cyan-950/80 text-cyan-300 border-cyan-400/50 text-[10px] font-black px-2 py-0.5 rounded-lg shadow-[0_0_8px_rgba(6,182,212,0.4)]">
                   4K
                 </Badge>
               </button>
@@ -621,23 +653,23 @@ export default function LingoLandVerseHomePage() {
               {/* Item 6: All Menus & Tools Explorer */}
               <button
                 onClick={() => setIsAllMenusOpen(true)}
-                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-950/40 via-indigo-950/40 to-slate-900/60 hover:from-purple-900/50 hover:to-indigo-900/50 text-slate-300 hover:text-white border border-purple-500/30 hover:border-purple-400 transition-all group shadow-[0_0_15px_rgba(168,85,247,0.25)] hover:scale-[1.02] mt-1"
+                className="w-full flex-1 flex items-center justify-between px-4 py-3.5 xl:py-4 rounded-2xl bg-gradient-to-r from-purple-950/55 via-indigo-950/50 to-slate-900/75 hover:from-purple-900/60 hover:to-indigo-900/60 text-white border border-purple-400/50 hover:border-purple-300 transition-all group shadow-[0_0_18px_rgba(168,85,247,0.28)] hover:scale-[1.02]"
                 title={`Explore all ${visibleMenus.length} Educational Apps & Classroom Tools`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] group-hover:scale-110 transition-transform">
-                    <Menu className="w-4 h-4" />
+                <div className="flex items-center gap-3.5">
+                  <div className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl bg-purple-500/25 border border-purple-400/40 flex items-center justify-center text-purple-200 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] group-hover:scale-110 transition-transform shrink-0">
+                    <Menu className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <span className="font-extrabold text-xs tracking-wide text-white block">
+                    <span className="font-extrabold text-sm xl:text-[15px] tracking-wide text-white block">
                       All {visibleMenus.length} Menus
                     </span>
-                    <span className="text-[10px] text-purple-300 block -mt-0.5">
+                    <span className="text-[10px] xl:text-[11px] text-purple-200/90 font-medium block">
                       Explore Apps &amp; Tools
                     </span>
                   </div>
                 </div>
-                <Badge className="bg-purple-500/30 text-purple-200 border-purple-400/40 text-[9px] font-black px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(168,85,247,0.4)]">
+                <Badge className="bg-purple-500/35 text-purple-100 border-purple-400/50 text-[10px] font-black px-2 py-0.5 rounded-lg shadow-[0_0_8px_rgba(168,85,247,0.4)]">
                   {visibleMenus.length}
                 </Badge>
               </button>
