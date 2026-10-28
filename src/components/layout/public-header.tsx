@@ -57,6 +57,13 @@ export function PublicHeader() {
             </Link>
 
             <Link
+              href="/contact"
+              className="text-slate-300 hover:text-cyan-300 transition-colors"
+            >
+              Contact
+            </Link>
+
+            <Link
               href="/study-room"
               className="text-slate-300 hover:text-indigo-300 transition-colors flex items-center gap-1"
             >

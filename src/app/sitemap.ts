@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next';
 import { getAllBlogPosts } from '@/data/blog-posts';
 import { getAllApps } from '@/data/apps-directory';
 import { articles } from '@/lib/articles';
+import { allGames } from '@/lib/games';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.lingolandverse.com';
@@ -51,6 +52,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/editorial-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.75,
+    },
+    {
+      url: `${baseUrl}/support`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/terms`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -90,8 +109,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${baseUrl}/reader/${article.slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
+    priority: 0.8,
+  }));
+
+  // All 79+ Interactive Educational Games & Classroom Guides
+  const gameRoutes: MetadataRoute.Sitemap = allGames.map((game) => ({
+    url: `${baseUrl}/games/${game.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
     priority: 0.75,
   }));
 
-  return [...staticRoutes, ...appRoutes, ...blogRoutes, ...readerRoutes];
+  return [...staticRoutes, ...appRoutes, ...blogRoutes, ...readerRoutes, ...gameRoutes];
 }

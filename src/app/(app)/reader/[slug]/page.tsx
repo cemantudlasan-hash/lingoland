@@ -1,377 +1,121 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import { getArticleBySlug } from "@/lib/articles";
-import Image from "next/image";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, BookOpen, Clock, Loader2, Sparkles } from "lucide-react";
-import Link from "next/link";
-import { ArticleViewTracker } from './article-view-tracker';
-import { ConstellationCanvas } from "@/components/ui/constellation-canvas";
-import { useAuth } from "@/context/auth-context";
-import { useFirestore } from "@/firebase";
-import { collection, addDoc } from "firebase/firestore";
-import { generateFlashcardContent } from "@/ai/flows/generate-flashcard-content";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { articles, getArticleBySlug } from "@/lib/articles";
+import { ReaderArticleClient } from "./reader-article-client";
 
-export default function ArticlePage({ params }: { params: { slug: string } }) {
-  const article = getArticleBySlug(params.slug);
-  const { user, isGuest } = useAuth();
-  const firestore = useFirestore();
-  const { toast } = useToast();
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
 
-  const [selectedWord, setSelectedWord] = useState("");
-  const [contextSentence, setContextSentence] = useState("");
-  const [floatingCoords, setFloatingCoords] = useState<{ x: number; y: number; isBelow: boolean } | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export async function generateStaticParams() {
+  const all = [
+    ...articles.beginner,
+    ...articles.intermediate,
+    ...articles.advanced,
+  ];
+  return all.map((article) => ({
+    slug: article.slug,
+  }));
+}
 
-  const [definition, setDefinition] = useState("");
-  const [translation, setTranslation] = useState("");
-  const [example, setExample] = useState("");
-  const [hint, setHint] = useState("");
-  const [emoji, setEmoji] = useState("");
-  const [isLoadingAI, setIsLoadingAI] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+function getArticleCategoryLabel(slug: string): string {
+  if (articles.beginner.some((a) => a.slug === slug)) return "CEFR A1–A2 (Beginner)";
+  if (articles.intermediate.some((a) => a.slug === slug)) return "CEFR B1–B2 (Intermediate)";
+  if (articles.advanced.some((a) => a.slug === slug)) return "CEFR C1–C2 (Advanced)";
+  return "CEFR Graded Reader";
+}
 
-  // Unified document-level selectionchange listener for desktop and mobile selection
-  useEffect(() => {
-    const handleSelectionChange = () => {
-      if (!user || isGuest) return;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const article = getArticleBySlug(slug);
 
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) {
-        setFloatingCoords(null);
-        return;
-      }
-
-      const text = selection.toString().trim();
-      if (text.length > 0 && text.length < 100 && text.split(/\s+/).length <= 5) {
-        try {
-          const range = selection.getRangeAt(0);
-          
-          // Ensure the selection is within our article container
-          const container = document.getElementById("article-content-container");
-          if (container && container.contains(range.commonAncestorContainer)) {
-            const rect = range.getBoundingClientRect();
-            setSelectedWord(text);
-
-            const parentNode = range.startContainer.parentNode;
-            const fullText = parentNode ? parentNode.textContent || "" : "";
-            setContextSentence(fullText.slice(0, 300));
-
-            const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768;
-            setFloatingCoords({
-              x: rect.left + rect.width / 2,
-              y: isTouch ? rect.bottom + 12 : rect.top - 12,
-              isBelow: isTouch,
-            });
-            return;
-          }
-        } catch (e) {
-          // silently handle edge selection errors
-        }
-      }
-      setFloatingCoords(null);
+  if (!article) {
+    return {
+      title: "Reading Passage Not Found | LingoLandVerse",
+      description: "The requested graded ESL reading passage could not be found.",
     };
+  }
 
-    document.addEventListener("selectionchange", handleSelectionChange);
-    return () => {
-      document.removeEventListener("selectionchange", handleSelectionChange);
-    };
-  }, [user, isGuest]);
+  const levelLabel = getArticleCategoryLabel(slug);
+  const siteUrl = "https://www.lingolandverse.com";
+  const pageUrl = `${siteUrl}/reader/${article.slug}`;
 
-  useEffect(() => {
-    if (isModalOpen && selectedWord) {
-      setDefinition("");
-      setTranslation("");
-      setExample("");
-      setHint("");
-      setEmoji("");
-
-      const fetchAIContent = async () => {
-        setIsLoadingAI(true);
-        try {
-          const res = await generateFlashcardContent({
-            word: selectedWord,
-            context: contextSentence,
-          });
-          if (res.card) {
-            setDefinition(res.card.definition);
-            setTranslation(res.card.translation);
-            setExample(res.card.exampleSentence);
-            setHint(res.card.hint);
-            // @ts-ignore
-            if (res.card.emoji) setEmoji(res.card.emoji);
-          }
-        } catch (err) {
-          console.error("AI Flashcard helper failed:", err);
-          toast({
-            variant: "destructive",
-            title: "AI Helper Offline",
-            description: "Could not auto-generate definitions. You can write them manually!",
-          });
-        } finally {
-          setIsLoadingAI(false);
-        }
-      };
-
-      fetchAIContent();
-    }
-  }, [isModalOpen, selectedWord, contextSentence, toast]);
-
-  const handleSaveFlashcard = async () => {
-    if (!user || isGuest) return;
-    if (!definition || !translation) {
-      toast({
-        variant: "destructive",
-        title: "Incomplete Fields",
-        description: "Please provide at least a definition and translation.",
-      });
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const newCard = {
-        word: selectedWord,
-        definition,
-        translation,
-        exampleSentence: example,
-        hint,
-        context: contextSentence,
-        emoji: emoji.trim(),
-        createdAt: new Date().toISOString(),
-        nextReviewDate: new Date().toISOString(),
-        intervalDays: 1,
-        box: 1,
-      };
-
-      await addDoc(collection(firestore, `users/${user.uid}/flashcards`), newCard);
-
-      toast({
-        title: "Flashcard Created!",
-        description: `Successfully added "${selectedWord}" to your review deck.`,
-      });
-      setIsModalOpen(false);
-      setFloatingCoords(null);
-    } catch (err: any) {
-      console.error("Failed to save flashcard:", err);
-      toast({
-        variant: "destructive",
-        title: "Save Failed",
-        description: `Could not save card: ${err?.message || err}`,
-      });
-    } finally {
-      setIsSaving(false);
-    }
+  return {
+    title: `${article.title} — ${levelLabel} ESL Reading & Vocabulary Guide | LingoLandVerse`,
+    description: `${article.description} Read the full ${levelLabel} graded English passage "${article.title}" with key vocabulary notes, comprehension questions, and interactive flashcards.`,
+    keywords: [
+      article.title,
+      levelLabel,
+      "ESL Graded Reader",
+      "English Reading Comprehension",
+      "Vocabulary Study Guide",
+      "LingoLandVerse",
+    ],
+    openGraph: {
+      title: `${article.title} | Graded ESL Reading Passage`,
+      description: article.description,
+      url: pageUrl,
+      siteName: "LingoLandVerse",
+      type: "article",
+      images: [{ url: article.image, alt: article.title }],
+    },
+    alternates: {
+      canonical: pageUrl,
+    },
   };
+}
 
+export default async function ArticlePage({ params }: PageProps) {
+  const { slug } = await params;
+  const article = getArticleBySlug(slug);
 
   if (!article) {
     notFound();
   }
 
-  // Calculate estimated reading time (approx 200 words per minute)
+  const levelLabel = getArticleCategoryLabel(slug);
+  const allArticles = [
+    ...articles.beginner,
+    ...articles.intermediate,
+    ...articles.advanced,
+  ];
+  const relatedArticles = allArticles
+    .filter((a) => a.slug !== slug)
+    .slice(0, 3);
+
   const wordCount = article.content.split(/\s+/).length;
-  const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LearningResource",
+    name: `${article.title} — Graded ESL Reading Passage`,
+    description: article.description,
+    educationalLevel: levelLabel,
+    learningResourceType: "Reading Passage & Study Guide",
+    inLanguage: "en",
+    wordCount,
+    author: {
+      "@type": "Person",
+      name: "Ceman Tudlasan",
+    },
+    publisher: {
+      "@type": "EducationalOrganization",
+      name: "LingoLandVerse",
+      url: "https://www.lingolandverse.com",
+    },
+    url: `https://www.lingolandverse.com/reader/${article.slug}`,
+  };
 
   return (
-    <div className="relative min-h-[85vh] w-full py-4 px-2 md:px-6">
-      <ConstellationCanvas />
-      
-      <div className="max-w-3xl mx-auto relative z-10 space-y-6">
-        
-        {/* Back navigation */}
-        <div className="flex justify-between items-center">
-          <Button asChild variant="outline" className="bg-slate-900/60 border border-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl backdrop-blur-sm transition-all duration-300 shadow-md">
-            <Link href="/reader" className="flex items-center">
-              <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" />
-              Back to Reader
-            </Link>
-          </Button>
-
-          <div className="flex items-center gap-4 text-xs font-semibold text-slate-400 bg-slate-900/50 border border-slate-850 px-3 py-1.5 rounded-xl backdrop-blur-sm select-none">
-            <span className="flex items-center gap-1.5">
-              <BookOpen className="h-3.5 w-3.5 text-indigo-400" />
-              {wordCount} words
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-pink-400" />
-              {readingTime} min read
-            </span>
-          </div>
-        </div>
-
-        {/* Article content block */}
-        <article className="bg-slate-900/40 border border-slate-850/80 backdrop-blur-md rounded-3xl p-6 md:p-10 shadow-2xl space-y-8 overflow-hidden">
-          <ArticleViewTracker article={article} />
-
-          <header className="space-y-4">
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white leading-tight font-sans bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
-              {article.title}
-            </h1>
-            <p className="text-base md:text-lg text-slate-350 font-medium leading-relaxed border-l-2 border-indigo-500/50 pl-4 text-slate-350">
-              {article.description}
-            </p>
-          </header>
-
-          {/* Featured Image */}
-          <div className="relative w-full h-[240px] md:h-[400px] rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80 group">
-            <Image
-              src={article.image}
-              alt={article.title}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              data-ai-hint={article.imageHint}
-              priority
-            />
-            {/* Ambient vignette overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent" />
-          </div>
-          
-          {/* Prose Content */}
-          <div 
-            id="article-content-container"
-            className="bg-slate-950/30 border border-slate-900/80 rounded-2xl p-6 md:p-8 cursor-text"
-          >
-            <div className="text-slate-200 text-base md:text-lg leading-relaxed whitespace-pre-line font-medium antialiased space-y-4 selection:bg-indigo-500/30 selection:text-white">
-              {article.content}
-            </div>
-          </div>
-        </article>
-      </div>
-
-      {/* Floating Sparkles create card tooltip */}
-      {floatingCoords && (
-        <div
-          className={cn(
-            "fixed z-50 transform -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold text-xs py-2 px-3.5 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.5)] flex items-center gap-2 hover:from-purple-500 hover:to-indigo-500 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer select-none border border-indigo-400/20",
-            floatingCoords.isBelow ? "translate-y-0" : "-translate-y-full"
-          )}
-          style={{
-            left: `${floatingCoords.x}px`,
-            top: `${floatingCoords.y}px`,
-          }}
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-          <span>Create Flashcard</span>
-        </div>
-      )}
-
-      {/* Creation Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-slate-900 border border-slate-800 text-white rounded-2xl max-w-md p-6">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-indigo-400" />
-              Create AI Flashcard
-            </DialogTitle>
-            <DialogDescription className="text-slate-400 text-sm">
-              Convert the word "{selectedWord}" into a spaced-repetition study card.
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* Form */}
-          <div className="space-y-4 py-3">
-            <div className="grid grid-cols-4 gap-2">
-              <div className="col-span-3 space-y-1">
-                <Label className="text-xs font-bold text-slate-400">Word or Phrase</Label>
-                <Input
-                  value={selectedWord}
-                  onChange={(e) => setSelectedWord(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-white"
-                />
-              </div>
-              <div className="col-span-1 space-y-1">
-                <Label className="text-xs font-bold text-slate-400">Emoji</Label>
-                <Input
-                  placeholder="✨"
-                  value={emoji}
-                  onChange={(e) => setEmoji(e.target.value)}
-                  className="bg-slate-950 border-slate-800 text-white text-center text-lg"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-1 relative">
-              <Label className="text-xs font-bold text-slate-400 flex justify-between">
-                <span>Definition</span>
-                {isLoadingAI && <Loader2 className="h-3 w-3 animate-spin text-indigo-400" />}
-              </Label>
-              <Textarea
-                placeholder={isLoadingAI ? "AI is translating and defining..." : "Enter simple English definition"}
-                value={definition}
-                onChange={(e) => setDefinition(e.target.value)}
-                rows={2}
-                className="bg-slate-950 border-slate-800 text-white resize-none"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-slate-400">Translation / Synonym</Label>
-              <Input
-                placeholder={isLoadingAI ? "Analyzing translation..." : "e.g. คำอธิบาย / synonym"}
-                value={translation}
-                onChange={(e) => setTranslation(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-white"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-slate-400">Example Sentence</Label>
-              <Textarea
-                placeholder="Example showing how it is used..."
-                value={example}
-                onChange={(e) => setExample(e.target.value)}
-                rows={2}
-                className="bg-slate-950 border-slate-800 text-white resize-none"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs font-bold text-slate-400">Mnemonic / Memory Hint</Label>
-              <Input
-                placeholder="A creative memory aid..."
-                value={hint}
-                onChange={(e) => setHint(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-white"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsModalOpen(false)}
-              className="bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSaveFlashcard}
-              disabled={isSaving || isLoadingAI}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold"
-            >
-              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {isSaving ? "Saving..." : "Save Flashcard"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ReaderArticleClient
+        article={article}
+        levelLabel={levelLabel}
+        relatedArticles={relatedArticles}
+      />
+    </>
   );
 }

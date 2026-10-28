@@ -18,11 +18,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname === '/' ||
     pathname === '/about' ||
     pathname === '/about-us' ||
+    pathname === '/contact' ||
+    pathname === '/editorial-policy' ||
+    pathname === '/support' ||
     pathname === '/terms' ||
     pathname === '/terms-and-conditions' ||
     pathname === '/privacy-policy' ||
     pathname?.startsWith('/reader') ||
-    pathname === '/games' ||
+    pathname?.startsWith('/games') ||
     pathname === '/language-modules';
 
   if (!isMounted && !isPublicSeoRoute) {

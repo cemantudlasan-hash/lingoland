@@ -863,6 +863,18 @@ export default function LingoLandVerseHomePage() {
               About Us
             </Link>
             <Link
+              href="/editorial-policy"
+              className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
+            >
+              Editorial Policy
+            </Link>
+            <Link
+              href="/contact"
+              className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
+            >
+              Contact Us
+            </Link>
+            <Link
               href="/terms"
               className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
             >
