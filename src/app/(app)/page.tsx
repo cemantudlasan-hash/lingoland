@@ -523,7 +523,7 @@ export default function LingoLandVerseHomePage() {
       </header>
 
       {/* 2. MAIN COCKPIT BODY (Left Sidebar + Center Cockpit Panorama + Right Widgets) */}
-      <div className="relative z-10 flex-1 flex flex-col justify-between p-4 sm:p-6 lg:p-8 max-w-[1920px] mx-auto w-full gap-6">
+      <div className="relative z-10 flex-1 flex flex-col justify-start p-4 sm:p-6 lg:p-8 max-w-[1920px] mx-auto w-full gap-6">
         {/* Upper Stage: Left Nav, Center Hero Cockpit, Right Floating Widgets */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch min-h-[460px] xl:min-h-[520px]">
           {/* Left Vertical Dock (Glassmorphism Pill Navigation) */}
