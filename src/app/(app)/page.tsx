@@ -833,7 +833,11 @@ export default function LingoLandVerseHomePage() {
       </div>
 
       {/* Crawl-Ready Educational Articles, CEFR Curriculum & Learning Directory for Search & AdSense Crawlers */}
-      {!user && !isGuest && <AdSenseEducationalHub />}
+      {!user && !isGuest && (
+        <div className="relative z-20 max-w-[1600px] w-full mx-auto px-4 sm:px-8">
+          <AdSenseEducationalHub />
+        </div>
+      )}
 
       {/* 3. HOMEPAGE FOOTER (Compliance & Policy Links for Google AdSense) */}
       <footer className="relative z-20 w-full border-t border-white/[0.08] bg-slate-950/70 backdrop-blur-xl py-6 px-4 sm:px-8 lg:px-12 mt-auto">

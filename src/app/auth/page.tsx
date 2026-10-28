@@ -673,7 +673,7 @@ export default function AuthPage() {
       </aside>
 
       {/* 4. MAIN SCROLLABLE DASHBOARD & AUTH PORTAL CONTENT */}
-      <div className="relative flex-1 w-full pl-0 md:pl-20 pb-20 md:pb-20 z-30">
+      <div className="relative flex-1 w-full pl-0 md:pl-20 pb-24 md:pb-24 z-30">
         <main className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-[1720px] w-full mx-auto">
             {/* 1. TOP VIDEO FEATURE CAROUSEL (Admin can update videos & text in /admin) */}
             <div className="w-full">
@@ -681,9 +681,9 @@ export default function AuthPage() {
             </div>
 
             {/* 2. BALANCED RESPONSIVE GRID (Holiday & Weather level from left to right) */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start w-full">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch w-full">
               {/* Left Column (2-spans wide): Holiday + Weather LEVEL FROM LEFT TO RIGHT, then Calendar */}
-              <div className="xl:col-span-2 space-y-6 w-full">
+              <div className="xl:col-span-2 flex flex-col justify-between gap-6 w-full">
                 {/* Row 1: Holiday Season 2026 (Left) & Weather & Location (Right) - LEVEL FROM LEFT TO RIGHT */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full items-stretch">
                   <div className="w-full flex">
@@ -695,14 +695,14 @@ export default function AuthPage() {
                 </div>
 
                 {/* Row 2: Beautiful Interactive Calendar */}
-                <div className="w-full">
+                <div className="w-full flex-1 flex flex-col">
                   <BeautifulCalendar />
                 </div>
               </div>
 
               {/* Right Column (1-span wide): The Dedicated Login Portal Card */}
-              <div id="login-card-section" className="xl:col-span-1 w-full">
-                <Card className="border border-cyan-500/40 bg-slate-950/80 backdrop-blur-3xl shadow-[0_0_70px_rgba(6,182,212,0.3)] relative overflow-hidden rounded-3xl">
+              <div id="login-card-section" className="xl:col-span-1 w-full flex flex-col">
+                <Card className="border border-cyan-500/40 bg-slate-950/90 backdrop-blur-3xl shadow-[0_0_70px_rgba(6,182,212,0.3)] relative overflow-hidden rounded-3xl flex-1 flex flex-col justify-between">
                   {/* Subtle Neon Edge Glow */}
                   <div className="absolute -top-16 -right-16 w-44 h-44 bg-cyan-500/25 blur-3xl rounded-full pointer-events-none" />
                   <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-purple-500/25 blur-3xl rounded-full pointer-events-none" />
@@ -851,21 +851,35 @@ export default function AuthPage() {
             <span className="text-zinc-600">•</span>
             <Link 
               href="/about" 
-              className="text-zinc-300 hover:text-teal-300 hover:underline transition-colors font-medium"
+              className="text-zinc-200 hover:text-teal-300 hover:underline transition-colors font-semibold"
             >
               About Us
             </Link>
             <span className="text-zinc-600">•</span>
             <Link 
+              href="/editorial-policy" 
+              className="text-zinc-200 hover:text-teal-300 hover:underline transition-colors font-semibold"
+            >
+              Editorial Policy
+            </Link>
+            <span className="text-zinc-600">•</span>
+            <Link 
+              href="/contact" 
+              className="text-zinc-200 hover:text-teal-300 hover:underline transition-colors font-semibold"
+            >
+              Contact Us
+            </Link>
+            <span className="text-zinc-600">•</span>
+            <Link 
               href="/terms" 
-              className="text-zinc-300 hover:text-teal-300 hover:underline transition-colors font-medium"
+              className="text-zinc-200 hover:text-teal-300 hover:underline transition-colors font-semibold"
             >
               Terms and Conditions
             </Link>
             <span className="text-zinc-600">•</span>
             <Link 
               href="/privacy-policy" 
-              className="text-zinc-300 hover:text-teal-300 hover:underline transition-colors font-medium"
+              className="text-zinc-200 hover:text-teal-300 hover:underline transition-colors font-semibold"
             >
               Privacy Policy
             </Link>

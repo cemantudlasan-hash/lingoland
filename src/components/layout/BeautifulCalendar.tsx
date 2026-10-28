@@ -225,7 +225,7 @@ export function BeautifulCalendar() {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="w-full bg-zinc-950/80 backdrop-blur-2xl border border-indigo-500/30 hover:border-indigo-500/40 rounded-2xl p-4 sm:p-5 shadow-[0_12px_40px_rgba(0,0,0,0.6)] relative overflow-hidden transition-all duration-300 group"
+      className="w-full h-full flex flex-col justify-between bg-slate-950/90 backdrop-blur-2xl border border-indigo-500/35 hover:border-indigo-400/50 rounded-3xl p-4 sm:p-5 shadow-[0_12px_40px_rgba(0,0,0,0.65)] relative overflow-hidden transition-all duration-300 group"
     >
       {/* ── Ambient Neon Cyber Orbs ── */}
       <div className="absolute -top-16 -right-16 w-44 h-44 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
