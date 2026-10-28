@@ -329,10 +329,9 @@ export default function LingoLandVerseHomePage() {
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-[#030712] text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
-      {/* Dynamic Cosmic Background with Starfield */}
+    <div className="relative min-h-screen w-full bg-transparent text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
+      {/* Subtle ambient glow over the global PlexusBackground + Metaverse3DCanvas */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/40 via-slate-950/80 to-[#030712]" />
         <div className="absolute top-1/4 left-1/3 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[140px]" />
         <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[150px]" />
       </div>
