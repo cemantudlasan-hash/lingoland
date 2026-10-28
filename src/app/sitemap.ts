@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { getAllBlogPosts } from '@/data/blog-posts';
 import { getAllApps } from '@/data/apps-directory';
+import { articles } from '@/lib/articles';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.lingolandverse.com';
@@ -24,6 +25,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/games`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/reader`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/language-modules`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/about`,
@@ -61,5 +80,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.85,
   }));
 
-  return [...staticRoutes, ...appRoutes, ...blogRoutes];
+  // Graded ESL Reader Passages
+  const allReaderArticles = [
+    ...articles.beginner,
+    ...articles.intermediate,
+    ...articles.advanced,
+  ];
+  const readerRoutes: MetadataRoute.Sitemap = allReaderArticles.map((article) => ({
+    url: `${baseUrl}/reader/${article.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.75,
+  }));
+
+  return [...staticRoutes, ...appRoutes, ...blogRoutes, ...readerRoutes];
 }

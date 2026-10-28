@@ -10,6 +10,7 @@ import { CockpitHologram3D } from "@/components/layout/CockpitHologram3D";
 import { AlienMarketAnimation, RocketLaunchAnimation, ConstellationAnimation } from "@/components/layout/BottomCardsAnimation3D";
 import { CockpitSlideshow } from "@/components/layout/CockpitSlideshow";
 import { ClefConversationBubble } from "@/components/layout/ClefConversationBubble";
+import { AdSenseEducationalHub } from "@/components/layout/AdSenseEducationalHub";
 import { useFirestore } from "@/firebase";
 import { collection, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
@@ -306,27 +307,15 @@ export default function LingoLandVerseHomePage() {
   };
 
   useEffect(() => {
-    if (!isLoading && !user && !isGuest) {
+    const isCrawler =
+      typeof navigator !== "undefined" &&
+      /Mediapartners-Google|AdsBot-Google|Googlebot|Google-InspectionTool|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot/i.test(
+        navigator.userAgent || ""
+      );
+    if (!isLoading && !user && !isGuest && !isCrawler) {
       router.replace('/auth');
     }
   }, [isLoading, user, isGuest, router]);
-
-  if (isLoading || (!user && !isGuest)) {
-    return (
-      <div className="flex h-screen min-h-svh flex-col bg-slate-950 text-foreground items-center justify-center relative overflow-hidden select-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-950/40 via-slate-950 to-slate-950 pointer-events-none" />
-        <div className="relative z-10 flex flex-col items-center gap-4">
-          <div className="relative w-14 h-14 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full border-2 border-cyan-400/20 border-t-cyan-400 animate-spin" />
-            <div className="absolute w-8 h-8 rounded-full border-2 border-indigo-400/30 border-b-indigo-400 animate-spin [animation-direction:reverse] [animation-duration:1.5s]" />
-          </div>
-          <p className="text-xs font-mono uppercase tracking-widest text-cyan-300 animate-pulse">
-            Connecting to Cosmic Cockpit...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="relative min-h-screen w-full bg-transparent text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
@@ -842,6 +831,9 @@ export default function LingoLandVerseHomePage() {
           </div>
         </div>
       </div>
+
+      {/* Crawl-Ready Educational Articles, CEFR Curriculum & Learning Directory for Search & AdSense Crawlers */}
+      {!user && !isGuest && <AdSenseEducationalHub />}
 
       {/* 3. HOMEPAGE FOOTER (Compliance & Policy Links for Google AdSense) */}
       <footer className="relative z-20 w-full border-t border-white/[0.08] bg-slate-950/70 backdrop-blur-xl py-6 px-4 sm:px-8 lg:px-12 mt-auto">

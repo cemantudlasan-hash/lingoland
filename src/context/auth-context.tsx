@@ -182,6 +182,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+function isSearchOrAdSenseCrawler(): boolean {
+  if (typeof navigator === 'undefined') return true;
+  return /Mediapartners-Google|AdsBot-Google|Googlebot|Google-InspectionTool|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot/i.test(
+    navigator.userAgent || ''
+  );
+}
+
 function AuthGuard({ children }: { children: ReactNode }) {
   const { user, isLoading, isGuest } = useAuth();
   const router = useRouter();
@@ -189,6 +196,7 @@ function AuthGuard({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isLoading) {
+      if (isSearchOrAdSenseCrawler()) return;
       const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
       const isCockpitMenu = pathname === '/';
       if ((isCockpitMenu || isProtectedRoute) && !user && !isGuest) {

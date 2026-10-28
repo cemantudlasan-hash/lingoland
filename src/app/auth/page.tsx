@@ -48,6 +48,7 @@ import { BeautifulCalendar } from "@/components/layout/BeautifulCalendar";
 import { BeautifulWeather } from "@/components/layout/BeautifulWeather";
 import { LoginCarousel } from "@/components/layout/login-carousel";
 import { LoginCockpit3DBackground } from "@/components/layout/LoginCockpit3DBackground";
+import { AdSenseEducationalHub } from "@/components/layout/AdSenseEducationalHub";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
 
@@ -818,6 +819,9 @@ export default function AuthPage() {
                 </Card>
               </div>
           </div>
+
+          {/* 3. CRAWLABLE EDUCATIONAL CURRICULUM, RESEARCH ARTICLES & APP DIRECTORY (For AdSense & Visitors) */}
+          <AdSenseEducationalHub />
         </main>
       </div>
 

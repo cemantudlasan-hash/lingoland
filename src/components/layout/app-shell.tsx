@@ -14,20 +14,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user, isGuest, isLoading, authAction } = useAuth();
 
-  if (!isMounted) {
-    return null;
-  }
-
   if (pathname === '/') {
     return (
       <div className="min-h-screen w-full overflow-x-hidden relative" suppressHydrationWarning>
         {children}
-        {(user || isGuest) && <FloatingPetWidget />}
+        {isMounted && (user || isGuest) && <FloatingPetWidget />}
       </div>
     );
   }
 
-  if (isLoading && !authAction) {
+  const isPrivateAccountRoute =
+    pathname?.startsWith('/dashboard') ||
+    pathname?.startsWith('/profile') ||
+    pathname?.startsWith('/admin');
+
+  if (isMounted && isPrivateAccountRoute && isLoading && !authAction) {
     return (
       <div className="flex h-screen min-h-svh flex-col bg-background text-foreground items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -40,13 +41,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // Inside tabs/pages: no sidebar is rendered. Header has "Back to Menu" button returning to cockpit.
   return (
-    <div className="flex h-screen min-h-svh flex-col bg-background text-foreground">
+    <div className="flex h-screen min-h-svh flex-col bg-background text-foreground" suppressHydrationWarning>
       <AppHeader />
       <main className="flex-1 min-h-0 overflow-y-auto p-3 md:p-4 lg:p-5 relative flex flex-col">
         {children}
-        <DailyLoginModal />
-        <DonationPopup />
-        <FloatingPetWidget />
+        {isMounted && <DailyLoginModal />}
+        {isMounted && <DonationPopup />}
+        {isMounted && <FloatingPetWidget />}
       </main>
     </div>
   );
