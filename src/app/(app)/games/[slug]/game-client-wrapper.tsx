@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { allGames } from "@/lib/games";
 import dynamic from 'next/dynamic';
 import { LoadingPlaceholder } from "@/components/layout/loading-placeholder";
@@ -11,9 +11,16 @@ import { useFirestore } from "@/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { logAnalyticsEvent, getDailyMissions, getDailyBonusGame } from "@/lib/analytics";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, BookOpen, GraduationCap, Target, Users, Compass, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { Sparkles, BookOpen, GraduationCap, Target, Users, Compass, ArrowRight, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const NATIVELY_TRACKED_GAMES = new Set([
   'algebraic-abyss', 'anatomy-academy', 'arithmetic-ace', 'bio-hazard', 
@@ -36,6 +43,7 @@ export function GameClientWrapper({ slug }: { slug: string }) {
   const game = allGames.find((g) => g.slug === slug);
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [isLessonGuideOpen, setIsLessonGuideOpen] = useState(false);
 
   const { user } = useAuth();
   const firestore = useFirestore();
@@ -446,182 +454,205 @@ export function GameClientWrapper({ slug }: { slug: string }) {
       : "CEFR C1–C2 (Advanced)";
 
   return (
-    <div className="flex flex-col w-full space-y-10">
-      <div
-        ref={gameContainerRef}
-        className={cn(
-          "relative transition-all duration-300 flex flex-col w-full max-w-full overflow-x-hidden",
-          isFullscreen
-            ? "fixed inset-0 z-50 bg-background w-full h-[100dvh] max-h-[100dvh] overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
-            : "-m-3 md:-m-4 lg:-m-5 min-h-[calc(100dvh-4rem)] flex-1 max-w-[calc(100%+1.5rem)] md:max-w-[calc(100%+2rem)] lg:max-w-[calc(100%+2.5rem)] overflow-x-hidden"
-        )}
-        data-fullscreen-container={isFullscreen}
-        onMouseDown={startTimerOnInteraction}
-        onTouchStart={startTimerOnInteraction}
-      >
-        <div className={cn("w-full max-w-full transition-all duration-300 flex-1 flex flex-col overflow-x-hidden", isFullscreen ? "min-h-[100dvh] h-full overflow-y-auto" : "min-h-[calc(100dvh-4rem)] flex-1")}>
-          <React.Suspense fallback={<LoadingPlaceholder />}>
-            <GameComponent slug={game.slug} onToggleFullscreen={handleFullScreen} />
-          </React.Suspense>
-        </div>
-
-        {/* Modern Floating Timer Status & Claim Widget */}
-        {!NATIVELY_TRACKED_GAMES.has(game.slug) && isDailyGame && !rewarded && (
-          <motion.div 
-            drag
-            dragMomentum={false}
-            dragElastic={0.05}
-            className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-2 sm:gap-3 pointer-events-auto cursor-move select-none touch-none"
-          >
-            {!timerCompleted && (
-              <div className="flex flex-col gap-1.5 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white p-2.5 sm:p-3.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.6)] w-52 sm:w-64 transition-all duration-300">
-                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  <span className="flex items-center gap-1.5">
-                    <Sparkles className={cn("h-3.5 w-3.5 text-amber-500", timerActive && "animate-spin")} />
-                    {timerActive ? "Mission Active" : "Mission Paused"}
-                  </span>
-                  <span className="text-amber-400 text-xs font-black">
-                    {timeLeft !== null ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}` : "0:00"}
-                  </span>
-                </div>
-                
-                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mt-1.5">
-                  <div 
-                    className="bg-gradient-to-r from-amber-500 to-orange-500 h-full transition-all duration-500"
-                    style={{ width: `${timeLeft !== null ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0}%` }}
-                  />
-                </div>
-                
-                <p className="text-[9px] text-slate-500 font-bold leading-tight mt-1.5">
-                  {timerActive 
-                    ? "Mission in progress! Drag me anywhere or exit safely (progress pauses)." 
-                    : "Click inside the game or press Start to begin the mission timer!"}
-                </p>
-              </div>
-            )}
-
-            {timerCompleted && (
-              <button
-                onClick={handleCompleted}
-                className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm py-3 px-5 rounded-2xl shadow-[0_0_25px_rgba(245,158,11,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 animate-bounce border border-amber-300/30"
-              >
-                <Sparkles className="h-4 w-4 text-slate-950" />
-                <span>Claim Mission Coins &amp; Finish</span>
-              </button>
-            )}
-          </motion.div>
-        )}
+    <div
+      ref={gameContainerRef}
+      className={cn(
+        "relative transition-all duration-300 flex flex-col w-full max-w-full overflow-x-hidden",
+        isFullscreen
+          ? "fixed inset-0 z-50 bg-background w-full h-[100dvh] max-h-[100dvh] overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
+          : "-m-3 md:-m-4 lg:-m-5 min-h-[calc(100dvh-4rem)] flex-1 max-w-[calc(100%+1.5rem)] md:max-w-[calc(100%+2rem)] lg:max-w-[calc(100%+2.5rem)] overflow-x-hidden"
+      )}
+      data-fullscreen-container={isFullscreen}
+      onMouseDown={startTimerOnInteraction}
+      onTouchStart={startTimerOnInteraction}
+    >
+      <div className={cn("w-full max-w-full transition-all duration-300 flex-1 flex flex-col overflow-x-hidden", isFullscreen ? "min-h-[100dvh] h-full overflow-y-auto" : "min-h-[calc(100dvh-4rem)] flex-1")}>
+        <React.Suspense fallback={<LoadingPlaceholder />}>
+          <GameComponent slug={game.slug} onToggleFullscreen={handleFullScreen} />
+        </React.Suspense>
       </div>
 
-      {/* Pedagogical & Classroom Implementation Guide (Crawlable Publisher Content) */}
+      {/* Compact Floating "Teacher & Lesson Guide" Pill Button (Bottom-Left) — Keeps Game 100% Clean */}
       {!isFullscreen && (
-        <section
-          aria-label={`Pedagogical and Classroom Guide for ${game.title}`}
-          className="max-w-5xl mx-auto w-full rounded-3xl border border-white/10 bg-slate-950/85 backdrop-blur-xl p-6 sm:p-10 shadow-2xl space-y-8 text-slate-200 mt-8"
-        >
-          <div className="space-y-3 border-b border-white/10 pb-6">
+        <div className="fixed bottom-4 left-4 z-40 pointer-events-auto">
+          <button
+            type="button"
+            onClick={() => setIsLessonGuideOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-cyan-500/35 hover:border-cyan-400 text-cyan-200 hover:text-white text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.25)] backdrop-blur-xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            title={`View Classroom Lesson Plan & Guide for ${game.title}`}
+          >
+            <GraduationCap className="w-4 h-4 text-cyan-400" />
+            <span className="hidden sm:inline">Lesson &amp; Teacher Guide</span>
+            <span className="sm:hidden">Guide</span>
+          </button>
+        </div>
+      )}
+
+      {/* SEO / AdSense Crawlable Semantic Article (Visually hidden unless modal is opened, zero layout intrusion) */}
+      <article
+        aria-label={`Pedagogical and Classroom Guide for ${game.title}`}
+        className="sr-only"
+      >
+        <h1>{game.title} — {cefrBadge} Interactive {game.subject} &amp; {game.focus} Learning Module</h1>
+        <p>
+          {game.description} Designed as part of the LingoLandVerse interactive curriculum, {game.title} reinforces {game.focus} mastery within {game.subject.toUpperCase()} for {cefrBadge} learners through low-anxiety, active retrieval practice.
+        </p>
+        <h2>Core Learning Objectives</h2>
+        <p>
+          Students develop automaticity in {game.focus} by responding to timed contextual prompts, strengthening working-memory retrieval and error self-correction in alignment with {cefrBadge} standards.
+        </p>
+        <h2>Classroom Smartboard Implementation</h2>
+        <p>
+          Project {game.title} in full-screen mode on a classroom projector or interactive whiteboard. Divide students into cooperative teams and rotate spokespersons to explain their grammatical or lexical reasoning before locking in each answer.
+        </p>
+        <h2>Suggested 45-Minute ESL Lesson Plan Using {game.title}</h2>
+        <ol>
+          <li>Warm-Up and Schema Activation (10 mins): Introduce the target {game.focus} patterns on the board and elicit 3–4 example sentences from students.</li>
+          <li>Guided Interactive Practice (20 mins): Launch {game.title}. Have students justify their choices aloud using complete sentences before selecting an option.</li>
+          <li>Production and Consolidation (15 mins): Ask learners to record the 5 most challenging items from their session in their notebook or LingoLandVerse Flashcard Deck and write original dialogue lines using them.</li>
+        </ol>
+      </article>
+
+      {/* Clean Modal Dialog when user clicks "Lesson & Teacher Guide" pill */}
+      <Dialog open={isLessonGuideOpen} onOpenChange={setIsLessonGuideOpen}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-slate-950/95 border border-cyan-500/35 text-slate-100 rounded-3xl p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
+          <DialogHeader className="space-y-2 border-b border-white/10 pb-4 text-left">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-cyan-500/15 border border-cyan-400/30 text-cyan-300">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-cyan-500/20 border border-cyan-400/40 text-cyan-200">
                 <GraduationCap className="w-3.5 h-3.5" /> {cefrBadge}
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-indigo-500/15 border border-indigo-400/30 text-indigo-300">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-indigo-500/20 border border-indigo-400/40 text-indigo-200">
                 Focus: {game.focus}
               </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/15 border border-emerald-400/30 text-emerald-300">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 border border-emerald-400/40 text-emerald-200">
                 Subject: {game.subject}
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              {game.title} — Pedagogical Overview &amp; Classroom Implementation Guide
-            </h2>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              {game.description} Designed as part of the LingoLandVerse interactive curriculum, <strong>{game.title}</strong> reinforces <strong>{game.focus}</strong> mastery within <strong>{game.subject.toUpperCase()}</strong> for <strong>{cefrBadge}</strong> learners through low-anxiety, active retrieval practice.
-            </p>
-          </div>
+            <DialogTitle className="text-xl sm:text-2xl font-black text-white">
+              {game.title} — Classroom &amp; Study Guide
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              {game.description}
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="p-5 rounded-2xl border border-white/10 bg-slate-900/60 space-y-2.5">
-              <div className="flex items-center gap-2 text-cyan-300 font-bold text-sm">
-                <Target className="w-4 h-4 text-cyan-400" />
-                <h3>Core Learning Objectives</h3>
+          <div className="space-y-5 py-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl border border-white/10 bg-slate-900/80 space-y-2">
+                <div className="flex items-center gap-2 text-cyan-300 font-bold text-xs sm:text-sm">
+                  <Target className="w-4 h-4 text-cyan-400" />
+                  <h3>Learning Objectives</h3>
+                </div>
+                <p className="text-xs text-slate-200 leading-relaxed">
+                  Develops automaticity in <strong>{game.focus}</strong> through timed contextual prompts and active retrieval aligned with {cefrBadge}.
+                </p>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Students develop automaticity in <strong>{game.focus}</strong> by responding to timed contextual prompts, strengthening working-memory retrieval and error self-correction in alignment with {cefrBadge} standards.
-              </p>
+
+              <div className="p-4 rounded-2xl border border-white/10 bg-slate-900/80 space-y-2">
+                <div className="flex items-center gap-2 text-indigo-300 font-bold text-xs sm:text-sm">
+                  <Users className="w-4 h-4 text-indigo-400" />
+                  <h3>Smartboard Mode</h3>
+                </div>
+                <p className="text-xs text-slate-200 leading-relaxed">
+                  Project in full-screen mode and divide students into cooperative teams. Have spokespersons justify their choice before locking in each answer.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-white/10 bg-slate-900/80 space-y-2">
+                <div className="flex items-center gap-2 text-emerald-300 font-bold text-xs sm:text-sm">
+                  <Compass className="w-4 h-4 text-emerald-400" />
+                  <h3>Self-Study Review</h3>
+                </div>
+                <p className="text-xs text-slate-200 leading-relaxed">
+                  Pair this game with <Link href="/flashcards" className="text-cyan-300 underline">SM-2 Flashcards</Link> and the <Link href="/reader" className="text-cyan-300 underline">Graded Reader</Link> to reinforce new vocabulary.
+                </p>
+              </div>
             </div>
 
-            <div className="p-5 rounded-2xl border border-white/10 bg-slate-900/60 space-y-2.5">
-              <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm">
-                <Users className="w-4 h-4 text-indigo-400" />
-                <h3>Classroom Smartboard Mode</h3>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Project <strong>{game.title}</strong> in full-screen mode on a classroom projector or interactive whiteboard. Divide students into two or three cooperative teams and rotate spokespersons to explain their reasoning before locking in each answer.
-              </p>
+            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-950/30 p-4 sm:p-5 space-y-2.5">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-indigo-400" />
+                Suggested 45-Minute ESL Lesson Plan
+              </h3>
+              <ol className="space-y-1.5 text-xs text-slate-200 leading-relaxed list-decimal list-inside">
+                <li><strong>Warm-Up (10 mins):</strong> Introduce the target {game.focus} patterns on the board and elicit 3–4 example sentences.</li>
+                <li><strong>Guided Play (20 mins):</strong> Launch <em>{game.title}</em> and have students explain their reasoning aloud in complete sentences.</li>
+                <li><strong>Consolidation (15 mins):</strong> Record 5 challenging items from the session and write original sentences or dialogue lines.</li>
+              </ol>
             </div>
 
-            <div className="p-5 rounded-2xl border border-white/10 bg-slate-900/60 space-y-2.5">
-              <div className="flex items-center gap-2 text-emerald-300 font-bold text-sm">
-                <Compass className="w-4 h-4 text-emerald-400" />
-                <h3>Independent Study &amp; Review</h3>
+            {relatedGames.length > 0 && (
+              <div className="space-y-3 pt-2 border-t border-white/10">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-300">
+                  Related {game.subject.toUpperCase()} Modules
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {relatedGames.map((rel) => (
+                    <Link
+                      key={rel.slug}
+                      href={`/games/${rel.slug}`}
+                      onClick={() => setIsLessonGuideOpen(false)}
+                      className="p-3 rounded-xl border border-white/10 bg-slate-900/80 hover:border-cyan-400/50 transition-all flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="text-xs font-bold text-white">{rel.title}</div>
+                        <div className="text-[10px] text-slate-400 uppercase">{rel.level} • {rel.focus}</div>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
+                    </Link>
+                  ))}
+                </div>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Learners practicing independently can pair this module with our <Link href="/flashcards" className="text-cyan-400 hover:underline">SM-2 Spaced Repetition Flashcards</Link> and <Link href="/reader" className="text-cyan-400 hover:underline">Graded ESL Reader</Link> to consolidate new structures into long-term memory.
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modern Floating Timer Status & Claim Widget */}
+      {!NATIVELY_TRACKED_GAMES.has(game.slug) && isDailyGame && !rewarded && (
+        <motion.div 
+          drag
+          dragMomentum={false}
+          dragElastic={0.05}
+          className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-2 sm:gap-3 pointer-events-auto cursor-move select-none touch-none"
+        >
+          {!timerCompleted && (
+            <div className="flex flex-col gap-1.5 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white p-2.5 sm:p-3.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.6)] w-52 sm:w-64 transition-all duration-300">
+              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className={cn("h-3.5 w-3.5 text-amber-500", timerActive && "animate-spin")} />
+                  {timerActive ? "Mission Active" : "Mission Paused"}
+                </span>
+                <span className="text-amber-400 text-xs font-black">
+                  {timeLeft !== null ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}` : "0:00"}
+                </span>
+              </div>
+              
+              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mt-1.5">
+                <div 
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 h-full transition-all duration-500"
+                  style={{ width: `${timeLeft !== null ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0}%` }}
+                />
+              </div>
+              
+              <p className="text-[9px] text-slate-500 font-bold leading-tight mt-1.5">
+                {timerActive 
+                  ? "Mission in progress! Drag me anywhere or exit safely (progress pauses)." 
+                  : "Click inside the game or press Start to begin the mission timer!"}
               </p>
-            </div>
-          </div>
-
-          {/* Step-by-Step Lesson Plan Integration */}
-          <div className="rounded-2xl border border-indigo-500/25 bg-indigo-950/20 p-5 sm:p-6 space-y-3">
-            <h3 className="text-base font-black text-white flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-indigo-400" />
-              Suggested 45-Minute ESL Lesson Plan Using {game.title}
-            </h3>
-            <ol className="space-y-2 text-xs sm:text-sm text-slate-300 leading-relaxed list-decimal list-inside">
-              <li><strong>Warm-Up &amp; Schema Activation (10 mins):</strong> Introduce the target {game.focus} patterns on the board and elicit 3–4 example sentences from students.</li>
-              <li><strong>Guided Interactive Practice (20 mins):</strong> Launch <em>{game.title}</em>. Have students justify their choices aloud using complete sentences before selecting an option.</li>
-              <li><strong>Production &amp; Consolidation (15 mins):</strong> Ask learners to record the 5 most challenging items from their session in their notebook or LingoLandVerse Flashcard Deck and write original dialogue lines using them.</li>
-            </ol>
-          </div>
-
-          {/* Related Games */}
-          {relatedGames.length > 0 && (
-            <div className="space-y-4 pt-4 border-t border-white/10">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-black uppercase tracking-wider text-white">
-                  Related {game.subject.toUpperCase()} &amp; {game.focus.toUpperCase()} Learning Modules
-                </h3>
-                <Link href="/games" className="text-xs font-bold text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1">
-                  All 79+ Games <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {relatedGames.map((rel) => (
-                  <Link
-                    key={rel.slug}
-                    href={`/games/${rel.slug}`}
-                    className="group p-4 rounded-2xl border border-white/10 bg-slate-900/60 hover:border-cyan-400/40 transition-all flex flex-col justify-between gap-2"
-                  >
-                    <div>
-                      <span className="text-[10px] font-bold uppercase text-indigo-300">
-                        {rel.level} • {rel.focus}
-                      </span>
-                      <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors mt-0.5">
-                        {rel.title}
-                      </h4>
-                      <p className="text-xs text-slate-400 line-clamp-2 mt-1">
-                        {rel.description}
-                      </p>
-                    </div>
-                    <span className="text-[11px] font-bold text-cyan-400 inline-flex items-center gap-1 mt-1">
-                      Launch Module &rarr;
-                    </span>
-                  </Link>
-                ))}
-              </div>
             </div>
           )}
-        </section>
+
+          {timerCompleted && (
+            <button
+              onClick={handleCompleted}
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm py-3 px-5 rounded-2xl shadow-[0_0_25px_rgba(245,158,11,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 animate-bounce border border-amber-300/30"
+            >
+              <Sparkles className="h-4 w-4 text-slate-950" />
+              <span>Claim Mission Coins &amp; Finish</span>
+            </button>
+          )}
+        </motion.div>
       )}
     </div>
   );
