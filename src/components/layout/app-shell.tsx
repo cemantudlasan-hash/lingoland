@@ -14,6 +14,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user, isGuest, isLoading, authAction } = useAuth();
 
+  const isPublicSeoRoute =
+    pathname === '/' ||
+    pathname === '/about' ||
+    pathname === '/about-us' ||
+    pathname === '/terms' ||
+    pathname === '/terms-and-conditions' ||
+    pathname === '/privacy-policy' ||
+    pathname?.startsWith('/reader') ||
+    pathname === '/games' ||
+    pathname === '/language-modules';
+
+  if (!isMounted && !isPublicSeoRoute) {
+    return null;
+  }
+
   if (pathname === '/') {
     return (
       <div className="min-h-screen w-full overflow-x-hidden relative" suppressHydrationWarning>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { chatWithTutor, translateText } from '@/ai/flows/tutor-chat';
 import { useFirestore } from '@/firebase';
@@ -243,7 +243,6 @@ export default function MarketplacePage() {
   const { user, isGuest, isLoading, isAdmin, setAuthAction } = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!isLoading && (!user || isGuest)) {
