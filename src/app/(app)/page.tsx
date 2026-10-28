@@ -326,7 +326,7 @@ export default function LingoLandVerseHomePage() {
       </div>
 
       {/* 1. TOP HEADER (Exact match to reference photo) */}
-      <header className="relative z-40 w-full h-16 md:h-20 px-4 sm:px-8 lg:px-12 flex items-center justify-between border-b border-white/[0.08] bg-slate-950/40 backdrop-blur-xl">
+      <header className="relative z-40 w-full h-16 md:h-20 px-4 sm:px-6 lg:px-6 xl:px-8 flex items-center justify-between border-b border-white/[0.08] bg-slate-950/40 backdrop-blur-xl shrink-0">
         {/* Logo & Quick Navigation Menu Button */}
         <div className="flex items-center gap-3 sm:gap-4">
           <Link href="/" className="flex items-center gap-2 group cursor-pointer">
@@ -523,12 +523,12 @@ export default function LingoLandVerseHomePage() {
       </header>
 
       {/* 2. MAIN COCKPIT BODY (Left Sidebar + Center Cockpit Panorama + Right Widgets) */}
-      <div className="relative z-10 flex-1 flex flex-col justify-start p-4 sm:p-6 lg:p-8 max-w-[1920px] mx-auto w-full gap-6">
+      <div className="relative z-10 flex-1 flex flex-col justify-between p-4 sm:p-5 lg:p-6 xl:px-8 xl:py-6 w-full max-w-full mx-auto gap-5 xl:gap-6">
         {/* Upper Stage: Left Nav, Center Hero Cockpit, Right Floating Widgets */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch min-h-[460px] xl:min-h-[520px]">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 xl:gap-6 items-stretch min-h-[420px] xl:min-h-[480px]">
           {/* Left Vertical Dock (Glassmorphism Pill Navigation) */}
-          <aside className="lg:col-span-2 xl:col-span-2 flex flex-col justify-between">
-            <div className="glass-card border border-white/10 bg-slate-950/60 backdrop-blur-2xl rounded-3xl p-3 flex flex-col gap-2.5 shadow-2xl">
+          <aside className="lg:col-span-2 xl:col-span-2 flex flex-col">
+            <div className="glass-card flex-1 border border-white/10 bg-slate-950/60 backdrop-blur-2xl rounded-3xl p-3.5 flex flex-col justify-between gap-2 shadow-2xl">
               {/* Item 1: Dashboard (Active State) */}
               <button
                 onClick={() => {
@@ -726,7 +726,7 @@ export default function LingoLandVerseHomePage() {
         </div>
 
         {/* 3. BOTTOM ROW (3 Featured Game Cards matching reference photo with 3D Animations) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 xl:gap-6 shrink-0">
           {/* Card 1: Alien Market Trader */}
           <div
             onClick={() => router.push("/marketplace")}
@@ -840,8 +840,8 @@ export default function LingoLandVerseHomePage() {
       )}
 
       {/* 3. HOMEPAGE FOOTER (Compliance & Policy Links for Google AdSense) */}
-      <footer className="relative z-20 w-full border-t border-white/[0.08] bg-slate-950/70 backdrop-blur-xl py-6 px-4 sm:px-8 lg:px-12 mt-auto">
-        <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <footer className="relative z-20 w-full border-t border-white/[0.08] bg-slate-950/70 backdrop-blur-xl py-4 px-4 sm:px-6 lg:px-6 xl:px-8 shrink-0">
+        <div className="w-full max-w-full mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div className="flex flex-wrap items-center gap-2 text-center md:text-left">
             <span className="font-semibold text-slate-300">© 2026 LingoLandVerse</span>
             <span className="text-slate-600 hidden sm:inline">•</span>

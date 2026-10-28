@@ -92,8 +92,21 @@ function extractYouTubeId(url: string): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
-// Deterministic Weekly Top Game calculation fallback
-function getAutomatedWeeklyGame(): { game: (typeof allGames)[0]; playCount: number; weekNumber: number } {
+export interface RankedWeeklyGame {
+  rank: number;
+  title: string;
+  slug: string;
+  description: string;
+  subject?: string;
+  level?: string;
+  playCount: number;
+  weekNumber: number;
+  icon?: any;
+  isRealData?: boolean;
+}
+
+// Deterministic Weekly Top 3 Games calculation fallback
+function getAutomatedWeeklyTop3Games(): { games: RankedWeeklyGame[]; weekNumber: number } {
   const games = allGames.length > 0 ? allGames : [];
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 1);
@@ -102,22 +115,67 @@ function getAutomatedWeeklyGame(): { game: (typeof allGames)[0]; playCount: numb
   );
 
   const seed = now.getFullYear() * 52 + weekNumber;
-  const index = Math.abs(seed * 37) % (games.length || 1);
-  const game = games[index] || {
-    title: "Alien Market Trader",
-    slug: "alien-market",
-    description: "Roleplay and barter in English with interstellar merchants.",
-    level: "intermediate",
-    focus: "conversation",
-    subject: "english",
-    icon: Gamepad2,
-  };
+  const fallbackGames = [
+    {
+      title: "Grammar Guru",
+      slug: "grammar-guru",
+      description: "Fix the sentences and become a grammar master.",
+      level: "intermediate",
+      focus: "grammar",
+      subject: "english",
+      icon: Gamepad2,
+    },
+    {
+      title: "Speed Debater",
+      slug: "speed-debater",
+      description: "Fast-paced 3-round AI debate arena!",
+      level: "advanced",
+      focus: "conversation",
+      subject: "english",
+      icon: Gamepad2,
+    },
+    {
+      title: "Bingo Boost",
+      slug: "bingo-boost",
+      description: "Listen to definitions and mark the right words on your bingo card.",
+      level: "beginner",
+      focus: "vocabulary",
+      subject: "english",
+      icon: Gamepad2,
+    },
+  ];
 
-  const basePlays = 1850 + (Math.abs(seed * 23) % 2450);
+  const picked: RankedWeeklyGame[] = [];
+  const usedSlugs = new Set<string>();
+
+  for (let i = 0; i < 3; i++) {
+    let candidate = fallbackGames[i];
+    if (games.length >= 3) {
+      let idx = Math.abs((seed + i * 19) * 37) % games.length;
+      let attempts = 0;
+      while (usedSlugs.has(games[idx].slug) && attempts < games.length) {
+        idx = (idx + 1) % games.length;
+        attempts++;
+      }
+      candidate = games[idx];
+    }
+    usedSlugs.add(candidate.slug);
+    picked.push({
+      rank: i + 1,
+      title: candidate.title,
+      slug: candidate.slug,
+      description: candidate.description,
+      subject: candidate.subject,
+      level: candidate.level,
+      playCount: 0,
+      weekNumber,
+      icon: candidate.icon,
+      isRealData: false,
+    });
+  }
 
   return {
-    game,
-    playCount: basePlays,
+    games: picked,
     weekNumber,
   };
 }
@@ -146,30 +204,9 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
   const [announcement, setAnnouncement] = useState<StationAnnouncement>(DEFAULT_ANNOUNCEMENT);
   const [videoConfig, setVideoConfig] = useState<StationVideo>(DEFAULT_VIDEO);
 
-  // Top Game Automated State
-  const [topWeeklyGame, setTopWeeklyGame] = useState<{
-    title: string;
-    slug: string;
-    description: string;
-    subject?: string;
-    level?: string;
-    playCount: number;
-    weekNumber: number;
-    icon?: any;
-    isRealData?: boolean;
-  }>(() => {
-    const automated = getAutomatedWeeklyGame();
-    return {
-      title: automated.game.title,
-      slug: automated.game.slug,
-      description: automated.game.description,
-      subject: automated.game.subject,
-      level: automated.game.level,
-      playCount: 0,
-      weekNumber: automated.weekNumber,
-      icon: automated.game.icon,
-      isRealData: false,
-    };
+  // Top 3 Weekly Games Automated State (1st, 2nd, 3rd Most Played in Real Time)
+  const [topWeeklyGames, setTopWeeklyGames] = useState<RankedWeeklyGame[]>(() => {
+    return getAutomatedWeeklyTop3Games().games;
   });
 
   // Admin Modals States
@@ -284,21 +321,25 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
   }, [videoDocRef]);
 
   // ----------------------------------------------------
-  // Real-Time Weekly Top Game Calculation (Live Firestore onSnapshot)
+  // Real-Time Weekly Top 3 Games Calculation (Live Firestore onSnapshot)
   // ----------------------------------------------------
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        const cached = localStorage.getItem("lingoland_top_weekly_game");
+        const cached = localStorage.getItem("lingoland_top_weekly_games_v3");
         if (cached) {
-          const parsed = JSON.parse(cached);
-          const matched = allGames.find((g) => g.slug === parsed.slug);
-          if (matched) {
-            setTopWeeklyGame({
-              ...parsed,
-              icon: matched.icon,
+          const parsed = JSON.parse(cached) as RankedWeeklyGame[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const hydrated = parsed.map((item, idx) => {
+              const matched = allGames.find((g) => g.slug === item.slug);
+              return {
+                ...item,
+                rank: idx + 1,
+                icon: matched?.icon || Gamepad2,
+              };
             });
+            setTopWeeklyGames(hydrated);
           }
         }
       } catch (err) {
@@ -314,7 +355,7 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const automated = getAutomatedWeeklyGame();
+        const automated = getAutomatedWeeklyTop3Games();
         const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
         const weeklyCounts: Record<string, number> = {};
@@ -322,10 +363,8 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
 
         snapshot.forEach((d) => {
           const data = d.data();
-          const uid = data.userId;
           const slug = data.details?.slug;
-          // Exclude guest plays — only count registered users
-          if (!slug || !uid || uid === "guest") return;
+          if (!slug) return;
 
           allTimeCounts[slug] = (allTimeCounts[slug] || 0) + 1;
 
@@ -353,48 +392,71 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
           }
         });
 
-        // Prefer 7-day weekly counts; if no plays in the last 7 days, fall back to real all-time counts
-        let topSlug = "";
-        let maxCount = 0;
+        // Sort by weekly plays first, then all-time plays as tiebreaker
+        const candidateSlugs = Array.from(
+          new Set([...Object.keys(weeklyCounts), ...Object.keys(allTimeCounts)])
+        );
 
-        Object.entries(weeklyCounts).forEach(([slug, count]) => {
-          if (count > maxCount) {
-            maxCount = count;
-            topSlug = slug;
-          }
-        });
-
-        if (!topSlug || maxCount === 0) {
-          Object.entries(allTimeCounts).forEach(([slug, count]) => {
-            if (count > maxCount) {
-              maxCount = count;
-              topSlug = slug;
-            }
+        const sortedRecorded = candidateSlugs
+          .map((slug) => ({
+            slug,
+            weeklyCount: weeklyCounts[slug] || 0,
+            allTimeCount: allTimeCounts[slug] || 0,
+            effectiveCount:
+              (weeklyCounts[slug] || 0) > 0
+                ? weeklyCounts[slug]
+                : allTimeCounts[slug] || 0,
+          }))
+          .filter((entry) => entry.effectiveCount > 0 && allGames.some((g) => g.slug === entry.slug))
+          .sort((a, b) => {
+            if (b.weeklyCount !== a.weeklyCount) return b.weeklyCount - a.weeklyCount;
+            return b.allTimeCount - a.allTimeCount;
           });
-        }
 
-        if (topSlug && maxCount > 0) {
-          const matchedGame = allGames.find((g) => g.slug === topSlug);
-          if (matchedGame) {
-            const nextTopGame = {
+        const top3List: RankedWeeklyGame[] = [];
+        const usedSlugs = new Set<string>();
+
+        for (const item of sortedRecorded) {
+          if (top3List.length >= 3) break;
+          const matchedGame = allGames.find((g) => g.slug === item.slug);
+          if (matchedGame && !usedSlugs.has(matchedGame.slug)) {
+            usedSlugs.add(matchedGame.slug);
+            top3List.push({
+              rank: top3List.length + 1,
               title: matchedGame.title,
               slug: matchedGame.slug,
               description: matchedGame.description,
               subject: matchedGame.subject,
               level: matchedGame.level,
-              playCount: maxCount,
+              playCount: item.effectiveCount,
               weekNumber: automated.weekNumber,
               icon: matchedGame.icon,
               isRealData: true,
-            };
-            setTopWeeklyGame(nextTopGame);
+            });
+          }
+        }
 
-            if (typeof window !== "undefined") {
-              try {
-                const { icon, ...serializable } = nextTopGame;
-                localStorage.setItem("lingoland_top_weekly_game", JSON.stringify(serializable));
-              } catch (err) {}
-            }
+        // Fill remaining slots up to 3 if fewer than 3 distinct games have been played
+        for (const fallback of automated.games) {
+          if (top3List.length >= 3) break;
+          if (!usedSlugs.has(fallback.slug)) {
+            usedSlugs.add(fallback.slug);
+            top3List.push({
+              ...fallback,
+              rank: top3List.length + 1,
+              weekNumber: automated.weekNumber,
+            });
+          }
+        }
+
+        if (top3List.length > 0) {
+          setTopWeeklyGames(top3List);
+
+          if (typeof window !== "undefined") {
+            try {
+              const serializable = top3List.map(({ icon, ...rest }) => rest);
+              localStorage.setItem("lingoland_top_weekly_games_v3", JSON.stringify(serializable));
+            } catch (err) {}
           }
         }
       },
@@ -804,7 +866,7 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
           )}
 
           {/* ==================================================== */}
-          {/* SLIDE 1: AUTOMATED WEEKLY TOP GAME */}
+          {/* SLIDE 1: AUTOMATED WEEKLY TOP 3 GAMES (1st, 2nd, 3rd) */}
           {/* ==================================================== */}
           {currentSlide === 1 && (
             <motion.div
@@ -816,10 +878,10 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
               className="flex-1 flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2.5">
                   <Badge className="bg-gradient-to-r from-amber-500/20 to-emerald-500/20 text-amber-300 border-amber-400/40 text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-[0_0_10px_rgba(245,158,11,0.2)]">
                     <Trophy className="w-2.5 h-2.5 text-amber-400" />
-                    Top Game of Week #{topWeeklyGame.weekNumber}
+                    Top 3 Games • Week #{topWeeklyGames[0]?.weekNumber || 1}
                   </Badge>
 
                   <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-400/30 text-[9px] font-mono px-1.5 py-0.5 rounded">
@@ -827,58 +889,101 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                   </Badge>
                 </div>
 
-                <div className="flex items-start gap-3 my-2">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 p-[1.5px] shadow-[0_0_20px_rgba(16,185,129,0.4)] shrink-0">
-                    <div className="w-full h-full rounded-[14px] bg-slate-950 flex items-center justify-center text-xl text-emerald-300">
-                      🎮
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-black text-sm text-white group-hover:text-emerald-300 transition-colors truncate">
-                      {topWeeklyGame.title}
-                    </h4>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      {topWeeklyGame.subject && (
-                        <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">
-                          {topWeeklyGame.subject}
-                        </span>
-                      )}
-                      <span className="text-[10px] text-slate-500">&bull;</span>
-                      <span className="text-[10px] text-amber-300 font-bold">
-                        {topWeeklyGame.playCount.toLocaleString()}{" "}
-                        {topWeeklyGame.playCount === 1 ? "play" : "plays"} this week
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {/* Top 3 Ranked Games List (1st, 2nd, 3rd Most Played) */}
+                <div className="space-y-2">
+                  {topWeeklyGames.slice(0, 3).map((gameItem, index) => {
+                    const rankConfig =
+                      index === 0
+                        ? {
+                            medal: "🥇",
+                            rankLabel: "1st",
+                            border: "border-amber-400/40 hover:border-amber-300",
+                            bg: "bg-gradient-to-r from-amber-500/15 via-slate-900/80 to-emerald-950/30",
+                            badgeBg: "bg-amber-500/20 text-amber-300 border-amber-400/40",
+                            playColor: "text-amber-300",
+                          }
+                        : index === 1
+                        ? {
+                            medal: "🥈",
+                            rankLabel: "2nd",
+                            border: "border-cyan-400/30 hover:border-cyan-300",
+                            bg: "bg-gradient-to-r from-cyan-500/10 via-slate-900/80 to-slate-900/60",
+                            badgeBg: "bg-cyan-500/20 text-cyan-200 border-cyan-400/30",
+                            playColor: "text-cyan-300",
+                          }
+                        : {
+                            medal: "🥉",
+                            rankLabel: "3rd",
+                            border: "border-purple-400/30 hover:border-purple-300",
+                            bg: "bg-gradient-to-r from-purple-500/10 via-slate-900/80 to-slate-900/60",
+                            badgeBg: "bg-purple-500/20 text-purple-200 border-purple-400/30",
+                            playColor: "text-purple-300",
+                          };
 
-                <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed mt-1">
-                  {topWeeklyGame.description}
-                </p>
+                    return (
+                      <div
+                        key={gameItem.slug}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/games/${gameItem.slug}`);
+                        }}
+                        className={`p-2.5 rounded-2xl border ${rankConfig.border} ${rankConfig.bg} flex items-center justify-between gap-2.5 cursor-pointer transition-all hover:scale-[1.01] group/rank`}
+                        title={`Launch ${rankConfig.rankLabel} Most Played Game: ${gameItem.title}`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div
+                            className={`px-2 py-1 rounded-xl border ${rankConfig.badgeBg} flex flex-col items-center justify-center shrink-0 min-w-[40px]`}
+                          >
+                            <span className="text-xs leading-none">{rankConfig.medal}</span>
+                            <span className="text-[9px] font-black uppercase tracking-tighter mt-0.5">
+                              {rankConfig.rankLabel}
+                            </span>
+                          </div>
 
-                {/* Popularity & XP Multiplier Banner */}
-                <div className="mt-2.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-[10px]">
-                  <span className="text-emerald-300 font-bold flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-emerald-400" /> #1 Most Played Across Users
-                  </span>
-                  <span className="text-amber-300 font-black">+25% XP</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-black text-xs sm:text-[13px] text-white group-hover/rank:text-emerald-300 transition-colors truncate">
+                                {gameItem.title}
+                              </h4>
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                              {gameItem.subject && (
+                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">
+                                  {gameItem.subject}
+                                </span>
+                              )}
+                              <span className="text-[9px] text-slate-500">&bull;</span>
+                              <span className={`text-[10px] font-black ${rankConfig.playColor}`}>
+                                {gameItem.playCount.toLocaleString()}{" "}
+                                {gameItem.playCount === 1 ? "play" : "plays"} this week
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="w-7 h-7 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 group-hover/rank:bg-emerald-500 group-hover/rank:text-slate-950 flex items-center justify-center shrink-0 transition-all">
+                          <Play className="w-3 h-3 fill-current" />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Action Button: Play Top Game */}
-              <div className="mt-2">
+              {/* Action Button: Launch #1 Game or Browse All */}
+              <div className="mt-2.5 pt-2 border-t border-white/[0.08] flex items-center gap-2">
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/games/${topWeeklyGame.slug}`);
+                    router.push(`/games/${topWeeklyGames[0]?.slug || "grammar-guru"}`);
                   }}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black rounded-xl h-9 text-xs shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center justify-between px-3"
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black rounded-xl h-8 text-[11px] shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center justify-between px-3"
                 >
-                  <span className="flex items-center gap-1.5">
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    Launch Top Game
+                  <span className="flex items-center gap-1.5 truncate">
+                    <Play className="w-3 h-3 fill-current shrink-0" />
+                    <span className="truncate">Play #1: {topWeeklyGames[0]?.title || "Top Game"}</span>
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                 </Button>
               </div>
             </motion.div>
