@@ -174,7 +174,7 @@ export function LoginCarousel() {
   const resolvedImageUrl = resolveImageUrl(currentSlide.mediaUrl);
 
   return (
-    <div className="relative w-full bg-slate-950/35 backdrop-blur-xl rounded-2xl border border-cyan-500/20 overflow-hidden shadow-[0_0_35px_rgba(6,182,212,0.15)] p-4 flex flex-col md:flex-row gap-6 min-h-[220px]">
+    <div className="relative w-full bg-slate-950/50 backdrop-blur-2xl rounded-3xl border border-cyan-500/30 overflow-hidden shadow-[0_0_45px_rgba(6,182,212,0.2)] p-4 sm:p-5 lg:p-6 flex flex-col md:flex-row gap-6 lg:gap-8 min-h-[280px] md:min-h-[380px] lg:min-h-[440px] xl:min-h-[480px]">
       <div 
         onClick={() => {
           if (currentSlide.mediaUrl) {
@@ -182,7 +182,7 @@ export function LoginCarousel() {
           }
         }}
         title="Click to open link in a new tab"
-        className="relative w-full md:w-1/2 h-[180px] md:h-[260px] lg:h-[320px] rounded-xl overflow-hidden bg-slate-900/40 border border-cyan-500/20 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+        className="relative w-full md:w-[58%] lg:w-[60%] h-[220px] sm:h-[280px] md:h-[340px] lg:h-[400px] xl:h-[440px] rounded-2xl overflow-hidden bg-slate-950/80 border border-cyan-500/30 shrink-0 cursor-pointer hover:border-cyan-400/60 transition-all shadow-2xl"
       >
         <AnimatePresence initial={false} custom={direction} mode="wait">
           <motion.div
@@ -216,24 +216,33 @@ export function LoginCarousel() {
                   />
                 )
               ) : (
-                <img
-                  src={resolvedImageUrl}
-                  alt={currentSlide.title}
-                  className="object-contain w-full h-full pointer-events-none"
-                />
+                <>
+                  {/* Ambient blurred background so non-16:9 photos fill the entire frame without black bars */}
+                  <img
+                    src={resolvedImageUrl}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110 pointer-events-none"
+                  />
+                  <img
+                    src={resolvedImageUrl}
+                    alt={currentSlide.title}
+                    className="relative z-10 object-contain w-full h-full pointer-events-none"
+                  />
+                </>
               )
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-purple-900/40 to-pink-900/40 flex items-center justify-center">
                 <AlertCircle className="w-8 h-8 text-zinc-600" />
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/60 via-transparent to-transparent pointer-events-none z-20" />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <div className="flex flex-col justify-between flex-1 relative min-h-[140px]">
-        <div>
+      <div className="flex flex-col justify-between flex-1 relative min-h-[160px] py-1 lg:py-2">
+        <div className="flex-1 flex flex-col justify-center">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide.id}
@@ -241,12 +250,15 @@ export function LoginCarousel() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="space-y-3"
+              className="space-y-3 lg:space-y-4"
             >
-              <h3 className="text-xl md:text-2xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-pink-500 bg-clip-text text-transparent tracking-tight">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest bg-cyan-500/15 border border-cyan-400/35 text-cyan-300 w-fit">
+                Featured Spotlight • Slide {currentIndex + 1} of {slides.length}
+              </span>
+              <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black bg-gradient-to-r from-white via-cyan-200 to-purple-300 bg-clip-text text-transparent tracking-tight leading-tight">
                 {currentSlide.title}
               </h3>
-              <p className="text-zinc-300 text-sm md:text-base leading-relaxed font-medium">
+              <p className="text-slate-200 text-sm sm:text-base lg:text-lg leading-relaxed font-medium">
                 {currentSlide.description}
               </p>
             </motion.div>

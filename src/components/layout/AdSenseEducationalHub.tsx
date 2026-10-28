@@ -19,7 +19,7 @@ export function AdSenseEducationalHub() {
   return (
     <section
       aria-label="LingoLandVerse Educational Curriculum, Research Articles, and Learning Directory"
-      className="relative z-20 w-full mx-auto pt-6 pb-8 space-y-8 border-t border-cyan-500/20 mt-6"
+      className="relative z-20 w-full mx-auto pt-6 pb-2 space-y-6 border-t border-cyan-500/20 mt-6"
     >
       {/* 1. Pedagogical Overview & CEFR Curriculum Matrix */}
       <div className="w-full rounded-3xl border border-cyan-500/35 bg-slate-950/90 backdrop-blur-2xl p-6 sm:p-8 lg:p-10 shadow-[0_0_50px_rgba(6,182,212,0.18)] space-y-6">
