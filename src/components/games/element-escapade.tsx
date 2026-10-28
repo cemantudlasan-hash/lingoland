@@ -134,7 +134,7 @@ export function ElementEscapade({ slug, onToggleFullscreen }: { slug: string; on
   return (
     <Card className={cn(
         "w-full transition-all duration-500 flex flex-col justify-between overflow-y-auto overflow-x-hidden max-w-full",
-        isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-[#0f172a] justify-start text-white p-2 sm:p-6" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card shadow-2xl"
+        isFullscreen ? "min-h-screen rounded-none border-none max-w-none bg-[#0f172a] justify-between text-white p-2 sm:p-6" : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card shadow-2xl"
       )}>
       <CardHeader className="text-center relative border-b border-white/10 bg-black/20 pr-14 sm:pr-16 p-3 sm:p-6">
         <Button variant="ghost" size="sm" className="absolute top-3 right-3 sm:top-4 sm:right-4 text-white/50 hover:text-white" onClick={onToggleFullscreen}>
@@ -149,7 +149,7 @@ export function ElementEscapade({ slug, onToggleFullscreen }: { slug: string; on
         {(gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty') && <div className="flex justify-center gap-2 mt-2"><Badge variant="outline" className="border-sky-500 text-sky-400 text-xs">{difficulty.toUpperCase()}</Badge><Badge variant="secondary" className="text-xs">Round {round}/10</Badge></div>}
       </CardHeader>
 
-      <CardContent className={cn("flex flex-col items-center justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden", isFullscreen ? "min-h-[55vh] gap-4 sm:gap-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] gap-4 sm:gap-6")}>
+      <CardContent className={cn("flex flex-col items-center justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden", isFullscreen ? "min-h-0 flex-1 gap-4 sm:gap-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] gap-4 sm:gap-6")}>
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4 text-center">
             <p className={cn("text-muted-foreground text-xs sm:text-base", isFullscreen && "sm:text-3xl")}>Ready to identify elements by their atomic signatures?</p>

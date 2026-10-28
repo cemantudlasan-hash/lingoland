@@ -679,7 +679,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
     <Card className={cn(
         "w-full transition-all duration-500 flex flex-col relative overflow-y-auto overflow-x-hidden max-w-full justify-between",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-slate-950 justify-center p-3 sm:p-8" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-slate-950 justify-between p-3 sm:p-6" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] bg-slate-900/40 backdrop-blur-md border border-slate-800 shadow-2xl rounded-2xl md:rounded-3xl"
       )}>
       
@@ -713,7 +713,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
 
       <CardContent className={cn(
           "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center flex-grow p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
-          isFullscreen ? "min-h-[60vh] max-w-6xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
+          isFullscreen ? "min-h-0 flex-1 max-w-6xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
       )}>
         {gameState === "idle" && (
             <div className="flex flex-col items-center gap-6 max-w-lg py-6">
@@ -1014,7 +1014,7 @@ export function BingoBoost({ slug, onToggleFullscreen }: { slug: string; onToggl
         )}
       </CardContent>
 
-      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 pt-4 sm:pt-6 border-t border-slate-850/60 pb-4 sm:pb-6 p-4 sm:p-8", isFullscreen && "max-w-6xl mx-auto w-full pb-8 sm:pb-16")}>
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 pt-4 sm:pt-6 border-t border-slate-850/60 pb-4 sm:pb-6 p-4 sm:p-6", isFullscreen && "max-w-6xl mx-auto w-full pb-4 sm:pb-6")}>
         <Button variant="outline" asChild className="w-full sm:w-auto h-10 border-slate-850 text-slate-400 hover:bg-slate-850 hover:text-white rounded-xl">
           <Link href="/games">Back to Games</Link>
         </Button>

@@ -393,7 +393,7 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
     <Card className={cn(
         "w-full transition-all duration-500 flex flex-col justify-between overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-start sm:justify-between p-3 sm:p-8" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-between p-3 sm:p-6" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
       <CardHeader className="text-center relative p-3 sm:p-6 pr-14 sm:pr-16">
@@ -423,7 +423,7 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
       )}>
         {renderContent()}
       </CardContent>
-      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 p-3 sm:p-6 pt-3 sm:pt-4", isFullscreen && "max-w-6xl mx-auto w-full pb-4 sm:pb-16")}>
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 p-3 sm:p-6 pt-3 sm:pt-4", isFullscreen && "max-w-6xl mx-auto w-full pb-4 sm:pb-6")}>
         <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl font-bold rounded-xl sm:rounded-2xl")}>
           <Link href="/games">Back to Games</Link>
         </Button>

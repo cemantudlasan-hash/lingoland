@@ -356,7 +356,7 @@ export function AnatomyAcademy({ slug, onToggleFullscreen }: { slug: string; onT
       )}>
         {renderContent()}
       </CardContent>
-      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 pt-4 sm:pt-8 p-3 sm:p-6 w-full max-w-full shrink-0", isFullscreen && "max-w-7xl mx-auto w-full pb-4 sm:pb-12")}>
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 pt-4 sm:pt-6 p-3 sm:p-6 w-full max-w-full shrink-0", isFullscreen && "max-w-7xl mx-auto w-full pb-4 sm:pb-6")}>
         <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-12 text-xs sm:text-base font-bold rounded-xl", isFullscreen && "sm:h-14 sm:px-8 sm:text-lg sm:rounded-2xl")}>
           <Link href="/games">Back to Library</Link>
         </Button>

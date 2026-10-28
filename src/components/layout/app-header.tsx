@@ -455,6 +455,19 @@ export function AppHeader() {
                   LingoLandVerse
                 </h1>
             </div>
+            {pathname?.startsWith('/games/') && pathname !== '/games' && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => window.dispatchEvent(new CustomEvent('lingoland_open_lesson_guide'))}
+                className="px-3 py-1.5 h-10 rounded-2xl border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/70 text-cyan-200 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all hover:scale-105 active:scale-95 gap-2 font-bold text-xs"
+                title="Open Classroom Lesson Plan & Teacher Guide"
+              >
+                <GraduationCap className="h-4 w-4 text-cyan-400 shrink-0" />
+                <span className="hidden sm:inline">Lesson &amp; Teacher Guide</span>
+                <span className="sm:hidden">Guide</span>
+              </Button>
+            )}
         </div>
         <h1 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold hidden md:block md:text-xl font-headline text-foreground">{title}</h1>
         <div className="flex items-center gap-4">

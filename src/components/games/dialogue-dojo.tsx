@@ -534,7 +534,7 @@ export function DialogueDojo({ slug, onToggleFullscreen }: { slug: string; onTog
 
       <CardFooter className={cn(
         "flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 w-full max-w-4xl mx-auto shrink-0",
-        isFullscreen ? "p-3 sm:p-0 pt-4 sm:pt-6 pb-4 sm:pb-12" : "p-4 sm:p-6 pt-4"
+        isFullscreen ? "p-3 sm:p-0 pt-4 sm:pt-6 pb-4 sm:pb-6" : "p-4 sm:p-6 pt-4"
       )}>
         <Button variant="outline" asChild size="default" className="w-full sm:w-auto rounded-xl font-bold text-xs sm:text-sm h-9 sm:h-10">
           <Link href="/games">Back to Library</Link>

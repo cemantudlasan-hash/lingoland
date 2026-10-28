@@ -99,7 +99,7 @@ export function ArticleArchitect({ slug, onToggleFullscreen }: { slug: string; o
     <Card className={cn(
         "w-full transition-all duration-500 flex flex-col justify-between",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-between p-3 sm:p-6" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/90 backdrop-blur-xl border border-white/10 shadow-2xl"
       )}>
       <CardHeader className="text-center relative">
@@ -125,7 +125,7 @@ export function ArticleArchitect({ slug, onToggleFullscreen }: { slug: string; o
       </CardHeader>
       <CardContent className={cn(
           "flex-1 w-full space-y-6 text-center flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8",
-          isFullscreen ? "min-h-[60vh] max-w-5xl mx-auto w-full px-8" : "min-h-[calc(100dvh-16rem)] max-w-4xl mx-auto w-full"
+          isFullscreen ? "min-h-0 flex-1 max-w-5xl mx-auto w-full px-8" : "min-h-[calc(100dvh-16rem)] max-w-4xl mx-auto w-full"
       )}>
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4">
@@ -213,7 +213,7 @@ export function ArticleArchitect({ slug, onToggleFullscreen }: { slug: string; o
           </div>
         )}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8", isFullscreen && "max-w-5xl mx-auto w-full pb-16")}>
+      <CardFooter className={cn("flex justify-between items-center gap-4 pt-6", isFullscreen && "max-w-5xl mx-auto w-full pb-4 sm:pb-6")}>
         <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn(isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
           <Link href="/games">Back to Games</Link>
         </Button>

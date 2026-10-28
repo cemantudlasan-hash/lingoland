@@ -442,7 +442,7 @@ export function AuctionAction({ slug, onToggleFullscreen }: { slug: string; onTo
     <Card className={cn(
         "w-full transition-all duration-300 flex flex-col justify-between",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-start p-4 sm:p-6 md:p-8" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-between p-4 sm:p-6" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/90 backdrop-blur-xl border border-white/10 shadow-2xl p-4 sm:p-6 md:p-8"
       )}>
       {/* Top Header: Compact HUD during gameplay or fullscreen mode; Standard centered banner during setup/idle */}

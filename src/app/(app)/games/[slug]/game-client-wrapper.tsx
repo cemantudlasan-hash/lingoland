@@ -423,16 +423,22 @@ export function GameClientWrapper({ slug }: { slug: string }) {
       });
     };
 
+    const handleOpenLessonGuide = () => {
+      setIsLessonGuideOpen(true);
+    };
+
     window.addEventListener('lingoland_game_completed_hijack', handleCompletedEvent);
     window.addEventListener('lingoland_game_started_hijack', handleStartedEvent);
     window.addEventListener('lingoland_game_answered_hijack', handleAnswered);
     window.addEventListener('lingoland_daily_mission_completed', handleDailyMission);
+    window.addEventListener('lingoland_open_lesson_guide', handleOpenLessonGuide);
 
     return () => {
       window.removeEventListener('lingoland_game_completed_hijack', handleCompletedEvent);
       window.removeEventListener('lingoland_game_started_hijack', handleStartedEvent);
       window.removeEventListener('lingoland_game_answered_hijack', handleAnswered);
       window.removeEventListener('lingoland_daily_mission_completed', handleDailyMission);
+      window.removeEventListener('lingoland_open_lesson_guide', handleOpenLessonGuide);
     };
   }, [game, firestore, user, handleCompleted, startTimerOnInteraction, timerCompleted, isDailyGame, toast]);
 
@@ -454,44 +460,83 @@ export function GameClientWrapper({ slug }: { slug: string }) {
       : "CEFR C1–C2 (Advanced)";
 
   return (
-    <div
-      ref={gameContainerRef}
-      className={cn(
-        "relative transition-all duration-300 flex flex-col w-full max-w-full overflow-x-hidden",
-        isFullscreen
-          ? "fixed inset-0 z-50 bg-background w-full h-[100dvh] max-h-[100dvh] overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
-          : "-m-3 md:-m-4 lg:-m-5 min-h-[calc(100dvh-4rem)] flex-1 max-w-[calc(100%+1.5rem)] md:max-w-[calc(100%+2rem)] lg:max-w-[calc(100%+2.5rem)] overflow-x-hidden"
-      )}
-      data-fullscreen-container={isFullscreen}
-      onMouseDown={startTimerOnInteraction}
-      onTouchStart={startTimerOnInteraction}
-    >
-      <div className={cn("w-full max-w-full transition-all duration-300 flex-1 flex flex-col overflow-x-hidden", isFullscreen ? "min-h-[100dvh] h-full overflow-y-auto" : "min-h-[calc(100dvh-4rem)] flex-1")}>
-        <React.Suspense fallback={<LoadingPlaceholder />}>
-          <GameComponent slug={game.slug} onToggleFullscreen={handleFullScreen} />
-        </React.Suspense>
-      </div>
-
-      {/* Compact Floating "Teacher & Lesson Guide" Pill Button (Bottom-Left) — Keeps Game 100% Clean */}
-      {!isFullscreen && (
-        <div className="fixed bottom-4 left-4 z-40 pointer-events-auto">
-          <button
-            type="button"
-            onClick={() => setIsLessonGuideOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-cyan-500/35 hover:border-cyan-400 text-cyan-200 hover:text-white text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.25)] backdrop-blur-xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
-            title={`View Classroom Lesson Plan & Guide for ${game.title}`}
-          >
-            <GraduationCap className="w-4 h-4 text-cyan-400" />
-            <span className="hidden sm:inline">Lesson &amp; Teacher Guide</span>
-            <span className="sm:hidden">Guide</span>
-          </button>
+    <React.Fragment>
+      <div
+        ref={gameContainerRef}
+        className={cn(
+          "relative transition-all duration-300 flex flex-col w-full max-w-full overflow-x-hidden",
+          isFullscreen
+            ? "fixed inset-0 z-50 bg-background w-full h-[100dvh] max-h-[100dvh] overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
+            : "-m-3 md:-m-4 lg:-m-5 min-h-[calc(100dvh-4rem)] flex-1 max-w-[calc(100%+1.5rem)] md:max-w-[calc(100%+2rem)] lg:max-w-[calc(100%+2.5rem)] overflow-x-hidden"
+        )}
+        data-fullscreen-container={isFullscreen}
+        onMouseDown={startTimerOnInteraction}
+        onTouchStart={startTimerOnInteraction}
+      >
+        <div
+          data-game-stage="true"
+          className={cn(
+            "w-full max-w-full transition-all duration-300 flex-1 flex flex-col overflow-x-hidden",
+            isFullscreen ? "min-h-[100dvh]" : "min-h-[calc(100dvh-4rem)] flex-1"
+          )}
+        >
+          <React.Suspense fallback={<LoadingPlaceholder />}>
+            <GameComponent slug={game.slug} onToggleFullscreen={handleFullScreen} />
+          </React.Suspense>
         </div>
-      )}
+
+        {/* Modern Floating Timer Status & Claim Widget */}
+        {!NATIVELY_TRACKED_GAMES.has(game.slug) && isDailyGame && !rewarded && (
+          <motion.div 
+            drag
+            dragMomentum={false}
+            dragElastic={0.05}
+            className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-2 sm:gap-3 pointer-events-auto cursor-move select-none touch-none"
+          >
+            {!timerCompleted && (
+              <div className="flex flex-col gap-1.5 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white p-2.5 sm:p-3.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.6)] w-52 sm:w-64 transition-all duration-300">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className={cn("h-3.5 w-3.5 text-amber-500", timerActive && "animate-spin")} />
+                    {timerActive ? "Mission Active" : "Mission Paused"}
+                  </span>
+                  <span className="text-amber-400 text-xs font-black">
+                    {timeLeft !== null ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}` : "0:00"}
+                  </span>
+                </div>
+                
+                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mt-1.5">
+                  <div 
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 h-full transition-all duration-500"
+                    style={{ width: `${timeLeft !== null ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0}%` }}
+                  />
+                </div>
+                
+                <p className="text-[9px] text-slate-500 font-bold leading-tight mt-1.5">
+                  {timerActive 
+                    ? "Mission in progress! Drag me anywhere or exit safely (progress pauses)." 
+                    : "Click inside the game or press Start to begin the mission timer!"}
+                </p>
+              </div>
+            )}
+
+            {timerCompleted && (
+              <button
+                onClick={handleCompleted}
+                className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm py-3 px-5 rounded-2xl shadow-[0_0_25px_rgba(245,158,11,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 animate-bounce border border-amber-300/30"
+              >
+                <Sparkles className="h-4 w-4 text-slate-950" />
+                <span>Claim Mission Coins &amp; Finish</span>
+              </button>
+            )}
+          </motion.div>
+        )}
+      </div>
 
       {/* SEO / AdSense Crawlable Semantic Article (Visually hidden unless modal is opened, zero layout intrusion) */}
       <article
         aria-label={`Pedagogical and Classroom Guide for ${game.title}`}
-        className="sr-only"
+        className="sr-only fixed top-0 left-0 w-px h-px overflow-hidden pointer-events-none"
       >
         <h1>{game.title} — {cefrBadge} Interactive {game.subject} &amp; {game.focus} Learning Module</h1>
         <p>
@@ -513,7 +558,7 @@ export function GameClientWrapper({ slug }: { slug: string }) {
         </ol>
       </article>
 
-      {/* Clean Modal Dialog when user clicks "Lesson & Teacher Guide" pill */}
+      {/* Clean Modal Dialog when user clicks "Lesson & Teacher Guide" in Header */}
       <Dialog open={isLessonGuideOpen} onOpenChange={setIsLessonGuideOpen}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-slate-950/95 border border-cyan-500/35 text-slate-100 rounded-3xl p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
           <DialogHeader className="space-y-2 border-b border-white/10 pb-4 text-left">
@@ -607,53 +652,6 @@ export function GameClientWrapper({ slug }: { slug: string }) {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Modern Floating Timer Status & Claim Widget */}
-      {!NATIVELY_TRACKED_GAMES.has(game.slug) && isDailyGame && !rewarded && (
-        <motion.div 
-          drag
-          dragMomentum={false}
-          dragElastic={0.05}
-          className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-2 sm:gap-3 pointer-events-auto cursor-move select-none touch-none"
-        >
-          {!timerCompleted && (
-            <div className="flex flex-col gap-1.5 bg-slate-950/90 backdrop-blur-md border border-slate-800 text-white p-2.5 sm:p-3.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.6)] w-52 sm:w-64 transition-all duration-300">
-              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                <span className="flex items-center gap-1.5">
-                  <Sparkles className={cn("h-3.5 w-3.5 text-amber-500", timerActive && "animate-spin")} />
-                  {timerActive ? "Mission Active" : "Mission Paused"}
-                </span>
-                <span className="text-amber-400 text-xs font-black">
-                  {timeLeft !== null ? `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}` : "0:00"}
-                </span>
-              </div>
-              
-              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden mt-1.5">
-                <div 
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 h-full transition-all duration-500"
-                  style={{ width: `${timeLeft !== null ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0}%` }}
-                />
-              </div>
-              
-              <p className="text-[9px] text-slate-500 font-bold leading-tight mt-1.5">
-                {timerActive 
-                  ? "Mission in progress! Drag me anywhere or exit safely (progress pauses)." 
-                  : "Click inside the game or press Start to begin the mission timer!"}
-              </p>
-            </div>
-          )}
-
-          {timerCompleted && (
-            <button
-              onClick={handleCompleted}
-              className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm py-3 px-5 rounded-2xl shadow-[0_0_25px_rgba(245,158,11,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 animate-bounce border border-amber-300/30"
-            >
-              <Sparkles className="h-4 w-4 text-slate-950" />
-              <span>Claim Mission Coins &amp; Finish</span>
-            </button>
-          )}
-        </motion.div>
-      )}
-    </div>
+    </React.Fragment>
   );
 }

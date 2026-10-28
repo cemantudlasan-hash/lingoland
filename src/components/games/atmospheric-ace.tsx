@@ -329,7 +329,7 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
     <Card className={cn(
         "w-full transition-all duration-500 flex flex-col justify-between",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-between p-3 sm:p-6" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/90 backdrop-blur-xl border border-sky-500/20 shadow-2xl"
       )}>
       <CardHeader className="text-center relative">
@@ -355,11 +355,11 @@ export function AtmosphericAce({ slug, onToggleFullscreen }: { slug: string; onT
       </CardHeader>
       <CardContent className={cn(
           "flex-1 w-full space-y-6 text-center flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8",
-          isFullscreen ? "min-h-[60vh] max-w-7xl mx-auto w-full px-12" : "min-h-[calc(100dvh-16rem)] max-w-5xl mx-auto w-full"
+          isFullscreen ? "min-h-0 flex-1 max-w-7xl mx-auto w-full px-12" : "min-h-[calc(100dvh-16rem)] max-w-5xl mx-auto w-full"
       )}>
         {renderContent()}
       </CardContent>
-      <CardFooter className={cn("flex justify-between items-center gap-4 pt-8 border-t border-sky-100", isFullscreen && "max-w-7xl mx-auto w-full pb-16 bg-transparent border-none")}>
+      <CardFooter className={cn("flex justify-between items-center gap-4 pt-6 border-t border-sky-100", isFullscreen && "max-w-7xl mx-auto w-full pb-4 sm:pb-6 bg-transparent border-none")}>
         <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("border-sky-200 text-sky-600", isFullscreen && "h-16 px-10 text-xl font-bold rounded-2xl")}>
           <Link href="/games">Abort Mission</Link>
         </Button>

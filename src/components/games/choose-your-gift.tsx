@@ -349,7 +349,7 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
       <Card className={cn(
         "w-full transition-all duration-500 flex flex-col justify-between overflow-y-auto overflow-x-hidden max-w-full",
         isFullscreen 
-            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-start p-3 sm:p-8" 
+            ? "min-h-screen rounded-none border-none max-w-none bg-background justify-between p-3 sm:p-6" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
           <CardHeader className="text-center relative p-3 sm:p-6 pr-14 sm:pr-16">
@@ -372,7 +372,7 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
           </CardHeader>
           <CardContent className={cn(
               "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center w-full max-w-full overflow-y-auto overflow-x-hidden",
-              isFullscreen ? "min-h-[55vh] max-w-6xl mx-auto w-full px-2 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8"
+              isFullscreen ? "min-h-0 flex-1 max-w-6xl mx-auto w-full px-2 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8"
           )}>
               {gameState !== 'setup' && gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'loading' && (
                   <div className={cn(
@@ -398,7 +398,7 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
                 {renderContent()}
               </div>
           </CardContent>
-          <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 pt-4 sm:pt-8 w-full max-w-full", isFullscreen && "max-w-6xl mx-auto w-full pb-6 sm:pb-16")}>
+          <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 pt-4 sm:pt-6 w-full max-w-full", isFullscreen && "max-w-6xl mx-auto w-full pb-4 sm:pb-6")}>
               <Button variant="outline" asChild size="default" className={cn("w-full sm:w-auto h-10 sm:h-12 px-4 sm:px-6 text-xs sm:text-sm font-bold rounded-xl", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl sm:rounded-2xl")}>
                   <Link href="/games">Back to Games</Link>
               </Button>
