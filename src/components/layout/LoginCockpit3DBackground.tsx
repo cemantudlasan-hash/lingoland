@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 export function LoginCockpit3DBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,35 +15,6 @@ export function LoginCockpit3DBackground() {
 
     let animId: number;
     let isVisible = true;
-
-    // Mouse coordinates with smooth lerping
-    const mouse = {
-      x: 0,
-      y: 0,
-      targetX: 0,
-      targetY: 0,
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const normX = (e.clientX / window.innerWidth) * 2 - 1;
-      const normY = (e.clientY / window.innerHeight) * 2 - 1;
-      mouse.targetX = normX;
-      mouse.targetY = normY;
-      setMousePos({ x: normX, y: normY });
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        const normX = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
-        const normY = (e.touches[0].clientY / window.innerHeight) * 2 - 1;
-        mouse.targetX = normX;
-        mouse.targetY = normY;
-        setMousePos({ x: normX, y: normY });
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
     const handleVisibility = () => {
       isVisible = !document.hidden;
@@ -284,17 +254,13 @@ export function LoginCockpit3DBackground() {
 
       ctx.clearRect(0, 0, width, height);
 
-      // Smooth mouse parallax lerp
-      mouse.x += (mouse.targetX - mouse.x) * 0.05;
-      mouse.y += (mouse.targetY - mouse.y) * 0.05;
-
-      // Dynamic Centers matching 3-window layout
-      const centerWindowX = width * 0.5 + mouse.x * 16;
-      const centerWindowY = height * 0.40 + mouse.y * 12;
+      // Static Centers matching 3-window layout (no mouse hover shift/shake)
+      const centerWindowX = width * 0.5;
+      const centerWindowY = height * 0.40;
 
       globeAngleY += 0.007;
-      const rotX = mouse.y * 0.15;
-      const rotY = globeAngleY + mouse.x * 0.2;
+      const rotX = 0;
+      const rotY = globeAngleY;
 
       const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
       const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
@@ -303,8 +269,8 @@ export function LoginCockpit3DBackground() {
       deepStars.forEach((star) => {
         star.phase += star.twinkleSpeed;
         const twinkle = 0.4 + Math.sin(star.phase) * 0.6;
-        const px = star.baseX * width + mouse.x * 8;
-        const py = star.baseY * height + mouse.y * 6;
+        const px = star.baseX * width;
+        const py = star.baseY * height;
 
         ctx.beginPath();
         ctx.arc(px, py, star.radius, 0, Math.PI * 2);
@@ -431,8 +397,8 @@ export function LoginCockpit3DBackground() {
         const cCosY = Math.cos(poly.rotY), cSinY = Math.sin(poly.rotY);
         const cCosZ = Math.cos(poly.rotZ), cSinZ = Math.sin(poly.rotZ);
 
-        const crystalCenterX = poly.relX * width + mouse.x * 22;
-        const crystalCenterY = poly.relY * height + mouse.y * 16;
+        const crystalCenterX = poly.relX * width;
+        const crystalCenterY = poly.relY * height;
 
         const projected = poly.vertices.map(([vx, vy, vz]) => {
           let x1 = vx * cCosY + vz * cSinY;
@@ -487,8 +453,8 @@ export function LoginCockpit3DBackground() {
           spark.x = (spark.baseX + (Math.random() - 0.5) * 0.05) * width;
         }
 
-        const px = spark.x + mouse.x * 12;
-        const py = spark.y + mouse.y * 8;
+        const px = spark.x;
+        const py = spark.y;
 
         ctx.beginPath();
         ctx.arc(px, py, spark.size, 0, Math.PI * 2);
@@ -544,8 +510,6 @@ export function LoginCockpit3DBackground() {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
@@ -555,23 +519,15 @@ export function LoginCockpit3DBackground() {
       ref={containerRef}
       aria-hidden="true"
       className="fixed inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-0 bg-[#030712]"
-      style={{ perspective: '1400px' }}
     >
-      {/* Layer 1: Ultra-Realistic 4K Panoramic Spaceship Cockpit Image with 3D Tilt Parallax */}
-      <div
-        className="absolute inset-[-20px] w-[calc(100%+40px)] h-[calc(100%+40px)] will-change-transform transition-transform duration-300 ease-out"
-        style={{
-          transform: `perspective(1400px) rotateX(${(-mousePos.y * 3.5).toFixed(2)}deg) rotateY(${(mousePos.x * 4.5).toFixed(2)}deg) scale(1.03)`,
-          transformOrigin: 'center center',
-        }}
-      >
+      {/* Layer 1: Static 4K Panoramic Spaceship Cockpit Image (no 3D hover tilt or drift) */}
+      <div className="absolute inset-0 w-full h-full">
         <img
           src="/images/login-cosmic-panoramic.jpg"
           alt="LingoLandVerse 4K Spaceship Panoramic Observatory"
           className="w-full h-full object-cover object-center select-none"
           style={{
             filter: 'contrast(1.15) saturate(1.25) brightness(1.08)',
-            animation: 'lingoland-ambient-drift 32s ease-in-out infinite alternate',
           }}
         />
       </div>

@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, getDocs, writeBatch, query, where } from "firebase/firestore";
 import type { AnalyticsEvent } from "@/lib/types";
+import { allGames } from "@/lib/games";
 import { subDays, format } from "date-fns";
 import {
   AlertDialog,
@@ -57,19 +58,26 @@ function DashboardPageComponent() {
     if (!analyticsEvents) {
       return null;
     }
+
+    // Only count registered user events (exclude guest events when viewing global admin stats)
+    const registeredEvents = isAdmin
+      ? analyticsEvents.filter(e => e.userId && e.userId !== 'guest')
+      : analyticsEvents;
     
-    const gamePlays = analyticsEvents.filter(e => e.type === 'game_played');
-    const articleReads = analyticsEvents.filter(e => e.type === 'article_read');
-    const exercises = analyticsEvents.filter(e => e.type === 'exercise_generated');
+    const gamePlays = registeredEvents.filter(e => e.type === 'game_played');
+    const articleReads = registeredEvents.filter(e => e.type === 'article_read');
+    const exercises = registeredEvents.filter(e => e.type === 'exercise_generated');
 
     const gameCounts = gamePlays.reduce((acc, game) => {
-        const title = game.details?.title || 'Unknown Game';
+        const slug = game.details?.slug;
+        const matchedGame = slug ? allGames.find(g => g.slug === slug) : undefined;
+        const title = game.details?.title || matchedGame?.title || slug || 'Unknown Game';
         acc[title] = (acc[title] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
 
      const articleCounts = articleReads.reduce((acc, article) => {
-        const title = article.details?.title || 'Unknown Article';
+        const title = article.details?.title || article.details?.slug || 'Unknown Article';
         acc[title] = (acc[title] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
@@ -83,45 +91,80 @@ function DashboardPageComponent() {
         : 'N/A';
 
     const today = new Date();
-    const weeklyData = Array.from({ length: 7 }).map((_, i) => {
+    const weeklyDataWithKeys = Array.from({ length: 7 }).map((_, i) => {
         const date = subDays(today, i);
         return {
             day: format(date, 'EEEE'),
+            dateKey: format(date, 'yyyy-MM-dd'),
             games: 0,
             exercises: 0,
         };
     }).reverse();
 
-    analyticsEvents.forEach(event => {
-        const eventDate = event.createdAt?.toDate ? event.createdAt.toDate() : null;
-        if(eventDate) {
-            const dayName = format(eventDate, 'EEEE');
-            const dayIndex = weeklyData.findIndex(d => d.day === dayName);
-            if(dayIndex !== -1) {
-                if(event.type === 'game_played') {
-                    weeklyData[dayIndex].games++;
+    registeredEvents.forEach(event => {
+        const rawTs = (event as any).createdAt ?? (event as any).timestamp;
+        let eventDate: Date | null = null;
+        if (rawTs) {
+            if (typeof rawTs.toDate === 'function') {
+                eventDate = rawTs.toDate();
+            } else if (typeof rawTs.seconds === 'number') {
+                eventDate = new Date(rawTs.seconds * 1000);
+            } else if (typeof rawTs === 'number' || typeof rawTs === 'string') {
+                const parsed = new Date(rawTs);
+                if (!isNaN(parsed.getTime())) eventDate = parsed;
+            }
+        } else {
+            // Pending serverTimestamp() on an immediate local snapshot
+            eventDate = today;
+        }
+
+        if (eventDate) {
+            const dateKey = format(eventDate, 'yyyy-MM-dd');
+            const dayIndex = weeklyDataWithKeys.findIndex(d => d.dateKey === dateKey);
+            if (dayIndex !== -1) {
+                if (event.type === 'game_played') {
+                    weeklyDataWithKeys[dayIndex].games++;
                 } else if (event.type === 'exercise_generated') {
-                    weeklyData[dayIndex].exercises++;
+                    weeklyDataWithKeys[dayIndex].exercises++;
                 }
             }
         }
     });
 
-    const totalXP = analyticsEvents.length;
+    const weeklyData = weeklyDataWithKeys.map(({ day, games, exercises }) => ({
+        day,
+        games,
+        exercises,
+    }));
+
+    const totalXP = registeredEvents.reduce((sum, event) => {
+        const score = event.details && event.details.score ? Number(event.details.score) : 10;
+        return sum + score;
+    }, 0);
+
     let level: VocabularyLevel = "Beginner";
-    if (totalXP > 100) level = "Advanced";
-    else if (totalXP > 25) level = "Intermediate";
+    if (totalXP > 1000) level = "Advanced";
+    else if (totalXP > 250) level = "Intermediate";
+
+    const playedSlugs = new Set(gamePlays.map(g => g.details?.slug).filter(Boolean));
+    const targetLevel = level.toLowerCase();
+    const recommendedGame =
+        allGames.find(g => g.level === targetLevel && !playedSlugs.has(g.slug)) ||
+        allGames.find(g => !playedSlugs.has(g.slug)) ||
+        allGames[0];
 
     return {
-        totalEvents: analyticsEvents.length,
+        totalEvents: registeredEvents.length,
+        totalXP,
         mostPlayedGame,
         mostReadArticle,
         weeklyChartData: weeklyData,
         level,
         quizzesPassed: gamePlays.length,
         articlesRead: articleReads.length,
+        recommendedGame,
     };
-  }, [analyticsEvents]);
+  }, [analyticsEvents, isAdmin]);
 
   const handleResetAnalytics = async () => {
     if (!firestore || !isAdmin) return;
@@ -241,7 +284,7 @@ function DashboardPageComponent() {
                     <BarChart className="h-5 w-5 text-indigo-400" />
                   </div>
                 </div>
-                <p className="text-xs text-zinc-500 font-medium mt-4">Across all active classrooms and guests.</p>
+                <p className="text-xs text-zinc-500 font-medium mt-4">Across all registered users.</p>
               </div>
 
               {/* Bento Stat Card 2 */}
@@ -327,7 +370,7 @@ function DashboardPageComponent() {
                 <Zap className="h-4 w-4 text-indigo-400 animate-pulse" />
               </div>
               <h3 className="text-xl font-bold text-white mt-1">Vocab Level: {stats.level}</h3>
-              <p className="text-xs text-zinc-500 font-semibold">Total Score: {stats.totalEvents} XP</p>
+              <p className="text-xs text-zinc-500 font-semibold">Total Score: {stats.totalXP.toLocaleString()} XP</p>
             </div>
             <div className="mt-4 relative z-10 space-y-1.5">
               <div className="flex justify-between text-[10px] text-zinc-500 font-bold">
@@ -385,11 +428,24 @@ function DashboardPageComponent() {
                   <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">Recommended Lesson</span>
                   <BookOpen className="h-4 w-4 text-indigo-400" />
                 </div>
-                <h4 className="text-base font-bold text-white mt-1">Vocab Voyage</h4>
-                <p className="text-[10px] text-zinc-400 italic">Advanced Vocabulary & Context</p>
+                <h4 className="text-base font-bold text-white mt-1 truncate">
+                  {stats.recommendedGame?.title || "Vocab Voyage"}
+                </h4>
+                <p className="text-[10px] text-zinc-400 italic line-clamp-1">
+                  {stats.recommendedGame?.description || "Advanced Vocabulary & Context"}
+                </p>
               </div>
               <div className="mt-4 relative z-10">
-                <Button onClick={() => router.push("/games")} className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:opacity-90 font-extrabold h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10 transition-all hover:scale-[1.02] text-xs">
+                <Button
+                  onClick={() =>
+                    router.push(
+                      stats.recommendedGame?.slug
+                        ? `/games/${stats.recommendedGame.slug}`
+                        : "/games"
+                    )
+                  }
+                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:opacity-90 font-extrabold h-9 rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10 transition-all hover:scale-[1.02] text-xs"
+                >
                   Play Lesson Now
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>

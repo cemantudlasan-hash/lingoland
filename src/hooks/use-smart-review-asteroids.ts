@@ -163,9 +163,17 @@ export function useSmartReviewAsteroids() {
     return () => unsubscribe();
   }, [firestore, user?.uid]);
 
+  // Real-time clock tick so scheduled asteroids promote to activeAsteroids automatically when their countdown expires
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Separate into active (due now) and scheduled (in orbital rest)
   const { activeAsteroids, scheduledAsteroids } = useMemo(() => {
-    const now = Date.now();
     const active: AsteroidItem[] = [];
     const scheduled: AsteroidItem[] = [];
 
@@ -176,7 +184,7 @@ export function useSmartReviewAsteroids() {
         ? new Date(item.next_review_at).getTime()
         : 0;
 
-      if (reviewTime <= now) {
+      if (reviewTime <= nowMs) {
         active.push(item);
       } else {
         scheduled.push(item);
@@ -184,7 +192,7 @@ export function useSmartReviewAsteroids() {
     });
 
     return { activeAsteroids: active, scheduledAsteroids: scheduled };
-  }, [allUserAsteroids]);
+  }, [allUserAsteroids, nowMs]);
 
   // Submit user review attempt with non-repeating stage challenge progression
   const submitReviewAttempt = async (

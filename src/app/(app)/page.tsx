@@ -11,7 +11,7 @@ import { AlienMarketAnimation, RocketLaunchAnimation, ConstellationAnimation } f
 import { CockpitSlideshow } from "@/components/layout/CockpitSlideshow";
 import { ClefConversationBubble } from "@/components/layout/ClefConversationBubble";
 import { useFirestore } from "@/firebase";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -154,60 +154,70 @@ export default function LingoLandVerseHomePage() {
   ]);
 
   useEffect(() => {
-    // Leaderboard is only loaded for registered users
+    // Leaderboard is only loaded for registered users (guests excluded)
     if (!user || isGuest || !firestore) return;
 
     let isSubscribed = true;
-    async function loadLeaderboard() {
-      try {
-        const analyticsSnap = await getDocs(collection(firestore, "analytics"));
-        const userScores: Record<string, number> = {};
+    const nameCache = new Map<string, string>();
 
-        analyticsSnap.forEach((docSnap) => {
-          const data = docSnap.data();
-          const uid = data.userId;
-          if (uid && uid !== "guest") {
-            const score = data.details && data.details.score ? Number(data.details.score) : 10;
-            userScores[uid] = (userScores[uid] || 0) + score;
-          }
-        });
+    const unsubscribe = onSnapshot(
+      collection(firestore, "analytics"),
+      async (analyticsSnap) => {
+        try {
+          const userScores: Record<string, number> = {};
 
-        const sortedUids = Object.entries(userScores)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 3);
-
-        const badges = ["🥇", "🥈", "🥉"];
-        const top3 = await Promise.all(
-          sortedUids.map(async ([uid, totalScore], index) => {
-            let name = `Cadet_${uid.substring(0, 5)}`;
-            try {
-              const uDoc = await getDoc(doc(firestore, "users", uid));
-              if (uDoc.exists() && uDoc.data().displayName) {
-                name = uDoc.data().displayName;
-              }
-            } catch {
-              // fallback to Cadet_id
+          analyticsSnap.forEach((docSnap) => {
+            const data = docSnap.data();
+            const uid = data.userId;
+            if (uid && uid !== "guest") {
+              const score = data.details && data.details.score ? Number(data.details.score) : 10;
+              userScores[uid] = (userScores[uid] || 0) + score;
             }
-            return {
-              rank: index + 1,
-              name,
-              score: `${totalScore.toLocaleString()} XP`,
-              badge: badges[index] || "⭐",
-            };
-          })
-        );
+          });
 
-        if (isSubscribed && top3.length > 0) {
-          setLeaderboardTop3(top3);
+          const sortedUids = Object.entries(userScores)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3);
+
+          const badges = ["🥇", "🥈", "🥉"];
+          const top3 = await Promise.all(
+            sortedUids.map(async ([uid, totalScore], index) => {
+              let name = nameCache.get(uid) || `Cadet_${uid.substring(0, 5)}`;
+              if (!nameCache.has(uid)) {
+                try {
+                  const uDoc = await getDoc(doc(firestore, "users", uid));
+                  if (uDoc.exists() && uDoc.data().displayName) {
+                    name = uDoc.data().displayName;
+                    nameCache.set(uid, name);
+                  }
+                } catch {
+                  // fallback to Cadet_id
+                }
+              }
+              return {
+                rank: index + 1,
+                name,
+                score: `${totalScore.toLocaleString()} XP`,
+                badge: badges[index] || "⭐",
+              };
+            })
+          );
+
+          if (isSubscribed && top3.length > 0) {
+            setLeaderboardTop3(top3);
+          }
+        } catch (e) {
+          console.warn("Leaderboard live fetch note:", e);
         }
-      } catch (e) {
-        console.warn("Leaderboard live fetch note:", e);
+      },
+      (error) => {
+        console.warn("Leaderboard realtime listener note:", error);
       }
-    }
+    );
 
-    loadLeaderboard();
     return () => {
       isSubscribed = false;
+      unsubscribe();
     };
   }, [user, isGuest, firestore]);
 

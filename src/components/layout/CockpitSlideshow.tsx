@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { useFirestore, useMemoFirebase } from "@/firebase";
-import { doc, onSnapshot, collection, query, where, getDocs, type FirestoreError } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, type FirestoreError } from "firebase/firestore";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { allGames } from "@/lib/games";
 import { useSmartReviewAsteroids } from "@/hooks/use-smart-review-asteroids";
@@ -165,7 +165,7 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
       description: automated.game.description,
       subject: automated.game.subject,
       level: automated.game.level,
-      playCount: automated.playCount,
+      playCount: 0,
       weekNumber: automated.weekNumber,
       icon: automated.game.icon,
       isRealData: false,
@@ -284,65 +284,126 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
   }, [videoDocRef]);
 
   // ----------------------------------------------------
-  // Automated Weekly Top Game Calculation (Real Analytics + Fallback)
+  // Real-Time Weekly Top Game Calculation (Live Firestore onSnapshot)
   // ----------------------------------------------------
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("lingoland_top_weekly_game");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          const matched = allGames.find((g) => g.slug === parsed.slug);
+          if (matched) {
+            setTopWeeklyGame({
+              ...parsed,
+              icon: matched.icon,
+            });
+          }
+        }
+      } catch (err) {
+        // ignore cache errors
+      }
+    }
+
     if (!firestore) return;
 
-    let isMounted = true;
-    const fetchTopGameAnalytics = async () => {
-      try {
-        const analyticsCol = collection(firestore, "analytics");
-        const q = query(analyticsCol, where("type", "==", "game_played"));
-        const snapshot = await getDocs(q);
+    const analyticsCol = collection(firestore, "analytics");
+    const q = query(analyticsCol, where("type", "==", "game_played"));
 
-        if (!snapshot.empty && isMounted) {
-          const counts: Record<string, number> = {};
-          snapshot.forEach((d) => {
-            const data = d.data();
-            const slug = data.details?.slug;
-            if (slug) {
-              counts[slug] = (counts[slug] || 0) + 1;
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const automated = getAutomatedWeeklyGame();
+        const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+        const weeklyCounts: Record<string, number> = {};
+        const allTimeCounts: Record<string, number> = {};
+
+        snapshot.forEach((d) => {
+          const data = d.data();
+          const uid = data.userId;
+          const slug = data.details?.slug;
+          // Exclude guest plays — only count registered users
+          if (!slug || !uid || uid === "guest") return;
+
+          allTimeCounts[slug] = (allTimeCounts[slug] || 0) + 1;
+
+          // Extract timestamp in ms (supports Firestore Timestamp, Date, number, or ISO string)
+          const rawTs = data.createdAt ?? data.timestamp;
+          let eventMs = 0;
+          if (rawTs) {
+            if (typeof rawTs.toMillis === "function") {
+              eventMs = rawTs.toMillis();
+            } else if (typeof rawTs.seconds === "number") {
+              eventMs = rawTs.seconds * 1000;
+            } else if (typeof rawTs === "number") {
+              eventMs = rawTs;
+            } else if (typeof rawTs === "string") {
+              const parsedMs = Date.parse(rawTs);
+              if (!isNaN(parsedMs)) eventMs = parsedMs;
             }
-          });
+          } else if (d.metadata?.hasPendingWrites) {
+            // Newly created local event whose serverTimestamp() is pending
+            eventMs = Date.now();
+          }
 
-          let topSlug = "";
-          let maxCount = 0;
-          Object.entries(counts).forEach(([slug, count]) => {
+          if (eventMs >= sevenDaysAgoMs) {
+            weeklyCounts[slug] = (weeklyCounts[slug] || 0) + 1;
+          }
+        });
+
+        // Prefer 7-day weekly counts; if no plays in the last 7 days, fall back to real all-time counts
+        let topSlug = "";
+        let maxCount = 0;
+
+        Object.entries(weeklyCounts).forEach(([slug, count]) => {
+          if (count > maxCount) {
+            maxCount = count;
+            topSlug = slug;
+          }
+        });
+
+        if (!topSlug || maxCount === 0) {
+          Object.entries(allTimeCounts).forEach(([slug, count]) => {
             if (count > maxCount) {
               maxCount = count;
               topSlug = slug;
             }
           });
+        }
 
-          if (topSlug && maxCount > 0) {
-            const matchedGame = allGames.find((g) => g.slug === topSlug);
-            if (matchedGame) {
-              const automated = getAutomatedWeeklyGame();
-              setTopWeeklyGame({
-                title: matchedGame.title,
-                slug: matchedGame.slug,
-                description: matchedGame.description,
-                subject: matchedGame.subject,
-                level: matchedGame.level,
-                playCount: maxCount + automated.playCount, // blend with live aggregate
-                weekNumber: automated.weekNumber,
-                icon: matchedGame.icon,
-                isRealData: true,
-              });
+        if (topSlug && maxCount > 0) {
+          const matchedGame = allGames.find((g) => g.slug === topSlug);
+          if (matchedGame) {
+            const nextTopGame = {
+              title: matchedGame.title,
+              slug: matchedGame.slug,
+              description: matchedGame.description,
+              subject: matchedGame.subject,
+              level: matchedGame.level,
+              playCount: maxCount,
+              weekNumber: automated.weekNumber,
+              icon: matchedGame.icon,
+              isRealData: true,
+            };
+            setTopWeeklyGame(nextTopGame);
+
+            if (typeof window !== "undefined") {
+              try {
+                const { icon, ...serializable } = nextTopGame;
+                localStorage.setItem("lingoland_top_weekly_game", JSON.stringify(serializable));
+              } catch (err) {}
             }
           }
         }
-      } catch (err) {
-        // use default automated rotation
+      },
+      (error: FirestoreError) => {
+        // Keep current/fallback state on error
       }
-    };
+    );
 
-    fetchTopGameAnalytics();
-    return () => {
-      isMounted = false;
-    };
+    return () => unsubscribe();
   }, [firestore]);
 
   // ----------------------------------------------------
@@ -762,7 +823,7 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                   </Badge>
 
                   <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-400/30 text-[9px] font-mono px-1.5 py-0.5 rounded">
-                    ⚡ Auto-Ranked
+                    ⚡ Live Real-Time
                   </Badge>
                 </div>
 
@@ -784,7 +845,8 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                       )}
                       <span className="text-[10px] text-slate-500">&bull;</span>
                       <span className="text-[10px] text-amber-300 font-bold">
-                        {topWeeklyGame.playCount.toLocaleString()} plays this week
+                        {topWeeklyGame.playCount.toLocaleString()}{" "}
+                        {topWeeklyGame.playCount === 1 ? "play" : "plays"} this week
                       </span>
                     </div>
                   </div>

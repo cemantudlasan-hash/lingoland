@@ -5,8 +5,10 @@ import { useFirestore } from '@/firebase';
 import { doc, getDoc, onSnapshot, increment, runTransaction } from 'firebase/firestore';
 import { Users } from 'lucide-react';
 
+const BASE_VISITOR_COUNT = 10000;
+
 export function VisitorCounter() {
-  const [count, setCount] = useState<number>(0);
+  const [count, setCount] = useState<number>(BASE_VISITOR_COUNT);
   const [error, setError] = useState<string | null>(null);
   const firestore = useFirestore();
 
@@ -19,22 +21,28 @@ export function VisitorCounter() {
     const counterRef = doc(firestore, 'stats', 'visitorCount');
     const sessionKey = 'visitorCountIncremented';
 
-    const incrementCount = async () => {
-      if (sessionStorage.getItem(sessionKey)) {
-        return;
-      }
+    const syncAndIncrementCount = async () => {
+      const alreadyIncremented = Boolean(sessionStorage.getItem(sessionKey));
 
       try {
         await runTransaction(firestore, async (transaction) => {
           const docSnap = await transaction.get(counterRef);
           if (!docSnap.exists()) {
-            transaction.set(counterRef, { count: 1 });
+            const initial = alreadyIncremented ? BASE_VISITOR_COUNT : BASE_VISITOR_COUNT + 1;
+            transaction.set(counterRef, { count: initial });
           } else {
             const currentCount = docSnap.data().count || 0;
-            transaction.update(counterRef, { count: currentCount + 1 });
+            if (currentCount < BASE_VISITOR_COUNT) {
+              const nextCount = alreadyIncremented ? BASE_VISITOR_COUNT : BASE_VISITOR_COUNT + 1;
+              transaction.update(counterRef, { count: nextCount });
+            } else if (!alreadyIncremented) {
+              transaction.update(counterRef, { count: currentCount + 1 });
+            }
           }
         });
-        sessionStorage.setItem(sessionKey, 'true');
+        if (!alreadyIncremented) {
+          sessionStorage.setItem(sessionKey, 'true');
+        }
       } catch (transactionError: unknown) {
         console.error('Visitor counter transaction failed:', transactionError);
         setError(
@@ -49,7 +57,8 @@ export function VisitorCounter() {
       try {
         const docSnap = await getDoc(counterRef);
         if (docSnap.exists()) {
-          setCount(docSnap.data().count || 0);
+          const rawCount = docSnap.data().count || 0;
+          setCount(Math.max(BASE_VISITOR_COUNT, rawCount));
           setError(null);
         }
       } catch (loadError: unknown) {
@@ -64,13 +73,14 @@ export function VisitorCounter() {
       }
     };
 
-    incrementCount().then(loadCount);
+    syncAndIncrementCount().then(loadCount);
 
     const unsubscribe = onSnapshot(
       counterRef,
       (docSnap) => {
         if (docSnap.exists()) {
-          setCount(docSnap.data().count || 0);
+          const rawCount = docSnap.data().count || 0;
+          setCount(Math.max(BASE_VISITOR_COUNT, rawCount));
           setError(null);
         }
       },
