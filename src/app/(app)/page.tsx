@@ -866,7 +866,7 @@ export default function LingoLandVerseHomePage() {
 
       {/* Crawl-Ready Educational Articles, CEFR Curriculum & Learning Directory for Search & AdSense Crawlers */}
       {!user && !isGuest && (
-        <div className="relative z-20 max-w-[1600px] w-full mx-auto px-4 sm:px-8">
+        <div className="relative z-20 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-6 xl:px-8">
           <AdSenseEducationalHub />
         </div>
       )}

@@ -674,7 +674,7 @@ export default function AuthPage() {
 
       {/* 4. MAIN SCROLLABLE DASHBOARD & AUTH PORTAL CONTENT */}
       <div className="relative flex-1 w-full pl-0 md:pl-20 pb-24 md:pb-24 z-30">
-        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-[1720px] w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-4 lg:px-4 lg:py-5 xl:px-5 space-y-5 sm:space-y-6 w-full max-w-none mx-auto">
             {/* 1. TOP VIDEO FEATURE CAROUSEL (Admin can update videos & text in /admin) */}
             <div className="w-full">
               <LoginCarousel />
