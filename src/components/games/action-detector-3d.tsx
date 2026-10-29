@@ -13,6 +13,7 @@ import {
   Minimize,
   Coins,
   ArrowRight,
+  ArrowLeft,
   RotateCcw,
   Users,
   User,
@@ -2022,32 +2023,58 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
 
   return (
     <div className={cn(
-      "relative w-full flex flex-col bg-[#05060f] font-sans select-none text-slate-100 overflow-hidden",
-      isFullscreen ? "h-screen p-6" : "min-h-[calc(100vh-100px)] rounded-t-3xl rounded-b-none p-4 md:p-6 border-t border-x border-slate-800/80 shadow-2xl"
+      "relative w-full flex flex-col bg-[#05060f] font-sans select-none text-slate-100 overflow-y-auto overflow-x-hidden",
+      isFullscreen ? "h-screen p-3 sm:p-6" : "min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl p-3 sm:p-6 border border-slate-800/80 shadow-2xl"
     )} id="action-detector-game">
       {/* Dynamic particles background */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_center,#6b21a8_0%,transparent_70%)]" />
 
-      {/* Universal Floating Fullscreen Button (visible when not playing) */}
-      {onToggleFullscreen && gameState !== 'playing' && (
-        <button
-          onClick={onToggleFullscreen}
-          className="absolute top-4 right-4 z-30 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800 backdrop-blur-sm transition-all shadow-lg hover:scale-105 active:scale-95"
-          title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-        >
-          {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
-        </button>
-      )}
+      {/* Universal Cyber Header across All Views */}
+      <div className="relative z-20 w-full flex items-center justify-between gap-2 pb-3 mb-2 border-b border-slate-800/60 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="h-7 px-2.5 text-purple-300 hover:text-white hover:bg-purple-500/15 rounded-lg border border-purple-500/25 text-xs font-bold shrink-0"
+          >
+            <Link href="/games" className="flex items-center gap-1.5">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-mono uppercase font-black">Games</span>
+            </Link>
+          </Button>
+
+          <div className="hidden xs:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-950/70 border border-purple-500/30 text-purple-300 font-mono text-[9px] sm:text-xs font-bold uppercase tracking-wider truncate">
+            <Camera className="w-3 h-3 text-purple-400 shrink-0 animate-pulse" />
+            <span className="truncate">ACTION DETECTOR 3D</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          {onToggleFullscreen && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleFullscreen}
+              className="h-7 px-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-lg border border-slate-800 text-xs font-bold"
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            >
+              {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize className="h-3.5 w-3.5" />}
+              <span className="text-[9px] font-mono uppercase hidden sm:inline ml-1">{isFullscreen ? 'Exit' : 'Full'}</span>
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* ── MODE SELECT SCREEN ── */}
       {gameState === 'idle' && multiplayerState === 'mode_select' && (
-        <div className="relative z-10 max-w-2xl mx-auto my-auto p-4 w-full flex flex-col gap-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-400 via-indigo-400 to-cyan-400 bg-clip-text text-transparent uppercase tracking-tight flex items-center justify-center gap-3">
-              <Camera className="h-10 w-10 text-purple-400 animate-pulse" />
+        <div className="relative z-10 max-w-2xl mx-auto my-2 sm:my-auto p-2 sm:p-4 w-full flex flex-col gap-4 sm:gap-6">
+          <div className="text-center space-y-1.5">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-400 via-indigo-400 to-cyan-400 bg-clip-text text-transparent uppercase tracking-tight flex items-center justify-center gap-2 sm:gap-3">
+              <Camera className="h-8 w-8 sm:h-10 sm:w-10 text-purple-400 animate-pulse" />
               Action Detector 3D
             </h1>
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
               Test your physical vocabulary in front of the camera. Do the actions matching the 3D puppet instructions to score points!
             </p>
           </div>
@@ -2178,7 +2205,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
 
       {/* ── INSTRUCTIONS LOBBY ── */}
       {gameState === 'instructions' && (
-        <Card className="relative z-10 max-w-xl mx-auto my-auto p-6 bg-slate-900/80 border-slate-800 backdrop-blur-md">
+        <Card className="relative z-10 max-w-xl mx-auto my-2 sm:my-auto p-4 sm:p-6 bg-slate-900/80 border-slate-800 backdrop-blur-md">
           <CardHeader>
             <CardTitle className="text-xl text-center uppercase tracking-wider font-mono text-purple-400">Action Detector Instructions</CardTitle>
           </CardHeader>
@@ -2233,7 +2260,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
 
       {/* ── MULTIPLAYER LOBBY SCREEN ── */}
       {gameState === 'playing' && gameMode === 'multi' && multiplayerState === 'lobby' && (
-        <div className="relative z-10 max-w-md mx-auto my-auto p-4 w-full">
+        <div className="relative z-10 max-w-md mx-auto my-2 sm:my-auto p-2 sm:p-4 w-full">
           <Card className="bg-slate-900/80 border-slate-800 backdrop-blur-md p-6 flex flex-col gap-6">
             <div className="text-center space-y-1">
               <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Multiplayer Room</span>
@@ -2545,7 +2572,7 @@ export function ActionDetector3D({ slug, onToggleFullscreen }: { slug: string; o
 
       {/* ── VICTORY & SUMMARY SCREEN ── */}
       {gameState === 'finished' && (
-        <div className="relative z-10 max-w-md mx-auto my-auto p-4 w-full">
+        <div className="relative z-10 max-w-md mx-auto my-2 sm:my-auto p-2 sm:p-4 w-full">
           <Card className="bg-slate-900/80 border-slate-800 backdrop-blur-md p-6 flex flex-col items-center text-center gap-6 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
             <Trophy className="h-16 w-16 text-amber-400 animate-bounce" />

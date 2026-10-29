@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 import { 
   Compass, 
   Sparkles, 
@@ -17,6 +18,7 @@ import {
   ShieldAlert, 
   Coins, 
   ArrowRight, 
+  ArrowLeft,
   Key, 
   Trophy, 
   BookOpen, 
@@ -24,7 +26,9 @@ import {
   VolumeX, 
   ChevronRight,
   RefreshCw,
-  Play
+  Play,
+  Maximize,
+  Minimize
 } from 'lucide-react';
 import { ConstellationCanvas } from '@/components/ui/constellation-canvas';
 
@@ -267,8 +271,47 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
       <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 w-full flex-1 flex flex-col gap-4 sm:gap-6 max-w-full">
+      <div className="relative z-10 w-full flex-1 flex flex-col gap-3 sm:gap-5 max-w-full">
+        {/* Universal Top Navigation Header */}
+        <div className="w-full flex items-center justify-between gap-2 pb-2.5 sm:pb-3 border-b border-indigo-500/20 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="h-7 sm:h-8 px-2 sm:px-2.5 text-indigo-300 hover:text-white hover:bg-indigo-500/15 rounded-lg sm:rounded-xl border border-indigo-500/25 text-xs font-bold shrink-0"
+            >
+              <Link href="/games" className="flex items-center gap-1 sm:gap-1.5">
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase font-black">Games</span>
+              </Link>
+            </Button>
 
+            <div className="hidden xs:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-950/70 border border-indigo-500/30 text-indigo-300 font-mono text-[9px] sm:text-xs font-bold uppercase tracking-wider truncate">
+              <Compass className="w-3 h-3 text-indigo-400 shrink-0 animate-spin" style={{ animationDuration: '10s' }} />
+              <span className="truncate">AI CHOOSE-YOUR-OWN</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-0.5 px-2 text-[9px] sm:text-[10px] hidden sm:inline-flex">
+              CLASSROOM RPG
+            </Badge>
+
+            {onToggleFullscreen && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleFullscreen}
+                className="h-7 sm:h-8 px-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-lg sm:rounded-xl border border-slate-800 text-xs font-bold"
+                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              >
+                {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize className="h-3.5 w-3.5" />}
+                <span className="text-[9px] font-mono uppercase hidden sm:inline ml-1">{isFullscreen ? 'Exit' : 'Full'}</span>
+              </Button>
+            )}
+          </div>
+        </div>
         
         <AnimatePresence mode="wait">
           
@@ -281,16 +324,6 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
               exit={{ opacity: 0, y: -20 }}
               className="w-full flex-1 flex flex-col gap-4 sm:gap-6"
             >
-              <div className="flex justify-between items-center w-full">
-                <Badge className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 font-black tracking-widest uppercase py-1 px-3">
-                  Classroom RPG Game
-                </Badge>
-                {onToggleFullscreen && (
-                  <Button variant="ghost" size="sm" onClick={onToggleFullscreen} className="h-8 px-2 text-slate-400 hover:text-white">
-                    <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit Full' : 'Fullscreen'}</span>
-                  </Button>
-                )}
-              </div>
               <div className="text-center space-y-1.5 sm:space-y-2">
                 <h1 className="text-2xl sm:text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-200 uppercase tracking-tight">
                   AI Choose-Your-Own Adventure
@@ -639,12 +672,22 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
                   </div>
                 </div>
 
-                <div className="pt-4 flex gap-3 justify-center select-none">
+                <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center select-none max-w-sm mx-auto">
                   <Button
                     onClick={() => setGameState('setup')}
-                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-wider px-8 rounded-xl h-11 shadow-md shadow-indigo-600/25"
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-wider px-6 rounded-xl h-11 shadow-md shadow-indigo-600/25"
                   >
                     Play Another Quest
+                  </Button>
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="flex-1 bg-slate-950 border-slate-800 hover:bg-slate-900 text-slate-300 font-black uppercase text-xs tracking-wider px-6 rounded-xl h-11"
+                  >
+                    <Link href="/games" className="flex items-center justify-center gap-1.5">
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      Back to Games
+                    </Link>
                   </Button>
                 </div>
               </Card>
@@ -668,12 +711,24 @@ export function AiStorytellerAdventure({ slug, onToggleFullscreen }: { slug?: st
                   Could not retrieve the adventure chapter from Genkit. Please check your Gemini API Keys or internet connection, and try again!
                 </p>
               </div>
-              <Button
-                onClick={() => setGameState('setup')}
-                className="bg-slate-950 border border-slate-800 text-slate-300"
-              >
-                <RefreshCw className="mr-2 h-4 w-4" /> Return to Setup
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  onClick={() => setGameState('setup')}
+                  className="bg-slate-950 border border-slate-800 text-slate-300"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" /> Return to Setup
+                </Button>
+                <Button
+                  variant="outline"
+                  asChild
+                  className="bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                >
+                  <Link href="/games" className="flex items-center gap-1.5">
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Back to Games
+                  </Link>
+                </Button>
+              </div>
             </motion.div>
           )}
 
