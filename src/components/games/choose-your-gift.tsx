@@ -23,7 +23,7 @@ import {
 } from '../ui/dialog';
 import { generateGrammarPair } from '@/ai/flows/generate-verb-pair';
 import type { GenerateGrammarPairOutput } from '@/ai/flows/schemas/verb-pair-schema';
-import { Loader2, Sparkles, UserPlus, Trash2, Repeat, Gift, Bomb, Timer, Maximize, Minimize, Trophy, BookOpen } from 'lucide-react';
+import { Loader2, Sparkles, UserPlus, Trash2, Repeat, Gift, Bomb, Timer, Maximize, Minimize, Trophy, BookOpen, ArrowLeft, XOctagon, ShieldCheck, Flame, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -197,48 +197,113 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
     switch (gameState) {
         case 'setup':
             return (
-                 <div className="flex flex-col items-center gap-6 w-full max-w-md">
-                    <h3 className="text-xl font-bold">Game Setup</h3>
-                    <div className="w-full space-y-2 text-left">
-                      <label className="text-sm font-bold">Grammar Category</label>
-                      <Select value={category} onValueChange={setCategory}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {GRAMMAR_CATEGORIES.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                 <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
+                    {/* Telemetry Metric Pods */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 w-full">
+                      <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-primary/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                        <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Category</span>
+                        <span className="text-xs sm:text-sm font-black text-foreground truncate max-w-full">{category}</span>
+                      </div>
+                      <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                        <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                        <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Total Rounds</span>
+                        <span className="text-sm sm:text-base font-black text-cyan-300">{totalRounds} Rounds</span>
+                      </div>
+                      <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                        <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                        <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Squad Roster</span>
+                        <span className="text-sm sm:text-base font-black text-purple-300">{teams.length} Squads</span>
+                      </div>
+                      <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-emerald-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                        <Timer className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400 mb-1" />
+                        <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Turn Window</span>
+                        <span className="text-sm sm:text-base font-black text-emerald-300">30s / Choice</span>
+                      </div>
                     </div>
-                    <div className="w-full space-y-2 text-left">
-                      <label className="text-sm font-bold">Number of Rounds</label>
-                      <Select value={String(totalRounds)} onValueChange={(v) => setTotalRounds(Number(v))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="10">10 Rounds</SelectItem>
-                          <SelectItem value="20">20 Rounds</SelectItem>
-                          <SelectItem value="30">30 Rounds</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="w-full space-y-2 text-left">
-                        <h4 className="font-bold text-sm">Teams</h4>
-                        {teams.map((team, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                            <Input value={team.name} onChange={(e) => handleTeamNameChange(index, e.target.value)} />
-                            <Button variant="ghost" size="icon" onClick={() => removeTeam(index)} disabled={teams.length <= 1}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                            </div>
-                        ))}
-                        <Button variant="outline" onClick={addTeam} className="w-full" disabled={teams.length >= 4}>
-                            <UserPlus className="mr-2" />
-                            Add Team
-                        </Button>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2.5 w-full mt-4">
-                        <Button onClick={handleStartGame} size="lg" className="w-full sm:w-1/2 h-11 sm:h-14 font-black uppercase text-base sm:text-xl rounded-xl sm:rounded-2xl shadow-lg">Begin Mission</Button>
-                        <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full sm:w-1/2 h-11 sm:h-12 font-bold uppercase rounded-xl sm:rounded-2xl text-xs sm:text-sm">
-                            <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> How to Play
-                        </Button>
+
+                    {/* Main Split Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full text-left">
+                      <div className="p-4 sm:p-6 rounded-2xl bg-muted/30 border border-border/40 flex flex-col gap-4">
+                        <h4 className="text-sm sm:text-base font-black uppercase tracking-wider text-primary flex items-center gap-2">
+                          <Gift className="h-4 w-4 text-primary" /> Configuration Deck
+                        </h4>
+                        
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Grammar Category</label>
+                          <Select value={category} onValueChange={setCategory}>
+                            <SelectTrigger className="bg-background/80"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {GRAMMAR_CATEGORIES.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Rounds to Win</label>
+                          <Select value={String(totalRounds)} onValueChange={(v) => setTotalRounds(Number(v))}>
+                            <SelectTrigger className="bg-background/80"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="10">10 Rounds (Quick Clash)</SelectItem>
+                              <SelectItem value="20">20 Rounds (Standard)</SelectItem>
+                              <SelectItem value="30">30 Rounds (Championship)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Team Roster</label>
+                          <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                            {teams.map((team, index) => (
+                              <div key={index} className="flex items-center gap-2">
+                                <Input 
+                                  value={team.name} 
+                                  onChange={(e) => handleTeamNameChange(index, e.target.value)} 
+                                  className="bg-background/80 text-sm"
+                                  placeholder={`Team ${index + 1}`}
+                                />
+                                <Button variant="ghost" size="icon" onClick={() => removeTeam(index)} disabled={teams.length <= 1} className="shrink-0">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                          <Button variant="outline" onClick={addTeam} className="w-full text-xs font-bold" disabled={teams.length >= 4}>
+                            <UserPlus className="mr-2 h-3.5 w-3.5" /> Add Squad (Max 4)
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="p-4 sm:p-6 rounded-2xl bg-muted/30 border border-border/40 flex flex-col justify-between gap-4">
+                        <div className="space-y-3">
+                          <h4 className="text-sm sm:text-base font-black uppercase tracking-wider text-primary flex items-center gap-2">
+                            <ShieldCheck className="h-4 w-4 text-primary" /> Mystery Rules & Protocol
+                          </h4>
+                          <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
+                            <p className="flex items-start gap-2">
+                              <span className="text-emerald-400 font-bold">1.</span>
+                              <span>Each round reveals a target vocabulary or grammar focus item.</span>
+                            </p>
+                            <p className="flex items-start gap-2">
+                              <span className="text-amber-400 font-bold">2.</span>
+                              <span>Two mystery gift vaults appear on screen. One contains valid grammar (+pts), the other holds syntax traps (-pts).</span>
+                            </p>
+                            <p className="flex items-start gap-2">
+                              <span className="text-purple-400 font-bold">3.</span>
+                              <span>Select within 30 seconds. Higher precision yields maximum scoreboard capital.</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2.5 w-full pt-2">
+                          <Button onClick={handleStartGame} size="lg" className="w-full sm:w-1/2 h-11 sm:h-12 font-black uppercase text-xs sm:text-sm rounded-xl shadow-lg bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700">
+                            Begin Mission
+                          </Button>
+                          <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full sm:w-1/2 h-11 sm:h-12 font-bold uppercase rounded-xl text-xs sm:text-sm">
+                            <BookOpen className="mr-2 h-4 w-4" /> Briefing
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                 </div>
             );
@@ -271,9 +336,14 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
                     <h3 className={cn("font-black uppercase tracking-widest text-muted-foreground text-center text-xs sm:text-xl", isFullscreen && "text-sm sm:text-3xl")}>Round {round}: The word is <span className="text-primary italic">"{currentItem}"</span></h3>
                     <div className={cn("flex flex-col items-center gap-1.5 sm:gap-2", isFullscreen && "gap-2 sm:gap-4")}>
                         <p className={cn("font-black uppercase tracking-widest text-primary text-center text-sm sm:text-2xl", isFullscreen && "text-base sm:text-4xl")}>{teams[currentTurn].name}, choose your prize!</p>
-                        <div className="flex items-center gap-1.5 sm:gap-3 text-muted-foreground bg-muted p-1 sm:p-2 px-2.5 sm:px-4 rounded-full border-2 border-primary/10">
-                            <Timer className={cn(isFullscreen ? "h-4 w-4 sm:h-8 sm:w-8" : "h-4 w-4 sm:h-5 sm:w-5")}/>
-                            <span className={cn("font-mono font-black text-xs sm:text-xl", isFullscreen && "text-sm sm:text-4xl")}>{timeLeft}s</span>
+                        <div className="flex items-center gap-2.5 sm:gap-4">
+                            <div className="flex items-center gap-1.5 sm:gap-3 text-muted-foreground bg-muted p-1 sm:p-2 px-2.5 sm:px-4 rounded-full border-2 border-primary/10">
+                                <Timer className={cn(isFullscreen ? "h-4 w-4 sm:h-8 sm:w-8" : "h-4 w-4 sm:h-5 sm:w-5")}/>
+                                <span className={cn("font-mono font-black text-xs sm:text-xl", isFullscreen && "text-sm sm:text-4xl")}>{timeLeft}s</span>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={resetGame} className="text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 gap-1 rounded-lg h-8 px-2.5">
+                                <XOctagon className="h-3.5 w-3.5" /> Abort Game
+                            </Button>
                         </div>
                     </div>
                      <div className={cn("flex gap-4 sm:gap-12 mt-2 sm:mt-10 justify-center items-center", isFullscreen && "gap-6 sm:gap-24")}>
@@ -352,16 +422,32 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-between p-3 sm:p-6" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
-          <CardHeader className="text-center relative p-3 sm:p-6 pr-14 sm:pr-16">
+          {/* Universal Game Nav Header */}
+          <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-border/20 bg-muted/20">
+            <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+              <Link href="/games">
+                <ArrowLeft className="h-4 w-4" /> Games
+              </Link>
+            </Button>
+            <div className="flex items-center gap-2">
+              {gameState !== 'setup' && gameState !== 'idle' && (
+                <Button variant="outline" size="sm" onClick={resetGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8">
+                  <XOctagon className="h-3.5 w-3.5" /> Abort Game
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+                className="h-8 px-2 gap-1 text-muted-foreground hover:text-foreground"
                 onClick={onToggleFullscreen}
               >
                 {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
                 <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
               </Button>
+            </div>
+          </div>
+
+          <CardHeader className="text-center relative p-3 sm:p-6">
               {!isFullscreen && (
                   <div className="flex justify-center mb-1 sm:mb-4">
                       <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
@@ -371,12 +457,12 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
               <CardDescription className={cn("text-xs sm:text-sm", isFullscreen && "text-xs sm:text-2xl mt-1 sm:mt-2")}>{game.description}</CardDescription>
           </CardHeader>
           <CardContent className={cn(
-              "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center w-full max-w-full overflow-y-auto overflow-x-hidden",
+              "space-y-4 sm:space-y-6 text-center flex flex-col items-stretch justify-start w-full max-w-full overflow-y-auto overflow-x-hidden pb-16",
               isFullscreen ? "min-h-0 flex-1 max-w-6xl mx-auto w-full px-2 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8"
           )}>
               {gameState !== 'setup' && gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'loading' && (
                   <div className={cn(
-                      "w-full grid gap-2 sm:gap-4 mb-4 sm:mb-10",
+                      "w-full grid gap-2 sm:gap-4 mb-4 sm:mb-8",
                       teams.length === 2 && "grid-cols-2",
                       teams.length === 3 && "grid-cols-3",
                       teams.length >= 4 && "grid-cols-2 sm:grid-cols-4",
@@ -398,12 +484,14 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
                 {renderContent()}
               </div>
           </CardContent>
-          <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 pt-4 sm:pt-6 w-full max-w-full", isFullscreen && "max-w-6xl mx-auto w-full pb-4 sm:pb-6")}>
+          <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 pt-4 sm:pt-6 w-full max-w-full border-t border-border/20", isFullscreen && "max-w-6xl mx-auto w-full pb-4 sm:pb-6")}>
               <Button variant="outline" asChild size="default" className={cn("w-full sm:w-auto h-10 sm:h-12 px-4 sm:px-6 text-xs sm:text-sm font-bold rounded-xl", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl sm:rounded-2xl")}>
                   <Link href="/games">Back to Games</Link>
               </Button>
               {gameState !== 'setup' && gameState !== 'idle' && (
-                  <Button variant="secondary" onClick={resetGame} size="default" className={cn("w-full sm:w-auto h-10 sm:h-12 px-4 sm:px-6 text-xs sm:text-sm font-bold rounded-xl", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl sm:rounded-2xl")}>Reset Game</Button>
+                  <Button variant="destructive" onClick={resetGame} size="default" className={cn("w-full sm:w-auto h-10 sm:h-12 px-4 sm:px-6 text-xs sm:text-sm font-bold rounded-xl gap-2", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl sm:rounded-2xl")}>
+                    <XOctagon className="h-4 w-4" /> Abort Game
+                  </Button>
               )}
           </CardFooter>
       </Card>

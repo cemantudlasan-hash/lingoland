@@ -4,7 +4,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { Maximize, Minimize, Trophy, Sparkles, Repeat, Compass, CheckCircle2, XCircle, BookOpen } from "lucide-react";
+import { Maximize, Minimize, Trophy, Sparkles, Repeat, Compass, CheckCircle2, XCircle, BookOpen, ArrowLeft, XOctagon, ShieldCheck, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
@@ -110,6 +110,13 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
     setGameState("playing");
   };
 
+  const abortGame = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setGameState("idle");
+    setScore(0);
+    setRound(1);
+  };
+
   const setupQuestion = (question: CoordinateQuestion) => {
     // Shuffle options dynamically on every question render so correct answer isn't in same position
     setShuffledOptions(shuffleArray([...question.options]));
@@ -175,16 +182,32 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
           : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl shadow-2xl shadow-indigo-500/10 border"
       )}
     >
-      <CardHeader className="text-center relative border-b border-indigo-950 p-3 sm:p-6 pb-4 pr-14 sm:pr-16">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1 text-slate-400 hover:text-slate-100 z-[100]"
-          onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
+      {/* Universal Game Nav Header */}
+      <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-indigo-950/60 bg-slate-900/40">
+        <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-slate-400 hover:text-slate-100">
+          <Link href="/games">
+            <ArrowLeft className="h-4 w-4" /> Games
+          </Link>
         </Button>
+        <div className="flex items-center gap-2">
+          {gameState !== "idle" && (
+            <Button variant="outline" size="sm" onClick={abortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 gap-1 text-slate-400 hover:text-slate-100"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
+          </Button>
+        </div>
+      </div>
+
+      <CardHeader className="text-center relative border-b border-indigo-950 p-3 sm:p-6 pb-4">
         <div className="flex items-center justify-center gap-3 mb-1">
           <Compass className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-400 animate-spin" style={{ animationDuration: "10s" }} />
         </div>
@@ -208,34 +231,99 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
         )}
       </CardHeader>
 
-      <CardContent className={cn("flex flex-col items-center justify-start sm:justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden", isFullscreen ? "min-h-0 flex-1" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
+      <CardContent className={cn("flex flex-col items-stretch justify-start p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden pb-16", isFullscreen ? "min-h-0 flex-1" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
         {gameState === "idle" && (
-          <div className="flex flex-col items-center gap-4 sm:gap-6 text-center max-w-lg py-4 w-full">
-            <p className={cn("text-slate-300 text-sm sm:text-base", isFullscreen && "sm:text-2xl")}>
-              Unlock coordinates, align vectors, and navigate through the quadrants of deep space.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
-              <Button
-                onClick={handleStartGame}
-                size={isFullscreen ? "lg" : "default"}
-                className={cn(
-                  "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:scale-105 h-11 sm:h-12 text-sm sm:text-base w-full sm:w-auto",
-                  isFullscreen && "h-14 sm:h-20 px-8 sm:px-16 text-lg sm:text-2xl rounded-2xl"
-                )}
-              >
-                Initialize System
-              </Button>
-              <Button
-                onClick={() => setGameState("instructions")}
-                size={isFullscreen ? "lg" : "default"}
-                variant="outline"
-                className={cn(
-                  "border-indigo-500/40 text-indigo-300 hover:bg-indigo-950 font-bold uppercase tracking-wider h-11 sm:h-12 text-sm sm:text-base w-full sm:w-auto",
-                  isFullscreen && "h-14 sm:h-20 px-8 sm:px-16 text-lg sm:text-2xl rounded-2xl"
-                )}
-              >
-                <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> How to Play
-              </Button>
+          <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto py-2">
+            {/* Astronavigation Telemetry Pods */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 w-full">
+              <div className="p-3 sm:p-4 rounded-xl bg-slate-900/60 border border-indigo-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Compass className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-slate-400">Cartesian Plane</span>
+                <span className="text-xs sm:text-sm font-black text-slate-100">[-10, 10] Grid</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-slate-900/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-slate-400">Voyage Quota</span>
+                <span className="text-sm sm:text-base font-black text-cyan-300">10 Vectors</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-slate-900/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-slate-400">Vector Pool</span>
+                <span className="text-sm sm:text-base font-black text-purple-300">40 Scenarios</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-slate-900/60 border border-amber-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-slate-400">Nav Window</span>
+                <span className="text-sm sm:text-base font-black text-amber-300">15s / Vector</span>
+              </div>
+            </div>
+
+            {/* Split Information Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full text-left">
+              <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/50 border border-indigo-950 flex flex-col justify-between gap-4">
+                <div className="space-y-3">
+                  <h4 className="text-sm sm:text-base font-black uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+                    <Compass className="h-4 w-4 text-indigo-400" /> Astrogation Controls
+                  </h4>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Unlock coordinates, align vectors, and navigate through the quadrants of deep space. Study real-time SVG plots to calculate distance, reflection, and midpoint transformations.
+                  </p>
+                  <div className="space-y-1.5 text-xs text-slate-400">
+                    <div className="flex items-center justify-between py-1 border-b border-indigo-950/40">
+                      <span>Voyage Difficulty</span>
+                      <span className="text-indigo-300 font-bold">Standard Stellar</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1 border-b border-indigo-950/40">
+                      <span>Vector Types</span>
+                      <span className="text-purple-300 font-bold">Quadrants, Distance, Reflections</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2.5 w-full pt-2">
+                  <Button
+                    onClick={handleStartGame}
+                    size="lg"
+                    className="w-full sm:w-1/2 h-11 sm:h-12 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:opacity-90 text-white font-black uppercase text-xs sm:text-sm rounded-xl shadow-lg"
+                  >
+                    Initialize Voyage
+                  </Button>
+                  <Button
+                    onClick={() => setGameState("instructions")}
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-1/2 h-11 sm:h-12 border-indigo-500/40 text-indigo-300 hover:bg-indigo-950 font-bold uppercase rounded-xl text-xs sm:text-sm"
+                  >
+                    <BookOpen className="mr-2 h-4 w-4" /> Flight Intel
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-6 rounded-2xl bg-slate-900/50 border border-indigo-950 flex flex-col justify-between gap-4">
+                <div className="space-y-3">
+                  <h4 className="text-sm sm:text-base font-black uppercase tracking-wider text-purple-400 flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-purple-400" /> Stellar Quadrant Directives
+                  </h4>
+                  <div className="space-y-2 text-xs sm:text-sm text-slate-300">
+                    <p className="flex items-start gap-2">
+                      <span className="text-indigo-400 font-bold">I.</span>
+                      <span>Quadrant I: (+x, +y) Top-Right | Quadrant II: (-x, +y) Top-Left</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-pink-400 font-bold">II.</span>
+                      <span>Quadrant III: (-x, -y) Bottom-Left | Quadrant IV: (+x, -y) Bottom-Right</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-cyan-400 font-bold">III.</span>
+                      <span>Reflect over X-axis flips y-sign; reflect over Y-axis flips x-sign.</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-center">
+                  <span className="text-[11px] font-mono text-indigo-300">Synchronized Vector Engine Active</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -436,13 +524,20 @@ export function CoordinateCosmos({ slug, onToggleFullscreen }: { slug: string; o
 
       <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 border-t border-indigo-950 pt-4 sm:pt-6 p-4 sm:p-6 w-full">
         <Button variant="outline" className="w-full sm:w-auto border-slate-800 hover:bg-slate-900 text-slate-300 hover:text-slate-100" asChild>
-          <Link href="/games">Abort System</Link>
+          <Link href="/games">Back to Games</Link>
         </Button>
-        {gameState !== "idle" && gameState !== "instructions" && (
-          <p className="font-black text-indigo-400 uppercase tracking-widest text-xs sm:text-sm">
-            Score: {score}
-          </p>
-        )}
+        <div className="flex items-center gap-3">
+          {gameState !== "idle" && gameState !== "instructions" && (
+            <>
+              <p className="font-black text-indigo-400 uppercase tracking-widest text-xs sm:text-sm">
+                Score: {score}
+              </p>
+              <Button variant="destructive" size="sm" onClick={abortGame} className="gap-1.5 font-bold h-9 text-xs">
+                <XOctagon className="h-3.5 w-3.5" /> Abort Game
+              </Button>
+            </>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

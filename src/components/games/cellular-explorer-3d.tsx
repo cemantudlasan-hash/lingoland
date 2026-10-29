@@ -27,6 +27,10 @@ import {
   Maximize,
   Minimize,
   Coins,
+  LogOut,
+  HelpCircle,
+  Activity,
+  Sparkles,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
@@ -203,6 +207,17 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
     };
   }, [isDragging, handleDrag]);
 
+  const handleAbortGame = () => {
+    setGameState('idle');
+    setTargetIndex(0);
+    setScore(0);
+    setTimeLeft(GAME_TIMER_LIMIT);
+    toast({
+      title: "Cellular Mission Aborted",
+      description: "Returned to the Cytology Command Deck.",
+    });
+  };
+
   const handleNodeClick = (node: OrganelleNode) => {
     if (hasMovedSignificantly.current || gameState !== 'playing' || feedback) return;
     if (node.name === nodes[targetIndex].name) {
@@ -334,31 +349,58 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
           backgroundSize: '40px 40px, 100% 100%, 100% 100%'
         }}
       >
-        <CardHeader className="text-center bg-black/20 backdrop-blur-sm border-b border-emerald-500/10 relative p-3 sm:p-6 pr-14 sm:pr-16">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1 text-emerald-400/70 hover:text-emerald-400 z-[100]"
-            onClick={onToggleFullscreen}
-          >
-            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-            <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
-          </Button>
-          <div className="flex justify-center mb-1">
-            <Microscope className="w-8 h-8 sm:w-12 sm:h-12 text-emerald-400" />
-          </div>
-          <CardTitle className="text-xl sm:text-2xl md:text-3xl font-black italic uppercase tracking-wider">CELLULAR EXPLORER 3D</CardTitle>
-          <CardDescription className="text-emerald-200/70 text-xs sm:text-sm">Navigate the biological void to identify organelles.</CardDescription>
-          {difficulty && (
-            <div className="flex justify-center pt-2">
-              <Badge variant="outline" className="border-emerald-500 text-emerald-400 text-xs">{difficulty.toUpperCase()}</Badge>
+        <CardHeader className="text-center bg-black/40 backdrop-blur-md border-b border-emerald-500/20 px-3 sm:px-6 py-3 relative shrink-0">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                asChild 
+                className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm font-bold bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-200 border-emerald-500/30 hover:border-emerald-400 rounded-xl"
+              >
+                <Link href="/games" className="flex items-center gap-1.5">
+                  <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span>Games</span>
+                </Link>
+              </Button>
+
+              <div className="flex items-center gap-2 text-left">
+                <Microscope className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
+                <div>
+                  <CardTitle className="text-sm sm:text-lg font-black italic uppercase tracking-wider text-white">CELLULAR EXPLORER 3D</CardTitle>
+                  <CardDescription className="text-emerald-200/70 text-[11px] hidden sm:block">Interactive 3D organelle scanning laboratory</CardDescription>
+                </div>
+              </div>
             </div>
-          )}
+
+            <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+              {gameState === 'playing' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAbortGame}
+                  className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm font-bold bg-red-950/40 hover:bg-red-900/60 text-red-300 border-red-500/40 rounded-xl flex items-center gap-1.5"
+                >
+                  <LogOut className="h-3.5 w-3.5 text-red-400" />
+                  <span>Abort Game</span>
+                </Button>
+              )}
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 sm:h-9 sm:w-9 text-emerald-400/70 hover:text-emerald-400 rounded-xl"
+                onClick={onToggleFullscreen}
+              >
+                {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent className={cn(
-          "flex flex-col items-center justify-center relative p-2 sm:p-4 overflow-y-auto overflow-x-hidden select-none w-full max-w-full",
-          isFullscreen ? "min-h-[calc(100vh-200px)]" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
+          "flex-1 flex flex-col items-stretch justify-start relative p-3 sm:p-6 overflow-y-auto select-none w-full max-w-6xl mx-auto space-y-6 pb-16",
+          isFullscreen ? "min-h-[calc(100vh-140px)]" : "min-h-[calc(100dvh-16rem)]"
         )}>
           <AnimatePresence>
             {feedback && (
@@ -392,16 +434,59 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
           ))}
 
           {gameState === 'idle' && (
-            <div className="flex flex-col items-center gap-4 animate-in fade-in duration-300">
-              {isDailyBonus && (
-                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black border-none flex items-center gap-1.5 py-1.5 px-4 shadow-lg shadow-amber-500/20 animate-pulse mb-2">
-                  <Coins className="h-4 w-4 fill-slate-950 animate-bounce" />
-                  ⭐ Daily Bonus: Earn +{dailyBonusAmount} Coins!
-                </Badge>
-              )}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={() => setGameState('instructions')} size="lg" className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-[0_0_20px_rgba(16,185,129,0.3)]">INITIALIZE SCANNER</Button>
-                <Button onClick={() => setGameState('instructions')} size="lg" variant="outline" className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 font-bold">HOW TO PLAY</Button>
+            <div className="w-full space-y-6 py-2">
+              {/* Telemetry Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-zinc-900/60 border border-emerald-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md">
+                  <p className="text-[10px] sm:text-xs font-mono uppercase text-emerald-300/60">3D Organelles</p>
+                  <p className="text-sm sm:text-base font-black text-white">{CELL_DATA.length} COMPONENTS</p>
+                </div>
+                <div className="bg-zinc-900/60 border border-teal-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md">
+                  <p className="text-[10px] sm:text-xs font-mono uppercase text-teal-300/60">Spatial Render</p>
+                  <p className="text-sm sm:text-base font-black text-white">3D SPHERICAL</p>
+                </div>
+                <div className="bg-zinc-900/60 border border-cyan-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md">
+                  <p className="text-[10px] sm:text-xs font-mono uppercase text-cyan-300/60">Session Limit</p>
+                  <p className="text-sm sm:text-base font-black text-white">{GAME_TIMER_LIMIT} SECONDS</p>
+                </div>
+                <div className="bg-zinc-900/60 border border-amber-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md">
+                  <p className="text-[10px] sm:text-xs font-mono uppercase text-amber-300/60">Daily Bonus</p>
+                  <p className="text-sm sm:text-base font-black text-amber-300">{isDailyBonus ? `+${dailyBonusAmount} COINS` : 'READY'}</p>
+                </div>
+              </div>
+
+              {/* Main Deck */}
+              <div className="bg-gradient-to-b from-emerald-950/20 via-zinc-900/50 to-black/60 border border-emerald-500/30 rounded-3xl p-6 sm:p-10 backdrop-blur-xl text-center space-y-6 shadow-xl">
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono">
+                    <Microscope className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>CELLULAR EXPLORER // 3D CYTOLOGY CORE</span>
+                  </div>
+                  <h2 className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight">
+                    Explore Living Cell Architecture
+                  </h2>
+                  <p className="text-emerald-100/70 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+                    Rotate the 3D cell sphere in spatial perspective. Decode organelle functions and pinpoint their exact structures before chronal expiration!
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                  <Button 
+                    onClick={() => setGameState('selecting_difficulty')} 
+                    size="lg" 
+                    className="flex-1 h-14 sm:h-16 text-base sm:text-lg font-black bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.35)] transition-all hover:scale-[1.02] uppercase tracking-wider"
+                  >
+                    Initialize Scanner
+                  </Button>
+                  <Button 
+                    onClick={() => setGameState('instructions')} 
+                    size="lg" 
+                    variant="outline" 
+                    className="flex-1 h-14 sm:h-16 text-base sm:text-lg font-bold border-emerald-500/40 text-emerald-300 hover:bg-emerald-950/40 rounded-2xl"
+                  >
+                    How to Play
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -524,10 +609,28 @@ export function CellularExplorer3D({ slug, onToggleFullscreen }: { slug: string;
           )}
         </CardContent>
 
-        <CardFooter className="bg-black/40 p-3 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 border-t border-emerald-500/20 w-full">
-          <Button variant="ghost" asChild className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 w-full sm:w-auto h-9 sm:h-10"><Link href="/games">EXIT LAB</Link></Button>
+        <CardFooter className="bg-black/60 p-3 sm:px-6 flex flex-wrap justify-between items-center gap-3 border-t border-emerald-500/20 w-full shrink-0">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild size="sm" className="h-9 px-3 border-emerald-500/30 text-emerald-300 hover:bg-emerald-950/40 rounded-xl font-bold">
+              <Link href="/games" className="flex items-center gap-1.5">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Games</span>
+              </Link>
+            </Button>
+            {gameState === 'playing' && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleAbortGame} 
+                className="h-9 px-3 text-red-300 border-red-500/40 hover:bg-red-950/40 rounded-xl font-bold flex items-center gap-1.5"
+              >
+                <LogOut className="h-3.5 w-3.5 text-red-400" />
+                <span>Abort Game</span>
+              </Button>
+            )}
+          </div>
           {gameState === 'playing' && (
-            <div className="flex items-center gap-3 sm:gap-4 text-xs font-black text-emerald-400">
+            <div className="flex items-center gap-3 sm:gap-4 text-xs font-black text-emerald-400 ml-auto">
               <span>ORGANELLE {targetIndex + 1} / {nodes.length}</span>
               <div className="w-24 sm:w-32 h-2.5 sm:h-3 bg-white/10 rounded-full overflow-hidden border border-emerald-500/20">
                 <motion.div className="h-full bg-emerald-500 shadow-[0_0_10px_#10b981]" initial={{ width: 0 }} animate={{ width: `${(targetIndex / nodes.length) * 100}%` }} />

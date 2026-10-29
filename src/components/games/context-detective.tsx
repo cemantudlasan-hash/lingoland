@@ -30,6 +30,10 @@ import {
   Maximize,
   Minimize,
   BookOpen,
+  ArrowLeft,
+  XOctagon,
+  ShieldCheck,
+  Zap,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -210,50 +214,116 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
     switch (gameState) {
       case 'setup':
         return (
-          <div className="flex flex-col items-center gap-6 w-full max-w-md">
-            <h3 className="text-xl font-bold">Game Setup</h3>
-            <div className="w-full space-y-2 text-left">
-              <label className="text-sm font-bold">Difficulty</label>
-              <Select value={difficulty} onValueChange={(v) => setDifficulty(v as any)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto">
+            {/* Detective Telemetry Pods */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 w-full">
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-primary/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Fingerprint className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Case Tier</span>
+                <span className="text-xs sm:text-sm font-black text-foreground capitalize">{difficulty}</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Target Cases</span>
+                <span className="text-sm sm:text-base font-black text-cyan-300">{totalRounds} Cases</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Active Units</span>
+                <span className="text-sm sm:text-base font-black text-purple-300">{teams.length} Squads</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-amber-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Timer className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Turn Window</span>
+                <span className="text-sm sm:text-base font-black text-amber-300">60s Clock</span>
+              </div>
             </div>
-            <div className="w-full space-y-2 text-left">
-              <label className="text-sm font-bold">Rounds</label>
-              <Select value={String(totalRounds)} onValueChange={(v) => setTotalRounds(Number(v))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10 Rounds</SelectItem>
-                  <SelectItem value="15">15 Rounds</SelectItem>
-                  <SelectItem value="20">20 Rounds</SelectItem>
-                  <SelectItem value="30">30 Rounds</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full space-y-2 text-left">
-              <h4 className="font-bold text-sm">Teams</h4>
-              {teams.map((team, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input value={team.name} onChange={(e) => handleTeamNameChange(index, e.target.value)} />
-                  <Button variant="ghost" size="icon" onClick={() => removeTeam(index)} disabled={teams.length <= 1}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
+
+            {/* Split Config Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full text-left">
+              <div className="p-4 sm:p-6 rounded-2xl bg-muted/30 border border-border/40 flex flex-col gap-4">
+                <h4 className="text-sm sm:text-base font-black uppercase tracking-wider text-primary flex items-center gap-2">
+                  <Fingerprint className="h-4 w-4 text-primary" /> Case Parameters
+                </h4>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Investigation Tier</label>
+                  <Select value={difficulty} onValueChange={(v) => setDifficulty(v as any)}>
+                    <SelectTrigger className="bg-background/80"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner (Foundational Clues)</SelectItem>
+                      <SelectItem value="intermediate">Intermediate (Standard Forensics)</SelectItem>
+                      <SelectItem value="advanced">Advanced (Deep Context Cryptics)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Case Files</label>
+                  <Select value={String(totalRounds)} onValueChange={(v) => setTotalRounds(Number(v))}>
+                    <SelectTrigger className="bg-background/80"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10 Cases (Quick Sprint)</SelectItem>
+                      <SelectItem value="15">15 Cases (Standard)</SelectItem>
+                      <SelectItem value="20">20 Cases (Full Casefile)</SelectItem>
+                      <SelectItem value="30">30 Cases (Marathon)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Investigative Units</label>
+                  <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                    {teams.map((team, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input 
+                          value={team.name} 
+                          onChange={(e) => handleTeamNameChange(index, e.target.value)} 
+                          className="bg-background/80 text-sm"
+                          placeholder={`Team ${index + 1}`}
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => removeTeam(index)} disabled={teams.length <= 1} className="shrink-0">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <Button variant="outline" onClick={addTeam} className="w-full text-xs font-bold" disabled={teams.length >= 4}>
+                    <UserPlus className="mr-2 h-3.5 w-3.5" /> Add Squad (Max 4)
                   </Button>
                 </div>
-              ))}
-              <Button variant="outline" onClick={addTeam} className="w-full" disabled={teams.length >= 4}>
-                <UserPlus className="mr-2" /> Add Team
-              </Button>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2.5 w-full mt-4">
-              <Button onClick={() => setGameState('instructions')} size="lg" className="w-full sm:w-1/2 h-11 sm:h-14 font-black uppercase text-base sm:text-xl rounded-xl sm:rounded-2xl shadow-lg">Next</Button>
-              <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full sm:w-1/2 h-11 sm:h-12 font-bold uppercase rounded-xl sm:rounded-2xl text-xs sm:text-sm">
-                <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> How to Play
-              </Button>
+              </div>
+
+              <div className="p-4 sm:p-6 rounded-2xl bg-muted/30 border border-border/40 flex flex-col justify-between gap-4">
+                <div className="space-y-3">
+                  <h4 className="text-sm sm:text-base font-black uppercase tracking-wider text-primary flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-primary" /> Casefile Protocol
+                  </h4>
+                  <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
+                    <p className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold">1.</span>
+                      <span>An encrypted story paragraph is decrypted with one missing blank (<span className="text-primary font-mono font-bold">____</span>).</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-amber-400 font-bold">2.</span>
+                      <span>Analyze syntax, tone, and surrounding collocations to deduce the missing target word.</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-cyan-400 font-bold">3.</span>
+                      <span>Type your solution within 60s. Need intelligence? Reveal an in-case forensic hint.</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2.5 w-full pt-2">
+                  <Button onClick={() => setGameState('instructions')} size="lg" className="w-full sm:w-1/2 h-11 sm:h-12 font-black uppercase text-xs sm:text-sm rounded-xl shadow-lg bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700">
+                    Next Stage
+                  </Button>
+                  <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className="w-full sm:w-1/2 h-11 sm:h-12 font-bold uppercase rounded-xl text-xs sm:text-sm">
+                    <BookOpen className="mr-2 h-4 w-4" /> Case Briefing
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -326,12 +396,15 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
                             <Send className={cn(isFullscreen ? "h-5 w-5 sm:h-10 sm:w-10" : "h-5 w-5 sm:h-6 sm:w-6")} />
                         </Button>
                     </div>
-                    <div className="flex gap-2 sm:gap-4 w-full">
-                        <Button variant="outline" onClick={() => setShowHint(true)} className={cn("flex-1 font-black uppercase shadow-md h-10 sm:h-12", isFullscreen && "sm:h-16 sm:text-xl sm:rounded-2xl")}>
-                            <Lightbulb className={cn("mr-2 h-4 w-4 sm:h-5 sm:w-5", isFullscreen && "sm:h-8 sm:w-8")} /> Hint
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full">
+                        <Button variant="outline" onClick={() => setShowHint(true)} className={cn("font-black uppercase shadow-md h-10 sm:h-12 text-xs sm:text-sm", isFullscreen && "sm:h-16 sm:text-xl sm:rounded-2xl")}>
+                            <Lightbulb className={cn("mr-1.5 h-4 w-4 sm:h-5 sm:w-5 text-amber-400", isFullscreen && "sm:h-8 sm:w-8")} /> Hint
                         </Button>
-                        <Button variant="ghost" onClick={handleNextTurn} className={cn("flex-1 font-black uppercase h-10 sm:h-12", isFullscreen && "sm:h-16 sm:text-xl")}>
+                        <Button variant="outline" onClick={handleNextTurn} className={cn("font-black uppercase h-10 sm:h-12 text-xs sm:text-sm", isFullscreen && "sm:h-16 sm:text-xl")}>
                             Skip Case
+                        </Button>
+                        <Button variant="outline" onClick={resetGame} className={cn("font-black uppercase h-10 sm:h-12 text-xs sm:text-sm text-rose-400 border-rose-500/30 hover:bg-rose-500/10", isFullscreen && "sm:h-16 sm:text-xl")}>
+                            <XOctagon className="mr-1.5 h-4 w-4" /> Abort
                         </Button>
                     </div>
                     {showHint && (
@@ -396,16 +469,32 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-between p-3 sm:p-6" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
-      <CardHeader className="text-center relative p-3 sm:p-6 pr-14 sm:pr-16">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
-          onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+      {/* Universal Game Nav Header */}
+      <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-border/20 bg-muted/20">
+        <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+          <Link href="/games">
+            <ArrowLeft className="h-4 w-4" /> Games
+          </Link>
         </Button>
+        <div className="flex items-center gap-2">
+          {gameState !== 'setup' && (
+            <Button variant="outline" size="sm" onClick={resetGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 gap-1 text-muted-foreground hover:text-foreground"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+          </Button>
+        </div>
+      </div>
+
+      <CardHeader className="text-center relative p-3 sm:p-6">
         {!isFullscreen && (
             <div className="flex justify-center mb-1 sm:mb-4">
                 <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
@@ -418,20 +507,27 @@ export function ContextDetective({ slug, onToggleFullscreen }: { slug: string; o
         </div>
       </CardHeader>
       <CardContent className={cn(
-          "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-start sm:justify-center w-full max-w-full overflow-y-auto overflow-x-hidden",
+          "space-y-4 sm:space-y-6 text-center flex flex-col items-stretch justify-start w-full max-w-full overflow-y-auto overflow-x-hidden pb-16",
           isFullscreen ? "min-h-0 flex-1 max-w-6xl mx-auto w-full px-3 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)] p-3 sm:p-6 lg:p-8"
       )}>
         {renderContent()}
       </CardContent>
-      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 p-3 sm:p-6 pt-3 sm:pt-4", isFullscreen && "max-w-6xl mx-auto w-full pb-4 sm:pb-6")}>
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-3 p-3 sm:p-6 pt-3 sm:pt-4 border-t border-border/20", isFullscreen && "max-w-6xl mx-auto w-full pb-4 sm:pb-6")}>
         <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl font-bold rounded-xl sm:rounded-2xl")}>
           <Link href="/games">Back to Games</Link>
         </Button>
-        {gameState === 'answered' && (
-          <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "sm:h-16 sm:px-12 sm:text-2xl rounded-xl sm:rounded-2xl")}>
-            Next Case <Repeat className={cn("ml-2", isFullscreen ? "h-5 w-5 sm:h-8 sm:w-8" : "h-4 w-4")} />
-          </Button>
-        )}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {gameState === 'answered' && (
+            <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("flex-1 sm:flex-none h-10 sm:h-11 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "sm:h-16 sm:px-12 sm:text-2xl rounded-xl sm:rounded-2xl")}>
+              Next Case <Repeat className={cn("ml-2", isFullscreen ? "h-5 w-5 sm:h-8 sm:w-8" : "h-4 w-4")} />
+            </Button>
+          )}
+          {gameState !== 'setup' && (
+            <Button variant="destructive" onClick={resetGame} size={isFullscreen ? "lg" : "default"} className={cn("flex-1 sm:flex-none h-10 sm:h-11 gap-1.5 font-bold", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl")}>
+              <XOctagon className="h-4 w-4" /> Abort Game
+            </Button>
+          )}
+        </div>
         {gameState !== 'setup' && (
           <Button variant="ghost" onClick={() => {
             try {

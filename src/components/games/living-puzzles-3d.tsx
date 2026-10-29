@@ -2,8 +2,27 @@
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Puzzle, Coins, Sparkles, Maximize, Minimize, RotateCcw, Volume2, ArrowRight, Play } from 'lucide-react';
+import { 
+  Puzzle, 
+  Sparkles, 
+  Maximize, 
+  Minimize, 
+  RotateCcw, 
+  Volume2, 
+  ArrowRight, 
+  Play, 
+  ArrowLeft, 
+  LogOut, 
+  Box, 
+  Zap, 
+  Trophy, 
+  HelpCircle,
+  Layers,
+  Activity
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { Button } from '../ui/button';
 
 interface PuzzleObject {
   id: string;
@@ -42,122 +61,42 @@ const PUZZLES: PuzzleObject[] = [
   { id: 'moon', name: 'Moon', emoji: '🌙', letters: ['M', 'O', 'O', 'N'], animationType: 'car-drive', description: 'The natural satellite of the earth.', color: 'from-blue-200 to-indigo-300' },
   { id: 'plane', name: 'Plane', emoji: '✈️', letters: ['P', 'L', 'A', 'N', 'E'], animationType: 'rocket-launch', description: 'A powered flying vehicle.', color: 'from-sky-400 to-blue-600' },
   { id: 'train', name: 'Train', emoji: '🚂', letters: ['T', 'R', 'A', 'I', 'N'], animationType: 'car-drive', description: 'A series of connected railway carriages.', color: 'from-stone-600 to-stone-800' },
-  { id: 'phone', name: 'Phone', emoji: '📱', letters: ['P', 'H', 'O', 'N', 'E'], animationType: 'car-drive', description: 'A device for communication.', color: 'from-slate-700 to-black' },
-  { id: 'chair', name: 'Chair', emoji: '🪑', letters: ['C', 'H', 'A', 'I', 'R'], animationType: 'car-drive', description: 'A separate seat for one person.', color: 'from-amber-700 to-amber-900' },
-  { id: 'table', name: 'Table', emoji: '🪚', letters: ['T', 'A', 'B', 'L', 'E'], animationType: 'car-drive', description: 'A piece of furniture with a flat top.', color: 'from-yellow-700 to-amber-800' },
-  { id: 'shirt', name: 'Shirt', emoji: '👕', letters: ['S', 'H', 'I', 'R', 'T'], animationType: 'car-drive', description: 'A garment for the upper body.', color: 'from-blue-400 to-indigo-500' },
-  { id: 'shoes', name: 'Shoes', emoji: '👞', letters: ['S', 'H', 'O', 'E', 'S'], animationType: 'car-drive', description: 'Coverings for the feet.', color: 'from-orange-900 to-stone-900' },
-  { id: 'cloud', name: 'Cloud', emoji: '☁️', letters: ['C', 'L', 'O', 'U', 'D'], animationType: 'rocket-launch', description: 'A visible mass of condensed watery vapour.', color: 'from-slate-200 to-slate-400' },
-  { id: 'earth', name: 'Earth', emoji: '🌍', letters: ['E', 'A', 'R', 'T', 'H'], animationType: 'car-drive', description: 'The planet on which we live.', color: 'from-emerald-400 to-blue-600' },
-  { id: 'water', name: 'Water', emoji: '💧', letters: ['W', 'A', 'T', 'E', 'R'], animationType: 'car-drive', description: 'A transparent, tasteless liquid.', color: 'from-cyan-300 to-blue-500' },
-  { id: 'fire', name: 'Fire', emoji: '🔥', letters: ['F', 'I', 'R', 'E'], animationType: 'rocket-launch', description: 'Combustion or burning.', color: 'from-orange-500 to-red-600' },
-  { id: 'music', name: 'Music', emoji: '🎵', letters: ['M', 'U', 'S', 'I', 'C'], animationType: 'car-drive', description: 'Vocal or instrumental sounds.', color: 'from-purple-400 to-pink-500' },
-  { id: 'book', name: 'Book', emoji: '📖', letters: ['B', 'O', 'O', 'K'], animationType: 'car-drive', description: 'Pages bound together.', color: 'from-blue-300 to-indigo-500' },
-  { id: 'pen', name: 'Pen', emoji: '🖊️', letters: ['P', 'E', 'N'], animationType: 'car-drive', description: 'An instrument for writing or drawing.', color: 'from-blue-700 to-blue-900' },
-  { id: 'dog', name: 'Dog', emoji: '🐶', letters: ['D', 'O', 'G'], animationType: 'car-drive', description: 'A domesticated carnivorous mammal.', color: 'from-yellow-600 to-amber-700' },
-  { id: 'cat', name: 'Cat', emoji: '🐱', letters: ['C', 'A', 'T'], animationType: 'car-drive', description: 'A small domesticated carnivorous mammal.', color: 'from-orange-300 to-orange-500' },
-  { id: 'bird', name: 'Bird', emoji: '🐦', letters: ['B', 'I', 'R', 'D'], animationType: 'rocket-launch', description: 'A feathered, winged, bipedal animal.', color: 'from-sky-300 to-blue-500' },
-  { id: 'fish', name: 'Fish', emoji: '🐟', letters: ['F', 'I', 'S', 'H'], animationType: 'car-drive', description: 'A limbless cold-blooded vertebrate.', color: 'from-cyan-400 to-blue-500' },
-  { id: 'bear', name: 'Bear', emoji: '🐻', letters: ['B', 'E', 'A', 'R'], animationType: 'car-drive', description: 'A large, heavy mammal.', color: 'from-amber-800 to-brown-900' },
-  { id: 'frog', name: 'Frog', emoji: '🐸', letters: ['F', 'R', 'O', 'G'], animationType: 'car-drive', description: 'A tailless amphibian.', color: 'from-lime-500 to-green-600' },
-  { id: 'lion', name: 'Lion', emoji: '🦁', letters: ['L', 'I', 'O', 'N'], animationType: 'rocket-launch', description: 'A large wild cat known as the king of the jungle.', color: 'from-amber-500 to-amber-700' },
-  { id: 'milk', name: 'Milk', emoji: '🥛', letters: ['M', 'I', 'L', 'K'], animationType: 'car-drive', description: 'A white liquid produced by cows.', color: 'from-slate-100 to-slate-350' },
-  { id: 'duck', name: 'Duck', emoji: '🦆', letters: ['D', 'U', 'C', 'K'], animationType: 'car-drive', description: 'A waterbird with webbed feet.', color: 'from-yellow-400 to-yellow-600' },
-  { id: 'cake', name: 'Cake', emoji: '🍰', letters: ['C', 'A', 'K', 'E'], animationType: 'rocket-launch', description: 'A sweet baked dessert.', color: 'from-pink-400 to-rose-500' },
-  { id: 'bike', name: 'Bike', emoji: '🚲', letters: ['B', 'I', 'K', 'E'], animationType: 'car-drive', description: 'A two-wheeled vehicle powered by pedals.', color: 'from-emerald-500 to-teal-700' },
-  { id: 'rose', name: 'Rose', emoji: '🌹', letters: ['R', 'O', 'S', 'E'], animationType: 'rocket-launch', description: 'A sweet-smelling red flower.', color: 'from-red-500 to-rose-600' },
-  { id: 'ring', name: 'Ring', emoji: '💍', letters: ['R', 'I', 'N', 'G'], animationType: 'rocket-launch', description: 'A piece of jewelry worn on a finger.', color: 'from-cyan-400 to-indigo-500' },
-  { id: 'grape', name: 'Grape', emoji: '🍇', letters: ['G', 'R', 'A', 'P', 'E'], animationType: 'car-drive', description: 'A small, sweet green or purple berry.', color: 'from-purple-500 to-indigo-700' },
-  { id: 'pear', name: 'Pear', emoji: '🍐', letters: ['P', 'E', 'A', 'R'], animationType: 'rocket-launch', description: 'A sweet, bell-shaped fruit.', color: 'from-lime-400 to-green-600' },
-  { id: 'melon', name: 'Melon', emoji: '🍈', letters: ['M', 'E', 'L', 'O', 'N'], animationType: 'car-drive', description: 'A large sweet fruit with many seeds.', color: 'from-green-400 to-emerald-600' },
-  { id: 'lemon', name: 'Lemon', emoji: '🍋', letters: ['L', 'E', 'M', 'O', 'N'], animationType: 'rocket-launch', description: 'A sour yellow citrus fruit.', color: 'from-yellow-300 to-yellow-500' },
-  { id: 'peach', name: 'Peach', emoji: '🍑', letters: ['P', 'E', 'A', 'C', 'H'], animationType: 'car-drive', description: 'A round juicy fruit with downy yellowish-pink skin.', color: 'from-orange-400 to-pink-500' },
-  { id: 'banana', name: 'Banana', emoji: '🍌', letters: ['B', 'A', 'N', 'A', 'N', 'A'], animationType: 'car-drive', description: 'A long curved yellow fruit.', color: 'from-yellow-300 to-amber-400' },
-  { id: 'carrot', name: 'Carrot', emoji: '🥕', letters: ['C', 'A', 'R', 'R', 'O', 'T'], animationType: 'rocket-launch', description: 'An orange root vegetable.', color: 'from-orange-400 to-red-500' },
-  { id: 'onion', name: 'Onion', emoji: '🧅', letters: ['O', 'N', 'I', 'O', 'N'], animationType: 'car-drive', description: 'A vegetable with a strong taste and smell.', color: 'from-purple-300 to-pink-400' },
-  { id: 'bread', name: 'Bread', emoji: '🍞', letters: ['B', 'R', 'E', 'A', 'D'], animationType: 'car-drive', description: 'Food made of flour, water, and yeast mixed together and baked.', color: 'from-amber-600 to-amber-800' },
-  { id: 'cheese', name: 'Cheese', emoji: '🧀', letters: ['C', 'H', 'E', 'E', 'S', 'E'], animationType: 'rocket-launch', description: 'A yellow or white food made from milk.', color: 'from-yellow-400 to-amber-500' },
-  { id: 'cookie', name: 'Cookie', emoji: '🍪', letters: ['C', 'O', 'O', 'K', 'I', 'E'], animationType: 'car-drive', description: 'A small sweet baked treat.', color: 'from-amber-700 to-yellow-800' },
-  { id: 'donut', name: 'Donut', emoji: '🍩', letters: ['D', 'O', 'N', 'U', 'T'], animationType: 'rocket-launch', description: 'A small fried cake of sweetened dough, typically ring-shaped.', color: 'from-pink-400 to-purple-600' },
-  { id: 'candy', name: 'Candy', emoji: '🍬', letters: ['C', 'A', 'N', 'D', 'Y'], animationType: 'car-drive', description: 'A sweet food made with sugar.', color: 'from-pink-300 to-rose-400' },
-  { id: 'honey', name: 'Honey', emoji: '🍯', letters: ['H', 'O', 'N', 'E', 'Y'], animationType: 'rocket-launch', description: 'A sweet, sticky yellow fluid made by bees.', color: 'from-yellow-500 to-amber-600' },
-  { id: 'crab', name: 'Crab', emoji: '🦀', letters: ['C', 'R', 'A', 'B'], animationType: 'car-drive', description: 'A sea creature with a broad flat shell and ten legs.', color: 'from-red-500 to-rose-600' },
-  { id: 'snail', name: 'Snail', emoji: '🐌', letters: ['S', 'N', 'A', 'I', 'L'], animationType: 'car-drive', description: 'A small creature with a soft wet body and a round shell.', color: 'from-amber-500 to-stone-600' },
-  { id: 'spider', name: 'Spider', emoji: '🕷️', letters: ['S', 'P', 'I', 'D', 'E', 'R'], animationType: 'rocket-launch', description: 'An eight-legged arachnid that spins webs.', color: 'from-slate-700 to-slate-900' },
-  { id: 'turtle', name: 'Turtle', emoji: '🐢', letters: ['T', 'U', 'R', 'T', 'L', 'E'], animationType: 'car-drive', description: 'A slow-moving reptile with a protective shell.', color: 'from-emerald-500 to-green-700' },
-  { id: 'snake', name: 'Snake', emoji: '🐍', letters: ['S', 'N', 'A', 'K', 'E'], animationType: 'car-drive', description: 'A long limbless reptile.', color: 'from-green-500 to-emerald-700' },
-  { id: 'rabbit', name: 'Rabbit', emoji: '🐰', letters: ['R', 'A', 'B', 'B', 'I', 'T'], animationType: 'rocket-launch', description: 'A small furry mammal with long ears.', color: 'from-slate-300 to-slate-400' },
-  { id: 'monkey', name: 'Monkey', emoji: '🐵', letters: ['M', 'O', 'N', 'K', 'E', 'Y'], animationType: 'rocket-launch', description: 'A clever primate with a long tail.', color: 'from-amber-800 to-amber-950' },
-  { id: 'koala', name: 'Koala', emoji: '🐨', letters: ['K', 'O', 'A', 'L', 'A'], animationType: 'car-drive', description: 'A bear-like arboreal Australian marsupial.', color: 'from-slate-450 to-slate-600' },
-  { id: 'panda', name: 'Panda', emoji: '🐼', letters: ['P', 'A', 'N', 'D', 'A'], animationType: 'car-drive', description: 'A large bearlike mammal with black and white markings.', color: 'from-slate-600 to-neutral-900' },
-  { id: 'fox', name: 'Fox', emoji: '🦊', letters: ['F', 'O', 'X'], animationType: 'car-drive', description: 'A wild mammal with a pointed muzzle and bushy tail.', color: 'from-orange-500 to-red-650' },
-  { id: 'wolf', name: 'Wolf', emoji: '🐺', letters: ['W', 'O', 'L', 'F'], animationType: 'rocket-launch', description: 'A wild carnivorous mammal of the dog family.', color: 'from-slate-500 to-slate-700' },
-  { id: 'tiger', name: 'Tiger', emoji: '🐯', letters: ['T', 'I', 'G', 'E', 'R'], animationType: 'car-drive', description: 'A large solitary cat with a striped coat.', color: 'from-orange-500 to-yellow-600' },
-  { id: 'zebra', name: 'Zebra', emoji: '🦓', letters: ['Z', 'E', 'B', 'R', 'A'], animationType: 'car-drive', description: 'An African wild horse with black-and-white stripes.', color: 'from-slate-800 to-stone-900' },
-  { id: 'horse', name: 'Horse', emoji: '🐴', letters: ['H', 'O', 'R', 'S', 'E'], animationType: 'car-drive', description: 'A large plant-eating domesticated mammal with hooves.', color: 'from-amber-700 to-amber-900' },
-  { id: 'sheep', name: 'Sheep', emoji: '🐑', letters: ['S', 'H', 'E', 'E', 'P'], animationType: 'car-drive', description: 'A domesticated ruminant mammal with a thick woolly coat.', color: 'from-neutral-200 to-neutral-400' },
-  { id: 'camel', name: 'Camel', emoji: '🐫', letters: ['C', 'A', 'M', 'E', 'L'], animationType: 'car-drive', description: 'A large mammal with long slender legs and humps on its back.', color: 'from-amber-500 to-amber-700' },
-  { id: 'whale', name: 'Whale', emoji: '🐋', letters: ['W', 'H', 'A', 'L', 'E'], animationType: 'car-drive', description: 'A very large marine mammal.', color: 'from-blue-500 to-indigo-600' },
-  { id: 'shark', name: 'Shark', emoji: '🦈', letters: ['S', 'H', 'A', 'R', 'K'], animationType: 'car-drive', description: 'A large predatory sea fish.', color: 'from-slate-400 to-blue-600' },
-  { id: 'octopus', name: 'Octopus', emoji: '🐙', letters: ['O', 'C', 'T', 'O', 'P', 'U', 'S'], animationType: 'rocket-launch', description: 'A sea creature with a soft body and eight long arms.', color: 'from-purple-400 to-pink-500' },
-  { id: 'sun', name: 'Sun', emoji: '☀️', letters: ['S', 'U', 'N'], animationType: 'rocket-launch', description: 'The star around which the earth orbits.', color: 'from-yellow-400 to-orange-500' },
-  { id: 'rain', name: 'Rain', emoji: '🌧️', letters: ['R', 'A', 'I', 'N'], animationType: 'car-drive', description: 'Water falling in drops from the atmosphere.', color: 'from-blue-300 to-cyan-500' },
-  { id: 'snow', name: 'Snow', emoji: '❄️', letters: ['S', 'N', 'O', 'W'], animationType: 'rocket-launch', description: 'Water vapor frozen into ice crystals.', color: 'from-sky-200 to-blue-300' },
-  { id: 'wind', name: 'Wind', emoji: '💨', letters: ['W', 'I', 'N', 'D'], animationType: 'car-drive', description: 'The perceptible natural movement of the air.', color: 'from-teal-200 to-slate-400' },
-  { id: 'leaf', name: 'Leaf', emoji: '🍃', letters: ['L', 'E', 'A', 'F'], animationType: 'rocket-launch', description: 'A flattened structure of a higher plant, typically green.', color: 'from-green-400 to-emerald-500' },
-  { id: 'flower', name: 'Flower', emoji: '🌸', letters: ['F', 'L', 'O', 'W', 'E', 'R'], animationType: 'rocket-launch', description: 'The seed-bearing part of a plant.', color: 'from-pink-300 to-pink-500' },
-  { id: 'beach', name: 'Beach', emoji: '🏖️', letters: ['B', 'E', 'A', 'C', 'H'], animationType: 'car-drive', description: 'A pebbly or sandy shore by the ocean.', color: 'from-yellow-300 to-blue-400' },
-  { id: 'desert', name: 'Desert', emoji: '🏜️', letters: ['D', 'E', 'S', 'E', 'R', 'T'], animationType: 'car-drive', description: 'A dry, sandy area of land with little water.', color: 'from-yellow-500 to-amber-600' },
-  { id: 'river', name: 'River', emoji: '🏞️', letters: ['R', 'I', 'V', 'E', 'R'], animationType: 'car-drive', description: 'A large natural stream of water flowing in a channel.', color: 'from-cyan-400 to-blue-600' },
-  { id: 'drum', name: 'Drum', emoji: '🥁', letters: ['D', 'R', 'U', 'M'], animationType: 'rocket-launch', description: 'A percussion instrument sounded by being struck.', color: 'from-red-600 to-amber-600' },
-  { id: 'guitar', name: 'Guitar', emoji: '🎸', letters: ['G', 'U', 'I', 'T', 'A', 'R'], animationType: 'rocket-launch', description: 'A stringed musical instrument with six or twelve strings.', color: 'from-rose-500 to-purple-600' },
-  { id: 'violin', name: 'Violin', emoji: '🎻', letters: ['V', 'I', 'O', 'L', 'I', 'N'], animationType: 'car-drive', description: 'A stringed musical instrument played with a bow.', color: 'from-amber-700 to-amber-800' },
-  { id: 'trumpet', name: 'Trumpet', emoji: '🎺', letters: ['T', 'R', 'U', 'M', 'P', 'E', 'T'], animationType: 'rocket-launch', description: 'A brass musical instrument.', color: 'from-yellow-400 to-amber-500' },
-  { id: 'hat', name: 'Hat', emoji: '🎩', letters: ['H', 'A', 'T'], animationType: 'rocket-launch', description: 'A shaped covering for the head.', color: 'from-slate-800 to-black' },
-  { id: 'coat', name: 'Coat', emoji: '🧥', letters: ['C', 'O', 'A', 'T'], animationType: 'car-drive', description: 'An outer garment worn outdoors.', color: 'from-amber-700 to-stone-700' },
-  { id: 'watch', name: 'Watch', emoji: '⌚', letters: ['W', 'A', 'T', 'C', 'H'], animationType: 'rocket-launch', description: 'A small timepiece worn on a wrist.', color: 'from-indigo-500 to-slate-800' },
-  { id: 'wallet', name: 'Wallet', emoji: '👛', letters: ['W', 'A', 'L', 'L', 'E', 'T'], animationType: 'car-drive', description: 'A pocket-sized flat case for holding money.', color: 'from-pink-400 to-rose-600' },
   { id: 'key', name: 'Key', emoji: '🔑', letters: ['K', 'E', 'Y'], animationType: 'rocket-launch', description: 'A small piece of shaped metal used to open a lock.', color: 'from-yellow-300 to-amber-400' },
   { id: 'lamp', name: 'Lamp', emoji: '💡', letters: ['L', 'A', 'M', 'P'], animationType: 'rocket-launch', description: 'A device for giving light.', color: 'from-yellow-300 to-orange-400' },
   { id: 'door', name: 'Door', emoji: '🚪', letters: ['D', 'O', 'O', 'R'], animationType: 'car-drive', description: 'A hinged barrier used to close an entrance.', color: 'from-amber-800 to-stone-800' },
-  { id: 'window', name: 'Window', emoji: '🪟', letters: ['W', 'I', 'N', 'D', 'O', 'W'], animationType: 'rocket-launch', description: 'An opening in a wall to let in light and air.', color: 'from-sky-400 to-blue-500' },
-  { id: 'brush', name: 'Brush', emoji: '🧹', letters: ['B', 'R', 'U', 'S', 'H'], animationType: 'car-drive', description: 'An implement with bristles for cleaning.', color: 'from-amber-650 to-stone-600' },
-  { id: 'soap', name: 'Soap', emoji: '🧼', letters: ['S', 'O', 'A', 'P'], animationType: 'car-drive', description: 'A substance used with water for washing.', color: 'from-teal-300 to-emerald-400' },
-  { id: 'pencil', name: 'Pencil', emoji: '✏️', letters: ['P', 'E', 'N', 'C', 'I', 'L'], animationType: 'car-drive', description: 'An instrument for writing or drawing.', color: 'from-yellow-400 to-amber-500' },
-  { id: 'crayon', name: 'Crayon', emoji: '🖍️', letters: ['C', 'R', 'A', 'Y', 'O', 'N'], animationType: 'rocket-launch', description: 'A pencil or stick of colored wax.', color: 'from-rose-500 to-pink-600' },
-  { id: 'hammer', name: 'Hammer', emoji: '🔨', letters: ['H', 'A', 'M', 'M', 'E', 'R'], animationType: 'car-drive', description: 'A tool with a heavy metal head.', color: 'from-slate-500 to-stone-700' },
-  { id: 'magnet', name: 'Magnet', emoji: '🧲', letters: ['M', 'A', 'G', 'N', 'E', 'T'], animationType: 'rocket-launch', description: 'A piece of iron that attracts other metal objects.', color: 'from-red-500 to-slate-500' },
-  { id: 'mirror', name: 'Mirror', emoji: '🪞', letters: ['M', 'I', 'R', 'R', 'O', 'R'], animationType: 'rocket-launch', description: 'A surface that reflects a clear image.', color: 'from-teal-200 to-cyan-400' }
+  { id: 'window', name: 'Window', emoji: '🪟', letters: ['W', 'I', 'N', 'D', 'O', 'W'], animationType: 'rocket-launch', description: 'An opening in a wall to let in light and air.', color: 'from-sky-400 to-blue-500' }
 ];
 
-export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
+export function LivingPuzzles3D({ onToggleFullscreen }: { slug?: string; onToggleFullscreen?: () => void }) {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [currentPuzzleIdx, setCurrentPuzzleIdx] = React.useState(0);
   const [assembledLetters, setAssembledLetters] = React.useState<string[]>([]);
   const [gameState, setGameState] = React.useState<'idle' | 'playing' | 'animating' | 'completed'>('idle');
-  const [speakActive, setSpeakActive] = React.useState(false);
+  const [activePuzzles, setActivePuzzles] = React.useState<PuzzleObject[]>([]);
   
-
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handler);
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  
-  const [activePuzzles, setActivePuzzles] = React.useState<PuzzleObject[]>([]);
-  
   React.useEffect(() => {
     setActivePuzzles(shuffleArray(PUZZLES).slice(0, 5));
   }, []);
   
   const activePuzzle = activePuzzles[currentPuzzleIdx] || PUZZLES[0];
 
-
   const handleStart = () => {
-    setGameState('playing');
+    setActivePuzzles(shuffleArray(PUZZLES).slice(0, 5));
+    setCurrentPuzzleIdx(0);
     setAssembledLetters([]);
-    
+    setGameState('playing');
+  };
+
+  const handleAbortGame = () => {
+    setGameState('idle');
+    setAssembledLetters([]);
+    setCurrentPuzzleIdx(0);
   };
 
   const handleLetterClick = (letter: string) => {
@@ -169,51 +108,48 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
     if (letter === expectedLetter) {
       const updated = [...assembledLetters, letter];
       setAssembledLetters(updated);
-      
 
       // Play phonetic sound
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(letter.toLowerCase());
-        utterance.rate = 1.1;
-        window.speechSynthesis.speak(utterance);
+        try {
+          const utterance = new SpeechSynthesisUtterance(letter.toLowerCase());
+          utterance.rate = 1.1;
+          window.speechSynthesis.speak(utterance);
+        } catch {
+          // ignore
+        }
       }
 
       if (updated.length === activePuzzle.letters.length) {
         setGameState('animating');
         
-        // Play word sound after a small delay
         setTimeout(() => {
           if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-            setSpeakActive(true);
-            const utterance = new SpeechSynthesisUtterance(activePuzzle.name);
-            utterance.rate = 0.9;
-            utterance.onend = () => setSpeakActive(false);
-            window.speechSynthesis.speak(utterance);
+            try {
+              const utterance = new SpeechSynthesisUtterance(activePuzzle.name);
+              utterance.rate = 0.9;
+              window.speechSynthesis.speak(utterance);
+            } catch {
+              // ignore
+            }
           }
-        }, 600);
+        }, 500);
 
-        // Transition to completed state after animation finishes
         setTimeout(() => {
-          setGameState('completed');
-          // Trigger coins drop
-          window.dispatchEvent(new CustomEvent('lingoland_game_completed_hijack', {
-            detail: { state: 'finished' }
-          }));
-        }, 3200);
+          if (currentPuzzleIdx < activePuzzles.length - 1) {
+            setCurrentPuzzleIdx(prev => prev + 1);
+            setAssembledLetters([]);
+            setGameState('playing');
+          } else {
+            setGameState('completed');
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('lingoland_game_completed_hijack', {
+                detail: { state: 'finished' }
+              }));
+            }
+          }
+        }, 3000);
       }
-    } else {
-      // Mistake penalty
-      
-    }
-  };
-
-  const handleNextPuzzle = () => {
-    if (currentPuzzleIdx < activePuzzles.length - 1) {
-      setCurrentPuzzleIdx(prev => prev + 1);
-      setAssembledLetters([]);
-      setGameState('playing');
-    } else {
-      setGameState('completed');
     }
   };
 
@@ -222,7 +158,6 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
     setCurrentPuzzleIdx(0);
     setAssembledLetters([]);
     setGameState('playing');
-    
   };
 
   // Get scrambled letters for selection
@@ -233,282 +168,414 @@ export function LivingPuzzles3D({ onToggleFullscreen }: { slug: string; onToggle
 
   return (
     <div className={cn(
-      "w-full transition-all duration-500 flex flex-col items-center bg-slate-950 text-white relative overflow-hidden",
+      "w-full transition-all duration-500 flex flex-col justify-between bg-slate-950 text-white relative overflow-y-auto overflow-x-hidden",
       isFullscreen 
-        ? "min-h-screen rounded-none border-none p-4 sm:p-8 max-w-none justify-center" 
-        : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl p-4 sm:p-6 lg:p-8 border border-cyan-500/20 bg-slate-950/95 backdrop-blur-2xl shadow-2xl justify-between"
+        ? "fixed inset-0 z-50 rounded-none h-screen bg-black p-3 sm:p-6" 
+        : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl border border-cyan-500/20 bg-slate-950/95 backdrop-blur-2xl shadow-2xl"
     )}>
-      {/* Background visual effects */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-600/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Background glow effects */}
+      <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Header */}
-      <div className="w-full flex items-center justify-between border-b border-slate-900 pb-4 mb-6 z-10">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-xl">
-            <Puzzle className="h-6 w-6 text-cyan-400" />
-          </div>
-          <div>
-            <h2 className="text-xl font-black uppercase tracking-tight bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent">Animated "Living" Puzzles</h2>
-            <p className="text-xs text-slate-400">Assemble spelling blocks to bring objects to life with 3D animations!</p>
+      {/* Persistent Universal Top Header */}
+      <div className="w-full flex flex-wrap items-center justify-between border-b border-cyan-500/20 p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md z-20 shrink-0 gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            asChild 
+            className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm font-bold bg-cyan-950/40 hover:bg-cyan-900/60 text-cyan-200 border-cyan-500/30 hover:border-cyan-400 rounded-xl"
+          >
+            <Link href="/games" className="flex items-center gap-1.5">
+              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>Games</span>
+            </Link>
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-xl">
+              <Puzzle className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400" />
+            </div>
+            <div>
+              <h2 className="text-sm sm:text-xl font-black uppercase tracking-tight bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent">
+                Animated &quot;Living&quot; Puzzles
+              </h2>
+              <p className="text-[11px] text-slate-400 hidden sm:block">Assemble 3D spelling blocks to bring objects to life</p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+          {(gameState === 'playing' || gameState === 'animating') && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAbortGame}
+              className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm font-bold bg-red-950/40 hover:bg-red-900/60 text-red-300 border-red-500/40 rounded-xl flex items-center gap-1.5"
+            >
+              <LogOut className="h-3.5 w-3.5 text-red-400" />
+              <span>Abort Game</span>
+            </Button>
+          )}
+
           {onToggleFullscreen && (
-            <button onClick={onToggleFullscreen} className="h-9 w-9 flex items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-slate-900 border border-slate-800/50 transition-colors">
-              {isFullscreen ? <Minimize className="h-4.5 w-4.5" /> : <Maximize className="h-4.5 w-4.5" />}
-            </button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggleFullscreen}
+              className="h-8 w-8 sm:h-9 sm:w-9 text-slate-400 hover:text-white rounded-xl hover:bg-slate-900 border border-slate-800/50"
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            </Button>
           )}
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {gameState === 'idle' && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 flex flex-col items-center justify-center text-center max-w-2xl my-auto space-y-6 z-10 p-6 md:p-10 rounded-3xl bg-slate-900/60 border border-cyan-500/20 backdrop-blur-md shadow-2xl"
-          >
-            <div className="relative">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 blur opacity-40 animate-pulse" />
-              <div className="relative p-6 bg-slate-900 border border-slate-800 rounded-full">
-                <Puzzle className="h-16 w-16 text-cyan-400" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-slate-100 uppercase tracking-tight">Living Puzzles 3D</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Connect the correct spelling blocks in sequence to build items. As soon as you solve the puzzle, see the 3D structures come to life!
-              </p>
-            </div>
-            <button
-              onClick={handleStart}
-              className="px-10 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black uppercase text-sm tracking-widest rounded-2xl transition-all shadow-[0_4px_25px_rgba(6,182,212,0.25)] hover:scale-105 active:scale-95 flex items-center gap-2"
+      {/* Main Content Arena: items-stretch to fix mobile scroll clipping */}
+      <div className="flex-1 flex flex-col items-stretch justify-start p-3 sm:p-6 lg:p-8 z-10 relative overflow-y-auto w-full max-w-6xl mx-auto space-y-6 pb-16">
+        <AnimatePresence mode="wait">
+          {/* LOBBY / WORKSHOP DECK */}
+          {gameState === 'idle' && (
+            <motion.div 
+              key="idle"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="w-full space-y-6 py-2"
             >
-              <Play className="h-4 w-4 fill-current" />
-              Start Puzzle
-            </button>
-          </motion.div>
-        )}
-
-        {(gameState === 'playing' || gameState === 'animating') && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-6 z-10"
-          >
-            {/* Left HUD Information Box */}
-            <div className="md:col-span-1 flex flex-col gap-4">
-              <div className="bg-slate-950/60 border border-slate-900 rounded-3xl p-6 flex flex-col justify-between h-full shadow-lg">
-                <div className="space-y-6">
+              {/* Telemetry Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-slate-900/60 border border-cyan-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md flex items-center gap-3">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                    <Box className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </div>
                   <div>
-                    <span className="text-xs sm:text-sm uppercase font-black tracking-widest text-cyan-400">Object Guide</span>
-                    <h3 className="text-2xl sm:text-3xl font-black text-white mt-2">
-                      {gameState === 'playing' ? '???' : activePuzzle.name}
-                    </h3>
-                    <p className="text-sm sm:text-base text-slate-350 italic mt-3 leading-relaxed">"{activePuzzle.description}"</p>
+                    <p className="text-[10px] sm:text-xs font-mono uppercase text-cyan-300/60">3D Models</p>
+                    <p className="text-sm sm:text-base font-black text-white">20+ OBJECTS</p>
                   </div>
                 </div>
 
-                <div className="border-t border-slate-800 pt-4 text-xs sm:text-sm text-slate-400 leading-relaxed font-bold">
-                  {gameState === 'playing' 
-                    ? "Click the letter blocks in the correct spelling sequence to assemble the 3D outline!"
-                    : "Spelling complete! Building is coming to life..."}
+                <div className="bg-slate-900/60 border border-blue-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md flex items-center gap-3">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                    <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] sm:text-xs font-mono uppercase text-blue-300/60">Animation Engine</p>
+                    <p className="text-sm sm:text-base font-black text-white">ACTIVE 60FPS</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900/60 border border-purple-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md flex items-center gap-3">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/30">
+                    <Layers className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] sm:text-xs font-mono uppercase text-purple-300/60">Session Goal</p>
+                    <p className="text-sm sm:text-base font-black text-purple-200">5 PUZZLES</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900/60 border border-emerald-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md flex items-center gap-3">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                    <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] sm:text-xs font-mono uppercase text-emerald-300/60">Audio Speech</p>
+                    <p className="text-sm sm:text-base font-black text-emerald-300">PHONETICS ON</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Central 3D Puzzle Workbench */}
-            <div className="md:col-span-2 bg-slate-950/60 border border-slate-900 rounded-3xl p-6 flex flex-col items-center justify-between min-h-[480px] relative overflow-hidden">
-              {/* Progress indicator */}
-              <div className="text-[10px] uppercase font-black tracking-widest text-slate-500 bg-slate-950 border border-slate-900 px-3 py-1 rounded-full z-20">
-                Puzzle {currentPuzzleIdx + 1} of {activePuzzles.length}
-              </div>
-
-              {/* The 3D workbench viewport */}
-              <div className="w-[450px] h-[280px] flex items-center justify-center [perspective:800px] relative">
-                
-                {/* 3D Object animation viewport container */}
-                <div 
-                  className={`relative [transform-style:preserve-3d] transition-all duration-300 w-full h-full flex items-center justify-center`}
-                  style={{ transform: 'rotateX(20deg) rotateY(-15deg)' }}
-                >
-                  
-                  {/* Grid base workbench floor */}
-                  <div 
-                    className="absolute w-[360px] h-[280px] bg-slate-900/30 border border-slate-800/40 [transform:rotateX(90deg)_translateZ(-90px)]"
-                    style={{
-                      backgroundImage: 'linear-gradient(rgba(6,182,212,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.04) 1px, transparent 1px)',
-                      backgroundSize: '15px 15px',
-                    }}
-                  />
-
-                  {/* MOCK ASSEMBLY / ANIMATED OBJECT */}
-                  <motion.div
-                    animate={gameState === 'animating' ? (
-                      activePuzzle.animationType === 'car-drive' 
-                        ? { 
-                            x: [0, -10, 300], 
-                            y: [0, -5, 0], 
-                            rotateZ: [0, 5, -2],
-                            scale: [1, 1.05, 0.2],
-                            transition: { duration: 2.8, ease: 'easeInOut' }
-                          } 
-                        : { 
-                            y: [0, 15, -400], 
-                            rotateY: [0, 180, 720],
-                            scale: [1, 0.9, 0.1],
-                            transition: { duration: 2.8, ease: 'easeIn' }
-                          }
-                    ) : {}}
-                    className={`relative [transform-style:preserve-3d] w-48 h-32 rounded-2xl flex flex-col items-center justify-center`}
-                  >
-                    {/* Outline Wireframe placeholder */}
-                    {gameState === 'playing' && (
-                      <div className="absolute inset-0 border border-dashed border-cyan-500/25 rounded-2xl bg-cyan-500/5 flex items-center justify-center select-none pointer-events-none">
-                        <span className="text-5xl font-extrabold opacity-15">❓</span>
-                      </div>
-                    )}
-
-                    {/* Fully Assembled Living block */}
-                    {gameState === 'animating' && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center [transform-style:preserve-3d]">
-                        {/* 3D Object Solid block wrapper */}
-                        <div className={`p-6 bg-gradient-to-r ${activePuzzle.color} border border-cyan-400/40 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/10`}>
-                          <span className="text-6xl animate-bounce">{activePuzzle.emoji}</span>
-                        </div>
-
-                        {/* Thruster/Drive particles representation */}
-                        {activePuzzle.animationType === 'rocket-launch' && (
-                          <div className="absolute top-[120px] w-6 h-16 bg-gradient-to-b from-orange-500 via-amber-400 to-transparent rounded-full animate-pulse filter blur-[1px]" />
-                        )}
-                        {activePuzzle.animationType === 'car-drive' && (
-                          <div className="absolute right-[160px] w-16 h-3 bg-gradient-to-l from-white/40 to-transparent rounded-full animate-pulse filter blur-[1px]" />
-                        )}
-                      </div>
-                    )}
-
-                    {/* Sequential built letter blocks */}
-                    <div className="absolute -bottom-10 flex gap-2 [transform-style:preserve-3d] z-10">
-                      {activePuzzle.letters.map((letObj, idx) => {
-                        const isFilled = idx < assembledLetters.length;
-
-                        return (
-                          <div 
-                            key={idx}
-                            className={`w-12 h-12 flex items-center justify-center rounded-lg border font-black text-2xl transition-all duration-300 [transform-style:preserve-3d] [transform:translateZ(15px)] ${
-                              isFilled 
-                                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-md shadow-cyan-500/10 scale-105' 
-                                : 'border-slate-800 bg-slate-900/60 text-slate-600'
-                            }`}
-                          >
-                            {isFilled ? letObj : '_'}
-                          </div>
-                        );
-                      })}
+              {/* Main Workshop Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                <div className="lg:col-span-7 bg-gradient-to-b from-cyan-950/20 via-slate-900/50 to-black/60 border border-cyan-500/30 rounded-3xl p-5 sm:p-8 backdrop-blur-xl flex flex-col justify-between space-y-6 shadow-[0_0_50px_rgba(6,182,212,0.1)]">
+                  <div className="space-y-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono">
+                      <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+                      <span>3D SPATIAL PUZZLE WORKSHOP</span>
                     </div>
-                  </motion.div>
+
+                    <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight uppercase leading-tight">
+                      Construct & Bring <br />
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">
+                        3D Word Puzzles to Life
+                      </span>
+                    </h2>
+
+                    <p className="text-sm sm:text-base text-cyan-100/70 leading-relaxed max-w-xl">
+                      Select spelling letter blocks in precise sequence. Once the word is completely constructed, watch the object awaken with living motion and speech synthesis!
+                    </p>
+                  </div>
+
+                  <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                    <Button
+                      onClick={handleStart}
+                      className="flex-1 h-14 sm:h-16 text-base sm:text-lg font-black bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white rounded-2xl shadow-[0_0_30px_rgba(6,182,212,0.35)] transition-all hover:scale-[1.02] border border-cyan-300/30 uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                      <Play className="h-5 w-5 fill-current" />
+                      <span>Start 3D Puzzles</span>
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      asChild
+                      className="h-14 sm:h-16 px-6 text-sm sm:text-base font-bold border-white/15 bg-slate-900/50 hover:bg-slate-800 text-white rounded-2xl flex items-center justify-center gap-2"
+                    >
+                      <Link href="/games">
+                        <ArrowLeft className="h-4 w-4" />
+                        <span>Back to Games</span>
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-5 bg-slate-900/50 border border-white/10 rounded-3xl p-5 sm:p-6 backdrop-blur-xl flex flex-col justify-between space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2.5 text-cyan-300">
+                      <HelpCircle className="h-5 w-5 text-cyan-400" />
+                      <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-white">
+                        Workshop Rules
+                      </h3>
+                    </div>
+
+                    <div className="space-y-3 text-xs sm:text-sm text-cyan-100/80">
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                        <span className="h-6 w-6 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center justify-center text-xs font-mono font-bold shrink-0 mt-0.5">01</span>
+                        <div>
+                          <p className="font-bold text-white">Assemble Sequential Letters</p>
+                          <p className="text-[12px] text-cyan-200/60">Tap scrambled blocks from left to right to build the object name.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                        <span className="h-6 w-6 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center justify-center text-xs font-mono font-bold shrink-0 mt-0.5">02</span>
+                        <div>
+                          <p className="font-bold text-white">Phonetics Audio</p>
+                          <p className="text-[12px] text-cyan-200/60">Listen to clear speech pronunciation as each letter and word locks in.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                        <span className="h-6 w-6 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 flex items-center justify-center text-xs font-mono font-bold shrink-0 mt-0.5">03</span>
+                        <div>
+                          <p className="font-bold text-white">Full In-Game Control</p>
+                          <p className="text-[12px] text-cyan-200/60">Abort or restart your workshop puzzle session anytime from the top bar.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ACTIVE PLAYING ARENA */}
+          {(gameState === 'playing' || gameState === 'animating') && (
+            <motion.div 
+              key="playing"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-6 z-10"
+            >
+              {/* Left HUD Information Box */}
+              <div className="md:col-span-1 flex flex-col gap-4">
+                <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-5 sm:p-6 flex flex-col justify-between h-full shadow-lg backdrop-blur-md space-y-4">
+                  <div className="space-y-4">
+                    <div>
+                      <span className="text-xs uppercase font-mono font-bold tracking-widest text-cyan-400">Object Intel</span>
+                      <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">
+                        {gameState === 'playing' ? '???' : activePuzzle.name}
+                      </h3>
+                      <p className="text-sm text-slate-300 italic mt-2 leading-relaxed">
+                        &ldquo;{activePuzzle.description}&rdquo;
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-cyan-950/30 border border-cyan-500/20 rounded-2xl">
+                      <p className="text-[11px] font-mono uppercase text-cyan-300/70">Assembled Length</p>
+                      <p className="text-sm font-bold text-white">{assembledLetters.length} / {activePuzzle.letters.length} Letters</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="border-t border-slate-800 pt-3 text-xs text-slate-400 leading-relaxed font-bold">
+                      {gameState === 'playing' 
+                        ? "Click the letter blocks in correct spelling order to assemble the 3D model!"
+                        : "Spelling complete! 3D animation sequence playing..."}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      onClick={handleAbortGame}
+                      className="w-full text-xs font-bold text-red-300 border-red-500/30 hover:bg-red-950/40 rounded-xl flex items-center justify-center gap-2"
+                    >
+                      <LogOut className="h-3.5 w-3.5 text-red-400" />
+                      <span>Abort Game</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
 
-              {/* Scrambled Letter Blocks Selection Panel */}
-              <div className="w-full mt-6">
-                {gameState === 'playing' ? (
-                  <div className="flex flex-wrap gap-4 items-center justify-center">
-                    {selectionLetters.map((letObj, index) => {
-                      const expectedNextIndex = assembledLetters.length;
-                      const isCompleted = assembledLetters.includes(letObj) && assembledLetters.indexOf(letObj) < expectedNextIndex;
+              {/* Central 3D Puzzle Workbench */}
+              <div className="md:col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-between min-h-[420px] relative overflow-hidden backdrop-blur-md">
+                {/* Progress indicator */}
+                <div className="text-[11px] uppercase font-mono font-bold tracking-widest text-cyan-300 bg-slate-950 border border-cyan-500/30 px-3.5 py-1 rounded-full z-20">
+                  Puzzle {currentPuzzleIdx + 1} of {activePuzzles.length}
+                </div>
 
-                      return (
+                {/* The 3D workbench viewport: Responsive width */}
+                <div className="w-full max-w-[420px] h-[250px] sm:h-[280px] flex items-center justify-center [perspective:800px] relative my-2">
+                  <div 
+                    className="relative [transform-style:preserve-3d] transition-all duration-300 w-full h-full flex items-center justify-center"
+                    style={{ transform: 'rotateX(20deg) rotateY(-15deg)' }}
+                  >
+                    {/* Grid base workbench floor */}
+                    <div 
+                      className="absolute w-[300px] sm:w-[360px] h-[240px] sm:h-[280px] bg-slate-900/40 border border-cyan-500/20 [transform:rotateX(90deg)_translateZ(-90px)]"
+                      style={{
+                        backgroundImage: 'linear-gradient(rgba(6,182,212,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.06) 1px, transparent 1px)',
+                        backgroundSize: '15px 15px',
+                      }}
+                    />
+
+                    {/* MOCK ASSEMBLY / ANIMATED OBJECT */}
+                    <motion.div
+                      animate={gameState === 'animating' ? (
+                        activePuzzle.animationType === 'car-drive' 
+                          ? { 
+                              x: [0, -10, 260], 
+                              y: [0, -5, 0], 
+                              rotateZ: [0, 5, -2],
+                              scale: [1, 1.05, 0.2],
+                              transition: { duration: 2.8, ease: 'easeInOut' }
+                            } 
+                          : { 
+                              y: [0, 15, -350], 
+                              rotateY: [0, 180, 720],
+                              scale: [1, 0.9, 0.1],
+                              transition: { duration: 2.8, ease: 'easeIn' }
+                            }
+                      ) : {}}
+                      className="relative [transform-style:preserve-3d] w-40 sm:w-48 h-28 sm:h-32 rounded-2xl flex flex-col items-center justify-center"
+                    >
+                      {/* Outline Wireframe placeholder */}
+                      {gameState === 'playing' && (
+                        <div className="absolute inset-0 border border-dashed border-cyan-500/30 rounded-2xl bg-cyan-500/5 flex items-center justify-center select-none pointer-events-none">
+                          <span className="text-4xl sm:text-5xl font-extrabold opacity-25">❓</span>
+                        </div>
+                      )}
+
+                      {/* Fully Assembled Living block */}
+                      {gameState === 'animating' && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center [transform-style:preserve-3d]">
+                          <div className={`p-4 sm:p-6 bg-gradient-to-r ${activePuzzle.color} border border-cyan-400/40 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/20`}>
+                            <span className="text-5xl sm:text-6xl animate-bounce">{activePuzzle.emoji}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sequential built letter blocks */}
+                      <div className="absolute -bottom-10 flex gap-1.5 sm:gap-2 [transform-style:preserve-3d] z-10">
+                        {activePuzzle.letters.map((letObj, idx) => {
+                          const isFilled = idx < assembledLetters.length;
+
+                          return (
+                            <div 
+                              key={idx}
+                              className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-lg border font-black text-lg sm:text-xl transition-all duration-300 [transform-style:preserve-3d] [transform:translateZ(15px)] ${
+                                isFilled 
+                                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-md shadow-cyan-500/20 scale-105' 
+                                  : 'border-slate-800 bg-slate-900/60 text-slate-600'
+                              }`}
+                            >
+                              {isFilled ? letObj : '_'}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  </div>
+                </div>
+
+                {/* Scrambled Letter Blocks Selection Panel */}
+                <div className="w-full mt-4">
+                  {gameState === 'playing' ? (
+                    <div className="flex flex-wrap gap-2 sm:gap-3 items-center justify-center">
+                      {selectionLetters.map((letObj, index) => (
                         <button
                           key={index}
                           onClick={() => handleLetterClick(letObj)}
-                          className="w-16 h-16 bg-slate-900 hover:bg-slate-850 border-2 border-slate-800 hover:border-cyan-400 text-cyan-200 hover:text-white font-black rounded-2xl text-2xl transition-all hover:scale-105 active:scale-95 shadow-md flex items-center justify-center relative overflow-hidden"
+                          className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-900 hover:bg-slate-800 border-2 border-slate-700 hover:border-cyan-400 text-cyan-200 hover:text-white font-black rounded-2xl text-xl sm:text-2xl transition-all hover:scale-105 active:scale-95 shadow-md flex items-center justify-center relative overflow-hidden"
                         >
                           <span className="relative z-10">{letObj}</span>
                           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
                         </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex justify-center items-center h-16 text-cyan-400 font-extrabold uppercase text-sm tracking-wider animate-pulse flex gap-2">
-                    <Sparkles className="h-5 w-5 text-cyan-400" />
-                    Living animation playing...
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex justify-center items-center h-14 text-cyan-300 font-bold uppercase text-xs sm:text-sm tracking-wider animate-pulse gap-2">
+                      <Sparkles className="h-4 w-4 text-cyan-400" />
+                      <span>Living animation playing...</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
 
-        {gameState === 'completed' && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="flex-1 flex flex-col items-center justify-center text-center max-w-md my-auto space-y-6 z-10"
-          >
-            <div className="relative">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 blur opacity-40 animate-pulse" />
-              <div className="relative p-6 bg-slate-900 border border-slate-800 rounded-full">
-                <CheckCircleIcon className="h-16 w-16 text-emerald-400" />
+          {/* COMPLETED VICTORY SCREEN */}
+          {gameState === 'completed' && (
+            <motion.div 
+              key="completed"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="flex-1 flex flex-col items-center justify-center text-center max-w-md mx-auto space-y-6 z-10 py-8"
+            >
+              <div className="relative p-6 bg-slate-900 border border-cyan-500/30 rounded-3xl shadow-[0_0_40px_rgba(6,182,212,0.2)]">
+                <Trophy className="h-16 w-16 text-yellow-400 mx-auto" />
               </div>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-slate-100 uppercase tracking-tight">All Puzzles Solved!</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Fantastic spelling skill! You correctly connected all word puzzles, watched them come to life in full 3D, and unlocked maximum coins!
-              </p>
-            </div>
 
-            
+              <div className="space-y-2">
+                <h3 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">All Puzzles Assembled!</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Superb 3D spelling craft! You assembled all word puzzles and activated full spatial animations.
+                </p>
+              </div>
 
-            <div className="flex gap-4">
-              <button
-                onClick={handleRestart}
-                className="px-8 py-3.5 bg-slate-900 border border-slate-800 text-slate-300 hover:text-white font-extrabold uppercase text-xs tracking-wider rounded-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Play Again
-              </button>
-              {currentPuzzleIdx < activePuzzles.length - 1 && (
-                <button
-                  onClick={handleNextPuzzle}
-                  className="px-8 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black uppercase text-xs tracking-widest rounded-xl transition-all shadow-md hover:scale-105 active:scale-95 flex items-center gap-1.5"
+              <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
+                <Button
+                  onClick={handleRestart}
+                  className="px-8 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-white font-black uppercase text-xs tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
                 >
-                  Next Puzzle
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+                  <RotateCcw className="h-4 w-4" />
+                  <span>Play Again</span>
+                </Button>
 
-// Simple internal inline icon to prevent missing import issues
-function CheckCircleIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
+                <Button
+                  variant="outline"
+                  asChild
+                  className="px-8 h-12 border-slate-700 bg-slate-900/60 text-white hover:bg-slate-800 rounded-xl text-xs font-bold"
+                >
+                  <Link href="/games">
+                    <ArrowLeft className="h-4 w-4 mr-1.5" />
+                    <span>Back to Games</span>
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Footer */}
+      <div className="w-full flex items-center justify-between border-t border-cyan-500/20 px-4 sm:px-6 py-2.5 bg-slate-950/80 text-[11px] font-mono text-cyan-300/60 z-20 shrink-0">
+        <span>ANIMATED LIVING PUZZLES // 3D SPATIAL ENGINE</span>
+        <Link href="/games" className="hover:text-cyan-200 transition-colors">
+          ← Exit to Games Hub
+        </Link>
+      </div>
+    </div>
   );
 }

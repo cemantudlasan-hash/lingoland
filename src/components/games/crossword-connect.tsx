@@ -12,7 +12,7 @@ import {
 } from "../ui/card";
 import { Button } from "../ui/button";
 import { generateCrosswordPuzzle } from "@/ai/flows/generate-crossword-puzzle";
-import { Loader2, Sparkles, HelpCircle, Check, Repeat, RotateCcw, Maximize, Minimize, BookOpen } from "lucide-react";
+import { Loader2, Sparkles, HelpCircle, Check, Repeat, RotateCcw, Maximize, Minimize, BookOpen, ArrowLeft, XOctagon, ShieldCheck, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -186,16 +186,32 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
             ? "min-h-screen rounded-none border-none max-w-none bg-background justify-between p-3 sm:p-6" 
             : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/80 backdrop-blur-sm border-border/20 shadow-lg"
       )}>
-      <CardHeader className="text-center relative pr-14 sm:pr-16 p-4 sm:p-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
-          onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+      {/* Universal Game Nav Header */}
+      <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-border/20 bg-muted/20">
+        <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+          <Link href="/games">
+            <ArrowLeft className="h-4 w-4" /> Games
+          </Link>
         </Button>
+        <div className="flex items-center gap-2">
+          {gameState !== 'idle' && (
+            <Button variant="outline" size="sm" onClick={resetGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 gap-1 text-muted-foreground hover:text-foreground"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+          </Button>
+        </div>
+      </div>
+
+      <CardHeader className="text-center relative p-4 sm:p-6">
         {!isFullscreen && (
             <div className="flex justify-center mb-2 sm:mb-4">
                 <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
@@ -211,19 +227,121 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
         )}
       </CardHeader>
       <CardContent className={cn(
-          "space-y-6 text-center flex flex-col items-center justify-center p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
+          "space-y-6 text-center flex flex-col items-stretch justify-start p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden pb-16",
           isFullscreen ? "min-h-0 flex-1 max-w-7xl mx-auto w-full px-4 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
       )}>
         {gameState === 'idle' && (
-          <div className="flex flex-col items-center gap-4">
-            <p className={cn("text-muted-foreground", isFullscreen ? "text-xl sm:text-3xl" : "text-sm sm:text-base")}>Ready to connect the words?</p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl h-11 sm:h-12 w-full sm:w-auto", isFullscreen && "sm:h-20 sm:px-16 sm:text-3xl sm:rounded-3xl")}>
-                <Sparkles className={cn("mr-2 sm:mr-3", isFullscreen ? "h-5 w-5 sm:h-10 sm:w-10" : "h-4 w-4 sm:h-5 sm:w-5")} /> Start Game
-              </Button>
-              <Button onClick={() => setGameState('instructions')} size={isFullscreen ? "lg" : "default"} variant="secondary" className={cn("font-bold shadow-md h-11 sm:h-12 w-full sm:w-auto", isFullscreen && "sm:h-20 sm:px-16 sm:text-3xl sm:rounded-3xl")}>
-                <BookOpen className={cn("mr-2 sm:mr-3", isFullscreen ? "h-5 w-5 sm:h-10 sm:w-10" : "h-4 w-4 sm:h-5 sm:w-5")} /> How to Play
-              </Button>
+          <div className="flex flex-col items-center gap-6 w-full max-w-4xl mx-auto py-2">
+            {/* Crossword Telemetry Pods */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 w-full">
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-primary/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Generator</span>
+                <span className="text-xs sm:text-sm font-black text-foreground">AI Semantic</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Themes</span>
+                <span className="text-sm sm:text-base font-black text-cyan-300">6 Domains</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Tiers</span>
+                <span className="text-sm sm:text-base font-black text-purple-300">3 Levels</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-emerald-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <HelpCircle className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Assistance</span>
+                <span className="text-sm sm:text-base font-black text-emerald-300">Letter Reveal</span>
+              </div>
+            </div>
+
+            {/* Split Information Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full text-left">
+              <div className="p-4 sm:p-6 rounded-2xl bg-muted/30 border border-border/40 flex flex-col justify-between gap-4">
+                <div className="space-y-3">
+                  <h4 className="text-sm sm:text-base font-black uppercase tracking-wider text-primary flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" /> Puzzle Setup
+                  </h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    Select a skill tier and semantic theme to compile an interactive interconnected crossword grid in real-time.
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Skill Difficulty</label>
+                    <div className="flex flex-wrap gap-2">
+                      {["beginner", "intermediate", "advanced"].map(level => (
+                        <Button 
+                          key={level} 
+                          onClick={() => setDifficulty(level as SkillLevel)} 
+                          variant={difficulty === level ? 'default' : 'outline'} 
+                          size="sm"
+                          className="font-black uppercase text-xs rounded-xl"
+                        >
+                          {level}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Puzzle Theme</label>
+                    <Select value={theme} onValueChange={setTheme}>
+                      <SelectTrigger className="bg-background/80"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {THEMES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2.5 w-full pt-2">
+                  <Button 
+                    onClick={() => {
+                      if (!difficulty) setDifficulty('intermediate');
+                      handleStartGame();
+                    }} 
+                    size="lg" 
+                    className="w-full sm:w-1/2 h-11 sm:h-12 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black uppercase text-xs sm:text-sm rounded-xl shadow-lg"
+                  >
+                    Start Puzzle
+                  </Button>
+                  <Button 
+                    onClick={() => setGameState('instructions')} 
+                    variant="outline" 
+                    size="lg" 
+                    className="w-full sm:w-1/2 h-11 sm:h-12 font-bold uppercase rounded-xl text-xs sm:text-sm"
+                  >
+                    <BookOpen className="mr-2 h-4 w-4" /> How to Play
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-6 rounded-2xl bg-muted/30 border border-border/40 flex flex-col justify-between gap-4">
+                <div className="space-y-3">
+                  <h4 className="text-sm sm:text-base font-black uppercase tracking-wider text-primary flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-primary" /> Crossword Directives
+                  </h4>
+                  <div className="space-y-2 text-xs sm:text-sm text-muted-foreground">
+                    <p className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold">1.</span>
+                      <span>Read across and down definitions to decipher vocabulary words.</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-amber-400 font-bold">2.</span>
+                      <span>Click any cell to type a letter. The cursor automatically advances rightwards.</span>
+                    </p>
+                    <p className="flex items-start gap-2">
+                      <span className="text-cyan-400 font-bold">3.</span>
+                      <span>Stuck? Click a cell and use "Reveal" to uncover a difficult letter.</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 text-center">
+                  <span className="text-[11px] font-mono text-primary font-bold">Semantic Vocabulary Nexus Active</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -365,9 +483,9 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
           </div>
         )}
       </CardContent>
-      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 p-3 sm:p-6 pt-3 sm:pt-6 w-full max-w-full", isFullscreen && "max-w-7xl mx-auto w-full pb-4 sm:pb-6")}>
+      <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 p-3 sm:p-6 pt-3 sm:pt-6 w-full max-w-full border-t border-border/20", isFullscreen && "max-w-7xl mx-auto w-full pb-4 sm:pb-6")}>
         <Button variant="outline" asChild size="default" className={cn("w-full sm:w-auto h-9 sm:h-12 px-4 sm:px-6 text-xs sm:text-sm font-bold rounded-xl", isFullscreen && "sm:h-16 sm:px-10 sm:text-xl sm:rounded-2xl")}>
-          <Link href="/games">Back to Library</Link>
+          <Link href="/games">Back to Games</Link>
         </Button>
         <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-3 w-full sm:w-auto">
             {gameState === 'playing' && (
@@ -378,8 +496,10 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                 </>
             )}
             {gameState === 'finished' && <Button onClick={handleStartGame} size="default" className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl h-10 sm:h-14 px-4 sm:px-8 text-xs sm:text-lg rounded-xl", isFullscreen && "sm:h-16 sm:px-12 sm:text-2xl sm:rounded-2xl")}><Repeat className="mr-1.5 sm:mr-2 h-4 w-4"/>New Puzzle</Button>}
-            {gameState !== 'idle' && gameState !== 'instructions' && (
-                <Button variant="outline" size="icon" onClick={resetGame} className={cn("h-9 w-9 sm:h-12 sm:w-12 rounded-xl", isFullscreen && "sm:h-16 sm:w-16 sm:rounded-2xl")}><RotateCcw className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", isFullscreen && "sm:h-8 sm:w-8")}/></Button>
+            {gameState !== 'idle' && (
+                <Button variant="destructive" onClick={resetGame} size="default" className={cn("h-9 sm:h-12 px-3 sm:px-5 text-xs sm:text-sm font-bold rounded-xl gap-1.5", isFullscreen && "sm:h-16 sm:px-8 sm:text-xl sm:rounded-2xl")}>
+                  <XOctagon className="h-4 w-4" /> Abort Game
+                </Button>
             )}
         </div>
       </CardFooter>

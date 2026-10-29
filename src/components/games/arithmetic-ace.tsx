@@ -33,7 +33,8 @@ import {
   ArrowLeft,
   Crown,
   Trash2,
-  Settings
+  Settings,
+  LogOut
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
@@ -345,6 +346,25 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
       setOperation(op);
       setGameState('selecting_difficulty');
   }
+
+  const handleAbortGame = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (gameMode === 'single') {
+      setGameState('idle');
+      setProblem(null);
+      setScore(0);
+      setRound(0);
+    } else {
+      setMultiplayerState('mode_select');
+    }
+    toast({
+      title: "Mission Aborted",
+      description: "Returned to the command deck.",
+    });
+  };
 
   const handleStartGame = (level: SkillLevel) => {
     setDifficulty(level);
@@ -1332,30 +1352,66 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
           ? "min-h-screen rounded-none border-none max-w-none bg-background justify-center" 
           : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/90 backdrop-blur-xl border border-white/10 shadow-2xl"
       )}>
-      <CardHeader className="text-center relative px-4 sm:px-10">
-        <Button variant="ghost" size="sm" className="absolute top-4 right-4 h-auto p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]" onClick={onToggleFullscreen}>
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
-        </Button>
-        {!isFullscreen && <Calculator className="w-8 h-8 sm:w-12 sm:h-12 text-primary mx-auto mb-2" />}
-        <CardTitle className={cn("font-black uppercase tracking-tight px-12 sm:px-0", isFullscreen ? "text-2xl sm:text-4xl md:text-6xl" : "text-xl sm:text-2xl md:text-3xl")}>{game.title}</CardTitle>
-        {(gameMode === 'single' && gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_category' && gameState !== 'selecting_difficulty') && (
-            <div className="flex justify-center gap-2 mt-2">
-                <Badge variant="secondary" className="uppercase">{operation}</Badge>
-                <Badge variant="outline" className="uppercase">{difficulty}</Badge>
-                <Badge variant="outline">Round {round}/10</Badge>
+      <CardHeader className="text-center relative px-3 sm:px-6 py-3 border-b border-white/10 shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              asChild 
+              className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm font-bold bg-slate-900/40 hover:bg-slate-800 text-slate-200 border-white/20 rounded-xl"
+            >
+              <Link href="/games" className="flex items-center gap-1.5">
+                <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span>Games</span>
+              </Link>
+            </Button>
+
+            <div className="flex items-center gap-2 text-left">
+              <Calculator className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              <div>
+                <CardTitle className="text-base sm:text-xl font-black uppercase tracking-tight">{game.title}</CardTitle>
+                <div className="flex gap-1.5 items-center">
+                  {(gameMode === 'single' && gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_category' && gameState !== 'selecting_difficulty') && (
+                    <div className="flex gap-1.5">
+                      <Badge variant="secondary" className="uppercase text-[10px] py-0">{operation}</Badge>
+                      <Badge variant="outline" className="uppercase text-[10px] py-0">{difficulty}</Badge>
+                      <Badge variant="outline" className="text-[10px] py-0">Round {round}/10</Badge>
+                    </div>
+                  )}
+                  {(gameMode === 'multi' && multiplayerState === 'playing') && (
+                    <div className="flex gap-1.5">
+                      <Badge variant="secondary" className="uppercase text-[10px] py-0">{operation}</Badge>
+                      <Badge variant="outline" className="uppercase text-[10px] py-0">{difficulty}</Badge>
+                      <Badge variant="outline" className="text-[10px] py-0">Round {round}/{roomData?.questions?.length || 10}</Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-        )}
-        {(gameMode === 'multi' && multiplayerState === 'playing') && (
-            <div className="flex justify-center gap-2 mt-2">
-                <Badge variant="secondary" className="uppercase">{operation}</Badge>
-                <Badge variant="outline" className="uppercase">{difficulty}</Badge>
-                <Badge variant="outline">Round {round}/{roomData?.questions?.length || 10}</Badge>
-            </div>
-        )}
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+            {((gameMode === 'single' && (gameState === 'playing' || gameState === 'answered')) || (gameMode === 'multi' && multiplayerState === 'playing')) && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleAbortGame} 
+                className="h-8 sm:h-9 px-2.5 sm:px-3 text-xs sm:text-sm font-bold bg-red-950/40 hover:bg-red-900/60 text-red-300 border-red-500/40 rounded-xl flex items-center gap-1.5"
+              >
+                <LogOut className="h-3.5 w-3.5 text-red-400" />
+                <span>Abort Game</span>
+              </Button>
+            )}
+
+            <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground" onClick={onToggleFullscreen}>
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
       </CardHeader>
 
-      <CardContent className={cn("flex-1 w-full flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8", isFullscreen ? "min-h-[60vh]" : "min-h-[calc(100dvh-16rem)]")}>
+      <CardContent className={cn("flex-1 w-full flex flex-col items-stretch justify-start p-3 sm:p-6 lg:p-8 overflow-y-auto space-y-6 pb-16", isFullscreen ? "min-h-[60vh]" : "min-h-[calc(100dvh-16rem)]")}>
         {gameMode === 'multi' ? (
           <>
             {isEditingQuestions ? (
@@ -1373,32 +1429,64 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         ) : (
           <>
             {gameState === "idle" && (
-              <div className="flex flex-col items-center gap-4">
-                <p className={cn("text-muted-foreground", isFullscreen ? "text-3xl" : "text-base")}>Ready to crunch some numbers?</p>
-                <div className="flex flex-col sm:flex-row gap-3 w-full justify-center mt-2">
-                  <Button 
-                    onClick={() => {
-                      setGameMode('single');
-                      setGameState('instructions');
-                    }} 
-                    size={isFullscreen ? "lg" : "default"} 
-                    className={cn("bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl", isFullscreen && "h-20 px-10 text-2xl rounded-3xl")}
-                  >
-                    <Sparkles className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
-                    Single Player
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      setGameMode('multi');
-                      setMultiplayerState('mode_select');
-                    }} 
-                    size={isFullscreen ? "lg" : "default"} 
-                    variant="outline"
-                    className={cn("font-black shadow-xl border-2 hover:bg-slate-800/40", isFullscreen && "h-20 px-10 text-2xl rounded-3xl")}
-                  >
-                    <Users className={cn("mr-3", isFullscreen ? "h-10 w-10" : "h-5 w-5")} />
-                    Multiplayer Battle
-                  </Button>
+              <div className="w-full max-w-4xl mx-auto space-y-6 py-2">
+                {/* Stats Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-slate-900/60 border border-blue-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md">
+                    <p className="text-[10px] sm:text-xs font-mono uppercase text-blue-300/60">Game Mode</p>
+                    <p className="text-sm sm:text-base font-black text-white">SOLO & BATTLE</p>
+                  </div>
+                  <div className="bg-slate-900/60 border border-emerald-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md">
+                    <p className="text-[10px] sm:text-xs font-mono uppercase text-emerald-300/60">Operations</p>
+                    <p className="text-sm sm:text-base font-black text-white">+, −, ×, ÷, MIX</p>
+                  </div>
+                  <div className="bg-slate-900/60 border border-purple-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md">
+                    <p className="text-[10px] sm:text-xs font-mono uppercase text-purple-300/60">Rounds</p>
+                    <p className="text-sm sm:text-base font-black text-white">10 PROBLEMS</p>
+                  </div>
+                  <div className="bg-slate-900/60 border border-amber-500/20 rounded-2xl p-3 sm:p-4 backdrop-blur-md">
+                    <p className="text-[10px] sm:text-xs font-mono uppercase text-amber-300/60">Time Synchronicity</p>
+                    <p className="text-sm sm:text-base font-black text-white">{TIMER_LIMIT}s PER ROUND</p>
+                  </div>
+                </div>
+
+                {/* Mode Select Deck */}
+                <div className="bg-gradient-to-b from-blue-950/20 via-slate-900/50 to-black/60 border border-blue-500/30 rounded-3xl p-6 sm:p-10 backdrop-blur-xl text-center space-y-6 shadow-xl">
+                  <div className="space-y-3">
+                    <Badge variant="outline" className="border-blue-500/40 text-blue-300">COMPUTATIONAL ACCELERATOR</Badge>
+                    <h2 className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight">
+                      Master Mental Arithmetic
+                    </h2>
+                    <p className="text-slate-300 max-w-lg mx-auto text-sm sm:text-base">
+                      Challenge rapid arithmetic calculations under chronal pressure or face off in real-time multiplayer battles!
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                    <Button 
+                      onClick={() => {
+                        setGameMode('single');
+                        setGameState('instructions');
+                      }} 
+                      size="lg"
+                      className="flex-1 h-14 sm:h-16 text-base sm:text-lg font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-2xl shadow-xl transition-all hover:scale-[1.02]"
+                    >
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Single Player
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setGameMode('multi');
+                        setMultiplayerState('mode_select');
+                      }} 
+                      size="lg"
+                      variant="outline"
+                      className="flex-1 h-14 sm:h-16 text-base sm:text-lg font-black border-2 border-white/20 bg-slate-900/50 hover:bg-slate-800 text-white rounded-2xl shadow-xl transition-all hover:scale-[1.02]"
+                    >
+                      <Users className="mr-2 h-5 w-5" />
+                      Multiplayer Battle
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1506,12 +1594,31 @@ export function ArithmeticAce({ slug, onToggleFullscreen }: { slug: string; onTo
         )}
       </CardContent>
 
-      <CardFooter className="flex justify-between border-t p-6">
-        <Button variant="outline" asChild><Link href="/games">Abort Mission</Link></Button>
+      <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t p-4 sm:p-6 shrink-0">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild size="default" className="rounded-xl font-bold">
+            <Link href="/games" className="flex items-center gap-1.5">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Games</span>
+            </Link>
+          </Button>
+
+          {((gameMode === 'single' && (gameState === 'playing' || gameState === 'answered')) || (gameMode === 'multi' && multiplayerState === 'playing')) && (
+            <Button 
+              variant="outline" 
+              onClick={handleAbortGame} 
+              className="text-red-300 border-red-500/40 hover:bg-red-950/40 rounded-xl flex items-center gap-1.5 text-xs sm:text-sm font-bold"
+            >
+              <LogOut className="h-3.5 w-3.5 text-red-400" />
+              <span>Abort Game</span>
+            </Button>
+          )}
+        </div>
+
         {gameMode === 'single' ? (
-          (gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_category' && gameState !== 'selecting_difficulty') && <p className="font-black text-primary">SCORE: {score}</p>
+          (gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_category' && gameState !== 'selecting_difficulty') && <p className="font-black text-primary text-sm sm:text-base">SCORE: {score}</p>
         ) : (
-          (multiplayerState === 'playing' || multiplayerState === 'finished') && <p className="font-black text-primary">SCORE: {score}</p>
+          (multiplayerState === 'playing' || multiplayerState === 'finished') && <p className="font-black text-primary text-sm sm:text-base">SCORE: {score}</p>
         )}
       </CardFooter>
     </Card>
