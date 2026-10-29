@@ -37,6 +37,7 @@ interface QuestItem {
 }
 
 const ALL_OBJECTS: QuestItem[] = [
+  // --- Original Classics ---
   { id: 'fridge', name: 'Refrigerator', emoji: '❄️', description: 'A large appliance used to keep food cold.', phonetics: '/rɪˈfrɪdʒəreɪtər/', color: 'border-blue-400' },
   { id: 'toaster', name: 'Toaster', emoji: '🍞', description: 'An electrical appliance used to brown bread.', phonetics: '/ˈtoʊstər/', color: 'border-amber-400' },
   { id: 'clock', name: 'Clock', emoji: '⏰', description: 'Used to measure and display time.', phonetics: '/klɑːk/', color: 'border-pink-400' },
@@ -103,7 +104,166 @@ const ALL_OBJECTS: QuestItem[] = [
   { id: 'gift', name: 'Gift', emoji: '🎁', description: 'A present given willingly.', phonetics: '/ɡɪft/', color: 'border-red-400' },
   { id: 'balloon', name: 'Balloon', emoji: '🎈', description: 'A colored rubber bag inflated with gas.', phonetics: '/bəˈluːn/', color: 'border-rose-400' },
   { id: 'trophy', name: 'Trophy', emoji: '🏆', description: 'A decorative cup awarded as a prize.', phonetics: '/ˈtroʊfi/', color: 'border-yellow-300' },
-  { id: 'medal', name: 'Medal', emoji: '🏅', description: 'A stamped metal disk commemorating victory.', phonetics: '/ˈmɛdəl/', color: 'border-amber-300' }
+  { id: 'medal', name: 'Medal', emoji: '🏅', description: 'A stamped metal disk commemorating victory.', phonetics: '/ˈmɛdəl/', color: 'border-amber-300' },
+
+  // --- Academic, Classroom & Scientific Tools ---
+  { id: 'calculator', name: 'Calculator', emoji: '🧮', description: 'An electronic device used for mathematical calculations.', phonetics: '/ˈkælkjəleɪtər/', color: 'border-blue-400' },
+  { id: 'notebook', name: 'Notebook', emoji: '📓', description: 'A book with blank or ruled pages for writing notes.', phonetics: '/ˈnoʊtbʊk/', color: 'border-slate-300' },
+  { id: 'compass_math', name: 'Drawing Compass', emoji: '🧭', description: 'An instrument used for drawing circles and arcs.', phonetics: '/ˈkʌmpəs/', color: 'border-amber-400' },
+  { id: 'stapler', name: 'Stapler', emoji: '🖇️', description: 'A device for fastening sheets of paper together with wire clips.', phonetics: '/ˈsteɪplər/', color: 'border-zinc-400' },
+  { id: 'paperclip', name: 'Paperclip', emoji: '📎', description: 'A bent piece of wire used for holding papers together.', phonetics: '/ˈpeɪpərklɪp/', color: 'border-slate-300' },
+  { id: 'paintbrush', name: 'Paintbrush', emoji: '🖌️', description: 'A brush used for applying paint or ink to a canvas.', phonetics: '/ˈpeɪntbrʌʃ/', color: 'border-red-400' },
+  { id: 'palette', name: 'Artist Palette', emoji: '🎨', description: 'A thin board on which an artist mixes colors.', phonetics: '/ˈpælɪt/', color: 'border-pink-400' },
+  { id: 'test_tube', name: 'Test Tube', emoji: '🧪', description: 'A glass tube used in scientific laboratories for holding liquids.', phonetics: '/tɛst tuːb/', color: 'border-emerald-400' },
+  { id: 'prism', name: 'Optical Prism', emoji: '🌈', description: 'A transparent glass object that separates white light into a spectrum.', phonetics: '/ˈprɪzəm/', color: 'border-cyan-300' },
+  { id: 'hourglass', name: 'Hourglass', emoji: '⏳', description: 'A device measuring time by the flow of sand through a narrow passage.', phonetics: '/ˈaʊərɡlæs/', color: 'border-amber-300' },
+  { id: 'map', name: 'World Map', emoji: '🗺️', description: 'A diagrammatic representation of an area of land or sea.', phonetics: '/mæp/', color: 'border-teal-400' },
+  { id: 'blackboard', name: 'Chalkboard', emoji: '📋', description: 'A reusable writing surface on which text is written with chalk.', phonetics: '/ˈtʃɔːkbɔːrd/', color: 'border-green-600' },
+  { id: 'calendar', name: 'Calendar', emoji: '📅', description: 'A chart showing days, weeks, and months of a particular year.', phonetics: '/ˈkæləndər/', color: 'border-rose-400' },
+  { id: 'diploma', name: 'Diploma', emoji: '📜', description: 'An official certificate acknowledging completion of study.', phonetics: '/dɪˈploʊmə/', color: 'border-amber-200' },
+  { id: 'magnifier', name: 'Magnifying Glass', emoji: '🔍', description: 'A convex lens used to produce an enlarged image of an object.', phonetics: '/ˈmæɡnɪfaɪər/', color: 'border-indigo-400' },
+  { id: 'bookmark', name: 'Bookmark', emoji: '🔖', description: 'A strip of leather or card used to mark one\'s place in a book.', phonetics: '/ˈbʊkmɑːrk/', color: 'border-red-300' },
+  { id: 'megaphone', name: 'Megaphone', emoji: '📢', description: 'A cone-shaped device used to amplify the human voice.', phonetics: '/ˈmɛɡəfoʊn/', color: 'border-yellow-400' },
+  { id: 'bell', name: 'School Bell', emoji: '🔔', description: 'A hollow metallic device that sounds a clear musical note when struck.', phonetics: '/bɛl/', color: 'border-yellow-300' },
+  { id: 'envelope', name: 'Envelope', emoji: '✉️', description: 'A flat paper container used for enclosing letters or documents.', phonetics: '/ˈɛnvəloʊp/', color: 'border-slate-300' },
+  { id: 'fountain_pen', name: 'Fountain Pen', emoji: '✒️', description: 'A pen that contains a reservoir of liquid ink.', phonetics: '/ˈfaʊntən pɛn/', color: 'border-zinc-400' },
+
+  // --- Nature, Geography, Animals & Plants ---
+  { id: 'volcano', name: 'Volcano', emoji: '🌋', description: 'A mountain with an opening through which lava and gas erupt.', phonetics: '/vɒlˈkeɪnoʊ/', color: 'border-orange-500' },
+  { id: 'mountain', name: 'Mountain Peak', emoji: '🏔️', description: 'A large natural elevation of the earth\'s surface rising abruptly.', phonetics: '/ˈmaʊntən/', color: 'border-slate-400' },
+  { id: 'sunflower', name: 'Sunflower', emoji: '🌻', description: 'A tall plant with a large, bright yellow flower head.', phonetics: '/ˈsʌnflaʊər/', color: 'border-yellow-400' },
+  { id: 'cactus', name: 'Cactus', emoji: '🌵', description: 'A succulent plant with sharp spines adapted to desert life.', phonetics: '/ˈkæktəs/', color: 'border-emerald-500' },
+  { id: 'mushroom', name: 'Mushroom', emoji: '🍄', description: 'A fungal growth with a domed cap on a stalk.', phonetics: '/ˈmʌʃruːm/', color: 'border-rose-400' },
+  { id: 'tree', name: 'Oak Tree', emoji: '🌳', description: 'A woody perennial plant typically having a single main stem.', phonetics: '/triː/', color: 'border-green-500' },
+  { id: 'leaf', name: 'Maple Leaf', emoji: '🍁', description: 'A flattened green outgrowth from the stem of a vascular plant.', phonetics: '/liːf/', color: 'border-orange-400' },
+  { id: 'seashell', name: 'Seashell', emoji: '🐚', description: 'The hard protective outer casing of a marine mollusk.', phonetics: '/ˈsiːʃɛl/', color: 'border-pink-200' },
+  { id: 'coral', name: 'Coral Reef', emoji: '🪸', description: 'Marine invertebrates living in compact colonies of polyps.', phonetics: '/ˈkɔːrəl/', color: 'border-rose-400' },
+  { id: 'feather', name: 'Bird Feather', emoji: '🪶', description: 'One of the flat epidermal growths forming a bird\'s plumage.', phonetics: '/ˈfɛðər/', color: 'border-sky-300' },
+  { id: 'butterfly', name: 'Butterfly', emoji: '🦋', description: 'An insect with large, brightly colored wings.', phonetics: '/ˈbʌtərflaɪ/', color: 'border-indigo-400' },
+  { id: 'honeybee', name: 'Honeybee', emoji: '🐝', description: 'A winged stinging insect that gathers pollen and makes honey.', phonetics: '/ˈhʌnibiː/', color: 'border-yellow-400' },
+  { id: 'owl', name: 'Wise Owl', emoji: '🦉', description: 'A nocturnal bird of prey with large forward-facing eyes.', phonetics: '/aʊl/', color: 'border-amber-600' },
+  { id: 'dolphin', name: 'Dolphin', emoji: '🐬', description: 'An intelligent marine mammal with a streamlined body and blowhole.', phonetics: '/ˈdɒlfɪn/', color: 'border-cyan-400' },
+  { id: 'whale', name: 'Whale', emoji: '🐋', description: 'A very large marine mammal that breathes through a blowhole.', phonetics: '/weɪl/', color: 'border-blue-500' },
+  { id: 'turtle', name: 'Sea Turtle', emoji: '🐢', description: 'A reptile with a hard bony or leathery shell protecting its body.', phonetics: '/ˈtɜːrtəl/', color: 'border-emerald-400' },
+  { id: 'penguin', name: 'Penguin', emoji: '🐧', description: 'A flightless seabird of southern waters with flippers for swimming.', phonetics: '/ˈpɛŋɡwɪn/', color: 'border-zinc-300' },
+  { id: 'fox', name: 'Red Fox', emoji: '🦊', description: 'A carnivorous mammal of the dog family with a pointed muzzle and bushy tail.', phonetics: '/fɒks/', color: 'border-orange-500' },
+  { id: 'panda', name: 'Giant Panda', emoji: '🐼', description: 'A large bear-like mammal with characteristic black-and-white markings.', phonetics: '/ˈpændə/', color: 'border-slate-300' },
+  { id: 'koala', name: 'Koala', emoji: '🐨', description: 'An Australian arboreal marsupial with thick gray fur and large round ears.', phonetics: '/koʊˈɑːlə/', color: 'border-stone-400' },
+  { id: 'elephant', name: 'Elephant', emoji: '🐘', description: 'A very large mammal with a trunk, large ear flaps, and tusks.', phonetics: '/ˈɛlɪfənt/', color: 'border-slate-400' },
+  { id: 'lion', name: 'Lion', emoji: '🦁', description: 'A large tawny-colored cat of the African savanna.', phonetics: '/ˈlaɪən/', color: 'border-amber-500' },
+
+  // --- Food, Kitchen & Refreshments ---
+  { id: 'banana', name: 'Banana', emoji: '🍌', description: 'A curved yellow tropical fruit with a thick skin and soft sweet flesh.', phonetics: '/bəˈnænə/', color: 'border-yellow-400' },
+  { id: 'orange', name: 'Orange', emoji: '🍊', description: 'A round citrus fruit with a tough bright reddish-yellow rind.', phonetics: '/ˈɔːrɪndʒ/', color: 'border-orange-400' },
+  { id: 'strawberry', name: 'Strawberry', emoji: '🍓', description: 'A sweet soft red fruit with a seed-studded surface.', phonetics: '/ˈstrɔːbɛri/', color: 'border-red-400' },
+  { id: 'watermelon', name: 'Watermelon', emoji: '🍉', description: 'A large fruit with a thick green rind and juicy sweet red pulp.', phonetics: '/ˈwɔːtərmɛlən/', color: 'border-rose-400' },
+  { id: 'grapes', name: 'Grapes', emoji: '🍇', description: 'A berry growing in clusters, used for making wine or eaten raw.', phonetics: '/ɡreɪps/', color: 'border-purple-400' },
+  { id: 'pineapple', name: 'Pineapple', emoji: '🍍', description: 'A large juicy tropical fruit with a tough spiky rind.', phonetics: '/ˈpaɪnæpəl/', color: 'border-amber-400' },
+  { id: 'peach', name: 'Peach', emoji: '🍑', description: 'A round fruit with juicy yellow flesh and a velvety downy skin.', phonetics: '/piːtʃ/', color: 'border-rose-300' },
+  { id: 'cherry', name: 'Cherries', emoji: '🍒', description: 'Small round fruit with shiny red or purple skin and a central stone.', phonetics: '/ˈtʃɛri/', color: 'border-red-500' },
+  { id: 'avocado', name: 'Avocado', emoji: '🥑', description: 'A pear-shaped fruit with a rough skin and oily edible pulp.', phonetics: '/ˌævəˈkɑːdoʊ/', color: 'border-lime-500' },
+  { id: 'carrot', name: 'Carrot', emoji: '🥕', description: 'A tapering orange root vegetable eaten cooked or raw.', phonetics: '/ˈkærət/', color: 'border-orange-400' },
+  { id: 'corn', name: 'Corn', emoji: '🌽', description: 'A cereal plant that yields large grains set in rows on a cob.', phonetics: '/kɔːrn/', color: 'border-yellow-400' },
+  { id: 'croissant', name: 'Croissant', emoji: '🥐', description: 'A crescent-shaped roll made of layered yeast-leavened dough.', phonetics: '/krwɑːˈsɑːŋ/', color: 'border-amber-300' },
+  { id: 'sandwich', name: 'Sandwich', emoji: '🥪', description: 'Two slices of bread with meat, cheese, or vegetables between them.', phonetics: '/ˈsænwɪtʃ/', color: 'border-amber-400' },
+  { id: 'sushi', name: 'Sushi', emoji: '🍣', description: 'A Japanese dish of prepared vinegared rice with raw seafood or vegetables.', phonetics: '/ˈsuːʃi/', color: 'border-red-400' },
+  { id: 'teapot', name: 'Teapot', emoji: '🫖', description: 'A pot with a handle, spout, and lid, in which tea is brewed.', phonetics: '/ˈtiːpɒt/', color: 'border-teal-400' },
+  { id: 'thermos', name: 'Thermos Flask', emoji: '🍶', description: 'An insulated vacuum bottle used to keep liquids hot or cold.', phonetics: '/ˈθɜːrməs/', color: 'border-cyan-300' },
+  { id: 'salt', name: 'Salt Shaker', emoji: '🧂', description: 'A container with a perforated top used to sprinkle table salt.', phonetics: '/sɔːlt ˈʃeɪkər/', color: 'border-slate-300' },
+  { id: 'honey', name: 'Honey Pot', emoji: '🍯', description: 'A sweet sticky yellowish-brown fluid made by bees and stored in jars.', phonetics: '/ˈhʌni/', color: 'border-amber-400' },
+  { id: 'cheese', name: 'Cheese', emoji: '🧀', description: 'A food made from pressed curds of milk, solid and flavorful.', phonetics: '/tʃiːz/', color: 'border-yellow-300' },
+  { id: 'pretzel', name: 'Pretzel', emoji: '🥨', description: 'A crisp biscuit baked in the shape of a knot.', phonetics: '/ˈprɛtsəl/', color: 'border-amber-600' },
+
+  // --- Music, Sound & Performing Arts ---
+  { id: 'violin', name: 'Violin', emoji: '🎻', description: 'A wooden string instrument played with a bow.', phonetics: '/ˌvaɪəˈlɪn/', color: 'border-amber-600' },
+  { id: 'drum', name: 'Drum', emoji: '🥁', description: 'A percussion instrument sounded by being struck with sticks.', phonetics: '/drʌm/', color: 'border-red-400' },
+  { id: 'saxophone', name: 'Saxophone', emoji: '🎷', description: 'A brass wind instrument with a reed mouthpiece and keys.', phonetics: '/ˈsæksəfoʊn/', color: 'border-amber-400' },
+  { id: 'trumpet', name: 'Trumpet', emoji: '🎺', description: 'A flared brass wind instrument with three valves.', phonetics: '/ˈtrʌmpɪt/', color: 'border-yellow-300' },
+  { id: 'piano', name: 'Grand Piano', emoji: '🎹', description: 'A large musical instrument with a manual keyboard and hammer action.', phonetics: '/piˈænoʊ/', color: 'border-slate-300' },
+  { id: 'microphone', name: 'Microphone', emoji: '🎙️', description: 'An instrument for converting sound waves into electrical energy.', phonetics: '/ˈmaɪkrəfoʊn/', color: 'border-indigo-400' },
+  { id: 'radio', name: 'Radio', emoji: '📻', description: 'An apparatus for receiving broadcasting sound signals.', phonetics: '/ˈreɪdioʊ/', color: 'border-stone-400' },
+  { id: 'speaker', name: 'Audio Speaker', emoji: '🔊', description: 'An electroacoustic transducer that converts electrical audio signals into sound.', phonetics: '/ˈspiːkər/', color: 'border-slate-400' },
+
+  // --- Games, Sports & Hobbies ---
+  { id: 'skateboard', name: 'Skateboard', emoji: '🛹', description: 'A short narrow board with two small wheels attached to each end.', phonetics: '/ˈskeɪtbɔːrd/', color: 'border-rose-400' },
+  { id: 'bicycle', name: 'Bicycle', emoji: '🚲', description: 'A vehicle composed of two wheels held in a frame one behind the other.', phonetics: '/ˈbaɪsɪkəl/', color: 'border-cyan-400' },
+  { id: 'controller', name: 'Gamepad', emoji: '🎮', description: 'An input device used with video games to control game objects.', phonetics: '/ˈɡeɪmpæd/', color: 'border-purple-400' },
+  { id: 'dice', name: 'Dice', emoji: '🎲', description: 'Small cubes with each face marked with a different number of spots.', phonetics: '/daɪs/', color: 'border-red-300' },
+  { id: 'chess', name: 'Chess Knight', emoji: '♟️', description: 'A strategic board game played on a checkered board.', phonetics: '/tʃɛs/', color: 'border-slate-300' },
+  { id: 'kite', name: 'Flying Kite', emoji: '🪁', description: 'A light frame covered with paper or cloth flown in the wind on a string.', phonetics: '/kaɪt/', color: 'border-amber-400' },
+  { id: 'dart', name: 'Dart Board', emoji: '🎯', description: 'A game in which small pointed missiles are thrown at a circular target.', phonetics: '/dɑːrt/', color: 'border-red-500' },
+  { id: 'baseball', name: 'Baseball', emoji: '⚾', description: 'A hard ball used in baseball games.', phonetics: '/ˈbeɪsbɔːl/', color: 'border-slate-200' },
+  { id: 'volleyball', name: 'Volleyball', emoji: '🏐', description: 'A ball used in a team game played by hitting it over a high net.', phonetics: '/ˈvɒlibɔːl/', color: 'border-yellow-300' },
+  { id: 'bow_arrow', name: 'Bow and Arrow', emoji: '🏹', description: 'A traditional projectile weapon used in archery.', phonetics: '/boʊ ænd ˈæroʊ/', color: 'border-amber-500' },
+
+  // --- Space, Weather & Celestial Objects ---
+  { id: 'sun', name: 'Sun', emoji: '☀️', description: 'The luminous celestial body around which the earth and planets revolve.', phonetics: '/sʌn/', color: 'border-amber-300' },
+  { id: 'moon', name: 'Crescent Moon', emoji: '🌙', description: 'The natural satellite of the earth, visible by reflected sunlight.', phonetics: '/muːn/', color: 'border-yellow-200' },
+  { id: 'star', name: 'Glowing Star', emoji: '⭐', description: 'A fixed luminous point in the night sky which is a large remote incandescent body.', phonetics: '/stɑːr/', color: 'border-yellow-300' },
+  { id: 'comet', name: 'Comet', emoji: '☄️', description: 'A celestial object consisting of a nucleus of ice and dust with a tail of gas.', phonetics: '/ˈkɒmɪt/', color: 'border-cyan-400' },
+  { id: 'satellite', name: 'Space Satellite', emoji: '🛰️', description: 'An artificial body placed in orbit around the earth or moon.', phonetics: '/ˈsætəlaɪt/', color: 'border-blue-300' },
+  { id: 'snowflake', name: 'Snowflake', emoji: '❄️', description: 'A single feathery ice crystal falling as snow.', phonetics: '/ˈsnoʊfleɪk/', color: 'border-cyan-200' },
+  { id: 'cloud', name: 'Rain Cloud', emoji: '🌧️', description: 'A visible mass of condensed water vapor floating in the atmosphere.', phonetics: '/klaʊd/', color: 'border-slate-400' },
+  { id: 'lightning', name: 'Lightning Bolt', emoji: '⚡', description: 'A natural electrical discharge between a cloud and the ground.', phonetics: '/ˈlaɪtnɪŋ/', color: 'border-amber-300' },
+
+  // --- Technology, Everyday Tools & Household Artifacts ---
+  { id: 'smartphone', name: 'Smartphone', emoji: '📱', description: 'A portable cellular phone that performs many computer functions.', phonetics: '/ˈsmɑːrtfoʊn/', color: 'border-slate-400' },
+  { id: 'tablet', name: 'Digital Tablet', emoji: '📲', description: 'A wireless touch screen personal computer smaller than a notebook.', phonetics: '/ˈtæblɪt/', color: 'border-sky-400' },
+  { id: 'keyboard', name: 'Keyboard', emoji: '⌨️', description: 'A panel of keys that operate a computer or typewriter.', phonetics: '/ˈkiːbɔːrd/', color: 'border-slate-300' },
+  { id: 'mouse', name: 'Computer Mouse', emoji: '🖱️', description: 'A handheld hardware input device used to control a cursor.', phonetics: '/maʊs/', color: 'border-slate-400' },
+  { id: 'printer', name: 'Printer', emoji: '🖨️', description: 'A machine for printing text or pictures onto paper.', phonetics: '/ˈprɪntər/', color: 'border-stone-400' },
+  { id: 'flashlight', name: 'Flashlight', emoji: '🔦', description: 'A portable battery-powered electric lamp.', phonetics: '/ˈflæʃlaɪt/', color: 'border-yellow-400' },
+  { id: 'candle', name: 'Candle', emoji: '🕯️', description: 'A cylinder of wax with an embedded wick that is burned to provide light.', phonetics: '/ˈkændəl/', color: 'border-amber-300' },
+  { id: 'lantern', name: 'Lantern', emoji: '🏮', description: 'A lamp with a transparent case protecting the flame or light.', phonetics: '/ˈlæntərn/', color: 'border-red-400' },
+  { id: 'mirror', name: 'Mirror', emoji: '🪞', description: 'A reflective surface that reflects a clear image of objects.', phonetics: '/ˈmɪrər/', color: 'border-cyan-300' },
+  { id: 'pillow', name: 'Pillow', emoji: '🛋️', description: 'A soft cushion for the head, especially in bed.', phonetics: '/ˈpɪloʊ/', color: 'border-indigo-300' },
+  { id: 'bed', name: 'Bed', emoji: '🛏️', description: 'A piece of furniture for sleep or rest.', phonetics: '/bɛd/', color: 'border-purple-300' },
+  { id: 'suitcase', name: 'Suitcase', emoji: '🧳', description: 'A case with a handle and a hinged lid, used for carrying clothes.', phonetics: '/ˈsuːtkeɪs/', color: 'border-amber-500' },
+  { id: 'anchor', name: 'Anchor', emoji: '⚓', description: 'A heavy metal device cast overboard to keep a vessel from drifting.', phonetics: '/ˈæŋkər/', color: 'border-slate-500' },
+  { id: 'shield', name: 'Knight Shield', emoji: '🛡️', description: 'A broad piece of armor carried on the arm to deflect blows.', phonetics: '/ʃiːld/', color: 'border-blue-400' },
+  { id: 'sword', name: 'Sword', emoji: '⚔️', description: 'A weapon with a long metal blade and a hilt.', phonetics: '/sɔːrd/', color: 'border-zinc-300' },
+  { id: 'crown', name: 'Golden Crown', emoji: '👑', description: 'A decorative ornamental headdress worn by a monarch.', phonetics: '/kraʊn/', color: 'border-yellow-300' },
+  { id: 'ring', name: 'Diamond Ring', emoji: '💍', description: 'A small circular band worn on a finger as an ornamental jewelry.', phonetics: '/rɪŋ/', color: 'border-cyan-300' },
+  { id: 'stopwatch', name: 'Stopwatch', emoji: '⏱️', description: 'A handheld timepiece designed to measure the amount of time elapsed.', phonetics: '/ˈstɒpwɒtʃ/', color: 'border-amber-400' },
+  { id: 'alarm_clock', name: 'Alarm Clock', emoji: '⏰', description: 'A clock that can be set to sound at a particular time to wake someone.', phonetics: '/əˈlɑːrm klɑːk/', color: 'border-red-400' },
+  { id: 'helmet', name: 'Safety Helmet', emoji: '⛑️', description: 'A hard or padded protective hat.', phonetics: '/ˈhɛlmɪt/', color: 'border-red-400' },
+  { id: 'bandage', name: 'Adhesive Bandage', emoji: '🩹', description: 'A strip of material used to bind up or protect a wound.', phonetics: '/ˈbændɪdʒ/', color: 'border-amber-300' },
+  { id: 'stethoscope', name: 'Stethoscope', emoji: '🩺', description: 'A medical instrument for listening to the action of someone\'s heart or breathing.', phonetics: '/ˈstɛθəskoʊp/', color: 'border-teal-400' },
+  { id: 'syringe', name: 'Syringe', emoji: '💉', description: 'A medical device used to inject or withdraw fluids.', phonetics: '/sɪˈrɪndʒ/', color: 'border-sky-300' },
+  { id: 'pill', name: 'Medicine Pill', emoji: '💊', description: 'A small round mass of solid medicine to be swallowed whole.', phonetics: '/pɪl/', color: 'border-rose-400' },
+  { id: 'fire_extinguisher', name: 'Fire Extinguisher', emoji: '🧯', description: 'A portable device discharging foam or gas to quench a fire.', phonetics: '/ˈfaɪər ɪkˈstɪŋɡwɪʃər/', color: 'border-red-600' },
+  { id: 'traffic_light', name: 'Traffic Light', emoji: '🚦', description: 'A set of automatically operated colored lights controlling traffic.', phonetics: '/ˈtræfɪk laɪt/', color: 'border-yellow-500' },
+  { id: 'ticket', name: 'Admission Ticket', emoji: '🎟️', description: 'A piece of paper entitling the holder to enter a venue or travel.', phonetics: '/ˈtɪkɪt/', color: 'border-amber-400' },
+  { id: 'receipt', name: 'Sales Receipt', emoji: '🧾', description: 'A written or printed acknowledgment of having received payment.', phonetics: '/rɪˈsiːt/', color: 'border-slate-300' },
+  { id: 'passport', name: 'Passport', emoji: '🛂', description: 'An official document issued by a government certifying identity for travel.', phonetics: '/ˈpæspɔːrt/', color: 'border-blue-500' },
+  { id: 'luggage', name: 'Luggage Cart', emoji: '🛅', description: 'Suitcases or other bags in which to pack personal belongings for traveling.', phonetics: '/ˈlʌɡɪdʒ/', color: 'border-amber-400' },
+
+  // --- Exploration, Architecture & Wonders ---
+  { id: 'windmill', name: 'Windmill', emoji: '💨', description: 'A building or mill with sails or vanes turned by the wind.', phonetics: '/ˈwɪndmɪl/', color: 'border-cyan-400' },
+  { id: 'lighthouse', name: 'Lighthouse', emoji: '🗼', description: 'A tower with a beacon light to warn or guide ships at sea.', phonetics: '/ˈlaɪthaʊs/', color: 'border-red-400' },
+  { id: 'canoe', name: 'Canoe', emoji: '🛶', description: 'A narrow boat with pointed ends, propelled with a paddle.', phonetics: '/kəˈnuː/', color: 'border-amber-500' },
+  { id: 'helicopter', name: 'Helicopter', emoji: '🚁', description: 'An aircraft whose lift is derived from horizontal revolving rotors.', phonetics: '/ˈhɛlɪkɒptər/', color: 'border-sky-400' },
+  { id: 'submarine', name: 'Submarine', emoji: '🤿', description: 'A warship or vessel capable of submerging and operating underwater.', phonetics: '/ˌsʌbməˈriːn/', color: 'border-teal-400' },
+  { id: 'parachute', name: 'Parachute', emoji: '🪂', description: 'A cloth canopy allowing descending safely from an aircraft.', phonetics: '/ˈpærəʃuːt/', color: 'border-orange-400' },
+  { id: 'tent', name: 'Camping Tent', emoji: '⛺', description: 'A portable shelter made of cloth supported by poles and ropes.', phonetics: '/tɛnt/', color: 'border-green-400' },
+  { id: 'campfire', name: 'Campfire', emoji: '🔥', description: 'An open-air fire in a camp used for warmth and cooking.', phonetics: '/ˈkæmpfaɪər/', color: 'border-orange-500' },
+  { id: 'hot_air_balloon', name: 'Hot Air Balloon', emoji: '🎈', description: 'A large balloon bag inflated with heated air to carry passengers in a basket.', phonetics: '/hɒt ɛər bəˈluːn/', color: 'border-rose-400' },
+  { id: 'bridge', name: 'Suspension Bridge', emoji: '🌉', description: 'A structure carrying a road or path across a river or obstacle.', phonetics: '/brɪdʒ/', color: 'border-indigo-400' },
+  { id: 'castle', name: 'Medieval Castle', emoji: '🏰', description: 'A large fortified building or fortress from medieval times.', phonetics: '/ˈkɑːsəl/', color: 'border-stone-400' },
+  { id: 'statue', name: 'Sculpture Statue', emoji: '🗿', description: 'A carved or cast figure of a person or animal, especially life-size.', phonetics: '/ˈstætʃuː/', color: 'border-stone-300' },
+  { id: 'pyramid', name: 'Ancient Pyramid', emoji: '🏜️', description: 'A monumental structure with a square or triangular base and sloping sides.', phonetics: '/ˈpɪrəmɪd/', color: 'border-yellow-400' },
+  { id: 'treasure_chest', name: 'Treasure Chest', emoji: '🪙', description: 'A strong wooden box filled with gold, jewels, or precious items.', phonetics: '/ˈtrɛʒər tʃɛst/', color: 'border-amber-500' },
+  { id: 'magic_wand', name: 'Magic Wand', emoji: '🪄', description: 'A rod used by a magician or wizard to perform magic or spells.', phonetics: '/ˈmædʒɪk wɒnd/', color: 'border-purple-400' },
+  { id: 'crystal_ball', name: 'Crystal Ball', emoji: '🔮', description: 'A sphere of crystal or glass used for divination and vision.', phonetics: '/ˈkrɪstəl bɔːl/', color: 'border-fuchsia-400' },
+  { id: 'musical_notes', name: 'Musical Score', emoji: '🎶', description: 'Written symbols indicating the pitch and duration of a musical sound.', phonetics: '/ˈmjuːzɪkəl skɔːr/', color: 'border-pink-300' },
+  { id: 'yarn', name: 'Knitting Yarn', emoji: '🧶', description: 'Continuous spun fiber used in knitting, weaving, or sewing.', phonetics: '/jɑːrn/', color: 'border-rose-300' },
+  { id: 'thread', name: 'Sewing Spool', emoji: '🧵', description: 'A long thin strand of cotton, nylon, or other fibers used in sewing.', phonetics: '/θrɛd/', color: 'border-purple-300' },
+  { id: 'safety_pin', name: 'Safety Pin', emoji: '🧷', description: 'A pin with a point that is bent back to the head and held in a protective clasp.', phonetics: '/ˈseɪfti pɪn/', color: 'border-slate-300' },
+  { id: 'sponge', name: 'Cleaning Sponge', emoji: '🧽', description: 'A piece of absorbent porous material used for washing and cleaning.', phonetics: '/spʌndʒ/', color: 'border-yellow-400' },
+  { id: 'soap', name: 'Soap Bar', emoji: '🧼', description: 'A cleansing substance made by reacting fats and alkalis.', phonetics: '/soʊp/', color: 'border-teal-300' },
+  { id: 'toothbrush', name: 'Toothbrush', emoji: '🪥', description: 'A small brush with a long handle used for cleaning teeth.', phonetics: '/ˈtuːθbrʌʃ/', color: 'border-cyan-400' },
+  { id: 'comb', name: 'Hair Comb', emoji: '🪮', description: 'A strip of plastic or metal with a row of narrow teeth, used for untangling hair.', phonetics: '/koʊm/', color: 'border-amber-600' },
+  { id: 'ladder', name: 'Step Ladder', emoji: '🪜', description: 'A series of rungs or steps between two uprights used for climbing up or down.', phonetics: '/ˈlædər/', color: 'border-amber-500' }
 ];
 
 interface PlacedItem extends QuestItem {
@@ -111,6 +271,30 @@ interface PlacedItem extends QuestItem {
   translateY: number;
   translateZ: number;
 }
+
+const RECENT_TARGETS_KEY = 'lingoland_exploration_quest_recent_targets';
+
+const getRecentTargetIds = (): string[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(RECENT_TARGETS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveRecentTargetIds = (newIds: string[]) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getRecentTargetIds();
+    // Remember up to 160 recent target IDs across playthroughs to guarantee no repetition
+    const updated = Array.from(new Set([...existing, ...newIds])).slice(-160);
+    sessionStorage.setItem(RECENT_TARGETS_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore storage errors
+  }
+};
 
 export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const { user } = useAuth();
@@ -139,11 +323,40 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  // Initialize target items and space them out without any clustering
+  // Initialize target items with anti-repetition engine and spacious 3D distribution
   const initGame = () => {
-    const shuffled = [...ALL_OBJECTS].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 12); // 12 distinct items in the room
-    const targets = selected.slice(0, 8).map(item => item.id); // 8 quest targets
+    const recentIds = getRecentTargetIds();
+
+    // 1. Filter out recently played target items so the player encounters brand new words
+    let candidatePool = ALL_OBJECTS.filter(item => !recentIds.includes(item.id));
+
+    // If pool is running low (< 16 items left), reset history to cycle freshly through all 210+ words
+    if (candidatePool.length < 16) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(RECENT_TARGETS_KEY);
+      }
+      candidatePool = [...ALL_OBJECTS];
+    }
+
+    // Shuffle candidate pool
+    const shuffledCandidates = [...candidatePool].sort(() => 0.5 - Math.random());
+
+    // 2. Pick 8 completely fresh quest target items
+    const selectedTargets = shuffledCandidates.slice(0, 8);
+    const targetIds = selectedTargets.map(item => item.id);
+
+    // 3. Pick 4 distractor items from remaining objects (also prioritizing unplayed items)
+    const remainingCandidates = ALL_OBJECTS.filter(item => !targetIds.includes(item.id));
+    const unplayedDistractors = remainingCandidates.filter(item => !recentIds.includes(item.id));
+    const distractorPool = unplayedDistractors.length >= 4 ? unplayedDistractors : remainingCandidates;
+    const shuffledDistractors = [...distractorPool].sort(() => 0.5 - Math.random());
+    const distractors = shuffledDistractors.slice(0, 4);
+
+    // 4. Combine 8 targets + 4 distractors = 12 total room items, shuffled randomly for 3D placement
+    const selected = [...selectedTargets, ...distractors].sort(() => 0.5 - Math.random());
+
+    // 5. Store targetIds in session storage so subsequent games will NOT repeat them
+    saveRecentTargetIds(targetIds);
     
     // Spacious 3D distribution:
     // Radius ring: 220px to 410px from center.
@@ -352,11 +565,11 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                 3D Exploration & Questing
               </h2>
               <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                CEFR B1–B2
+                CEFR B1–B2 • 210+ Words
               </span>
             </div>
             <p className="text-xs text-slate-400 hidden xs:block">
-              Interactive 360° classroom vocabulary quest with authentic audio pronunciation.
+              Interactive 360° quest with 210+ dynamic, non-repeating vocabulary words and authentic native audio.
             </p>
           </div>
         </div>
@@ -388,7 +601,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
               <div className="w-full text-center space-y-3">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-black uppercase tracking-widest shadow-inner">
                   <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-spin" />
-                  <span>Interactive 3D Language Dimension</span>
+                  <span>210+ Non-Repeating Words • Interactive 3D Dimension</span>
                 </div>
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">
                   Vocabulary Quest
@@ -406,16 +619,21 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                     <div className="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
                       <Target className="w-6 h-6" />
                     </div>
-                    <h3 className="text-lg font-black text-white uppercase tracking-tight">
-                      8 Quest Targets
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                        8 Fresh Targets
+                      </h3>
+                      <span className="text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full">
+                        Zero Repeat
+                      </span>
+                    </div>
                     <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                      You will be assigned 8 target vocabulary objects to discover one by one using linguistic clues, definitions, and phonetics.
+                      Drawn from an expansive library of 210+ CEFR vocabulary items. Our anti-repetition engine guarantees a brand-new set of words every time you play!
                     </p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-bold text-indigo-300">
-                    <span>Curriculum Level</span>
-                    <span className="font-mono bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-500/30">CEFR B1–B2</span>
+                    <span>Curriculum Library</span>
+                    <span className="font-mono bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-500/30">210+ Words • Anti-Repeat</span>
                   </div>
                 </div>
 
@@ -466,10 +684,10 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                   </div>
                   <div>
                     <h4 className="text-sm font-black text-white uppercase tracking-wide">
-                      Fair Challenge Mode
+                      Dynamic Non-Repeating Quests
                     </h4>
                     <p className="text-xs text-slate-400">
-                      No blinking beacon spoilers. Hunt for items using your knowledge and clue descriptions!
+                      210+ vocabulary items across science, academics, nature & culture. Play again and again with fresh words every round!
                     </p>
                   </div>
                 </div>
@@ -952,13 +1170,16 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col items-center">
                 <button
                   onClick={handleStartGame}
                   className="px-10 py-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-black uppercase text-xs tracking-widest rounded-xl transition-all shadow-[0_4px_25px_rgba(16,185,129,0.35)] hover:scale-105 active:scale-95 border border-emerald-400/40"
                 >
-                  Explore Again
+                  Explore Next Quest (Fresh Words)
                 </button>
+                <p className="text-[11px] text-slate-400 mt-2 font-medium">
+                  Guaranteed fresh words from the 210+ item library with zero repetition.
+                </p>
               </div>
             </div>
           </motion.div>
