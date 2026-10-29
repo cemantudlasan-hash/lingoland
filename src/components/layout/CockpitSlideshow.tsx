@@ -103,6 +103,7 @@ export interface RankedWeeklyGame {
   weekNumber: number;
   icon?: any;
   isRealData?: boolean;
+  isAllTimeFallback?: boolean;
 }
 
 // Deterministic Weekly Top 3 Games calculation fallback
@@ -398,16 +399,18 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
         );
 
         const sortedRecorded = candidateSlugs
-          .map((slug) => ({
-            slug,
-            weeklyCount: weeklyCounts[slug] || 0,
-            allTimeCount: allTimeCounts[slug] || 0,
-            effectiveCount:
-              (weeklyCounts[slug] || 0) > 0
-                ? weeklyCounts[slug]
-                : allTimeCounts[slug] || 0,
-          }))
-          .filter((entry) => entry.effectiveCount > 0 && allGames.some((g) => g.slug === entry.slug))
+          .map((slug) => {
+            const weeklyCount = weeklyCounts[slug] || 0;
+            const allTimeCount = allTimeCounts[slug] || 0;
+            return {
+              slug,
+              weeklyCount,
+              allTimeCount,
+              playCount: weeklyCount > 0 ? weeklyCount : allTimeCount,
+              isAllTimeFallback: weeklyCount === 0 && allTimeCount > 0,
+            };
+          })
+          .filter((entry) => (entry.weeklyCount > 0 || entry.allTimeCount > 0) && allGames.some((g) => g.slug === entry.slug))
           .sort((a, b) => {
             if (b.weeklyCount !== a.weeklyCount) return b.weeklyCount - a.weeklyCount;
             return b.allTimeCount - a.allTimeCount;
@@ -428,10 +431,11 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
               description: matchedGame.description,
               subject: matchedGame.subject,
               level: matchedGame.level,
-              playCount: item.effectiveCount,
+              playCount: item.playCount,
               weekNumber: automated.weekNumber,
               icon: matchedGame.icon,
               isRealData: true,
+              isAllTimeFallback: item.isAllTimeFallback,
             });
           }
         }
@@ -957,8 +961,9 @@ export function CockpitSlideshow({ onOpenDashboardAuthNotice }: CockpitSlideshow
                               )}
                               <span className="text-[9px] text-slate-500">&bull;</span>
                               <span className={`text-[10px] xl:text-[11px] font-black ${rankConfig.playColor}`}>
-                                {gameItem.playCount.toLocaleString()}{" "}
-                                {gameItem.playCount === 1 ? "play" : "plays"} this week
+                                {gameItem.isAllTimeFallback
+                                  ? `${gameItem.playCount.toLocaleString()} plays (all-time)`
+                                  : `${gameItem.playCount.toLocaleString()} ${gameItem.playCount === 1 ? "play" : "plays"} this week`}
                               </span>
                             </div>
                           </div>

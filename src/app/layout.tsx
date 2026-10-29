@@ -129,11 +129,15 @@ export default function RootLayout({
           }}
         />
         {/* Google AdSense */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9029482278295441"
-          crossOrigin="anonymous"
-        />
+        {isLiveAdSense && (
+          <Script
+            id="google-adsense"
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
       </head>
       <body suppressHydrationWarning>
         <PlexusBackground />
