@@ -728,41 +728,43 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                   </div>
 
                   {currentTargetItem ? (
-                    <div className="p-4 sm:p-5 bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border-2 border-indigo-400/60 rounded-2xl space-y-3 relative overflow-hidden shadow-[0_0_30px_rgba(99,102,241,0.25)]">
-                      <div className="flex items-start justify-between gap-3">
+                    <div className="p-4 sm:p-5 bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border-2 border-indigo-400/60 rounded-2xl space-y-3.5 relative overflow-hidden shadow-[0_0_30px_rgba(99,102,241,0.25)]">
+                      <div className="flex items-center justify-between gap-3">
                         <div>
-                          <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">
-                            Seek & Identify
+                          <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400 flex items-center gap-1">
+                            <Compass className="w-3.5 h-3.5 text-indigo-400" />
+                            Target #{foundItems.length + 1} of {targetItems.length}
                           </span>
-                          <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight mt-0.5">
-                            {currentTargetItem.name}
+                          <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
+                            Identify the Mystery Object
                           </h3>
                         </div>
                         <button
                           onClick={() => {
                             if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                              const u = new SpeechSynthesisUtterance(currentTargetItem.name);
+                              const u = new SpeechSynthesisUtterance(currentTargetItem.description);
                               window.speechSynthesis.speak(u);
                             }
                           }}
-                          className="p-2.5 rounded-xl bg-indigo-500/25 border border-indigo-400/50 text-indigo-200 hover:text-white hover:bg-indigo-500/40 transition-all shadow-sm active:scale-95"
-                          title="Listen to Target Pronunciation"
+                          className="p-2.5 rounded-xl bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 hover:text-white hover:bg-indigo-500/40 transition-all shadow-sm active:scale-95 shrink-0"
+                          title="Listen to Definition Clue Audio"
                         >
-                          <Volume2 className="w-5 h-5" />
+                          <Volume2 className="w-4 h-4" />
                         </button>
                       </div>
 
-                      <div className="inline-flex items-center gap-1.5 bg-cyan-950/80 border border-cyan-500/40 px-3 py-1 rounded-lg">
-                        <span className="text-xs font-mono font-bold text-cyan-300">
-                          {currentTargetItem.phonetics}
-                        </span>
-                      </div>
-
-                      <div className="bg-slate-950/90 border border-slate-800/90 p-3.5 rounded-xl shadow-inner">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                          Definition Clue:
-                        </span>
-                        <p className="text-sm font-semibold text-slate-100 leading-relaxed">
+                      {/* Pure Definition Clue - Zero Answer Spoilers */}
+                      <div className="bg-slate-950/90 border-2 border-indigo-500/40 p-4 rounded-xl shadow-inner space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                            <BookOpen className="w-3.5 h-3.5" />
+                            Definition Clue:
+                          </span>
+                          <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                            Search 3D Room
+                          </span>
+                        </div>
+                        <p className="text-sm sm:text-base font-medium text-slate-100 leading-relaxed italic">
                           "{currentTargetItem.description}"
                         </p>
                       </div>
@@ -803,13 +805,13 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
                               ? "bg-indigo-950/90 border-indigo-400 text-indigo-200 ring-1 ring-indigo-400/60 shadow-sm"
                               : "bg-slate-900/60 border-slate-800/80 text-slate-500"
                           )}
-                          title={isFound ? `Found: ${matched?.name}` : isCurrent ? `Current: ${matched?.name}` : `Target #${idx + 1}`}
+                          title={isFound ? `Found: ${matched?.name}` : isCurrent ? `Current Active Target` : `Target #${idx + 1}`}
                         >
                           <span className="text-[11px] font-black uppercase">
                             {isFound ? "✓" : `#${idx + 1}`}
                           </span>
                           <span className="text-[9px] font-bold truncate w-full mt-0.5">
-                            {isFound ? matched?.name : isCurrent ? matched?.name : "???"}
+                            {isFound ? matched?.name : isCurrent ? "Active" : `Target ${idx + 1}`}
                           </span>
                         </div>
                       );
