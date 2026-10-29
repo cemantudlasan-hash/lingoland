@@ -423,7 +423,7 @@ export function ExplorationQuest3D({ onToggleFullscreen }: { slug: string; onTog
     }
 
     setRoomItems(placed);
-    setTargetItems(targets);
+    setTargetItems(targetIds);
   };
 
   React.useEffect(() => {
