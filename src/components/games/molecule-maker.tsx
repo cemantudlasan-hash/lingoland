@@ -6,7 +6,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { FlaskConical, Atom, RefreshCw, Maximize, Minimize, AlertOctagon } from "lucide-react";
+import { FlaskConical, Atom, RefreshCw, Maximize, Minimize, AlertOctagon, Trophy, Sparkles } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { cn } from "@/lib/utils";
@@ -269,10 +269,35 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col z-10 relative p-3 sm:p-6 items-center justify-center w-full max-w-4xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col z-10 relative p-3 sm:p-6 items-center justify-center w-full max-w-4xl mx-auto overflow-y-auto overflow-x-hidden custom-scrollbar">
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
-                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, y:-20}} className="text-center bg-slate-900/60 p-6 sm:p-12 rounded-2xl sm:rounded-[40px] backdrop-blur-sm border border-violet-500/30 shadow-[0_0_50px_rgba(139,92,246,0.15)] w-full max-w-md">
+                <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} exit={{opacity:0, y:-20}} className="w-full max-w-3xl mx-auto my-auto space-y-6">
+                {/* Lab Telemetry Pods */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 w-full text-left">
+                  <div className="p-3 sm:p-4 rounded-xl bg-slate-950/60 border border-violet-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                    <Atom className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400 mb-1" />
+                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Lab Mode</span>
+                    <span className="text-xs sm:text-sm font-black text-foreground">Synthesis Engine</span>
+                  </div>
+                  <div className="p-3 sm:p-4 rounded-xl bg-slate-950/60 border border-violet-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                    <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Total Target</span>
+                    <span className="text-xs sm:text-sm font-black text-cyan-300">10 Compounds</span>
+                  </div>
+                  <div className="p-3 sm:p-4 rounded-xl bg-slate-950/60 border border-violet-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                    <FlaskConical className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Containment</span>
+                    <span className="text-xs sm:text-sm font-black text-amber-300">Dynamic Gauge</span>
+                  </div>
+                  <div className="p-3 sm:p-4 rounded-xl bg-slate-950/60 border border-violet-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400 mb-1" />
+                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Bonus XP</span>
+                    <span className="text-xs sm:text-sm font-black text-emerald-300">+100 Lab Credit</span>
+                  </div>
+                </div>
+
+                <div className="text-center bg-slate-900/60 p-6 sm:p-10 rounded-2xl sm:rounded-[32px] backdrop-blur-sm border border-violet-500/30 shadow-[0_0_50px_rgba(139,92,246,0.15)] max-w-md mx-auto">
                     <Atom className="w-20 h-20 sm:w-32 sm:h-32 text-violet-400 mx-auto animate-spin-slow mb-4 sm:mb-6" style={{ animationDuration: '10s' }} />
                     <h2 className="text-2xl sm:text-4xl font-black text-white uppercase mb-2 sm:mb-4 font-mono tracking-wider sm:tracking-widest">Lab System Offline</h2>
                     <p className="text-violet-300/60 mb-6 sm:mb-8 mx-auto text-xs sm:text-sm">Select complexity level to initialize synthesizer.</p>
@@ -287,6 +312,7 @@ export function MoleculeMaker({ slug, onToggleFullscreen }: { slug: string; onTo
                            <Link href="/games">Back to Lab Entrance</Link>
                         </Button>
                     </div>
+                </div>
                 </motion.div>
             )}
 

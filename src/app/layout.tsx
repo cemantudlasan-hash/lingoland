@@ -1,4 +1,3 @@
-
 import type {Metadata} from 'next';
 import './globals.css';
 import { AuthProviderWrapper } from '@/context/auth-provider-wrapper';
@@ -72,37 +71,79 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning className={`${ptSans.variable} ${roboto.variable} ${lato.variable} ${montserrat.variable}`}>
-      <head>
+      <body suppressHydrationWarning>
+        {/* Strip & silence third-party browser extension attributes (e.g. Bitdefender bis_skin_checked, bis_use) */}
         <script
+          id="extension-hydration-cleaner"
           dangerouslySetInnerHTML={{
             __html: `
-              // Silence third-party browser extension hydration warnings (e.g. Bitdefender bis_skin_checked)
               (function() {
-                if (typeof window !== 'undefined') {
-                  const origError = console.error;
-                  console.error = function(...args) {
-                    const msg = typeof args[0] === 'string' ? args[0] : '';
-                    if (msg.includes('bis_skin_checked') || (args[1] && typeof args[1] === 'string' && args[1].includes('bis_skin_checked'))) {
-                      return;
+                if (typeof window === 'undefined') return;
+
+                // 1. Filter out browser extension hydration mismatch noise from developer console
+                const origError = console.error;
+                console.error = function(...args) {
+                  const str = args.map(a => {
+                    if (typeof a === 'string') return a;
+                    if (a && a.message) return a.message;
+                    try { return JSON.stringify(a); } catch(e) { return String(a || ''); }
+                  }).join(' ');
+                  if (
+                    str.includes('bis_skin_checked') ||
+                    str.includes('bis_use') ||
+                    str.includes('chrome-extension://') ||
+                    str.includes('data-dynamic-id')
+                  ) {
+                    return;
+                  }
+                  origError.apply(console, args);
+                };
+
+                // 2. Prevent setAttribute from adding bis_skin_checked or bis_use
+                try {
+                  const origSet = Element.prototype.setAttribute;
+                  Element.prototype.setAttribute = function(name, val) {
+                    if (name === 'bis_skin_checked' || name === 'bis_use') return;
+                    return origSet.call(this, name, val);
+                  };
+                } catch(e) {}
+
+                // 3. Continuously clean any attributes injected before/during hydration
+                try {
+                  const cleanNode = (node) => {
+                    if (!node || node.nodeType !== 1) return;
+                    if (node.hasAttribute('bis_skin_checked')) node.removeAttribute('bis_skin_checked');
+                    if (node.hasAttribute('bis_use')) node.removeAttribute('bis_use');
+                  };
+                  const observer = new MutationObserver((mutations) => {
+                    for (let i = 0; i < mutations.length; i++) {
+                      const m = mutations[i];
+                      if (m.type === 'attributes' && (m.attributeName === 'bis_skin_checked' || m.attributeName === 'bis_use')) {
+                        m.target.removeAttribute(m.attributeName);
+                      } else if (m.type === 'childList') {
+                        for (let j = 0; j < m.addedNodes.length; j++) {
+                          cleanNode(m.addedNodes[j]);
+                        }
+                      }
                     }
-                    origError.apply(console, args);
-                  };
-                  // Also strip any pre-injected bis_skin_checked attributes
-                  const clean = () => {
-                    try {
-                      document.querySelectorAll('[bis_skin_checked]').forEach(el => el.removeAttribute('bis_skin_checked'));
-                    } catch(e) {}
-                  };
-                  clean();
-                  window.addEventListener('DOMContentLoaded', clean, { once: true });
-                }
+                  });
+                  observer.observe(document.documentElement, {
+                    attributes: true,
+                    subtree: true,
+                    childList: true,
+                    attributeFilter: ['bis_skin_checked', 'bis_use']
+                  });
+                } catch(e) {}
               })();
             `,
           }}
         />
+
         {/* Structured Data for Google Search & AdSense Publisher Verification */}
         <script
+          id="structured-data-jsonld"
           type="application/ld+json"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
@@ -128,6 +169,7 @@ export default function RootLayout({
             }),
           }}
         />
+
         {/* Google AdSense */}
         {isLiveAdSense && (
           <Script
@@ -138,8 +180,7 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
-      </head>
-      <body suppressHydrationWarning>
+
         <PlexusBackground />
         <div id="root" suppressHydrationWarning className="relative z-10">
           <FirebaseClientProvider>

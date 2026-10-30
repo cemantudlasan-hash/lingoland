@@ -11,7 +11,7 @@ import {
   CardFooter,
 } from "../ui/card";
 import { Button } from "../ui/button";
-import { Loader2, Sparkles, Volume2, MoveUp, MoveDown, MoveLeft, MoveRight, Rabbit, Snail, Repeat, CheckCircle, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles, Volume2, MoveUp, MoveDown, MoveLeft, MoveRight, Rabbit, Snail, Repeat, CheckCircle, Maximize, Minimize, ArrowLeft, XOctagon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -102,6 +102,16 @@ export function ListeningLabyrinth({ slug, onToggleFullscreen }: { slug: string;
 
   if (!game) return <div>Game not found</div>;
 
+  const handleAbortGame = () => {
+    setGameState("idle");
+    setDirections([]);
+    setCurrentStep(0);
+    toast({
+      title: "Navigation Aborted",
+      description: "Returned to the auditory navigation deck.",
+    });
+  };
+
   const handleStartGame = () => {
     setGameState("loading");
     const { maze: newMaze, path: newPath } = generateMaze();
@@ -185,30 +195,72 @@ export function ListeningLabyrinth({ slug, onToggleFullscreen }: { slug: string;
             ? "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none bg-background p-2 sm:p-6" 
             : "flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-lg rounded-2xl md:rounded-3xl"
       )}>
-      <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 h-8 px-2 gap-1 text-muted-foreground hover:text-foreground z-20"
-          onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+      <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-border/20 bg-muted/20 shrink-0">
+        <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+          <Link href="/games">
+            <ArrowLeft className="h-4 w-4" /> Games
+          </Link>
         </Button>
-        <div className="flex justify-center mb-2 sm:mb-4">
-            <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
+        <div className="flex items-center gap-2">
+          {gameState === "playing" && (
+            <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8 font-bold">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 gap-1 text-muted-foreground hover:text-foreground"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
+          </Button>
         </div>
-        <CardTitle className="font-black tracking-tight uppercase text-xl sm:text-3xl md:text-5xl">{game.title}</CardTitle>
-        <CardDescription className="text-xs sm:text-base mt-1 max-w-xl mx-auto">{game.description}</CardDescription>
+      </div>
+
+      <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
+        <div className="flex justify-center mb-1 sm:mb-2">
+          <Icon className="w-8 h-8 sm:w-12 sm:h-12 text-primary" />
+        </div>
+        <CardTitle className="font-black tracking-tight uppercase text-lg sm:text-2xl md:text-3xl">{game.title}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm max-w-xl mx-auto">{game.description}</CardDescription>
         <div className="flex justify-center pt-2">
-            <Badge variant="outline" className="text-xs sm:text-sm px-3 py-0.5">{game.level.toUpperCase()}</Badge>
+          <Badge variant="outline" className="text-xs uppercase">{game.level}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center flex-1 w-full max-w-4xl mx-auto p-2 sm:p-6 overflow-y-auto">
         {gameState === "idle" && (
-            <div className="flex flex-col items-center gap-3 sm:gap-4 my-auto">
-                <p className="text-muted-foreground text-sm sm:text-xl">Follow the voice to escape the maze!</p>
-                <Button onClick={() => setGameState('instructions')} className="h-11 sm:h-14 px-6 sm:px-12 text-sm sm:text-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl rounded-xl">
+          <div className="flex flex-col items-center gap-6 text-center my-auto w-full max-w-3xl">
+            {/* Labyrinth Telemetry Pods */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 w-full text-left">
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-primary/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Audio Engine</span>
+                <span className="text-xs sm:text-sm font-black text-foreground">TTS Synthesizer</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Maze Grid</span>
+                <span className="text-xs sm:text-sm font-black text-cyan-300">7x7 Procedural</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Rabbit className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Sensory Target</span>
+                <span className="text-xs sm:text-sm font-black text-purple-300">Exit Extraction</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-amber-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Skill Tier</span>
+                <span className="text-xs sm:text-sm font-black text-amber-300 capitalize">{game.level}</span>
+              </div>
+            </div>
+
+            <p className="text-muted-foreground text-xs sm:text-base max-w-md">
+              Listen carefully to spoken auditory instructions and guide your avatar safely through the labyrinth.
+            </p>
+
+            <Button onClick={() => setGameState('instructions')} className="h-11 sm:h-14 px-6 sm:px-12 text-sm sm:text-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-xl rounded-xl">
                     <Sparkles className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
                     Initialize Game
                 </Button>
@@ -277,13 +329,23 @@ export function ListeningLabyrinth({ slug, onToggleFullscreen }: { slug: string;
             </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto">
-        <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold rounded-xl">
-            <Link href="/games">Back to Library</Link>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto border-t border-border/20">
+        <Button variant="outline" asChild className="w-full sm:w-auto h-10 sm:h-11 text-xs sm:text-sm font-bold rounded-xl">
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
         </Button>
-        {gameState !== 'idle' && gameState !== 'instructions' && (
-            <Button variant="secondary" onClick={handleStartGame} className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold rounded-xl"><Repeat className="mr-2 h-4 w-4"/>Reset Maze</Button>
-        )}
+        <div className="flex gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+          {gameState === 'playing' && (
+            <Button variant="outline" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-10 sm:h-11 font-bold rounded-xl">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          {gameState !== 'idle' && gameState !== 'instructions' && (
+            <Button variant="secondary" onClick={handleStartGame} className="w-full sm:w-auto h-10 sm:h-11 text-xs sm:text-sm font-bold rounded-xl"><Repeat className="mr-2 h-4 w-4"/>Reset Maze</Button>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

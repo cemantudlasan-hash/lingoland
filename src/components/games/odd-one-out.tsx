@@ -16,6 +16,8 @@ import { generateOddOneOut, type OddOneOutOutput } from '@/ai/flows/generate-odd
 import {
   Loader2,
   Sparkles,
+  ArrowLeft,
+  XOctagon,
   UserPlus,
   Trash2,
   Repeat,

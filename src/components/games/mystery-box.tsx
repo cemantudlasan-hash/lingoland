@@ -29,6 +29,8 @@ import {
   UserPlus,
   Trash2,
   HelpCircle,
+  ArrowLeft,
+  XOctagon,
   CheckCircle,
   XCircle,
   Gift,

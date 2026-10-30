@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Maximize2, Minimize2, ArrowLeft, ShieldAlert, Crosshair, Trophy, ListChecks, CheckCircle2, BookOpen, Shield } from "lucide-react";
+import { Maximize2, Minimize2, ArrowLeft, XOctagon, ShieldAlert, Crosshair, Trophy, ListChecks, CheckCircle2, BookOpen, Shield } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
@@ -134,6 +134,15 @@ const scienceQuestions: Record<Difficulty, Question[]> = {
 
 export function GalacticCellDefender() {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
+
+  const handleAbortGame = () => {
+    setDifficulty(null);
+    setCurrentQ(null);
+    setIsGameOver(false);
+    setWrongAnswer(null);
+    setScore(0);
+    setCurrentRound(1);
+  };
   const [questionPool, setQuestionPool] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState<Question | null>(null);
   const [score, setScore] = useState(0);
@@ -483,6 +492,24 @@ export function GalacticCellDefender() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Universal Footer */}
+      <div className="w-full flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-emerald-500/20 mt-4 shrink-0 z-10">
+        <Button variant="outline" asChild size="sm" className="font-bold border-emerald-500/30 bg-emerald-950/40 text-emerald-300 hover:text-white rounded-xl">
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
+        </Button>
+        {difficulty && !isGameOver && (
+          <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 font-bold rounded-xl">
+            <XOctagon className="h-3.5 w-3.5" /> Abort Game
+          </Button>
+        )}
+        <div className="text-[10px] text-emerald-600 font-mono tracking-wider uppercase select-none">
+          Galactic Cell Defense Grid
+        </div>
+      </div>
     </div>
   );
 }

@@ -17,7 +17,7 @@ import {
   generateGrammarExercise,
 } from "@/ai/flows/generate-grammar-exercise";
 import type { GenerateGrammarExerciseOutput } from "@/ai/flows/generate-grammar-exercise";
-import { Loader2, CheckCircle, XCircle, Sparkles, Repeat, Maximize, Minimize } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Sparkles, Repeat, Maximize, Minimize, ArrowLeft, XOctagon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
@@ -50,6 +50,17 @@ export function GrammarGuru({ slug, onToggleFullscreen }: { slug: string; onTogg
   }, []);
 
   if (!game) return <div>Game not found</div>;
+
+  const handleAbortGame = () => {
+    setGameState("idle");
+    setExercise(null);
+    setUserAnswer("");
+    setIsCorrect(null);
+    toast({
+      title: "Syntax Run Aborted",
+      description: "Returned to the grammar command desk.",
+    });
+  };
 
   const handleStartGame = async () => {
     setGameState("loading");
@@ -119,29 +130,73 @@ export function GrammarGuru({ slug, onToggleFullscreen }: { slug: string; onTogg
             ? "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none bg-background p-2 sm:p-6" 
             : "flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-lg rounded-2xl md:rounded-3xl"
       )}>
-      <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 h-8 px-2 gap-1 text-muted-foreground hover:text-foreground z-20"
-          onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+      <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-border/20 bg-muted/20 shrink-0">
+        <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+          <Link href="/games">
+            <ArrowLeft className="h-4 w-4" /> Games
+          </Link>
         </Button>
-        <div className="flex justify-center mb-2 sm:mb-4">
-            <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
+        <div className="flex items-center gap-2">
+          {(gameState === "playing" || gameState === "loading" || gameState === "answered") && (
+            <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8 font-bold">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 gap-1 text-muted-foreground hover:text-foreground"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
+          </Button>
         </div>
-        <CardTitle className="font-black tracking-tight uppercase text-xl sm:text-3xl md:text-5xl">{game.title}</CardTitle>
-        <CardDescription className="text-xs sm:text-base mt-1 max-w-xl mx-auto">{game.description}</CardDescription>
+      </div>
+
+      <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
+        <div className="flex justify-center mb-1 sm:mb-2">
+          <Icon className="w-8 h-8 sm:w-12 sm:h-12 text-primary" />
+        </div>
+        <CardTitle className="font-black tracking-tight uppercase text-lg sm:text-2xl md:text-3xl">{game.title}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm mt-1 max-w-xl mx-auto">{game.description}</CardDescription>
         <div className="flex justify-center pt-2">
-            <Badge variant="outline" className="text-xs sm:text-sm px-3 py-0.5 sm:px-4 sm:py-1">{game.level.toUpperCase()}</Badge>
+          <Badge variant="outline" className="text-xs uppercase">{game.level}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
+      <CardContent className="flex-1 flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto overflow-x-hidden custom-scrollbar">
         {gameState === "idle" && (
-          <div className="flex flex-col items-center gap-3 sm:gap-4 text-center my-auto">
-            <p className="text-muted-foreground text-sm sm:text-xl">Ready to test your grammar skills?</p>
+          <div className="flex flex-col items-center gap-6 text-center my-auto w-full max-w-3xl">
+            {/* Grammar Telemetry Pods */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 w-full text-left">
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-primary/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Grammar Engine</span>
+                <span className="text-xs sm:text-sm font-black text-foreground">AI Generator</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Verification</span>
+                <span className="text-xs sm:text-sm font-black text-cyan-300">Rule Explanations</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Repeat className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Repetition Filter</span>
+                <span className="text-xs sm:text-sm font-black text-purple-300">Active History</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-amber-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Badge variant="outline" className="border-amber-500/40 text-amber-400 text-[10px] uppercase mb-1">
+                  {game.level}
+                </Badge>
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Proficiency Tier</span>
+                <span className="text-xs sm:text-sm font-black text-amber-300 capitalize">{game.level}</span>
+              </div>
+            </div>
+
+            <p className="text-muted-foreground text-xs sm:text-base max-w-md">
+              Identify syntactic errors and reconstruct flawless sentences with real-time semantic validation.
+            </p>
+
             <Button onClick={() => setGameState('instructions')} className="h-11 sm:h-14 px-6 sm:px-12 text-sm sm:text-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black rounded-xl">
               <Sparkles className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
               Start Game
@@ -179,13 +234,21 @@ export function GrammarGuru({ slug, onToggleFullscreen }: { slug: string; onTogg
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto">
-        <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold rounded-xl">
-          <Link href="/games">Back to Library</Link>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto border-t border-border/20">
+        <Button variant="outline" asChild className="w-full sm:w-auto h-10 sm:h-11 text-xs sm:text-sm font-bold rounded-xl">
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
         </Button>
-        <div className="flex gap-3 w-full sm:w-auto">
-            {gameState === 'playing' && <Button onClick={handleCheckAnswer} disabled={!userAnswer.trim()} className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl">Check Answer</Button>}
-            {gameState === 'answered' && <Button onClick={handleStartGame} className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl"><Repeat className="mr-2 h-4 w-4"/>Next Mission</Button>}
+        <div className="flex gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+          {(gameState === "playing" || gameState === "loading" || gameState === "answered") && (
+            <Button variant="outline" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-10 sm:h-11 font-bold rounded-xl">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          {gameState === 'playing' && <Button onClick={handleCheckAnswer} disabled={!userAnswer.trim()} className="w-full sm:w-auto h-10 sm:h-11 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl">Check Answer</Button>}
+          {gameState === 'answered' && <Button onClick={handleStartGame} className="w-full sm:w-auto h-10 sm:h-11 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl"><Repeat className="mr-2 h-4 w-4"/>Next Mission</Button>}
         </div>
       </CardFooter>
     </Card>

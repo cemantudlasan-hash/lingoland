@@ -501,7 +501,7 @@ export function ArenaShowdown({ slug, onToggleFullscreen }: { slug: string; onTo
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="flex-grow p-6 flex flex-col justify-center min-h-[350px]">
+        <CardContent className="flex-grow p-3 sm:p-6 flex flex-col justify-center min-h-[350px] overflow-y-auto overflow-x-hidden custom-scrollbar">
           <AnimatePresence mode="wait">
             {gameState === "setup" && (
               <motion.div

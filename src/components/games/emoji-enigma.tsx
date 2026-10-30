@@ -29,6 +29,8 @@ import {
   Coins,
   BookOpen,
   Play,
+  ArrowLeft,
+  XOctagon,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -263,6 +265,22 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
     }
   };
 
+  const handleAbortGame = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setGameState('setup');
+    setEnigma(null);
+    setUserGuess('');
+    setIsCorrect(null);
+    setTimeLeft(TURN_TIME_SECONDS);
+    toast({
+      title: 'Enigma Aborted',
+      description: 'Returned to cryptanalysis command deck.',
+    });
+  };
+
   const resetGame = () => {
     setGameState('setup');
     setUsedAnswers([]);
@@ -277,78 +295,105 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
     switch (gameState) {
       case 'setup':
         return (
-          <div className={cn("flex flex-col items-center gap-6 w-full max-w-md animate-in fade-in duration-300", isFullscreen && "scale-105")}>
+          <div className={cn("flex flex-col items-center gap-6 w-full max-w-4xl mx-auto animate-in fade-in duration-300 py-2", isFullscreen && "scale-100")}>
+            {/* Cryptic Telemetry Pods */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 w-full">
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-primary/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Category Theme</span>
+                <span className="text-xs sm:text-sm font-black text-foreground capitalize">{category}</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Coins className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Target Enigmas</span>
+                <span className="text-xs sm:text-sm font-black text-cyan-300">{totalRounds} Rounds</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Active Squads</span>
+                <span className="text-xs sm:text-sm font-black text-purple-300">{teams.length} Teams</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-amber-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Turn Window</span>
+                <span className="text-xs sm:text-sm font-black text-amber-300">60s Clock</span>
+              </div>
+            </div>
+
             {isDailyBonus && (
               <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black border-none flex items-center gap-1.5 py-1.5 px-4 shadow-lg shadow-amber-500/20 animate-pulse">
                 <Coins className="h-4 w-4 fill-slate-950 animate-bounce" />
                 ⭐ Daily Bonus: Earn +{dailyBonusAmount} Coins!
               </Badge>
             )}
-            <h3 className={cn("font-black uppercase tracking-tight", isFullscreen ? "text-4xl" : "text-xl")}>Game Setup</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full text-left">
-              <div className="space-y-2">
-                <label className="text-sm font-bold">Difficulty</label>
-                <Select value={difficulty} onValueChange={(v) => setDifficulty(v as any)}>
-                  <SelectTrigger className={cn(isFullscreen && "h-12 text-lg rounded-xl")}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold">Category</label>
-                <Select value={category} onValueChange={(v) => setCategory(v as any)}>
-                  <SelectTrigger className={cn(isFullscreen && "h-12 text-lg rounded-xl")}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Random">Random</SelectItem>
-                    <SelectItem value="Movies">Movies</SelectItem>
-                    <SelectItem value="Idioms">Idioms</SelectItem>
-                    <SelectItem value="Everyday Activities">Activities</SelectItem>
-                    <SelectItem value="Famous Places">Famous Places</SelectItem>
-                    <SelectItem value="Objects">Objects</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="w-full space-y-2 text-left">
-              <label className="text-sm font-bold">Rounds</label>
-              <Select value={String(totalRounds)} onValueChange={(v) => setTotalRounds(Number(v))}>
-                <SelectTrigger className={cn(isFullscreen && "h-12 text-lg rounded-xl")}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10 Rounds</SelectItem>
-                  <SelectItem value="15">15 Rounds</SelectItem>
-                  <SelectItem value="20">20 Rounds</SelectItem>
-                  <SelectItem value="30">30 Rounds</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full space-y-2 text-left">
-              <h4 className="font-bold text-sm">Teams</h4>
-              {teams.map((team, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input 
-                    value={team.name} 
-                    onChange={(e) => handleTeamNameChange(index, e.target.value)} 
-                    className={cn(isFullscreen && "h-12 text-lg rounded-xl")}
-                  />
-                  <Button variant="ghost" size="icon" onClick={() => removeTeam(index)} disabled={teams.length <= 1}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+
+            <div className="w-full max-w-xl mx-auto space-y-4 bg-muted/30 border border-border/20 p-4 sm:p-6 rounded-2xl backdrop-blur-sm">
+              <h3 className={cn("font-black uppercase tracking-tight text-center", isFullscreen ? "text-3xl" : "text-xl")}>Game Setup</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full text-left">
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-bold">Difficulty</label>
+                  <Select value={difficulty} onValueChange={(v) => setDifficulty(v as any)}>
+                    <SelectTrigger className={cn(isFullscreen && "h-12 text-base rounded-xl")}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              ))}
-              <Button variant="outline" onClick={addTeam} className={cn("w-full border-dashed", isFullscreen && "h-12 rounded-xl text-lg")} disabled={teams.length >= 4}>
-                <UserPlus className="mr-2" /> Add Team
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mt-2">
-              <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className={cn("font-bold border-border/40 hover:bg-muted", isFullscreen && "h-14 rounded-xl text-lg")}>
-                <BookOpen className="mr-2 h-5 w-5 text-primary" /> How to Play
-              </Button>
-              <Button onClick={handleStartGame} size="lg" className={cn("bg-gradient-to-r from-primary to-indigo-600 font-bold text-white shadow-lg", isFullscreen && "h-14 rounded-xl text-lg")}>
-                <Play className="mr-2 h-5 w-5 fill-white" /> Start Game
-              </Button>
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-bold">Category</label>
+                  <Select value={category} onValueChange={(v) => setCategory(v as any)}>
+                    <SelectTrigger className={cn(isFullscreen && "h-12 text-base rounded-xl")}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Random">Random</SelectItem>
+                      <SelectItem value="Movies">Movies</SelectItem>
+                      <SelectItem value="Idioms">Idioms</SelectItem>
+                      <SelectItem value="Everyday Activities">Activities</SelectItem>
+                      <SelectItem value="Famous Places">Famous Places</SelectItem>
+                      <SelectItem value="Objects">Objects</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="w-full space-y-2 text-left">
+                <label className="text-xs sm:text-sm font-bold">Rounds</label>
+                <Select value={String(totalRounds)} onValueChange={(v) => setTotalRounds(Number(v))}>
+                  <SelectTrigger className={cn(isFullscreen && "h-12 text-base rounded-xl")}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 Rounds</SelectItem>
+                    <SelectItem value="15">15 Rounds</SelectItem>
+                    <SelectItem value="20">20 Rounds</SelectItem>
+                    <SelectItem value="30">30 Rounds</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-full space-y-2 text-left">
+                <h4 className="font-bold text-xs sm:text-sm">Teams</h4>
+                {teams.map((team, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input 
+                      value={team.name} 
+                      onChange={(e) => handleTeamNameChange(index, e.target.value)} 
+                      className={cn(isFullscreen && "h-12 text-base rounded-xl")}
+                    />
+                    <Button variant="ghost" size="icon" onClick={() => removeTeam(index)} disabled={teams.length <= 1}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+                <Button variant="outline" onClick={addTeam} className={cn("w-full border-dashed", isFullscreen && "h-12 rounded-xl text-base")} disabled={teams.length >= 4}>
+                  <UserPlus className="mr-2 h-4 w-4" /> Add Team
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full pt-2">
+                <Button onClick={() => setGameState('instructions')} variant="outline" size="lg" className={cn("font-bold border-border/40 hover:bg-muted", isFullscreen && "h-12 rounded-xl text-base")}>
+                  <BookOpen className="mr-2 h-4 w-4 text-primary" /> How to Play
+                </Button>
+                <Button onClick={handleStartGame} size="lg" className={cn("bg-gradient-to-r from-primary to-indigo-600 font-bold text-white shadow-lg", isFullscreen && "h-12 rounded-xl text-base")}>
+                  <Play className="mr-2 h-4 w-4 fill-white" /> Start Game
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -636,46 +681,73 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
       </div>
 
       <Card className={cn(
-          "w-full transition-all duration-500 flex flex-col z-10 relative overflow-y-auto overflow-x-hidden max-w-full",
+          "w-full transition-all duration-500 flex flex-col z-10 relative overflow-hidden max-w-full",
           isFullscreen 
               ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-start sm:justify-center shadow-2xl" 
               : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/85 backdrop-blur-sm border-border/25 shadow-xl justify-between",
           triggerShake && "enigma-animate-shake"
         )}>
-        <CardHeader className="text-center relative border-b border-border/5 pr-14 sm:pr-16 p-4 sm:p-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
-            onClick={onToggleFullscreen}
-          >
-            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-            <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+        {/* Universal Game Nav Header */}
+        <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-border/20 bg-muted/20 shrink-0">
+          <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+            <Link href="/games">
+              <ArrowLeft className="h-4 w-4" /> Games
+            </Link>
           </Button>
+          <div className="flex items-center gap-2">
+            {gameState !== 'setup' && (
+              <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8 font-bold">
+                <XOctagon className="h-3.5 w-3.5" /> Abort Game
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 gap-1 text-muted-foreground hover:text-foreground"
+              onClick={onToggleFullscreen}
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+            </Button>
+          </div>
+        </div>
+
+        <CardHeader className="text-center relative border-b border-border/5 p-4 sm:p-6 shrink-0">
           {!isFullscreen && (
               <div className="flex justify-center mb-1 sm:mb-2">
                   <Icon className="w-8 h-8 sm:w-12 sm:h-12 text-primary" />
               </div>
           )}
           <CardTitle className={cn("font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500", isFullscreen ? "text-3xl sm:text-5xl" : "text-xl sm:text-2xl md:text-3xl")}>{game.title}</CardTitle>
-          <CardDescription className={cn("text-xs sm:text-sm", isFullscreen && "text-base sm:text-xl mt-1 sm:mt-2")}>{game.description}</CardDescription>
-          <div className="flex justify-center pt-2">
-            <Badge variant="outline" className={cn("font-bold text-xs", isFullscreen && "text-base sm:text-lg px-4 sm:px-6 py-1")}>{difficulty.toUpperCase()}</Badge>
+          <CardDescription className={cn("text-xs sm:text-sm max-w-xl mx-auto", isFullscreen && "text-base sm:text-xl mt-1 sm:mt-2")}>{game.description}</CardDescription>
+          <div className="flex justify-center pt-2 gap-2">
+            <Badge variant="outline" className={cn("font-bold text-xs", isFullscreen && "text-sm sm:text-base px-3 py-0.5")}>{difficulty.toUpperCase()}</Badge>
+            {gameState !== 'setup' && (
+              <Badge variant="secondary" className="text-xs uppercase">Round {currentRound + 1}/{totalRounds}</Badge>
+            )}
           </div>
         </CardHeader>
         <CardContent className={cn(
-            "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-start sm:justify-center relative p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden",
-            isFullscreen ? "min-h-0 flex-1 max-w-4xl mx-auto w-full px-3 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
+            "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-start sm:justify-center relative p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden custom-scrollbar",
+            isFullscreen ? "min-h-0 flex-1 max-w-5xl mx-auto w-full px-3 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
         )}>
           {renderContent()}
         </CardContent>
-        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 p-3 sm:p-6 pt-3 sm:pt-6 border-t border-border/5 z-10 relative w-full max-w-full", isFullscreen && "max-w-4xl mx-auto w-full pb-4 sm:pb-10")}>
-          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-12 px-4 sm:px-8 text-sm sm:text-lg font-bold rounded-xl")}>
-            <Link href="/games">Back to Library</Link>
+        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 p-3 sm:p-6 pt-3 sm:pt-4 border-t border-border/10 z-10 relative w-full max-w-full shrink-0", isFullscreen && "max-w-5xl mx-auto w-full pb-4 sm:pb-8")}>
+          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11 px-4 sm:px-6 text-sm font-bold rounded-xl")}>
+            <Link href="/games" className="flex items-center gap-1.5">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Games</span>
+            </Link>
           </Button>
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto">
+            {gameState !== 'setup' && (
+              <Button variant="outline" onClick={handleAbortGame} size={isFullscreen ? "lg" : "default"} className={cn("flex-1 sm:flex-none h-10 sm:h-11 text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 font-bold", isFullscreen && "sm:h-12 sm:px-6 sm:text-base")}>
+                <XOctagon className="h-4 w-4" /> Abort Game
+              </Button>
+            )}
             {gameState === 'answered' && (
-              <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black hover:scale-105 active:scale-95 transition-all shadow-lg h-10 sm:h-12 px-4 sm:px-10 text-sm sm:text-lg rounded-xl")}>
+              <Button onClick={handleNextTurn} size={isFullscreen ? "lg" : "default"} className={cn("flex-1 sm:flex-none bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black hover:scale-105 active:scale-95 transition-all shadow-lg h-10 sm:h-11 px-4 sm:px-8 text-sm rounded-xl")}>
                 Next Enigma <Repeat className={cn("ml-2", isFullscreen ? "h-4 w-4 sm:h-5 sm:w-5" : "h-4 w-4")} />
               </Button>
             )}
@@ -684,10 +756,10 @@ export function EmojiEnigma({ slug, onToggleFullscreen }: { slug: string; onTogg
                 try {
                   localStorage.removeItem(LOCAL_STORAGE_KEY);
                   setUsedAnswers([]);
-                  toast({ title: "History Cleared", description: "You can now see previous enigmas again." });
+                  toast({ title: 'History Cleared', description: 'You can now see previous enigmas again.' });
                 } catch (e) {}
-              }} title="Reset riddle history" size={isFullscreen ? "lg" : "default"} className={cn("text-muted-foreground hover:text-foreground text-xs sm:text-sm", isFullscreen && "text-xs sm:text-lg")}>
-                <RotateCcw className={cn("mr-1.5 sm:mr-2", isFullscreen ? "h-4 w-4 sm:h-5 sm:w-5" : "h-4 w-4")} /> Clear History
+              }} title="Reset riddle history" size="sm" className="text-muted-foreground hover:text-foreground text-xs">
+                <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Clear History
               </Button>
             )}
           </div>

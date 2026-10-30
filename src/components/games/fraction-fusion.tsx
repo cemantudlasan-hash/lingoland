@@ -12,7 +12,7 @@ import {
   CardFooter,
 } from '../ui/card';
 import { Button } from '../ui/button';
-import { Loader2, Sparkles, CheckCircle, XCircle, Repeat, Maximize, Minimize, PieChart, Trophy, Coins, BookOpen, Play } from 'lucide-react';
+import { Loader2, Sparkles, CheckCircle, XCircle, Repeat, Maximize, Minimize, PieChart, Trophy, Coins, BookOpen, Play, ArrowLeft, XOctagon, Timer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
@@ -58,8 +58,26 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
   
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
+  const handleAbortGame = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setGameState('idle');
+    setProblem(null);
+    setScore(0);
+    setRound(0);
+    setIsCorrect(null);
+    setTimeLeft(ROUND_TIME_LIMIT);
+    toast({
+      title: 'Fusion Aborted',
+      description: 'Returned to mathematical command deck.',
+    });
+  };
+
   const { toast } = useToast();
   const game = getGameBySlug(slug);
+  const Icon = game?.icon || PieChart;
   const { user } = useAuth();
   const firestore = useFirestore();
 
@@ -359,46 +377,109 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
       </div>
 
       <Card className={cn(
-          "w-full transition-all duration-500 flex flex-col overflow-y-auto overflow-x-hidden max-w-full z-10 relative",
+          "w-full transition-all duration-500 flex flex-col z-10 relative overflow-hidden max-w-full",
           isFullscreen 
               ? "min-h-[90vh] rounded-2xl border-border/20 max-w-5xl bg-card/95 justify-start sm:justify-center shadow-2xl" 
               : "w-full flex-1 min-h-[calc(100dvh-4.5rem)] rounded-2xl md:rounded-3xl bg-card/85 backdrop-blur-sm border-border/25 shadow-xl justify-between",
           triggerShake && "math-animate-shake"
         )}>
-        <CardHeader className="text-center relative border-b border-white/5 pr-14 sm:pr-16 p-4 sm:p-6">
-          <Button variant="ghost" size="sm" className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]" onClick={onToggleFullscreen}>
-            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-            <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+        {/* Universal Game Nav Header */}
+        <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-border/20 bg-muted/20 shrink-0">
+          <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+            <Link href="/games">
+              <ArrowLeft className="h-4 w-4" /> Games
+            </Link>
           </Button>
-          {!isFullscreen && <PieChart className="w-8 h-8 sm:w-12 sm:h-12 text-primary mx-auto mb-1 sm:mb-2" />}
-          <CardTitle className={cn("font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500", isFullscreen ? "text-3xl sm:text-5xl" : "text-xl sm:text-2xl md:text-3xl")}>{game.title}</CardTitle>
-          <CardDescription className={cn("text-xs sm:text-sm", isFullscreen && "text-base sm:text-xl mt-1 sm:mt-2")}>{game.description}</CardDescription>
-          {(gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty') && (
-              <div className="flex justify-center gap-1.5 sm:gap-2 pt-2">
-                  <Badge variant="outline" className={cn("font-bold uppercase text-xs", isFullscreen && "text-base sm:text-lg px-4 sm:px-6 py-1")}>{difficulty}</Badge>
-                  <Badge variant="secondary" className={cn("font-bold text-xs", isFullscreen && "text-base sm:text-lg px-4 sm:px-6 py-1")}>Round {round}/10</Badge>
+          <div className="flex items-center gap-2">
+            {(gameState === 'playing' || gameState === 'answered') && (
+              <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8 font-bold">
+                <XOctagon className="h-3.5 w-3.5" /> Abort Game
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 gap-1 text-muted-foreground hover:text-foreground"
+              onClick={onToggleFullscreen}
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+            </Button>
+          </div>
+        </div>
+
+        <CardHeader className="text-center relative border-b border-white/5 p-4 sm:p-6 shrink-0">
+          {!isFullscreen && (
+              <div className="flex justify-center mb-1 sm:mb-2">
+                  <Icon className="w-8 h-8 sm:w-12 sm:h-12 text-primary" />
               </div>
           )}
+          <CardTitle className={cn("font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500", isFullscreen ? "text-3xl sm:text-5xl" : "text-xl sm:text-2xl md:text-3xl")}>{game.title}</CardTitle>
+          <CardDescription className={cn("text-xs sm:text-sm max-w-xl mx-auto", isFullscreen && "text-base sm:text-xl mt-1 sm:mt-2")}>{game.description}</CardDescription>
+          <div className="flex justify-center pt-2 gap-2">
+            <Badge variant="outline" className={cn("font-bold text-xs uppercase", isFullscreen && "text-sm sm:text-base px-3 py-0.5")}>{difficulty}</Badge>
+            {(gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty') && (
+              <Badge variant="secondary" className="text-xs uppercase">Round {round}/10</Badge>
+            )}
+          </div>
         </CardHeader>
 
-        <CardContent className={cn("flex flex-col items-center justify-start sm:justify-center relative p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden", isFullscreen ? "min-h-0 flex-1 max-w-4xl mx-auto w-full px-3 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]")}>
+        <CardContent className={cn(
+            "space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-start sm:justify-center relative p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-y-auto overflow-x-hidden custom-scrollbar",
+            isFullscreen ? "min-h-0 flex-1 max-w-5xl mx-auto w-full px-3 sm:px-12" : "w-full flex-1 min-h-[calc(100dvh-16rem)]"
+        )}>
           {gameState === "idle" && (
-            <div className="flex flex-col items-center gap-4 animate-in fade-in duration-300 text-center">
+            <div className="flex flex-col items-center gap-6 text-center w-full max-w-4xl mx-auto py-2 z-10 relative">
+              {/* Fraction Telemetry Pods */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 w-full">
+                <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-primary/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                  <PieChart className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1" />
+                  <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Visual Slices</span>
+                  <span className="text-xs sm:text-sm font-black text-foreground">Dynamic 2D Pies</span>
+                </div>
+                <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                  <Timer className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                  <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Time Sync</span>
+                  <span className="text-xs sm:text-sm font-black text-cyan-300">15s Limit</span>
+                </div>
+                <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                  <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                  <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Fusion Target</span>
+                  <span className="text-xs sm:text-sm font-black text-purple-300">10 Problems</span>
+                </div>
+                <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-amber-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                  <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Skill Tiers</span>
+                  <span className="text-xs sm:text-sm font-black text-amber-300">3 Difficulties</span>
+                </div>
+              </div>
+
               {isDailyBonus && (
-                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black border-none flex items-center gap-1.5 py-1 px-3 sm:py-1.5 sm:px-4 text-xs sm:text-sm shadow-lg shadow-amber-500/20 animate-pulse mb-2">
-                  <Coins className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-slate-950 animate-bounce" />
+                <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black border-none flex items-center gap-1.5 py-1.5 px-4 shadow-lg shadow-amber-500/20 animate-pulse">
+                  <Coins className="h-4 w-4 fill-slate-950 animate-bounce" />
                   ⭐ Daily Bonus: Earn +{dailyBonusAmount} Coins!
                 </Badge>
               )}
-              <p className={cn("text-muted-foreground font-semibold text-xs sm:text-base", isFullscreen ? "text-lg sm:text-2xl" : "text-xs sm:text-base")}>Match pie chart representations to their numeric fractions.</p>
-              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mt-2 w-full sm:w-auto">
-                <Button onClick={() => setGameState('instructions')} variant="outline" size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto font-bold border-border/40 hover:bg-muted", isFullscreen && "h-11 sm:h-14 rounded-xl text-sm sm:text-lg px-5 sm:px-8")}>
-                  <BookOpen className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                  How to Play
+
+              <p className={cn("text-muted-foreground max-w-md text-xs sm:text-base", isFullscreen && "sm:text-xl")}>
+                Synthesize fractional values with visual segment representations before chronal decay!
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto justify-center">
+                <Button 
+                  onClick={() => setGameState('selecting_difficulty')} 
+                  size={isFullscreen ? "lg" : "default"} 
+                  className={cn("bg-gradient-to-r from-primary to-indigo-600 text-white font-bold h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto", isFullscreen && "sm:h-14 sm:px-10 sm:text-lg")}
+                >
+                  <Play className="mr-2 h-4 w-4 fill-white" /> Start Fusion
                 </Button>
-                <Button onClick={() => setGameState('selecting_difficulty')} size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black shadow-lg hover:scale-105 active:scale-95 transition-all", isFullscreen && "h-11 sm:h-14 rounded-xl text-sm sm:text-xl px-6 sm:px-12")}>
-                  <Play className={cn("mr-2 h-4 w-4 sm:h-5 sm:w-5 fill-white")} />
-                  Start Game
+                <Button 
+                  onClick={() => setGameState('instructions')} 
+                  variant="outline" 
+                  size={isFullscreen ? "lg" : "default"} 
+                  className={cn("font-bold border-border/40 hover:bg-muted h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base rounded-xl w-full sm:w-auto", isFullscreen && "sm:h-14 sm:px-10 sm:text-lg")}
+                >
+                  <BookOpen className="mr-2 h-4 w-4 text-primary" /> How to Play
                 </Button>
               </div>
             </div>
@@ -563,13 +644,26 @@ export function FractionFusion({ slug, onToggleFullscreen }: { slug: string; onT
                   </Button>
               </div>
           )}
+        
         </CardContent>
 
-        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 border-t border-white/5 p-3 sm:p-6 z-10 relative w-full max-w-full", isFullscreen && "pb-4 sm:pb-10 max-w-5xl mx-auto w-full")}>
-          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-12 px-4 sm:px-8 text-sm sm:text-lg font-bold rounded-xl")}>
-            <Link href="/games">Abort Mission</Link>
+        <CardFooter className={cn("flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 border-t border-border/10 p-3 sm:p-6 z-10 relative w-full max-w-full shrink-0", isFullscreen && "pb-4 sm:pb-8 max-w-5xl mx-auto w-full")}>
+          <Button variant="outline" asChild size={isFullscreen ? "lg" : "default"} className={cn("w-full sm:w-auto h-10 sm:h-11 px-4 sm:px-6 text-sm font-bold rounded-xl")}>
+            <Link href="/games" className="flex items-center gap-1.5">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Games</span>
+            </Link>
           </Button>
-          {(gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty') && <p className="font-black text-primary uppercase tracking-widest text-xs sm:text-base">Score: {score}</p>}
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            {(gameState === 'playing' || gameState === 'answered') && (
+              <Button variant="outline" onClick={handleAbortGame} size={isFullscreen ? "lg" : "default"} className={cn("flex-1 sm:flex-none h-10 sm:h-11 text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 font-bold", isFullscreen && "sm:h-12 sm:px-6 sm:text-base")}>
+                <XOctagon className="h-4 w-4" /> Abort Game
+              </Button>
+            )}
+            {(gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'selecting_difficulty') && (
+              <p className="font-black text-primary uppercase tracking-widest text-xs sm:text-base ml-2">Score: {score}</p>
+            )}
+          </div>
         </CardFooter>
       </Card>
     </div>

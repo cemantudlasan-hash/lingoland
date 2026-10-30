@@ -4,9 +4,11 @@ import { shuffleArray } from "@/lib/shuffle";
 
 import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { Crosshair, Target, Zap, Repeat, Maximize, Minimize, HelpCircle, Info } from "lucide-react";
+import { Crosshair, Target,
+  ArrowLeft,
+  XOctagon, Zap, Repeat, Maximize, Minimize, HelpCircle, Info } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { cn } from "@/lib/utils";

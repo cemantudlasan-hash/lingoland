@@ -4,7 +4,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
-import { Maximize, Minimize, Trophy, Sparkles, Repeat, Gamepad2, CheckCircle2, XCircle } from "lucide-react";
+import { Maximize, Minimize, Trophy, Sparkles, Repeat, Gamepad2, CheckCircle2, XCircle, ArrowLeft, XOctagon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
@@ -96,6 +96,16 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
     document.addEventListener("fullscreenchange", handler);
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
+
+  const handleAbortGame = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setGameState("idle");
+    setQuestions([]);
+    setSelectedAnswer(null);
+    setCurrentQuestionIdx(0);
+    setRound(1);
+    setScore(0);
+  };
 
   const handleStartGame = () => {
     const shuffledPool = shuffleArray([...QUESTION_POOL]);
@@ -317,14 +327,24 @@ export function LiteraryDeviceLegend({ slug, onToggleFullscreen }: { slug: strin
       </CardContent>
 
       <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2.5 p-3 sm:p-6 border-t border-purple-950 w-full shrink-0 max-w-4xl mx-auto">
-        <Button variant="outline" className="w-full sm:w-auto h-11 sm:h-12 text-xs font-bold rounded-xl border-slate-800 hover:bg-slate-900 text-slate-300 hover:text-slate-100" asChild>
-          <Link href="/games">Leave Cabinet</Link>
+        <Button variant="outline" className="w-full sm:w-auto h-10 sm:h-11 text-xs font-bold rounded-xl border-slate-800 hover:bg-slate-900 text-slate-300 hover:text-slate-100" asChild>
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
         </Button>
-        {gameState !== "idle" && gameState !== "instructions" && (
-          <p className="font-black text-purple-400 uppercase tracking-wider text-xs sm:text-sm">
-            Score: {score}
-          </p>
-        )}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          {(gameState === "playing" || gameState === "answered") && (
+            <Button variant="outline" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-10 sm:h-11 font-bold rounded-xl">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          {gameState !== "idle" && gameState !== "instructions" && (
+            <p className="font-black text-purple-400 uppercase tracking-wider text-xs sm:text-sm ml-2">
+              Score: {score}
+            </p>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

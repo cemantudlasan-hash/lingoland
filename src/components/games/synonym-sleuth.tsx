@@ -17,7 +17,9 @@ import {
   generateSynonymExercise,
   type GenerateSynonymExerciseOutput,
 } from "@/ai/flows/generate-synonym-exercise";
-import { Loader2, Sparkles, Check, X, Repeat, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles,
+  ArrowLeft,
+  XOctagon, Check, X, Repeat, Maximize, Minimize } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -123,7 +125,7 @@ export function SynonymSleuth({ slug, onToggleFullscreen }: { slug: string; onTo
             <Badge variant="outline" className="text-xs sm:text-sm px-3 py-0.5">{difficulty || game.level.toUpperCase()}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto overflow-x-hidden custom-scrollbar">
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4 text-center max-w-md">
             <p className="text-sm sm:text-base text-muted-foreground">Ready to deduce linguistic parallels? Find matching words!</p>

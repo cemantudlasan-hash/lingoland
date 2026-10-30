@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Sparkles, RotateCcw, Volume2, VolumeX, Maximize2, HelpCircle, 
-  ChevronRight, Coins, Flame, ArrowLeft, Lightbulb, Play, AlertCircle
+  ChevronRight, Coins, Flame, ArrowLeft, XOctagon, Lightbulb, Play, AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { audioEngine } from "../AudioEngine";
@@ -42,6 +44,15 @@ export function EquationAlchemist({ slug, onToggleFullscreen }: { slug: string; 
   const [cauldronState, setCauldronState] = useState<"idle" | "brewing" | "success" | "fail">("idle");
   const [expressionValue, setExpressionValue] = useState<number | null>(null);
   const [gameFinished, setGameFinished] = useState(false);
+
+  const handleAbortGame = () => {
+    setDifficulty(null);
+    setCurrentChallenge(null);
+    setSelectedTokens([]);
+    setLevelIndex(0);
+    setScore(0);
+    setGameFinished(false);
+  };
   const [coinsEarned, setCoinsEarned] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -757,6 +768,24 @@ export function EquationAlchemist({ slug, onToggleFullscreen }: { slug: string; 
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Universal Footer */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-900 mt-4 shrink-0">
+        <Button variant="outline" asChild size="sm" className="font-bold border-slate-800 bg-slate-900/40 text-slate-300 hover:text-white rounded-xl">
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
+        </Button>
+        {difficulty && (
+          <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 font-bold rounded-xl">
+            <XOctagon className="h-3.5 w-3.5" /> Abort Game
+          </Button>
+        )}
+        <div className="text-[10px] text-slate-600 font-mono tracking-wider uppercase select-none">
+          Equation Alchemist Transmutation Deck
+        </div>
+      </div>
     </div>
   );
 }

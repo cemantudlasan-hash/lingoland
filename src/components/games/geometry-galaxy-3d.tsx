@@ -22,6 +22,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowLeft,
+  XOctagon,
   ArrowRight,
   Maximize,
   Minimize,
@@ -96,6 +97,15 @@ export function GeometryGalaxy3D({ slug, onToggleFullscreen }: { slug: string; o
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [particles, setParticles] = React.useState<any[]>([]);
   const [triggerShake, setTriggerShake] = React.useState(false);
+
+  const handleAbortGame = () => {
+    setGameState('idle');
+    setDifficulty(null);
+    setScore(0);
+    setTargetIndex(0);
+    setTimeLeft(GAME_TIMER_LIMIT);
+    setFeedback(null);
+  };
 
   const { user } = useAuth();
   const firestore = useFirestore();
@@ -509,16 +519,28 @@ export function GeometryGalaxy3D({ slug, onToggleFullscreen }: { slug: string; o
           )}
         </CardContent>
 
-        <CardFooter className="bg-black/40 p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2.5 border-t border-sky-500/20 w-full shrink-0">
-          <Button variant="ghost" asChild className="w-full sm:w-auto h-10 text-xs sm:text-sm text-sky-400 hover:text-sky-300 hover:bg-sky-500/10"><Link href="/games">EXIT GALAXY</Link></Button>
-          {gameState === 'playing' && (
-            <div className="flex items-center gap-3 text-[11px] sm:text-xs font-black text-sky-400 w-full sm:w-auto justify-between sm:justify-end">
-              <span>SHAPE {targetIndex + 1} / {nodes.length}</span>
-              <div className="w-24 sm:w-32 h-2.5 bg-white/10 rounded-full overflow-hidden border border-sky-500/20">
-                <motion.div className="h-full bg-sky-500 shadow-[0_0_10px_#0ea5e9]" initial={{ width: 0 }} animate={{ width: `${(targetIndex / nodes.length) * 100}%` }} />
+        <CardFooter className="bg-black/40 p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-2.5 border-t border-sky-500/20 w-full shrink-0 z-20">
+          <Button variant="outline" asChild size="sm" className="font-bold border-sky-500/30 bg-sky-950/40 text-sky-300 hover:text-white rounded-xl">
+            <Link href="/games" className="flex items-center gap-1.5">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Games</span>
+            </Link>
+          </Button>
+          <div className="flex items-center gap-2">
+            {gameState === 'playing' && (
+              <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 font-bold rounded-xl">
+                <XOctagon className="h-3.5 w-3.5" /> Abort Mission
+              </Button>
+            )}
+            {gameState === 'playing' && (
+              <div className="flex items-center gap-3 text-[11px] sm:text-xs font-black text-sky-400">
+                <span>SHAPE {targetIndex + 1} / {nodes.length}</span>
+                <div className="w-20 sm:w-28 h-2 bg-white/10 rounded-full overflow-hidden border border-sky-500/20">
+                  <motion.div className="h-full bg-sky-500 shadow-[0_0_10px_#0ea5e9]" initial={{ width: 0 }} animate={{ width: `${(targetIndex / nodes.length) * 100}%` }} />
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </CardFooter>
       </Card>
     </div>

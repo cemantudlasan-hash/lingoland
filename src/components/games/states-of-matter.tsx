@@ -11,7 +11,9 @@ import {
   CardFooter,
 } from '../ui/card';
 import { Button } from '../ui/button';
-import { Loader2, Sparkles, CheckCircle, XCircle, Repeat, Maximize, Minimize, Thermometer, Trophy, Droplets, Box, Wind, Zap, Coins } from 'lucide-react';
+import { Loader2, Sparkles,
+  ArrowLeft,
+  XOctagon, CheckCircle, XCircle, Repeat, Maximize, Minimize, Thermometer, Trophy, Droplets, Box, Wind, Zap, Coins } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';

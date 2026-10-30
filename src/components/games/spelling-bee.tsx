@@ -15,7 +15,9 @@ import { Input } from "../ui/input";
 import { generateSpellingBeeWord } from "@/ai/flows/generate-spelling-bee-word";
 import type { GenerateSpellingBeeWordOutput } from "@/ai/flows/schemas/spelling-bee-schema";
 import { textToSpeech } from "@/ai/flows/text-to-speech";
-import { Loader2, Sparkles, Volume2, Check, X, Repeat, Lightbulb, Send, RotateCcw, UserPlus, Trash2, Timer, Trophy, SkipForward, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles,
+  ArrowLeft,
+  XOctagon, Volume2, Check, X, Repeat, Lightbulb, Send, RotateCcw, UserPlus, Trash2, Timer, Trophy, SkipForward, Maximize, Minimize } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -423,7 +425,7 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
             </div>
         )}
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto overflow-x-hidden custom-scrollbar">
         {renderContent()}
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 w-full shrink-0">

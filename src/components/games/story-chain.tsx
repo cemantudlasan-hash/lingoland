@@ -16,7 +16,9 @@ import { generateStoryPrompt } from "@/ai/flows/generate-story-prompt";
 import { continueStoryChain } from "@/ai/flows/continue-story-chain";
 import { scoreStoryGrammar } from "@/ai/flows/score-story-grammar";
 import type { ScoreStoryGrammarOutput } from "@/ai/flows/score-story-grammar";
-import { Loader2, Sparkles, Send, Bot, Timer, Repeat, CheckCircle, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles,
+  ArrowLeft,
+  XOctagon, Send, Bot, Timer, Repeat, CheckCircle, Maximize, Minimize } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -171,7 +173,7 @@ export function StoryChain({ slug, onToggleFullscreen }: { slug: string; onToggl
             <Badge variant="outline" className="text-xs sm:text-sm px-3 py-0.5">{game.level.toUpperCase()}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto overflow-x-hidden custom-scrollbar">
         {gameState === "idle" && (
             <div className="flex flex-col items-center gap-6 text-center max-w-md w-full">
                 <p className="text-sm sm:text-base text-muted-foreground">Collaborate with AI to craft an epic story, sentence by sentence!</p>

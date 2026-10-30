@@ -24,7 +24,7 @@ import {
 } from '../ui/dialog';
 import { generateJeopardyBoard } from "@/ai/flows/generate-jeopardy-board";
 import type { GenerateJeopardyBoardOutput } from "@/ai/flows/schemas/jeopardy-schema";
-import { Loader2, Sparkles, UserPlus, Trash2, Repeat, Check, X, HelpCircle, Trophy, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles, UserPlus, Trash2, Repeat, Check, X, HelpCircle, Trophy, Maximize, Minimize, ArrowLeft, XOctagon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -212,22 +212,40 @@ export function JeopardyClassroom({ slug, onToggleFullscreen }: { slug: string; 
             ? "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none bg-background p-2 sm:p-6" 
             : "flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-lg rounded-2xl md:rounded-3xl"
       )}>
-        <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
+        <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-border/20 bg-muted/20 shrink-0">
+        <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+          <Link href="/games">
+            <ArrowLeft className="h-4 w-4" /> Games
+          </Link>
+        </Button>
+        <div className="flex items-center gap-2">
+          {gameState === "playing" && (
+            <Button variant="outline" size="sm" onClick={resetGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8 font-bold">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
-            className="absolute top-2 right-2 sm:top-4 sm:right-4 h-8 px-2 gap-1 text-muted-foreground hover:text-foreground z-20"
+            className="h-8 px-2 gap-1 text-muted-foreground hover:text-foreground"
             onClick={onToggleFullscreen}
           >
             {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-            <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+            <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
           </Button>
-          <div className="flex justify-center mb-2 sm:mb-4">
-              <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
-          </div>
-          <CardTitle className="font-black tracking-tight uppercase text-xl sm:text-3xl md:text-5xl">{game.title}</CardTitle>
-          <CardDescription className="text-xs sm:text-base mt-1 max-w-xl mx-auto">{game.description}</CardDescription>
-        </CardHeader>
+        </div>
+      </div>
+
+      <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
+        <div className="flex justify-center mb-1 sm:mb-2">
+          <Icon className="w-8 h-8 sm:w-12 sm:h-12 text-primary" />
+        </div>
+        <CardTitle className="font-black tracking-tight uppercase text-lg sm:text-2xl md:text-3xl">{game.title}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm max-w-xl mx-auto">{game.description}</CardDescription>
+        <div className="flex justify-center pt-2">
+          <Badge variant="outline" className="text-xs uppercase">{game.level}</Badge>
+        </div>
+      </CardHeader>
         <CardContent className="space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center flex-1 w-full max-w-5xl mx-auto p-3 sm:p-6 overflow-y-auto">
           {gameState === 'idle' && (
             <div className="flex flex-col items-center gap-3 sm:gap-4 my-auto">
@@ -356,12 +374,18 @@ export function JeopardyClassroom({ slug, onToggleFullscreen }: { slug: string; 
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-5xl mx-auto">
-            <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold rounded-xl">
-                <Link href="/games">Back to Library</Link>
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-5xl mx-auto border-t border-border/20">
+            <Button variant="outline" asChild className="w-full sm:w-auto h-10 sm:h-11 text-xs sm:text-sm font-bold rounded-xl">
+              <Link href="/games" className="flex items-center gap-1.5">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Games</span>
+              </Link>
             </Button>
             {gameState !== 'idle' && gameState !== 'instructions' && gameState !== 'setup' && (
-                <Button variant="secondary" onClick={resetGame} className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold rounded-xl">Abort Session</Button>
+              <Button variant="outline" onClick={resetGame} className="w-full sm:w-auto h-10 sm:h-11 text-xs sm:text-sm font-bold text-rose-400 border-rose-500/30 hover:bg-rose-500/10 rounded-xl flex items-center gap-1.5">
+                <XOctagon className="h-3.5 w-3.5" />
+                <span>Abort Game</span>
+              </Button>
             )}
         </CardFooter>
       </Card>

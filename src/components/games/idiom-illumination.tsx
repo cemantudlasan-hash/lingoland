@@ -18,7 +18,7 @@ import {
   generateIdiomExercise,
   type GenerateIdiomExerciseOutput,
 } from "@/ai/flows/generate-idiom-exercise";
-import { Loader2, Sparkles, Check, X, ThumbsUp, Repeat, Maximize, Minimize, Trophy, Star, Zap } from "lucide-react";
+import { Loader2, Sparkles, Check, X, ThumbsUp, Repeat, Maximize, Minimize, Trophy, Star, Zap, ArrowLeft, XOctagon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -61,6 +61,23 @@ export function IdiomIllumination({ slug, onToggleFullscreen }: { slug: string; 
   if (!game) return <div>Game not found</div>;
 
   const currentDifficulty = DIFFICULTY_SCHEDULE[currentRound] || 'advanced';
+
+  const currentDifficultyBadgeColor =
+    currentDifficulty === 'beginner'
+      ? 'border-emerald-500/50 text-emerald-400 bg-emerald-500/10'
+      : currentDifficulty === 'intermediate'
+      ? 'border-amber-500/50 text-amber-400 bg-amber-500/10'
+      : 'border-rose-500/50 text-rose-400 bg-rose-500/10';
+
+  const handleAbortGame = () => {
+    setGameState("idle");
+    setExercise(null);
+    setSelectedOption(null);
+    setIsCorrect(null);
+    setCurrentRound(0);
+    setScore(0);
+    setStreak(0);
+  };
 
   const loadNextRound = async () => {
     setGameState("loading");
@@ -188,34 +205,46 @@ export function IdiomIllumination({ slug, onToggleFullscreen }: { slug: string; 
             ? "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none bg-background p-2 sm:p-6" 
             : "flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full bg-card/80 backdrop-blur-sm border-border/20 shadow-lg rounded-2xl md:rounded-3xl"
       )}>
-      <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-2 right-2 sm:top-4 sm:right-4 h-8 px-2 gap-1 text-muted-foreground hover:text-foreground z-20"
-          onClick={onToggleFullscreen}
-        >
-          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+      <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-border/20 bg-muted/20 shrink-0">
+        <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+          <Link href="/games">
+            <ArrowLeft className="h-4 w-4" /> Games
+          </Link>
         </Button>
-        <div className="flex justify-center mb-2 sm:mb-4">
-            <Icon className="w-10 h-10 sm:w-16 sm:h-16 text-primary" />
+        <div className="flex items-center gap-2">
+          {(gameState === "playing" || gameState === "loading" || gameState === "answered") && (
+            <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8 font-bold">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 gap-1 text-muted-foreground hover:text-foreground"
+            onClick={onToggleFullscreen}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
+          </Button>
         </div>
-        <CardTitle className="font-black tracking-tight uppercase text-xl sm:text-3xl md:text-5xl">{game.title}</CardTitle>
-        <CardDescription className="text-xs sm:text-base mt-1 max-w-xl mx-auto">{game.description}</CardDescription>
-        <div className="flex justify-center gap-2 pt-2 flex-wrap">
-            <Badge variant="outline" className="text-xs px-2.5 py-0.5">{game.level.toUpperCase()}</Badge>
-            {(gameState === 'playing' || gameState === 'answered' || gameState === 'loading') && (
-              <Badge variant="outline" className={cn(
-                "font-black uppercase text-xs px-2.5 py-0.5",
-                currentDifficulty === 'beginner' && "border-emerald-500/50 text-emerald-400",
-                currentDifficulty === 'intermediate' && "border-amber-500/50 text-amber-400",
-                currentDifficulty === 'advanced' && "border-red-500/50 text-red-400",
-              )}>
-                {currentDifficulty}
-              </Badge>
-            )}
+      </div>
+
+      <CardHeader className="text-center relative p-3 sm:p-6 shrink-0">
+        <div className="flex justify-center mb-1 sm:mb-2">
+          <Icon className="w-8 h-8 sm:w-12 sm:h-12 text-primary" />
         </div>
+        <CardTitle className="font-black tracking-tight uppercase text-lg sm:text-2xl md:text-3xl">{game.title}</CardTitle>
+        <CardDescription className="text-xs sm:text-sm mt-1 max-w-xl mx-auto">{game.description}</CardDescription>
+        {gameState !== 'idle' && gameState !== 'instructions' && (
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <Badge variant="outline" className={cn("text-xs font-black uppercase", currentDifficultyBadgeColor)}>
+              {DIFFICULTY_SCHEDULE[currentRound]}
+            </Badge>
+            <Badge variant="secondary" className="text-xs uppercase">
+              Round {currentRound + 1}/{TOTAL_ROUNDS}
+            </Badge>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4 sm:space-y-6 text-center flex flex-col items-center justify-center flex-1 w-full max-w-4xl mx-auto p-3 sm:p-6 overflow-y-auto">
         {/* Round & Score HUD */}
@@ -240,8 +269,35 @@ export function IdiomIllumination({ slug, onToggleFullscreen }: { slug: string; 
         )}
 
         {gameState === "idle" && (
-          <div className="flex flex-col items-center gap-3 sm:gap-4 my-auto">
-            <p className="text-muted-foreground text-sm sm:text-xl">Ready to illuminate some idioms?</p>
+          <div className="flex flex-col items-center gap-6 text-center my-auto w-full max-w-3xl">
+            {/* Idiom Telemetry Pods */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 w-full text-left">
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-primary/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Idiom Bank</span>
+                <span className="text-xs sm:text-sm font-black text-foreground">Adaptive AI Deck</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Session Size</span>
+                <span className="text-xs sm:text-sm font-black text-cyan-300">10 Challenges</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Streak Bonus</span>
+                <span className="text-xs sm:text-sm font-black text-purple-300">Combo Multiplier</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-amber-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Tier Curve</span>
+                <span className="text-xs sm:text-sm font-black text-amber-300">Beg → Adv</span>
+              </div>
+            </div>
+
+            <p className="text-muted-foreground text-xs sm:text-base max-w-md">
+              Demystify figurative phrases and colloquial expressions through smart contextual deductions.
+            </p>
+
             <Button onClick={() => setGameState('instructions')} className="h-11 sm:h-14 px-6 sm:px-12 text-sm sm:text-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 hover:shadow-lg font-black rounded-xl">
               <Sparkles className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
               Start Game
@@ -374,16 +430,24 @@ export function IdiomIllumination({ slug, onToggleFullscreen }: { slug: string; 
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto">
-        <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 text-xs sm:text-sm font-bold rounded-xl">
-          <Link href="/games">Back to Library</Link>
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto border-t border-border/20">
+        <Button variant="outline" asChild className="w-full sm:w-auto h-10 sm:h-11 text-xs sm:text-sm font-bold rounded-xl">
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
         </Button>
-        <div className="flex gap-3 w-full sm:w-auto">
-            {gameState === 'playing' && <Button onClick={handleCheckAnswer} disabled={!selectedOption} className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl">Verify meaning</Button>}
-            {gameState === 'answered' && <Button onClick={handleNextRound} className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl">
-              <Repeat className="mr-2 h-4 w-4" />
-              {currentRound + 1 >= TOTAL_ROUNDS ? 'See Results' : `Next Round (${currentRound + 2}/${TOTAL_ROUNDS})`}
-            </Button>}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+          {(gameState === "playing" || gameState === "loading" || gameState === "answered") && (
+            <Button variant="outline" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-10 sm:h-11 font-bold rounded-xl">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          {gameState === 'playing' && <Button onClick={handleCheckAnswer} disabled={!selectedOption} className="w-full sm:w-auto h-10 sm:h-11 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl">Verify meaning</Button>}
+          {gameState === 'answered' && <Button onClick={handleNextRound} className="w-full sm:w-auto h-10 sm:h-11 px-6 sm:px-8 text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 transition-all duration-300 font-black rounded-xl">
+            <Repeat className="mr-2 h-4 w-4" />
+            {currentRound + 1 >= TOTAL_ROUNDS ? 'See Results' : `Next Round (${currentRound + 2}/${TOTAL_ROUNDS})`}
+          </Button>}
         </div>
       </CardFooter>
     </Card>

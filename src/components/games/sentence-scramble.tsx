@@ -16,7 +16,9 @@ import {
   generateSentenceScramble,
 } from "@/ai/flows/generate-sentence-scramble";
 import type { GenerateSentenceScrambleOutput } from "@/ai/flows/generate-sentence-scramble";
-import { Loader2, Sparkles, CheckCircle, XCircle, Shuffle, RotateCcw, Repeat, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles,
+  ArrowLeft,
+  XOctagon, CheckCircle, XCircle, Shuffle, RotateCcw, Repeat, Maximize, Minimize } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -130,7 +132,7 @@ export function SentenceScramble({ slug, onToggleFullscreen }: { slug: string; o
             <Badge variant="outline" className={cn(isFullscreen && "text-sm sm:text-base px-4 py-1")}>{difficulty.toUpperCase()}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto overflow-x-hidden custom-scrollbar">
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4 text-center max-w-md">
             <p className="text-sm sm:text-lg text-muted-foreground">Ready to unscramble some sentences? Test your grammar and word order skills!</p>

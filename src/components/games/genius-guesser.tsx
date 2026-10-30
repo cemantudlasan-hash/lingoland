@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import {
-  Play, RotateCcw, Check, Eye, EyeOff, Maximize, Minimize,
+  Play, RotateCcw, Check, Eye, EyeOff, Maximize, Minimize, ArrowLeft, XOctagon,
   Shuffle, Trophy, Minus, Plus, Lightbulb, SkipForward, Square,
   Crown, Medal, Sparkles, Volume2, VolumeX, ArrowRight, Flame
 } from "lucide-react";
@@ -535,6 +535,10 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
   };
 
   // FULL RESET (reset everything to defaults)
+  const handleAbortGame = () => {
+    fullReset();
+  };
+
   const fullReset = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -1164,13 +1168,23 @@ export function GeniusGuesser({ slug, onToggleFullscreen }: { slug: string; onTo
       </CardContent>
 
       {/* FOOTER BUTTONS */}
-      <CardFooter className="flex justify-between items-center gap-4 pt-4 border-t border-border/20">
-        <Button variant="outline" asChild size="sm">
-          <Link href="/games">Back to Library</Link>
+      <CardFooter className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border/20 shrink-0">
+        <Button variant="outline" asChild size="sm" className="font-bold rounded-xl">
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
         </Button>
-        <Button variant="secondary" onClick={fullReset} size="sm" className="font-bold">
-          <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Full Reset
-        </Button>
+        <div className="flex items-center gap-2">
+          {phase === "playing" && (
+            <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 font-bold rounded-xl">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          <Button variant="secondary" onClick={fullReset} size="sm" className="font-bold rounded-xl">
+            <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Full Reset
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

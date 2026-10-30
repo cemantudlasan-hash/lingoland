@@ -16,7 +16,9 @@ import {
   evaluatePronunciation,
   type EvaluatePronunciationOutput,
 } from "@/ai/flows/generate-pronunciation-exercise";
-import { Loader2, Sparkles, Mic, Square, Check, X, Repeat, MicOff, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles,
+  ArrowLeft,
+  XOctagon, Mic, Square, Check, X, Repeat, MicOff, Maximize, Minimize } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -150,7 +152,7 @@ export function PronunciationPro({ slug, onToggleFullscreen }: { slug: string; o
             <Badge variant="outline" className={cn("text-xs sm:text-sm px-3 py-0.5", isFullscreen && "text-base px-4 py-1")}>{game.level.toUpperCase()}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-5xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-5xl mx-auto overflow-y-auto overflow-x-hidden custom-scrollbar">
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-4 w-full max-w-md text-center py-6">
             <p className={cn("text-muted-foreground", isFullscreen ? "text-xl sm:text-2xl" : "text-sm sm:text-base")}>Ready to perfect your accent?</p>

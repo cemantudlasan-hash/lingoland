@@ -15,7 +15,9 @@ import { Textarea } from "../ui/textarea";
 import {
   generateDictationSentence,
 } from "@/ai/flows/generate-dictation-sentence";
-import { Loader2, Sparkles, Timer, CheckCircle, XCircle, Eye, RotateCcw, Repeat, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles,
+  ArrowLeft,
+  XOctagon, Timer, CheckCircle, XCircle, Eye, RotateCcw, Repeat, Maximize, Minimize } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
@@ -161,7 +163,7 @@ export function RunningDictation({ slug, onToggleFullscreen }: { slug: string; o
             <Badge variant="outline" className={cn("text-xs sm:text-sm px-3 py-0.5", isFullscreen && "text-base px-4 py-1")}>{difficulty.toUpperCase()}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-5xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-5xl mx-auto overflow-y-auto overflow-x-hidden custom-scrollbar">
         {gameState === "idle" && (
             <div className="flex flex-col items-center gap-4 w-full max-w-md text-center py-6">
                 <p className={cn("text-muted-foreground", isFullscreen ? "text-xl sm:text-2xl" : "text-sm sm:text-base")}>Ready to test your collective memory?</p>

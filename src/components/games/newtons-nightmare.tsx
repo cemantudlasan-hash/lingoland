@@ -6,7 +6,7 @@ import * as React from "react";
 import { getGameBySlug } from "@/lib/games";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { Rocket, Satellite, Maximize, Minimize, Crosshair } from "lucide-react";
+import { Rocket, Satellite, Maximize, Minimize, Crosshair, Trophy, Timer, Sparkles } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { cn } from "@/lib/utils";
@@ -211,10 +211,35 @@ export function NewtonsNightmare({ slug, onToggleFullscreen }: { slug: string; o
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col z-10 relative p-3 sm:p-6 items-center justify-center w-full max-w-4xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col z-10 relative p-3 sm:p-6 items-center justify-center w-full max-w-4xl mx-auto overflow-y-auto overflow-x-hidden custom-scrollbar">
          <AnimatePresence mode="wait">
             {gameState === "idle" && (
-                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}} className="text-center w-full max-w-md px-2">
+                <motion.div initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-20}} className="w-full max-w-3xl mx-auto my-auto space-y-6">
+                {/* Physics Telemetry Pods */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 w-full text-left">
+                  <div className="p-3 sm:p-4 rounded-xl bg-slate-950/60 border border-indigo-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                    <Rocket className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400 mb-1" />
+                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Mission Mode</span>
+                    <span className="text-xs sm:text-sm font-black text-foreground">Orbital Dynamics</span>
+                  </div>
+                  <div className="p-3 sm:p-4 rounded-xl bg-slate-950/60 border border-indigo-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                    <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Target Orbits</span>
+                    <span className="text-xs sm:text-sm font-black text-cyan-300">10 Trajectories</span>
+                  </div>
+                  <div className="p-3 sm:p-4 rounded-xl bg-slate-950/60 border border-indigo-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                    <Timer className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Burn Window</span>
+                    <span className="text-xs sm:text-sm font-black text-amber-300">Countdown Timer</span>
+                  </div>
+                  <div className="p-3 sm:p-4 rounded-xl bg-slate-950/60 border border-indigo-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400 mb-1" />
+                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Altitude XP</span>
+                    <span className="text-xs sm:text-sm font-black text-emerald-300">+100 Sync XP</span>
+                  </div>
+                </div>
+
+                <div className="text-center w-full max-w-md mx-auto px-2">
                     <Satellite className="w-20 h-20 sm:w-32 sm:h-32 text-indigo-400 mx-auto mb-4 sm:mb-8 animate-bounce" />
                     <h2 className="text-3xl sm:text-5xl font-black text-white uppercase mb-2 sm:mb-4 font-mono">Impending Collision</h2>
                     <p className="text-indigo-200/60 mb-6 sm:mb-8 mx-auto text-xs sm:text-sm">Select calculation engine difficulty level.</p>
@@ -229,6 +254,7 @@ export function NewtonsNightmare({ slug, onToggleFullscreen }: { slug: string; o
                            <Link href="/games">Back to Space Station</Link>
                         </Button>
                     </div>
+                </div>
                 </motion.div>
             )}
 

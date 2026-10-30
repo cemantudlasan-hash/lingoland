@@ -12,7 +12,7 @@ import {
 } from "../ui/card";
 import { Button } from "../ui/button";
 import { generateHangmanWord } from "@/ai/flows/generate-hangman-word";
-import { Loader2, Sparkles, Repeat, Lightbulb, Shuffle, Maximize, Minimize } from "lucide-react";
+import { Loader2, Sparkles, Repeat, Lightbulb, Shuffle, Maximize, Minimize, ArrowLeft, XOctagon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "../ui/badge";
 import type { SkillLevel } from "@/lib/types";
@@ -68,6 +68,12 @@ export function HangmanChallenge({ slug, onToggleFullscreen }: { slug: string; o
 
   const { toast } = useToast();
   const game = getGameBySlug(slug);
+
+  const handleAbortGame = () => {
+    setGameState("idle");
+    setWord("");
+    setGuessedLetters([]);
+  };
 
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -160,9 +166,36 @@ export function HangmanChallenge({ slug, onToggleFullscreen }: { slug: string; o
       </CardHeader>
       <CardContent className="text-center flex flex-col items-center justify-center flex-1 w-full p-2 sm:p-6 max-w-4xl mx-auto overflow-y-auto">
         {gameState === "idle" && (
-            <div className="flex flex-col items-center gap-3 sm:gap-4 my-auto">
-                <p className="text-muted-foreground text-sm sm:text-xl">Ready to decipher the hidden word?</p>
-                <Button onClick={() => setGameState('instructions')} className="h-11 sm:h-14 px-8 sm:px-12 text-sm sm:text-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black rounded-xl">Start Game</Button>
+          <div className="flex flex-col items-center gap-6 text-center my-auto w-full max-w-3xl">
+            {/* Hangman Telemetry Pods */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 w-full text-left">
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-primary/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Word Lexicon</span>
+                <span className="text-xs sm:text-sm font-black text-foreground">38 Categories</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-cyan-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Clue Engine</span>
+                <span className="text-xs sm:text-sm font-black text-cyan-300">Contextual Hints</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-purple-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Repeat className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Error Cushion</span>
+                <span className="text-xs sm:text-sm font-black text-purple-300">6 Misses Max</span>
+              </div>
+              <div className="p-3 sm:p-4 rounded-xl bg-card/60 border border-amber-500/20 backdrop-blur flex flex-col items-center justify-center text-center shadow-sm">
+                <Shuffle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 mb-1" />
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-wider text-muted-foreground">Mission Tiers</span>
+                <span className="text-xs sm:text-sm font-black text-amber-300">3 Difficulties</span>
+              </div>
+            </div>
+
+            <p className="text-muted-foreground text-xs sm:text-base max-w-md">
+              Deduce secret vocabulary words letter-by-letter with tactical hints before your attempts expire.
+            </p>
+
+            <Button onClick={() => setGameState('instructions')} className="h-11 sm:h-14 px-8 sm:px-12 text-sm sm:text-lg bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black rounded-xl">Start Game</Button>
             </div>
         )}
          {gameState === "instructions" && (
@@ -265,16 +298,26 @@ export function HangmanChallenge({ slug, onToggleFullscreen }: { slug: string; o
             </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2.5 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto">
+      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2.5 p-3 sm:p-6 w-full shrink-0 max-w-4xl mx-auto border-t border-border/20">
         <Button variant="outline" asChild className="w-full sm:w-auto h-10 sm:h-11 text-xs font-bold rounded-xl">
-            <Link href="/games">Exit Challenge</Link>
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
         </Button>
-        {gameState === 'playing' && 
-            <div className="flex gap-2 w-full sm:w-auto">
-                <Button variant="secondary" onClick={() => setGameState('selecting_category')} className="flex-1 sm:flex-none h-10 sm:h-11 px-3 sm:px-4 text-xs font-bold rounded-xl">Switch Category</Button>
-                <Button variant="secondary" onClick={() => handleNewWord(difficulty, category)} className="flex-1 sm:flex-none h-10 sm:h-11 px-3 sm:px-4 text-xs font-bold rounded-xl"><Shuffle className="mr-1.5 h-3.5 w-3.5"/>Reroll Word</Button>
-            </div>
-        }
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+          {(gameState === 'playing' || gameState === 'loading') && (
+            <Button variant="outline" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-10 sm:h-11 font-bold rounded-xl">
+              <XOctagon className="h-3.5 w-3.5" /> Abort Game
+            </Button>
+          )}
+          {gameState === 'playing' && (
+            <>
+              <Button variant="secondary" onClick={() => setGameState('selecting_category')} className="h-10 sm:h-11 px-3 sm:px-4 text-xs font-bold rounded-xl">Switch Category</Button>
+              <Button variant="secondary" onClick={() => handleNewWord(difficulty, category)} className="h-10 sm:h-11 px-3 sm:px-4 text-xs font-bold rounded-xl"><Shuffle className="mr-1.5 h-3.5 w-3.5"/>Reroll Word</Button>
+            </>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

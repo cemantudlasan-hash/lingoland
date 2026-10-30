@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Sparkles, RotateCcw, Volume2, VolumeX, Maximize2, HelpCircle, 
-  ChevronRight, Coins, ArrowLeft, BookOpen, Compass, Key
+  ChevronRight, Coins, ArrowLeft, XOctagon, BookOpen, Compass, Key
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { audioEngine } from "../AudioEngine";
@@ -46,6 +48,17 @@ export function EtymologyExpedition({ slug, onToggleFullscreen }: { slug: string
   const [isMuted, setIsMuted] = useState(false);
   const [gateState, setGateState] = useState<"locked" | "unlocking" | "opened" | "shaking">("locked");
   const [gameFinished, setGameFinished] = useState(false);
+
+  const handleAbortGame = () => {
+    setDifficulty(null);
+    setCurrentWord(null);
+    setLevelIndex(0);
+    setScore(0);
+    setSelectedPrefix(null);
+    setSelectedRoot(null);
+    setSelectedSuffix(null);
+    setGameFinished(false);
+  };
   const [coinsEarned, setCoinsEarned] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
 
@@ -684,6 +697,24 @@ export function EtymologyExpedition({ slug, onToggleFullscreen }: { slug: string
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Universal Footer */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-amber-950/60 mt-4 shrink-0">
+        <Button variant="outline" asChild size="sm" className="font-bold border-amber-900/40 bg-amber-950/40 text-amber-300 hover:text-white rounded-xl">
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
+        </Button>
+        {difficulty && (
+          <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 font-bold rounded-xl">
+            <XOctagon className="h-3.5 w-3.5" /> Abort Game
+          </Button>
+        )}
+        <div className="text-[10px] text-amber-600 font-mono tracking-wider uppercase select-none">
+          Etymology Expedition Morphology Vault
+        </div>
+      </div>
     </div>
   );
 }

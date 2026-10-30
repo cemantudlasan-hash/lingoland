@@ -23,6 +23,7 @@ import {
   Users,
   LogOut,
   Heart,
+  XOctagon,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
@@ -2129,6 +2130,35 @@ export function MathDash3D({ slug, onToggleFullscreen }: { slug: string; onToggl
             : 'min-h-[calc(100dvh-4.5rem)] max-w-full rounded-2xl md:rounded-3xl'
         )}
       >
+        <div className="flex items-center justify-between gap-2 p-3 sm:p-4 border-b border-purple-500/10 bg-slate-950/80 shrink-0 z-30">
+          <Button variant="ghost" size="sm" asChild className="gap-1.5 text-xs text-purple-400 hover:text-white border border-purple-500/30 bg-purple-950/40 rounded-xl h-8 px-2.5">
+            <Link href="/games">
+              <ArrowLeft className="h-3.5 w-3.5" /> Games
+            </Link>
+          </Button>
+          <div className="flex items-center gap-2">
+            {gameState === 'playing' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setGameState('idle')}
+                className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 h-8 font-bold rounded-xl"
+              >
+                <XOctagon className="h-3.5 w-3.5" /> Abort Mission
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 gap-1 text-purple-400 hover:text-white"
+              onClick={onToggleFullscreen}
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+              <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+            </Button>
+          </div>
+        </div>
+
         {/* ── Header ── */}
         <div className="flex-shrink-0 text-center pb-2 pt-4 px-4 relative border-b border-purple-500/10">
           <Button

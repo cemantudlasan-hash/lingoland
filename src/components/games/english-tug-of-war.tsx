@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import * as React from "react";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -7,7 +9,7 @@ import { Badge } from "../ui/badge";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import {
-  Trophy, Play, UserPlus, Sparkles, Volume2, VolumeX, Maximize,
+  Trophy, Play, UserPlus, Sparkles, Volume2, VolumeX, Maximize, ArrowLeft, XOctagon,
   UserCheck, Award, ArrowRight, Wifi, WifiOff, Users, Copy,
   CheckCircle2, Loader2, RefreshCw, LogOut, Swords, Timer, Check, X, Shield, Zap, AlertCircle, BookOpen
 } from "lucide-react";
@@ -837,6 +839,11 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
   const [currentProblem, setCurrentProblem] = React.useState<TugProblem | null>(null);
   const [timer, setTimer] = React.useState(15);
   const [timerActive, setTimerActive] = React.useState(false);
+
+  const handleAbortGame = () => {
+    setTimerActive(false);
+    setScreen("modeSelect");
+  };
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   // Lockouts (single-screen key bashing prevention)
@@ -2219,7 +2226,7 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
       </div>
 
       {/* Main Screen Content */}
-      <div className="flex-1 max-w-[95%] mx-auto w-full px-4 py-8 flex flex-col justify-center">
+      <div className="flex-1 max-w-[95%] mx-auto w-full px-4 py-6 flex flex-col justify-start overflow-y-auto overflow-x-hidden custom-scrollbar">
         {screen === "modeSelect" && renderModeSelect()}
         {screen === "localConfig" && renderLocalConfig()}
         {screen === "localPlay" && renderLocalPlay()}
@@ -2229,8 +2236,21 @@ export function EnglishTugOfWar({ onToggleFullscreen }: { onToggleFullscreen?: (
       </div>
 
       {/* Footer Branding */}
-      <div className="max-w-[95%] mx-auto w-full px-4 text-center border-t border-slate-900 pt-4 text-[10px] text-slate-600 font-black tracking-wider uppercase select-none">
-        LingoLand Interactive Arena Modules
+      <div className="max-w-[95%] mx-auto w-full px-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-900 pt-4 shrink-0">
+        <Button variant="outline" asChild size="sm" className="font-bold border-slate-800 bg-slate-900/40 text-slate-300 hover:text-white rounded-xl">
+          <Link href="/games" className="flex items-center gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Games</span>
+          </Link>
+        </Button>
+        {(screen === "localPlay" || screen === "onlinePlay") && (
+          <Button variant="outline" size="sm" onClick={handleAbortGame} className="text-xs text-rose-400 border-rose-500/30 hover:bg-rose-500/10 gap-1.5 font-bold rounded-xl">
+            <XOctagon className="h-3.5 w-3.5" /> Abort Battle
+          </Button>
+        )}
+        <div className="text-[10px] text-slate-600 font-black tracking-wider uppercase select-none">
+          LingoLand Interactive Arena Modules
+        </div>
       </div>
 
     </div>
