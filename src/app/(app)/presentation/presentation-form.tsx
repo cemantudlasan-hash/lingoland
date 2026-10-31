@@ -1146,13 +1146,61 @@ export function PresentationForm() {
     });
   };
 
+  // Sync presentation and reveal all words on all slides so newly edited/added text is 100% visible immediately
+  const applyEditedSlidesAndReveal = React.useCallback((newSlides: { title: string; content: string[] }[], newTitle?: string) => {
+    const finalTitle = newTitle || editableTitle || presentation?.title || '';
+    setPresentation(prev => prev ? ({ ...prev, title: finalTitle, slides: newSlides }) : null);
+
+    const newCounts: { [key: number]: number } = {};
+    const newWords: { [key: number]: string[] } = {};
+    (newSlides || []).forEach((slide, idx) => {
+      const words = (slide.content || []).flatMap(p => p.split(' '));
+      newWords[idx] = words;
+      newCounts[idx] = words.length; // Reveal all words so new text appears immediately!
+    });
+    allWordsOnSlide.current = newWords;
+    setVisibleWordCounts(prev => ({ ...prev, ...newCounts }));
+  }, [editableTitle, presentation?.title]);
+
+  const handleAddNewSlide = () => {
+    const currentSlides = editableSlides.length > 0 
+      ? [...editableSlides] 
+      : JSON.parse(JSON.stringify(presentation?.slides || []));
+    const newSlideNumber = currentSlides.length + 1;
+    const newSlide = {
+      title: `Slide ${newSlideNumber}: New Topic`,
+      content: ["New slide point outline statement."]
+    };
+    const updated = [...currentSlides, newSlide];
+    setEditableSlides(updated);
+    
+    // Also reveal words for the new slide
+    allWordsOnSlide.current[updated.length - 1] = ["New", "slide", "point", "outline", "statement."];
+    setVisibleWordCounts(prev => ({
+      ...prev,
+      [updated.length - 1]: 5
+    }));
+
+    setTimeout(() => {
+      if (api) {
+        api.reInit();
+        api.scrollTo(updated.length - 1);
+      }
+    }, 80);
+
+    toast({
+      title: "New Slide Added 📄",
+      description: `Added Slide ${newSlideNumber}. You can now customize its text!`
+    });
+  };
+
   // Save changes to Firestore User Document & Subcollection
   const handleSaveToDb = async () => {
     if (!user || isGuest || !firestore || !presentation) return;
     setIsSavingDb(true);
 
     try {
-      const baseSlides = isEditMode ? editableSlides : presentation.slides;
+      const baseSlides = isEditMode ? (editableSlides.length > 0 ? editableSlides : presentation.slides) : presentation.slides;
       // Inject slide-specific photos, 3D object styles, and digital marker drawings cleanly without undefined values
       const slidesData = baseSlides.map((slide, idx) => {
         const slideItem: any = {
@@ -1168,7 +1216,7 @@ export function PresentationForm() {
         return slideItem;
       });
 
-      const titleData = isEditMode ? editableTitle : presentation.title;
+      const titleData = isEditMode ? (editableTitle || presentation.title) : presentation.title;
       let updatedList = [...dbPresentations];
       let docId = activeDbId;
       let targetFolderId: string | null = null;
@@ -1194,10 +1242,7 @@ export function PresentationForm() {
         
         // Optimistically update React state immediately
         setDbPresentations(updatedList);
-        setPresentation({
-          title: titleData,
-          slides: slidesData
-        });
+        applyEditedSlidesAndReveal(slidesData, titleData);
 
         // 1. Save to dedicated subcollection (unlimited storage)
         const subDocRef = doc(firestore, `users/${user.uid}/presentations/${activeDbId}`);
@@ -1243,6 +1288,7 @@ export function PresentationForm() {
 
         // Optimistically update React state immediately so it appears on the left panel!
         setDbPresentations(updatedList);
+        applyEditedSlidesAndReveal(slidesData, titleData);
 
         // 1. Save to dedicated subcollection (unlimited storage)
         const subDocRef = doc(firestore, `users/${user.uid}/presentations/${newId}`);
@@ -1902,6 +1948,14 @@ export function PresentationForm() {
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!presentation) return;
+      if (isEditMode) return;
+      
+      // Do not intercept keystrokes if the user is typing inside an input or textarea
+      const target = event.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return;
+      }
+
       if (event.key === ' ' || event.key === 'ArrowRight') {
         event.preventDefault();
         handleRevealNextWord();
@@ -1909,17 +1963,20 @@ export function PresentationForm() {
     };
     
     const container = presentationContainerRef.current;
-    if (container && isFullscreen) {
-        container.addEventListener('keydown', handleKeyDown);
-        container.setAttribute('tabindex', '0');
+    if (container && isFullscreen && !isEditMode) {
+      container.addEventListener('keydown', handleKeyDown);
+      container.setAttribute('tabindex', '0');
+      // Only focus container if user is not currently interacting with an input
+      if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
         container.focus();
+      }
     }
     return () => {
       if (container) {
         container.removeEventListener('keydown', handleKeyDown);
       }
     };
-  }, [presentation, handleRevealNextWord, isFullscreen]);
+  }, [presentation, handleRevealNextWord, isFullscreen, isEditMode]);
 
   React.useEffect(() => {
     if (!api) return;
@@ -3053,25 +3110,37 @@ export function PresentationForm() {
 
                 {/* DB Save and Live Edit Toolbar */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-850">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button 
                       onClick={() => {
-                        if (!isEditMode) {
-                          setEditableTitle(editableTitle || presentation.title);
-                          if (!editableSlides || editableSlides.length === 0) {
-                            setEditableSlides(JSON.parse(JSON.stringify(presentation.slides)));
-                          }
+                        if (isEditMode) {
+                          applyEditedSlidesAndReveal(editableSlides, editableTitle);
+                          setIsEditMode(false);
+                          toast({
+                            title: "Edits Applied ✨",
+                            description: "Your updated slides are now visible."
+                          });
                         } else {
-                          setPresentation(prev => prev ? ({ ...prev, title: editableTitle, slides: editableSlides }) : prev);
+                          setEditableTitle(editableTitle || presentation.title);
+                          setEditableSlides(JSON.parse(JSON.stringify(presentation.slides)));
+                          setIsEditMode(true);
                         }
-                        setIsEditMode(!isEditMode);
                       }} 
                       variant="outline" 
                       className={cn("w-full sm:w-auto h-9 text-xs font-extrabold rounded-lg border-slate-800", isEditMode ? "bg-purple-950 border-purple-500 text-purple-200" : "bg-slate-950 text-slate-400")}
                     >
                       <Edit className="mr-1.5 h-3.5 w-3.5" />
-                      {isEditMode ? "Exit Outline Editor" : "Edit Slide Content"}
+                      {isEditMode ? "Done Editing" : "Edit Slide Content"}
                     </Button>
+                    {isEditMode && (
+                      <Button
+                        onClick={handleAddNewSlide}
+                        variant="outline"
+                        className="h-9 text-xs font-extrabold rounded-lg border-purple-500/40 bg-purple-950/60 hover:bg-purple-900 text-purple-200"
+                      >
+                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Add New Slide
+                      </Button>
+                    )}
                   </div>
                   <Button 
                     onClick={handleSaveToDb} 
@@ -3190,15 +3259,18 @@ export function PresentationForm() {
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!isEditMode) {
-                            setEditableTitle(editableTitle || presentation.title);
-                            if (!editableSlides || editableSlides.length === 0) {
-                              setEditableSlides(JSON.parse(JSON.stringify(presentation.slides)));
-                            }
+                          if (isEditMode) {
+                            applyEditedSlidesAndReveal(editableSlides, editableTitle);
+                            setIsEditMode(false);
+                            toast({
+                              title: "Edits Applied ✨",
+                              description: "Your updated slides are now visible."
+                            });
                           } else {
-                            setPresentation(prev => prev ? ({ ...prev, title: editableTitle, slides: editableSlides }) : prev);
+                            setEditableTitle(editableTitle || presentation.title);
+                            setEditableSlides(JSON.parse(JSON.stringify(presentation.slides)));
+                            setIsEditMode(true);
                           }
-                          setIsEditMode(!isEditMode);
                         }}
                         variant="secondary"
                         size="sm"
@@ -3213,6 +3285,23 @@ export function PresentationForm() {
                         <Edit className="h-3.5 w-3.5 text-amber-400" />
                         <span className="text-xs font-bold">{isEditMode ? "Done Editing" : "Edit Slides"}</span>
                       </Button>
+
+                      {/* Add New Slide Button in Fullscreen */}
+                      {isEditMode && (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddNewSlide();
+                          }}
+                          variant="secondary"
+                          size="sm"
+                          className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-purple-700 hover:bg-purple-600 text-white border border-purple-400 rounded-xl shadow-lg transition-all active:scale-95 shrink-0"
+                          title="Add a new slide to this presentation"
+                        >
+                          <Plus className="h-3.5 w-3.5 text-amber-300" />
+                          <span className="text-xs font-bold">+ New Slide</span>
+                        </Button>
+                      )}
 
                       {/* Save Outline Button when editing in Fullscreen */}
                       {isEditMode && (
@@ -3447,14 +3536,14 @@ export function PresentationForm() {
                                     <Input 
                                       value={editableSlides[index]?.title ?? slide.title} 
                                       onChange={(e) => {
-                                        const updated = editableSlides.length > 0 
-                                          ? JSON.parse(JSON.stringify(editableSlides)) 
-                                          : JSON.parse(JSON.stringify(presentation.slides));
-                                        if (updated[index]) {
-                                          updated[index].title = e.target.value;
-                                          setEditableSlides(updated);
-                                          setPresentation(prev => prev ? ({ ...prev, slides: updated }) : prev);
-                                        }
+                                        const val = e.target.value;
+                                        setEditableSlides(prev => {
+                                          const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation.slides));
+                                          if (updated[index]) {
+                                            updated[index] = { ...updated[index], title: val };
+                                          }
+                                          return updated;
+                                        });
                                       }}
                                       className={cn(
                                         "font-bold h-10 rounded-xl border text-sm sm:text-base px-3 transition-colors",
@@ -3487,14 +3576,16 @@ export function PresentationForm() {
                                         <Input 
                                           value={point}
                                           onChange={(e) => {
-                                            const updated = editableSlides.length > 0 
-                                              ? JSON.parse(JSON.stringify(editableSlides)) 
-                                              : JSON.parse(JSON.stringify(presentation.slides));
-                                            if (updated[index] && updated[index].content) {
-                                              updated[index].content[ptIdx] = e.target.value;
-                                              setEditableSlides(updated);
-                                              setPresentation(prev => prev ? ({ ...prev, slides: updated }) : prev);
-                                            }
+                                            const val = e.target.value;
+                                            setEditableSlides(prev => {
+                                              const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation.slides));
+                                              if (updated[index] && updated[index].content) {
+                                                const newContent = [...updated[index].content];
+                                                newContent[ptIdx] = val;
+                                                updated[index] = { ...updated[index], content: newContent };
+                                              }
+                                              return updated;
+                                            });
                                           }}
                                           className={cn(
                                             "text-xs sm:text-sm h-10 rounded-xl border px-3 transition-colors flex-1",
@@ -3508,14 +3599,15 @@ export function PresentationForm() {
                                           size="icon" 
                                           variant="ghost" 
                                           onClick={() => {
-                                            const updated = editableSlides.length > 0 
-                                              ? JSON.parse(JSON.stringify(editableSlides)) 
-                                              : JSON.parse(JSON.stringify(presentation.slides));
-                                            if (updated[index] && updated[index].content) {
-                                              updated[index].content.splice(ptIdx, 1);
-                                              setEditableSlides(updated);
-                                              setPresentation(prev => prev ? ({ ...prev, slides: updated }) : prev);
-                                            }
+                                            setEditableSlides(prev => {
+                                              const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation.slides));
+                                              if (updated[index] && updated[index].content) {
+                                                const newContent = [...updated[index].content];
+                                                newContent.splice(ptIdx, 1);
+                                                updated[index] = { ...updated[index], content: newContent };
+                                              }
+                                              return updated;
+                                            });
                                           }}
                                           className="h-9 w-9 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl shrink-0"
                                           title="Delete bullet point"
@@ -3528,15 +3620,14 @@ export function PresentationForm() {
                                       size="sm" 
                                       variant="outline" 
                                       onClick={() => {
-                                        const updated = editableSlides.length > 0 
-                                          ? JSON.parse(JSON.stringify(editableSlides)) 
-                                          : JSON.parse(JSON.stringify(presentation.slides));
-                                        if (updated[index]) {
-                                          if (!updated[index].content) updated[index].content = [];
-                                          updated[index].content.push("New slide point outline statement.");
-                                          setEditableSlides(updated);
-                                          setPresentation(prev => prev ? ({ ...prev, slides: updated }) : prev);
-                                        }
+                                        setEditableSlides(prev => {
+                                          const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation.slides));
+                                          if (updated[index]) {
+                                            const newContent = [...(updated[index].content || []), "New slide point outline statement."];
+                                            updated[index] = { ...updated[index], content: newContent };
+                                          }
+                                          return updated;
+                                        });
                                       }}
                                       className={cn(
                                         "h-9 text-xs font-bold rounded-xl border mt-1",
