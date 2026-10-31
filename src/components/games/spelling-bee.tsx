@@ -31,10 +31,20 @@ import { Progress } from "../ui/progress";
 import confetti from 'canvas-confetti';
 
 type GameState = "idle" | "setup" | "loading" | "playing" | "answered" | "finished" | "instructions";
-type Team = { name: string; score: number };
+type Team = { name: string; score: number; timeLeft: number; isEliminated?: boolean };
 
-const TURN_TIME_SECONDS = 60;
+const DEFAULT_TIME_BANK_SECONDS = 120; // 2 minutes
 const LOCAL_STORAGE_KEY = 'lingoland_spelling_bee_used_words';
+
+const formatTime = (seconds: number) => {
+  const s = Math.max(0, Math.floor(seconds));
+  const mins = Math.floor(s / 60);
+  const secs = s % 60;
+  if (mins > 0) {
+    return `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+  }
+  return `${secs}s`;
+};
 
 const TEAM_THEMES = [
   { badge: "bg-amber-500 text-white", border: "border-amber-500/40", glow: "from-amber-500/20 to-amber-600/5", activeText: "text-amber-500", name: "Amber" },
@@ -45,7 +55,16 @@ const TEAM_THEMES = [
 
 export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const [gameState, setGameState] = React.useState<GameState>("idle");
-  const [teams, setTeams] = React.useState<Team[]>([{ name: "Team 1", score: 0 }, { name: "Team 2", score: 0 }]);
+  const [timeBankPreset, setTimeBankPreset] = React.useState<string>("120");
+  const [timeBankSeconds, setTimeBankSeconds] = React.useState<number>(DEFAULT_TIME_BANK_SECONDS);
+  const [customTimeInput, setCustomTimeInput] = React.useState<number>(2);
+  const [customTimeUnit, setCustomTimeUnit] = React.useState<"seconds" | "minutes">("minutes");
+  const [allTimedOut, setAllTimedOut] = React.useState<boolean>(false);
+
+  const [teams, setTeams] = React.useState<Team[]>([
+    { name: "Team 1", score: 0, timeLeft: DEFAULT_TIME_BANK_SECONDS, isEliminated: false },
+    { name: "Team 2", score: 0, timeLeft: DEFAULT_TIME_BANK_SECONDS, isEliminated: false }
+  ]);
   const [totalRounds, setTotalRounds] = React.useState(10);
   const [currentRound, setCurrentRound] = React.useState(0);
   const [currentTurn, setCurrentTurn] = React.useState(0);
@@ -57,12 +76,29 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
   const [usedWords, setUsedWords] = React.useState<string[]>([]);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [showHint, setShowHint] = React.useState(false);
-  const [timeLeft, setTimeLeft] = React.useState(TURN_TIME_SECONDS);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
 
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const game = getGameBySlug(slug);
+
+  const activeTeam = teams[currentTurn] || { name: "Team", score: 0, timeLeft: 0, isEliminated: false };
+  const activeTimeLeft = activeTeam.timeLeft;
+  const isTimeCritical = activeTimeLeft <= 15;
+
+  const getNextEligibleTurn = React.useCallback((currentIdx: number, teamList: Team[]) => {
+    const n = teamList.length;
+    if (n === 0) return null;
+    for (let step = 1; step <= n; step++) {
+      const candidateIdx = (currentIdx + step) % n;
+      const t = teamList[candidateIdx];
+      if (t && t.timeLeft > 0 && !t.isEliminated) {
+        const completedFullCycle = candidateIdx <= currentIdx;
+        return { nextTurn: candidateIdx, completedFullCycle };
+      }
+    }
+    return null;
+  }, []);
 
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -102,7 +138,6 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
     setIsCorrect(null);
     setShowHint(false);
     setTimedOut(false);
-    setTimeLeft(TURN_TIME_SECONDS);
     try {
       const newWord = await generateSpellingBeeWord({
         difficulty: level,
@@ -110,7 +145,6 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
       });
       setWordData(newWord);
       setUsedWords(prev => [...prev, newWord.word]);
-      setTimeLeft(TURN_TIME_SECONDS);
       setGameState("playing");
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent('lingoland_game_started_hijack'));
@@ -135,13 +169,19 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    setTeams(teams.map(t => ({...t, score: 0})));
+    const initialTime = Math.max(10, timeBankSeconds);
+    setTeams(teams.map(t => ({
+      ...t,
+      score: 0,
+      timeLeft: initialTime,
+      isEliminated: false
+    })));
     setCurrentRound(1);
     setCurrentTurn(0);
-    setTimeLeft(TURN_TIME_SECONDS);
     setTimedOut(false);
+    setAllTimedOut(false);
     fetchNextWord(difficulty);
-  }, [teams, difficulty, fetchNextWord, toast]);
+  }, [teams, difficulty, timeBankSeconds, fetchNextWord, toast]);
 
   const handleTimeUp = React.useCallback(() => {
     if (gameState !== 'playing') return;
@@ -149,12 +189,17 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    setTeams(prev =>
+      prev.map((t, idx) =>
+        idx === currentTurn ? { ...t, timeLeft: 0, isEliminated: true } : t
+      )
+    );
     setTimedOut(true);
     setIsCorrect(false);
     setGameState("answered");
-  }, [gameState]);
+  }, [gameState, currentTurn]);
 
-  // Clean countdown interval that ticks every second while gameState === 'playing'
+  // Chess-clock interval: decrements active team's timeLeft every second while gameState === 'playing'
   React.useEffect(() => {
     if (gameState !== 'playing') {
       if (timerRef.current) {
@@ -165,7 +210,16 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
     }
 
     timerRef.current = setInterval(() => {
-      setTimeLeft(prev => (prev <= 1 ? 0 : prev - 1));
+      setTeams(prev => {
+        const cur = prev[currentTurn];
+        if (!cur) return prev;
+        const newTime = cur.timeLeft - 1;
+        return prev.map((t, idx) =>
+          idx === currentTurn
+            ? { ...t, timeLeft: Math.max(0, newTime), isEliminated: newTime <= 0 }
+            : t
+        );
+      });
     }, 1000);
 
     return () => {
@@ -174,14 +228,14 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
         timerRef.current = null;
       }
     };
-  }, [gameState]);
+  }, [gameState, currentTurn]);
 
-  // Safely trigger turn timeout when timeLeft reaches 0
+  // Safely trigger turn timeout when active team runs out of time
   React.useEffect(() => {
-    if (gameState === 'playing' && timeLeft <= 0) {
+    if (gameState === 'playing' && activeTimeLeft <= 0) {
       handleTimeUp();
     }
-  }, [timeLeft, gameState, handleTimeUp]);
+  }, [activeTimeLeft, gameState, handleTimeUp]);
 
   const handleSpeak = async (text: string) => {
     if (isSpeaking) return;
@@ -205,10 +259,12 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
     }
     const correct = userAnswer.trim().toLowerCase() === wordData.word.toLowerCase();
     setIsCorrect(correct);
-    if(correct) {
-      const newTeams = [...teams];
-      newTeams[currentTurn].score += 1;
-      setTeams(newTeams);
+    if (correct) {
+      setTeams(prev =>
+        prev.map((t, idx) =>
+          idx === currentTurn ? { ...t, score: t.score + 1 } : t
+        )
+      );
     }
     setGameState("answered");
   };
@@ -218,25 +274,45 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    if (currentRound >= totalRounds && currentTurn === teams.length - 1) {
-        setGameState("finished");
-        try {
-          confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-          if (typeof window !== "undefined") {
-            window.dispatchEvent(new CustomEvent('lingoland_game_completed_hijack', {
-              detail: { state: 'finished' }
-            }));
-          }
-        } catch (e) {}
-        return;
+
+    const nextCandidate = getNextEligibleTurn(currentTurn, teams);
+
+    // If no eligible teams have time remaining (all players timed out)
+    if (!nextCandidate) {
+      setAllTimedOut(true);
+      setGameState("finished");
+      try {
+        confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent('lingoland_game_completed_hijack', {
+            detail: { state: 'finished' }
+          }));
+        }
+      } catch (e) {}
+      return;
     }
 
-    const nextTurn = (currentTurn + 1) % teams.length;
-    setCurrentTurn(nextTurn);
-    if (nextTurn === 0) {
-        setCurrentRound(prev => prev + 1);
+    let nextRound = currentRound;
+    if (nextCandidate.completedFullCycle) {
+      nextRound = currentRound + 1;
     }
-    setTimeLeft(TURN_TIME_SECONDS);
+
+    // If all match rounds have been completed
+    if (nextRound > totalRounds) {
+      setGameState("finished");
+      try {
+        confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent('lingoland_game_completed_hijack', {
+            detail: { state: 'finished' }
+          }));
+        }
+      } catch (e) {}
+      return;
+    }
+
+    setCurrentRound(nextRound);
+    setCurrentTurn(nextCandidate.nextTurn);
     setTimedOut(false);
     fetchNextWord(difficulty);
   };
@@ -255,20 +331,26 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
   };
 
   const handleTeamNameChange = (index: number, newName: string) => {
-    const newTeams = [...teams];
-    newTeams[index].name = newName;
-    setTeams(newTeams);
+    setTeams(prev => prev.map((t, idx) => idx === index ? { ...t, name: newName } : t));
   };
   
   const addTeam = () => {
     if (teams.length < 4) {
-      setTeams([...teams, { name: `Team ${String.fromCharCode(65 + teams.length)}`, score: 0 }]);
+      setTeams(prev => [
+        ...prev,
+        {
+          name: `Team ${String.fromCharCode(65 + prev.length)}`,
+          score: 0,
+          timeLeft: timeBankSeconds,
+          isEliminated: false
+        }
+      ]);
     }
   };
 
   const removeTeam = (index: number) => {
     if (teams.length > 2) {
-      setTeams(teams.filter((_, i) => i !== index));
+      setTeams(prev => prev.filter((_, i) => i !== index));
     }
   };
 
@@ -279,8 +361,8 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
     }
     setGameState('setup');
     setUsedWords([]);
-    setTimeLeft(TURN_TIME_SECONDS);
     setTimedOut(false);
+    setAllTimedOut(false);
   };
 
   const Icon = game.icon;
@@ -342,14 +424,86 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <Timer className="w-3.5 h-3.5 text-amber-500" /> Team Match Time Bank
+                    </label>
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono">
+                      {formatTime(timeBankSeconds)}
+                    </span>
+                  </div>
+
+                  <Select 
+                    value={timeBankPreset} 
+                    onValueChange={(val) => {
+                      setTimeBankPreset(val);
+                      if (val !== 'custom') {
+                        const secs = Number(val);
+                        setTimeBankSeconds(secs);
+                        setTeams(prev => prev.map(t => ({ ...t, timeLeft: secs })));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl bg-card border-2 font-bold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 Seconds (Blitz Match)</SelectItem>
+                      <SelectItem value="60">1 Minute (Quick Match)</SelectItem>
+                      <SelectItem value="120">2 Minutes (Standard Match)</SelectItem>
+                      <SelectItem value="180">3 Minutes (Extended Tournament)</SelectItem>
+                      <SelectItem value="300">5 Minutes (Championship)</SelectItem>
+                      <SelectItem value="custom">⚙️ Custom Minutes / Seconds...</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {timeBankPreset === 'custom' && (
+                    <div className="flex items-center gap-2 pt-1 animate-in fade-in duration-200">
+                      <Input
+                        type="number"
+                        min={5}
+                        max={3600}
+                        value={customTimeInput}
+                        onChange={(e) => {
+                          const val = Math.max(1, parseInt(e.target.value, 10) || 0);
+                          setCustomTimeInput(val);
+                          const totalSecs = customTimeUnit === 'minutes' ? val * 60 : val;
+                          setTimeBankSeconds(totalSecs);
+                          setTeams(prev => prev.map(t => ({ ...t, timeLeft: totalSecs })));
+                        }}
+                        className="h-10 rounded-xl bg-card border-2 font-mono font-bold"
+                        placeholder="Time value"
+                      />
+                      <Select
+                        value={customTimeUnit}
+                        onValueChange={(unit: 'seconds' | 'minutes') => {
+                          setCustomTimeUnit(unit);
+                          const totalSecs = unit === 'minutes' ? customTimeInput * 60 : customTimeInput;
+                          setTimeBankSeconds(totalSecs);
+                          setTeams(prev => prev.map(t => ({ ...t, timeLeft: totalSecs })));
+                        }}
+                      >
+                        <SelectTrigger className="h-10 w-32 rounded-xl bg-card border-2 font-bold">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="seconds">Seconds</SelectItem>
+                          <SelectItem value="minutes">Minutes</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 space-y-1.5">
                 <div className="flex items-center gap-2 font-black uppercase tracking-wider">
-                  <Timer className="w-4 h-4 text-amber-500" /> 60-Second Timed Turns
+                  <Timer className="w-4 h-4 text-amber-500" /> Team Match Time Bank ({formatTime(timeBankSeconds)})
                 </div>
                 <p className="opacity-90 leading-relaxed">
-                  Each team takes turns listening to a spoken word and typing its exact spelling before time runs out.
+                  Each team starts with <strong>{formatTime(timeBankSeconds)}</strong> total clock. The timer counts down when your team is answering and pauses as soon as you submit an answer. If a team runs out of time, they are eliminated while surviving teams finish the rounds. Highest points wins!
                 </p>
               </div>
             </div>
@@ -438,8 +592,8 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
               </div>
               <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 text-center space-y-2">
                 <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-sm flex items-center justify-center mx-auto">3</div>
-                <h4 className="font-black text-xs uppercase tracking-wider">Score Points</h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">Type your answer before the 60s countdown expires. Every correct spelling awards 1 point to your team.</p>
+                <h4 className="font-black text-xs uppercase tracking-wider">Score & Manage Clock</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">Manage your team's match time bank. Clock counts down while you answer and pauses between turns. Highest points wins!</p>
               </div>
             </div>
 
@@ -468,7 +622,6 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
       case "answered":
         if (!wordData) return null;
         const activeTheme = TEAM_THEMES[currentTurn % TEAM_THEMES.length];
-        const isTimeCritical = timeLeft <= 15;
 
         return (
           <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -484,12 +637,25 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                       "flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap shrink-0 transition-all",
                       isCurrent 
                         ? cn(tTheme.badge, "shadow-md scale-105")
-                        : "bg-muted/40 border-border/40 text-muted-foreground"
+                        : t.isEliminated
+                          ? "bg-destructive/10 border-destructive/30 text-destructive line-through opacity-70"
+                          : "bg-muted/40 border-border/40 text-muted-foreground"
                     )}
                   >
                     <span>{t.name}</span>
                     <span className={cn("px-1.5 py-0.5 rounded-md text-[10px] font-black", isCurrent ? "bg-white/25 text-white" : "bg-muted text-foreground")}>
                       {t.score} pts
+                    </span>
+                    <span className={cn(
+                      "px-1.5 py-0.5 rounded-md text-[10px] font-mono font-black flex items-center gap-0.5",
+                      t.isEliminated 
+                        ? "bg-destructive/20 text-destructive"
+                        : isCurrent 
+                          ? "bg-black/20 text-white" 
+                          : "bg-muted/60 text-muted-foreground"
+                    )}>
+                      <Timer className="w-2.5 h-2.5" />
+                      {t.isEliminated ? "0s" : formatTime(t.timeLeft)}
                     </span>
                   </div>
                 );
@@ -513,7 +679,7 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                     <Crown className="w-3 h-3" /> Turn
                   </span>
                   <span className="text-base sm:text-2xl truncate max-w-[120px] sm:max-w-[200px] mt-0.5 font-black">
-                    {teams[currentTurn].name}
+                    {activeTeam.name}
                   </span>
                 </div>
 
@@ -524,15 +690,15 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                     : "bg-muted/30 border-border/40 text-foreground"
                 )}>
                   <span className="text-[10px] sm:text-xs text-muted-foreground font-semibold flex items-center gap-1">
-                    <Timer className="w-3 h-3" /> Time Left
+                    <Timer className="w-3 h-3" /> Team Clock
                   </span>
-                  <span className="text-base sm:text-2xl font-mono font-black mt-0.5">{timeLeft}s</span>
+                  <span className="text-base sm:text-2xl font-mono font-black mt-0.5">{formatTime(activeTimeLeft)}</span>
                 </div>
               </div>
 
               {/* Timer progress bar */}
               <Progress 
-                value={(timeLeft / TURN_TIME_SECONDS) * 100} 
+                value={Math.min(100, (activeTimeLeft / timeBankSeconds) * 100)} 
                 className={cn(
                   "w-full h-2 rounded-full transition-all",
                   isTimeCritical ? "[&>div]:bg-destructive" : "[&>div]:bg-amber-500"
@@ -652,12 +818,16 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                     )}>
                       {isCorrect ? <Check className="h-6 w-6 text-green-500 mx-auto" /> : <X className="h-6 w-6 text-red-500 mx-auto" />}
                       <AlertTitle className="font-black uppercase tracking-wider text-base sm:text-xl mt-1 mb-1">
-                        {timedOut ? "TIME EXPIRED!" : (isCorrect ? 'PERFECT SPELLING! 🎯' : 'INCORRECT SPELLING')}
+                        {timedOut ? "TIME LIMIT EXPIRED! ⏰" : (isCorrect ? 'PERFECT SPELLING! 🎯' : 'INCORRECT SPELLING')}
                       </AlertTitle>
                       <AlertDescription className="font-bold text-xs sm:text-base">
-                        {isCorrect ? (
+                        {timedOut ? (
+                          <span className="text-destructive font-black">
+                            {activeTeam.name} has run out of time bank and cannot take any more turns! The correct spelling was: <span className="underline tracking-wider">{wordData.word.toUpperCase()}</span>
+                          </span>
+                        ) : isCorrect ? (
                           <span className="text-green-600 dark:text-green-400">
-                            +1 point awarded to {teams[currentTurn].name}! Correct spelling: <span className="underline font-black">{wordData.word.toUpperCase()}</span>
+                            +1 point awarded to {activeTeam.name}! Correct spelling: <span className="underline font-black">{wordData.word.toUpperCase()}</span>
                           </span>
                         ) : (
                           <span>
@@ -675,7 +845,14 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                       className="w-full h-13 font-black uppercase text-base rounded-2xl shadow-lg bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white"
                     >
                       <Repeat className="mr-2 h-5 w-5"/>
-                      {currentRound >= totalRounds && currentTurn === teams.length - 1 ? "View Final Results" : "Next Team's Turn"}
+                      {(() => {
+                        const nextCandidate = getNextEligibleTurn(currentTurn, teams);
+                        if (!nextCandidate) return "Match Complete (All Timed Out) - View Results";
+                        let nextRound = currentRound;
+                        if (nextCandidate.completedFullCycle) nextRound = currentRound + 1;
+                        if (nextRound > totalRounds) return "Final Round Complete - View Winner";
+                        return `Next: ${teams[nextCandidate.nextTurn].name}'s Turn (Round ${nextRound})`;
+                      })()}
                     </Button>
                   </div>
                 )}
@@ -696,7 +873,10 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                 <div className="space-y-2">
                   {[...teams]
                     .map((team, originalIndex) => ({ ...team, originalIndex }))
-                    .sort((a, b) => b.score - a.score)
+                    .sort((a, b) => {
+                      if (b.score !== a.score) return b.score - a.score;
+                      return b.timeLeft - a.timeLeft;
+                    })
                     .map((team, rank) => {
                       const theme = TEAM_THEMES[team.originalIndex % TEAM_THEMES.length];
                       const isCurrent = team.originalIndex === currentTurn;
@@ -707,7 +887,8 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                             "flex items-center justify-between p-3 rounded-2xl border transition-all",
                             isCurrent 
                               ? "bg-amber-500/10 border-amber-500/40 ring-2 ring-amber-500/30" 
-                              : "bg-muted/20 border-border/30"
+                              : "bg-muted/20 border-border/30",
+                            team.isEliminated && "opacity-60"
                           )}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
@@ -720,17 +901,30 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                               {rank === 0 ? "🥇" : rank === 1 ? "🥈" : rank === 2 ? "🥉" : `${rank + 1}`}
                             </span>
                             <div className="min-w-0">
-                              <p className="font-black text-xs sm:text-sm truncate">{team.name}</p>
-                              {isCurrent && (
+                              <p className={cn("font-black text-xs sm:text-sm truncate", team.isEliminated && "line-through text-muted-foreground")}>{team.name}</p>
+                              {isCurrent && !team.isEliminated && (
                                 <span className="text-[10px] font-black uppercase text-amber-500 flex items-center gap-1">
                                   ● Active Turn
                                 </span>
                               )}
+                              {team.isEliminated && (
+                                <span className="text-[10px] font-bold uppercase text-destructive flex items-center gap-1">
+                                  Out of Time
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <span className="font-mono font-black text-sm sm:text-base text-primary shrink-0 ml-2">
-                            {team.score} pts
-                          </span>
+                          <div className="text-right shrink-0 ml-2">
+                            <span className="font-mono font-black text-sm sm:text-base text-primary block">
+                              {team.score} pts
+                            </span>
+                            <span className={cn(
+                              "text-[10px] font-mono font-bold block",
+                              team.isEliminated ? "text-destructive" : "text-muted-foreground"
+                            )}>
+                              {team.isEliminated ? "0s" : formatTime(team.timeLeft)}
+                            </span>
+                          </div>
                         </div>
                       );
                     })}
@@ -740,12 +934,12 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
               {/* Match Statistics & Control */}
               <div className="p-4 rounded-2xl bg-muted/20 border border-border/30 text-xs space-y-3">
                 <div className="flex justify-between items-center text-muted-foreground font-semibold">
-                  <span>Rounds Remaining:</span>
-                  <span className="font-mono font-bold text-foreground">{totalRounds - currentRound + 1}</span>
+                  <span>Match Round:</span>
+                  <span className="font-mono font-bold text-foreground">{currentRound} / {totalRounds}</span>
                 </div>
                 <div className="flex justify-between items-center text-muted-foreground font-semibold">
-                  <span>Turn Time Limit:</span>
-                  <span className="font-mono font-bold text-foreground">60s</span>
+                  <span>Team Match Clock:</span>
+                  <span className="font-mono font-bold text-foreground">{formatTime(timeBankSeconds)}</span>
                 </div>
                 <div className="flex justify-between items-center text-muted-foreground font-semibold">
                   <span>Words in Bank:</span>
@@ -768,7 +962,10 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
         );
 
       case "finished":
-        const sortedTeams = [...teams].sort((a, b) => b.score - a.score);
+        const sortedTeams = [...teams].sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return b.timeLeft - a.timeLeft;
+        });
         const winner = sortedTeams[0];
         const isTie = sortedTeams.length > 1 && sortedTeams[0].score === sortedTeams[1].score && sortedTeams[0].score > 0;
 
@@ -779,10 +976,19 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
               <Crown className="w-8 h-8 text-amber-500 absolute -top-3 -right-2 animate-bounce" />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-2">
+              <Badge variant="outline" className={cn(
+                "font-black uppercase tracking-wider px-3 py-1",
+                allTimedOut ? "bg-destructive/10 text-destructive border-destructive/30" : "bg-amber-500/10 text-amber-500 border-amber-500/30"
+              )}>
+                {allTimedOut ? "⏱️ Match Ended: All Teams Out of Time" : `🏆 Final Round Complete (${totalRounds}/${totalRounds})`}
+              </Badge>
               <h2 className="font-black uppercase tracking-tight text-2xl sm:text-4xl">Competition Over!</h2>
               <p className="font-black text-amber-500 uppercase text-base sm:text-xl">
-                {isTie ? `🤝 Tied Championship: ${sortedTeams[0].name} & ${sortedTeams[1].name}!` : `🎉 ${winner.name} Champion! 🎉`}
+                {isTie ? `🤝 Tied Championship: ${sortedTeams.filter(t => t.score === winner.score).map(t => t.name).join(' & ')} (${winner.score} pts)!` : `🎉 ${winner.name} Champion (${winner.score} pts)! 🎉`}
+              </p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Rankings determined by total correct spellings and remaining match time bank.
               </p>
             </div>
 
@@ -803,11 +1009,21 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                       {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "🎖️"}
                     </span>
                     <div className="text-left">
-                      <p className="font-black text-sm sm:text-base">{team.name}</p>
+                      <p className="font-black text-sm sm:text-base flex items-center gap-1.5">
+                        {team.name}
+                        {team.isEliminated && (
+                          <span className="text-[10px] font-bold text-destructive uppercase">(Timed Out)</span>
+                        )}
+                      </p>
                       <p className="text-[11px] text-muted-foreground uppercase">{idx === 0 ? "1st Place Winner" : `${idx + 1}th Place`}</p>
                     </div>
                   </div>
-                  <span className="font-mono font-black text-lg text-primary">{team.score} pts</span>
+                  <div className="text-right">
+                    <span className="font-mono font-black text-lg text-primary block">{team.score} pts</span>
+                    <span className="text-[10px] font-mono text-muted-foreground font-semibold block">
+                      {team.isEliminated ? "0s left" : `${formatTime(team.timeLeft)} left`}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
