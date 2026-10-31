@@ -92,12 +92,17 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
   if (!game) return <div>Game not found</div>;
 
   const fetchNextWord = React.useCallback(async (level: SkillLevel) => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setGameState("loading");
     setWordData(null);
     setUserAnswer("");
     setIsCorrect(null);
     setShowHint(false);
     setTimedOut(false);
+    setTimeLeft(TURN_TIME_SECONDS);
     try {
       const newWord = await generateSpellingBeeWord({
         difficulty: level,
@@ -107,6 +112,9 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
       setUsedWords(prev => [...prev, newWord.word]);
       setTimeLeft(TURN_TIME_SECONDS);
       setGameState("playing");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent('lingoland_game_started_hijack'));
+      }
     } catch (error) {
       console.error("Failed to generate word:", error);
       toast({
@@ -123,38 +131,57 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
       toast({ variant: "destructive", title: "Add at least one team" });
       return;
     }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setTeams(teams.map(t => ({...t, score: 0})));
     setCurrentRound(1);
     setCurrentTurn(0);
+    setTimeLeft(TURN_TIME_SECONDS);
+    setTimedOut(false);
     fetchNextWord(difficulty);
   }, [teams, difficulty, fetchNextWord, toast]);
 
   const handleTimeUp = React.useCallback(() => {
     if (gameState !== 'playing') return;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setTimedOut(true);
     setIsCorrect(false);
     setGameState("answered");
   }, [gameState]);
 
+  // Clean countdown interval that ticks every second while gameState === 'playing'
   React.useEffect(() => {
-    if (gameState === 'playing') {
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            handleTimeUp();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
+    if (gameState !== 'playing') {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      return;
     }
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     };
-  }, [gameState, handleTimeUp]);
+  }, [gameState]);
+
+  // Safely trigger turn timeout when timeLeft reaches 0
+  React.useEffect(() => {
+    if (gameState === 'playing' && timeLeft <= 0) {
+      handleTimeUp();
+    }
+  }, [timeLeft, gameState, handleTimeUp]);
 
   const handleSpeak = async (text: string) => {
     if (isSpeaking) return;
@@ -172,6 +199,10 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   const handleCheckAnswer = () => {
     if (!wordData || gameState !== 'playing') return;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     const correct = userAnswer.trim().toLowerCase() === wordData.word.toLowerCase();
     setIsCorrect(correct);
     if(correct) {
@@ -183,10 +214,19 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
   };
 
   const handleNextTurn = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     if (currentRound >= totalRounds && currentTurn === teams.length - 1) {
         setGameState("finished");
         try {
           confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent('lingoland_game_completed_hijack', {
+              detail: { state: 'finished' }
+            }));
+          }
         } catch (e) {}
         return;
     }
@@ -196,6 +236,8 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
     if (nextTurn === 0) {
         setCurrentRound(prev => prev + 1);
     }
+    setTimeLeft(TURN_TIME_SECONDS);
+    setTimedOut(false);
     fetchNextWord(difficulty);
   };
   
@@ -231,9 +273,15 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
   };
 
   const resetGame = () => {
-      setGameState('setup');
-      setUsedWords([]);
-  }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setGameState('setup');
+    setUsedWords([]);
+    setTimeLeft(TURN_TIME_SECONDS);
+    setTimedOut(false);
+  };
 
   const Icon = game.icon;
 

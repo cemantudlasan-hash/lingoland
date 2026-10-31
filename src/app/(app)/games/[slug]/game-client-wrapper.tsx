@@ -36,7 +36,7 @@ const NATIVELY_TRACKED_GAMES = new Set([
   'circuit-crafter', 'etymology-expedition', 'pronunciation-pro',
   'arena-showdown-math', 'arena-showdown-science', 'arena-showdown-english',
   'draw-the-word', 'draw-the-math', 'math-tug-of-war', 'english-tug-of-war', 'vocab-snake',
-  'genius-guesser', 'tense-runner', 'speed-debater'
+  'genius-guesser', 'tense-runner', 'speed-debater', 'spelling-bee'
 ]);
 
 export function GameClientWrapper({ slug }: { slug: string }) {
