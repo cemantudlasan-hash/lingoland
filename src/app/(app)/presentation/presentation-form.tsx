@@ -141,22 +141,155 @@ interface DbPresentation {
   updatedAt: string;
 }
 
-const themes = [
-    { name: 'Default Plain', className: 'bg-white text-black border border-slate-200 rounded-2xl shadow-sm' },
-    { name: 'Midnight Glassmorphic', className: 'bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white border border-indigo-500/20 rounded-2xl shadow-[0_8px_30px_rgba(99,102,241,0.2)] backdrop-blur-md' },
-    { name: 'Solar Flare Gold', className: 'bg-neutral-950 text-amber-100 border border-amber-500/20 rounded-2xl shadow-[0_8px_30px_rgba(245,158,11,0.1)]' },
-    { name: 'Aurora Teal', className: 'bg-gradient-to-br from-zinc-950 via-slate-900 to-teal-950 text-white border border-teal-500/20 rounded-2xl shadow-[0_8px_30px_rgba(20,184,166,0.1)]' },
-    { name: 'Cyber Neon', className: 'bg-black text-cyan-400 border-2 border-pink-500 rounded-2xl font-mono shadow-[0_0_15px_rgba(244,63,94,0.3)]' },
-    { name: 'Royal Amethyst & Gold', className: 'bg-gradient-to-br from-violet-950 via-purple-900 to-amber-950 text-amber-100 border border-amber-500/30 rounded-2xl shadow-[0_8px_30px_rgba(217,119,6,0.15)]' },
-    { name: 'Deep Emerald Forest', className: 'bg-gradient-to-br from-emerald-950 via-teal-950 to-zinc-900 text-emerald-100 border border-emerald-500/20 rounded-2xl shadow-[0_8px_30px_rgba(16,185,129,0.15)]' },
-    { name: 'Sakura Blossom Glassmorphic', className: 'bg-gradient-to-br from-rose-950 via-pink-950 to-slate-900 text-rose-100 border border-pink-500/20 rounded-2xl shadow-[0_8px_30px_rgba(244,63,94,0.15)]' },
-    { name: 'Cosmic Nebula Dream', className: 'bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-900 text-purple-100 border border-purple-500/20 rounded-2xl shadow-[0_8px_30px_rgba(139,92,246,0.2)]' },
-    { name: 'Volcano Obsidian', className: 'bg-gradient-to-br from-stone-950 via-neutral-900 to-orange-950 text-orange-100 border border-orange-500/30 rounded-2xl shadow-[0_8px_30px_rgba(249,115,22,0.15)]' },
-    { name: 'Classic Editorial Serif', className: 'bg-[#fdfbf7] text-stone-900 border border-stone-200 rounded-2xl shadow-sm' },
-    { name: 'Dark Charcoal', className: 'bg-gray-800 text-white rounded-2xl' },
-    { name: 'Sepia Nostalgia', className: 'bg-amber-100 text-stone-800 rounded-2xl' },
-    { name: 'Blueprint Math', className: 'bg-blueprint text-white rounded-2xl' },
-    { name: 'Twilight Velvet', className: 'bg-twilight text-white rounded-2xl' }
+interface PresentationTheme {
+  name: string;
+  className: string;
+  isDark: boolean;
+  titleClass?: string;
+  bgFullScreen?: string;
+}
+
+const themes: PresentationTheme[] = [
+    { 
+      name: 'Default Plain', 
+      className: 'bg-white text-slate-900 border border-slate-200 rounded-2xl shadow-sm',
+      isDark: false,
+      titleClass: 'text-slate-900',
+      bgFullScreen: 'bg-white text-slate-900'
+    },
+    { 
+      name: 'Classic Editorial Serif', 
+      className: 'bg-[#fdfbf7] text-stone-900 border border-stone-200 rounded-2xl shadow-sm',
+      isDark: false,
+      titleClass: 'text-stone-900',
+      bgFullScreen: 'bg-[#fdfbf7] text-stone-900'
+    },
+    { 
+      name: 'Sepia Nostalgia', 
+      className: 'bg-[#fef3c7] text-amber-950 border border-amber-200/80 rounded-2xl shadow-sm',
+      isDark: false,
+      titleClass: 'text-amber-950',
+      bgFullScreen: 'bg-[#fef3c7] text-amber-950'
+    },
+    { 
+      name: 'Minimalist Bauhaus', 
+      className: 'bg-[#f8f9fa] text-zinc-900 border-2 border-zinc-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]',
+      isDark: false,
+      titleClass: 'text-zinc-950 font-black tracking-tight',
+      bgFullScreen: 'bg-[#f8f9fa] text-zinc-900'
+    },
+    { 
+      name: 'Nordic Frosted Mist', 
+      className: 'bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-50 text-slate-900 border border-sky-200/70 rounded-2xl shadow-sm',
+      isDark: false,
+      titleClass: 'text-slate-950 font-bold',
+      bgFullScreen: 'bg-gradient-to-br from-slate-100 via-sky-50 to-indigo-50 text-slate-900'
+    },
+    { 
+      name: 'Midnight Glassmorphic', 
+      className: 'bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white border border-indigo-500/20 rounded-2xl shadow-[0_8px_30px_rgba(99,102,241,0.2)] backdrop-blur-md',
+      isDark: true,
+      titleClass: 'text-white',
+      bgFullScreen: 'bg-slate-950 text-white'
+    },
+    { 
+      name: 'Cyber Neon Grid', 
+      className: 'bg-black text-cyan-300 border-2 border-pink-500 rounded-2xl font-mono shadow-[0_0_20px_rgba(236,72,153,0.3)]',
+      isDark: true,
+      titleClass: 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]',
+      bgFullScreen: 'bg-black text-cyan-300'
+    },
+    { 
+      name: 'Solar Flare Gold', 
+      className: 'bg-neutral-950 text-amber-100 border border-amber-500/20 rounded-2xl shadow-[0_8px_30px_rgba(245,158,11,0.1)]',
+      isDark: true,
+      titleClass: 'text-amber-300',
+      bgFullScreen: 'bg-neutral-950 text-amber-100'
+    },
+    { 
+      name: 'Aurora Teal', 
+      className: 'bg-gradient-to-br from-zinc-950 via-slate-900 to-teal-950 text-teal-100 border border-teal-500/20 rounded-2xl shadow-[0_8px_30px_rgba(20,184,166,0.1)]',
+      isDark: true,
+      titleClass: 'text-teal-300',
+      bgFullScreen: 'bg-gradient-to-br from-zinc-950 via-slate-900 to-teal-950 text-teal-100'
+    },
+    { 
+      name: 'Royal Amethyst & Gold', 
+      className: 'bg-gradient-to-br from-violet-950 via-purple-900 to-amber-950 text-amber-100 border border-amber-500/30 rounded-2xl shadow-[0_8px_30px_rgba(217,119,6,0.15)]',
+      isDark: true,
+      titleClass: 'text-amber-300',
+      bgFullScreen: 'bg-gradient-to-br from-violet-950 via-purple-900 to-amber-950 text-amber-100'
+    },
+    { 
+      name: 'Deep Emerald Luxury', 
+      className: 'bg-gradient-to-br from-emerald-950 via-zinc-900 to-teal-950 text-emerald-100 border border-emerald-500/20 rounded-2xl shadow-[0_8px_30px_rgba(16,185,129,0.15)]',
+      isDark: true,
+      titleClass: 'text-emerald-300',
+      bgFullScreen: 'bg-gradient-to-br from-emerald-950 via-zinc-900 to-teal-950 text-emerald-100'
+    },
+    { 
+      name: 'Dark Synthwave 80s', 
+      className: 'bg-gradient-to-br from-purple-950 via-slate-950 to-pink-950 text-pink-100 border border-pink-500/40 rounded-2xl shadow-[0_8px_30px_rgba(236,72,153,0.25)]',
+      isDark: true,
+      titleClass: 'text-pink-300 drop-shadow-[0_0_8px_rgba(244,114,182,0.4)]',
+      bgFullScreen: 'bg-gradient-to-br from-purple-950 via-slate-950 to-pink-950 text-pink-100'
+    },
+    { 
+      name: 'Midnight Sapphire Pro', 
+      className: 'bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-blue-100 border border-blue-500/30 rounded-2xl shadow-[0_8px_30px_rgba(59,130,246,0.2)]',
+      isDark: true,
+      titleClass: 'text-blue-300',
+      bgFullScreen: 'bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 text-blue-100'
+    },
+    { 
+      name: 'Warm Sunset Horizon', 
+      className: 'bg-gradient-to-br from-slate-950 via-rose-950 to-amber-950 text-amber-100 border border-amber-500/30 rounded-2xl shadow-[0_8px_30px_rgba(245,158,11,0.2)]',
+      isDark: true,
+      titleClass: 'text-amber-300',
+      bgFullScreen: 'bg-gradient-to-br from-slate-950 via-rose-950 to-amber-950 text-amber-100'
+    },
+    { 
+      name: 'Sakura Blossom Glassmorphic', 
+      className: 'bg-gradient-to-br from-rose-950 via-pink-950 to-slate-900 text-rose-100 border border-pink-500/20 rounded-2xl shadow-[0_8px_30px_rgba(244,63,94,0.15)]',
+      isDark: true,
+      titleClass: 'text-rose-200',
+      bgFullScreen: 'bg-gradient-to-br from-rose-950 via-pink-950 to-slate-900 text-rose-100'
+    },
+    { 
+      name: 'Cosmic Nebula Dream', 
+      className: 'bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-900 text-purple-100 border border-purple-500/20 rounded-2xl shadow-[0_8px_30px_rgba(139,92,246,0.2)]',
+      isDark: true,
+      titleClass: 'text-purple-200',
+      bgFullScreen: 'bg-gradient-to-br from-indigo-950 via-purple-950 to-violet-900 text-purple-100'
+    },
+    { 
+      name: 'Volcano Obsidian', 
+      className: 'bg-gradient-to-br from-stone-950 via-neutral-900 to-orange-950 text-orange-100 border border-orange-500/30 rounded-2xl shadow-[0_8px_30px_rgba(249,115,22,0.15)]',
+      isDark: true,
+      titleClass: 'text-orange-200',
+      bgFullScreen: 'bg-gradient-to-br from-stone-950 via-neutral-900 to-orange-950 text-orange-100'
+    },
+    { 
+      name: 'Dark Charcoal', 
+      className: 'bg-gray-900 text-white rounded-2xl border border-gray-800',
+      isDark: true,
+      titleClass: 'text-white',
+      bgFullScreen: 'bg-gray-900 text-white'
+    },
+    { 
+      name: 'Blueprint Math', 
+      className: 'bg-blueprint text-white rounded-2xl border border-blue-400/30',
+      isDark: true,
+      titleClass: 'text-white',
+      bgFullScreen: 'bg-blueprint text-white'
+    },
+    { 
+      name: 'Twilight Velvet', 
+      className: 'bg-twilight text-white rounded-2xl border border-purple-500/30',
+      isDark: true,
+      titleClass: 'text-purple-100',
+      bgFullScreen: 'bg-twilight text-white'
+    }
 ];
 
 const fontFamilies = [
@@ -169,10 +302,34 @@ const fontFamilies = [
 ];
 
 const fontSizes = [
-    { name: 'Small text', className: 'text-base leading-relaxed', titleClassName: 'text-2xl font-bold leading-tight', fullScreenClassName: 'text-base md:text-xl lg:text-2xl leading-relaxed', fullScreenTitleClassName: 'text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight' },
-    { name: 'Medium text', className: 'text-lg leading-relaxed', titleClassName: 'text-3xl font-bold leading-tight', fullScreenClassName: 'text-lg md:text-2xl lg:text-3xl leading-relaxed', fullScreenTitleClassName: 'text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight' },
-    { name: 'Large text', className: 'text-xl leading-relaxed', titleClassName: 'text-4xl font-bold leading-tight', fullScreenClassName: 'text-xl md:text-3xl lg:text-4xl leading-relaxed', fullScreenTitleClassName: 'text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight' },
-    { name: 'Extra Large', className: 'text-2xl leading-relaxed', titleClassName: 'text-5xl font-bold leading-tight', fullScreenClassName: 'text-2xl md:text-4xl lg:text-5xl leading-relaxed', fullScreenTitleClassName: 'text-5xl md:text-7xl lg:text-8xl font-extrabold leading-tight' },
+    { 
+      name: 'Small text', 
+      className: 'text-sm sm:text-base leading-relaxed', 
+      titleClassName: 'text-xl sm:text-2xl font-bold leading-tight', 
+      fullScreenClassName: 'text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed md:leading-relaxed lg:leading-relaxed', 
+      fullScreenTitleClassName: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold leading-tight' 
+    },
+    { 
+      name: 'Medium text', 
+      className: 'text-base sm:text-lg leading-relaxed', 
+      titleClassName: 'text-2xl sm:text-3xl font-bold leading-tight', 
+      fullScreenClassName: 'text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed md:leading-relaxed lg:leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight' 
+    },
+    { 
+      name: 'Large text', 
+      className: 'text-lg sm:text-xl leading-relaxed', 
+      titleClassName: 'text-3xl sm:text-4xl font-bold leading-tight', 
+      fullScreenClassName: 'text-lg sm:text-xl md:text-2xl lg:text-3xl leading-relaxed md:leading-relaxed lg:leading-relaxed', 
+      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight' 
+    },
+    { 
+      name: 'Extra Large', 
+      className: 'text-xl sm:text-2xl leading-relaxed', 
+      titleClassName: 'text-3xl sm:text-4xl md:text-5xl font-bold leading-tight', 
+      fullScreenClassName: 'text-lg sm:text-xl md:text-2xl lg:text-[2rem] leading-relaxed md:leading-relaxed lg:leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight' 
+    },
 ];
 
 const EMOJI_MAP: { [key: string]: string } = {
@@ -832,10 +989,15 @@ export function PresentationForm() {
 
   // Styling outlines states
   const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const [theme, setTheme] = React.useState(themes[1].className);
+  const [theme, setTheme] = React.useState(themes.find(t => t.name === 'Midnight Glassmorphic')?.className || themes[5].className);
   const [fontFamily, setFontFamily] = React.useState(fontFamilies[0].className);
-  const [fontSize, setFontSize] = React.useState(fontSizes[1]);
+  const [fontSize, setFontSize] = React.useState(fontSizes[3]); // Default to Extra Large
   const [align, setAlign] = React.useState<'left' | 'center'>('left');
+
+  // Resolved active theme & contrast helper
+  const currentThemeObj = themes.find(t => t.className === theme || t.name === theme) || themes[5];
+  const isThemeDark = currentThemeObj ? currentThemeObj.isDark : !theme.includes('bg-white') && !theme.includes('bg-[#fdfbf7]') && !theme.includes('bg-amber-100') && !theme.includes('bg-[#fef3c7]') && !theme.includes('bg-[#f8f9fa]') && !theme.includes('bg-gradient-to-br from-slate-100');
+  const isThemeLight = !isThemeDark;
 
   // Slide words reveal states
   const [visibleWordCounts, setVisibleWordCounts] = React.useState<{ [key: number]: number }>({});
@@ -1782,6 +1944,36 @@ export function PresentationForm() {
     };
   }, [api, presentation]);
 
+  // Ensure Embla carousel cleanly recalculates snap sizes whenever entering/exiting fullscreen or screen rotates
+  React.useEffect(() => {
+    if (!api) return;
+
+    const timer1 = setTimeout(() => {
+      api.reInit();
+      api.scrollTo(Math.max(0, current - 1), true);
+    }, 60);
+
+    const timer2 = setTimeout(() => {
+      api.reInit();
+      api.scrollTo(Math.max(0, current - 1), true);
+    }, 250);
+
+    const handleResize = () => {
+      api.reInit();
+      api.scrollTo(Math.max(0, current - 1), true);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, [api, isFullscreen]);
+
   // File upload and extraction handler
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1937,29 +2129,48 @@ export function PresentationForm() {
       // Map suggested theme to beautiful theme defaults
       if (result.suggestedTheme) {
         const themeLower = result.suggestedTheme.toLowerCase();
-        let matchedTheme = themes[1].className; // Midnight Glassmorphic default
+        let matchedTheme = themes.find(t => t.name === 'Midnight Glassmorphic')?.className || themes[5].className;
         
         if (themeLower.includes('space') || themeLower.includes('cosmic') || themeLower.includes('nebula')) {
-          matchedTheme = themes[8].className; // Cosmic Nebula Dream
-        } else if (themeLower.includes('solar') || themeLower.includes('gold') || themeLower.includes('royal') || themeLower.includes('amethyst')) {
-          matchedTheme = themes[5].className; // Royal Amethyst & Gold
+          matchedTheme = themes.find(t => t.name.includes('Cosmic Nebula'))?.className || matchedTheme;
+        } else if (themeLower.includes('solar') || themeLower.includes('gold')) {
+          matchedTheme = themes.find(t => t.name.includes('Solar Flare'))?.className || matchedTheme;
+        } else if (themeLower.includes('royal') || themeLower.includes('amethyst')) {
+          matchedTheme = themes.find(t => t.name.includes('Royal Amethyst'))?.className || matchedTheme;
         } else if (themeLower.includes('nature') || themeLower.includes('forest') || themeLower.includes('emerald') || themeLower.includes('green')) {
-          matchedTheme = themes[6].className; // Deep Emerald Forest
+          matchedTheme = themes.find(t => t.name.includes('Deep Emerald'))?.className || matchedTheme;
         } else if (themeLower.includes('teal') || themeLower.includes('aurora') || themeLower.includes('ocean')) {
-          matchedTheme = themes[3].className; // Aurora Teal
+          matchedTheme = themes.find(t => t.name.includes('Aurora Teal'))?.className || matchedTheme;
         } else if (themeLower.includes('volcano') || themeLower.includes('obsidian') || themeLower.includes('fire') || themeLower.includes('orange')) {
-          matchedTheme = themes[9].className; // Volcano Obsidian
+          matchedTheme = themes.find(t => t.name.includes('Volcano Obsidian'))?.className || matchedTheme;
         } else if (themeLower.includes('cherry') || themeLower.includes('blossom') || themeLower.includes('sakura') || themeLower.includes('pink') || themeLower.includes('rose')) {
-          matchedTheme = themes[7].className; // Sakura Blossom Glassmorphic
-        } else if (themeLower.includes('cyber') || themeLower.includes('neon') || themeLower.includes('tech')) {
-          matchedTheme = themes[4].className; // Cyber Neon
-        } else if (themeLower.includes('classic') || themeLower.includes('serif') || themeLower.includes('editorial') || themeLower.includes('plain')) {
-          matchedTheme = themes[10].className; // Classic Editorial Serif
+          matchedTheme = themes.find(t => t.name.includes('Sakura Blossom'))?.className || matchedTheme;
+        } else if (themeLower.includes('cyber') || themeLower.includes('neon') || themeLower.includes('tech') || themeLower.includes('grid')) {
+          matchedTheme = themes.find(t => t.name.includes('Cyber Neon'))?.className || matchedTheme;
+        } else if (themeLower.includes('synthwave') || themeLower.includes('retro') || themeLower.includes('80s')) {
+          matchedTheme = themes.find(t => t.name.includes('Synthwave'))?.className || matchedTheme;
+        } else if (themeLower.includes('sapphire') || themeLower.includes('blue') || themeLower.includes('navy')) {
+          matchedTheme = themes.find(t => t.name.includes('Midnight Sapphire'))?.className || matchedTheme;
+        } else if (themeLower.includes('sunset') || themeLower.includes('horizon')) {
+          matchedTheme = themes.find(t => t.name.includes('Warm Sunset'))?.className || matchedTheme;
+        } else if (themeLower.includes('bauhaus') || themeLower.includes('minimal')) {
+          matchedTheme = themes.find(t => t.name.includes('Minimalist Bauhaus'))?.className || matchedTheme;
+        } else if (themeLower.includes('nordic') || themeLower.includes('frost') || themeLower.includes('mist')) {
+          matchedTheme = themes.find(t => t.name.includes('Nordic Frosted'))?.className || matchedTheme;
+        } else if (themeLower.includes('classic') || themeLower.includes('serif') || themeLower.includes('editorial')) {
+          matchedTheme = themes.find(t => t.name.includes('Classic Editorial'))?.className || matchedTheme;
+        } else if (themeLower.includes('sepia') || themeLower.includes('nostalgia') || themeLower.includes('vintage') || themeLower.includes('warm paper')) {
+          matchedTheme = themes.find(t => t.name.includes('Sepia Nostalgia'))?.className || matchedTheme;
+        } else if (themeLower.includes('plain') || themeLower.includes('white')) {
+          matchedTheme = themes.find(t => t.name.includes('Default Plain'))?.className || matchedTheme;
         } else if (themeLower.includes('dark') || themeLower.includes('charcoal')) {
-          matchedTheme = themes[11].className; // Dark Charcoal
+          matchedTheme = themes.find(t => t.name.includes('Dark Charcoal'))?.className || matchedTheme;
         }
         setTheme(matchedTheme);
       }
+
+      // Default to Extra Large text size on newly generated presentations
+      setFontSize(fontSizes[3]);
 
       if (typeof window !== 'undefined') window.dispatchEvent(new Event('ai_usage_increment'));
       setupWordAnimation(result.slides);
@@ -2221,18 +2432,43 @@ export function PresentationForm() {
       let bgColor = 'ffffff'; // white
 
       // Map styling theme colors for the PPTX background
-      if (theme.includes('slate-950') || theme.includes('bg-neutral-950') || theme.includes('bg-black') || theme.includes('bg-gray-800')) {
-        textColor = 'f8fafc'; // slate-50
-        bgColor = '0f172a'; // slate-900 (dark background for PPTX)
-      } else if (theme.includes('bg-rose-950') || theme.includes('bg-pink-950')) {
-        textColor = 'fff1f2';
-        bgColor = '4c0519'; // rose-950
-      } else if (theme.includes('bg-[#fdfbf7]')) {
-        textColor = '1c1917';
-        bgColor = 'fafaf9';
-      } else if (theme.includes('bg-amber-100')) {
-        textColor = '451a03';
-        bgColor = 'fef3c7';
+      if (isThemeLight) {
+        if (theme.includes('bg-amber-100') || theme.includes('bg-[#fef3c7]')) {
+          textColor = '451a03'; // deep amber brown
+          bgColor = 'fef3c7'; // warm amber
+        } else if (theme.includes('bg-[#fdfbf7]')) {
+          textColor = '1c1917'; // warm charcoal
+          bgColor = 'fdfbf7'; // editorial cream
+        } else if (theme.includes('bg-[#f8f9fa]')) {
+          textColor = '18181b'; // bauhaus black
+          bgColor = 'f8f9fa'; // bauhaus eggshell
+        } else if (theme.includes('sky') || theme.includes('slate-100')) {
+          textColor = '0f172a'; // nordic slate
+          bgColor = 'f1f5f9'; // soft frost
+        } else {
+          textColor = '0f172a'; // default plain dark text
+          bgColor = 'ffffff'; // pure white
+        }
+      } else {
+        if (theme.includes('bg-rose-950') || theme.includes('bg-pink-950')) {
+          textColor = 'fff1f2';
+          bgColor = '4c0519'; // rose-950
+        } else if (theme.includes('teal') || theme.includes('emerald')) {
+          textColor = 'ecfdf5';
+          bgColor = '022c22'; // emerald-950
+        } else if (theme.includes('purple-950') || theme.includes('violet-950')) {
+          textColor = 'faf5ff';
+          bgColor = '2e1065'; // purple-950
+        } else if (theme.includes('amber-950') || theme.includes('orange-950')) {
+          textColor = 'fffbeb';
+          bgColor = '451a03'; // amber-950
+        } else if (theme.includes('blue-950')) {
+          textColor = 'eff6ff';
+          bgColor = '0f172a'; // sapphire blue
+        } else {
+          textColor = 'f8fafc'; // slate-50
+          bgColor = '020617'; // slate-950
+        }
       }
 
       // Pre-resolve all slide images in parallel as base64 data URLs to prevent pptxgenjs CORS XHR errors
@@ -2434,11 +2670,16 @@ export function PresentationForm() {
         if (visibleWords.length > 0) {
           const joinedText = visibleWords.join(' ');
           return (
-            <li key={pointIndex} className="flex items-start gap-3 md:gap-4 text-left group/item pl-1">
+            <li key={pointIndex} className="flex items-start gap-3 md:gap-4 text-left group/item pl-1 my-0.5 sm:my-1">
               {align !== 'center' && (
-                <span className="inline-block mt-2 md:mt-2.5 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gradient-to-r from-purple-400 to-indigo-400 shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.8)] border border-purple-300/40" />
+                <span className={cn(
+                  "inline-block mt-2 md:mt-2.5 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0 shadow-sm border",
+                  isThemeLight
+                    ? "bg-purple-600 border-purple-700/40 shadow-purple-200"
+                    : "bg-gradient-to-r from-purple-400 to-indigo-400 shadow-[0_0_10px_rgba(168,85,247,0.8)] border-purple-300/40"
+                )} />
               )}
-              <div className="flex-1 min-w-0 leading-relaxed md:leading-loose">
+              <div className="flex-1 min-w-0 leading-relaxed md:leading-relaxed lg:leading-relaxed break-words">
                 {renderTextWithCoverAndReveal(joinedText, slideIdx)}
               </div>
             </li>
@@ -2746,9 +2987,17 @@ export function PresentationForm() {
                       <SelectTrigger id="theme-select" className="bg-slate-950 border-slate-800 text-slate-200 h-10 rounded-xl">
                         <SelectValue placeholder="Select a theme" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-950 border-slate-800 text-slate-300">
+                      <SelectContent className="bg-slate-950 border-slate-800 text-slate-300 max-h-72">
                         {themes.map((t) => (
-                          <SelectItem key={t.name} value={t.className}>{t.name}</SelectItem>
+                          <SelectItem key={t.name} value={t.className}>
+                            <div className="flex items-center gap-2">
+                              <span className={cn("w-2.5 h-2.5 rounded-full border shrink-0", !t.isDark ? "bg-amber-100 border-amber-400" : "bg-indigo-950 border-indigo-500")} />
+                              <span>{t.name}</span>
+                              {!t.isDark && (
+                                <span className="text-[9px] uppercase font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded ml-auto">Light</span>
+                              )}
+                            </div>
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -2768,7 +3017,7 @@ export function PresentationForm() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="size-select" className="text-xs font-bold text-slate-400 uppercase tracking-widest">Text Size</Label>
-                    <Select value={fontSize.className} onValueChange={(value) => setFontSize(fontSizes.find(s => s.className === value) || fontSizes[1])}>
+                    <Select value={fontSize.className} onValueChange={(value) => setFontSize(fontSizes.find(s => s.className === value) || fontSizes[3])}>
                       <SelectTrigger id="size-select" className="bg-slate-950 border-slate-800 text-slate-200 h-10 rounded-xl">
                         <SelectValue placeholder="Select a size" />
                       </SelectTrigger>
@@ -2900,26 +3149,28 @@ export function PresentationForm() {
             <div
               ref={presentationContainerRef}
               className={cn(
-                  'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden bg-slate-950 rounded-3xl border border-slate-800 transition-all duration-300', 
-                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none !bg-slate-950 touch-manipulation select-none',
+                  'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden rounded-3xl border transition-all duration-300', 
+                  isThemeLight ? "bg-white border-slate-200" : "bg-slate-950 border-slate-800",
+                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-none',
+                  isFullscreen && (isThemeLight ? (currentThemeObj.bgFullScreen || "bg-white text-slate-900") : "!bg-slate-950"),
                   showSplitSearch && 'flex flex-row',
                   !isEditMode && activeDrawSlideIndex === null && 'cursor-pointer'
               )}
             >
-              {/* Three.js 3D Background Canvas (Disabled completely in fullscreen to prevent background glitch) */}
+              {/* Three.js 3D Background Canvas (Disabled in fullscreen and on light themes to maintain clean readability) */}
               {presentation && !isFullscreen && (
                 <ThreeBackground 
                   themeStyle={theme}
                   activeSlideIndex={current - 1}
                   threeDStyle={presentation.slides[current - 1]?.threeDObjectStyle || ''}
-                  enabled={enable3D && !isFullscreen}
+                  enabled={enable3D && !isFullscreen && !isThemeLight}
                 />
               )}
 
               {/* Left Side: Slide Carousel & Overlays */}
               <div className={cn(
                 "h-full flex flex-col justify-between relative",
-                isFullscreen && "!bg-slate-950",
+                isFullscreen && (isThemeLight ? (currentThemeObj.bgFullScreen || "bg-white text-slate-900") : "!bg-slate-950"),
                 showSplitSearch ? "flex-1 overflow-hidden" : "w-full"
               )}>
                 {isFullscreen ? (
@@ -3050,20 +3301,20 @@ export function PresentationForm() {
                   opts={{ 
                     watchDrag: activeDrawSlideIndex === null && !isEditMode,
                     align: 'start',
-                    containScroll: false,
+                    containScroll: 'trimSnaps',
                   }} 
                   className="w-full h-full"
                 >
-                  <CarouselContent className={cn("h-full", isFullscreen && "ml-0 !bg-slate-950")}>
+                  <CarouselContent className={cn("h-full", isFullscreen ? (isThemeLight ? `ml-0 ${currentThemeObj.bgFullScreen || "bg-white text-slate-900"}` : "ml-0 !bg-slate-950") : "")}>
                     {(isEditMode ? editableSlides : presentation.slides).map((slide, index) => (
-                      <CarouselItem key={index} className={cn("h-full", isFullscreen && "w-full min-w-full max-w-full pl-0 !bg-slate-950")}>
+                      <CarouselItem key={index} className={cn("h-full", isFullscreen ? (isThemeLight ? `w-full min-w-full max-w-full pl-0 ${currentThemeObj.bgFullScreen || "bg-white text-slate-900"}` : "w-full min-w-full max-w-full pl-0 !bg-slate-950") : "")}>
                         <div 
                           className={cn(
                             "w-full h-full flex cursor-pointer",
                             theme,
                             fontFamily,
                             isFullscreen 
-                              ? "!rounded-none !border-none !shadow-none !backdrop-blur-none !opacity-100 !bg-slate-950 !bg-none" 
+                              ? cn("!rounded-none !border-none !shadow-none !backdrop-blur-none !opacity-100", isThemeLight ? (currentThemeObj.bgFullScreen || "bg-white text-slate-900") : "!bg-slate-950 !bg-none")
                               : "transition-all duration-700 ease-out transform-gpu"
                           )}
                           style={(!isFullscreen && enable3D) ? {
@@ -3104,15 +3355,20 @@ export function PresentationForm() {
                               )}>
                                 {/* Helpful Slide Text Interaction Tips Banner */}
                                 {!isEditMode && (
-                                  <div className="w-full mb-2.5 sm:mb-3.5 p-2 sm:p-2.5 rounded-xl bg-slate-900/80 border border-purple-500/30 shadow-md select-none shrink-0">
+                                  <div className={cn(
+                                    "w-full mb-2.5 sm:mb-3.5 p-2 sm:p-2.5 rounded-xl shadow-md select-none shrink-0 transition-colors",
+                                    isThemeLight
+                                      ? "bg-stone-200/90 border border-stone-300/80 text-stone-800 shadow-stone-200/50"
+                                      : "bg-slate-900/80 border border-purple-500/30 text-purple-200"
+                                  )}>
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-3 text-[11px] sm:text-xs">
-                                      <div className="flex items-start sm:items-center gap-1.5 text-purple-200">
-                                        <span className="font-extrabold text-amber-300 shrink-0">💡 Tip 1:</span>
+                                      <div className={cn("flex items-start sm:items-center gap-1.5", isThemeLight ? "text-stone-700 font-medium" : "text-purple-200")}>
+                                        <span className={cn("font-extrabold shrink-0", isThemeLight ? "text-amber-700" : "text-amber-300")}>💡 Tip 1:</span>
                                         <span>Select/highlight a word to search an image or cover the word.</span>
                                       </div>
-                                      <div className="flex items-start sm:items-center gap-1.5 text-indigo-200">
-                                        <span className="font-extrabold text-cyan-300 shrink-0">💡 Tip 2:</span>
-                                        <span>Highlight a word and hold <kbd className="px-1 py-0.5 rounded bg-black/70 border border-white/20 text-[9px] font-mono text-purple-200 font-bold">Shift</kbd> to select multiple words.</span>
+                                      <div className={cn("flex items-start sm:items-center gap-1.5", isThemeLight ? "text-indigo-950 font-medium" : "text-indigo-200")}>
+                                        <span className={cn("font-extrabold shrink-0", isThemeLight ? "text-indigo-700" : "text-cyan-300")}>💡 Tip 2:</span>
+                                        <span>Highlight a word and hold <kbd className={cn("px-1 py-0.5 rounded text-[9px] font-mono font-bold", isThemeLight ? "bg-stone-300 border border-stone-400 text-stone-900" : "bg-black/70 border border-white/20 text-purple-200")}>Shift</kbd> to select multiple words.</span>
                                       </div>
                                     </div>
                                   </div>
@@ -3133,10 +3389,11 @@ export function PresentationForm() {
                                     />
                                   </div>
                                 ) : (
-                                  <h2 className={cn("font-bold transition-all duration-300 text-white",
+                                  <h2 className={cn("font-bold transition-all duration-300",
+                                    isThemeLight ? (currentThemeObj.titleClass || "text-slate-900") : (currentThemeObj.titleClass || "text-white"),
                                     !isFullscreen 
-                                      ? `mb-6 ${fontSize.titleClassName}` 
-                                      : `mb-3 sm:mb-5 md:mb-6 leading-tight font-extrabold tracking-tight text-white ${fontSize.fullScreenTitleClassName}`
+                                      ? `mb-4 sm:mb-6 ${fontSize.titleClassName}` 
+                                      : `mb-2 sm:mb-4 md:mb-5 leading-tight font-extrabold tracking-tight ${fontSize.fullScreenTitleClassName}`
                                   )}>
                                     {slide.title}
                                   </h2>
@@ -3195,10 +3452,12 @@ export function PresentationForm() {
                                       {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
                                     </ul>
                                     {(visibleWordCounts[index] || 0) === 0 && !isEditMode && (
-                                      <p className="text-xs sm:text-sm text-purple-300/80 animate-pulse mt-4 flex items-center gap-1.5 select-none">
+                                      <p className={cn("text-xs sm:text-sm animate-pulse mt-4 flex items-center gap-1.5 select-none",
+                                        isThemeLight ? "text-purple-700 font-semibold" : "text-purple-300/80"
+                                      )}>
                                         <span>👆 Tap anywhere to reveal text</span>
-                                        <span className="text-slate-500">•</span>
-                                        <span className="text-slate-400">or click &quot;Reveal All&quot; above</span>
+                                        <span className={isThemeLight ? "text-stone-400" : "text-slate-500"}>•</span>
+                                        <span className={isThemeLight ? "text-stone-600" : "text-slate-400"}>or click &quot;Reveal All&quot; above</span>
                                       </p>
                                     )}
                                   </>
