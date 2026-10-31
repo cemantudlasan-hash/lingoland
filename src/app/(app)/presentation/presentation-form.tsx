@@ -169,10 +169,10 @@ const fontFamilies = [
 ];
 
 const fontSizes = [
-    { name: 'Small text', className: 'text-base', titleClassName: 'text-2xl', fullScreenClassName: 'text-[1.8vw] leading-relaxed', fullScreenTitleClassName: 'text-[3vw] leading-tight' },
-    { name: 'Medium text', className: 'text-lg', titleClassName: 'text-3xl', fullScreenClassName: 'text-[2.2vw] leading-relaxed', fullScreenTitleClassName: 'text-[3.8vw] leading-tight' },
-    { name: 'Large text', className: 'text-xl', titleClassName: 'text-4xl', fullScreenClassName: 'text-[2.5vw] leading-relaxed', fullScreenTitleClassName: 'text-[4.5vw] leading-tight' },
-    { name: 'Extra Large', className: 'text-2xl', titleClassName: 'text-5xl', fullScreenClassName: 'text-[2.9vw] leading-relaxed', fullScreenTitleClassName: 'text-[5.5vw] leading-tight' },
+    { name: 'Small text', className: 'text-base leading-relaxed', titleClassName: 'text-2xl font-bold leading-tight', fullScreenClassName: 'text-base md:text-xl lg:text-2xl leading-relaxed', fullScreenTitleClassName: 'text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight' },
+    { name: 'Medium text', className: 'text-lg leading-relaxed', titleClassName: 'text-3xl font-bold leading-tight', fullScreenClassName: 'text-lg md:text-2xl lg:text-3xl leading-relaxed', fullScreenTitleClassName: 'text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight' },
+    { name: 'Large text', className: 'text-xl leading-relaxed', titleClassName: 'text-4xl font-bold leading-tight', fullScreenClassName: 'text-xl md:text-3xl lg:text-4xl leading-relaxed', fullScreenTitleClassName: 'text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight' },
+    { name: 'Extra Large', className: 'text-2xl leading-relaxed', titleClassName: 'text-5xl font-bold leading-tight', fullScreenClassName: 'text-2xl md:text-4xl lg:text-5xl leading-relaxed', fullScreenTitleClassName: 'text-5xl md:text-7xl lg:text-8xl font-extrabold leading-tight' },
 ];
 
 const EMOJI_MAP: { [key: string]: string } = {
@@ -1334,14 +1334,13 @@ export function PresentationForm() {
     );
   };
 
-  // Word revealing logic (Default to showing all words so slides never appear blank or distorted when navigating)
+  // Word revealing logic: Slides start with text hidden (0 words visible) so the user reveals by tapping
   const setupWordAnimation = React.useCallback((slides: GeneratePresentationOutput['slides']) => {
     const wordCounts: { [key: number]: number } = {};
     const wordsBySlide: { [key: number]: string[] } = {};
     (slides || []).forEach((slide, index) => {
-      const words = slide.content.flatMap((point) => point.split(' '));
-      wordCounts[index] = words.length;
-      wordsBySlide[index] = words;
+      wordCounts[index] = 0; // Starts hidden: user taps to reveal words, or clicks "Reveal All"
+      wordsBySlide[index] = slide.content.flatMap((point) => point.split(' '));
     });
     setVisibleWordCounts(wordCounts);
     allWordsOnSlide.current = wordsBySlide;
@@ -2437,9 +2436,9 @@ export function PresentationForm() {
           return (
             <li key={pointIndex} className="flex items-start gap-3 md:gap-4 text-left group/item pl-1">
               {align !== 'center' && (
-                <span className="inline-block mt-2.5 md:mt-3.5 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gradient-to-r from-purple-400 to-indigo-400 shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.8)] border border-purple-300/40" />
+                <span className="inline-block mt-2 md:mt-2.5 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gradient-to-r from-purple-400 to-indigo-400 shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.8)] border border-purple-300/40" />
               )}
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 leading-relaxed md:leading-loose">
                 {renderTextWithCoverAndReveal(joinedText, slideIdx)}
               </div>
             </li>
@@ -2860,7 +2859,7 @@ export function PresentationForm() {
                         e.stopPropagation(); 
                         const idx = api?.selectedScrollSnap() || 0;
                         const total = allWordsOnSlide.current[idx]?.length || 0;
-                        const curCount = visibleWordCounts[idx] ?? total;
+                        const curCount = visibleWordCounts[idx] || 0;
                         setVisibleWordCounts(prev => ({
                           ...prev,
                           [idx]: curCount >= total ? 0 : total
@@ -2868,13 +2867,13 @@ export function PresentationForm() {
                       }}
                       variant="secondary"
                       size="sm"
-                      className="absolute top-3 right-48 sm:top-4 sm:right-52 z-30 h-8 sm:h-9 px-2 sm:px-2.5 gap-1 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg"
-                      title="Reveal or hide all slide text words"
+                      className="absolute top-3 right-48 sm:top-4 sm:right-56 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg transition-all active:scale-95"
+                      title="Reveal all text on this slide, or hide to tap-reveal again"
                     >
                       <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-                      <span className="text-xs font-bold hidden sm:inline">
-                        {(visibleWordCounts[api?.selectedScrollSnap() || 0] ?? (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)) >= (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)
-                          ? "Hide Words"
+                      <span className="text-xs font-bold">
+                        {(visibleWordCounts[api?.selectedScrollSnap() || 0] || 0) >= (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)
+                          ? "Hide Text"
                           : "Reveal All"}
                       </span>
                     </Button>
@@ -3031,7 +3030,7 @@ export function PresentationForm() {
                                   : "justify-center",
                                 (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode 
                                   ? (isFullscreen ? "md:w-1/2 lg:w-[48%]" : "md:w-1/2") 
-                                  : "w-full"
+                                  : (isFullscreen ? "max-w-4xl mx-auto my-auto" : "w-full")
                               )}>
                                 {/* Slide Title field */}
                                 {isEditMode ? (
@@ -3051,7 +3050,7 @@ export function PresentationForm() {
                                   <h2 className={cn("font-bold transition-all duration-300 text-white",
                                     !isFullscreen 
                                       ? `mb-6 ${fontSize.titleClassName}` 
-                                      : `mb-2 sm:mb-4 md:mb-8 text-lg sm:text-2xl md:text-[3.2vw] leading-tight font-extrabold tracking-tight text-white ${fontSize.fullScreenTitleClassName}`
+                                      : `mb-3 sm:mb-5 md:mb-6 leading-tight font-extrabold tracking-tight text-white ${fontSize.fullScreenTitleClassName}`
                                   )}>
                                     {slide.title}
                                   </h2>
@@ -3100,14 +3099,23 @@ export function PresentationForm() {
                                     </Button>
                                   </div>
                                 ) : (
-                                  <ul className={cn("transition-all duration-300 list-none pl-0 w-full",
-                                    align === 'center' ? 'text-center' : 'text-left',
-                                    !isFullscreen 
-                                      ? `space-y-4 ${fontSize.className}` 
-                                      : `space-y-2 sm:space-y-3 md:space-y-5 text-xs sm:text-sm md:text-[1.8vw] leading-relaxed ${fontSize.fullScreenClassName}`
-                                  )}>
-                                    {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
-                                  </ul>
+                                  <>
+                                    <ul className={cn("transition-all duration-300 list-none pl-0 w-full",
+                                      align === 'center' ? 'text-center' : 'text-left',
+                                      !isFullscreen 
+                                        ? `space-y-4 ${fontSize.className}` 
+                                        : `space-y-3 sm:space-y-4 md:space-y-6 ${fontSize.fullScreenClassName}`
+                                    )}>
+                                      {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
+                                    </ul>
+                                    {(visibleWordCounts[index] || 0) === 0 && !isEditMode && (
+                                      <p className="text-xs sm:text-sm text-purple-300/80 animate-pulse mt-4 flex items-center gap-1.5 select-none">
+                                        <span>👆 Tap anywhere to reveal text</span>
+                                        <span className="text-slate-500">•</span>
+                                        <span className="text-slate-400">or click &quot;Reveal All&quot; above</span>
+                                      </p>
+                                    )}
+                                  </>
                                 )}
                               </div>
 
@@ -3193,17 +3201,17 @@ export function PresentationForm() {
                                             : "min-h-[340px] md:min-h-[460px] lg:min-h-[560px] border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md"
                                         )}
                                         onClick={(e) => e.stopPropagation()}
-                                        onMouseDown={(e) => handleSlideImageMouseDown(index, e)}
-                                        onMouseMove={(e) => handleSlideImageMouseMove(index, e)}
+                                        onMouseDown={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageMouseDown(index, e) : undefined}
+                                        onMouseMove={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageMouseMove(index, e) : undefined}
                                         onMouseUp={handleSlideImageMouseUp}
                                         onMouseLeave={handleSlideImageMouseUp}
-                                        onTouchStart={(e) => handleSlideImageTouchStart(index, e)}
-                                        onTouchMove={(e) => handleSlideImageTouchMove(index, e)}
+                                        onTouchStart={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageTouchStart(index, e) : undefined}
+                                        onTouchMove={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageTouchMove(index, e) : undefined}
                                         onTouchEnd={handleSlideImageMouseUp}
                                         onWheel={(e) => handleSlideImageWheel(index, e)}
                                       >
                                         <div className={cn(
-                                          "w-full h-full flex items-center justify-center overflow-hidden transition-all",
+                                          "w-full h-full flex items-center justify-center overflow-hidden",
                                           slideImageFitModes[index] === 'cover' ? "p-0" : "p-3 sm:p-5 md:p-6"
                                         )}>
                                           <div 
@@ -3211,7 +3219,7 @@ export function PresentationForm() {
                                             style={{
                                               transform: `translate(${slideImagePans[index]?.x || 0}px, ${slideImagePans[index]?.y || 0}px) scale(${slideImageZooms[index] || 1})`,
                                               transformOrigin: "center center",
-                                              transition: isDraggingSlide ? "none" : "transform 0.15s ease-out"
+                                              transition: (isDraggingSlide || (slideImageZooms[index] || 1) <= 1) ? "none" : "transform 0.15s ease-out"
                                             }}
                                           >
                                             <img 
@@ -3221,7 +3229,7 @@ export function PresentationForm() {
                                                 setBrokenSlideImages(prev => ({ ...prev, [index]: true }));
                                               }}
                                               className={cn(
-                                                "max-w-full max-h-full object-contain select-none transition-all duration-200 pointer-events-auto rounded-xl drop-shadow-md block",
+                                                "max-w-full max-h-full object-contain select-none pointer-events-auto rounded-xl drop-shadow-md block",
                                                 slideImageFitModes[index] === 'cover' && "!w-full !h-full !max-w-none !max-h-none !object-cover !rounded-none",
                                                 slideImageFitModes[index] === 'fill' && "!w-full !h-full !max-w-none !max-h-none object-fill",
                                                 (slideImageZooms[index] || 1) > 1 && activeDrawSlideIndex !== index ? (isDraggingSlide ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
