@@ -36,6 +36,10 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 224 35% 16%;
     --sidebar-ring: 263.4 70% 58.4%;
+    --font-pt-sans: 'PT Sans', system-ui, -apple-system, sans-serif;
+    --font-roboto: 'Roboto', system-ui, -apple-system, sans-serif;
+    --font-lato: 'Lato', system-ui, -apple-system, sans-serif;
+    --font-montserrat: 'Montserrat', system-ui, -apple-system, sans-serif;
   }
 
   .dark {

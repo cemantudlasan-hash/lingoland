@@ -1,34 +1,9 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { AuthProviderWrapper } from '@/context/auth-provider-wrapper';
-import { PT_Sans, Roboto, Lato, Montserrat } from 'next/font/google';
 import { FirebaseClientProvider } from '@/firebase';
 import PlexusBackground from '@/components/layout/PlexusBackground';
 import Script from 'next/script';
-
-const ptSans = PT_Sans({ 
-    subsets: ['latin'], 
-    variable: '--font-pt-sans',
-    weight: ['400', '700']
-});
-
-const roboto = Roboto({
-  subsets: ['latin'],
-  variable: '--font-roboto',
-  weight: ['400', '700'],
-});
-
-const lato = Lato({
-  subsets: ['latin'],
-  variable: '--font-lato',
-  weight: ['400', '700'],
-});
-
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  variable: '--font-montserrat',
-  weight: ['400', '700'],
-});
 
 export const metadata: Metadata = {
   title: 'LingoLandVerse | Interactive ESL Learning Universe & Classroom Suite',
@@ -70,7 +45,15 @@ export default function RootLayout({
   const isLiveAdSense = adsenseClientId && adsenseClientId !== 'ca-pub-XXXXXXXXXXXXXXXX';
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${ptSans.variable} ${roboto.variable} ${lato.variable} ${montserrat.variable}`}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=PT+Sans:wght@400;700&family=Roboto:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body suppressHydrationWarning>
         {/* Strip & silence third-party browser extension attributes (e.g. Bitdefender bis_skin_checked, bis_use) */}
         <script
