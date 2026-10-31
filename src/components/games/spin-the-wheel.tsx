@@ -522,7 +522,7 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
                       </div>
                     </div>
                     <Badge className="font-black text-xs" style={{ backgroundColor: landedSector.color }}>
-                      {teams[currentTurn].name}&apos;s Turn
+                      {teams[currentTurn]?.name || "Team"}&apos;s Turn
                     </Badge>
                   </div>
                 )}

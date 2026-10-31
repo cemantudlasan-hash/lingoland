@@ -610,7 +610,7 @@ export function WorldTourWheel({ slug, onToggleFullscreen }: { slug: string; onT
                           const largeArc = 360 / total > 180 ? 1 : 0;
                           const d = `M 0 0 L ${x1} ${y1} A 196 196 0 ${largeArc} 1 ${x2} ${y2} Z`;
                           const isUsed = usedCountries.includes(country.name);
-                          const isLanded = selectedCountry?.name === country.name && (gameState === "result" || gameState === "revealed");
+                          const isLanded = result?.name === country.name && (gameState === "result" || gameState === "revealed");
 
                           return (
                             <g key={country.name}>

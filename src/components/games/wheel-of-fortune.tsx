@@ -476,7 +476,7 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
                           const largeArc = 360 / total > 180 ? 1 : 0;
                           const d = `M 0 0 L ${x1} ${y1} A 196 196 0 ${largeArc} 1 ${x2} ${y2} Z`;
                           const isUsed = usedVerbs.includes(item.verb);
-                          const isLanded = selectedVerb?.verb === item.verb && gameState === "result";
+                          const isLanded = result?.verb === item.verb && gameState === "result";
 
                           return (
                             <g key={item.verb}>
