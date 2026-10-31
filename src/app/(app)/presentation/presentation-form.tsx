@@ -2826,6 +2826,76 @@ export function PresentationForm() {
               </CardContent>
             </Card>
 
+            {/* Quick Guide on Top (Expandable Before Entering Fullscreen) */}
+            <div className={cn("mt-4 animate-in fade-in slide-in-from-top-2 duration-300 select-none", isFullscreen && "hidden")}>
+              <div 
+                onClick={() => setShowTips(!showTips)}
+                className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-900/70 border border-purple-500/30 rounded-2xl hover:bg-slate-900 hover:border-purple-500/50 transition-all cursor-pointer shadow-md group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="text-amber-400 text-lg">💡</span>
+                  <div>
+                    <span className="text-xs font-black text-slate-100 tracking-wide block sm:inline">LingoLand Interactive Slide Guide & Shortcuts</span>
+                    <span className="text-[11px] text-purple-300 sm:ml-2 font-medium hidden sm:inline">(Learn text cover, image search & word reveal shortcuts)</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-purple-400 group-hover:text-purple-300 shrink-0">
+                  <span>{showTips ? "Hide Quick Guide" : "Expand Quick Guide"}</span>
+                  <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", showTips && "rotate-180")} />
+                </div>
+              </div>
+              
+              {showTips && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2.5 p-5 bg-slate-900/80 border border-purple-500/30 rounded-2xl animate-in slide-in-from-top-2 duration-200 shadow-xl">
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <span>🔍</span> Dynamic Visual Image Search
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Highlight any word or phrase on a slide to show the floating visual search pill. Fetch related images from <strong>Google</strong>, <strong>Bing</strong>, <strong>Pinterest</strong>, or <strong>Unsplash</strong> instantly.
+                    </p>
+
+                    <h4 className="text-xs font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
+                      <span>⌨️</span> Multi-Word Selection with Shift Key
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Highlight a word, then hold the <kbd className="px-1.5 py-0.5 rounded bg-black/60 border border-white/20 text-[10px] font-mono text-purple-200 font-bold">Shift</kbd> key to easily select multiple words or longer sentences to search an image or cover the text.
+                    </p>
+                    
+                    <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
+                      <span>🫣</span> Classroom Cover & Reveal
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Highlight text and click <strong>&quot;Cover Text&quot;</strong> to disguise it behind a purple blur pill. Click the covered pill anytime during your presentation to reveal it to students, and click again to re-cover it!
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <span>⏳</span> Tap-to-Reveal Word Animation
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Slides start with bullet text hidden so you can reveal words progressively. Tap anywhere on the slide or press the <strong>Spacebar / Right Arrow</strong> to reveal words step-by-step. Click <strong>&quot;Reveal All&quot;</strong> at any time to instantly display all text.
+                    </p>
+
+                    <h4 className="text-xs font-black text-cyan-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
+                      <span>✏️</span> Digital Pen & Whiteboard Annotation
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Click the <strong>&quot;Pen / Draw&quot;</strong> button on any slide image to draw, circle, or highlight key details directly onto the picture with customizable colors and sizes.
+                    </p>
+
+                    <h4 className="text-xs font-black text-rose-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
+                      <span>👁️</span> Clear Covers & Exit Fullscreen
+                    </h4>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Click <strong>&quot;Clear Covers&quot;</strong> in the toolbar to quickly reset all covered text on the slide. Press <strong>Escape</strong> or click <strong>&quot;Exit&quot;</strong> to leave fullscreen mode.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* 3. Sliding Carousel Render */}
             <div
               ref={presentationContainerRef}
@@ -3014,7 +3084,7 @@ export function PresentationForm() {
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
                             !isFullscreen && "overflow-y-auto py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-hidden pt-14 pb-12 px-3 sm:px-6 md:px-12 lg:px-16"
+                            isFullscreen && "overflow-hidden pt-16 sm:pt-20 pb-12 px-3 sm:px-6 md:px-12 lg:px-16"
                           )}>
                             <div className={cn(
                               "w-full mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
@@ -3032,6 +3102,22 @@ export function PresentationForm() {
                                   ? (isFullscreen ? "md:w-1/2 lg:w-[48%]" : "md:w-1/2") 
                                   : (isFullscreen ? "max-w-4xl mx-auto my-auto" : "w-full")
                               )}>
+                                {/* Helpful Slide Text Interaction Tips Banner */}
+                                {!isEditMode && (
+                                  <div className="w-full mb-2.5 sm:mb-3.5 p-2 sm:p-2.5 rounded-xl bg-slate-900/80 border border-purple-500/30 shadow-md select-none shrink-0">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-3 text-[11px] sm:text-xs">
+                                      <div className="flex items-start sm:items-center gap-1.5 text-purple-200">
+                                        <span className="font-extrabold text-amber-300 shrink-0">💡 Tip 1:</span>
+                                        <span>Select/highlight a word to search an image or cover the word.</span>
+                                      </div>
+                                      <div className="flex items-start sm:items-center gap-1.5 text-indigo-200">
+                                        <span className="font-extrabold text-cyan-300 shrink-0">💡 Tip 2:</span>
+                                        <span>Highlight a word and hold <kbd className="px-1 py-0.5 rounded bg-black/70 border border-white/20 text-[9px] font-mono text-purple-200 font-bold">Shift</kbd> to select multiple words.</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
                                 {/* Slide Title field */}
                                 {isEditMode ? (
                                   <div className="space-y-1 mb-4 text-left">
@@ -4821,72 +4907,6 @@ onClick={() => setShowImageModal(false)}
                 <p className="font-bold">Click inside slides or press Spacebar to dynamically reveal content text</p>
               </div>
             )}
-
-            {/* Collapsible Slide Features Quick Tips Guide */}
-            <div className={cn("mt-4 animate-in fade-in slide-in-from-bottom duration-500 select-none", isFullscreen && "hidden")}>
-              <div 
-                onClick={() => setShowTips(!showTips)}
-                className="flex items-center justify-between p-4 bg-slate-900/40 border border-slate-800 rounded-2xl hover:bg-slate-900/60 transition-all cursor-pointer shadow-md"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-purple-400">💡</span>
-                  <span className="text-xs font-bold text-slate-200 tracking-wide">LingoLand Slide Features & Interactive Shortcuts Guide</span>
-                </div>
-                <span className="text-xs font-bold text-purple-400 hover:text-purple-300">
-                  {showTips ? "Hide Quick Guide" : "Expand Quick Guide"}
-                </span>
-              </div>
-              
-              {showTips && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 p-5 bg-slate-900/60 border border-slate-800 rounded-3xl animate-in slide-in-from-top-3 duration-300 backdrop-blur-md">
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-1.5">
-                      <span>🔍</span> Dynamic Visual Search
-                    </h4>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      Highlight any word or short phrase (1–4 words) on a slide to show the floating search pill. Fetch images from **Unsplash**, **Google**, **Pinterest**, or **Bing** in real-time.
-                    </p>
-                    
-                    <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
-                      <span>🫣</span> Classroom Cover & Reveal (Hide text)
-                    </h4>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      Highlight text on a slide and select **"Cover Text"** to wrap it in a blurred glass pill. Click the blurred text during your presentation to reveal it, and click it again to cover it!
-                    </p>
-
-                    <h4 className="text-xs font-black text-cyan-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
-                      <span>⚙️</span> Slide Controls & Clear Covers
-                    </h4>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      Click the **"Clear Covers"** button in the slide controls toolbar (or absolute fullscreen menu) to instantly clear and reset all covered blocks on the active slide.
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-1.5">
-                      <span>⏳</span> Dynamic Word-by-Word Reveal
-                    </h4>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      Click anywhere inside slides or press the **Spacebar / Arrow Right** to reveal slide bullet points one word at a time, keeping learners focused on your active explanation.
-                    </p>
-
-                    <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
-                      <span>📁</span> Folders & Library Manager
-                    </h4>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      Save generated outlines, edit titles or bullet points directly, and organize slides into folders in the real-time library manager on the left panel.
-                    </p>
-
-                    <h4 className="text-xs font-black text-purple-400 uppercase tracking-widest flex items-center gap-1.5 pt-1">
-                      <span>📥</span> Offline PowerPoint HTML Exports
-                    </h4>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      Download highly optimized offline-ready HTML slides to open directly in web browsers or import/open as fully functional web slides inside Microsoft PowerPoint.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         ) : (
           /* 4. Presentation Maker Generator Input Form */
