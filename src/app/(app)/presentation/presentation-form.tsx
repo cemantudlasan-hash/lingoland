@@ -306,29 +306,29 @@ const fontSizes = [
       name: 'Small text', 
       className: 'text-sm sm:text-base leading-relaxed', 
       titleClassName: 'text-xl sm:text-2xl font-bold leading-tight', 
-      fullScreenClassName: 'text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed md:leading-relaxed lg:leading-relaxed', 
-      fullScreenTitleClassName: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold leading-tight' 
+      fullScreenClassName: 'text-base sm:text-lg md:text-xl lg:text-2xl !leading-normal md:!leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold !leading-tight' 
     },
     { 
       name: 'Medium text', 
       className: 'text-base sm:text-lg leading-relaxed', 
       titleClassName: 'text-2xl sm:text-3xl font-bold leading-tight', 
-      fullScreenClassName: 'text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed md:leading-relaxed lg:leading-relaxed', 
-      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight' 
+      fullScreenClassName: 'text-lg sm:text-xl md:text-2xl lg:text-3xl !leading-normal md:!leading-relaxed', 
+      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold !leading-tight' 
     },
     { 
       name: 'Large text', 
       className: 'text-lg sm:text-xl leading-relaxed', 
       titleClassName: 'text-3xl sm:text-4xl font-bold leading-tight', 
-      fullScreenClassName: 'text-lg sm:text-xl md:text-2xl lg:text-3xl leading-relaxed md:leading-relaxed lg:leading-relaxed', 
-      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight' 
+      fullScreenClassName: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl !leading-normal md:!leading-relaxed', 
+      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold !leading-tight' 
     },
     { 
       name: 'Extra Large', 
-      className: 'text-xl sm:text-2xl leading-relaxed', 
-      titleClassName: 'text-3xl sm:text-4xl md:text-5xl font-bold leading-tight', 
-      fullScreenClassName: 'text-lg sm:text-xl md:text-2xl lg:text-[2rem] leading-relaxed md:leading-relaxed lg:leading-relaxed', 
-      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight' 
+      className: 'text-2xl sm:text-3xl leading-relaxed', 
+      titleClassName: 'text-4xl sm:text-5xl md:text-6xl font-bold leading-tight', 
+      fullScreenClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl !leading-normal md:!leading-relaxed', 
+      fullScreenTitleClassName: 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold !leading-tight tracking-tight' 
     },
 ];
 
@@ -3055,7 +3055,17 @@ export function PresentationForm() {
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-850">
                   <div className="flex items-center gap-2">
                     <Button 
-                      onClick={() => setIsEditMode(!isEditMode)} 
+                      onClick={() => {
+                        if (!isEditMode) {
+                          setEditableTitle(editableTitle || presentation.title);
+                          if (!editableSlides || editableSlides.length === 0) {
+                            setEditableSlides(JSON.parse(JSON.stringify(presentation.slides)));
+                          }
+                        } else {
+                          setPresentation(prev => prev ? ({ ...prev, title: editableTitle, slides: editableSlides }) : prev);
+                        }
+                        setIsEditMode(!isEditMode);
+                      }} 
                       variant="outline" 
                       className={cn("w-full sm:w-auto h-9 text-xs font-extrabold rounded-lg border-slate-800", isEditMode ? "bg-purple-950 border-purple-500 text-purple-200" : "bg-slate-950 text-slate-400")}
                     >
@@ -3151,8 +3161,7 @@ export function PresentationForm() {
               className={cn(
                   'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden rounded-3xl border transition-all duration-300', 
                   isThemeLight ? "bg-white border-slate-200" : "bg-slate-950 border-slate-800",
-                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-none',
-                  isFullscreen && (isThemeLight ? (currentThemeObj.bgFullScreen || "bg-white text-slate-900") : "!bg-slate-950"),
+                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-none overflow-hidden bg-black',
                   showSplitSearch && 'flex flex-row',
                   !isEditMode && activeDrawSlideIndex === null && 'cursor-pointer'
               )}
@@ -3170,61 +3179,116 @@ export function PresentationForm() {
               {/* Left Side: Slide Carousel & Overlays */}
               <div className={cn(
                 "h-full flex flex-col justify-between relative",
-                isFullscreen && (isThemeLight ? (currentThemeObj.bgFullScreen || "bg-white text-slate-900") : "!bg-slate-950"),
+                isFullscreen && "w-full h-full bg-transparent",
                 showSplitSearch ? "flex-1 overflow-hidden" : "w-full"
               )}>
                 {isFullscreen ? (
                   <>
-                    <Button
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        const idx = api?.selectedScrollSnap() || 0;
-                        const total = allWordsOnSlide.current[idx]?.length || 0;
-                        const curCount = visibleWordCounts[idx] || 0;
-                        setVisibleWordCounts(prev => ({
-                          ...prev,
-                          [idx]: curCount >= total ? 0 : total
-                        }));
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="absolute top-3 right-48 sm:top-4 sm:right-56 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg transition-all active:scale-95"
-                      title="Reveal all text on this slide, or hide to tap-reveal again"
-                    >
-                      <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-                      <span className="text-xs font-bold">
-                        {(visibleWordCounts[api?.selectedScrollSnap() || 0] || 0) >= (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)
-                          ? "Hide Text"
-                          : "Reveal All"}
-                      </span>
-                    </Button>
-                    <Button
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        const idx = api?.selectedScrollSnap() || 0;
-                        setCoveredTexts(prev => ({ ...prev, [idx]: [] }));
-                        setRevealedTexts(prev => ({ ...prev, [idx]: [] }));
-                        toast({
-                          title: "Covers Cleared 👁️",
-                          description: `All covered words on Slide ${idx + 1} have been reset.`
-                        });
-                      }}
-                      variant="secondary"
-                      size="sm"
-                      className="absolute top-3 right-20 sm:top-4 sm:right-24 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg"
-                    >
-                      <Eye className="h-3.5 w-3.5 text-purple-400" />
-                      <span className="text-xs font-bold">Clear Covers</span>
-                    </Button>
-                    <Button
-                      onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
-                      variant="secondary"
-                      size="sm"
-                      className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg"
-                    >
-                      <Minimize className="h-3.5 w-3.5 text-amber-400" />
-                      <span className="text-xs font-bold">Exit</span>
-                    </Button>
+                    {/* Fullscreen Floating Controls Bar */}
+                    <div className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 max-w-[95vw] overflow-x-auto scrollbar-none py-1">
+                      {/* Edit Slides Toggle in Fullscreen */}
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isEditMode) {
+                            setEditableTitle(editableTitle || presentation.title);
+                            if (!editableSlides || editableSlides.length === 0) {
+                              setEditableSlides(JSON.parse(JSON.stringify(presentation.slides)));
+                            }
+                          } else {
+                            setPresentation(prev => prev ? ({ ...prev, title: editableTitle, slides: editableSlides }) : prev);
+                          }
+                          setIsEditMode(!isEditMode);
+                        }}
+                        variant="secondary"
+                        size="sm"
+                        className={cn(
+                          "h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl shadow-lg transition-all active:scale-95 border shrink-0",
+                          isEditMode 
+                            ? "bg-purple-600 hover:bg-purple-500 text-white border-purple-400 shadow-purple-500/30" 
+                            : "bg-slate-900/90 hover:bg-slate-800 text-white/90 hover:text-white border-white/20"
+                        )}
+                        title={isEditMode ? "Done Editing Slides" : "Edit Slide Content directly in Fullscreen"}
+                      >
+                        <Edit className="h-3.5 w-3.5 text-amber-400" />
+                        <span className="text-xs font-bold">{isEditMode ? "Done Editing" : "Edit Slides"}</span>
+                      </Button>
+
+                      {/* Save Outline Button when editing in Fullscreen */}
+                      {isEditMode && (
+                        <Button
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            handleSaveToDb(); 
+                          }}
+                          disabled={isSavingDb}
+                          variant="secondary"
+                          size="sm"
+                          className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400 rounded-xl shadow-lg transition-all active:scale-95 shrink-0"
+                          title="Save Changes to Library"
+                        >
+                          {isSavingDb ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                          <span className="text-xs font-bold">{isSavingDb ? "Saving..." : "Save"}</span>
+                        </Button>
+                      )}
+
+                      {/* Reveal All / Hide Text */}
+                      <Button
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          const idx = api?.selectedScrollSnap() || 0;
+                          const total = allWordsOnSlide.current[idx]?.length || 0;
+                          const curCount = visibleWordCounts[idx] || 0;
+                          setVisibleWordCounts(prev => ({
+                            ...prev,
+                            [idx]: curCount >= total ? 0 : total
+                          }));
+                        }}
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg transition-all active:scale-95 shrink-0"
+                        title="Reveal all text on this slide, or hide to tap-reveal again"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+                        <span className="text-xs font-bold hidden xs:inline sm:inline">
+                          {(visibleWordCounts[api?.selectedScrollSnap() || 0] || 0) >= (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)
+                            ? "Hide Text"
+                            : "Reveal All"}
+                        </span>
+                      </Button>
+
+                      {/* Clear Covers */}
+                      <Button
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          const idx = api?.selectedScrollSnap() || 0;
+                          setCoveredTexts(prev => ({ ...prev, [idx]: [] }));
+                          setRevealedTexts(prev => ({ ...prev, [idx]: [] }));
+                          toast({
+                            title: "Covers Cleared 👁️",
+                            description: `All covered words on Slide ${idx + 1} have been reset.`
+                          });
+                        }}
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg shrink-0"
+                      >
+                        <Eye className="h-3.5 w-3.5 text-purple-400" />
+                        <span className="text-xs font-bold hidden sm:inline">Clear Covers</span>
+                      </Button>
+
+                      {/* Exit Fullscreen */}
+                      <Button
+                        onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg shrink-0"
+                      >
+                        <Minimize className="h-3.5 w-3.5 text-amber-400" />
+                        <span className="text-xs font-bold">Exit</span>
+                      </Button>
+                    </div>
+
                     <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-slate-950/95 border border-white/20 text-white/90 px-3 py-1 text-xs select-none shadow-2xl">
                       <button
                         type="button"
@@ -3305,16 +3369,16 @@ export function PresentationForm() {
                   }} 
                   className="w-full h-full"
                 >
-                  <CarouselContent className={cn("h-full", isFullscreen ? (isThemeLight ? `ml-0 ${currentThemeObj.bgFullScreen || "bg-white text-slate-900"}` : "ml-0 !bg-slate-950") : "")}>
-                    {(isEditMode ? editableSlides : presentation.slides).map((slide, index) => (
-                      <CarouselItem key={index} className={cn("h-full", isFullscreen ? (isThemeLight ? `w-full min-w-full max-w-full pl-0 ${currentThemeObj.bgFullScreen || "bg-white text-slate-900"}` : "w-full min-w-full max-w-full pl-0 !bg-slate-950") : "")}>
+                  <CarouselContent className={cn("h-full", isFullscreen && "ml-0 bg-transparent")}>
+                    {(isEditMode ? (editableSlides.length > 0 ? editableSlides : presentation.slides) : presentation.slides).map((slide, index) => (
+                      <CarouselItem key={index} className={cn("h-full", isFullscreen && "w-full min-w-full max-w-full pl-0 bg-transparent")}>
                         <div 
                           className={cn(
                             "w-full h-full flex cursor-pointer",
                             theme,
                             fontFamily,
                             isFullscreen 
-                              ? cn("!rounded-none !border-none !shadow-none !backdrop-blur-none !opacity-100", isThemeLight ? (currentThemeObj.bgFullScreen || "bg-white text-slate-900") : "!bg-slate-950 !bg-none")
+                              ? "!rounded-none !shadow-none !opacity-100" 
                               : "transition-all duration-700 ease-out transform-gpu"
                           )}
                           style={(!isFullscreen && enable3D) ? {
@@ -3376,16 +3440,29 @@ export function PresentationForm() {
 
                                 {/* Slide Title field */}
                                 {isEditMode ? (
-                                  <div className="space-y-1 mb-4 text-left">
-                                    <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Slide Title</Label>
+                                  <div className="space-y-1.5 mb-4 text-left w-full max-w-2xl">
+                                    <Label className={cn("text-[11px] font-extrabold uppercase tracking-wider", isThemeLight ? "text-stone-700" : "text-purple-300")}>
+                                      ✏️ Slide Title
+                                    </Label>
                                     <Input 
-                                      value={slide.title} 
+                                      value={editableSlides[index]?.title ?? slide.title} 
                                       onChange={(e) => {
-                                        const updated = [...editableSlides];
-                                        updated[index].title = e.target.value;
-                                        setEditableSlides(updated);
+                                        const updated = editableSlides.length > 0 
+                                          ? JSON.parse(JSON.stringify(editableSlides)) 
+                                          : JSON.parse(JSON.stringify(presentation.slides));
+                                        if (updated[index]) {
+                                          updated[index].title = e.target.value;
+                                          setEditableSlides(updated);
+                                          setPresentation(prev => prev ? ({ ...prev, slides: updated }) : prev);
+                                        }
                                       }}
-                                      className="bg-slate-950/80 border-slate-800 text-white font-bold h-9 animate-pulse"
+                                      className={cn(
+                                        "font-bold h-10 rounded-xl border text-sm sm:text-base px-3 transition-colors",
+                                        isThemeLight 
+                                          ? "bg-white/95 border-stone-300 text-stone-900 focus:border-stone-500 shadow-sm" 
+                                          : "bg-slate-950/90 border-slate-700 text-white focus:border-purple-400 shadow-md"
+                                      )}
+                                      placeholder="Enter slide title..."
                                     />
                                   </div>
                                 ) : (
@@ -3401,28 +3478,47 @@ export function PresentationForm() {
 
                                 {/* Slide Bullet points */}
                                 {isEditMode ? (
-                                  <div className="space-y-3 mt-4 text-left">
-                                    <Label className="text-[10px] text-slate-500 font-extrabold uppercase">Bullet Outline points</Label>
-                                    {slide.content.map((point, ptIdx) => (
-                                      <div key={ptIdx} className="flex gap-1.5 items-start">
+                                  <div className="space-y-3 mt-2 text-left w-full max-w-2xl">
+                                    <Label className={cn("text-[11px] font-extrabold uppercase tracking-wider", isThemeLight ? "text-stone-700" : "text-purple-300")}>
+                                      📝 Bullet Outline Points
+                                    </Label>
+                                    {(editableSlides[index]?.content ?? slide.content).map((point, ptIdx) => (
+                                      <div key={ptIdx} className="flex gap-2 items-center">
                                         <Input 
                                           value={point}
                                           onChange={(e) => {
-                                            const updated = [...editableSlides];
-                                            updated[index].content[ptIdx] = e.target.value;
-                                            setEditableSlides(updated);
+                                            const updated = editableSlides.length > 0 
+                                              ? JSON.parse(JSON.stringify(editableSlides)) 
+                                              : JSON.parse(JSON.stringify(presentation.slides));
+                                            if (updated[index] && updated[index].content) {
+                                              updated[index].content[ptIdx] = e.target.value;
+                                              setEditableSlides(updated);
+                                              setPresentation(prev => prev ? ({ ...prev, slides: updated }) : prev);
+                                            }
                                           }}
-                                          className="bg-slate-950/80 border-slate-800 text-white text-xs h-9 animate-pulse"
+                                          className={cn(
+                                            "text-xs sm:text-sm h-10 rounded-xl border px-3 transition-colors flex-1",
+                                            isThemeLight 
+                                              ? "bg-white/95 border-stone-300 text-stone-900 focus:border-stone-500 shadow-sm" 
+                                              : "bg-slate-950/90 border-slate-700 text-white focus:border-purple-400 shadow-md"
+                                          )}
+                                          placeholder={`Point ${ptIdx + 1}...`}
                                         />
                                         <Button 
                                           size="icon" 
                                           variant="ghost" 
                                           onClick={() => {
-                                            const updated = [...editableSlides];
-                                            updated[index].content.splice(ptIdx, 1);
-                                            setEditableSlides(updated);
+                                            const updated = editableSlides.length > 0 
+                                              ? JSON.parse(JSON.stringify(editableSlides)) 
+                                              : JSON.parse(JSON.stringify(presentation.slides));
+                                            if (updated[index] && updated[index].content) {
+                                              updated[index].content.splice(ptIdx, 1);
+                                              setEditableSlides(updated);
+                                              setPresentation(prev => prev ? ({ ...prev, slides: updated }) : prev);
+                                            }
                                           }}
-                                          className="h-9 w-9 text-slate-500 hover:text-red-400 shrink-0"
+                                          className="h-9 w-9 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl shrink-0"
+                                          title="Delete bullet point"
                                         >
                                           <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -3430,15 +3526,26 @@ export function PresentationForm() {
                                     ))}
                                     <Button 
                                       size="sm" 
-                                      variant="ghost" 
+                                      variant="outline" 
                                       onClick={() => {
-                                        const updated = [...editableSlides];
-                                        updated[index].content.push("New slide point outline statement.");
-                                        setEditableSlides(updated);
+                                        const updated = editableSlides.length > 0 
+                                          ? JSON.parse(JSON.stringify(editableSlides)) 
+                                          : JSON.parse(JSON.stringify(presentation.slides));
+                                        if (updated[index]) {
+                                          if (!updated[index].content) updated[index].content = [];
+                                          updated[index].content.push("New slide point outline statement.");
+                                          setEditableSlides(updated);
+                                          setPresentation(prev => prev ? ({ ...prev, slides: updated }) : prev);
+                                        }
                                       }}
-                                      className="h-8 text-xs font-bold text-slate-400 hover:text-white"
+                                      className={cn(
+                                        "h-9 text-xs font-bold rounded-xl border mt-1",
+                                        isThemeLight 
+                                          ? "border-stone-300 bg-white/80 hover:bg-white text-stone-700" 
+                                          : "border-slate-700 bg-slate-900/80 hover:bg-slate-800 text-slate-300"
+                                      )}
                                     >
-                                      <Plus className="mr-1.5 h-3.5 w-3.5" /> Add slide point
+                                      <Plus className="mr-1.5 h-3.5 w-3.5 text-purple-400" /> Add slide point
                                     </Button>
                                   </div>
                                 ) : (
