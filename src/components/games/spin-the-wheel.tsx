@@ -307,7 +307,7 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 w-full max-w-6xl mx-auto overflow-visible">
+      <CardContent className="w-full flex-1 flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-16 sm:pb-20 max-w-6xl mx-auto overflow-visible">
         {gameState === "setup" && (
           <div className="flex flex-col items-center gap-6 w-full max-w-md animate-in fade-in duration-200">
             {/* How to Play Guide */}
@@ -365,21 +365,21 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
         {gameState !== "setup" && gameState !== "loading" && gameState !== "finished" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full max-w-6xl">
             {/* Realistic Arcade Wheel (Desktop Left / Mobile Top) */}
-            <div className="lg:col-span-6 flex flex-col items-center justify-start w-full pt-8 sm:pt-10 pb-2">
+            <div className="lg:col-span-6 flex flex-col items-center justify-start w-full pt-6 sm:pt-10 pb-2">
               <div
-                className="relative flex items-center justify-center select-none w-[270px] h-[270px] xs:w-[290px] xs:h-[290px] sm:w-[340px] sm:h-[340px] md:w-[380px] md:h-[380px] lg:w-[420px] lg:h-[420px] max-w-[92vw] max-h-[92vw] shrink-0"
+                className="relative flex items-center justify-center select-none w-[210px] h-[210px] xs:w-[240px] xs:h-[240px] sm:w-[300px] sm:h-[300px] md:w-[360px] md:h-[360px] lg:w-[420px] lg:h-[420px] max-w-[90vw] max-h-[90vw] shrink-0"
               >
                 {/* 3D Realistic Physical Needle / Flapper Pin at 12 o'clock */}
-                <div className="absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none flex flex-col items-center filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
-                  <div className="px-2 py-0.5 rounded-full bg-slate-950/90 border border-amber-400/80 text-[9px] font-black tracking-widest text-amber-300 uppercase shadow-md mb-0.5">
+                <div className="absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none flex flex-col items-center filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
+                  <div className="px-2 py-0.5 rounded-full bg-slate-950/90 border border-amber-400/80 text-[8px] sm:text-[9px] font-black tracking-widest text-amber-300 uppercase shadow-md mb-0.5">
                     ▼ TARGET ▼
                   </div>
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-200 via-amber-400 to-amber-700 border-2 border-white shadow-lg flex items-center justify-center">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-950 shadow-inner" />
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-200 via-amber-400 to-amber-700 border-2 border-white shadow-lg flex items-center justify-center">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-950 shadow-inner" />
                   </div>
                   <div
                     className={cn(
-                      "w-0 h-0 border-l-[14px] sm:border-l-[16px] border-l-transparent border-r-[14px] sm:border-r-[16px] border-r-transparent border-t-[32px] sm:border-t-[36px] border-t-amber-400 -mt-1 drop-shadow-[0_5px_8px_rgba(0,0,0,0.6)] origin-top transition-transform",
+                      "w-0 h-0 border-l-[12px] sm:border-l-[16px] border-l-transparent border-r-[12px] sm:border-r-[16px] border-r-transparent border-t-[28px] sm:border-t-[36px] border-t-amber-400 -mt-1 drop-shadow-[0_5px_8px_rgba(0,0,0,0.6)] origin-top transition-transform",
                       gameState === "spinning_animation" && "animate-[wiggle_0.1s_ease-in-out_infinite]"
                     )}
                   />
@@ -605,7 +605,7 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
         )}
       </CardContent>
 
-      <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 w-full shrink-0">
+      <CardFooter className="w-full shrink-0 mt-auto flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 bg-card/95 backdrop-blur-md relative z-10">
         <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl font-bold">
           <Link href="/games">Back to Library</Link>
         </Button>

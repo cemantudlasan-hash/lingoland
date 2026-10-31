@@ -471,7 +471,10 @@ export function AppHeader() {
               </Button>
             )}
         </div>
-        <div className="flex-1 min-w-0 mx-2 text-center hidden md:flex items-center justify-center pointer-events-none">
+        <div className={cn(
+          "flex-1 min-w-0 mx-2 text-center items-center justify-center pointer-events-none",
+          pathname?.startsWith('/games/') ? "hidden 2xl:flex" : "hidden md:flex"
+        )}>
           <h1 className="text-sm md:text-base lg:text-lg font-black truncate tracking-tight font-headline text-foreground max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg">
             {title}
           </h1>
