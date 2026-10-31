@@ -36,6 +36,11 @@ export async function signUpWithEmail(email: string, password: string) {
     await createUserProfile(userCredential.user);
     if (typeof window !== 'undefined') {
       document.cookie = "lingoland_auth=1; path=/; max-age=31536000; SameSite=Lax";
+      localStorage.removeItem('lingoland_floating_pet_dismissed');
+      if (userCredential.user?.uid) {
+        localStorage.removeItem(`lingoland_floating_pet_dismissed_${userCredential.user.uid}`);
+      }
+      window.dispatchEvent(new CustomEvent('lingoland_pet_reset_closed'));
     }
     return { user: userCredential.user, error: null };
   } catch (e) {
@@ -50,6 +55,11 @@ export async function signInWithEmail(email: string, password: string) {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     if (typeof window !== 'undefined') {
       document.cookie = "lingoland_auth=1; path=/; max-age=31536000; SameSite=Lax";
+      localStorage.removeItem('lingoland_floating_pet_dismissed');
+      if (userCredential.user?.uid) {
+        localStorage.removeItem(`lingoland_floating_pet_dismissed_${userCredential.user.uid}`);
+      }
+      window.dispatchEvent(new CustomEvent('lingoland_pet_reset_closed'));
     }
     return { user: userCredential.user, error: null };
   } catch (e) {

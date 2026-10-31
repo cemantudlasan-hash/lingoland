@@ -306,29 +306,29 @@ const fontSizes = [
       name: 'Small text', 
       className: 'text-sm sm:text-base leading-relaxed', 
       titleClassName: 'text-xl sm:text-2xl font-bold leading-tight', 
-      fullScreenClassName: 'text-base sm:text-lg md:text-xl lg:text-2xl !leading-normal md:!leading-relaxed', 
-      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold !leading-tight' 
+      fullScreenClassName: 'text-base sm:text-lg md:text-xl lg:text-2xl leading-normal sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight' 
     },
     { 
       name: 'Medium text', 
       className: 'text-base sm:text-lg leading-relaxed', 
       titleClassName: 'text-2xl sm:text-3xl font-bold leading-tight', 
-      fullScreenClassName: 'text-lg sm:text-xl md:text-2xl lg:text-3xl !leading-normal md:!leading-relaxed', 
-      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold !leading-tight' 
+      fullScreenClassName: 'text-lg sm:text-xl md:text-2xl lg:text-3xl leading-normal sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight' 
     },
     { 
       name: 'Large text', 
       className: 'text-lg sm:text-xl leading-relaxed', 
       titleClassName: 'text-3xl sm:text-4xl font-bold leading-tight', 
-      fullScreenClassName: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl !leading-normal md:!leading-relaxed', 
-      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold !leading-tight' 
+      fullScreenClassName: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl leading-normal sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight' 
     },
     { 
       name: 'Extra Large', 
-      className: 'text-2xl sm:text-3xl leading-relaxed', 
-      titleClassName: 'text-4xl sm:text-5xl md:text-6xl font-bold leading-tight', 
-      fullScreenClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl !leading-normal md:!leading-relaxed', 
-      fullScreenTitleClassName: 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold !leading-tight tracking-tight' 
+      className: 'text-xl sm:text-2xl md:text-3xl leading-relaxed', 
+      titleClassName: 'text-3xl sm:text-4xl md:text-5xl font-bold leading-tight', 
+      fullScreenClassName: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl leading-normal sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight' 
     },
 ];
 
@@ -2727,16 +2727,16 @@ export function PresentationForm() {
         if (visibleWords.length > 0) {
           const joinedText = visibleWords.join(' ');
           return (
-            <li key={pointIndex} className="flex items-start gap-3 md:gap-4 text-left group/item pl-1 my-0.5 sm:my-1">
+            <li key={pointIndex} className="flex items-start gap-3 md:gap-5 text-left group/item pl-1 mb-3.5 sm:mb-5 md:mb-6 last:mb-0 shrink-0 w-full">
               {align !== 'center' && (
                 <span className={cn(
-                  "inline-block mt-2 md:mt-2.5 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0 shadow-sm border",
+                  "inline-block mt-2 sm:mt-2.5 md:mt-3 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0 shadow-sm border",
                   isThemeLight
                     ? "bg-purple-600 border-purple-700/40 shadow-purple-200"
                     : "bg-gradient-to-r from-purple-400 to-indigo-400 shadow-[0_0_10px_rgba(168,85,247,0.8)] border-purple-300/40"
                 )} />
               )}
-              <div className="flex-1 min-w-0 leading-relaxed md:leading-relaxed lg:leading-relaxed break-words">
+              <div className="flex-1 min-w-0 leading-normal sm:leading-relaxed md:leading-relaxed break-words">
                 {renderTextWithCoverAndReveal(joinedText, slideIdx)}
               </div>
             </li>
@@ -3230,7 +3230,8 @@ export function PresentationForm() {
               className={cn(
                   'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden rounded-3xl border transition-all duration-300', 
                   isThemeLight ? "bg-white border-slate-200" : "bg-slate-950 border-slate-800",
-                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-none overflow-hidden bg-black',
+                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-none overflow-hidden',
+                  isFullscreen && (currentThemeObj.bgFullScreen || (isThemeLight ? "bg-white text-slate-900" : "bg-slate-950 text-white")),
                   showSplitSearch && 'flex flex-row',
                   !isEditMode && activeDrawSlideIndex === null && 'cursor-pointer'
               )}
@@ -3278,7 +3279,7 @@ export function PresentationForm() {
                           "h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 rounded-xl shadow-lg transition-all active:scale-95 border shrink-0",
                           isEditMode 
                             ? "bg-purple-600 hover:bg-purple-500 text-white border-purple-400 shadow-purple-500/30" 
-                            : "bg-slate-900/90 hover:bg-slate-800 text-white/90 hover:text-white border-white/20"
+                            : "bg-slate-950 hover:bg-slate-900 text-white border-white/20"
                         )}
                         title={isEditMode ? "Done Editing Slides" : "Edit Slide Content directly in Fullscreen"}
                       >
@@ -3335,7 +3336,7 @@ export function PresentationForm() {
                         }}
                         variant="secondary"
                         size="sm"
-                        className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg transition-all active:scale-95 shrink-0"
+                        className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-950 text-white hover:bg-slate-900 border border-white/20 rounded-xl shadow-lg transition-all active:scale-95 shrink-0"
                         title="Reveal all text on this slide, or hide to tap-reveal again"
                       >
                         <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
@@ -3360,7 +3361,7 @@ export function PresentationForm() {
                         }}
                         variant="secondary"
                         size="sm"
-                        className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg shrink-0"
+                        className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-950 text-white hover:bg-slate-900 border border-white/20 rounded-xl shadow-lg shrink-0"
                       >
                         <Eye className="h-3.5 w-3.5 text-purple-400" />
                         <span className="text-xs font-bold hidden sm:inline">Clear Covers</span>
@@ -3371,7 +3372,7 @@ export function PresentationForm() {
                         onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
                         variant="secondary"
                         size="sm"
-                        className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg shrink-0"
+                        className="h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-950 text-white hover:bg-slate-900 border border-white/20 rounded-xl shadow-lg shrink-0"
                       >
                         <Minimize className="h-3.5 w-3.5 text-amber-400" />
                         <span className="text-xs font-bold">Exit</span>
@@ -3453,21 +3454,23 @@ export function PresentationForm() {
                   setApi={setApi} 
                   opts={{ 
                     watchDrag: activeDrawSlideIndex === null && !isEditMode,
-                    align: 'start',
-                    containScroll: 'trimSnaps',
+                    align: 'center',
+                    containScroll: false,
+                    loop: false,
+                    skipSnaps: false,
                   }} 
                   className="w-full h-full"
                 >
                   <CarouselContent className={cn("h-full", isFullscreen && "ml-0 bg-transparent")}>
                     {(isEditMode ? (editableSlides.length > 0 ? editableSlides : presentation.slides) : presentation.slides).map((slide, index) => (
-                      <CarouselItem key={index} className={cn("h-full", isFullscreen && "w-full min-w-full max-w-full pl-0 bg-transparent")}>
+                      <CarouselItem key={index} className={cn("h-full basis-full min-w-full max-w-full shrink-0 grow-0", isFullscreen ? "pl-0 bg-transparent" : "pl-4")}>
                         <div 
                           className={cn(
                             "w-full h-full flex cursor-pointer",
                             theme,
                             fontFamily,
                             isFullscreen 
-                              ? "!rounded-none !shadow-none !opacity-100" 
+                              ? "!rounded-none !shadow-none !opacity-100 !backdrop-blur-none" 
                               : "transition-all duration-700 ease-out transform-gpu"
                           )}
                           style={(!isFullscreen && enable3D) ? {
@@ -3478,7 +3481,7 @@ export function PresentationForm() {
                                 : 'perspective(1000px) rotateY(-15deg) scale(0.92) translateZ(-50px)',
                             opacity: index === (current - 1) ? 1 : 0.35,
                             transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
-                          } : undefined}
+                          } : (isFullscreen ? { transform: 'none' } : undefined)}
                           onClick={(e) => {
                             if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
                             e.stopPropagation();
@@ -3488,7 +3491,7 @@ export function PresentationForm() {
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
                             !isFullscreen && "overflow-y-auto py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-hidden pt-16 sm:pt-20 pb-12 px-3 sm:px-6 md:px-12 lg:px-16"
+                            isFullscreen && "overflow-y-auto pt-20 sm:pt-24 pb-12 px-3 sm:px-6 md:px-12 lg:px-16"
                           )}>
                             <div className={cn(
                               "w-full mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
@@ -3500,7 +3503,7 @@ export function PresentationForm() {
                               <div className={cn(
                                 "flex-1 min-w-0 w-full flex flex-col px-2 sm:px-4 md:px-8",
                                 isFullscreen 
-                                  ? "justify-start md:justify-center overflow-y-auto max-h-[44vh] md:max-h-full md:h-full scrollbar-none py-1" 
+                                  ? "justify-start md:justify-center overflow-y-auto max-h-full scrollbar-none py-1" 
                                   : "justify-center",
                                 (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode 
                                   ? (isFullscreen ? "md:w-1/2 lg:w-[48%]" : "md:w-1/2") 
@@ -3559,7 +3562,7 @@ export function PresentationForm() {
                                     isThemeLight ? (currentThemeObj.titleClass || "text-slate-900") : (currentThemeObj.titleClass || "text-white"),
                                     !isFullscreen 
                                       ? `mb-4 sm:mb-6 ${fontSize.titleClassName}` 
-                                      : `mb-2 sm:mb-4 md:mb-5 leading-tight font-extrabold tracking-tight ${fontSize.fullScreenTitleClassName}`
+                                      : `mb-3 sm:mb-5 leading-tight font-extrabold tracking-tight pr-24 sm:pr-0 ${fontSize.fullScreenTitleClassName}`
                                   )}>
                                     {slide.title}
                                   </h2>
@@ -3641,11 +3644,11 @@ export function PresentationForm() {
                                   </div>
                                 ) : (
                                   <>
-                                    <ul className={cn("transition-all duration-300 list-none pl-0 w-full",
+                                    <ul className={cn("list-none pl-0 w-full",
                                       align === 'center' ? 'text-center' : 'text-left',
                                       !isFullscreen 
-                                        ? `space-y-4 ${fontSize.className}` 
-                                        : `space-y-3 sm:space-y-4 md:space-y-6 ${fontSize.fullScreenClassName}`
+                                        ? fontSize.className 
+                                        : fontSize.fullScreenClassName
                                     )}>
                                       {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
                                     </ul>

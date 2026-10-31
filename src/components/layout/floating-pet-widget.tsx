@@ -13,23 +13,17 @@ import { LingoPetType } from '@/lib/types';
 
 const CLASSIC_PET_TYPES: LingoPetType[] = ['owl', 'dino', 'kitty', 'phoenix', 'morphling', 'godly'];
 
-// In-memory session tracking: Keeps the pet hidden across all page navigations when closed by the user.
-// Automatically resets to false when the user refreshes the page, revisits the site, or logs in again.
-let isPetClosedInCurrentSession = false;
+const PET_DISMISSED_KEY = 'lingoland_floating_pet_dismissed';
 
-// Clear any stale sessionStorage flags on fresh page load/refresh/revisit
-if (typeof window !== 'undefined') {
+// Helper to check if the pet widget was dismissed by user
+const isPetDismissed = (uid?: string): boolean => {
+  if (typeof window === 'undefined') return false;
   try {
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (key && key.startsWith('lingoland_floating_pet_closed')) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach((k) => sessionStorage.removeItem(k));
+    if (localStorage.getItem(PET_DISMISSED_KEY) === 'true') return true;
+    if (uid && localStorage.getItem(`${PET_DISMISSED_KEY}_${uid}`) === 'true') return true;
   } catch (e) {}
-}
+  return false;
+};
 
 const MOTIVATIONAL_PRESETS = [
   "Believe in yourself! You're doing amazing! 🌟",
@@ -140,26 +134,22 @@ export function FloatingPetWidget() {
     setCurrentTextIdx(0);
   }, [messages]);
 
-  // Track user login state to reset closed flag when user logs in again
-  const prevUserUidRef = React.useRef<string | null>(null);
-  React.useEffect(() => {
-    if (user?.uid && user.uid !== prevUserUidRef.current) {
-      isPetClosedInCurrentSession = false;
-      prevUserUidRef.current = user.uid;
-    }
-    if (!user) {
-      prevUserUidRef.current = null;
-    }
-  }, [user?.uid]);
-
-  // Listen for reset events (e.g. from auth login)
+  // Listen for reset events (e.g. from explicit user login or guest login)
   React.useEffect(() => {
     const handleReset = () => {
-      isPetClosedInCurrentSession = false;
+      try {
+        localStorage.removeItem(PET_DISMISSED_KEY);
+        if (user?.uid) {
+          localStorage.removeItem(`${PET_DISMISSED_KEY}_${user.uid}`);
+        }
+      } catch (e) {}
+      if (user && !isGuest && isActivated) {
+        setIsOpen(true);
+      }
     };
     window.addEventListener('lingoland_pet_reset_closed', handleReset);
     return () => window.removeEventListener('lingoland_pet_reset_closed', handleReset);
-  }, []);
+  }, [user, isGuest, isActivated]);
 
   // Determine visibility and load pet data (including equipped cosmetics)
   React.useEffect(() => {
@@ -172,7 +162,8 @@ export function FloatingPetWidget() {
       const active = data.isActivated === true || storedActivated || (data.level && data.level > 1) || (data.xp && data.xp > 100);
       setIsActivated(active);
 
-      if (!isAuthPage && !isPetPage && !!user && !isGuest && active && !isPetClosedInCurrentSession) {
+      const dismissed = isPetDismissed(user?.uid);
+      if (!isAuthPage && !isPetPage && !!user && !isGuest && active && !dismissed) {
         setIsOpen(true);
       } else {
         setIsOpen(false);
@@ -210,7 +201,8 @@ export function FloatingPetWidget() {
           } else if (actFlag === 'true') {
             petActivated = true;
             setIsActivated(true);
-            if (!isAuthPage && !isPetPage && !!user && !isGuest && !isPetClosedInCurrentSession) {
+            const dismissed = isPetDismissed(user?.uid);
+            if (!isAuthPage && !isPetPage && !!user && !isGuest && !dismissed) {
               setIsOpen(true);
             }
           }
@@ -241,7 +233,8 @@ export function FloatingPetWidget() {
       
       if (isNowActive) {
         setIsActivated(true);
-        if (!isAuthPage && !isPetPage && !!user && !isGuest && !isPetClosedInCurrentSession) {
+        const dismissed = isPetDismissed(user?.uid);
+        if (!isAuthPage && !isPetPage && !!user && !isGuest && !dismissed) {
           setIsOpen(true);
         }
         if (typeof window !== 'undefined') {
@@ -265,8 +258,19 @@ export function FloatingPetWidget() {
         try {
           if (e.key === `lingopet_activated_${user?.uid}` && e.newValue === 'true') {
             setIsActivated(true);
-            if (!isAuthPage && !isPetPage && !!user && !isGuest && !isPetClosedInCurrentSession) {
+            const dismissed = isPetDismissed(user?.uid);
+            if (!isAuthPage && !isPetPage && !!user && !isGuest && !dismissed) {
               setIsOpen(true);
+            }
+          }
+          if (e.key === PET_DISMISSED_KEY || (user?.uid && e.key === `${PET_DISMISSED_KEY}_${user.uid}`)) {
+            if (e.newValue === 'true') {
+              setIsOpen(false);
+            } else if (e.newValue === null) {
+              // Re-check
+              if (!isAuthPage && !isPetPage && !!user && !isGuest && isActivated) {
+                setIsOpen(true);
+              }
             }
           }
           if ((e.key === 'lingopet_selected_pet' || e.key === `lingopet_selected_pet_${user?.uid}`) && e.newValue) {
@@ -342,7 +346,14 @@ export function FloatingPetWidget() {
     if (e) {
       e.stopPropagation();
     }
-    isPetClosedInCurrentSession = true;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(PET_DISMISSED_KEY, 'true');
+        if (user?.uid) {
+          localStorage.setItem(`${PET_DISMISSED_KEY}_${user.uid}`, 'true');
+        }
+      } catch (err) {}
+    }
     setIsOpen(false);
   };
 

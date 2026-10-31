@@ -112,8 +112,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           document.cookie = "lingoland_auth=1; path=/; max-age=31536000; SameSite=Lax";
         }
         setIsAdmin(user.email === ADMIN_EMAIL);
-        // Clear companion closed state and donation triggers on login
-        clearCompanionAndDonationSession();
         const profile = await getUserProfile(user.uid);
         setUserProfile(profile);
       } else {
@@ -147,6 +145,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionStorage.setItem('isGuest', 'true');
     if (typeof window !== 'undefined') {
       document.cookie = "lingoland_auth=1; path=/; max-age=31536000; SameSite=Lax";
+      localStorage.removeItem('lingoland_floating_pet_dismissed');
+      window.dispatchEvent(new CustomEvent('lingoland_pet_reset_closed'));
     }
     // Clear companion closed state and donation triggers on guest login
     clearCompanionAndDonationSession();
