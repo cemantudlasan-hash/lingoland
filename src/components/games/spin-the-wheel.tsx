@@ -273,32 +273,41 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
   return (
     <Card
       className={cn(
-        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300",
+        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-start overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300",
         isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background"
       )}
     >
-      <CardHeader className="text-center relative p-4 sm:p-6 pb-2">
+      <CardHeader className={cn(
+        "text-center relative px-4 transition-all",
+        gameState !== "setup" ? "pt-2 sm:pt-4 pb-1 sm:pb-2" : "pt-4 sm:pt-6 pb-2"
+      )}>
         <Button
           variant="ghost"
           size="sm"
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 h-auto p-1.5 sm:p-2 gap-1 text-muted-foreground hover:text-foreground z-[100]"
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
         </Button>
-        <div className="flex justify-center mb-2">
-          <Icon className="w-10 h-10 sm:w-14 sm:h-14 text-primary" />
+        <div className={cn("flex justify-center mb-1", gameState !== "setup" && "hidden sm:flex")}>
+          <Icon className="w-8 h-8 sm:w-12 sm:h-12 text-primary" />
         </div>
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-2xl sm:text-4xl md:text-5xl" : "text-xl sm:text-3xl")}>
+        <CardTitle className={cn(
+          "font-black tracking-tight uppercase",
+          gameState !== "setup" ? "text-lg sm:text-2xl md:text-3xl" : "text-xl sm:text-3xl md:text-4xl"
+        )}>
           {game.title}
         </CardTitle>
-        <CardDescription className="text-xs sm:text-sm md:text-base max-w-xl mx-auto">
+        <CardDescription className={cn(
+          "text-xs sm:text-sm max-w-xl mx-auto",
+          gameState !== "setup" && "hidden sm:block"
+        )}>
           {game.description}
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-6xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 w-full max-w-6xl mx-auto overflow-visible">
         {gameState === "setup" && (
           <div className="flex flex-col items-center gap-6 w-full max-w-md animate-in fade-in duration-200">
             {/* How to Play Guide */}
@@ -356,29 +365,28 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
         {gameState !== "setup" && gameState !== "loading" && gameState !== "finished" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full max-w-6xl">
             {/* Realistic Arcade Wheel (Desktop Left / Mobile Top) */}
-            <div className="lg:col-span-6 flex flex-col items-center justify-center w-full">
+            <div className="lg:col-span-6 flex flex-col items-center justify-start w-full pt-8 sm:pt-10 pb-2">
               <div
-                className="relative flex items-center justify-center select-none"
-                style={{
-                  width: isFullscreen ? "min(52vh, 430px, 84vw)" : "min(380px, 82vw)",
-                  height: isFullscreen ? "min(52vh, 430px, 84vw)" : "min(380px, 82vw)",
-                }}
+                className="relative flex items-center justify-center select-none w-[270px] h-[270px] xs:w-[290px] xs:h-[290px] sm:w-[340px] sm:h-[340px] md:w-[380px] md:h-[380px] lg:w-[420px] lg:h-[420px] max-w-[92vw] max-h-[92vw] shrink-0"
               >
                 {/* 3D Realistic Physical Needle / Flapper Pin at 12 o'clock */}
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-40 pointer-events-none flex flex-col items-center">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-200 via-amber-400 to-amber-700 border-2 border-white shadow-lg flex items-center justify-center">
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-950 shadow-inner" />
+                <div className="absolute -top-5 sm:-top-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none flex flex-col items-center filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
+                  <div className="px-2 py-0.5 rounded-full bg-slate-950/90 border border-amber-400/80 text-[9px] font-black tracking-widest text-amber-300 uppercase shadow-md mb-0.5">
+                    ▼ TARGET ▼
+                  </div>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-200 via-amber-400 to-amber-700 border-2 border-white shadow-lg flex items-center justify-center">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-950 shadow-inner" />
                   </div>
                   <div
                     className={cn(
-                      "w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[32px] border-t-amber-500 -mt-1 drop-shadow-[0_5px_8px_rgba(0,0,0,0.5)] origin-top transition-transform",
+                      "w-0 h-0 border-l-[14px] sm:border-l-[16px] border-l-transparent border-r-[14px] sm:border-r-[16px] border-r-transparent border-t-[32px] sm:border-t-[36px] border-t-amber-400 -mt-1 drop-shadow-[0_5px_8px_rgba(0,0,0,0.6)] origin-top transition-transform",
                       gameState === "spinning_animation" && "animate-[wiggle_0.1s_ease-in-out_infinite]"
                     )}
                   />
                 </div>
 
                 {/* Outer Realistic Metallic Bezel Container */}
-                <div className="w-full h-full rounded-full p-2.5 sm:p-3 bg-gradient-to-tr from-amber-700 via-amber-400 to-yellow-200 shadow-[0_10px_35px_rgba(0,0,0,0.4)] border-2 border-amber-600/60 flex items-center justify-center">
+                <div className="w-full h-full rounded-full p-2.5 sm:p-3.5 bg-gradient-to-tr from-amber-700 via-amber-400 to-yellow-200 shadow-[0_10px_35px_rgba(0,0,0,0.4)] border-2 border-amber-600/60 flex items-center justify-center">
                   <div className="w-full h-full rounded-full border-4 border-slate-900 shadow-inner overflow-hidden bg-slate-950 relative">
                     <div
                       className="w-full h-full relative"
@@ -425,14 +433,21 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
                           const y2 = Math.sin(rad2) * 196;
                           const largeArc = 360 / total > 180 ? 1 : 0;
                           const d = `M 0 0 L ${x1} ${y1} A 196 196 0 ${largeArc} 1 ${x2} ${y2} Z`;
+                          const isLanded = landedSector?.id === sector.id && gameState === "spun";
 
                           return (
                             <g key={sector.id}>
-                              <path d={d} fill={sector.color} stroke="#ffffff" strokeWidth="1.5" />
+                              <path
+                                d={d}
+                                fill={sector.color}
+                                stroke={isLanded ? "#fef08a" : "#ffffff"}
+                                strokeWidth={isLanded ? "3.5" : "1.5"}
+                                className={cn(isLanded && "filter drop-shadow-[0_0_12px_rgba(254,240,138,0.9)]")}
+                              />
 
                               {/* Sector Content (Icon Badge + Points) */}
                               <g transform={`rotate(${midAngle})`}>
-                                <g transform="translate(0, -152)">
+                                <g transform="translate(0, -150)">
                                   <circle r="16" fill="#ffffff" stroke="#e2e8f0" strokeWidth="1.5" filter="url(#spinBadgeShadow)" />
                                   <text
                                     textAnchor="middle"
@@ -444,10 +459,10 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
                                   </text>
                                 </g>
 
-                                <g transform="translate(0, -122)">
+                                <g transform="translate(0, -116)">
                                   <text
-                                    transform="rotate(90)"
-                                    textAnchor="end"
+                                    transform={midAngle > 90 && midAngle < 270 ? "rotate(90)" : "rotate(-90)"}
+                                    textAnchor="middle"
                                     dominantBaseline="central"
                                     className="font-black fill-white text-[11px] sm:text-[13px] uppercase tracking-wider select-none pointer-events-none"
                                     style={{
