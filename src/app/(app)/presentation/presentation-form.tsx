@@ -389,6 +389,8 @@ function SlideAnnotationCanvas({
 
   // Sync canvas size on mount, resize, and when strokes change
   React.useEffect(() => {
+    if (!isActive && (!strokes || strokes.length === 0)) return;
+
     renderStrokes();
 
     const canvas = canvasRef.current;
@@ -405,7 +407,7 @@ function SlideAnnotationCanvas({
     return () => {
       if (resizeObserver) resizeObserver.disconnect();
     };
-  }, [renderStrokes]);
+  }, [renderStrokes, isActive, strokes]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isActive) return;
@@ -536,6 +538,10 @@ function SlideAnnotationCanvas({
       currentPointsRef.current = [];
     }
   };
+
+  if (!isActive && (!strokes || strokes.length === 0)) {
+    return null;
+  }
 
   return (
     <canvas
@@ -1361,13 +1367,9 @@ export function PresentationForm() {
           ...prevCounts,
           [currentSlideIndex]: Math.min(currentWords.length, currentVisibleCount + step),
         };
-      } else {
-        // If all words on current slide are already revealed, advance to the next slide!
-        if (api?.canScrollNext()) {
-          setTimeout(() => api.scrollNext(), 50);
-        }
-        return prevCounts;
       }
+      // When all words on current slide are revealed, keep them visible. Never auto-advance on tap.
+      return prevCounts;
     });
   }, [presentation, api]);
 
@@ -2829,11 +2831,10 @@ export function PresentationForm() {
               ref={presentationContainerRef}
               className={cn(
                   'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden bg-slate-950 rounded-3xl border border-slate-800 transition-all duration-300', 
-                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none !bg-slate-950',
+                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none !bg-slate-950 touch-manipulation select-none',
                   showSplitSearch && 'flex flex-row',
                   !isEditMode && activeDrawSlideIndex === null && 'cursor-pointer'
               )}
-              onClick={(isEditMode || showSplitSearch || activeDrawSlideIndex !== null) ? undefined : handleRevealNextWord}
             >
               {/* Three.js 3D Background Canvas (Disabled completely in fullscreen to prevent background glitch) */}
               {presentation && !isFullscreen && (
@@ -2866,7 +2867,7 @@ export function PresentationForm() {
                       }}
                       variant="secondary"
                       size="sm"
-                      className="absolute top-3 right-48 sm:top-4 sm:right-52 z-30 h-8 sm:h-9 px-2 sm:px-2.5 gap-1 bg-black/40 text-white/90 hover:bg-black/60 hover:text-white border border-white/20 backdrop-blur-md rounded-xl"
+                      className="absolute top-3 right-48 sm:top-4 sm:right-52 z-30 h-8 sm:h-9 px-2 sm:px-2.5 gap-1 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg"
                       title="Reveal or hide all slide text words"
                     >
                       <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
@@ -2889,7 +2890,7 @@ export function PresentationForm() {
                       }}
                       variant="secondary"
                       size="sm"
-                      className="absolute top-3 right-20 sm:top-4 sm:right-24 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-black/40 text-white/90 hover:bg-black/60 hover:text-white border border-white/20 backdrop-blur-md rounded-xl"
+                      className="absolute top-3 right-20 sm:top-4 sm:right-24 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg"
                     >
                       <Eye className="h-3.5 w-3.5 text-purple-400" />
                       <span className="text-xs font-bold">Clear Covers</span>
@@ -2898,12 +2899,12 @@ export function PresentationForm() {
                       onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
                       variant="secondary"
                       size="sm"
-                      className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-black/40 text-white/90 hover:bg-black/60 hover:text-white border border-white/20 backdrop-blur-md rounded-xl"
+                      className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white/90 hover:bg-slate-800 hover:text-white border border-white/20 rounded-xl shadow-lg"
                     >
                       <Minimize className="h-3.5 w-3.5 text-amber-400" />
                       <span className="text-xs font-bold">Exit</span>
                     </Button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white/90 px-3 py-1 text-xs select-none shadow-xl">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-slate-950/95 border border-white/20 text-white/90 px-3 py-1 text-xs select-none shadow-2xl">
                       <button
                         type="button"
                         onClick={(e) => { 
@@ -2990,7 +2991,7 @@ export function PresentationForm() {
                             theme,
                             fontFamily,
                             isFullscreen 
-                              ? "!rounded-none !border-none !shadow-none !backdrop-blur-none !opacity-100" 
+                              ? "!rounded-none !border-none !shadow-none !backdrop-blur-none !opacity-100 !bg-slate-950" 
                               : "transition-all duration-700 ease-out transform-gpu"
                           )}
                           style={(!isFullscreen && enable3D) ? {
@@ -3044,10 +3045,10 @@ export function PresentationForm() {
                                     />
                                   </div>
                                 ) : (
-                                  <h2 className={cn("font-bold transition-all duration-300",
+                                  <h2 className={cn("font-bold transition-all duration-300 text-white",
                                     !isFullscreen 
                                       ? `mb-6 ${fontSize.titleClassName}` 
-                                      : `mb-2 sm:mb-4 md:mb-8 text-lg sm:text-2xl md:text-[3.2vw] leading-tight font-extrabold tracking-tight ${fontSize.fullScreenTitleClassName}`
+                                      : `mb-2 sm:mb-4 md:mb-8 text-lg sm:text-2xl md:text-[3.2vw] leading-tight font-extrabold tracking-tight text-white ${fontSize.fullScreenTitleClassName}`
                                   )}>
                                     {slide.title}
                                   </h2>
@@ -3183,10 +3184,10 @@ export function PresentationForm() {
                                     <div className="relative group w-full h-full flex flex-col items-center justify-center">
                                       <div 
                                         className={cn(
-                                          "relative w-full h-full flex-1 flex items-center justify-center rounded-2xl overflow-hidden border border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md select-none",
+                                          "relative w-full h-full flex-1 flex items-center justify-center rounded-2xl overflow-hidden border select-none",
                                           isFullscreen
-                                            ? "min-h-[160px] sm:min-h-[220px] md:min-h-[440px] lg:min-h-[540px]"
-                                            : "min-h-[340px] md:min-h-[460px] lg:min-h-[560px]"
+                                            ? "min-h-[160px] sm:min-h-[220px] md:min-h-[440px] lg:min-h-[540px] !bg-slate-950 border-white/10 !backdrop-blur-none shadow-none"
+                                            : "min-h-[340px] md:min-h-[460px] lg:min-h-[560px] border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md"
                                         )}
                                         onClick={(e) => e.stopPropagation()}
                                         onMouseDown={(e) => handleSlideImageMouseDown(index, e)}
@@ -3249,7 +3250,7 @@ export function PresentationForm() {
                                         {/* Top Controls Overlay (Fit Mode, Expand Lightbox, Regenerate & Side Search) */}
                                         <div className="absolute top-2 inset-x-2 z-20 flex items-center justify-between gap-1 max-w-full overflow-x-auto no-scrollbar py-0.5 opacity-90 group-hover:opacity-100 transition-opacity pointer-events-auto select-none">
                                           {/* Clear Segmented Fit Mode Selector: Full Picture vs Fill Frame */}
-                                          <div className="flex items-center gap-0.5 sm:gap-1 bg-black/85 backdrop-blur-md p-1 rounded-xl border border-white/20 shadow-lg shrink-0">
+                                          <div className="flex items-center gap-0.5 sm:gap-1 bg-black/90 p-1 rounded-xl border border-white/20 shadow-lg shrink-0">
                                             <Button
                                               size="sm"
                                               variant="ghost"
@@ -3310,10 +3311,10 @@ export function PresentationForm() {
                                                 }
                                               }}
                                               className={cn(
-                                                "h-7 px-2 sm:px-2.5 text-[10px] font-bold rounded-lg backdrop-blur-md border shadow-md flex items-center gap-1 transition-all",
+                                                "h-7 px-2 sm:px-2.5 text-[10px] font-bold rounded-lg border shadow-md flex items-center gap-1 transition-all",
                                                 activeDrawSlideIndex === index
                                                   ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.5)]"
-                                                  : "bg-black/75 hover:bg-black/95 text-white border-white/15"
+                                                  : "bg-black/90 hover:bg-black text-white border-white/15"
                                               )}
                                             >
                                               <PenTool className="h-3.5 w-3.5 text-amber-300" />
@@ -3339,7 +3340,7 @@ export function PresentationForm() {
                                                 setLightboxZoom(1);
                                                 setLightboxPan({ x: 0, y: 0 });
                                               }}
-                                              className="h-7 w-7 rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md"
+                                              className="h-7 w-7 rounded-lg bg-black/85 hover:bg-black text-white border border-white/15 shadow-md"
                                             >
                                               <Maximize2 className="h-3.5 w-3.5 text-blue-300" />
                                             </Button>
@@ -3352,7 +3353,7 @@ export function PresentationForm() {
                                                 e.stopPropagation();
                                                 handleRegenerateSlideImage(index, slide.title);
                                               }}
-                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md flex items-center gap-1"
+                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/85 hover:bg-black text-white border border-white/15 shadow-md flex items-center gap-1"
                                             >
                                               <RefreshCw className={cn("h-3 w-3 text-purple-400", regeneratingSlide[index] && "animate-spin")} />
                                               <span className="hidden sm:inline">Change</span>
@@ -3366,7 +3367,7 @@ export function PresentationForm() {
                                                 e.stopPropagation();
                                                 handleOpenSideSearchForSlide(index, slide.title);
                                               }}
-                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md flex items-center gap-1"
+                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/85 hover:bg-black text-white border border-white/15 shadow-md flex items-center gap-1"
                                             >
                                               <PanelRightOpen className="h-3 w-3 text-indigo-400" />
                                               <span className="hidden sm:inline">Search</span>
@@ -3617,20 +3618,20 @@ export function PresentationForm() {
                                         <div className="absolute bottom-2 inset-x-2 z-20 flex items-center justify-between gap-1 max-w-full overflow-x-auto no-scrollbar pointer-events-auto">
                                           {/* Pan hint when zoomed */}
                                           {(slideImageZooms[index] || 1) > 1 ? (
-                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/85 backdrop-blur-md border border-purple-500/30 text-[9px] font-mono text-purple-300 shadow-md shrink-0">
+                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/90 border border-purple-500/30 text-[9px] font-mono text-purple-300 shadow-md shrink-0">
                                               <Move className="h-2.5 w-2.5 animate-pulse" />
                                               <span className="hidden sm:inline">Drag image to pan</span>
                                               <span className="sm:hidden">Drag to pan</span>
                                             </div>
                                           ) : (
-                                            <p className="text-[9px] text-white/70 font-mono italic bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded truncate max-w-[120px] sm:max-w-none shrink-0">
+                                            <p className="text-[9px] text-white/70 font-mono italic bg-black/75 px-1.5 py-0.5 rounded truncate max-w-[120px] sm:max-w-none shrink-0">
                                               Source: {photoSource}
                                             </p>
                                           )}
 
                                           {/* Zoom Controls Pill with Quick Reset to Full Picture */}
                                           <div 
-                                            className="flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-xl border border-white/15 shadow-xl text-white ml-auto shrink-0"
+                                            className="flex items-center gap-1 bg-black/90 p-1 rounded-xl border border-white/15 shadow-xl text-white ml-auto shrink-0"
                                             onClick={(e) => e.stopPropagation()}
                                           >
                                             {((slideImageZooms[index] || 1) !== 1 || (slideImagePans[index]?.x || 0) !== 0 || (slideImagePans[index]?.y || 0) !== 0 || slideImageFitModes[index] === 'cover') && (
@@ -3700,7 +3701,7 @@ export function PresentationForm() {
                       "left-2 sm:left-4 top-1/2 -translate-y-1/2",
                       !isFullscreen 
                         ? "bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
-                        : "bg-black/60 text-white hover:bg-black/80 border border-white/30 backdrop-blur-md"
+                        : "hidden md:flex bg-black/80 text-white hover:bg-black border border-white/30"
                     )} 
                   />
                   <CarouselNext 
@@ -3713,7 +3714,7 @@ export function PresentationForm() {
                       "right-2 sm:right-4 top-1/2 -translate-y-1/2",
                       !isFullscreen 
                         ? "bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
-                        : "bg-black/60 text-white hover:bg-black/80 border border-white/30 backdrop-blur-md"
+                        : "hidden md:flex bg-black/80 text-white hover:bg-black border border-white/30"
                     )} 
                   />
                 </Carousel>
