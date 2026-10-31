@@ -1349,15 +1349,17 @@ export function PresentationForm() {
 
     const currentSlideIndex = api?.selectedScrollSnap() || 0;
     const currentWords = allWordsOnSlide.current[currentSlideIndex];
-    if (!currentWords) return;
+    if (!currentWords || currentWords.length === 0) return;
 
     setVisibleWordCounts((prevCounts) => {
       const currentVisibleCount = prevCounts[currentSlideIndex] || 0;
 
       if (currentVisibleCount < currentWords.length) {
+        // Reveal 2 words per tap on mobile/smaller devices, or 1 word on desktop for precision
+        const step = (typeof window !== 'undefined' && window.innerWidth < 768) ? 2 : 1;
         return {
           ...prevCounts,
-          [currentSlideIndex]: currentVisibleCount + 1,
+          [currentSlideIndex]: Math.min(currentWords.length, currentVisibleCount + step),
         };
       } else {
         // If all words on current slide are already revealed, advance to the next slide!
@@ -2827,29 +2829,53 @@ export function PresentationForm() {
               ref={presentationContainerRef}
               className={cn(
                   'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden bg-slate-950 rounded-3xl border border-slate-800 transition-all duration-300', 
-                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none bg-slate-950',
+                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none !bg-slate-950',
                   showSplitSearch && 'flex flex-row',
                   !isEditMode && activeDrawSlideIndex === null && 'cursor-pointer'
               )}
               onClick={(isEditMode || showSplitSearch || activeDrawSlideIndex !== null) ? undefined : handleRevealNextWord}
             >
-              {/* Three.js 3D Background Canvas */}
-              {presentation && (
+              {/* Three.js 3D Background Canvas (Disabled completely in fullscreen to prevent background glitch) */}
+              {presentation && !isFullscreen && (
                 <ThreeBackground 
                   themeStyle={theme}
                   activeSlideIndex={current - 1}
                   threeDStyle={presentation.slides[current - 1]?.threeDObjectStyle || ''}
-                  enabled={enable3D}
+                  enabled={enable3D && !isFullscreen}
                 />
               )}
 
               {/* Left Side: Slide Carousel & Overlays */}
               <div className={cn(
                 "h-full flex flex-col justify-between relative",
+                isFullscreen && "!bg-slate-950",
                 showSplitSearch ? "flex-1 overflow-hidden" : "w-full"
               )}>
                 {isFullscreen ? (
                   <>
+                    <Button
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        const idx = api?.selectedScrollSnap() || 0;
+                        const total = allWordsOnSlide.current[idx]?.length || 0;
+                        const curCount = visibleWordCounts[idx] || 0;
+                        setVisibleWordCounts(prev => ({
+                          ...prev,
+                          [idx]: curCount >= total ? 0 : total
+                        }));
+                      }}
+                      variant="secondary"
+                      size="sm"
+                      className="absolute top-3 right-48 sm:top-4 sm:right-52 z-30 h-8 sm:h-9 px-2 sm:px-2.5 gap-1 bg-black/40 text-white/90 hover:bg-black/60 hover:text-white border border-white/20 backdrop-blur-md rounded-xl"
+                      title="Reveal or hide all slide text words"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+                      <span className="text-xs font-bold hidden sm:inline">
+                        {(visibleWordCounts[api?.selectedScrollSnap() || 0] || 0) >= (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)
+                          ? "Hide Words"
+                          : "Reveal All"}
+                      </span>
+                    </Button>
                     <Button
                       onClick={(e) => { 
                         e.stopPropagation(); 
@@ -2955,16 +2981,16 @@ export function PresentationForm() {
                   }} 
                   className="w-full h-full"
                 >
-                  <CarouselContent className={cn("h-full", isFullscreen && "ml-0")}>
+                  <CarouselContent className={cn("h-full", isFullscreen && "ml-0 !bg-slate-950")}>
                     {(isEditMode ? editableSlides : presentation.slides).map((slide, index) => (
-                      <CarouselItem key={index} className={cn("h-full", isFullscreen && "pl-0")}>
+                      <CarouselItem key={index} className={cn("h-full", isFullscreen && "pl-0 !bg-slate-950")}>
                         <div 
                           className={cn(
                             "w-full h-full flex cursor-pointer",
                             theme,
                             fontFamily,
                             isFullscreen 
-                              ? "!rounded-none !border-none !shadow-none !backdrop-blur-none" 
+                              ? "!rounded-none !border-none !shadow-none !backdrop-blur-none !opacity-100" 
                               : "transition-all duration-700 ease-out transform-gpu"
                           )}
                           style={(!isFullscreen && enable3D) ? {
@@ -2985,18 +3011,20 @@ export function PresentationForm() {
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
                             !isFullscreen && "overflow-y-auto py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-hidden py-3 md:py-4 px-3 sm:px-8 md:px-12 lg:px-16"
+                            isFullscreen && "overflow-hidden py-2 sm:py-3 md:py-4 px-3 sm:px-6 md:px-12 lg:px-16"
                           )}>
                             <div className={cn(
                               "w-full mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
                               !isFullscreen && "animate-in fade-in duration-700",
-                              isFullscreen ? "w-full max-w-full gap-3 sm:gap-4 md:gap-8 max-h-[96vh] overflow-hidden" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
+                              isFullscreen ? "w-full max-w-full gap-2 sm:gap-4 md:gap-8 max-h-full overflow-hidden" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
                               {/* Left side text content */}
                               <div className={cn(
-                                "flex-1 min-w-0 w-full flex flex-col justify-center px-3 sm:px-6 md:px-8",
-                                isFullscreen && "h-full overflow-y-auto scrollbar-thin",
+                                "flex-1 min-w-0 w-full flex flex-col px-2 sm:px-4 md:px-8",
+                                isFullscreen 
+                                  ? "justify-start md:justify-center overflow-y-auto max-h-[48vh] md:max-h-full md:h-full scrollbar-thin py-1" 
+                                  : "justify-center",
                                 (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode 
                                   ? (isFullscreen ? "md:w-1/2 lg:w-[48%]" : "md:w-1/2") 
                                   : "w-full"
@@ -3017,7 +3045,9 @@ export function PresentationForm() {
                                   </div>
                                 ) : (
                                   <h2 className={cn("font-bold transition-all duration-300",
-                                    !isFullscreen ? `mb-6 ${fontSize.titleClassName}` : `mb-8 lg:mb-16 ${fontSize.fullScreenTitleClassName}`
+                                    !isFullscreen 
+                                      ? `mb-6 ${fontSize.titleClassName}` 
+                                      : `mb-2 sm:mb-4 md:mb-8 text-lg sm:text-2xl md:text-[3.2vw] leading-tight font-extrabold tracking-tight ${fontSize.fullScreenTitleClassName}`
                                   )}>
                                     {slide.title}
                                   </h2>
@@ -3068,7 +3098,9 @@ export function PresentationForm() {
                                 ) : (
                                   <ul className={cn("transition-all duration-300 list-none pl-0 w-full",
                                     align === 'center' ? 'text-center' : 'text-left',
-                                    !isFullscreen ? `space-y-4 ${fontSize.className}` : `space-y-4 md:space-y-5 lg:space-y-6 ${fontSize.fullScreenClassName}`
+                                    !isFullscreen 
+                                      ? `space-y-4 ${fontSize.className}` 
+                                      : `space-y-2 sm:space-y-3 md:space-y-5 text-xs sm:text-sm md:text-[1.8vw] leading-relaxed ${fontSize.fullScreenClassName}`
                                   )}>
                                     {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
                                   </ul>
@@ -3078,12 +3110,17 @@ export function PresentationForm() {
                               {/* Beautiful dynamic slide photo with auto-fit, vertical stretch and interactive zoom */}
                               {(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode && (
                                 <div className={cn(
-                                  "w-full select-none flex flex-col items-center justify-center h-full",
-                                  !isFullscreen && "animate-in zoom-in-95 duration-500",
-                                  isFullscreen ? "md:w-1/2 lg:w-[52%] flex-1" : "md:w-1/2 flex-1 min-h-[350px]"
+                                  "w-full select-none flex flex-col items-center justify-center",
+                                  !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-1/2 flex-1 min-h-[350px] h-full",
+                                  isFullscreen && "md:w-1/2 lg:w-[52%] flex-1 min-h-0 max-h-[46vh] md:max-h-none h-full shrink-0"
                                 )}>
                                   {brokenSlideImages[index] ? (
-                                    <div className="relative w-full h-full min-h-[320px] md:min-h-[440px] rounded-2xl overflow-hidden border border-amber-500/30 bg-slate-900/90 shadow-[0_15px_40px_rgba(245,158,11,0.12)] p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300">
+                                    <div className={cn(
+                                      "relative w-full h-full rounded-2xl overflow-hidden border border-amber-500/30 bg-slate-900/90 shadow-[0_15px_40px_rgba(245,158,11,0.12)] p-4 sm:p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300",
+                                      isFullscreen
+                                        ? "min-h-[160px] sm:min-h-[220px] md:min-h-[420px]"
+                                        : "min-h-[320px] md:min-h-[440px]"
+                                    )}>
                                       <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-purple-500/10 pointer-events-none" />
                                       
                                       {regeneratingSlide[index] ? (
@@ -3145,7 +3182,12 @@ export function PresentationForm() {
                                   ) : (
                                     <div className="relative group w-full h-full flex flex-col items-center justify-center">
                                       <div 
-                                        className="relative w-full h-full min-h-[340px] md:min-h-[460px] lg:min-h-[560px] flex-1 flex items-center justify-center rounded-2xl overflow-hidden border border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md select-none"
+                                        className={cn(
+                                          "relative w-full h-full flex-1 flex items-center justify-center rounded-2xl overflow-hidden border border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md select-none",
+                                          isFullscreen
+                                            ? "min-h-[160px] sm:min-h-[220px] md:min-h-[440px] lg:min-h-[540px]"
+                                            : "min-h-[340px] md:min-h-[460px] lg:min-h-[560px]"
+                                        )}
                                         onClick={(e) => e.stopPropagation()}
                                         onMouseDown={(e) => handleSlideImageMouseDown(index, e)}
                                         onMouseMove={(e) => handleSlideImageMouseMove(index, e)}
