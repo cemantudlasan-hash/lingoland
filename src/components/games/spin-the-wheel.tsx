@@ -321,7 +321,7 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="w-full flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-6 sm:pb-8 max-w-6xl mx-auto">
+      <CardContent className="w-full flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-10 sm:pb-14 max-w-6xl mx-auto">
         {gameState === "setup" && (
           <div className="flex flex-col items-center gap-6 w-full max-w-md animate-in fade-in duration-200">
             {/* How to Play Guide */}

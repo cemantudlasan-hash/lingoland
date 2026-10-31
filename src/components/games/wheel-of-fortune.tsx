@@ -115,6 +115,8 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [isAnswerRevealed, setIsAnswerRevealed] = React.useState(false);
   const [userSentence, setUserSentence] = React.useState("");
+  const [isInputFocused, setIsInputFocused] = React.useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   // STABLE active wheel stage: guarantees wheel never reshuffles under the needle!
   const [activeStageVerbs, setActiveStageVerbs] = React.useState<VerbEntry[]>(() => initStageVerbs("All", []));
@@ -125,7 +127,25 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", handler);
-    return () => document.removeEventListener("fullscreenchange", handler);
+
+    const handleVisualViewportResize = () => {
+      if (document.activeElement === inputRef.current) {
+        inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    };
+
+    if (typeof window !== "undefined" && window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleVisualViewportResize);
+      window.visualViewport.addEventListener("scroll", handleVisualViewportResize);
+    }
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handler);
+      if (typeof window !== "undefined" && window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleVisualViewportResize);
+        window.visualViewport.removeEventListener("scroll", handleVisualViewportResize);
+      }
+    };
   }, []);
 
   if (!game) return <div>Game not found</div>;
@@ -149,6 +169,7 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
     setResult(null);
     setIsAnswerRevealed(false);
     setUserSentence("");
+    setIsInputFocused(false);
   };
 
   // Realistic synthetic click sound via Web Audio API
@@ -209,6 +230,7 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
     setResult(null);
     setIsAnswerRevealed(false);
     setUserSentence("");
+    setIsInputFocused(false);
     playRealisticTickSequence();
 
     // Pick target strictly from unvisited on this exact active wheel
@@ -243,6 +265,7 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
     setUsedVerbs([]);
     setIsAnswerRevealed(false);
     setUserSentence("");
+    setIsInputFocused(false);
   };
 
   const handleSpeak = async (text: string) => {
@@ -345,7 +368,10 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
       </CardHeader>
 
       <CardContent
-        className="w-full flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-6 sm:pb-8 max-w-5xl mx-auto"
+        className={cn(
+          "w-full flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 max-w-5xl mx-auto transition-all duration-300",
+          isInputFocused ? "pb-[65vh] sm:pb-[75vh]" : "pb-8 sm:pb-12"
+        )}
       >
         {gameState === "idle" && (
           <div className="flex flex-col items-center gap-5 text-center max-w-md mx-auto py-6 animate-in fade-in duration-200">
@@ -665,15 +691,45 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
                           2. How do you spell its <strong className="text-amber-500 font-bold">Present Continuous (-ing)</strong> form?
                         </p>
                         <div className="space-y-1.5 pt-1">
-                          <p className="text-xs sm:text-sm font-semibold text-foreground">
-                            3. Construct a <strong className="text-primary font-bold">Future Tense</strong> sentence: <span className="italic opacity-80">&quot;I will {result.verb}...&quot;</span>
-                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs sm:text-sm font-semibold text-foreground">
+                              3. Construct a <strong className="text-primary font-bold">Future Tense</strong> sentence: <span className="italic opacity-80">&quot;I will {result.verb}...&quot;</span>
+                            </p>
+                            {isInputFocused && (
+                              <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onTouchStart={(e) => {
+                                  e.preventDefault();
+                                  inputRef.current?.blur();
+                                }}
+                                onClick={() => inputRef.current?.blur()}
+                                className="text-[11px] font-bold text-primary hover:underline px-2.5 py-0.5 bg-primary/10 rounded-lg shrink-0 flex items-center gap-1 shadow-sm border border-primary/20"
+                              >
+                                ✓ Done
+                              </button>
+                            )}
+                          </div>
                           <input
+                            ref={inputRef}
                             type="text"
                             value={userSentence}
                             onChange={(e) => setUserSentence(e.target.value)}
+                            onFocus={(e) => {
+                              setIsInputFocused(true);
+                              setTimeout(() => {
+                                inputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                              }, 300);
+                            }}
+                            onBlur={() => setIsInputFocused(false)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.currentTarget.blur();
+                              }
+                            }}
                             placeholder={`Type your practice sentence here... (e.g. "I will ${result.verb}...")`}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-primary/30 bg-background text-foreground text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary shadow-inner placeholder:text-muted-foreground/60"
+                            style={{ scrollMarginBottom: "50vh", scrollMarginTop: "15vh" }}
+                            className="w-full px-3.5 py-3 rounded-xl border-2 border-primary/40 bg-background text-foreground text-base sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary shadow-inner placeholder:text-muted-foreground/60 transition-all"
                           />
                         </div>
                       </div>
