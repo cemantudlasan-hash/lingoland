@@ -820,8 +820,8 @@ export default function AuthPage() {
               </div>
           </div>
 
-          {/* 3. CRAWLABLE EDUCATIONAL CURRICULUM, RESEARCH ARTICLES & APP DIRECTORY (For AdSense & Visitors) */}
-          <AdSenseEducationalHub />
+          {/* 3. CRAWLABLE EDUCATIONAL CURRICULUM, RESEARCH ARTICLES & APP DIRECTORY (For AdSense & Visitors - Extend & Hide) */}
+          <AdSenseEducationalHub collapsible={true} defaultExpanded={false} />
         </main>
       </div>
 
