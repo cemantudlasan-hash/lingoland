@@ -2647,53 +2647,62 @@ export function PresentationForm() {
             {/* Outline configuration card */}
             <Card className="border border-slate-800 bg-slate-900/60 backdrop-blur-md text-white rounded-3xl overflow-hidden shadow-2xl">
               <CardHeader className="pb-4">
-                <div className="flex flex-wrap justify-between items-center gap-4">
-                  <div className="flex-1 min-w-0">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 sm:gap-4 w-full">
+                  <div className="flex-1 min-w-0 w-full">
                     {isEditMode ? (
                       <Input 
                         value={editableTitle} 
                         onChange={(e) => setEditableTitle(e.target.value)}
-                        className="text-2xl font-black bg-slate-950 border-slate-800 text-white rounded-xl tracking-tight animate-pulse"
+                        className="text-xl sm:text-2xl font-black bg-slate-950 border-slate-800 text-white rounded-xl tracking-tight animate-pulse"
                       />
                     ) : (
-                      <CardTitle className="text-2xl font-black text-slate-100 flex items-center gap-2 truncate">
+                      <CardTitle className="text-xl sm:text-2xl font-black text-slate-100 flex items-center gap-2 break-words">
                         <span>{presentation.title}</span>
                       </CardTitle>
                     )}
-                    <CardDescription className="text-slate-400 font-medium">
+                    <CardDescription className="text-slate-400 font-medium text-xs sm:text-sm mt-0.5">
                       Generated presentation outlines with {presentation.slides.length} slides.
                     </CardDescription>
                   </div>
-                  <div className="flex flex-wrap gap-2 shrink-0">
-                    <Button onClick={handleCreateNew} variant="secondary" className="h-10 text-xs font-bold rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700">
-                      <Wand2 className="mr-1.5 h-3.5 w-3.5" />
-                      Create New
+                  <div className="w-full lg:w-auto flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <Button 
+                      onClick={handleFullScreen} 
+                      variant="outline" 
+                      className="h-9 sm:h-10 px-3 sm:px-4 text-xs font-bold rounded-xl border-cyan-500/50 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/60 hover:text-white shadow-sm flex items-center gap-1.5"
+                      title="Open Fullscreen Presentation"
+                    >
+                      <Maximize className="h-3.5 w-3.5 text-cyan-400" />
+                      <span>Fullscreen</span>
+                    </Button>
+                    <Button onClick={handleCreateNew} variant="secondary" className="h-9 sm:h-10 px-3 sm:px-4 text-xs font-bold rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 flex items-center gap-1.5">
+                      <Wand2 className="h-3.5 w-3.5 text-amber-400" />
+                      <span>Create New</span>
                     </Button>
                     <Button 
                       onClick={handleClosePresentation} 
                       variant="outline" 
-                      className="h-10 text-xs font-bold rounded-xl border-rose-900/50 bg-rose-950/20 text-rose-300 hover:bg-rose-900/40 hover:text-white"
+                      className="h-9 sm:h-10 px-3 sm:px-4 text-xs font-bold rounded-xl border-rose-900/50 bg-rose-950/20 text-rose-300 hover:bg-rose-900/40 hover:text-white flex items-center gap-1.5"
                       title="Exit and close current presentation"
                     >
-                      <X className="mr-1.5 h-3.5 w-3.5 text-rose-400" />
-                      Close / Exit
+                      <X className="h-3.5 w-3.5 text-rose-400" />
+                      <span>Close</span>
                     </Button>
-                    <Button onClick={handleDownload} variant="outline" className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white">
-                      <Download className="mr-1.5 h-3.5 w-3.5" />
-                      Download HTML
+                    <Button onClick={handleDownload} variant="outline" className="h-9 sm:h-10 px-2.5 sm:px-3 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white flex items-center gap-1.5">
+                      <Download className="h-3.5 w-3.5" />
+                      <span><span className="hidden sm:inline">Download </span>HTML</span>
                     </Button>
                     <Button 
                       onClick={handleDownloadPptx} 
                       disabled={isDownloadingPptx}
                       variant="outline" 
-                      className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
+                      className="h-9 sm:h-10 px-2.5 sm:px-3 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white flex items-center gap-1.5"
                     >
                       {isDownloadingPptx ? (
-                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <Download className="mr-1.5 h-3.5 w-3.5 text-indigo-400" />
+                        <Download className="h-3.5 w-3.5 text-indigo-400" />
                       )}
-                      Download PPTX
+                      <span><span className="hidden sm:inline">Download </span>PPTX</span>
                     </Button>
                     <Button 
                       onClick={() => {
@@ -2706,14 +2715,10 @@ export function PresentationForm() {
                         });
                       }}
                       variant="outline" 
-                      className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
+                      className="h-9 sm:h-10 px-2.5 sm:px-3 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white flex items-center gap-1.5"
                     >
-                      <Eye className="mr-1.5 h-3.5 w-3.5 text-purple-400" />
-                      Clear Covers
-                    </Button>
-                    <Button onClick={handleFullScreen} variant="outline" className="h-10 text-xs font-bold rounded-xl border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white">
-                      <Maximize className="mr-1.5 h-3.5 w-3.5" />
-                      Fullscreen
+                      <Eye className="h-3.5 w-3.5 text-purple-400" />
+                      <span><span className="hidden sm:inline">Clear </span>Covers</span>
                     </Button>
                   </div>
                 </div>
@@ -2784,12 +2789,12 @@ export function PresentationForm() {
                 </div>
 
                 {/* DB Save and Live Edit Toolbar */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-850">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-850">
                   <div className="flex items-center gap-2">
                     <Button 
                       onClick={() => setIsEditMode(!isEditMode)} 
                       variant="outline" 
-                      className={cn("h-9 text-xs font-extrabold rounded-lg border-slate-800", isEditMode ? "bg-purple-950 border-purple-500 text-purple-200" : "bg-slate-950 text-slate-400")}
+                      className={cn("w-full sm:w-auto h-9 text-xs font-extrabold rounded-lg border-slate-800", isEditMode ? "bg-purple-950 border-purple-500 text-purple-200" : "bg-slate-950 text-slate-400")}
                     >
                       <Edit className="mr-1.5 h-3.5 w-3.5" />
                       {isEditMode ? "Exit Outline Editor" : "Edit Slide Content"}
@@ -2798,7 +2803,7 @@ export function PresentationForm() {
                   <Button 
                     onClick={handleSaveToDb} 
                     disabled={isSavingDb} 
-                    className="h-9 px-4 text-xs font-extrabold rounded-lg bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg"
+                    className="w-full sm:w-auto h-9 px-4 text-xs font-extrabold rounded-lg bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg"
                   >
                     {isSavingDb ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
                     {activeDbId ? "Save Outline Changes" : "Save to Outline Library"}
@@ -2832,7 +2837,7 @@ export function PresentationForm() {
                 "h-full flex flex-col justify-between relative",
                 showSplitSearch ? "flex-1 overflow-hidden" : "w-full"
               )}>
-                {isFullscreen && (
+                {isFullscreen ? (
                   <>
                     <Button
                       onClick={(e) => { 
@@ -2846,20 +2851,39 @@ export function PresentationForm() {
                         });
                       }}
                       variant="secondary"
-                      className="absolute top-4 right-24 z-20 h-auto p-2 gap-1.5 bg-black/20 text-white/80 hover:bg-black/30 hover:text-white"
+                      size="sm"
+                      className="absolute top-3 right-20 sm:top-4 sm:right-24 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-black/40 text-white/90 hover:bg-black/60 hover:text-white border border-white/20 backdrop-blur-md rounded-xl"
                     >
-                      <Eye className="h-4 w-4 text-purple-400" />
-                      <span className="text-xs">Clear Covers</span>
+                      <Eye className="h-3.5 w-3.5 text-purple-400" />
+                      <span className="text-xs font-bold">Clear Covers</span>
                     </Button>
                     <Button
                       onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
                       variant="secondary"
-                      className="absolute top-4 right-4 z-20 h-auto p-2 gap-1.5 bg-black/20 text-white/80 hover:bg-black/30 hover:text-white"
+                      size="sm"
+                      className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-black/40 text-white/90 hover:bg-black/60 hover:text-white border border-white/20 backdrop-blur-md rounded-xl"
                     >
-                      <Minimize className="h-4 w-4" />
-                      <span className="text-xs">Exit</span>
+                      <Minimize className="h-3.5 w-3.5 text-amber-400" />
+                      <span className="text-xs font-bold">Exit</span>
                     </Button>
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/30 text-white/80 px-3 py-1 text-sm font-mono">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white/90 px-3 py-0.5 text-xs font-mono select-none">
+                      {current} / {count}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Always visible Fullscreen button directly on presentation canvas */}
+                    <Button
+                      onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
+                      variant="secondary"
+                      size="sm"
+                      className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 h-8 sm:h-9 px-2.5 sm:px-3 gap-1.5 bg-slate-900/90 text-white hover:bg-slate-800 border border-slate-700/80 shadow-xl backdrop-blur-md rounded-xl transition-all active:scale-95"
+                      title="Enter Fullscreen Presentation Mode"
+                    >
+                      <Maximize className="h-3.5 w-3.5 text-cyan-400" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Full</span>
+                    </Button>
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/90 px-3 py-0.5 text-xs font-mono select-none">
                       {current} / {count}
                     </div>
                   </>
@@ -2887,8 +2911,8 @@ export function PresentationForm() {
                         >
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
-                            !isFullscreen && "overflow-y-auto py-6 px-12 sm:px-16 md:px-20 lg:px-24",
-                            isFullscreen && "overflow-hidden py-3 md:py-4 px-10 md:px-16 lg:px-20"
+                            !isFullscreen && "overflow-y-auto py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
+                            isFullscreen && "overflow-hidden py-3 md:py-4 px-4 sm:px-10 md:px-16 lg:px-20"
                           )}>
                             <div className={cn(
                               "w-full animate-in fade-in duration-700 mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
@@ -3105,9 +3129,9 @@ export function PresentationForm() {
                                         </div>
 
                                         {/* Top Controls Overlay (Fit Mode, Expand Lightbox, Regenerate & Side Search) */}
-                                        <div className="absolute top-2.5 inset-x-2.5 z-20 flex items-center justify-between gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity pointer-events-auto">
+                                        <div className="absolute top-2 inset-x-2 z-20 flex items-center justify-between gap-1 max-w-full overflow-x-auto no-scrollbar py-0.5 opacity-90 group-hover:opacity-100 transition-opacity pointer-events-auto select-none">
                                           {/* Clear Segmented Fit Mode Selector: Full Picture vs Fill Frame */}
-                                          <div className="flex items-center gap-1 bg-black/85 backdrop-blur-md p-1 rounded-xl border border-white/20 shadow-lg">
+                                          <div className="flex items-center gap-0.5 sm:gap-1 bg-black/85 backdrop-blur-md p-1 rounded-xl border border-white/20 shadow-lg shrink-0">
                                             <Button
                                               size="sm"
                                               variant="ghost"
@@ -3117,14 +3141,15 @@ export function PresentationForm() {
                                                 setSlideImageFitModes(prev => ({ ...prev, [index]: 'contain' }));
                                               }}
                                               className={cn(
-                                                "h-7 px-2.5 text-[10px] font-black rounded-lg transition-all flex items-center gap-1.5",
+                                                "h-7 px-2 sm:px-2.5 text-[10px] font-black rounded-lg transition-all flex items-center gap-1",
                                                 (slideImageFitModes[index] || 'contain') === 'contain'
                                                   ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
                                                   : "text-slate-300 hover:text-white hover:bg-white/10"
                                               )}
                                             >
                                               <Scan className="h-3.5 w-3.5 text-cyan-300" />
-                                              <span>Full Picture (Auto)</span>
+                                              <span className="hidden sm:inline">Full Picture (Auto)</span>
+                                              <span className="sm:hidden">Full</span>
                                             </Button>
                                             <Button
                                               size="sm"
@@ -3135,18 +3160,19 @@ export function PresentationForm() {
                                                 setSlideImageFitModes(prev => ({ ...prev, [index]: 'cover' }));
                                               }}
                                               className={cn(
-                                                "h-7 px-2.5 text-[10px] font-black rounded-lg transition-all flex items-center gap-1.5",
+                                                "h-7 px-2 sm:px-2.5 text-[10px] font-black rounded-lg transition-all flex items-center gap-1",
                                                 slideImageFitModes[index] === 'cover'
                                                   ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
                                                   : "text-slate-300 hover:text-white hover:bg-white/10"
                                               )}
                                             >
                                               <Maximize2 className="h-3.5 w-3.5 text-amber-300" />
-                                              <span>Fill Frame</span>
+                                              <span className="hidden sm:inline">Fill Frame</span>
+                                              <span className="sm:hidden">Fill</span>
                                             </Button>
                                           </div>
 
-                                          <div className="flex items-center gap-1.5">
+                                          <div className="flex items-center gap-1 shrink-0">
                                             {/* Digital Marker / Pen Button */}
                                             <Button
                                               size="sm"
@@ -3166,14 +3192,15 @@ export function PresentationForm() {
                                                 }
                                               }}
                                               className={cn(
-                                                "h-7 px-2.5 text-[10px] font-bold rounded-lg backdrop-blur-md border shadow-md flex items-center gap-1.5 transition-all",
+                                                "h-7 px-2 sm:px-2.5 text-[10px] font-bold rounded-lg backdrop-blur-md border shadow-md flex items-center gap-1 transition-all",
                                                 activeDrawSlideIndex === index
                                                   ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.5)]"
                                                   : "bg-black/75 hover:bg-black/95 text-white border-white/15"
                                               )}
                                             >
                                               <PenTool className="h-3.5 w-3.5 text-amber-300" />
-                                              <span>{activeDrawSlideIndex === index ? (isDrawToolbarCollapsed ? "Tools Hidden" : "Drawing...") : "Draw / Pen"}</span>
+                                              <span className="hidden sm:inline">{activeDrawSlideIndex === index ? (isDrawToolbarCollapsed ? "Tools Hidden" : "Drawing...") : "Draw / Pen"}</span>
+                                              <span className="sm:hidden">{activeDrawSlideIndex === index ? "Draw" : "Pen"}</span>
                                               {slideDrawings[index] && slideDrawings[index].length > 0 && (
                                                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse ml-0.5" />
                                               )}
@@ -3207,9 +3234,10 @@ export function PresentationForm() {
                                                 e.stopPropagation();
                                                 handleRegenerateSlideImage(index, slide.title);
                                               }}
-                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md"
+                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md flex items-center gap-1"
                                             >
-                                              <RefreshCw className={cn("h-3 w-3 mr-1 text-purple-400", regeneratingSlide[index] && "animate-spin")} /> Change
+                                              <RefreshCw className={cn("h-3 w-3 text-purple-400", regeneratingSlide[index] && "animate-spin")} />
+                                              <span className="hidden sm:inline">Change</span>
                                             </Button>
 
                                             <Button
@@ -3220,9 +3248,10 @@ export function PresentationForm() {
                                                 e.stopPropagation();
                                                 handleOpenSideSearchForSlide(index, slide.title);
                                               }}
-                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md"
+                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/75 hover:bg-black/95 text-white backdrop-blur-md border border-white/15 shadow-md flex items-center gap-1"
                                             >
-                                              <PanelRightOpen className="h-3 w-3 mr-1 text-indigo-400" /> Side Search
+                                              <PanelRightOpen className="h-3 w-3 text-indigo-400" />
+                                              <span className="hidden sm:inline">Search</span>
                                             </Button>
                                           </div>
                                         </div>
@@ -3467,21 +3496,23 @@ export function PresentationForm() {
                                         )}
 
                                         {/* Bottom Controls Overlay: Zoom In, Zoom Out, Reset, and Pan Nudge */}
-                                        <div className="absolute bottom-2.5 inset-x-2.5 z-20 flex items-center justify-between pointer-events-auto">
+                                        <div className="absolute bottom-2 inset-x-2 z-20 flex items-center justify-between gap-1 max-w-full overflow-x-auto no-scrollbar pointer-events-auto">
                                           {/* Pan hint when zoomed */}
                                           {(slideImageZooms[index] || 1) > 1 ? (
-                                            <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-black/85 backdrop-blur-md border border-purple-500/30 text-[9px] font-mono text-purple-300 shadow-md">
-                                              <Move className="h-2.5 w-2.5 animate-pulse" /> Drag image to pan
+                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/85 backdrop-blur-md border border-purple-500/30 text-[9px] font-mono text-purple-300 shadow-md shrink-0">
+                                              <Move className="h-2.5 w-2.5 animate-pulse" />
+                                              <span className="hidden sm:inline">Drag image to pan</span>
+                                              <span className="sm:hidden">Drag to pan</span>
                                             </div>
                                           ) : (
-                                            <p className="text-[9px] text-white/70 font-mono italic bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded">
+                                            <p className="text-[9px] text-white/70 font-mono italic bg-black/50 backdrop-blur-md px-1.5 py-0.5 rounded truncate max-w-[120px] sm:max-w-none shrink-0">
                                               Source: {photoSource}
                                             </p>
                                           )}
 
                                           {/* Zoom Controls Pill with Quick Reset to Full Picture */}
                                           <div 
-                                            className="flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-xl border border-white/15 shadow-xl text-white ml-auto"
+                                            className="flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-xl border border-white/15 shadow-xl text-white ml-auto shrink-0"
                                             onClick={(e) => e.stopPropagation()}
                                           >
                                             {((slideImageZooms[index] || 1) !== 1 || (slideImagePans[index]?.x || 0) !== 0 || (slideImagePans[index]?.y || 0) !== 0 || slideImageFitModes[index] === 'cover') && (
@@ -3493,10 +3524,12 @@ export function PresentationForm() {
                                                   handleZoomSlideImage(index, 'reset');
                                                   setSlideImageFitModes(prev => ({ ...prev, [index]: 'contain' }));
                                                 }}
-                                                className="h-6 px-2 text-[10px] font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-500/40 hover:bg-cyan-900/90 rounded-lg flex items-center gap-1 mr-1"
+                                                className="h-6 px-1.5 sm:px-2 text-[10px] font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-500/40 hover:bg-cyan-900/90 rounded-lg flex items-center gap-1 mr-1"
                                                 title="Reset to 100% uncropped full picture"
                                               >
-                                                <RotateCcw className="h-3 w-3" /> Full Picture
+                                                <RotateCcw className="h-3 w-3" />
+                                                <span className="hidden sm:inline">Full Picture</span>
+                                                <span className="sm:hidden">Reset</span>
                                               </Button>
                                             )}
                                             <Button
