@@ -13,7 +13,7 @@ import {
 import { Button } from "../ui/button";
 import { 
   Loader2, Trophy, Check, X, Disc, Sparkles, UserPlus, Trash2, Repeat, 
-  Maximize, Minimize, HelpCircle, Volume2, Flame, Zap, Award
+  Maximize, Minimize, HelpCircle, Volume2, Flame, Zap, Award, ArrowLeft
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -273,14 +273,28 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
   return (
     <Card
       className={cn(
-        "w-full max-w-6xl mx-auto flex flex-col justify-between rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300 min-h-[calc(100dvh-4.5rem)]",
-        isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background overflow-y-auto"
+        "w-full max-w-6xl mx-auto flex flex-col justify-start rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300 min-h-[calc(100dvh-4.5rem)]",
+        isFullscreen && "min-h-full border-none shadow-none rounded-none bg-transparent p-2 sm:p-6"
       )}
     >
       <CardHeader className={cn(
         "text-center relative px-4 transition-all",
         gameState !== "setup" ? "pt-2 sm:pt-4 pb-1 sm:pb-2" : "pt-4 sm:pt-6 pb-2"
       )}>
+        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-1.5 z-20">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="h-8 px-2 sm:px-3 text-xs gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <Link href="/games">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Library</span>
+            </Link>
+          </Button>
+        </div>
+
         <Button
           variant="ghost"
           size="sm"
@@ -307,7 +321,7 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="w-full flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-8 sm:pb-12 max-w-6xl mx-auto">
+      <CardContent className="w-full flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-6 sm:pb-8 max-w-6xl mx-auto">
         {gameState === "setup" && (
           <div className="flex flex-col items-center gap-6 w-full max-w-md animate-in fade-in duration-200">
             {/* How to Play Guide */}
