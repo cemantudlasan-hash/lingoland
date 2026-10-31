@@ -425,20 +425,21 @@ export function AppHeader() {
             </button>
         </div>
       )}
-      <div className="relative z-10 flex h-16 w-full items-center justify-between px-4 sm:px-6 bg-slate-950/30 backdrop-blur-md">
-        <div className="flex items-center gap-3">
+      <div className="relative z-10 flex h-16 w-full items-center justify-between px-3 sm:px-6 bg-slate-950/30 backdrop-blur-md gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
             <Button
               variant="outline"
               onClick={handleReturnToMenu}
-              className="group px-3 py-1.5 h-10 rounded-2xl border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/70 text-cyan-300 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.25)] transition-all hover:scale-105 active:scale-95 gap-2 font-bold text-xs"
+              className="group px-2.5 sm:px-3 py-1.5 h-10 rounded-2xl border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/70 text-cyan-300 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.25)] transition-all hover:scale-105 active:scale-95 gap-2 font-bold text-xs shrink-0"
               title="Return to Menu & Cosmic Cockpit"
             >
-              <ArrowLeft className="h-4 w-4 text-cyan-400 group-hover:-translate-x-1 transition-transform" />
-              <span className="tracking-wide">Back to Menu</span>
+              <ArrowLeft className="h-4 w-4 text-cyan-400 group-hover:-translate-x-1 transition-transform shrink-0" />
+              <span className="tracking-wide hidden sm:inline">Back to Menu</span>
+              <span className="sm:hidden">Back</span>
             </Button>
-            <div className="h-6 w-px bg-border/50 hidden md:block mx-1"></div>
+            <div className="h-6 w-px bg-border/50 hidden xl:block mx-1"></div>
             <div
-              className="items-center gap-2.5 px-3 py-1.5 rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-slate-900/70 via-indigo-950/40 to-slate-900/70 backdrop-blur-md shadow-sm hidden md:flex cursor-pointer transition-all hover:border-indigo-400/50"
+              className="items-center gap-2.5 px-3 py-1.5 rounded-2xl border border-indigo-500/25 bg-gradient-to-r from-slate-900/70 via-indigo-950/40 to-slate-900/70 backdrop-blur-md shadow-sm hidden xl:flex cursor-pointer transition-all hover:border-indigo-400/50 shrink-0"
               onClick={handleReturnToMenu}
               title="Return to Menu"
             >
@@ -446,12 +447,12 @@ export function AppHeader() {
                   <Image
                     src="/logo.png"
                     alt="LingoLandVerse Logo"
-                    width={26}
-                    height={26}
+                    width={24}
+                    height={24}
                     className="shrink-0 object-contain"
                   />
                 </div>
-                <h1 className="text-base font-extrabold bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">
+                <h1 className="text-sm font-extrabold bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">
                   LingoLandVerse
                 </h1>
             </div>
@@ -460,17 +461,22 @@ export function AppHeader() {
                 type="button"
                 variant="outline"
                 onClick={() => window.dispatchEvent(new CustomEvent('lingoland_open_lesson_guide'))}
-                className="px-3 py-1.5 h-10 rounded-2xl border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/70 text-cyan-200 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all hover:scale-105 active:scale-95 gap-2 font-bold text-xs"
+                className="px-2.5 sm:px-3 py-1.5 h-10 rounded-2xl border-cyan-500/40 bg-slate-900/80 hover:bg-cyan-950/70 text-cyan-200 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] transition-all hover:scale-105 active:scale-95 gap-1.5 sm:gap-2 font-bold text-xs shrink-0"
                 title="Open Classroom Lesson Plan & Teacher Guide"
               >
                 <GraduationCap className="h-4 w-4 text-cyan-400 shrink-0" />
-                <span className="hidden sm:inline">Lesson &amp; Teacher Guide</span>
+                <span className="hidden lg:inline">Lesson &amp; Teacher Guide</span>
+                <span className="lg:hidden hidden sm:inline">Lesson Guide</span>
                 <span className="sm:hidden">Guide</span>
               </Button>
             )}
         </div>
-        <h1 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold hidden md:block md:text-xl font-headline text-foreground">{title}</h1>
-        <div className="flex items-center gap-4">
+        <div className="flex-1 min-w-0 mx-2 text-center hidden md:flex items-center justify-center pointer-events-none">
+          <h1 className="text-sm md:text-base lg:text-lg font-black truncate tracking-tight font-headline text-foreground max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg">
+            {title}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             {renderAuthContent()}
         </div>
       </div>

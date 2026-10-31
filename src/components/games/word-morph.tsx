@@ -300,67 +300,137 @@ export function WordMorph({ slug, onToggleFullscreen }: { slug: string; onToggle
       case 'answered':
         if (!challenge) return null;
         return (
-          <div className="w-full flex flex-col items-center gap-4 sm:gap-6 max-w-3xl mx-auto">
-            <div className="w-full grid grid-cols-3 gap-2 sm:gap-4 text-center font-black uppercase tracking-wider text-xs sm:text-sm">
-              <div className="p-2 sm:p-3 bg-muted/30 rounded-xl border border-primary/10">
-                <p className="text-[10px] sm:text-xs opacity-60">Round</p>
-                <p className="text-sm sm:text-xl font-black">{currentRound}/{totalRounds}</p>
-              </div>
-              <div className={cn("p-2 sm:p-3 rounded-xl border-2 transition-all", gameState === 'playing' ? "border-primary bg-primary/10 shadow-md" : "bg-muted border-transparent opacity-70")}>
-                <p className="text-[10px] sm:text-xs opacity-80">Turn</p>
-                <p className="truncate text-sm sm:text-xl font-black">{teams[currentTurn].name}</p>
-              </div>
-              <div className="p-2 sm:p-3 bg-muted/30 rounded-xl border border-primary/10">
-                <p className="text-[10px] sm:text-xs opacity-60">Time</p>
-                <p className="font-mono text-sm sm:text-xl font-black">{timeLeft}s</p>
-              </div>
-            </div>
-            <Progress value={(timeLeft / TURN_TIME_SECONDS) * 100} className="w-full h-2 sm:h-3 rounded-full" />
-
-            <div className="flex flex-col items-center gap-3 sm:gap-4 w-full mt-1">
-              <p className="font-bold text-muted-foreground uppercase tracking-widest text-xs">Morph this root word:</p>
-              <div className="font-black px-6 py-4 sm:px-10 sm:py-6 bg-card rounded-2xl sm:rounded-3xl shadow-xl border-2 sm:border-4 border-primary/20 uppercase italic text-3xl sm:text-5xl md:text-6xl text-primary text-center">
-                {challenge.rootWord}
-              </div>
-              <div className="p-3 sm:p-5 rounded-2xl bg-muted/40 border border-primary/10 max-w-xl text-center italic font-semibold text-xs sm:text-base md:text-lg">
-                &quot;{challenge.definition}&quot;
-              </div>
-            </div>
-
-            {gameState === 'playing' ? (
-              <div className="flex flex-col items-center gap-3 w-full max-w-md mt-2">
-                <div className="flex gap-2 sm:gap-3 w-full">
-                  <Input 
-                    value={userGuess}
-                    onChange={(e) => setUserGuess(e.target.value)}
-                    placeholder="Morphed word..."
-                    className="text-center font-black uppercase tracking-wider bg-card border-2 h-11 sm:h-14 text-lg sm:text-xl rounded-xl"
-                    onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer()}
-                    autoFocus
-                    spellCheck="false"
-                  />
-                  <Button onClick={handleCheckAnswer} className="shadow-lg h-11 sm:h-14 px-4 sm:px-5 rounded-xl font-bold bg-primary text-primary-foreground">
-                    <Send className="h-5 w-5" />
-                  </Button>
+          <div className="w-full max-w-5xl mx-auto flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
+            {/* Main Stage (Desktop Left / Center) */}
+            <div className="w-full lg:col-span-8 flex flex-col items-center gap-4">
+              {/* HUD Bar (Round, Turn, Time) */}
+              <div className="w-full grid grid-cols-3 gap-2 sm:gap-4 text-center font-black uppercase tracking-wider text-xs sm:text-sm">
+                <div className="p-2 sm:p-3 bg-muted/40 rounded-xl border border-primary/20 shadow-sm">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Round</p>
+                  <p className="text-sm sm:text-lg font-black">{currentRound}/{totalRounds}</p>
+                </div>
+                <div className={cn("p-2 sm:p-3 rounded-xl border-2 transition-all shadow-sm", gameState === 'playing' ? "border-primary bg-primary/10 shadow-primary/10" : "bg-muted/40 border-border/30")}>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Active Turn</p>
+                  <p className="truncate text-sm sm:text-lg font-black text-primary">{teams[currentTurn].name}</p>
+                </div>
+                <div className="p-2 sm:p-3 bg-muted/40 rounded-xl border border-primary/20 shadow-sm">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Time Left</p>
+                  <p className="font-mono text-sm sm:text-lg font-black text-amber-500">{timeLeft}s</p>
                 </div>
               </div>
-            ) : (
-              <Alert className={cn(
-                "text-center border-2 rounded-2xl shadow-lg animate-in fade-in zoom-in-95 duration-200 w-full max-w-xl",
-                isCorrect ? "bg-green-500/15 border-green-500/40 text-foreground" : "bg-red-500/15 border-red-500/40 text-foreground"
-              )}>
-                {isCorrect ? <Check className="h-5 w-5 text-green-500" /> : <X className="h-5 w-5 text-red-500" />}
-                <AlertTitle className="font-black uppercase tracking-tight text-base sm:text-lg mb-1">
-                  {isCorrect ? "MISSION SUCCESS!" : "DECODING ERROR!"}
-                </AlertTitle>
-                <AlertDescription className="text-xs sm:text-sm">
-                  <p className="mb-2">Target word: <strong className="uppercase italic text-primary">{challenge.targetWord}</strong></p>
-                  <p className="opacity-80 border-t border-border/20 pt-2 text-[11px] sm:text-xs">
-                    <strong>Rule:</strong> {challenge.morphType}. {challenge.explanation}
-                  </p>
-                </AlertDescription>
-              </Alert>
-            )}
+              <Progress value={(timeLeft / TURN_TIME_SECONDS) * 100} className="w-full h-2 rounded-full" />
+
+              {/* Mobile Quick Team Score Strip */}
+              <div className="flex lg:hidden items-center justify-center gap-2 flex-wrap w-full">
+                {teams.map((t, idx) => (
+                  <Badge
+                    key={t.name}
+                    variant={idx === currentTurn ? "default" : "outline"}
+                    className={cn(
+                      "text-xs px-2.5 py-0.5 font-bold transition-all",
+                      idx === currentTurn ? "shadow-sm" : "opacity-75"
+                    )}
+                  >
+                    <span>{t.name}:</span>
+                    <span className="font-mono ml-1 font-black">{t.score} pts</span>
+                  </Badge>
+                ))}
+              </div>
+
+              {/* Morphology Target Root Word Pod */}
+              <div className="flex flex-col items-center gap-2 sm:gap-3 w-full mt-1">
+                <span className="font-bold text-muted-foreground uppercase tracking-widest text-[11px] sm:text-xs">
+                  Morph This Root Word:
+                </span>
+                <div className="font-black px-6 py-4 sm:px-12 sm:py-6 bg-card rounded-2xl sm:rounded-3xl shadow-xl border-2 sm:border-4 border-primary/30 uppercase italic text-3xl sm:text-5xl md:text-6xl text-primary text-center tracking-wide w-full max-w-lg">
+                  {challenge.rootWord}
+                </div>
+                <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-muted/40 border border-primary/15 max-w-lg w-full text-center italic font-semibold text-xs sm:text-sm md:text-base text-foreground/90">
+                  &quot;{challenge.definition}&quot;
+                </div>
+              </div>
+
+              {/* Input Action Zone or Answer Alert */}
+              {gameState === 'playing' ? (
+                <div className="flex flex-col items-center gap-3 w-full max-w-md mt-2">
+                  <div className="flex gap-2 sm:gap-3 w-full">
+                    <Input 
+                      value={userGuess}
+                      onChange={(e) => setUserGuess(e.target.value)}
+                      placeholder="Type morphed word..."
+                      className="text-center font-black uppercase tracking-wider bg-card border-2 h-11 sm:h-13 text-base sm:text-xl rounded-xl"
+                      onKeyDown={(e) => e.key === 'Enter' && handleCheckAnswer()}
+                      autoFocus
+                      spellCheck="false"
+                    />
+                    <Button onClick={handleCheckAnswer} className="shadow-lg h-11 sm:h-13 px-4 sm:px-6 rounded-xl font-bold bg-primary text-primary-foreground transition-all hover:scale-105 active:scale-95">
+                      <Send className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Press Enter or tap Send to submit answer</p>
+                </div>
+              ) : (
+                <div className="w-full max-w-lg flex flex-col items-center gap-3 mt-2">
+                  <Alert className={cn(
+                    "text-center border-2 rounded-2xl shadow-lg animate-in fade-in zoom-in-95 duration-200 w-full",
+                    isCorrect ? "bg-emerald-500/15 border-emerald-500/40 text-foreground" : "bg-rose-500/15 border-rose-500/40 text-foreground"
+                  )}>
+                    {isCorrect ? <Check className="h-5 w-5 text-emerald-500 mx-auto mb-1" /> : <X className="h-5 w-5 text-rose-500 mx-auto mb-1" />}
+                    <AlertTitle className="font-black uppercase tracking-tight text-base sm:text-lg mb-1">
+                      {isCorrect ? "MISSION SUCCESS! (+10 PTS)" : "DECODING ERROR!"}
+                    </AlertTitle>
+                    <AlertDescription className="text-xs sm:text-sm">
+                      <p className="mb-2">Target morphed word: <strong className="uppercase italic text-primary font-black ml-1">{challenge.targetWord}</strong></p>
+                      <p className="opacity-80 border-t border-border/20 pt-2 text-[11px] sm:text-xs">
+                        <strong>Rule:</strong> {challenge.morphType}. {challenge.explanation}
+                      </p>
+                    </AlertDescription>
+                  </Alert>
+
+                  <Button
+                    onClick={handleNextTurn}
+                    className="w-full h-11 sm:h-12 rounded-xl font-black bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+                  >
+                    Continue to Next Turn ➔
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Teams Scoreboard Sidebar */}
+            <div className="hidden lg:flex lg:col-span-4 flex-col gap-3 w-full p-4 rounded-2xl bg-card border border-border/30 shadow-md">
+              <div className="flex items-center justify-between border-b border-border/20 pb-2">
+                <span className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Live Team Standings</span>
+                <Trophy className="w-4 h-4 text-amber-500" />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {teams.map((t, idx) => (
+                  <div
+                    key={t.name}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-xl border transition-all",
+                      idx === currentTurn
+                        ? "bg-primary/10 border-primary text-foreground font-black shadow-sm"
+                        : "bg-muted/30 border-border/20 text-muted-foreground"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold w-5">{idx + 1}.</span>
+                      <span className="text-sm font-bold truncate max-w-[120px]">{t.name}</span>
+                      {idx === currentTurn && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary text-primary">Active</Badge>
+                      )}
+                    </div>
+                    <span className="font-mono text-sm font-black text-primary">{t.score} pts</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2 border-t border-border/20 text-[11px] text-muted-foreground">
+                <p>Turn rotation occurs after every guess or timeout.</p>
+              </div>
+            </div>
           </div>
         );
       case 'finished':
@@ -450,8 +520,8 @@ export function WordMorph({ slug, onToggleFullscreen }: { slug: string; onToggle
       </CardHeader>
 
       <CardContent className={cn(
-        "flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto",
-        isFullscreen ? "min-h-[60vh] max-w-5xl" : "min-h-[24rem]"
+        "flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-5xl mx-auto overflow-y-auto",
+        isFullscreen ? "min-h-[60vh] max-w-6xl" : "min-h-[24rem]"
       )}>
         {renderContent()}
       </CardContent>

@@ -115,62 +115,95 @@ export function Top5Quiz({ slug, onToggleFullscreen }: { slug: string; onToggleF
         );
       case "playing":
       case "editing":
+        const totalPointsRevealed = quizData.answers.reduce(
+          (sum, item, idx) => (answersVisible[idx] ? sum + item.points : sum),
+          0
+        );
+        const allRevealed = answersVisible.every(Boolean);
+
         return (
-          <div className={cn("w-full flex flex-col items-center", isFullscreen ? "max-w-7xl" : "max-w-3xl")}>
-            <div className="flex justify-end items-center gap-4 mb-8 w-full">
-                {gameState === 'editing' ? (
-                    <Button onClick={handleSaveChanges} className={cn("bg-green-600 hover:bg-green-700 text-white font-black shadow-lg", isFullscreen && "h-16 px-10 text-xl rounded-2xl")}>
-                        <Save className={cn("mr-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")}/>Commit Data
+          <div className={cn("w-full flex flex-col items-center max-w-5xl mx-auto", isFullscreen && "max-w-7xl")}>
+            {/* Top Action & Session Score Toolbar */}
+            <div className="flex flex-wrap justify-between items-center gap-2 mb-4 sm:mb-6 w-full">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="px-3 py-1 font-bold text-xs sm:text-sm bg-primary/10 border-primary/30 text-primary">
+                    Revealed Points: <span className="font-mono font-black ml-1.5 text-sm sm:text-base">{totalPointsRevealed} pts</span>
+                  </Badge>
+                  {gameState === 'playing' && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => setAnswersVisible(Array(5).fill(!allRevealed))}
+                    >
+                      {allRevealed ? <EyeOff className="w-3.5 h-3.5 mr-1" /> : <Eye className="w-3.5 h-3.5 mr-1" />}
+                      <span className="hidden sm:inline">{allRevealed ? "Hide All" : "Reveal All"}</span>
                     </Button>
-                ) : (
-                    <Button variant="secondary" onClick={() => setGameState('editing')} className={cn("font-black", isFullscreen && "h-16 px-10 text-xl rounded-2xl")}>
-                        <Pencil className={cn("mr-2", isFullscreen ? "h-8 w-8" : "h-4 w-4")}/>Modify Matrix
-                    </Button>
-                )}
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                    {gameState === 'editing' ? (
+                        <Button onClick={handleSaveChanges} className={cn("bg-emerald-600 hover:bg-emerald-500 text-white font-black shadow-lg rounded-xl h-9 sm:h-11 px-4 sm:px-6 text-xs sm:text-sm")}>
+                            <Save className="mr-1.5 h-4 w-4" /> Commit Data
+                        </Button>
+                    ) : (
+                        <Button variant="secondary" onClick={() => setGameState('editing')} className={cn("font-bold rounded-xl h-9 sm:h-11 px-3 sm:px-5 text-xs sm:text-sm")}>
+                            <Pencil className="mr-1.5 h-4 w-4" /> Edit Quiz
+                        </Button>
+                    )}
+                </div>
             </div>
             
+            {/* Question Display Billboard */}
             <div className={cn(
-                "w-full bg-muted/20 backdrop-blur-sm border-4 border-primary rounded-[3rem] flex items-center justify-center p-8 shadow-2xl mb-10",
-                isFullscreen ? "min-h-[250px] p-16" : "min-h-[120px]"
+                "w-full bg-muted/30 backdrop-blur-sm border-2 sm:border-4 border-primary/40 rounded-2xl sm:rounded-3xl flex items-center justify-center p-4 sm:p-8 shadow-xl mb-4 sm:mb-6",
+                isFullscreen ? "min-h-[160px] p-8 sm:p-12" : "min-h-[90px] sm:min-h-[120px]"
             )}>
                 {gameState === 'editing' ? (
                     <Input 
                         value={quizData.question}
                         onChange={(e) => handleQuestionChange(e.target.value)}
-                        className={cn("font-black text-center bg-transparent border-none focus-visible:ring-0", isFullscreen ? "text-[5vw]" : "text-4xl")}
+                        className={cn("font-black text-center bg-transparent border-none focus-visible:ring-0 text-xl sm:text-3xl md:text-4xl text-foreground uppercase italic tracking-wide")}
                     />
                 ) : (
-                    <h2 className={cn("font-black text-center leading-tight uppercase italic", isFullscreen ? "text-[6vw]" : "text-4xl")}>{quizData.question}</h2>
+                    <h2 className={cn("font-black text-center leading-snug uppercase italic tracking-wide text-xl sm:text-3xl md:text-4xl text-foreground")}>
+                      {quizData.question}
+                    </h2>
                 )}
             </div>
 
-            <div className={cn("w-full space-y-4", isFullscreen && "space-y-8")}>
+            {/* Answers List (No Horizontal Overflows on Mobile, Gorgeous Spacing on Desktop) */}
+            <div className="w-full space-y-2.5 sm:space-y-4">
                 {quizData.answers.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between gap-6 group">
-                        <div className="flex items-center gap-6 flex-grow">
+                    <div key={index} className="flex items-center justify-between gap-2 sm:gap-4 group w-full">
+                        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                            {/* Rank Circle */}
                             <div className={cn(
-                                "flex-shrink-0 rounded-full flex items-center justify-center font-black border-4 shadow-xl", 
+                                "flex-shrink-0 rounded-full flex items-center justify-center font-black border-2 sm:border-4 shadow-md", 
                                 answerColors[index].bg, answerColors[index].text,
-                                isFullscreen ? "h-24 w-24 text-5xl" : "h-14 w-14 text-3xl"
+                                "h-9 w-9 sm:h-12 sm:w-12 md:h-14 md:w-14 text-base sm:text-2xl md:text-3xl"
                             )}>
                                 {index + 1}
                             </div>
+
+                            {/* Answer Box */}
                             <div className={cn(
-                                "w-full bg-card border-4 border-foreground/20 rounded-[2rem] flex items-center justify-center relative px-8 shadow-lg transition-all",
-                                isFullscreen ? "h-24" : "h-16",
-                                answersVisible[index] && "border-primary bg-primary/5"
+                                "flex-1 min-w-0 bg-card border-2 sm:border-3 border-foreground/20 rounded-xl sm:rounded-2xl flex items-center justify-center relative px-3 sm:px-6 shadow-md transition-all",
+                                "h-11 sm:h-14 md:h-16",
+                                answersVisible[index] && "border-primary bg-primary/10 shadow-primary/10"
                             )}>
                                 {gameState === 'editing' ? (
                                     <Input 
                                         value={item.text}
                                         onChange={(e) => handleQuizItemChange(index, e.target.value)}
-                                        className={cn("font-black text-center border-none focus-visible:ring-0 bg-transparent", isFullscreen ? "text-4xl" : "text-2xl")}
+                                        className={cn("font-black text-center border-none focus-visible:ring-0 bg-transparent text-sm sm:text-xl md:text-2xl w-full")}
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
                                         <span className={cn(
-                                            "font-black uppercase tracking-widest transition-all duration-500", 
-                                            isFullscreen ? "text-4xl" : "text-2xl",
+                                            "font-black uppercase tracking-wide transition-all duration-300 truncate px-1", 
+                                            "text-xs sm:text-lg md:text-xl",
                                             answersVisible[index] ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                                         )}>
                                             {item.text}
@@ -179,24 +212,28 @@ export function Top5Quiz({ slug, onToggleFullscreen }: { slug: string; onToggleF
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="absolute inset-0 w-full h-full flex items-center justify-center hover:bg-primary/5 rounded-[2rem] transition-colors"
+                                                className="absolute inset-0 w-full h-full flex items-center justify-center hover:bg-primary/5 rounded-xl sm:rounded-2xl transition-colors cursor-pointer group"
                                                 onClick={() => handleToggleAnswer(index)}
+                                                title="Click to reveal answer"
                                             >
-                                                <Eye className={cn("text-primary/40 group-hover:text-primary transition-colors", isFullscreen ? "h-12 w-12" : "h-8 w-8")}/>
+                                                <Eye className="h-5 w-5 sm:h-7 sm:w-7 text-primary/40 group-hover:text-primary transition-colors"/>
+                                                <span className="text-[10px] sm:text-xs font-bold uppercase text-muted-foreground ml-1.5 opacity-60 group-hover:opacity-100">Reveal</span>
                                             </Button>
                                         )}
                                     </div>
                                 )}
                             </div>
                         </div>
+
+                        {/* Points Indicator */}
                         <div className={cn(
-                            "font-black tabular-nums transition-all duration-500", 
-                            isFullscreen ? "text-6xl w-32" : "text-3xl w-20",
-                            answersVisible[index] ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4', 
+                            "font-black tabular-nums transition-all duration-300 shrink-0 w-12 sm:w-16 md:w-20 text-right", 
+                            "text-base sm:text-2xl md:text-3xl",
+                            answersVisible[index] ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2', 
                             answerColors[index].pointsText
                         )}>
                             +{item.points}
-                        </div >
+                        </div>
                     </div>
                 ))}
             </div>
@@ -245,7 +282,7 @@ export function Top5Quiz({ slug, onToggleFullscreen }: { slug: string; onToggleF
             </div>
         </CardHeader>
 
-        <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
+        <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-5xl mx-auto overflow-y-auto">
           {renderContent()}
         </CardContent>
 

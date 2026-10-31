@@ -81,6 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       keysToRemove.forEach(k => sessionStorage.removeItem(k));
+      window.dispatchEvent(new CustomEvent('lingoland_pet_reset_closed'));
     }
   }, []);
 

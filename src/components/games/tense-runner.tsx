@@ -1329,17 +1329,17 @@ export function TenseRunner() {
         'relative w-full mx-auto flex flex-col justify-between select-none font-sans transition-all duration-300 overflow-x-hidden',
         isFullscreen
           ? 'fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-4 bg-slate-950 justify-between'
-          : 'w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full px-1 sm:px-3 py-1'
+          : 'w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-7xl px-2 sm:px-4 py-2'
       )}
     >
       {/* ─── Top Control Bar ─── */}
       <div className="w-full flex items-center justify-between mb-2 px-1">
         <div className="flex items-center gap-3">
-          <Badge className="bg-gradient-to-r from-amber-500 to-rose-500 text-white font-black px-3 py-1 text-sm tracking-wide shadow-md flex items-center gap-1.5">
+          <Badge className="bg-gradient-to-r from-amber-500 to-rose-500 text-white font-black px-3 py-1 text-xs sm:text-sm tracking-wide shadow-md flex items-center gap-1.5">
             <Zap className="w-4 h-4 fill-current" />
             TENSE RUNNER
           </Badge>
-          <span className="hidden sm:inline-block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <span className="hidden sm:inline-block text-xs font-semibold text-slate-400 uppercase tracking-wider">
             {CATEGORY_INFO[selectedCategory].name}
           </span>
         </div>
@@ -1378,45 +1378,96 @@ export function TenseRunner() {
         </div>
       </div>
 
-      {/* ─── Main Game Canvas Box (Full width & height stretch) ─── */}
-      <div className="relative w-full flex-1 h-[55vh] sm:h-[72vh] min-h-[340px] sm:min-h-[480px] max-h-[85vh] rounded-2xl overflow-hidden border-2 border-slate-800 shadow-2xl bg-slate-950 flex items-center justify-center">
+      {/* ─── Active Mission HUD Bar (Positioned ABOVE Canvas: 100% visible, NEVER covers game field) ─── */}
+      {gameState === 'playing' && currentQuestion && (
+        <motion.div
+          key={currentQuestion.id}
+          initial={{ y: -6, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="w-full mb-2.5 bg-slate-900/95 border border-cyan-500/40 rounded-xl px-3 py-2 sm:px-6 sm:py-2.5 shadow-lg shadow-cyan-950/40 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-2 z-20"
+        >
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
+            <Badge
+              variant="outline"
+              className="text-xs px-2.5 py-0.5 border-cyan-400/60 bg-cyan-950/80 text-cyan-200 font-bold tracking-wide flex items-center gap-1.5 shadow-sm"
+            >
+              <span>{CATEGORY_INFO[currentQuestion.category]?.icon}</span>
+              <span>{CATEGORY_INFO[currentQuestion.category]?.name.split(' (')[0]}</span>
+            </Badge>
+
+            <span className="text-xs sm:text-sm md:text-base font-bold text-slate-200 text-center sm:text-left">
+              {currentQuestion.prompt}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-cyan-400">
+                Word:
+              </span>
+              <span className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 font-black text-sm sm:text-lg px-3 py-0.5 rounded-lg shadow-md uppercase tracking-wider border border-amber-200">
+                {currentQuestion.baseWord}
+              </span>
+            </div>
+
+            {streak > 0 && (
+              <Badge
+                className={cn(
+                  'font-mono font-black text-xs px-2.5 py-0.5 flex items-center gap-1 shadow-sm',
+                  streak >= 10
+                    ? 'bg-amber-500/25 text-amber-300 border border-amber-400/60'
+                    : streak >= 5
+                    ? 'bg-rose-500/25 text-rose-300 border border-rose-400/60'
+                    : 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/60'
+                )}
+              >
+                <Flame className="w-3.5 h-3.5 fill-current text-amber-400 animate-pulse" />
+                {streak}x Combo
+              </Badge>
+            )}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ─── Main Game Canvas Box (Unobstructed full visibility) ─── */}
+      <div className="relative w-full flex-1 h-[42vh] sm:h-[54vh] md:h-[64vh] min-h-[300px] sm:min-h-[420px] max-h-[720px] rounded-2xl overflow-hidden border-2 border-slate-800 shadow-2xl bg-slate-950 flex items-center justify-center">
         <canvas
           ref={canvasRef}
-          className="w-full h-full"
+          className="w-full h-full block"
           onClick={handleJump}
         />
 
-        {/* ─── Active HUD (Score, Hearts, Combo, Prompt) ─── */}
+        {/* ─── Active HUD (Score, Distance, Hearts) ─── */}
         {gameState === 'playing' && (
           <>
             {/* Top-Left Stats: Score & Distance */}
-            <div className="absolute top-3 left-4 flex items-center gap-4 z-10 pointer-events-none">
-              <div className="bg-slate-900/85 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2 text-white">
-                <Trophy className="w-4 h-4 text-amber-400" />
+            <div className="absolute top-3 left-3 sm:left-4 flex items-center gap-2 sm:gap-3 z-10 pointer-events-none">
+              <div className="bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-1.5 sm:gap-2 text-white shadow-md">
+                <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 leading-tight">Score</span>
-                  <span className="text-sm font-black font-mono tracking-tight text-amber-300">{score}</span>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 leading-tight">Score</span>
+                  <span className="text-xs sm:text-sm font-black font-mono tracking-tight text-amber-300">{score}</span>
                 </div>
               </div>
 
-              <div className="bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2 text-white">
-                <Compass className="w-4 h-4 text-cyan-400" />
+              <div className="bg-slate-900/85 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-1.5 sm:gap-2 text-white shadow-md">
+                <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 leading-tight">Distance</span>
-                  <span className="text-sm font-black font-mono tracking-tight text-cyan-300">{distance}m</span>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 leading-tight">Distance</span>
+                  <span className="text-xs sm:text-sm font-black font-mono tracking-tight text-cyan-300">{distance}m</span>
                 </div>
               </div>
             </div>
 
             {/* Top-Right Stats: Shields/Lives */}
-            <div className="absolute top-3 right-4 flex items-center gap-3 z-10 pointer-events-none">
-              {/* Lives / Shields */}
-              <div className="bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-1.5 text-rose-400">
+            <div className="absolute top-3 right-3 sm:right-4 flex items-center gap-2 z-10 pointer-events-none">
+              <div className="bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-1.5 text-rose-400 shadow-md">
                 {[1, 2, 3].map((heartIndex) => (
                   <Heart
                     key={heartIndex}
                     className={cn(
-                      'w-4 h-4 transition-all duration-300',
+                      'w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300',
                       heartIndex <= lives
                         ? 'fill-rose-500 text-rose-500 scale-100'
                         : 'text-slate-600 scale-75 opacity-40'
@@ -1426,90 +1477,15 @@ export function TenseRunner() {
               </div>
             </div>
 
-            {/* Top-Center Encounter Prompt Banner (Large, High-Visibility, Stacked Mission Card) */}
-            {currentQuestion && (
-              <div className="absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none max-w-[95%] sm:max-w-[800px] text-center">
-                <motion.div
-                  key={currentQuestion.id}
-                  initial={{ y: -20, scale: 0.9, opacity: 0 }}
-                  animate={{ y: 0, scale: 1, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-                  className="bg-slate-950/95 backdrop-blur-2xl px-6 py-3 sm:px-10 sm:py-4 rounded-2xl border-2 border-cyan-400 shadow-[0_0_40px_rgba(6,182,212,0.5)] flex flex-col items-center justify-center gap-2"
-                >
-                  {/* Top Sub-Row: Category & Instruction */}
-                  <div className="flex items-center justify-center gap-2.5 sm:gap-4 flex-wrap">
-                    <Badge
-                      variant="outline"
-                      className="text-sm sm:text-base px-3.5 py-1 border-cyan-400/60 bg-cyan-950/80 text-cyan-200 font-black tracking-wide flex items-center gap-2 shadow-sm"
-                    >
-                      <span className="text-base sm:text-lg">{CATEGORY_INFO[currentQuestion.category]?.icon}</span>
-                      <span>{CATEGORY_INFO[currentQuestion.category]?.name.split(' (')[0]}</span>
-                    </Badge>
-
-                    <span className="text-base sm:text-xl lg:text-2xl font-black text-cyan-50 uppercase tracking-wide drop-shadow-md">
-                      {currentQuestion.prompt}
-                    </span>
-                  </div>
-
-                  {/* Symmetrically Centered Target Word Section */}
-                  <div className="flex flex-col items-center justify-center gap-1.5 mt-0.5 text-center w-full">
-                    <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-cyan-300">
-                      WORD TO CONVERT:
-                    </span>
-                    <div className="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 font-black text-2xl sm:text-4xl lg:text-5xl px-8 py-1.5 sm:px-12 sm:py-2 rounded-xl shadow-[0_0_35px_rgba(251,191,36,0.75)] tracking-widest uppercase border-2 border-amber-200 ring-2 sm:ring-4 ring-amber-400/40 inline-block text-center">
-                      {currentQuestion.baseWord}
-                    </div>
-                  </div>
-
-                  {/* Streak Multiplier (Dead-center directly under the golden word box and the form) */}
-                  {streak > 0 && (
-                    <div className="flex items-center justify-center w-full mt-1">
-                      <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className={cn(
-                          'px-4 py-1 rounded-full border flex items-center justify-center gap-2 font-mono font-black text-xs sm:text-sm shadow-xl backdrop-blur-md',
-                          streak >= 10
-                            ? 'bg-amber-500/25 border-amber-400 text-amber-300 shadow-amber-500/40'
-                            : streak >= 5
-                            ? 'bg-rose-500/25 border-rose-400 text-rose-300 shadow-rose-500/40'
-                            : 'bg-cyan-500/25 border-cyan-400 text-cyan-300 shadow-cyan-500/40'
-                        )}
-                      >
-                        <Flame className="w-4 h-4 fill-current animate-pulse text-amber-400" />
-                        <span>{streak}x STREAK COMBO!</span>
-                      </motion.div>
-                    </div>
-                  )}
-                </motion.div>
-              </div>
-            )}
-
-            {/* In-Game Bottom-Left Quick Button: Back to Categories */}
-            <div className="absolute bottom-3 left-4 z-20">
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-9 px-3.5 bg-slate-950/90 hover:bg-slate-900 border-slate-700/90 text-slate-200 hover:text-white font-bold text-xs rounded-xl shadow-xl backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-95 pointer-events-auto"
-                onClick={() => {
-                  audioRef.current.stopMusic();
-                  setGameState('start');
-                }}
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Categories</span>
-              </Button>
-            </div>
-
-            {/* Floating Feedback Notice Banner (Positioned cleanly below the enlarged prompt banner & streak) */}
+            {/* Floating Feedback Notice Banner (Appears briefly on hit/miss without blocking view) */}
             <AnimatePresence>
               {recentNotice && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.85, y: 12 }}
+                  initial={{ opacity: 0, scale: 0.85, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.85, y: -10 }}
                   className={cn(
-                    'absolute top-48 sm:top-60 left-1/2 -translate-x-1/2 z-20 px-6 py-2 rounded-2xl font-black text-sm sm:text-base tracking-wide shadow-2xl border-2 backdrop-blur-xl pointer-events-none whitespace-nowrap',
+                    'absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-20 px-5 py-1.5 rounded-xl font-black text-xs sm:text-sm tracking-wide shadow-2xl border-2 backdrop-blur-xl pointer-events-none whitespace-nowrap',
                     recentNotice.isCorrect
                       ? 'bg-cyan-950/95 border-cyan-400 text-cyan-200 shadow-cyan-500/30'
                       : 'bg-rose-950/95 border-rose-400 text-rose-200 shadow-rose-500/30'
@@ -1771,11 +1747,11 @@ export function TenseRunner() {
       </div>
 
       {/* ─── Bottom Mobile Controls & Direct Choice Bar ─── */}
-      <div className="w-full mt-3 flex flex-col sm:flex-row items-center justify-between gap-3">
-        {/* Direct Option Tap Bar (for accessibility and fast touch) */}
+      <div className="w-full mt-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
+        {/* Direct Option Tap Bar (Quick Answer Touch) */}
         {gameState === 'playing' && currentQuestion && (
-          <div className="w-full sm:flex-1 bg-slate-900/80 border border-slate-800 rounded-xl p-2 flex items-center justify-center gap-3">
-            <span className="text-xs font-bold text-slate-400 mr-1 hidden md:inline">Quick Tap:</span>
+          <div className="w-full md:flex-1 bg-slate-900/85 border border-slate-800 rounded-xl p-2 flex items-center justify-center gap-2 sm:gap-3 shadow-md">
+            <span className="text-[11px] font-bold text-slate-400 mr-1 hidden lg:inline uppercase tracking-wider">Direct Tap:</span>
             {(() => {
               const activeOrbs = worldRef.current.orbs.filter(
                 (o) => o.question.id === currentQuestion.id && !o.collected
@@ -1793,7 +1769,7 @@ export function TenseRunner() {
                   size="sm"
                   variant="outline"
                   className={cn(
-                    'flex-1 h-9 border text-xs font-bold transition-all flex items-center justify-center gap-1.5',
+                    'flex-1 h-10 border text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 rounded-xl active:scale-95 shadow-sm',
                     choice.lane === 'high'
                       ? 'border-cyan-500/50 bg-cyan-950/40 hover:bg-cyan-600 text-cyan-200 hover:text-white'
                       : 'border-rose-500/50 bg-rose-950/40 hover:bg-rose-600 text-rose-200 hover:text-white'
@@ -1803,45 +1779,44 @@ export function TenseRunner() {
                   <span className="text-[10px] font-black uppercase opacity-75">
                     {choice.lane === 'high' ? '▲ JUMP:' : '▼ RUN:'}
                   </span>
-                  <span>{choice.text}</span>
+                  <span className="truncate">{choice.text}</span>
                 </Button>
               ));
             })()}
           </div>
         )}
 
-        {/* On-Screen Jump / Slide Touch Buttons for Mobile/Tablet + Back to Categories */}
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        {/* Action Controls: Categories + Slide + Jump */}
+        <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">
           {gameState === 'playing' && (
             <Button
               size="lg"
               variant="outline"
-              className="h-11 px-3.5 border-slate-700 bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-800 font-bold active:scale-95 rounded-xl text-xs flex items-center gap-1.5 shadow-md"
+              className="h-10 sm:h-11 px-3 sm:px-4 border-slate-700 bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-800 font-bold active:scale-95 rounded-xl text-xs flex items-center gap-1.5 shadow-md"
               onClick={() => {
                 audioRef.current.stopMusic();
                 setGameState('start');
               }}
-              title="Return to category selection to play a new game"
+              title="Return to category selection"
             >
               <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="hidden sm:inline">Back to Categories</span>
-              <span className="sm:hidden">Categories</span>
+              <span>Categories</span>
             </Button>
           )}
           <Button
             size="lg"
             variant="outline"
-            className="flex-1 sm:w-32 h-11 border-slate-700 bg-slate-900 text-slate-200 font-bold active:bg-cyan-600 active:text-white rounded-xl text-xs"
+            className="flex-1 md:w-28 lg:w-32 h-10 sm:h-11 border-slate-700 bg-slate-900 text-slate-200 font-bold active:bg-cyan-600 active:text-white rounded-xl text-xs sm:text-sm transition-all active:scale-95"
             onClick={handleSlide}
           >
-            <ArrowDown className="w-4 h-4 mr-1.5" /> SLIDE (▼)
+            <ArrowDown className="w-4 h-4 mr-1 text-cyan-400" /> SLIDE (▼)
           </Button>
           <Button
             size="lg"
-            className="flex-1 sm:w-36 h-11 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black active:scale-95 rounded-xl text-xs shadow-md shadow-cyan-500/20"
+            className="flex-1 md:w-32 lg:w-36 h-10 sm:h-11 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black active:scale-95 rounded-xl text-xs sm:text-sm shadow-md shadow-cyan-500/20 transition-all"
             onClick={handleJump}
           >
-            <ArrowUp className="w-4 h-4 mr-1.5 fill-current" /> JUMP (▲)
+            <ArrowUp className="w-4 h-4 mr-1 fill-current" /> JUMP (▲)
           </Button>
         </div>
       </div>
@@ -1849,24 +1824,24 @@ export function TenseRunner() {
       {/* ─── Learning Review Section (Missed Questions & Rules) ─── */}
       {history.length > 0 && (
         <div className="w-full mt-6 bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-5">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+              <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
                 Grammar Learning Review ({history.filter((h) => h.isCorrect).length}/{history.length} Correct)
               </h3>
             </div>
-            <span className="text-xs text-slate-400 font-medium">
+            <span className="text-[11px] sm:text-xs text-slate-400 font-medium">
               Review your answers and explanations below:
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto pr-1">
-            {history.slice(0, 16).map((item, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-72 overflow-y-auto pr-1">
+            {history.slice(0, 24).map((item, index) => (
               <div
                 key={index}
                 className={cn(
-                  'p-3 rounded-xl border text-xs flex flex-col justify-between transition-colors',
+                  'p-3 rounded-xl border text-xs flex flex-col justify-between transition-colors shadow-sm',
                   item.isCorrect
                     ? 'bg-slate-950/60 border-emerald-500/25 text-slate-300'
                     : 'bg-rose-950/20 border-rose-500/40 text-slate-200'

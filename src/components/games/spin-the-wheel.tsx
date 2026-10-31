@@ -11,7 +11,10 @@ import {
   CardFooter,
 } from "../ui/card";
 import { Button } from "../ui/button";
-import { Loader2, Trophy, Check, X, Disc, Sparkles, UserPlus, Trash2, Repeat, Maximize, Minimize } from "lucide-react";
+import { 
+  Loader2, Trophy, Check, X, Disc, Sparkles, UserPlus, Trash2, Repeat, 
+  Maximize, Minimize, HelpCircle, Volume2, Flame, Zap, Award
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -26,15 +29,52 @@ import { generateSpinQuestion } from "@/ai/flows/generate-spin-question";
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import Link from "next/link";
+import { Badge } from "../ui/badge";
+import confetti from "canvas-confetti";
 
 type GameState = "setup" | "loading" | "spinning" | "spinning_animation" | "spun" | "question" | "finished" | "instructions" | "idle";
 type Team = { name: string; score: number };
 type Question = { question: string; answer: string; used: boolean };
 type QuestionsByColor = Record<string, Question[]>;
 
-const wheelColors = [
-  "#8B5CF6", "#10B981", "#FBBF24", "#38BDF8", "#EF4444", "#22C55E", 
-  "#EC4899", "#F97316", "#14532D", "#1E3A8A", "#F59E0B", "#6D28D9",
+export type SectorInfo = {
+  id: number;
+  color: string;
+  name: string;
+  points: number;
+  icon: string;
+};
+
+// 12 Distinct High-Vibrance Challenge Sectors
+const WHEEL_SECTORS: SectorInfo[] = [
+  { id: 1, color: "#8B5CF6", name: "Purple", points: 100, icon: "⚡" },
+  { id: 2, color: "#10B981", name: "Emerald", points: 200, icon: "💎" },
+  { id: 3, color: "#F59E0B", name: "Gold", points: 300, icon: "👑" },
+  { id: 4, color: "#0EA5E9", name: "Sky", points: 150, icon: "🌊" },
+  { id: 5, color: "#EF4444", name: "Ruby", points: 250, icon: "🔥" },
+  { id: 6, color: "#84CC16", name: "Lime", points: 350, icon: "🍀" },
+  { id: 7, color: "#EC4899", name: "Rose", points: 400, icon: "🌸" },
+  { id: 8, color: "#F97316", name: "Orange", points: 150, icon: "☀️" },
+  { id: 9, color: "#0D9488", name: "Teal", points: 200, icon: "🪐" },
+  { id: 10, color: "#4F46E5", name: "Indigo", points: 500, icon: "🔮" },
+  { id: 11, color: "#FB7185", name: "Coral", points: 300, icon: "🌺" },
+  { id: 12, color: "#7C3AED", name: "Violet", points: 450, icon: "⭐" },
+];
+
+// Offline fallback question bank in case AI endpoint encounters rate-limits or network pauses
+const FALLBACK_QUESTIONS: { question: string; answer: string }[] = [
+  { question: "What is the past tense of the verb 'catch'?", answer: "caught" },
+  { question: "Choose the correct form: 'Neither of the boys brought (his/their) lunch.'", answer: "his" },
+  { question: "What is the antonym (opposite) of 'expand'?", answer: "contract (or shrink)" },
+  { question: "Fill in the preposition: 'She is genuinely interested ___ world history.'", answer: "in" },
+  { question: "What is the plural form of 'criterion'?", answer: "criteria" },
+  { question: "Identify the adverb in: 'The runner accelerated exceptionally fast.'", answer: "exceptionally" },
+  { question: "What is the comparative form of 'good'?", answer: "better" },
+  { question: "Correct this sentence: 'He don't have the dictionary.'", answer: "He doesn't have the dictionary." },
+  { question: "What is the past participle of 'fly' (has ___)?", answer: "flown" },
+  { question: "Which word is a conjunction: 'although', 'rapidly', 'happy'?", answer: "although" },
+  { question: "What is the superlative form of 'far'?", answer: "farthest (or furthest)" },
+  { question: "Complete the idiom: 'Actions speak louder than ___.'", answer: "words" },
 ];
 
 export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
@@ -42,7 +82,7 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
   const [teams, setTeams] = React.useState<Team[]>([{ name: "Team A", score: 0 }, { name: "Team B", score: 0 }]);
   const [currentTurn, setCurrentTurn] = React.useState(0);
   const [rotation, setRotation] = React.useState(0);
-  const [landedColor, setLandedColor] = React.useState<string | null>(null);
+  const [landedSector, setLandedSector] = React.useState<SectorInfo | null>(null);
   const [questions, setQuestions] = React.useState<QuestionsByColor>({});
   const [activeQuestion, setActiveQuestion] = React.useState<Question | null>(null);
   const [usedQuestionKeys, setUsedQuestionKeys] = React.useState<string[]>([]);
@@ -55,8 +95,8 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
 
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handler);
-    return () => document.removeEventListener('fullscreenchange', handler);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
   if (!game) return <div>Game not found</div>;
@@ -67,54 +107,111 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
       return;
     }
     setGameState("spinning");
-    setTeams(teams.map(t => ({...t, score: 0})));
+    setTeams(teams.map((t) => ({ ...t, score: 0 })));
     setCurrentTurn(0);
     setQuestions({});
     setUsedQuestionKeys([]);
     setRotation(0);
-    setLandedColor(null);
+    setLandedSector(null);
     setIsAnswerRevealed(false);
   };
 
   const resetGame = () => {
     setGameState("setup");
     setRotation(0);
-    setLandedColor(null);
+    setLandedSector(null);
     setActiveQuestion(null);
     setIsAnswerRevealed(false);
+  };
+
+  // Realistic synthetic click sound via Web Audio API
+  const playRealisticTickSequence = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      if (ctx.state === "suspended") ctx.resume();
+
+      let elapsed = 0;
+      let delay = 35;
+      const ticks: number[] = [];
+      while (elapsed < 3700) {
+        ticks.push(elapsed);
+        elapsed += delay;
+        if (elapsed > 1000) delay += 7;
+        if (elapsed > 2200) delay += 18;
+        if (elapsed > 3000) delay += 40;
+      }
+
+      ticks.forEach((t) => {
+        setTimeout(() => {
+          try {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(1350, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.02);
+            gain.gain.setValueAtTime(0.09, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.02);
+          } catch (e) {}
+        }, t);
+      });
+    } catch (e) {}
   };
 
   const handleSpin = () => {
     if (gameState !== "spinning") return;
     setGameState("spinning_animation");
-    setLandedColor(null);
+    setLandedSector(null);
+    playRealisticTickSequence();
 
-    const spinCycles = 5;
-    const segmentAngle = 360 / wheelColors.length;
-    const randomSegmentIndex = Math.floor(Math.random() * wheelColors.length);
-    const newLandedColor = wheelColors[randomSegmentIndex];
-    const targetAngle = (randomSegmentIndex * segmentAngle);
-    const newRotation = (spinCycles * 360) + rotation + targetAngle;
+    // Pick target randomly from the 12 sectors
+    const winningIndex = Math.floor(Math.random() * WHEEL_SECTORS.length);
+    const targetSector = WHEEL_SECTORS[winningIndex];
+
+    // Mathematical precision: slice midpoint lands 100.00% under top 12 o'clock needle
+    const total = WHEEL_SECTORS.length;
+    const segmentAngle = 360 / total;
+    const midAngle = (winningIndex + 0.5) * segmentAngle;
+
+    const spinCycles = 6;
+    const currentRotationMod = ((rotation % 360) + 360) % 360;
+    const targetOffset = (360 - midAngle) % 360;
+    const diff = (((targetOffset - currentRotationMod) % 360) + 360) % 360;
+    const newRotation = rotation + spinCycles * 360 + diff;
+
     setRotation(newRotation);
 
     setTimeout(async () => {
-      setLandedColor(newLandedColor);
-      if (!questions[newLandedColor]) {
+      setLandedSector(targetSector);
+      const sectorKey = targetSector.color;
+
+      if (!questions[sectorKey]) {
         try {
           const { questions: newQuestions } = await generateSpinQuestion({
             count: teams.length,
             usedQuestions: allTimeUsedQuestions,
           });
-          setAllTimeUsedQuestions(prev => [...prev, ...newQuestions.map(q => q.question)]);
-          setQuestions(prev => ({ ...prev, [newLandedColor]: newQuestions.map(q => ({ ...q, used: false })) }));
+          setAllTimeUsedQuestions((prev) => [...prev, ...newQuestions.map((q) => q.question)]);
+          setQuestions((prev) => ({
+            ...prev,
+            [sectorKey]: newQuestions.map((q) => ({ ...q, used: false })),
+          }));
         } catch (e) {
-          toast({ variant: "destructive", title: "Error", description: "Spin Error. Try again." });
-          setGameState("spinning");
-          return;
+          // Robust fallback to ensure seamless gameplay even if API is slow or rate-limited
+          const fallbackSlice = FALLBACK_QUESTIONS.slice(0, teams.length).map((q) => ({ ...q, used: false }));
+          setQuestions((prev) => ({
+            ...prev,
+            [sectorKey]: fallbackSlice,
+          }));
         }
       }
       setGameState("spun");
-    }, 5000);
+    }, 4000);
   };
 
   const handleQuestionSelect = (color: string, teamIndex: number) => {
@@ -126,32 +223,60 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
 
   const handleScoring = (isCorrect: boolean) => {
     const newTeams = [...teams];
+    const pointsAwarded = landedSector?.points || 100;
+
     if (isCorrect) {
-      newTeams[currentTurn].score += 1;
+      newTeams[currentTurn].score += pointsAwarded;
     } else {
       const opponentIndex = (currentTurn + 1) % teams.length;
-      newTeams[opponentIndex].score += 1;
+      newTeams[opponentIndex].score += Math.floor(pointsAwarded / 2);
     }
+
     setTeams(newTeams);
-    if(landedColor) setUsedQuestionKeys(prev => [...prev, `${landedColor}-${currentTurn}`]);
+    if (landedSector) {
+      setUsedQuestionKeys((prev) => [...prev, `${landedSector.color}-${currentTurn}`]);
+    }
+
     setActiveQuestion(null);
     setIsAnswerRevealed(false);
     setGameState("spinning");
     setCurrentTurn((prev) => (prev + 1) % teams.length);
-    if (usedQuestionKeys.length >= wheelColors.length * teams.length - 1) setGameState("finished");
+
+    if (usedQuestionKeys.length >= WHEEL_SECTORS.length * teams.length - 1) {
+      setGameState("finished");
+      try {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      } catch (e) {}
+    }
   };
-  
-  const addTeam = () => { if (teams.length < 4) setTeams([...teams, { name: `Team ${String.fromCharCode(65 + teams.length)}`, score: 0 }]); };
-  const removeTeam = (index: number) => { if (teams.length > 2) setTeams(teams.filter((_, i) => i !== index)); };
-  const handleTeamNameChange = (index: number, newName: string) => { const newTeams = [...teams]; newTeams[index].name = newName; setTeams(newTeams); };
+
+  const addTeam = () => {
+    if (teams.length < 4) {
+      setTeams([...teams, { name: `Team ${String.fromCharCode(65 + teams.length)}`, score: 0 }]);
+    }
+  };
+
+  const removeTeam = (index: number) => {
+    if (teams.length > 2) {
+      setTeams(teams.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleTeamNameChange = (index: number, newName: string) => {
+    const newTeams = [...teams];
+    newTeams[index].name = newName;
+    setTeams(newTeams);
+  };
 
   const Icon = game.icon;
 
   return (
-    <Card className={cn(
+    <Card
+      className={cn(
         "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-between overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300",
         isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background"
-      )}>
+      )}
+    >
       <CardHeader className="text-center relative p-4 sm:p-6 pb-2">
         <Button
           variant="ghost"
@@ -160,155 +285,400 @@ export function SpinTheWheel({ slug, onToggleFullscreen }: { slug: string; onTog
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-          <span className="text-[10px] font-bold uppercase">{isFullscreen ? 'Exit' : 'Full'}</span>
+          <span className="text-[10px] font-bold uppercase">{isFullscreen ? "Exit" : "Full"}</span>
         </Button>
         <div className="flex justify-center mb-2">
-            <Icon className="w-10 h-10 sm:w-14 sm:h-14 text-primary" />
+          <Icon className="w-10 h-10 sm:w-14 sm:h-14 text-primary" />
         </div>
-        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-2xl sm:text-4xl md:text-5xl" : "text-xl sm:text-3xl")}>{game.title}</CardTitle>
-        <CardDescription className="text-xs sm:text-sm md:text-base max-w-xl mx-auto">{game.description}</CardDescription>
+        <CardTitle className={cn("font-black tracking-tight uppercase", isFullscreen ? "text-2xl sm:text-4xl md:text-5xl" : "text-xl sm:text-3xl")}>
+          {game.title}
+        </CardTitle>
+        <CardDescription className="text-xs sm:text-sm md:text-base max-w-xl mx-auto">
+          {game.description}
+        </CardDescription>
       </CardHeader>
-      
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-5xl mx-auto overflow-y-auto">
+
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-6xl mx-auto overflow-y-auto">
         {gameState === "setup" && (
-            <div className="flex flex-col items-center gap-6 w-full max-w-md">
-                {/* How to Play Guide */}
-                <div className="bg-muted/40 rounded-2xl border border-border/30 p-4 sm:p-5 w-full text-left space-y-2">
-                    <h4 className="font-bold text-sm uppercase tracking-wider text-primary">How to Play</h4>
-                    <ul className="text-xs text-muted-foreground space-y-1.5 list-disc list-inside">
-                        <li>Spin the rainbow wheel to select a random challenge color.</li>
-                        <li>Each team answers grammar questions matching the landed sector.</li>
-                        <li>Earn points for correct answers or claim steal points!</li>
-                    </ul>
-                </div>
-
-                <h3 className="text-lg sm:text-xl font-black uppercase tracking-wider">TEAM SETUP</h3>
-                <div className="w-full space-y-2.5">
-                    {teams.map((team, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                            <Input value={team.name} onChange={(e) => handleTeamNameChange(index, e.target.value)} className="bg-background font-bold text-sm h-11 rounded-xl" />
-                            <Button variant="ghost" size="icon" onClick={() => removeTeam(index)} disabled={teams.length <= 2} className="h-11 w-11 rounded-xl">
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                        </div>
-                    ))}
-                    <Button variant="outline" onClick={addTeam} className="w-full font-bold h-11 rounded-xl border-dashed" disabled={teams.length >= 4}>
-                        <UserPlus className="mr-2 h-4 w-4" /> Add Team
-                    </Button>
-                </div>
-                <Button onClick={handleStartGame} className="text-lg sm:text-xl h-14 w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-xl hover:opacity-90 transition-all font-black uppercase rounded-xl">Start Competition</Button>
+          <div className="flex flex-col items-center gap-6 w-full max-w-md animate-in fade-in duration-200">
+            {/* How to Play Guide */}
+            <div className="bg-muted/40 rounded-2xl border border-border/30 p-4 sm:p-5 w-full text-left space-y-2">
+              <h4 className="font-bold text-sm uppercase tracking-wider text-primary flex items-center gap-1.5">
+                <HelpCircle className="w-4 h-4" /> How to Play
+              </h4>
+              <ul className="text-xs text-muted-foreground space-y-1.5 list-disc list-inside">
+                <li>Spin the realistic 12-sector rainbow prize wheel.</li>
+                <li>The needle lands with precision on an active challenge sector.</li>
+                <li>Tap your team's flashing sector button to answer grammar questions and claim points!</li>
+              </ul>
             </div>
+
+            <h3 className="text-lg sm:text-xl font-black uppercase tracking-wider">TEAM CONFIGURATION</h3>
+            <div className="w-full space-y-2.5">
+              {teams.map((team, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    value={team.name}
+                    onChange={(e) => handleTeamNameChange(index, e.target.value)}
+                    className="bg-background font-bold text-sm h-11 rounded-xl"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeTeam(index)}
+                    disabled={teams.length <= 2}
+                    className="h-11 w-11 rounded-xl"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addTeam} className="w-full font-bold h-11 rounded-xl border-dashed" disabled={teams.length >= 4}>
+                <UserPlus className="mr-2 h-4 w-4" /> Add Team
+              </Button>
+            </div>
+            <Button
+              onClick={handleStartGame}
+              className="text-base sm:text-lg h-14 w-full bg-gradient-to-r from-purple-500 via-indigo-600 to-purple-600 text-white shadow-xl hover:opacity-90 transition-all font-black uppercase rounded-2xl"
+            >
+              <Sparkles className="mr-2 h-5 w-5" /> Start Competition
+            </Button>
+          </div>
         )}
-        
-        {gameState === "loading" && <div className="flex flex-col items-center gap-4 text-center"><Loader2 className="w-12 h-12 animate-spin text-primary" /><p className="font-black text-sm uppercase tracking-wider animate-pulse">GENERATING CHALLENGES...</p></div>}
 
-        {(gameState !== "setup" && gameState !== "loading" && gameState !== "finished") && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center w-full">
-                <div className="flex flex-col items-center gap-6">
-                    <div className="relative transition-all duration-500 w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80">
-                        <div className="absolute inset-0 border-[1rem] sm:border-[1.5rem] border-yellow-400 rounded-full shadow-inner z-10"></div>
-                        <div className="w-full h-full rounded-full transition-transform duration-[5000ms] ease-out shadow-xl" style={{ transform: `rotate(${rotation}deg)` }}>
-                            {wheelColors.map((color, index) => (
-                                <div key={index} className="absolute w-1/2 h-1/2 top-1/2 left-1/2" style={{ transformOrigin: '0% 0%', transform: `rotate(${(360 / wheelColors.length) * index}deg)`, clipPath: `polygon(0 0, 100% 0, 100% 100%)` }}>
-                                    <div style={{ backgroundColor: color, width: '100%', height: '100%', clipPath: `polygon(0 0, 50% 100%, 100% 0)`}}></div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-0 h-0 border-x-[12px] border-x-transparent border-b-[24px] border-b-yellow-600 rotate-180 z-20 shadow-md"></div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-yellow-400 rounded-full border-4 sm:border-8 border-yellow-500 z-30 shadow-md"></div>
+        {gameState === "loading" && (
+          <div className="flex flex-col items-center gap-4 text-center py-12">
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            <p className="font-black text-sm uppercase tracking-wider animate-pulse">GENERATING CHALLENGES...</p>
+          </div>
+        )}
+
+        {gameState !== "setup" && gameState !== "loading" && gameState !== "finished" && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full max-w-6xl">
+            {/* Realistic Arcade Wheel (Desktop Left / Mobile Top) */}
+            <div className="lg:col-span-6 flex flex-col items-center justify-center w-full">
+              <div
+                className="relative flex items-center justify-center select-none"
+                style={{
+                  width: isFullscreen ? "min(52vh, 430px, 84vw)" : "min(380px, 82vw)",
+                  height: isFullscreen ? "min(52vh, 430px, 84vw)" : "min(380px, 82vw)",
+                }}
+              >
+                {/* 3D Realistic Physical Needle / Flapper Pin at 12 o'clock */}
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-40 pointer-events-none flex flex-col items-center">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-200 via-amber-400 to-amber-700 border-2 border-white shadow-lg flex items-center justify-center">
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-950 shadow-inner" />
+                  </div>
+                  <div
+                    className={cn(
+                      "w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[32px] border-t-amber-500 -mt-1 drop-shadow-[0_5px_8px_rgba(0,0,0,0.5)] origin-top transition-transform",
+                      gameState === "spinning_animation" && "animate-[wiggle_0.1s_ease-in-out_infinite]"
+                    )}
+                  />
+                </div>
+
+                {/* Outer Realistic Metallic Bezel Container */}
+                <div className="w-full h-full rounded-full p-2.5 sm:p-3 bg-gradient-to-tr from-amber-700 via-amber-400 to-yellow-200 shadow-[0_10px_35px_rgba(0,0,0,0.4)] border-2 border-amber-600/60 flex items-center justify-center">
+                  <div className="w-full h-full rounded-full border-4 border-slate-900 shadow-inner overflow-hidden bg-slate-950 relative">
+                    <div
+                      className="w-full h-full relative"
+                      style={{
+                        transform: `rotate(${rotation}deg)`,
+                        transition: "transform 4s cubic-bezier(0.15, 0.95, 0.35, 1.0)",
+                      }}
+                    >
+                      <svg viewBox="-220 -220 440 440" className="w-full h-full select-none overflow-visible">
+                        <defs>
+                          <filter id="spinBadgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.4" />
+                          </filter>
+                          <radialGradient id="spinPegGradient" cx="35%" cy="35%" r="65%">
+                            <stop offset="0%" stopColor="#fef08a" />
+                            <stop offset="40%" stopColor="#f59e0b" />
+                            <stop offset="100%" stopColor="#78350f" />
+                          </radialGradient>
+                          <radialGradient id="spinOuterHub" cx="30%" cy="30%" r="70%">
+                            <stop offset="0%" stopColor="#fef08a" />
+                            <stop offset="50%" stopColor="#ca8a04" />
+                            <stop offset="100%" stopColor="#78350f" />
+                          </radialGradient>
+                          <radialGradient id="spinInnerHub" cx="35%" cy="35%" r="65%">
+                            <stop offset="0%" stopColor="#ffffff" />
+                            <stop offset="50%" stopColor="#e2e8f0" />
+                            <stop offset="100%" stopColor="#64748b" />
+                          </radialGradient>
+                        </defs>
+
+                        {/* 12 Precise Slices */}
+                        {WHEEL_SECTORS.map((sector, index) => {
+                          const total = WHEEL_SECTORS.length;
+                          const startAngle = (index * 360) / total;
+                          const endAngle = ((index + 1) * 360) / total;
+                          const midAngle = (startAngle + endAngle) / 2;
+
+                          // Trigonometric slice coordinates (-90deg for 12 o'clock top origin)
+                          const rad1 = ((startAngle - 90) * Math.PI) / 180;
+                          const rad2 = ((endAngle - 90) * Math.PI) / 180;
+                          const x1 = Math.cos(rad1) * 196;
+                          const y1 = Math.sin(rad1) * 196;
+                          const x2 = Math.cos(rad2) * 196;
+                          const y2 = Math.sin(rad2) * 196;
+                          const largeArc = 360 / total > 180 ? 1 : 0;
+                          const d = `M 0 0 L ${x1} ${y1} A 196 196 0 ${largeArc} 1 ${x2} ${y2} Z`;
+
+                          return (
+                            <g key={sector.id}>
+                              <path d={d} fill={sector.color} stroke="#ffffff" strokeWidth="1.5" />
+
+                              {/* Sector Content (Icon Badge + Points) */}
+                              <g transform={`rotate(${midAngle})`}>
+                                <g transform="translate(0, -152)">
+                                  <circle r="16" fill="#ffffff" stroke="#e2e8f0" strokeWidth="1.5" filter="url(#spinBadgeShadow)" />
+                                  <text
+                                    textAnchor="middle"
+                                    dominantBaseline="central"
+                                    fontSize="18"
+                                    className="select-none pointer-events-none"
+                                  >
+                                    {sector.icon}
+                                  </text>
+                                </g>
+
+                                <g transform="translate(0, -122)">
+                                  <text
+                                    transform="rotate(90)"
+                                    textAnchor="end"
+                                    dominantBaseline="central"
+                                    className="font-black fill-white text-[11px] sm:text-[13px] uppercase tracking-wider select-none pointer-events-none"
+                                    style={{
+                                      textShadow: "0 2px 4px rgba(0,0,0,0.95), 0 0 2px #000000",
+                                    }}
+                                  >
+                                    {sector.points} PTS
+                                  </text>
+                                </g>
+                              </g>
+                            </g>
+                          );
+                        })}
+
+                        {/* Physical 3D Brass Pegs (Studs) along slice boundaries */}
+                        {WHEEL_SECTORS.map((_, index) => {
+                          const total = WHEEL_SECTORS.length;
+                          const startAngle = (index * 360) / total;
+                          const rad = ((startAngle - 90) * Math.PI) / 180;
+                          const px = Math.cos(rad) * 196;
+                          const py = Math.sin(rad) * 196;
+                          return (
+                            <g key={`spin-peg-${index}`}>
+                              <circle cx={px} cy={py} r="4.5" fill="url(#spinPegGradient)" stroke="#78350f" strokeWidth="1" filter="url(#spinBadgeShadow)" />
+                              <circle cx={px - 1} cy={py - 1} r="1.5" fill="#fef08a" opacity="0.8" />
+                            </g>
+                          );
+                        })}
+
+                        {/* Center Realistic Metallic Hub */}
+                        <circle cx="0" cy="0" r="42" fill="url(#spinOuterHub)" stroke="#fef08a" strokeWidth="2.5" filter="url(#spinBadgeShadow)" />
+                        <circle cx="0" cy="0" r="30" fill="url(#spinInnerHub)" stroke="#ca8a04" strokeWidth="1.5" />
+                        <circle cx="0" cy="0" r="14" fill="#0f172a" stroke="#ffffff" strokeWidth="1" />
+                        <text cx="0" cy="0" textAnchor="middle" dominantBaseline="central" fontSize="13" className="select-none pointer-events-none">
+                          🎯
+                        </text>
+                      </svg>
                     </div>
-                    <Button onClick={handleSpin} disabled={gameState !== 'spinning'} className="font-black shadow-lg bg-yellow-500 text-black hover:bg-yellow-400 transition-all uppercase tracking-wider h-12 sm:h-14 px-8 text-base sm:text-lg rounded-xl">
-                        {gameState === 'spinning_animation' ? (<> <Loader2 className="mr-2 h-4 w-4 animate-spin"/> Spinning... </>) : 'SPIN THE WHEEL'}
-                    </Button>
+                  </div>
                 </div>
+              </div>
 
-                <div className={cn("grid gap-4 self-start items-start w-full", teams.length === 2 ? "grid-cols-2" : teams.length === 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4")}>
-                    {teams.map((team, teamIndex) => (
-                        <div key={teamIndex} className="flex flex-col items-center gap-3">
-                            <div className={cn(
-                                "p-3 sm:p-4 rounded-2xl shadow-md border-2 border-border/40 bg-card w-full transition-all text-center",
-                                currentTurn === teamIndex && gameState !== 'spinning_animation' ? 'ring-4 ring-primary scale-[1.02]' : 'opacity-80'
-                            )}>
-                                <h3 className="font-black text-xs sm:text-sm truncate mb-1">{team.name}</h3>
-                                <div className="bg-primary/10 text-primary font-black text-center py-1 px-2 rounded-xl text-lg sm:text-2xl">{team.score}</div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-1.5 w-full">
-                                {wheelColors.map((color) => {
-                                    const isUsed = usedQuestionKeys.includes(`${color}-${teamIndex}`);
-                                    return (
-                                        <Button
-                                            key={`${color}-${teamIndex}`}
-                                            className={cn(
-                                                "aspect-square h-auto text-xs sm:text-base font-black border transition-all text-white rounded-xl p-1",
-                                                isUsed && "bg-muted opacity-20 cursor-not-allowed",
-                                                !isUsed && currentTurn === teamIndex && landedColor === color && "animate-bounce ring-2 ring-yellow-400"
-                                            )}
-                                            style={!isUsed ? { backgroundColor: color } : {}}
-                                            onClick={() => handleQuestionSelect(color, teamIndex)}
-                                            disabled={gameState !== 'spun' || landedColor !== color || isUsed || currentTurn !== teamIndex}
-                                        >
-                                            {isUsed ? <X className="h-3 w-3" /> : "•"}
-                                        </Button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ))}
-                </div>
+              {/* Status Banner & Spin CTA */}
+              <div className="flex flex-col items-center gap-3 mt-5 w-full max-w-sm">
+                {landedSector && gameState === "spun" && (
+                  <div
+                    className="w-full p-3 rounded-2xl border-2 flex items-center justify-between shadow-lg animate-in zoom-in-95 duration-200"
+                    style={{ backgroundColor: `${landedSector.color}20`, borderColor: landedSector.color }}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-3xl">{landedSector.icon}</span>
+                      <div className="text-left">
+                        <p className="font-bold text-xs uppercase opacity-80">Sector Locked:</p>
+                        <p className="font-black text-sm uppercase" style={{ color: landedSector.color }}>
+                          {landedSector.name} ({landedSector.points} Pts)
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className="font-black text-xs" style={{ backgroundColor: landedSector.color }}>
+                      {teams[currentTurn].name}&apos;s Turn
+                    </Badge>
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleSpin}
+                  disabled={gameState !== "spinning"}
+                  className="font-black shadow-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-white uppercase tracking-wider h-13 sm:h-14 px-8 text-base sm:text-lg rounded-2xl w-full"
+                >
+                  {gameState === "spinning_animation" ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Spinning Wheel...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5" /> Spin Rainbow Wheel
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
+
+            {/* Team Leaderboard & Sector Grid (Desktop Right / Mobile Bottom) */}
+            <div className="lg:col-span-6 flex flex-col gap-5 w-full">
+              <div
+                className={cn(
+                  "grid gap-4 w-full",
+                  teams.length === 2 ? "grid-cols-2" : teams.length === 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4"
+                )}
+              >
+                {teams.map((team, teamIndex) => (
+                  <div key={teamIndex} className="flex flex-col items-center gap-3">
+                    <div
+                      className={cn(
+                        "p-3 sm:p-4 rounded-2xl shadow-md border-2 bg-card w-full transition-all text-center",
+                        currentTurn === teamIndex && gameState !== "spinning_animation"
+                          ? "border-primary ring-4 ring-primary/20 scale-[1.02]"
+                          : "border-border/40 opacity-80"
+                      )}
+                    >
+                      <h3 className="font-black text-xs sm:text-sm truncate mb-1">{team.name}</h3>
+                      <div className="bg-primary/10 text-primary font-black text-center py-1 px-2 rounded-xl text-lg sm:text-2xl font-mono">
+                        {team.score}
+                      </div>
+                    </div>
+
+                    {/* Sector Color Matrix */}
+                    <div className="grid grid-cols-3 gap-1.5 w-full">
+                      {WHEEL_SECTORS.map((sector) => {
+                        const isUsed = usedQuestionKeys.includes(`${sector.color}-${teamIndex}`);
+                        const isTarget = gameState === "spun" && landedSector?.color === sector.color && currentTurn === teamIndex;
+
+                        return (
+                          <Button
+                            key={`${sector.color}-${teamIndex}`}
+                            className={cn(
+                              "aspect-square h-auto text-xs font-black border transition-all text-white rounded-xl p-1 relative",
+                              isUsed && "bg-muted opacity-25 cursor-not-allowed",
+                              isTarget && "animate-bounce ring-4 ring-amber-400 shadow-lg scale-105"
+                            )}
+                            style={!isUsed ? { backgroundColor: sector.color } : {}}
+                            onClick={() => handleQuestionSelect(sector.color, teamIndex)}
+                            disabled={gameState !== "spun" || landedSector?.color !== sector.color || isUsed || currentTurn !== teamIndex}
+                            title={`${sector.name} (${sector.points} pts)`}
+                          >
+                            {isUsed ? (
+                              <X className="h-3.5 w-3.5 text-foreground" />
+                            ) : (
+                              <span className="text-xs sm:text-sm">{sector.icon}</span>
+                            )}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
       </CardContent>
-      
+
       <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 w-full shrink-0">
         <Button variant="outline" asChild className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl font-bold">
           <Link href="/games">Back to Library</Link>
         </Button>
-        {gameState !== 'setup' && gameState !== 'loading' && (
-            <Button variant="destructive" onClick={resetGame} className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl font-bold">
-              Restart Sequence
-            </Button>
+        {gameState !== "setup" && gameState !== "loading" && (
+          <Button variant="destructive" onClick={resetGame} className="w-full sm:w-auto h-11 sm:h-12 px-6 rounded-xl font-bold">
+            Restart Sequence
+          </Button>
         )}
       </CardFooter>
 
-       <Dialog open={!!activeQuestion} onOpenChange={(open) => {if(!open){ setActiveQuestion(null); setIsAnswerRevealed(false);}}}>
-        <DialogContent className="max-w-[95vw] sm:max-w-lg rounded-2xl p-6 sm:p-8 border-2 shadow-2xl">
+      {/* Challenge Question Dialog */}
+      <Dialog
+        open={!!activeQuestion}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActiveQuestion(null);
+            setIsAnswerRevealed(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-[95vw] sm:max-w-lg rounded-3xl p-6 sm:p-8 border-2 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase tracking-wider text-primary text-base sm:text-lg">Color Sector Challenge</DialogTitle>
-            <DialogDescription className="font-bold text-foreground leading-relaxed py-4 text-sm sm:text-xl">{activeQuestion?.question}</DialogDescription>
+            <DialogTitle className="font-black uppercase tracking-wider text-primary text-base sm:text-lg flex items-center gap-2">
+              <Award className="w-5 h-5 text-amber-500" />
+              {landedSector ? `${landedSector.name} Sector Challenge (${landedSector.points} Pts)` : "Color Sector Challenge"}
+            </DialogTitle>
+            <DialogDescription className="font-bold text-foreground leading-relaxed py-4 text-base sm:text-xl">
+              {activeQuestion?.question}
+            </DialogDescription>
             {isAnswerRevealed && (
-             <div className="bg-primary/10 p-4 rounded-xl border border-primary/20 mt-2 animate-in zoom-in">
+              <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 mt-2 animate-in zoom-in-95 duration-200">
                 <p className="text-[10px] font-black uppercase text-muted-foreground mb-1">Expected Answer:</p>
                 <p className="font-black text-primary text-base sm:text-xl uppercase italic">{activeQuestion?.answer}</p>
-             </div>
+              </div>
             )}
           </DialogHeader>
           <DialogFooter className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mt-4">
-            <Button variant="outline" onClick={() => setIsAnswerRevealed(true)} className="font-bold uppercase h-11 rounded-xl text-xs sm:text-sm">Reveal Answer</Button>
-            <Button variant="destructive" onClick={() => handleScoring(false)} className="font-bold uppercase h-11 rounded-xl text-xs sm:text-sm">Incorrect</Button>
-            <Button className="bg-green-600 text-white hover:bg-green-700 font-bold uppercase h-11 rounded-xl text-xs sm:text-sm" onClick={() => handleScoring(true)}>Correct (+1)</Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsAnswerRevealed(true)}
+              className="font-bold uppercase h-11 sm:h-12 rounded-xl text-xs sm:text-sm"
+            >
+              Reveal Answer
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleScoring(false)}
+              className="font-bold uppercase h-11 sm:h-12 rounded-xl text-xs sm:text-sm"
+            >
+              Incorrect (Steal)
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white font-bold uppercase h-11 sm:h-12 rounded-xl text-xs sm:text-sm shadow-md"
+              onClick={() => handleScoring(true)}
+            >
+              Correct (+{landedSector?.points || 100})
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Finished Podium Modal */}
       <AnimatePresence>
-        {gameState === 'finished' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
-                <Card className="w-full max-w-md bg-card p-6 sm:p-8 rounded-3xl border-2 shadow-2xl text-center">
-                    <Trophy className="w-16 h-16 sm:w-24 sm:h-24 text-yellow-500 mx-auto mb-4 animate-bounce" />
-                    <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tight mb-4">
-                        {teams.every(t => t.score === teams[0].score) ? "DRAW!" : "VICTORY!"}
-                    </h2>
-                    <div className="space-y-2 mb-6">
-                        {teams.map(team => (
-                            <div key={team.name} className="flex justify-between items-center bg-muted/40 p-3 sm:p-4 rounded-xl border">
-                                <span className="text-sm sm:text-lg font-black uppercase">{team.name}</span>
-                                <span className="text-xl sm:text-2xl font-black text-primary">{team.score} pts</span>
-                            </div>
-                        ))}
+        {gameState === "finished" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md bg-card p-6 sm:p-8 rounded-3xl border-2 shadow-2xl text-center">
+              <Trophy className="w-16 h-16 sm:w-24 sm:h-24 text-amber-500 mx-auto mb-4 animate-bounce" />
+              <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tight mb-4">
+                {teams.every((t) => t.score === teams[0].score) ? "DRAW CHAMPIONSHIP!" : "TOURNAMENT VICTORY!"}
+              </h2>
+              <div className="space-y-2.5 mb-6">
+                {[...teams]
+                  .sort((a, b) => b.score - a.score)
+                  .map((team, idx) => (
+                    <div key={team.name} className="flex justify-between items-center bg-muted/40 p-3 sm:p-4 rounded-2xl border">
+                      <span className="text-sm sm:text-base font-black uppercase flex items-center gap-2">
+                        <span>{idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "🎖️"}</span>
+                        <span>{team.name}</span>
+                      </span>
+                      <span className="text-lg sm:text-xl font-black text-primary font-mono">{team.score} pts</span>
                     </div>
-                    <Button onClick={resetGame} className="w-full h-12 bg-primary text-primary-foreground text-base font-black rounded-xl uppercase">Play Again</Button>
-                </Card>
-            </motion.div>
+                  ))}
+              </div>
+              <Button onClick={resetGame} className="w-full h-12 bg-primary text-primary-foreground text-base font-black rounded-xl uppercase">
+                Play Again
+              </Button>
+            </Card>
+          </motion.div>
         )}
       </AnimatePresence>
     </Card>

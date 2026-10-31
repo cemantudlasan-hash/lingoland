@@ -13,6 +13,24 @@ import { LingoPetType } from '@/lib/types';
 
 const CLASSIC_PET_TYPES: LingoPetType[] = ['owl', 'dino', 'kitty', 'phoenix', 'morphling', 'godly'];
 
+// In-memory session tracking: Keeps the pet hidden across all page navigations when closed by the user.
+// Automatically resets to false when the user refreshes the page, revisits the site, or logs in again.
+let isPetClosedInCurrentSession = false;
+
+// Clear any stale sessionStorage flags on fresh page load/refresh/revisit
+if (typeof window !== 'undefined') {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key && key.startsWith('lingoland_floating_pet_closed')) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((k) => sessionStorage.removeItem(k));
+  } catch (e) {}
+}
+
 const MOTIVATIONAL_PRESETS = [
   "Believe in yourself! You're doing amazing! 🌟",
   "Every mistake is a step closer to learning! 🚀",
@@ -122,6 +140,27 @@ export function FloatingPetWidget() {
     setCurrentTextIdx(0);
   }, [messages]);
 
+  // Track user login state to reset closed flag when user logs in again
+  const prevUserUidRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (user?.uid && user.uid !== prevUserUidRef.current) {
+      isPetClosedInCurrentSession = false;
+      prevUserUidRef.current = user.uid;
+    }
+    if (!user) {
+      prevUserUidRef.current = null;
+    }
+  }, [user?.uid]);
+
+  // Listen for reset events (e.g. from auth login)
+  React.useEffect(() => {
+    const handleReset = () => {
+      isPetClosedInCurrentSession = false;
+    };
+    window.addEventListener('lingoland_pet_reset_closed', handleReset);
+    return () => window.removeEventListener('lingoland_pet_reset_closed', handleReset);
+  }, []);
+
   // Determine visibility and load pet data (including equipped cosmetics)
   React.useEffect(() => {
     const isAuthPage = pathname?.includes('/auth') || pathname?.includes('/login') || pathname?.includes('/signup');
@@ -133,7 +172,7 @@ export function FloatingPetWidget() {
       const active = data.isActivated === true || storedActivated || (data.level && data.level > 1) || (data.xp && data.xp > 100);
       setIsActivated(active);
 
-      if (!isAuthPage && !isPetPage && !!user && !isGuest && active) {
+      if (!isAuthPage && !isPetPage && !!user && !isGuest && active && !isPetClosedInCurrentSession) {
         setIsOpen(true);
       } else {
         setIsOpen(false);
@@ -171,7 +210,7 @@ export function FloatingPetWidget() {
           } else if (actFlag === 'true') {
             petActivated = true;
             setIsActivated(true);
-            if (!isAuthPage && !isPetPage && !!user && !isGuest) {
+            if (!isAuthPage && !isPetPage && !!user && !isGuest && !isPetClosedInCurrentSession) {
               setIsOpen(true);
             }
           }
@@ -202,15 +241,13 @@ export function FloatingPetWidget() {
       
       if (isNowActive) {
         setIsActivated(true);
-        if (!isAuthPage && !isPetPage && !!user && !isGuest) {
+        if (!isAuthPage && !isPetPage && !!user && !isGuest && !isPetClosedInCurrentSession) {
           setIsOpen(true);
         }
         if (typeof window !== 'undefined') {
           if (user) {
             localStorage.setItem(`lingopet_activated_${user.uid}`, 'true');
-            sessionStorage.removeItem(`lingoland_floating_pet_closed_${user.uid}`);
           }
-          sessionStorage.removeItem('lingoland_floating_pet_closed');
         }
       }
       syncFromPetObject(detail);
@@ -228,7 +265,7 @@ export function FloatingPetWidget() {
         try {
           if (e.key === `lingopet_activated_${user?.uid}` && e.newValue === 'true') {
             setIsActivated(true);
-            if (!isAuthPage && !isPetPage && !!user && !isGuest) {
+            if (!isAuthPage && !isPetPage && !!user && !isGuest && !isPetClosedInCurrentSession) {
               setIsOpen(true);
             }
           }
@@ -301,43 +338,13 @@ export function FloatingPetWidget() {
     router.push('/lingo-pet');
   };
 
-  const closeBtnRef = React.useRef<HTMLButtonElement>(null);
-
-  React.useEffect(() => {
-    const btn = closeBtnRef.current;
-    if (!btn) return;
-
-    const stop = (e: Event) => {
+  const handleClose = (e?: React.SyntheticEvent | Event) => {
+    if (e) {
       e.stopPropagation();
-    };
-
-    const handleCloseNative = (e: Event) => {
-      e.stopPropagation();
-      setIsOpen(false);
-      if (typeof window !== 'undefined') {
-        const closeKey = user ? `lingoland_floating_pet_closed_${user.uid}` : (isGuest ? 'lingoland_floating_pet_closed_guest' : 'lingoland_floating_pet_closed');
-        sessionStorage.setItem(closeKey, 'true');
-      }
-    };
-
-    btn.addEventListener('click', handleCloseNative);
-    btn.addEventListener('pointerdown', stop);
-    btn.addEventListener('pointerup', stop);
-    btn.addEventListener('mousedown', stop);
-    btn.addEventListener('mouseup', stop);
-    btn.addEventListener('touchstart', stop);
-    btn.addEventListener('touchend', stop);
-
-    return () => {
-      btn.removeEventListener('click', handleCloseNative);
-      btn.removeEventListener('pointerdown', stop);
-      btn.removeEventListener('pointerup', stop);
-      btn.removeEventListener('mousedown', stop);
-      btn.removeEventListener('mouseup', stop);
-      btn.removeEventListener('touchstart', stop);
-      btn.removeEventListener('touchend', stop);
-    };
-  }, [isOpen, user, user?.uid, isGuest]);
+    }
+    isPetClosedInCurrentSession = true;
+    setIsOpen(false);
+  };
 
   return (
     <AnimatePresence>
@@ -392,11 +399,15 @@ export function FloatingPetWidget() {
           >
             {/* Close Button */}
             <button
-              ref={closeBtnRef}
-              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-slate-950/80 border border-slate-800 hover:bg-rose-950/80 hover:border-rose-800 text-slate-400 hover:text-rose-400 flex items-center justify-center transition-colors shadow opacity-0 group-hover:opacity-100 focus:opacity-100 z-[110]"
+              onClick={handleClose}
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-slate-950/90 border border-slate-700 hover:bg-rose-950 hover:border-rose-600 text-slate-300 hover:text-rose-400 flex items-center justify-center transition-all shadow-md opacity-85 sm:opacity-0 group-hover:opacity-100 focus:opacity-100 z-[110] active:scale-90"
               title="Close companion"
+              aria-label="Close companion"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
 
             {/* 3D / 2D Celestial Crystal Orb Container */}

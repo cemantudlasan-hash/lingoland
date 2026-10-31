@@ -179,49 +179,166 @@ export function TwentyQuestions({ slug, onToggleFullscreen }: { slug: string; on
             </div>
         );
       case "playing":
+        const remainingQuestions = MAX_QUESTIONS - questionHistory.length;
+        const progressPercent = (questionHistory.length / MAX_QUESTIONS) * 100;
+
         return (
-             <div className="w-full h-full text-left flex flex-col gap-4">
-                <div className={cn("flex justify-between items-center p-4 bg-muted rounded-2xl shadow-inner", isFullscreen && "p-8")}>
-                    <div className="flex items-center gap-4">
-                        <Lightbulb className={cn("text-amber-400", isFullscreen ? "h-12 w-12" : "h-6 w-6")}/>
-                        <p className={cn("font-black uppercase tracking-widest", isFullscreen ? "text-3xl" : "text-base")}>{initialClue}</p>
+          <div className="w-full text-left flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 max-w-6xl mx-auto items-stretch">
+            {/* Desktop Left Sidebar / Mobile Top Status Banner */}
+            <div className="lg:col-span-4 flex flex-col gap-3">
+              {/* Clue Card */}
+              <div className="p-4 rounded-2xl bg-muted/60 border border-primary/20 shadow-md">
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  <Lightbulb className="text-amber-400 h-5 w-5 shrink-0" />
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Clue</span>
+                </div>
+                <p className="font-black uppercase tracking-wide text-base sm:text-xl text-primary leading-snug">
+                  {initialClue || "Mystery Object"}
+                </p>
+              </div>
+
+              {/* Question Meter Card */}
+              <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-sm flex flex-col gap-2">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span className="text-muted-foreground uppercase tracking-wider text-[11px]">Questions Used</span>
+                  <Badge variant={remainingQuestions <= 5 ? "destructive" : "secondary"} className="font-mono font-bold text-xs">
+                    {questionHistory.length} / {MAX_QUESTIONS}
+                  </Badge>
+                </div>
+                <div className="w-full bg-muted h-2.5 rounded-full overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full transition-all duration-300 rounded-full",
+                      remainingQuestions <= 5 ? "bg-rose-500" : "bg-primary"
+                    )}
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground font-medium">
+                  {remainingQuestions > 0
+                    ? `${remainingQuestions} question${remainingQuestions > 1 ? "s" : ""} remaining`
+                    : "No questions left! Make your final guess now."}
+                </p>
+              </div>
+
+              {/* Helpful Tips (Desktop only) */}
+              <div className="hidden lg:flex flex-col gap-2 p-4 rounded-2xl bg-muted/30 border border-border/30 text-xs text-muted-foreground">
+                <p className="font-bold text-foreground uppercase tracking-wider text-[11px]">Deduction Strategies:</p>
+                <ul className="space-y-1 text-[11px] list-disc list-inside">
+                  <li>Is it alive or man-made?</li>
+                  <li>Is it bigger than a microwave?</li>
+                  <li>Can it be found in a home?</li>
+                  <li>Is it used every day?</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Right Chat & Interaction Console */}
+            <div className="lg:col-span-8 flex flex-col gap-3 min-h-0 flex-1">
+              {/* Chat Conversation Thread */}
+              <div
+                ref={chatContainerRef}
+                className={cn(
+                  "flex-1 overflow-y-auto p-3 sm:p-4 rounded-2xl bg-muted/20 border border-border/30 space-y-3.5 scroll-smooth",
+                  isFullscreen ? "h-[54vh]" : "h-[42vh] sm:h-[48vh] lg:h-[54vh] max-h-[580px]"
+                )}
+              >
+                {questionHistory.length === 0 && (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-6 text-muted-foreground">
+                    <Sparkles className="w-8 h-8 text-primary/50 mb-2" />
+                    <p className="text-xs sm:text-sm font-semibold">
+                      Ask your first Yes/No question below to narrow down the secret object!
+                    </p>
+                  </div>
+                )}
+
+                {questionHistory.map((q, i) => (
+                  <div key={i} className="space-y-2">
+                    {/* User Question Bubble */}
+                    <div className="flex justify-end">
+                      <div className="bg-primary text-primary-foreground px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[85%] sm:max-w-md shadow-md text-xs sm:text-sm font-medium">
+                        {q.question}
+                      </div>
                     </div>
-                    <Badge variant="secondary" className={cn(isFullscreen && "text-2xl px-6 py-2")}>{questionHistory.length} / {MAX_QUESTIONS}</Badge>
+
+                    {/* AI Answer Bubble */}
+                    <div className="flex justify-start">
+                      <div
+                        className={cn(
+                          "px-4 py-2.5 rounded-2xl rounded-tl-sm max-w-[85%] sm:max-w-md shadow-md text-white text-xs sm:text-sm",
+                          q.answer === "Yes"
+                            ? "bg-emerald-600"
+                            : q.answer === "No"
+                            ? "bg-rose-600"
+                            : "bg-slate-600"
+                        )}
+                      >
+                        <strong className="font-black block uppercase tracking-wider text-sm sm:text-base">
+                          {q.answer}
+                        </strong>
+                        {q.comment && (
+                          <span className="block italic mt-1 text-[11px] sm:text-xs opacity-90">
+                            {q.comment}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {isAiThinking && (
+                  <div className="flex justify-start p-2">
+                    <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-2xl text-xs text-muted-foreground animate-pulse">
+                      <Loader2 className="animate-spin text-primary h-4 w-4" />
+                      <span>AI is pondering your question...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom Interactive Question / Guess Toolbar */}
+              <div className="flex flex-col sm:flex-row gap-2 pt-1 border-t border-border/20">
+                <div className="flex-1 relative">
+                  <Input 
+                    value={userQuestion}
+                    onChange={(e) => setUserQuestion(e.target.value)}
+                    placeholder="Type a yes/no question or your object guess..."
+                    className="h-11 sm:h-12 text-xs sm:text-sm rounded-xl pr-3"
+                    disabled={isAiThinking}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleAskQuestion();
+                      }
+                    }}
+                  />
                 </div>
-                <div ref={chatContainerRef} className={cn("flex-grow overflow-y-auto p-2 space-y-6", isFullscreen ? "h-[50vh]" : "h-64 max-h-80")}>
-                    {questionHistory.map((q, i) => (
-                        <div key={i} className="space-y-2">
-                           <div className="flex justify-end">
-                                <p className={cn("bg-primary text-primary-foreground p-4 rounded-3xl max-w-xs shadow-lg", isFullscreen ? "text-2xl max-w-xl" : "text-base")}>{q.question}</p>
-                           </div>
-                           <div className="flex justify-start">
-                                <div className={cn("p-4 rounded-3xl max-w-xs shadow-lg", q.answer === 'Yes' ? 'bg-green-500 text-white' : q.answer === 'No' ? 'bg-red-500 text-white' : 'bg-gray-500 text-white', isFullscreen ? "text-2xl max-w-xl" : "text-base")}>
-                                    <strong className={cn("font-black block uppercase tracking-widest", isFullscreen ? "text-4xl" : "text-lg")}>{q.answer}</strong>
-                                    {q.comment && <span className={cn("block italic mt-2 opacity-90", isFullscreen ? "text-xl" : "text-xs")}>{q.comment}</span>}
-                                </div>
-                           </div>
-                        </div>
-                    ))}
-                    {isAiThinking && <div className="flex justify-start p-4"><Loader2 className={cn("animate-spin text-primary", isFullscreen ? "h-12 w-12" : "h-6 w-6")}/></div>}
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    onClick={handleAskQuestion}
+                    disabled={isAiThinking || !userQuestion.trim()}
+                    className="flex-1 sm:flex-none h-11 sm:h-12 px-4 rounded-xl text-xs sm:text-sm font-bold bg-primary text-primary-foreground shadow-sm flex items-center justify-center gap-1.5"
+                    title="Ask a Yes/No question"
+                  >
+                    <Send className="h-4 w-4" />
+                    <span>Ask Question</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleFinalGuess}
+                    disabled={isAiThinking || !userQuestion.trim()}
+                    variant="secondary"
+                    className="flex-1 sm:flex-none h-11 sm:h-12 px-4 rounded-xl text-xs sm:text-sm font-black bg-amber-500 hover:bg-amber-600 text-white shadow-md flex items-center justify-center gap-1.5"
+                    title="Guess the secret object"
+                  >
+                    <Key className="h-4 w-4" />
+                    <span>Guess Object</span>
+                  </Button>
                 </div>
-                <div className={cn("flex gap-3 pt-4 border-t-4 border-muted", isFullscreen && "p-8")}>
-                    <Input 
-                        value={userQuestion}
-                        onChange={(e) => setUserQuestion(e.target.value)}
-                        placeholder="Ask a yes/no question or make a guess..."
-                        className={cn(isFullscreen ? "h-20 text-3xl rounded-2xl px-8" : "h-12")}
-                        disabled={isAiThinking}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleAskQuestion();
-                            }
-                        }}
-                    />
-                    <Button onClick={handleAskQuestion} disabled={isAiThinking || !userQuestion.trim()} className={cn(isFullscreen ? "h-20 w-20" : "h-12 w-12", "p-0")}><HelpCircle className={cn(isFullscreen ? "h-10 w-10" : "h-6 w-6")}/></Button>
-                    <Button onClick={handleFinalGuess} disabled={isAiThinking || !userQuestion.trim()} variant="secondary" className={cn("bg-amber-500 hover:bg-amber-600 text-white shadow-xl", isFullscreen ? "h-20 w-20" : "h-12 w-12", "p-0")}><Key className={cn(isFullscreen ? "h-10 w-10" : "h-6 w-6")}/></Button>
-                </div>
-             </div>
+              </div>
+            </div>
+          </div>
         );
       case "finished":
         return (
@@ -280,7 +397,7 @@ export function TwentyQuestions({ slug, onToggleFullscreen }: { slug: string; on
         </div>
       </CardHeader>
 
-      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-4xl mx-auto overflow-y-auto">
+      <CardContent className="flex-grow flex flex-col items-center justify-center p-3 sm:p-6 w-full max-w-6xl mx-auto overflow-y-auto">
         {renderContent()}
       </CardContent>
 
