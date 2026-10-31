@@ -2955,15 +2955,19 @@ export function PresentationForm() {
                   }} 
                   className="w-full h-full"
                 >
-                  <CarouselContent className="h-full">
+                  <CarouselContent className={cn("h-full", isFullscreen && "ml-0")}>
                     {(isEditMode ? editableSlides : presentation.slides).map((slide, index) => (
-                      <CarouselItem key={index} className="h-full">
+                      <CarouselItem key={index} className={cn("h-full", isFullscreen && "pl-0")}>
                         <div 
                           className={cn(
-                            "w-full h-full flex transition-all duration-700 ease-out transform-gpu cursor-pointer",
-                            theme, fontFamily
+                            "w-full h-full flex cursor-pointer",
+                            theme,
+                            fontFamily,
+                            isFullscreen 
+                              ? "!rounded-none !border-none !shadow-none !backdrop-blur-none" 
+                              : "transition-all duration-700 ease-out transform-gpu"
                           )}
-                          style={enable3D ? {
+                          style={(!isFullscreen && enable3D) ? {
                             transform: index === (current - 1)
                               ? 'perspective(1000px) rotateY(0deg) scale(1) translateZ(0px)'
                               : index < (current - 1)
@@ -2972,16 +2976,21 @@ export function PresentationForm() {
                             opacity: index === (current - 1) ? 1 : 0.35,
                             transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
                           } : undefined}
-                          onClick={(isEditMode || activeDrawSlideIndex !== null || showSplitSearch) ? undefined : handleRevealNextWord}
+                          onClick={(e) => {
+                            if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
+                            e.stopPropagation();
+                            handleRevealNextWord();
+                          }}
                         >
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
                             !isFullscreen && "overflow-y-auto py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-hidden py-3 md:py-4 px-4 sm:px-10 md:px-16 lg:px-20"
+                            isFullscreen && "overflow-hidden py-3 md:py-4 px-3 sm:px-8 md:px-12 lg:px-16"
                           )}>
                             <div className={cn(
-                              "w-full animate-in fade-in duration-700 mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
-                              isFullscreen ? "max-w-[98vw] gap-4 md:gap-8 max-h-[96vh] overflow-hidden" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
+                              "w-full mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
+                              !isFullscreen && "animate-in fade-in duration-700",
+                              isFullscreen ? "w-full max-w-full gap-3 sm:gap-4 md:gap-8 max-h-[96vh] overflow-hidden" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
                               {/* Left side text content */}
@@ -3069,7 +3078,8 @@ export function PresentationForm() {
                               {/* Beautiful dynamic slide photo with auto-fit, vertical stretch and interactive zoom */}
                               {(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode && (
                                 <div className={cn(
-                                  "w-full select-none animate-in zoom-in-95 duration-500 flex flex-col items-center justify-center h-full",
+                                  "w-full select-none flex flex-col items-center justify-center h-full",
+                                  !isFullscreen && "animate-in zoom-in-95 duration-500",
                                   isFullscreen ? "md:w-1/2 lg:w-[52%] flex-1" : "md:w-1/2 flex-1 min-h-[350px]"
                                 )}>
                                   {brokenSlideImages[index] ? (
