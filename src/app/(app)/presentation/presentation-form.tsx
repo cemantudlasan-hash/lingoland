@@ -1342,11 +1342,16 @@ export function PresentationForm() {
 
   const handleRevealNextWord = React.useCallback(() => {
     if (!presentation) return;
+    if (typeof window !== 'undefined') {
+      const selection = window.getSelection();
+      if (selection && selection.toString().trim().length > 0) return;
+    }
+
+    const currentSlideIndex = api?.selectedScrollSnap() || 0;
+    const currentWords = allWordsOnSlide.current[currentSlideIndex];
+    if (!currentWords) return;
 
     setVisibleWordCounts((prevCounts) => {
-      const currentSlideIndex = api?.selectedScrollSnap() || 0;
-      const currentWords = allWordsOnSlide.current[currentSlideIndex];
-      if (!currentWords) return prevCounts;
       const currentVisibleCount = prevCounts[currentSlideIndex] || 0;
 
       if (currentVisibleCount < currentWords.length) {
@@ -1354,8 +1359,13 @@ export function PresentationForm() {
           ...prevCounts,
           [currentSlideIndex]: currentVisibleCount + 1,
         };
+      } else {
+        // If all words on current slide are already revealed, advance to the next slide!
+        if (api?.canScrollNext()) {
+          setTimeout(() => api.scrollNext(), 50);
+        }
+        return prevCounts;
       }
-      return prevCounts;
     });
   }, [presentation, api]);
 
@@ -2818,9 +2828,10 @@ export function PresentationForm() {
               className={cn(
                   'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden bg-slate-950 rounded-3xl border border-slate-800 transition-all duration-300', 
                   isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none bg-slate-950',
-                  showSplitSearch && 'flex flex-row'
+                  showSplitSearch && 'flex flex-row',
+                  !isEditMode && activeDrawSlideIndex === null && 'cursor-pointer'
               )}
-              onClick={(isFullscreen || isEditMode || showSplitSearch) ? undefined : handleRevealNextWord}
+              onClick={(isEditMode || showSplitSearch || activeDrawSlideIndex !== null) ? undefined : handleRevealNextWord}
             >
               {/* Three.js 3D Background Canvas */}
               {presentation && (
@@ -2866,8 +2877,32 @@ export function PresentationForm() {
                       <Minimize className="h-3.5 w-3.5 text-amber-400" />
                       <span className="text-xs font-bold">Exit</span>
                     </Button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white/90 px-3 py-0.5 text-xs font-mono select-none">
-                      {current} / {count}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white/90 px-3 py-1 text-xs select-none shadow-xl">
+                      <button
+                        type="button"
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          if (api?.canScrollPrev()) api.scrollPrev(); 
+                        }}
+                        disabled={!api?.canScrollPrev()}
+                        className="p-1 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90"
+                        title="Previous Slide"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <span className="font-mono text-xs px-1 font-bold">{current} / {count}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          if (api?.canScrollNext()) api.scrollNext(); 
+                        }}
+                        disabled={!api?.canScrollNext()}
+                        className="p-1 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90"
+                        title="Next Slide"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
                     </div>
                   </>
                 ) : (
@@ -2883,19 +2918,49 @@ export function PresentationForm() {
                       <Maximize className="h-3.5 w-3.5 text-cyan-400" />
                       <span className="text-xs font-bold uppercase tracking-wider">Full</span>
                     </Button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white/90 px-3 py-0.5 text-xs font-mono select-none">
-                      {current} / {count}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white/90 px-3 py-1 text-xs select-none shadow-md">
+                      <button
+                        type="button"
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          if (api?.canScrollPrev()) api.scrollPrev(); 
+                        }}
+                        disabled={!api?.canScrollPrev()}
+                        className="p-1 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90"
+                        title="Previous Slide"
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="font-mono text-xs px-1 font-bold">{current} / {count}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          if (api?.canScrollNext()) api.scrollNext(); 
+                        }}
+                        disabled={!api?.canScrollNext()}
+                        className="p-1 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90"
+                        title="Next Slide"
+                      >
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </>
                 )}
                 
-                <Carousel setApi={setApi} opts={{ watchDrag: false }} className="w-full h-full">
+                <Carousel 
+                  setApi={setApi} 
+                  opts={{ 
+                    watchDrag: activeDrawSlideIndex === null && !isEditMode,
+                  }} 
+                  className="w-full h-full"
+                >
                   <CarouselContent className="h-full">
                     {(isEditMode ? editableSlides : presentation.slides).map((slide, index) => (
                       <CarouselItem key={index} className="h-full">
                         <div 
                           className={cn(
-                            "w-full h-full flex transition-all duration-700 ease-out transform-gpu",
+                            "w-full h-full flex transition-all duration-700 ease-out transform-gpu cursor-pointer",
                             theme, fontFamily
                           )}
                           style={enable3D ? {
@@ -2907,7 +2972,7 @@ export function PresentationForm() {
                             opacity: index === (current - 1) ? 1 : 0.35,
                             transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
                           } : undefined}
-                          onClick={(isFullscreen || isEditMode || activeDrawSlideIndex !== null) ? undefined : handleRevealNextWord}
+                          onClick={(isEditMode || activeDrawSlideIndex !== null || showSplitSearch) ? undefined : handleRevealNextWord}
                         >
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
@@ -3071,6 +3136,7 @@ export function PresentationForm() {
                                     <div className="relative group w-full h-full flex flex-col items-center justify-center">
                                       <div 
                                         className="relative w-full h-full min-h-[340px] md:min-h-[460px] lg:min-h-[560px] flex-1 flex items-center justify-center rounded-2xl overflow-hidden border border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md select-none"
+                                        onClick={(e) => e.stopPropagation()}
                                         onMouseDown={(e) => handleSlideImageMouseDown(index, e)}
                                         onMouseMove={(e) => handleSlideImageMouseMove(index, e)}
                                         onMouseUp={handleSlideImageMouseUp}
@@ -3572,14 +3638,32 @@ export function PresentationForm() {
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious className={cn(
-                    "absolute z-20",
-                    !isFullscreen ? "left-2 md:left-4 top-1/2 -translate-y-1/2 bg-slate-950 border border-slate-800 text-white hover:bg-slate-900 shadow-xl" : "left-4 bottom-4 bg-black/40 text-white hover:bg-black/60 border border-white/20"
-                  )} />
-                  <CarouselNext className={cn(
-                    "absolute z-20",
-                    !isFullscreen ? "right-2 md:right-4 top-1/2 -translate-y-1/2 bg-slate-950 border border-slate-800 text-white hover:bg-slate-900 shadow-xl" : "right-4 bottom-4 bg-black/40 text-white hover:bg-black/60 border border-white/20"
-                  )} />
+                  <CarouselPrevious 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (api?.canScrollPrev()) api.scrollPrev();
+                    }}
+                    className={cn(
+                      "absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90",
+                      "left-2 sm:left-4 top-1/2 -translate-y-1/2",
+                      !isFullscreen 
+                        ? "bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
+                        : "bg-black/60 text-white hover:bg-black/80 border border-white/30 backdrop-blur-md"
+                    )} 
+                  />
+                  <CarouselNext 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (api?.canScrollNext()) api.scrollNext();
+                    }}
+                    className={cn(
+                      "absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90",
+                      "right-2 sm:right-4 top-1/2 -translate-y-1/2",
+                      !isFullscreen 
+                        ? "bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
+                        : "bg-black/60 text-white hover:bg-black/80 border border-white/30 backdrop-blur-md"
+                    )} 
+                  />
                 </Carousel>
 
                 {/* Highlighted text visual search option button */}
