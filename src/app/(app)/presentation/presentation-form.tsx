@@ -1334,13 +1334,14 @@ export function PresentationForm() {
     );
   };
 
-  // Word revealing logic
+  // Word revealing logic (Default to showing all words so slides never appear blank or distorted when navigating)
   const setupWordAnimation = React.useCallback((slides: GeneratePresentationOutput['slides']) => {
     const wordCounts: { [key: number]: number } = {};
     const wordsBySlide: { [key: number]: string[] } = {};
     (slides || []).forEach((slide, index) => {
-      wordCounts[index] = 0;
-      wordsBySlide[index] = slide.content.flatMap((point) => point.split(' '));
+      const words = slide.content.flatMap((point) => point.split(' '));
+      wordCounts[index] = words.length;
+      wordsBySlide[index] = words;
     });
     setVisibleWordCounts(wordCounts);
     allWordsOnSlide.current = wordsBySlide;
@@ -1358,7 +1359,7 @@ export function PresentationForm() {
     if (!currentWords || currentWords.length === 0) return;
 
     setVisibleWordCounts((prevCounts) => {
-      const currentVisibleCount = prevCounts[currentSlideIndex] || 0;
+      const currentVisibleCount = prevCounts[currentSlideIndex] ?? currentWords.length;
 
       if (currentVisibleCount < currentWords.length) {
         // Reveal 2 words per tap on mobile/smaller devices, or 1 word on desktop for precision
@@ -2859,7 +2860,7 @@ export function PresentationForm() {
                         e.stopPropagation(); 
                         const idx = api?.selectedScrollSnap() || 0;
                         const total = allWordsOnSlide.current[idx]?.length || 0;
-                        const curCount = visibleWordCounts[idx] || 0;
+                        const curCount = visibleWordCounts[idx] ?? total;
                         setVisibleWordCounts(prev => ({
                           ...prev,
                           [idx]: curCount >= total ? 0 : total
@@ -2872,7 +2873,7 @@ export function PresentationForm() {
                     >
                       <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
                       <span className="text-xs font-bold hidden sm:inline">
-                        {(visibleWordCounts[api?.selectedScrollSnap() || 0] || 0) >= (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)
+                        {(visibleWordCounts[api?.selectedScrollSnap() || 0] ?? (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)) >= (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)
                           ? "Hide Words"
                           : "Reveal All"}
                       </span>
@@ -2979,19 +2980,21 @@ export function PresentationForm() {
                   setApi={setApi} 
                   opts={{ 
                     watchDrag: activeDrawSlideIndex === null && !isEditMode,
+                    align: 'start',
+                    containScroll: false,
                   }} 
                   className="w-full h-full"
                 >
                   <CarouselContent className={cn("h-full", isFullscreen && "ml-0 !bg-slate-950")}>
                     {(isEditMode ? editableSlides : presentation.slides).map((slide, index) => (
-                      <CarouselItem key={index} className={cn("h-full", isFullscreen && "pl-0 !bg-slate-950")}>
+                      <CarouselItem key={index} className={cn("h-full", isFullscreen && "w-full min-w-full max-w-full pl-0 !bg-slate-950")}>
                         <div 
                           className={cn(
                             "w-full h-full flex cursor-pointer",
                             theme,
                             fontFamily,
                             isFullscreen 
-                              ? "!rounded-none !border-none !shadow-none !backdrop-blur-none !opacity-100 !bg-slate-950" 
+                              ? "!rounded-none !border-none !shadow-none !backdrop-blur-none !opacity-100 !bg-slate-950 !bg-none" 
                               : "transition-all duration-700 ease-out transform-gpu"
                           )}
                           style={(!isFullscreen && enable3D) ? {
@@ -3012,7 +3015,7 @@ export function PresentationForm() {
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
                             !isFullscreen && "overflow-y-auto py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-hidden py-2 sm:py-3 md:py-4 px-3 sm:px-6 md:px-12 lg:px-16"
+                            isFullscreen && "overflow-hidden pt-14 pb-12 px-3 sm:px-6 md:px-12 lg:px-16"
                           )}>
                             <div className={cn(
                               "w-full mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
@@ -3024,7 +3027,7 @@ export function PresentationForm() {
                               <div className={cn(
                                 "flex-1 min-w-0 w-full flex flex-col px-2 sm:px-4 md:px-8",
                                 isFullscreen 
-                                  ? "justify-start md:justify-center overflow-y-auto max-h-[48vh] md:max-h-full md:h-full scrollbar-thin py-1" 
+                                  ? "justify-start md:justify-center overflow-y-auto max-h-[44vh] md:max-h-full md:h-full scrollbar-none py-1" 
                                   : "justify-center",
                                 (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode 
                                   ? (isFullscreen ? "md:w-1/2 lg:w-[48%]" : "md:w-1/2") 
@@ -3113,7 +3116,7 @@ export function PresentationForm() {
                                 <div className={cn(
                                   "w-full select-none flex flex-col items-center justify-center",
                                   !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-1/2 flex-1 min-h-[350px] h-full",
-                                  isFullscreen && "md:w-1/2 lg:w-[52%] flex-1 min-h-0 max-h-[46vh] md:max-h-none h-full shrink-0"
+                                  isFullscreen && "md:w-1/2 lg:w-[52%] flex-1 min-h-0 max-h-[44vh] md:max-h-none h-full shrink-0"
                                 )}>
                                   {brokenSlideImages[index] ? (
                                     <div className={cn(
