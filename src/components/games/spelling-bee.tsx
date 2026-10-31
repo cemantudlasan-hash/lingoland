@@ -16,7 +16,7 @@ import { generateSpellingBeeWord } from "@/ai/flows/generate-spelling-bee-word";
 import type { GenerateSpellingBeeWordOutput } from "@/ai/flows/schemas/spelling-bee-schema";
 import { textToSpeech } from "@/ai/flows/text-to-speech";
 import { 
-  Loader2, Sparkles, ArrowLeft, XOctagon, Volume2, Check, X, Repeat, 
+  Loader2, Sparkles, ArrowLeft, XOctagon, Volume2, Volume1, Check, X, Repeat, 
   Lightbulb, Send, RotateCcw, UserPlus, Trash2, Timer, Trophy, 
   SkipForward, Maximize, Minimize, Users, Crown, Medal, Award 
 } from "lucide-react";
@@ -33,10 +33,13 @@ import confetti from 'canvas-confetti';
 type GameState = "idle" | "setup" | "loading" | "playing" | "answered" | "finished" | "instructions";
 type Team = { name: string; score: number; timeLeft: number; isEliminated?: boolean };
 
-const DEFAULT_TIME_BANK_SECONDS = 120; // 2 minutes
+const DEFAULT_TIME_BANK_SECONDS = 0; // 0 = Infinite Time by default
 const LOCAL_STORAGE_KEY = 'lingoland_spelling_bee_used_words';
 
 const formatTime = (seconds: number) => {
+  if (!seconds || seconds <= 0 || seconds === Infinity) {
+    return '∞ Infinite';
+  }
   const s = Math.max(0, Math.floor(seconds));
   const mins = Math.floor(s / 60);
   const secs = s % 60;
@@ -55,15 +58,17 @@ const TEAM_THEMES = [
 
 export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onToggleFullscreen?: () => void }) {
   const [gameState, setGameState] = React.useState<GameState>("idle");
-  const [timeBankPreset, setTimeBankPreset] = React.useState<string>("120");
+  const [timeBankPreset, setTimeBankPreset] = React.useState<string>("infinite");
   const [timeBankSeconds, setTimeBankSeconds] = React.useState<number>(DEFAULT_TIME_BANK_SECONDS);
   const [customTimeInput, setCustomTimeInput] = React.useState<number>(2);
   const [customTimeUnit, setCustomTimeUnit] = React.useState<"seconds" | "minutes">("minutes");
   const [allTimedOut, setAllTimedOut] = React.useState<boolean>(false);
 
+  const isInfiniteTime = timeBankPreset === "infinite" || timeBankSeconds <= 0;
+
   const [teams, setTeams] = React.useState<Team[]>([
-    { name: "Team 1", score: 0, timeLeft: DEFAULT_TIME_BANK_SECONDS, isEliminated: false },
-    { name: "Team 2", score: 0, timeLeft: DEFAULT_TIME_BANK_SECONDS, isEliminated: false }
+    { name: "Team 1", score: 0, timeLeft: 0, isEliminated: false },
+    { name: "Team 2", score: 0, timeLeft: 0, isEliminated: false }
   ]);
   const [totalRounds, setTotalRounds] = React.useState(10);
   const [currentRound, setCurrentRound] = React.useState(0);
@@ -84,7 +89,7 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
 
   const activeTeam = teams[currentTurn] || { name: "Team", score: 0, timeLeft: 0, isEliminated: false };
   const activeTimeLeft = activeTeam.timeLeft;
-  const isTimeCritical = activeTimeLeft <= 15;
+  const isTimeCritical = !isInfiniteTime && activeTimeLeft <= 15;
 
   const getNextEligibleTurn = React.useCallback((currentIdx: number, teamList: Team[]) => {
     const n = teamList.length;
@@ -92,13 +97,13 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
     for (let step = 1; step <= n; step++) {
       const candidateIdx = (currentIdx + step) % n;
       const t = teamList[candidateIdx];
-      if (t && t.timeLeft > 0 && !t.isEliminated) {
+      if (t && (isInfiniteTime || (t.timeLeft > 0 && !t.isEliminated))) {
         const completedFullCycle = candidateIdx <= currentIdx;
         return { nextTurn: candidateIdx, completedFullCycle };
       }
     }
     return null;
-  }, []);
+  }, [isInfiniteTime]);
 
   React.useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -169,7 +174,7 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    const initialTime = Math.max(10, timeBankSeconds);
+    const initialTime = isInfiniteTime ? 0 : Math.max(10, timeBankSeconds);
     setTeams(teams.map(t => ({
       ...t,
       score: 0,
@@ -181,10 +186,10 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
     setTimedOut(false);
     setAllTimedOut(false);
     fetchNextWord(difficulty);
-  }, [teams, difficulty, timeBankSeconds, fetchNextWord, toast]);
+  }, [teams, difficulty, timeBankSeconds, isInfiniteTime, fetchNextWord, toast]);
 
   const handleTimeUp = React.useCallback(() => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isInfiniteTime) return;
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -197,11 +202,11 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
     setTimedOut(true);
     setIsCorrect(false);
     setGameState("answered");
-  }, [gameState, currentTurn]);
+  }, [gameState, currentTurn, isInfiniteTime]);
 
-  // Chess-clock interval: decrements active team's timeLeft every second while gameState === 'playing'
+  // Chess-clock interval: decrements active team's timeLeft every second while gameState === 'playing' (only if not infinite)
   React.useEffect(() => {
-    if (gameState !== 'playing') {
+    if (gameState !== 'playing' || isInfiniteTime) {
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -228,28 +233,91 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
         timerRef.current = null;
       }
     };
-  }, [gameState, currentTurn]);
+  }, [gameState, currentTurn, isInfiniteTime]);
 
-  // Safely trigger turn timeout when active team runs out of time
+  // Safely trigger turn timeout when active team runs out of time (only if timed mode)
   React.useEffect(() => {
-    if (gameState === 'playing' && activeTimeLeft <= 0) {
+    if (!isInfiniteTime && gameState === 'playing' && activeTimeLeft <= 0) {
       handleTimeUp();
     }
-  }, [activeTimeLeft, gameState, handleTimeUp]);
+  }, [activeTimeLeft, gameState, handleTimeUp, isInfiniteTime]);
 
-  const handleSpeak = async (text: string) => {
-    if (isSpeaking) return;
-    setIsSpeaking(true);
+  // Pre-load speech synthesis voices on mount for instant zero-latency speech
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const tryFallbackTTS = React.useCallback(async (text: string) => {
     try {
       const { audio } = await textToSpeech(text);
       const audioEl = new Audio(audio);
       audioEl.play();
       audioEl.onended = () => setIsSpeaking(false);
+      audioEl.onerror = () => {
+        setIsSpeaking(false);
+        toast({ variant: "destructive", title: "Audio Error", description: "Could not play audio pronunciation." });
+      };
     } catch (e) {
-      toast({ variant: "destructive", title: "Audio Error", description: "Could not play audio." });
       setIsSpeaking(false);
+      toast({ variant: "destructive", title: "Audio Error", description: "Could not play audio pronunciation." });
     }
-  };
+  }, [toast]);
+
+  const handleSpeak = React.useCallback(async (text: string, isSlow: boolean = false) => {
+    if (!text) return;
+
+    // Cancel any active speech to allow immediate re-triggers
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(true);
+
+    // 1. High-Fidelity Native Browser Speech (0ms latency, native English pronunciation)
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        // 0.82 deliberate pronunciation for spelling bees; 0.65 for slow enunciation
+        utterance.rate = isSlow ? 0.65 : 0.82;
+        utterance.pitch = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v => 
+          (v.lang === 'en-US' || v.lang === 'en-GB' || v.lang.startsWith('en')) &&
+          (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Alex') || v.name.includes('Siri'))
+        ) || voices.find(v => v.lang.startsWith('en'));
+
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => {
+          // Fallback to server TTS if native engine errors
+          tryFallbackTTS(text);
+        };
+
+        window.speechSynthesis.speak(utterance);
+        return;
+      } catch (err) {
+        console.warn("Native speech synthesis error, trying server fallback", err);
+      }
+    }
+
+    // 2. Fallback to server-side Genkit TTS
+    await tryFallbackTTS(text);
+  }, [tryFallbackTTS]);
 
   const handleCheckAnswer = () => {
     if (!wordData || gameState !== 'playing') return;
@@ -341,7 +409,7 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
         {
           name: `Team ${String.fromCharCode(65 + prev.length)}`,
           score: 0,
-          timeLeft: timeBankSeconds,
+          timeLeft: isInfiniteTime ? 0 : timeBankSeconds,
           isEliminated: false
         }
       ]);
@@ -439,10 +507,13 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                     value={timeBankPreset} 
                     onValueChange={(val) => {
                       setTimeBankPreset(val);
-                      if (val !== 'custom') {
+                      if (val === 'infinite') {
+                        setTimeBankSeconds(0);
+                        setTeams(prev => prev.map(t => ({ ...t, timeLeft: 0, isEliminated: false })));
+                      } else if (val !== 'custom') {
                         const secs = Number(val);
                         setTimeBankSeconds(secs);
-                        setTeams(prev => prev.map(t => ({ ...t, timeLeft: secs })));
+                        setTeams(prev => prev.map(t => ({ ...t, timeLeft: secs, isEliminated: false })));
                       }
                     }}
                   >
@@ -450,6 +521,7 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="infinite">♾️ Infinite Time (No Time Limit - Default)</SelectItem>
                       <SelectItem value="30">30 Seconds (Blitz Match)</SelectItem>
                       <SelectItem value="60">1 Minute (Quick Match)</SelectItem>
                       <SelectItem value="120">2 Minutes (Standard Match)</SelectItem>
@@ -500,10 +572,15 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
 
               <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 space-y-1.5">
                 <div className="flex items-center gap-2 font-black uppercase tracking-wider">
-                  <Timer className="w-4 h-4 text-amber-500" /> Team Match Time Bank ({formatTime(timeBankSeconds)})
+                  <Timer className="w-4 h-4 text-amber-500" /> 
+                  {isInfiniteTime ? "Infinite Match Clock (No Time Limit)" : `Team Match Time Bank (${formatTime(timeBankSeconds)})`}
                 </div>
                 <p className="opacity-90 leading-relaxed">
-                  Each team starts with <strong>{formatTime(timeBankSeconds)}</strong> total clock. The timer counts down when your team is answering and pauses as soon as you submit an answer. If a team runs out of time, they are eliminated while surviving teams finish the rounds. Highest points wins!
+                  {isInfiniteTime ? (
+                    <>Teams compete at their own pace without any clock pressure or elimination. Complete all <strong>{totalRounds} rounds</strong> and the team with the highest spelling score wins the championship!</>
+                  ) : (
+                    <>Each team starts with <strong>{formatTime(timeBankSeconds)}</strong> total clock. The timer counts down when your team is answering and pauses as soon as you submit an answer. If a team runs out of time, they are eliminated while surviving teams finish the rounds. Highest points wins!</>
+                  )}
                 </p>
               </div>
             </div>
@@ -685,23 +762,25 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
 
                 <div className={cn(
                   "p-3 sm:p-4 rounded-2xl border flex flex-col items-center justify-center transition-colors",
-                  isTimeCritical 
+                  !isInfiniteTime && isTimeCritical 
                     ? "bg-destructive/15 border-destructive/40 text-destructive animate-pulse"
                     : "bg-muted/30 border-border/40 text-foreground"
                 )}>
                   <span className="text-[10px] sm:text-xs text-muted-foreground font-semibold flex items-center gap-1">
                     <Timer className="w-3 h-3" /> Team Clock
                   </span>
-                  <span className="text-base sm:text-2xl font-mono font-black mt-0.5">{formatTime(activeTimeLeft)}</span>
+                  <span className="text-base sm:text-2xl font-mono font-black mt-0.5">
+                    {isInfiniteTime ? "∞ No Limit" : formatTime(activeTimeLeft)}
+                  </span>
                 </div>
               </div>
 
-              {/* Timer progress bar */}
+              {/* Timer progress bar: Tracks round completion if infinite time, or active team clock if timed */}
               <Progress 
-                value={Math.min(100, (activeTimeLeft / timeBankSeconds) * 100)} 
+                value={isInfiniteTime ? Math.min(100, (currentRound / totalRounds) * 100) : Math.min(100, (activeTimeLeft / timeBankSeconds) * 100)} 
                 className={cn(
                   "w-full h-2 rounded-full transition-all",
-                  isTimeCritical ? "[&>div]:bg-destructive" : "[&>div]:bg-amber-500"
+                  !isInfiniteTime && isTimeCritical ? "[&>div]:bg-destructive" : "[&>div]:bg-amber-500"
                 )} 
               />
 
@@ -716,14 +795,14 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                 <div className="flex flex-col items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => handleSpeak(wordData.word)}
+                    onClick={() => handleSpeak(wordData.word, false)}
                     disabled={isSpeaking}
                     className={cn(
                       "group relative h-20 w-20 sm:h-24 sm:w-24 rounded-full flex flex-col items-center justify-center shadow-xl transition-all duration-200 active:scale-95 cursor-pointer",
                       "bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-400 text-white hover:shadow-amber-500/30 hover:scale-105",
                       isSpeaking && "ring-4 ring-amber-400/50 ring-offset-2 ring-offset-background"
                     )}
-                    title="Click to hear pronunciation"
+                    title="Click to hear instant pronunciation"
                   >
                     {isSpeaking ? (
                       <div className="flex items-center gap-1 h-6">
@@ -741,24 +820,35 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                   </span>
                 </div>
 
-                {/* Action buttons (Listen & Hint) */}
-                <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+                {/* Action buttons (Listen, Slow Enunciation, & Hint) */}
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full">
                   <Button 
                     type="button"
-                    onClick={() => handleSpeak(wordData.word)} 
+                    onClick={() => handleSpeak(wordData.word, false)} 
                     disabled={isSpeaking} 
                     variant="outline"
-                    className="h-11 px-5 font-bold uppercase rounded-xl border-2 hover:bg-amber-500/10 hover:border-amber-500/50"
+                    className="h-11 px-4 sm:px-5 font-bold uppercase rounded-xl border-2 hover:bg-amber-500/10 hover:border-amber-500/50"
                   >
                     <Volume2 className="h-4 w-4 mr-2 text-amber-500" />
                     Replay Audio
                   </Button>
                   <Button 
                     type="button"
+                    onClick={() => handleSpeak(wordData.word, true)} 
+                    disabled={isSpeaking} 
+                    variant="outline"
+                    className="h-11 px-3 sm:px-4 font-bold uppercase rounded-xl border-2 hover:bg-amber-500/10 hover:border-amber-500/50 text-xs sm:text-sm"
+                    title="Pronounce slowly with distinct phonemes"
+                  >
+                    <Volume1 className="h-4 w-4 mr-1.5 text-amber-500" />
+                    Slow 🐢
+                  </Button>
+                  <Button 
+                    type="button"
                     onClick={() => setShowHint(prev => !prev)} 
                     variant="secondary" 
                     className={cn(
-                      "h-11 px-5 font-bold uppercase rounded-xl transition-all",
+                      "h-11 px-4 sm:px-5 font-bold uppercase rounded-xl transition-all",
                       showHint && "bg-amber-500/15 border border-amber-500/40 text-amber-600 dark:text-amber-400"
                     )}
                   >
@@ -875,7 +965,8 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                     .map((team, originalIndex) => ({ ...team, originalIndex }))
                     .sort((a, b) => {
                       if (b.score !== a.score) return b.score - a.score;
-                      return b.timeLeft - a.timeLeft;
+                      if (!isInfiniteTime) return b.timeLeft - a.timeLeft;
+                      return 0;
                     })
                     .map((team, rank) => {
                       const theme = TEAM_THEMES[team.originalIndex % TEAM_THEMES.length];
@@ -918,12 +1009,14 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                             <span className="font-mono font-black text-sm sm:text-base text-primary block">
                               {team.score} pts
                             </span>
-                            <span className={cn(
-                              "text-[10px] font-mono font-bold block",
-                              team.isEliminated ? "text-destructive" : "text-muted-foreground"
-                            )}>
-                              {team.isEliminated ? "0s" : formatTime(team.timeLeft)}
-                            </span>
+                            {!isInfiniteTime && (
+                              <span className={cn(
+                                "text-[10px] font-mono font-bold block",
+                                team.isEliminated ? "text-destructive" : "text-muted-foreground"
+                              )}>
+                                {team.isEliminated ? "0s" : formatTime(team.timeLeft)}
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
@@ -939,7 +1032,9 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                 </div>
                 <div className="flex justify-between items-center text-muted-foreground font-semibold">
                   <span>Team Match Clock:</span>
-                  <span className="font-mono font-bold text-foreground">{formatTime(timeBankSeconds)}</span>
+                  <span className="font-mono font-bold text-foreground">
+                    {isInfiniteTime ? "∞ No Limit" : formatTime(timeBankSeconds)}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-muted-foreground font-semibold">
                   <span>Words in Bank:</span>
@@ -964,7 +1059,8 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
       case "finished":
         const sortedTeams = [...teams].sort((a, b) => {
           if (b.score !== a.score) return b.score - a.score;
-          return b.timeLeft - a.timeLeft;
+          if (!isInfiniteTime) return b.timeLeft - a.timeLeft;
+          return 0;
         });
         const winner = sortedTeams[0];
         const isTie = sortedTeams.length > 1 && sortedTeams[0].score === sortedTeams[1].score && sortedTeams[0].score > 0;
@@ -988,7 +1084,9 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                 {isTie ? `🤝 Tied Championship: ${sortedTeams.filter(t => t.score === winner.score).map(t => t.name).join(' & ')} (${winner.score} pts)!` : `🎉 ${winner.name} Champion (${winner.score} pts)! 🎉`}
               </p>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Rankings determined by total correct spellings and remaining match time bank.
+                {isInfiniteTime 
+                  ? "Rankings determined by total correct spellings across all rounds." 
+                  : "Rankings determined by total correct spellings and remaining match time bank."}
               </p>
             </div>
 
@@ -1020,9 +1118,11 @@ export function SpellingBee({ slug, onToggleFullscreen }: { slug: string; onTogg
                   </div>
                   <div className="text-right">
                     <span className="font-mono font-black text-lg text-primary block">{team.score} pts</span>
-                    <span className="text-[10px] font-mono text-muted-foreground font-semibold block">
-                      {team.isEliminated ? "0s left" : `${formatTime(team.timeLeft)} left`}
-                    </span>
+                    {!isInfiniteTime && (
+                      <span className="text-[10px] font-mono text-muted-foreground font-semibold block">
+                        {team.isEliminated ? "0s left" : `${formatTime(team.timeLeft)} left`}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
