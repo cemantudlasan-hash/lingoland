@@ -114,6 +114,7 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [isAnswerRevealed, setIsAnswerRevealed] = React.useState(false);
+  const [userSentence, setUserSentence] = React.useState("");
 
   // STABLE active wheel stage: guarantees wheel never reshuffles under the needle!
   const [activeStageVerbs, setActiveStageVerbs] = React.useState<VerbEntry[]>(() => initStageVerbs("All", []));
@@ -147,6 +148,7 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
     setGameState("idle");
     setResult(null);
     setIsAnswerRevealed(false);
+    setUserSentence("");
   };
 
   // Realistic synthetic click sound via Web Audio API
@@ -206,6 +208,7 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
     setGameState("spinning");
     setResult(null);
     setIsAnswerRevealed(false);
+    setUserSentence("");
     playRealisticTickSequence();
 
     // Pick target strictly from unvisited on this exact active wheel
@@ -239,6 +242,7 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
     setResult(null);
     setUsedVerbs([]);
     setIsAnswerRevealed(false);
+    setUserSentence("");
   };
 
   const handleSpeak = async (text: string) => {
@@ -259,8 +263,8 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
   return (
     <Card
       className={cn(
-        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-start overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300",
-        isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background"
+        "w-full max-w-5xl mx-auto flex flex-col justify-between rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300 min-h-[calc(100dvh-4.5rem)]",
+        isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background overflow-y-auto"
       )}
     >
       <CardHeader className={cn(
@@ -328,8 +332,8 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
 
       <CardContent
         className={cn(
-          "w-full flex-1 flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-16 sm:pb-20 max-w-5xl mx-auto overflow-visible",
-          isFullscreen ? "min-h-[60vh] max-w-6xl" : "min-h-[20rem]"
+          "w-full flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-8 sm:pb-12 max-w-5xl mx-auto",
+          isFullscreen ? "min-h-[60vh] max-w-6xl" : ""
         )}
       >
         {gameState === "idle" && (
@@ -641,17 +645,26 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
                         </Badge>
                       </div>
 
-                      {/* Covered Practice Prompts */}
-                      <div className="p-4 rounded-xl bg-muted/20 border border-dashed border-primary/30 space-y-2">
+                      {/* Covered Practice Prompts with Interactive Sentence Writer */}
+                      <div className="p-4 sm:p-5 rounded-2xl bg-muted/20 border-2 border-dashed border-primary/30 space-y-3">
                         <p className="text-xs sm:text-sm font-semibold text-foreground">
-                          1. What is the <strong className="text-primary font-bold">Past Simple</strong> form of <span className="underline font-black uppercase">{result.verb}</span>?
+                          1. What is the <strong className="text-primary font-bold">Past Simple</strong> form of <span className="underline font-black uppercase text-base">{result.verb}</span>?
                         </p>
                         <p className="text-xs sm:text-sm font-semibold text-foreground">
                           2. How do you spell its <strong className="text-amber-500 font-bold">Present Continuous (-ing)</strong> form?
                         </p>
-                        <p className="text-xs sm:text-sm font-semibold text-foreground">
-                          3. Construct a <strong className="text-primary font-bold">Future Tense</strong> sentence: <span className="italic opacity-80">&quot;I will {result.verb}...&quot;</span>
-                        </p>
+                        <div className="space-y-1.5 pt-1">
+                          <p className="text-xs sm:text-sm font-semibold text-foreground">
+                            3. Construct a <strong className="text-primary font-bold">Future Tense</strong> sentence: <span className="italic opacity-80">&quot;I will {result.verb}...&quot;</span>
+                          </p>
+                          <input
+                            type="text"
+                            value={userSentence}
+                            onChange={(e) => setUserSentence(e.target.value)}
+                            placeholder={`Type your practice sentence here... (e.g. "I will ${result.verb}...")`}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-primary/30 bg-background text-foreground text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary shadow-inner placeholder:text-muted-foreground/60"
+                          />
+                        </div>
                       </div>
 
                       {/* Click to Reveal Answers Button */}
@@ -694,6 +707,13 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
                         </div>
                       </div>
 
+                      {userSentence && (
+                        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs sm:text-sm">
+                          <span className="text-[10px] uppercase font-bold text-amber-400 block mb-0.5">Your Practice Sentence</span>
+                          <span className="font-semibold text-foreground italic">&quot;{userSentence}&quot;</span>
+                        </div>
+                      )}
+
                       <div className="space-y-2 text-xs sm:text-sm bg-muted/20 p-4 rounded-xl border border-border/30">
                         <p className="font-medium text-foreground leading-relaxed">
                           • Future Tense: <span className="text-primary font-bold italic">&quot;{result.example}&quot;</span>
@@ -732,7 +752,7 @@ export function WheelOfFortune({ slug, onToggleFullscreen }: { slug: string; onT
         )}
       </CardContent>
 
-      <CardFooter className="w-full shrink-0 mt-auto flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 bg-card/95 backdrop-blur-md relative z-10">
+      <CardFooter className="w-full shrink-0 flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 bg-card/90">
         <Button variant="outline" asChild size="sm" className="w-full sm:w-auto h-9 sm:h-10 px-4 text-xs sm:text-sm font-semibold rounded-xl">
           <Link href="/games">Back to Library</Link>
         </Button>

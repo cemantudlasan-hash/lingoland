@@ -388,8 +388,8 @@ export function WorldTourWheel({ slug, onToggleFullscreen }: { slug: string; onT
   return (
     <Card
       className={cn(
-        "w-full flex-1 min-h-[calc(100dvh-4.5rem)] max-w-full flex flex-col justify-start overflow-y-auto overflow-x-hidden rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300",
-        isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background"
+        "w-full max-w-5xl mx-auto flex flex-col justify-between rounded-2xl md:rounded-3xl border border-border/20 shadow-xl bg-card/80 backdrop-blur-sm transition-all duration-300 min-h-[calc(100dvh-4.5rem)]",
+        isFullscreen && "fixed inset-0 z-50 min-h-screen rounded-none border-none max-w-none p-2 sm:p-6 bg-background overflow-y-auto"
       )}
     >
       <CardHeader className={cn(
@@ -458,8 +458,8 @@ export function WorldTourWheel({ slug, onToggleFullscreen }: { slug: string; onT
 
       <CardContent
         className={cn(
-          "w-full flex-1 flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-16 sm:pb-20 max-w-5xl mx-auto overflow-visible",
-          isFullscreen ? "min-h-[60vh] max-w-6xl" : "min-h-[20rem]"
+          "w-full flex-grow flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 pb-8 sm:pb-12 max-w-5xl mx-auto",
+          isFullscreen ? "min-h-[60vh] max-w-6xl" : ""
         )}
       >
         {gameState === "idle" && (
@@ -905,7 +905,7 @@ export function WorldTourWheel({ slug, onToggleFullscreen }: { slug: string; onT
         )}
       </CardContent>
 
-      <CardFooter className="w-full shrink-0 mt-auto flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 bg-card/95 backdrop-blur-md relative z-10">
+      <CardFooter className="w-full shrink-0 flex flex-col sm:flex-row justify-between items-center gap-3 p-4 sm:p-6 border-t border-border/10 bg-card/90">
         <Button variant="outline" asChild size="sm" className="w-full sm:w-auto h-9 sm:h-10 px-4 text-xs sm:text-sm font-semibold rounded-xl">
           <Link href="/games">Back to Library</Link>
         </Button>
