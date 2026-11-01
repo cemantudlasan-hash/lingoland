@@ -51,6 +51,8 @@ import { LoginCockpit3DBackground } from "@/components/layout/LoginCockpit3DBack
 import { AdSenseEducationalHub } from "@/components/layout/AdSenseEducationalHub";
 import { useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
+import { cn } from "@/lib/utils";
+import { useSeasonalTheme } from "@/context/seasonal-theme-context";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -451,6 +453,8 @@ function InteractiveDemo({ onGoToSignup }: { onGoToSignup: () => void }) {
 
 export default function AuthPage() {
   const { user, isGuest, loginAsGuest, logoutGuest, setAuthAction } = useAuth();
+  const { activeTheme, isThemeActiveForUser, settings: seasonalSettings } = useSeasonalTheme();
+  const isSeasonalActive = isThemeActiveForUser && (seasonalSettings.includeLoginPage ?? true) && activeTheme.id !== 'default';
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("signin");
   const [activeSideNav, setActiveSideNav] = useState("signin");
@@ -505,12 +509,14 @@ export default function AuthPage() {
           className="flex items-center gap-3 cursor-pointer group"
           title="LingoLandVerse"
         >
-          <div className="relative w-9 h-9 flex items-center justify-center">
+          <div className="relative w-9 h-9 flex items-center justify-center shrink-0 overflow-hidden">
             <div className="w-4 h-4 rounded-full bg-cyan-400 blur-[2px] opacity-90 absolute group-hover:scale-125 transition-transform" />
             <div className="w-3.5 h-3.5 rounded-full bg-teal-300 relative z-10" />
             <svg 
-              className="absolute w-9 h-9 text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
-              style={{ animation: 'orbit-spin 20s linear infinite' }} 
+              width={36}
+              height={36}
+              className="absolute w-9 h-9 max-w-[36px] max-h-[36px] text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] pointer-events-none"
+              style={{ width: '36px', height: '36px', animation: 'orbit-spin 20s linear infinite' }} 
               viewBox="0 0 36 36" 
               fill="none"
             >
@@ -519,7 +525,7 @@ export default function AuthPage() {
                 cy="18" 
                 rx="15" 
                 ry="5.5" 
-                stroke="currentColor" 
+                stroke="#67e8f9" 
                 strokeWidth="1.8" 
                 transform="rotate(-28 18 18)" 
               />
@@ -560,8 +566,19 @@ export default function AuthPage() {
           </button>
         </nav>
 
-        {/* Right: Bell with Red Badge, Cyan Pill Button, Profile Avatar */}
+        {/* Right: Holiday Badge (if active), Bell with Red Badge, Cyan Pill Button, Profile Avatar */}
         <div className="flex items-center gap-3.5">
+          {isSeasonalActive && seasonalSettings.headerBadge && (
+            <div className={cn(
+              "hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm transition-all animate-pulse",
+              activeTheme.badgeText,
+              activeTheme.badgeBg
+            )}>
+              <span>{activeTheme.emoji}</span>
+              <span>{seasonalSettings.customBadgeText || activeTheme.defaultBadgeText}</span>
+            </div>
+          )}
+
           <Link 
             href="/notifications" 
             className="relative p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/5 transition-all"
@@ -702,12 +719,48 @@ export default function AuthPage() {
 
               {/* Right Column (1-span wide): The Dedicated Login Portal Card */}
               <div id="login-card-section" className="xl:col-span-1 w-full flex flex-col">
-                <Card className="border border-cyan-500/40 bg-slate-950/90 backdrop-blur-3xl shadow-[0_0_70px_rgba(6,182,212,0.3)] relative overflow-hidden rounded-3xl flex-1 flex flex-col justify-between">
-                  {/* Subtle Neon Edge Glow */}
-                  <div className="absolute -top-16 -right-16 w-44 h-44 bg-cyan-500/25 blur-3xl rounded-full pointer-events-none" />
-                  <div className="absolute -bottom-16 -left-16 w-44 h-44 bg-purple-500/25 blur-3xl rounded-full pointer-events-none" />
+                <Card 
+                  className={cn(
+                    "backdrop-blur-3xl relative overflow-hidden rounded-3xl flex-1 flex flex-col justify-between transition-all duration-700",
+                    isSeasonalActive
+                      ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
+                      : "border border-cyan-500/40 bg-slate-950/90 shadow-[0_0_70px_rgba(6,182,212,0.3)]"
+                  )}
+                  style={{
+                    boxShadow: isSeasonalActive
+                      ? `0 0 50px ${activeTheme.glowColor}, inset 0 0 25px ${activeTheme.glowColor}`
+                      : undefined
+                  }}
+                >
+                  {/* Neon Edge Glow */}
+                  <div 
+                    className="absolute -top-16 -right-16 w-44 h-44 blur-3xl rounded-full pointer-events-none transition-all duration-700" 
+                    style={{ backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#06b6d4', opacity: 0.25 }}
+                  />
+                  <div 
+                    className="absolute -bottom-16 -left-16 w-44 h-44 blur-3xl rounded-full pointer-events-none transition-all duration-700" 
+                    style={{ backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#a855f7', opacity: 0.25 }}
+                  />
 
                   <CardHeader className="text-center pb-4 pt-6 px-6 relative z-10">
+                    {/* Seasonal Holiday Festival Announcement on Login Card */}
+                    {isSeasonalActive && (
+                      <div className={cn(
+                        "w-full py-2 px-3 rounded-2xl border mb-3 text-center flex flex-col items-center justify-center gap-1 shadow-lg transition-all animate-pulse",
+                        activeTheme.badgeBg,
+                        activeTheme.borderColor
+                      )}>
+                        <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm text-white">
+                          <span className="text-base">{activeTheme.emoji}</span>
+                          <span>{seasonalSettings.customHeadline || activeTheme.defaultBadgeText}</span>
+                          <span className="text-base">{activeTheme.emoji}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-200/90 font-medium leading-tight">
+                          {seasonalSettings.customMessage || activeTheme.greetingText}
+                        </p>
+                      </div>
+                    )}
+
                     <div className="flex justify-center mb-3">
                       <Image
                         src="/logo.png"

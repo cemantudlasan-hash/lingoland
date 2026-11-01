@@ -12,11 +12,18 @@ import { Switch } from "@/components/ui/switch";
 import { useFirestore, useMemoFirebase } from "@/firebase";
 import { doc, onSnapshot, type FirestoreError, collection, addDoc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Sparkles, ChevronRight, Plus, Trash2, Edit } from "lucide-react";
+import { Loader2, Sparkles, ChevronRight, Plus, Trash2, Edit, Globe, Palette, MapPin, Eye, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import {
+  SeasonalThemeId,
+  SeasonalThemeSettings,
+  SEASONAL_THEME_PRESETS,
+  DEFAULT_SEASONAL_SETTINGS,
+} from "@/lib/types/seasonal-theme";
+import { useSeasonalTheme } from "@/context/seasonal-theme-context";
 
 function getGoogleDriveFileId(url: string) {
   if (!url) return null;
@@ -226,6 +233,31 @@ export default function AdminPage() {
         return doc(firestore, "announcements", "login_form");
     }, [firestore]);
 
+    const seasonalThemeRef = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return doc(firestore, "announcements", "seasonal_theme");
+    }, [firestore]);
+
+    const {
+        adminPreviewThemeId,
+        setAdminPreviewThemeId,
+        userCountry: detectedAdminCountry,
+    } = useSeasonalTheme();
+
+    const [seasonalEnabled, setSeasonalEnabled] = useState(false);
+    const [selectedThemeId, setSelectedThemeId] = useState<SeasonalThemeId>('default');
+    const [targetScope, setTargetScope] = useState<'worldwide' | 'country_specific'>('worldwide');
+    const [targetCountries, setTargetCountries] = useState<string[]>(['*']);
+    const [countryInput, setCountryInput] = useState("");
+    const [customBadgeText, setCustomBadgeText] = useState("");
+    const [customHeadline, setCustomHeadline] = useState("");
+    const [customMessage, setCustomMessage] = useState("");
+    const [floatingParticles, setFloatingParticles] = useState(true);
+    const [headerBadge, setHeaderBadge] = useState(true);
+    const [ambientGlow, setAmbientGlow] = useState(true);
+    const [includeLoginPage, setIncludeLoginPage] = useState(true);
+    const [isSavingSeasonal, setIsSavingSeasonal] = useState(false);
+
     useEffect(() => {
         if (!isLoading && !isAdmin) {
             router.replace('/dashboard');
@@ -340,6 +372,123 @@ export default function AdminPage() {
         setIsSavingWidget(false);
     };
 
+    useEffect(() => {
+        if (!seasonalThemeRef || isLoading || !isAdmin) return;
+
+        const unsubscribe = onSnapshot(seasonalThemeRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data() as Partial<SeasonalThemeSettings>;
+                setSeasonalEnabled(data.enabled ?? false);
+                setSelectedThemeId(data.activeThemeId ?? 'default');
+                setTargetScope(data.targetScope ?? 'worldwide');
+                const countries = Array.isArray(data.targetCountries) ? data.targetCountries : ['*'];
+                setTargetCountries(countries);
+                setCountryInput(countries.filter(c => c !== '*').join(', '));
+                setCustomBadgeText(data.customBadgeText || '');
+                setCustomHeadline(data.customHeadline || '');
+                setCustomMessage(data.customMessage || '');
+                setFloatingParticles(data.floatingParticles ?? true);
+                setHeaderBadge(data.headerBadge ?? true);
+                setAmbientGlow(data.ambientGlow ?? true);
+                setIncludeLoginPage(data.includeLoginPage ?? true);
+            }
+        }, (error: FirestoreError) => {
+            console.warn("Firestore announcements/seasonal_theme read error:", error);
+        });
+
+        return () => unsubscribe();
+    }, [seasonalThemeRef, isLoading, isAdmin]);
+
+    const handleSelectThemePreset = (themeId: SeasonalThemeId) => {
+        setSelectedThemeId(themeId);
+        const preset = SEASONAL_THEME_PRESETS[themeId];
+        if (!preset) return;
+
+        if (themeId === 'songkran') {
+            setTargetScope('country_specific');
+            setTargetCountries(['TH']);
+            setCountryInput('TH');
+        } else if (themeId === 'default') {
+            setTargetScope('worldwide');
+            setTargetCountries(['*']);
+            setCountryInput('');
+        }
+    };
+
+    const handleQuickCountryToggle = (code: string) => {
+        if (code === '*') {
+            setTargetScope('worldwide');
+            setTargetCountries(['*']);
+            setCountryInput('');
+            return;
+        }
+
+        setTargetScope('country_specific');
+        let current = countryInput
+            .split(',')
+            .map(c => c.trim().toUpperCase())
+            .filter(c => c.length > 0 && c !== '*');
+
+        if (current.includes(code)) {
+            current = current.filter(c => c !== code);
+        } else {
+            current.push(code);
+        }
+
+        setCountryInput(current.join(', '));
+        setTargetCountries(current.length > 0 ? current : ['TH']);
+    };
+
+    const handleSaveSeasonal = async () => {
+        if (!seasonalThemeRef || !user) return;
+        setIsSavingSeasonal(true);
+
+        try {
+            let countries = targetCountries;
+            if (targetScope === 'country_specific') {
+                const parsed = countryInput
+                    .split(',')
+                    .map(c => c.trim().toUpperCase())
+                    .filter(c => c.length > 0 && c !== '*');
+                countries = parsed.length > 0 ? parsed : ['TH'];
+                setTargetCountries(countries);
+            } else {
+                countries = ['*'];
+            }
+
+            const dataToSave: Partial<SeasonalThemeSettings> = {
+                enabled: seasonalEnabled,
+                activeThemeId: selectedThemeId,
+                targetScope,
+                targetCountries: countries,
+                customBadgeText: customBadgeText.trim(),
+                customHeadline: customHeadline.trim(),
+                customMessage: customMessage.trim(),
+                floatingParticles,
+                headerBadge,
+                ambientGlow,
+                includeLoginPage,
+                updatedAt: new Date().toISOString(),
+                updatedBy: user.email || user.uid,
+            };
+
+            setDocumentNonBlocking(seasonalThemeRef, dataToSave, { merge: true });
+
+            toast({
+                title: "Seasonal Theme Updated!",
+                description: `Theme "${SEASONAL_THEME_PRESETS[selectedThemeId]?.name}" is now live ${targetScope === 'worldwide' ? 'worldwide' : `for visitors in [${countries.join(', ')}]`}.`,
+            });
+        } catch (e) {
+            toast({
+                title: "Error saving seasonal theme",
+                description: "Failed to update seasonal theme settings in Firestore.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSavingSeasonal(false);
+        }
+    };
+
     const handleSaveLogin = async () => {
         if (!loginFormRef || !user) return;
         setIsSavingLogin(true);
@@ -372,6 +521,365 @@ export default function AdminPage() {
         <div className="w-full min-h-[calc(100svh-4.5rem)] flex-1 flex flex-col py-6 md:py-8 space-y-6 pb-16">
             <h1 className="text-3xl font-bold mb-2 shrink-0">Admin Dashboard</h1>
             <div className="grid gap-6 md:grid-cols-2 flex-1">
+                {/* Seasonal Website Theme & Geo-Targeting Manager */}
+                <Card className="md:col-span-2 border border-indigo-500/30 bg-gradient-to-br from-slate-950 via-[#0d1326] to-slate-950 shadow-2xl overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-indigo-950/80 via-purple-950/70 to-slate-950 border-b border-indigo-500/20 text-white">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="space-y-1">
+                                <CardTitle className="flex items-center gap-2 text-xl font-extrabold text-white">
+                                    <Palette className="h-6 w-6 text-indigo-400" />
+                                    <span>Seasonal Website Theme &amp; Geo-Targeting Manager</span>
+                                </CardTitle>
+                                <CardDescription className="text-indigo-200/80 text-xs sm:text-sm">
+                                    Exclusively manage holiday and festive themes (Songkran, Halloween, Christmas, New Year) with smart country targeting.
+                                </CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${seasonalEnabled ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40 shadow-sm' : 'bg-slate-900 text-slate-400 border-slate-700'}`}>
+                                    {seasonalEnabled ? `● Live: ${SEASONAL_THEME_PRESETS[selectedThemeId]?.name || 'Theme'}` : '○ Seasonal Theme Off'}
+                                </span>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6 pt-6 text-slate-200">
+                        {/* 1. Global Enable Switch */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-indigo-950/30 border border-indigo-500/20 gap-4">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="seasonal-enable-switch" className="text-base font-bold text-white cursor-pointer">
+                                    Enable Seasonal Holiday Theme
+                                </Label>
+                                <p className="text-xs text-slate-400">
+                                    When turned ON, users matching the location rules will experience the festive accents across the website and login area.
+                                </p>
+                            </div>
+                            <Switch
+                                id="seasonal-enable-switch"
+                                checked={seasonalEnabled}
+                                onCheckedChange={setSeasonalEnabled}
+                                className="scale-110"
+                            />
+                        </div>
+
+                        {/* 2. Theme Preset Selection */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-sm font-bold text-white flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-amber-400" />
+                                    <span>Select Holiday / Festive Theme</span>
+                                </Label>
+                                <span className="text-xs text-slate-400">Click a preset to configure</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {(Object.keys(SEASONAL_THEME_PRESETS) as SeasonalThemeId[]).map((themeKey) => {
+                                    const preset = SEASONAL_THEME_PRESETS[themeKey];
+                                    const isSelected = selectedThemeId === themeKey;
+                                    return (
+                                        <button
+                                            key={themeKey}
+                                            type="button"
+                                            onClick={() => handleSelectThemePreset(themeKey)}
+                                            className={`p-3.5 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+                                                isSelected
+                                                    ? 'border-indigo-400 bg-indigo-950/60 shadow-lg shadow-indigo-500/10 scale-[1.01]'
+                                                    : 'border-white/10 bg-slate-900/40 hover:bg-slate-900/80 hover:border-white/20'
+                                            }`}
+                                        >
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-2xl">{preset.emoji}</span>
+                                                    <div>
+                                                        <h4 className="font-bold text-sm text-white">{preset.name}</h4>
+                                                        <p className="text-[11px] text-slate-400 line-clamp-1">{preset.subtitle}</p>
+                                                    </div>
+                                                </div>
+                                                {isSelected && (
+                                                    <CheckCircle2 className="w-5 h-5 text-indigo-400 shrink-0" />
+                                                )}
+                                            </div>
+                                            <div className="mt-3 pt-2 border-t border-white/5 flex items-center justify-between text-[10px]">
+                                                <span className="text-slate-400">
+                                                    Particles: <strong className="text-slate-300">{preset.particleType}</strong>
+                                                </span>
+                                                <span
+                                                    className="w-3 h-3 rounded-full border border-white/20"
+                                                    style={{ backgroundColor: preset.accentColor }}
+                                                    title={`Accent: ${preset.accentColor}`}
+                                                />
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* 3. Geo-Targeting & Location Restrictions */}
+                        <div className="space-y-4 p-4 rounded-2xl bg-slate-900/40 border border-white/10">
+                            <div className="flex items-center gap-2">
+                                <Globe className="w-5 h-5 text-cyan-400" />
+                                <div>
+                                    <h4 className="font-bold text-sm text-white">Location &amp; Country Targeting</h4>
+                                    <p className="text-xs text-slate-400">
+                                        Ensure country-specific holidays (like Songkran for Thailand) are only shown to users in that country.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setTargetScope('worldwide');
+                                        setTargetCountries(['*']);
+                                        setCountryInput('');
+                                    }}
+                                    className={`p-3 rounded-xl border text-left transition-all ${
+                                        targetScope === 'worldwide'
+                                            ? 'border-cyan-400 bg-cyan-950/40 text-cyan-100 shadow-md'
+                                            : 'border-white/10 bg-slate-950/40 text-slate-400 hover:border-white/20'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 font-bold text-sm text-white">
+                                            <span>🌍</span>
+                                            <span>Worldwide (All Countries)</span>
+                                        </div>
+                                        {targetScope === 'worldwide' && <CheckCircle2 className="w-4 h-4 text-cyan-400" />}
+                                    </div>
+                                    <p className="text-xs text-slate-400 mt-1">
+                                        All visitors globally will see the theme.
+                                    </p>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setTargetScope('country_specific');
+                                        if (selectedThemeId === 'songkran') {
+                                            setCountryInput('TH');
+                                            setTargetCountries(['TH']);
+                                        } else if (countryInput.trim() === '') {
+                                            setCountryInput('TH');
+                                            setTargetCountries(['TH']);
+                                        }
+                                    }}
+                                    className={`p-3 rounded-xl border text-left transition-all ${
+                                        targetScope === 'country_specific'
+                                            ? 'border-cyan-400 bg-cyan-950/40 text-cyan-100 shadow-md'
+                                            : 'border-white/10 bg-slate-950/40 text-slate-400 hover:border-white/20'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 font-bold text-sm text-white">
+                                            <MapPin className="w-4 h-4 text-rose-400" />
+                                            <span>Location-Restricted (Country Specific)</span>
+                                        </div>
+                                        {targetScope === 'country_specific' && <CheckCircle2 className="w-4 h-4 text-cyan-400" />}
+                                    </div>
+                                    <p className="text-xs text-slate-400 mt-1">
+                                        Only visitors in specific countries will see the theme. Visitors in other countries keep the default site theme.
+                                    </p>
+                                </button>
+                            </div>
+
+                            {targetScope === 'country_specific' && (
+                                <div className="space-y-3 pt-3 border-t border-white/10">
+                                    <div>
+                                        <Label className="text-xs font-bold text-slate-300">Quick Country Presets:</Label>
+                                        <div className="flex flex-wrap gap-2 mt-1.5">
+                                            {[
+                                                { code: 'TH', label: '🇹🇭 Thailand (Songkran)' },
+                                                { code: 'US', label: '🇺🇸 United States' },
+                                                { code: 'JP', label: '🇯🇵 Japan' },
+                                                { code: 'PH', label: '🇵🇭 Philippines' },
+                                                { code: 'VN', label: '🇻🇳 Vietnam' },
+                                                { code: 'GB', label: '🇬🇧 United Kingdom' },
+                                            ].map((c) => {
+                                                const isSelected = countryInput
+                                                    .split(',')
+                                                    .map(x => x.trim().toUpperCase())
+                                                    .includes(c.code);
+                                                return (
+                                                    <button
+                                                        key={c.code}
+                                                        type="button"
+                                                        onClick={() => handleQuickCountryToggle(c.code)}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                                            isSelected
+                                                                ? 'bg-indigo-600 text-white border-indigo-400 shadow-sm'
+                                                                : 'bg-slate-800 text-slate-300 border-white/10 hover:border-white/20'
+                                                        }`}
+                                                    >
+                                                        {c.label} {isSelected && '✓'}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="custom-country-input" className="text-xs font-bold text-slate-300">
+                                            Target ISO Country Codes (comma-separated, e.g. TH, US):
+                                        </Label>
+                                        <Input
+                                            id="custom-country-input"
+                                            value={countryInput}
+                                            onChange={(e) => setCountryInput(e.target.value.toUpperCase())}
+                                            placeholder="e.g. TH (for Thailand)"
+                                            className="bg-slate-950 border-white/20 font-mono text-sm uppercase"
+                                        />
+                                    </div>
+
+                                    <div className="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-xs text-cyan-200/90 leading-relaxed">
+                                        💡 <strong>How this works:</strong> Visitors in <strong>[{countryInput || 'TH'}]</strong> will see the <strong>{SEASONAL_THEME_PRESETS[selectedThemeId]?.name}</strong> festival theme. Visitors in other countries will continue to experience the standard clean default theme without festive overlays.
+                                        {detectedAdminCountry && (
+                                            <span className="block mt-1 text-slate-400">
+                                                (Your detected location: <strong>{detectedAdminCountry}</strong>)
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 4. Display & Visual Effects Toggles */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-900/40 border border-white/10">
+                            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/40 border border-white/5">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="particles-toggle" className="text-xs font-bold text-white cursor-pointer">
+                                        Floating Particles
+                                    </Label>
+                                    <p className="text-[10px] text-slate-400">Snow, water splash, bats</p>
+                                </div>
+                                <Switch
+                                    id="particles-toggle"
+                                    checked={floatingParticles}
+                                    onCheckedChange={setFloatingParticles}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/40 border border-white/5">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="header-badge-toggle" className="text-xs font-bold text-white cursor-pointer">
+                                        Header Badge
+                                    </Label>
+                                    <p className="text-[10px] text-slate-400">Pill badge in navigation</p>
+                                </div>
+                                <Switch
+                                    id="header-badge-toggle"
+                                    checked={headerBadge}
+                                    onCheckedChange={setHeaderBadge}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/40 border border-white/5">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="ambient-glow-toggle" className="text-xs font-bold text-white cursor-pointer">
+                                        Ambient Glow
+                                    </Label>
+                                    <p className="text-[10px] text-slate-400">Subtle background tint</p>
+                                </div>
+                                <Switch
+                                    id="ambient-glow-toggle"
+                                    checked={ambientGlow}
+                                    onCheckedChange={setAmbientGlow}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/40 border border-white/5">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="login-page-toggle" className="text-xs font-bold text-white cursor-pointer">
+                                        Login Area Theme
+                                    </Label>
+                                    <p className="text-[10px] text-slate-400">Apply to Login page</p>
+                                </div>
+                                <Switch
+                                    id="login-page-toggle"
+                                    checked={includeLoginPage}
+                                    onCheckedChange={setIncludeLoginPage}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 5. Custom Texts & Login Area Customization */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-900/40 border border-white/10">
+                            <div className="space-y-2">
+                                <Label htmlFor="custom-badge-text" className="text-xs font-bold text-slate-300">
+                                    Header Holiday Badge Text (Optional):
+                                </Label>
+                                <Input
+                                    id="custom-badge-text"
+                                    value={customBadgeText}
+                                    onChange={(e) => setCustomBadgeText(e.target.value)}
+                                    placeholder={SEASONAL_THEME_PRESETS[selectedThemeId]?.defaultBadgeText || "Enter custom festive badge text..."}
+                                    className="bg-slate-950 border-white/20 text-sm"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="custom-login-headline" className="text-xs font-bold text-slate-300">
+                                    Login Area Holiday Headline (Optional):
+                                </Label>
+                                <Input
+                                    id="custom-login-headline"
+                                    value={customHeadline}
+                                    onChange={(e) => setCustomHeadline(e.target.value)}
+                                    placeholder={SEASONAL_THEME_PRESETS[selectedThemeId]?.defaultBadgeText || "e.g. 💦 Happy Songkran Festival 2026!"}
+                                    className="bg-slate-950 border-white/20 text-sm"
+                                />
+                            </div>
+
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="custom-login-message" className="text-xs font-bold text-slate-300">
+                                    Login Area Festive Subtitle / Message (Optional):
+                                </Label>
+                                <Input
+                                    id="custom-login-message"
+                                    value={customMessage}
+                                    onChange={(e) => setCustomMessage(e.target.value)}
+                                    placeholder={SEASONAL_THEME_PRESETS[selectedThemeId]?.greetingText || "e.g. Celebrate Songkran with fun educational games and AI learning tools!"}
+                                    className="bg-slate-950 border-white/20 text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        {/* 6. Admin Actions & Live Simulator */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/10">
+                            <div className="flex items-center gap-2">
+                                {adminPreviewThemeId ? (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setAdminPreviewThemeId(null)}
+                                        className="border-amber-500/40 text-amber-300 hover:bg-amber-950/50 text-xs"
+                                    >
+                                        Exit Preview Mode
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() => setAdminPreviewThemeId(selectedThemeId)}
+                                        className="border border-white/10 text-xs gap-1.5"
+                                        title="Preview how this theme looks right now on your screen"
+                                    >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        <span>Test / Preview on My Screen</span>
+                                    </Button>
+                                )}
+                            </div>
+
+                            <Button
+                                onClick={handleSaveSeasonal}
+                                disabled={isSavingSeasonal}
+                                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold shadow-lg shadow-indigo-500/25 px-6"
+                            >
+                                {isSavingSeasonal && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save &amp; Apply Seasonal Theme
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardHeader
                       className="bg-white text-black"
