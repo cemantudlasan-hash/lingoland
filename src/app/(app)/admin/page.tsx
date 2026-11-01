@@ -83,6 +83,7 @@ export default function AdminPage() {
     const [loginTitle, setLoginTitle] = useState("");
     const [loginDescription, setLoginDescription] = useState("");
     const [loginCredits, setLoginCredits] = useState("");
+    const [loginLogoUrl, setLoginLogoUrl] = useState("");
     const [isSavingLogin, setIsSavingLogin] = useState(false);
 
     const [slides, setSlides] = useState<any[]>([]);
@@ -322,6 +323,7 @@ export default function AdminPage() {
                 setLoginTitle(data.title || "");
                 setLoginDescription(data.description || "");
                 setLoginCredits(data.credits || "");
+                setLoginLogoUrl(data.logoUrl || data.imageUrl || "");
             }
         },
         (error: FirestoreError) => {
@@ -496,7 +498,8 @@ export default function AdminPage() {
         const dataToSave = { 
             title: loginTitle.trim(),
             description: loginDescription.trim(),
-            credits: loginCredits.trim()
+            credits: loginCredits.trim(),
+            logoUrl: loginLogoUrl.trim()
         };
 
         setDocumentNonBlocking(loginFormRef, dataToSave, { merge: true });
@@ -1023,6 +1026,18 @@ export default function AdminPage() {
                                 onChange={(e) => setLoginCredits(e.target.value)}
                                 placeholder="Ideas and created by: CSC Tech Corp., Powered by AI."
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="login-logo-url">Custom Login Page Logo / Photo URL (Optional)</Label>
+                            <Input
+                                id="login-logo-url"
+                                value={loginLogoUrl}
+                                onChange={(e) => setLoginLogoUrl(e.target.value)}
+                                placeholder="https://... or Google Drive image link (leave empty for default logo)"
+                            />
+                            <p className="text-[11px] text-muted-foreground">
+                                Paste a direct image URL or Google Drive share link. If left empty, the default LingoLandVerse logo is used.
+                            </p>
                         </div>
                         <Button onClick={handleSaveLogin} disabled={isSavingLogin}>
                             {isSavingLogin && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

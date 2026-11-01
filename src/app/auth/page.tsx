@@ -537,6 +537,24 @@ function InteractiveDemo({ onGoToSignup }: { onGoToSignup: () => void }) {
 
 
 
+function getGoogleDriveFileId(url: string) {
+  if (!url) return null;
+  const dMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (dMatch && dMatch[1]) return dMatch[1];
+  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch && idMatch[1]) return idMatch[1];
+  return null;
+}
+
+function resolveImageUrl(url: string) {
+  if (!url) return "";
+  const driveId = getGoogleDriveFileId(url);
+  if (driveId) {
+    return `https://lh3.googleusercontent.com/d/${driveId}`;
+  }
+  return url;
+}
+
 export default function AuthPage() {
   const { user, isGuest, loginAsGuest, logoutGuest, setAuthAction } = useAuth();
   const { activeTheme, isThemeActiveForUser, settings: seasonalSettings } = useSeasonalTheme();
@@ -575,6 +593,8 @@ export default function AuthPage() {
   const title = loginTexts?.title || "Master Any Subject with Your Personal AI Companion here in Lingolandverse!";
   const description = loginTexts?.description || "Welcome to LingoLandVerse - Learn language and educational subjects with 79+ interactive games, classroom tools, PowerPoint generator, jobs posting and more! Explore and use it for free!";
   const credits = loginTexts?.credits || "Ideas and created by: CSC Group Tech, Powered by AI.";
+  const rawLogo = loginTexts?.logoUrl || loginTexts?.imageUrl || "";
+  const resolvedLogo = rawLogo ? resolveImageUrl(rawLogo) : "/logo.png";
 
   const handleGuestLogin = () => {
     setAuthAction('login');
@@ -865,17 +885,16 @@ export default function AuthPage() {
                       </div>
                     )}
 
-                    {/* Logo with Luminous Halo */}
-                    <div className="relative flex justify-center pt-1">
-                      <div className="absolute inset-0 w-28 h-28 mx-auto rounded-full bg-cyan-400/25 blur-2xl pointer-events-none animate-pulse" />
-                      <Image
-                        src="/logo.png"
-                        alt="LingoLandVerse Logo"
-                        width={110}
-                        height={110}
-                        className="relative z-10 object-contain drop-shadow-[0_0_25px_rgba(34,211,238,0.6)]"
-                        priority
-                      />
+                    {/* Logo with Luminous Halo (Enlarged & Prominently Visible) */}
+                    <div className="relative flex justify-center items-center py-2 sm:py-3 w-full">
+                      <div className="absolute w-48 h-48 sm:w-60 sm:h-60 mx-auto rounded-full bg-gradient-to-tr from-cyan-400/30 via-teal-400/20 to-indigo-500/30 blur-3xl pointer-events-none animate-pulse" />
+                      <div className="relative z-10 w-full flex justify-center items-center">
+                        <img
+                          src={resolvedLogo}
+                          alt="LingoLandVerse Logo"
+                          className="w-auto h-32 sm:h-40 md:h-44 max-w-[280px] sm:max-w-[340px] object-contain drop-shadow-[0_4px_30px_rgba(34,211,238,0.75)] hover:scale-105 transition-transform duration-500 select-none pointer-events-none"
+                        />
+                      </div>
                     </div>
 
                     {/* Dynamic Title */}
