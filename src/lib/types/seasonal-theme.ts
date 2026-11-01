@@ -35,6 +35,7 @@ export interface SeasonalThemeSettings {
   floatingParticles: boolean;
   headerBadge: boolean;
   ambientGlow: boolean;
+  includeLoginPage?: boolean;
   updatedAt?: string;
   updatedBy?: string;
 }
@@ -155,4 +156,5 @@ export const DEFAULT_SEASONAL_SETTINGS: SeasonalThemeSettings = {
   floatingParticles: true,
   headerBadge: true,
   ambientGlow: true,
+  includeLoginPage: true,
 };

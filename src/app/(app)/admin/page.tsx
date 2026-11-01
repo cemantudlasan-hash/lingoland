@@ -250,9 +250,12 @@ export default function AdminPage() {
     const [targetCountries, setTargetCountries] = useState<string[]>(['*']);
     const [countryInput, setCountryInput] = useState("");
     const [customBadgeText, setCustomBadgeText] = useState("");
+    const [customHeadline, setCustomHeadline] = useState("");
+    const [customMessage, setCustomMessage] = useState("");
     const [floatingParticles, setFloatingParticles] = useState(true);
     const [headerBadge, setHeaderBadge] = useState(true);
     const [ambientGlow, setAmbientGlow] = useState(true);
+    const [includeLoginPage, setIncludeLoginPage] = useState(true);
     const [isSavingSeasonal, setIsSavingSeasonal] = useState(false);
 
     useEffect(() => {
@@ -382,9 +385,12 @@ export default function AdminPage() {
                 setTargetCountries(countries);
                 setCountryInput(countries.filter(c => c !== '*').join(', '));
                 setCustomBadgeText(data.customBadgeText || '');
+                setCustomHeadline(data.customHeadline || '');
+                setCustomMessage(data.customMessage || '');
                 setFloatingParticles(data.floatingParticles ?? true);
                 setHeaderBadge(data.headerBadge ?? true);
                 setAmbientGlow(data.ambientGlow ?? true);
+                setIncludeLoginPage(data.includeLoginPage ?? true);
             }
         }, (error: FirestoreError) => {
             console.warn("Firestore announcements/seasonal_theme read error:", error);
@@ -457,9 +463,12 @@ export default function AdminPage() {
                 targetScope,
                 targetCountries: countries,
                 customBadgeText: customBadgeText.trim(),
+                customHeadline: customHeadline.trim(),
+                customMessage: customMessage.trim(),
                 floatingParticles,
                 headerBadge,
                 ambientGlow,
+                includeLoginPage,
                 updatedAt: new Date().toISOString(),
                 updatedBy: user.email || user.uid,
             };
@@ -734,7 +743,7 @@ export default function AdminPage() {
                         </div>
 
                         {/* 4. Display & Visual Effects Toggles */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-900/40 border border-white/10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-900/40 border border-white/10">
                             <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/40 border border-white/5">
                                 <div className="space-y-0.5">
                                     <Label htmlFor="particles-toggle" className="text-xs font-bold text-white cursor-pointer">
@@ -766,7 +775,7 @@ export default function AdminPage() {
                             <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/40 border border-white/5">
                                 <div className="space-y-0.5">
                                     <Label htmlFor="ambient-glow-toggle" className="text-xs font-bold text-white cursor-pointer">
-                                        Ambient Festive Glow
+                                        Ambient Glow
                                     </Label>
                                     <p className="text-[10px] text-slate-400">Subtle background tint</p>
                                 </div>
@@ -776,20 +785,62 @@ export default function AdminPage() {
                                     onCheckedChange={setAmbientGlow}
                                 />
                             </div>
+
+                            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/40 border border-white/5">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="login-page-toggle" className="text-xs font-bold text-white cursor-pointer">
+                                        Login Area Theme
+                                    </Label>
+                                    <p className="text-[10px] text-slate-400">Apply to Login page</p>
+                                </div>
+                                <Switch
+                                    id="login-page-toggle"
+                                    checked={includeLoginPage}
+                                    onCheckedChange={setIncludeLoginPage}
+                                />
+                            </div>
                         </div>
 
-                        {/* 5. Custom Badge Text (Optional) */}
-                        <div className="space-y-2">
-                            <Label htmlFor="custom-badge-text" className="text-xs font-bold text-slate-300">
-                                Custom Header Badge Text (Optional Override):
-                            </Label>
-                            <Input
-                                id="custom-badge-text"
-                                value={customBadgeText}
-                                onChange={(e) => setCustomBadgeText(e.target.value)}
-                                placeholder={SEASONAL_THEME_PRESETS[selectedThemeId]?.defaultBadgeText || "Enter custom festive badge text..."}
-                                className="bg-slate-950 border-white/20 text-sm"
-                            />
+                        {/* 5. Custom Texts & Login Area Customization */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-900/40 border border-white/10">
+                            <div className="space-y-2">
+                                <Label htmlFor="custom-badge-text" className="text-xs font-bold text-slate-300">
+                                    Header Holiday Badge Text (Optional):
+                                </Label>
+                                <Input
+                                    id="custom-badge-text"
+                                    value={customBadgeText}
+                                    onChange={(e) => setCustomBadgeText(e.target.value)}
+                                    placeholder={SEASONAL_THEME_PRESETS[selectedThemeId]?.defaultBadgeText || "Enter custom festive badge text..."}
+                                    className="bg-slate-950 border-white/20 text-sm"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="custom-login-headline" className="text-xs font-bold text-slate-300">
+                                    Login Area Holiday Headline (Optional):
+                                </Label>
+                                <Input
+                                    id="custom-login-headline"
+                                    value={customHeadline}
+                                    onChange={(e) => setCustomHeadline(e.target.value)}
+                                    placeholder={SEASONAL_THEME_PRESETS[selectedThemeId]?.defaultBadgeText || "e.g. 💦 Happy Songkran Festival 2026!"}
+                                    className="bg-slate-950 border-white/20 text-sm"
+                                />
+                            </div>
+
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="custom-login-message" className="text-xs font-bold text-slate-300">
+                                    Login Area Festive Subtitle / Message (Optional):
+                                </Label>
+                                <Input
+                                    id="custom-login-message"
+                                    value={customMessage}
+                                    onChange={(e) => setCustomMessage(e.target.value)}
+                                    placeholder={SEASONAL_THEME_PRESETS[selectedThemeId]?.greetingText || "e.g. Celebrate Songkran with fun educational games and AI learning tools!"}
+                                    className="bg-slate-950 border-white/20 text-sm"
+                                />
+                            </div>
                         </div>
 
                         {/* 6. Admin Actions & Live Simulator */}
