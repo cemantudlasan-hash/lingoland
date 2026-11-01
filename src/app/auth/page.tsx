@@ -970,7 +970,7 @@ export default function AuthPage() {
                           className="rounded-xl text-xs font-bold data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.6)] flex items-center justify-center gap-1 transition-all"
                         >
                           <UserPlus className="w-3.5 h-3.5" />
-                          <span>Cadet</span>
+                          <span>Register</span>
                         </TabsTrigger>
                         <TabsTrigger 
                           value="demo" 
