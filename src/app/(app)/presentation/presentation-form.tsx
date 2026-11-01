@@ -141,6 +141,7 @@ interface DbPresentation {
     fullScreenTitleClassName: string;
   };
   align?: 'left' | 'center';
+  slideTransition?: SlideTransitionEffect;
   createdAt: string;
   updatedAt: string;
 }
@@ -834,6 +835,163 @@ const getEmojiFallback = (text: string): string | null => {
   return fallbackEmojis[Math.floor(Math.random() * fallbackEmojis.length)];
 };
 
+export type SlideTransitionEffect = 
+  | 'slide'
+  | 'cube3d'
+  | 'zoom'
+  | 'fade'
+  | 'cardstack'
+  | 'flip'
+  | 'bouncy';
+
+export interface TransitionOption {
+  id: SlideTransitionEffect;
+  name: string;
+  icon: string;
+  description: string;
+}
+
+export const SLIDE_TRANSITIONS: TransitionOption[] = [
+  { id: 'slide', name: 'Smooth Slide', icon: '↔️', description: 'Clean linear horizontal slide' },
+  { id: 'cube3d', name: '3D Cube Flip', icon: '🧊', description: '3D perspective rotation' },
+  { id: 'zoom', name: 'Depth Zoom', icon: '🔍', description: 'Cinematic scale zoom' },
+  { id: 'fade', name: 'Cross Dissolve', icon: '✨', description: 'Soft opacity cross-fade' },
+  { id: 'cardstack', name: 'Card Stack', icon: '🎴', description: 'Elevated stacking cards' },
+  { id: 'flip', name: '3D Page Flip', icon: '📖', description: 'Executive portfolio turn' },
+  { id: 'bouncy', name: 'Spring Pop', icon: '⚡', description: 'Dynamic elastic bounce' },
+];
+
+function getSlideTransitionStyle(
+  effect: SlideTransitionEffect,
+  slideIndex: number,
+  currentIndex: number, // 1-based (current)
+  isFullscreen: boolean
+): React.CSSProperties {
+  const activeIndex = currentIndex - 1;
+  const offset = slideIndex - activeIndex;
+  const isCurrent = offset === 0;
+
+  // Fullscreen mode: enhanced visible animations with comfortable, cinematic timing (0.6s-0.7s)
+  // Maintains 100% visibility for text/images so nothing is clipped or lost!
+  if (isFullscreen) {
+    switch (effect) {
+      case 'cube3d': {
+        const deg = isCurrent ? 0 : offset < 0 ? 30 : -30;
+        const z = isCurrent ? 0 : -80;
+        return {
+          transform: `perspective(1200px) rotateY(${deg}deg) translateZ(${z}px) scale(${isCurrent ? 1 : 0.92})`,
+          opacity: 1,
+          transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+        };
+      }
+      case 'zoom': {
+        const scale = isCurrent ? 1 : offset < 0 ? 1.08 : 0.88;
+        return {
+          transform: `scale(${scale})`,
+          opacity: 1,
+          transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+        };
+      }
+      case 'cardstack': {
+        const y = isCurrent ? 0 : offset < 0 ? -28 : 28;
+        return {
+          transform: `translateY(${y}px) scale(${isCurrent ? 1 : 0.90})`,
+          opacity: 1,
+          transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+        };
+      }
+      case 'flip': {
+        const deg = isCurrent ? 0 : offset < 0 ? 40 : -40;
+        return {
+          transform: `perspective(1200px) rotateY(${deg}deg) scale(${isCurrent ? 1 : 0.90})`,
+          opacity: 1,
+          transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+        };
+      }
+      case 'bouncy': {
+        return {
+          transform: isCurrent ? 'scale(1)' : 'scale(0.86)',
+          opacity: 1,
+          transition: 'transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        };
+      }
+      case 'fade': {
+        return {
+          opacity: isCurrent ? 1 : 0.35,
+          transform: isCurrent ? 'scale(1)' : 'scale(0.94)',
+          transition: 'opacity 0.65s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        };
+      }
+      case 'slide':
+      default: {
+        return {
+          transform: isCurrent ? 'scale(1)' : 'scale(0.95)',
+          opacity: 1,
+          transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+        };
+      }
+    }
+  }
+
+  // Standard non-fullscreen mode: clearly visible transitions with rich depth and 0.65s duration
+  switch (effect) {
+    case 'cube3d': {
+      const deg = isCurrent ? 0 : offset < 0 ? 30 : -30;
+      return {
+        transform: `perspective(1200px) rotateY(${deg}deg) scale(${isCurrent ? 1 : 0.92}) translateZ(${isCurrent ? '0px' : '-80px'})`,
+        opacity: 1,
+        transition: 'all 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+      };
+    }
+    case 'zoom': {
+      const scale = isCurrent ? 1 : offset < 0 ? 1.08 : 0.88;
+      return {
+        transform: `scale(${scale})`,
+        opacity: 1,
+        transition: 'all 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+      };
+    }
+    case 'fade': {
+      return {
+        opacity: isCurrent ? 1 : 0.4,
+        transform: isCurrent ? 'scale(1)' : 'scale(0.94)',
+        transition: 'all 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)',
+      };
+    }
+    case 'cardstack': {
+      const y = isCurrent ? 0 : offset < 0 ? -28 : 28;
+      return {
+        transform: `translateY(${y}px) scale(${isCurrent ? 1 : 0.90})`,
+        opacity: 1,
+        transition: 'all 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+      };
+    }
+    case 'flip': {
+      const deg = isCurrent ? 0 : offset < 0 ? 40 : -40;
+      return {
+        transform: `perspective(1200px) rotateY(${deg}deg) scale(${isCurrent ? 1 : 0.90})`,
+        opacity: 1,
+        transition: 'all 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+      };
+    }
+    case 'bouncy': {
+      return {
+        transform: isCurrent ? 'scale(1)' : 'scale(0.86)',
+        opacity: 1,
+        transition: 'all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      };
+    }
+    case 'slide':
+    default: {
+      return {
+        transform: isCurrent ? 'scale(1)' : 'scale(0.95)',
+        opacity: 1,
+        transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+      };
+    }
+  }
+}
+
 const ACTIVE_PRESENTATION_STORAGE_KEY = 'lingoland_active_presentation_v1';
 
 interface ActivePresentationSession {
@@ -845,6 +1003,7 @@ interface ActivePresentationSession {
   fontFamily: string;
   fontSize: typeof fontSizes[0];
   align: 'left' | 'center';
+  slideTransition?: SlideTransitionEffect;
   activeDbId: string | null;
   coveredTexts?: { [slideIndex: number]: string[] };
   revealedTexts?: { [slideIndex: number]: string[] };
@@ -1432,6 +1591,7 @@ export function PresentationForm() {
   const [fontFamily, setFontFamily] = React.useState(fontFamilies[0].className);
   const [fontSize, setFontSize] = React.useState(fontSizes[3]); // Default to Extra Large
   const [align, setAlign] = React.useState<'left' | 'center'>('left');
+  const [slideTransition, setSlideTransition] = React.useState<SlideTransitionEffect>('slide');
 
   // Resolved active theme & contrast helper
   const currentThemeObj = themes.find(t => t.className === theme || t.name === theme) || themes[5];
@@ -1559,6 +1719,7 @@ export function PresentationForm() {
     if (pres.fontFamily) setFontFamily(pres.fontFamily);
     if (pres.fontSize) setFontSize(pres.fontSize);
     if (pres.align) setAlign(pres.align);
+    if (pres.slideTransition) setSlideTransition(pres.slideTransition);
 
     // Restore saved slide photos & drawings
     const photos: { [key: number]: string } = {};
@@ -1673,6 +1834,7 @@ export function PresentationForm() {
           fontFamily,
           fontSize,
           align,
+          slideTransition,
           createdAt: existing?.createdAt || new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
@@ -1717,6 +1879,7 @@ export function PresentationForm() {
           fontFamily,
           fontSize,
           align,
+          slideTransition,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
@@ -1981,16 +2144,35 @@ export function PresentationForm() {
     );
   };
 
-  // Word revealing logic: Slides start with text hidden (0 words visible) so the user reveals by tapping
+  const slidePointWordLimits = React.useRef<{ [key: number]: number[] }>({});
+
+  // Slide content revealing logic: Each slide starts with its first key point visible so slides are never empty.
+  // Tapping reveals the next full bullet point instantly without sluggish micro-word lag!
   const setupWordAnimation = React.useCallback((slides: GeneratePresentationOutput['slides']) => {
     const wordCounts: { [key: number]: number } = {};
     const wordsBySlide: { [key: number]: string[] } = {};
+    const pointLimits: { [key: number]: number[] } = {};
+
     (slides || []).forEach((slide, index) => {
-      wordCounts[index] = 0; // Starts hidden: user taps to reveal words, or clicks "Reveal All"
-      wordsBySlide[index] = slide.content.flatMap((point) => point.split(' '));
+      let cumulativeWords = 0;
+      const limits: number[] = [];
+
+      (slide.content || []).forEach((point) => {
+        const words = point.trim().split(/\s+/).filter(Boolean);
+        cumulativeWords += words.length;
+        limits.push(cumulativeWords);
+      });
+
+      pointLimits[index] = limits;
+      wordsBySlide[index] = (slide.content || []).flatMap((point) => point.split(' '));
+
+      // First point visible by default so slide content and pictures are never blank or missing!
+      wordCounts[index] = limits[0] || (wordsBySlide[index].length > 0 ? wordsBySlide[index].length : 0);
     });
+
     setVisibleWordCounts(wordCounts);
     allWordsOnSlide.current = wordsBySlide;
+    slidePointWordLimits.current = pointLimits;
   }, []);
 
   const handleRevealNextWord = React.useCallback(() => {
@@ -2004,18 +2186,22 @@ export function PresentationForm() {
     const currentWords = allWordsOnSlide.current[currentSlideIndex];
     if (!currentWords || currentWords.length === 0) return;
 
-    setVisibleWordCounts((prevCounts) => {
-      const currentVisibleCount = prevCounts[currentSlideIndex] ?? currentWords.length;
+    const limits = slidePointWordLimits.current[currentSlideIndex] || [currentWords.length];
 
-      if (currentVisibleCount < currentWords.length) {
-        // Reveal 2 words per tap on mobile/smaller devices, or 1 word on desktop for precision
-        const step = (typeof window !== 'undefined' && window.innerWidth < 768) ? 2 : 1;
+    setVisibleWordCounts((prevCounts) => {
+      const currentVisibleCount = prevCounts[currentSlideIndex] ?? 0;
+
+      // Instantly advance to the end of the next bullet point!
+      const nextLimit = limits.find(lim => lim > currentVisibleCount);
+
+      if (nextLimit !== undefined) {
         return {
           ...prevCounts,
-          [currentSlideIndex]: Math.min(currentWords.length, currentVisibleCount + step),
+          [currentSlideIndex]: nextLimit,
         };
       }
-      // When all words on current slide are revealed, keep them visible. Never auto-advance on tap.
+
+      // If all points are already visible, keep them visible.
       return prevCounts;
     });
   }, [presentation, api]);
@@ -2036,6 +2222,7 @@ export function PresentationForm() {
           if (data.fontFamily) setFontFamily(data.fontFamily);
           if (data.fontSize) setFontSize(data.fontSize);
           if (data.align) setAlign(data.align);
+          if (data.slideTransition) setSlideTransition(data.slideTransition);
           if (data.activeDbId) setActiveDbId(data.activeDbId);
           if (data.coveredTexts) setCoveredTexts(data.coveredTexts);
           if (data.revealedTexts) setRevealedTexts(data.revealedTexts);
@@ -2055,12 +2242,13 @@ export function PresentationForm() {
     }
   }, [setupWordAnimation, toast]);
 
-  // Persist presentation changes to localStorage whenever presentation state changes
+  // Persist presentation changes to localStorage whenever presentation state changes (debounced to avoid thread locks)
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!isRestoredRef.current) return;
+    if (!presentation) return;
 
-    if (presentation) {
+    const timer = setTimeout(() => {
       try {
         const session: ActivePresentationSession = {
           presentation,
@@ -2071,6 +2259,7 @@ export function PresentationForm() {
           fontFamily,
           fontSize,
           align,
+          slideTransition,
           activeDbId,
           coveredTexts,
           revealedTexts,
@@ -2080,8 +2269,10 @@ export function PresentationForm() {
       } catch (e) {
         console.warn("Could not save presentation to localStorage", e);
       }
-    }
-  }, [presentation, editableTitle, editableSlides, slidePhotos, theme, fontFamily, fontSize, align, activeDbId, coveredTexts, revealedTexts]);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [presentation, editableTitle, editableSlides, slidePhotos, theme, fontFamily, fontSize, align, slideTransition, activeDbId, coveredTexts, revealedTexts]);
 
   // Fullscreen listeners with cross-browser and mobile webkit support
   React.useEffect(() => {
@@ -2424,6 +2615,7 @@ export function PresentationForm() {
   const activeSnapRef = React.useRef(0);
   const isTransitioningRef = React.useRef(false);
   const lastViewportDimensionsRef = React.useRef({ width: 0, height: 0 });
+  const pointerStartRef = React.useRef<{ x: number; y: number; time: number } | null>(null);
 
   React.useEffect(() => {
     if (!api) return;
@@ -3244,7 +3436,7 @@ export function PresentationForm() {
         if (visibleWords.length > 0) {
           const joinedText = visibleWords.join(' ');
           return (
-            <li key={pointIndex} className="flex items-start gap-3 md:gap-5 text-left group/item pl-1 mb-3.5 sm:mb-5 md:mb-6 last:mb-0 shrink-0 w-full">
+            <li key={pointIndex} className="flex items-start gap-3 md:gap-5 text-left group/item pl-1 mb-3.5 sm:mb-5 md:mb-6 last:mb-0 shrink-0 w-full animate-in fade-in slide-in-from-bottom-1 duration-300">
               {align !== 'center' && (
                 <span className={cn(
                   "inline-block mt-2 sm:mt-2.5 md:mt-3 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0 shadow-sm border",
@@ -3563,7 +3755,7 @@ export function PresentationForm() {
               </CardHeader>
               <CardContent className="flex flex-col gap-4 border-t border-slate-850 pt-4">
                 {/* Visual Selectors bar */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 pb-2">
                   <div className="space-y-1.5">
                     <Label htmlFor="theme-select" className="text-xs font-bold text-slate-400 uppercase tracking-widest">Theme Mode</Label>
                     <Select value={theme} onValueChange={setTheme}>
@@ -3612,6 +3804,26 @@ export function PresentationForm() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
+                    <Label htmlFor="transition-select" className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                      <span>🎬</span> Transition
+                    </Label>
+                    <Select value={slideTransition} onValueChange={(val: SlideTransitionEffect) => setSlideTransition(val)}>
+                      <SelectTrigger id="transition-select" className="bg-slate-950 border-slate-800 text-slate-200 h-10 rounded-xl">
+                        <SelectValue placeholder="Transition Effect" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-950 border-slate-800 text-slate-300">
+                        {SLIDE_TRANSITIONS.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{t.icon}</span>
+                              <span>{t.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5 col-span-2 sm:col-span-1">
                     <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Alignment</Label>
                     <div className="flex gap-1 bg-slate-950 p-1 border border-slate-800 rounded-xl h-10">
                       <Button 
@@ -3893,6 +4105,32 @@ export function PresentationForm() {
                         <span className="text-xs font-bold hidden sm:inline">Clear Covers</span>
                       </Button>
 
+                      {/* Slide Transition Selector in Fullscreen */}
+                      <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <Select value={slideTransition} onValueChange={(val: SlideTransitionEffect) => {
+                          setSlideTransition(val);
+                          toast({
+                            title: "Transition Updated 🎬",
+                            description: `Applied ${SLIDE_TRANSITIONS.find(t => t.id === val)?.name || val} effect.`
+                          });
+                        }}>
+                          <SelectTrigger className="h-8 sm:h-9 px-2 sm:px-2.5 gap-1.5 bg-slate-950 text-white hover:bg-slate-900 border border-white/20 rounded-xl shadow-lg text-xs font-bold shrink-0">
+                            <span className="text-sm">{SLIDE_TRANSITIONS.find(t => t.id === slideTransition)?.icon || '🎬'}</span>
+                            <span className="hidden md:inline">{SLIDE_TRANSITIONS.find(t => t.id === slideTransition)?.name || 'Transition'}</span>
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-950 border-slate-800 text-slate-200">
+                            {SLIDE_TRANSITIONS.map((opt) => (
+                              <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                                <div className="flex items-center gap-2">
+                                  <span>{opt.icon}</span>
+                                  <span>{opt.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       {/* Exit Fullscreen */}
                       <Button
                         onClick={(e) => { e.stopPropagation(); handleFullScreen(); }}
@@ -3988,7 +4226,7 @@ export function PresentationForm() {
                     containScroll: false,
                     loop: false,
                     skipSnaps: false,
-                    duration: 20,
+                    duration: 35,
                     dragFree: false,
                   }} 
                   className="w-full h-full select-none"
@@ -3998,22 +4236,33 @@ export function PresentationForm() {
                       <CarouselItem key={index} className={cn("h-full basis-full min-w-full max-w-full shrink-0 grow-0", isFullscreen ? "pl-0 bg-transparent" : "pl-4")}>
                         <div 
                           className={cn(
-                            "w-full h-full flex cursor-pointer",
+                            "w-full h-full flex cursor-pointer transform-gpu will-change-transform",
                             theme,
                             fontFamily,
                             isFullscreen 
-                              ? "!rounded-none !shadow-none !opacity-100 !backdrop-blur-none !transform-none !transition-none will-change-transform" 
-                              : "transition-all duration-700 ease-out transform-gpu"
+                              ? "!rounded-none !shadow-none !backdrop-blur-none" 
+                              : "transition-all duration-700 ease-out"
                           )}
-                          style={(!isFullscreen && enable3D) ? {
-                            transform: index === (current - 1)
-                              ? 'perspective(1000px) rotateY(0deg) scale(1) translateZ(0px)'
-                              : index < (current - 1)
-                                ? 'perspective(1000px) rotateY(15deg) scale(0.92) translateZ(-50px)'
-                                : 'perspective(1000px) rotateY(-15deg) scale(0.92) translateZ(-50px)',
-                            opacity: index === (current - 1) ? 1 : 0.35,
-                            transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
-                          } : (isFullscreen ? { transform: 'none' } : undefined)}
+                          style={getSlideTransitionStyle(slideTransition, index, current, isFullscreen)}
+                          onPointerDown={(e) => {
+                            if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
+                            pointerStartRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+                          }}
+                          onPointerUp={(e) => {
+                            if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
+                            if (pointerStartRef.current) {
+                              const dx = Math.abs(e.clientX - pointerStartRef.current.x);
+                              const dy = Math.abs(e.clientY - pointerStartRef.current.y);
+                              const dt = Date.now() - pointerStartRef.current.time;
+                              // Clean tap detection (< 12px movement, < 400ms duration)
+                              if (dx < 12 && dy < 12 && dt < 400) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleRevealNextWord();
+                              }
+                              pointerStartRef.current = null;
+                            }
+                          }}
                           onClick={(e) => {
                             if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
                             e.stopPropagation();
@@ -4023,22 +4272,22 @@ export function PresentationForm() {
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
                             !isFullscreen && "overflow-y-auto py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-y-auto pt-20 sm:pt-24 pb-12 px-3 sm:px-6 md:px-12 lg:px-16 overscroll-contain touch-pan-y"
+                            isFullscreen && "overflow-y-auto pt-16 sm:pt-24 pb-16 px-3 sm:px-6 md:px-12 lg:px-16 overscroll-contain touch-pan-y"
                           )}>
                             <div className={cn(
                               "w-full mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
                               !isFullscreen && "animate-in fade-in duration-700",
-                              isFullscreen ? "w-full max-w-full gap-2 sm:gap-4 md:gap-8 max-h-full overflow-hidden" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
+                              isFullscreen ? "w-full max-w-full gap-3 sm:gap-4 md:gap-8 min-h-0 flex-1" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
                               {/* Left side text content */}
                               <div className={cn(
                                 "flex-1 min-w-0 w-full flex flex-col px-2 sm:px-4 md:px-8",
                                 isFullscreen 
-                                  ? "justify-start md:justify-center overflow-y-auto max-h-full scrollbar-none py-1" 
+                                  ? "justify-start md:justify-center min-h-0 py-1" 
                                   : "justify-center",
                                 (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode 
-                                  ? (isFullscreen ? "md:w-1/2 lg:w-[48%]" : "md:w-1/2") 
+                                  ? (isFullscreen ? "w-full md:w-1/2 lg:w-[50%]" : "md:w-1/2") 
                                   : (isFullscreen ? "max-w-4xl mx-auto my-auto" : "w-full")
                               )}>
                                 {/* Helpful Slide Text Interaction Tips Banner */}
@@ -4184,11 +4433,11 @@ export function PresentationForm() {
                                     )}>
                                       {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
                                     </ul>
-                                    {(visibleWordCounts[index] || 0) === 0 && !isEditMode && (
-                                      <p className={cn("text-xs sm:text-sm animate-pulse mt-4 flex items-center gap-1.5 select-none",
-                                        isThemeLight ? "text-purple-700 font-semibold" : "text-purple-300/80"
+                                    {(visibleWordCounts[index] || 0) < (allWordsOnSlide.current[index]?.length || 0) && !isEditMode && (
+                                      <p className={cn("text-xs sm:text-sm mt-3 flex items-center gap-1.5 select-none opacity-80",
+                                        isThemeLight ? "text-purple-700 font-medium" : "text-purple-300/80"
                                       )}>
-                                        <span>👆 Tap anywhere to reveal text</span>
+                                        <span>👆 Tap anywhere to reveal next point</span>
                                         <span className={isThemeLight ? "text-stone-400" : "text-slate-500"}>•</span>
                                         <span className={isThemeLight ? "text-stone-600" : "text-slate-400"}>or click &quot;Reveal All&quot; above</span>
                                       </p>
@@ -4202,7 +4451,7 @@ export function PresentationForm() {
                                 <div className={cn(
                                   "w-full select-none flex flex-col items-center justify-center",
                                   !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-1/2 flex-1 min-h-[350px] h-full",
-                                  isFullscreen && "md:w-1/2 lg:w-[52%] flex-1 min-h-0 max-h-[44vh] md:max-h-none h-full shrink-0"
+                                  isFullscreen && "w-full md:w-1/2 lg:w-[50%] flex-1 min-h-0 max-h-[30vh] sm:max-h-[38vh] md:max-h-none shrink-0 flex items-center justify-center"
                                 )}>
                                   {brokenSlideImages[index] ? (
                                     <div className={cn(
@@ -6238,6 +6487,27 @@ onClick={() => setShowImageModal(false)}
                               </Select>
                             </div>
                           )}
+                          {/* Slide Transition Option */}
+                          <div className="space-y-1.5 w-full sm:w-auto">
+                            <Label htmlFor="gen-transition-select" className="text-xs font-bold text-slate-350 flex items-center gap-1.5">
+                              <span>🎬</span> Slide Transition Effect
+                            </Label>
+                            <Select value={slideTransition} onValueChange={(val: SlideTransitionEffect) => setSlideTransition(val)}>
+                              <SelectTrigger id="gen-transition-select" className="bg-slate-950 border-slate-800 text-slate-300 text-xs h-9 rounded-xl w-full sm:w-48">
+                                <SelectValue placeholder="Transition Effect" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-950 border-slate-800 text-slate-300 text-xs">
+                                {SLIDE_TRANSITIONS.map((opt) => (
+                                  <SelectItem key={opt.id} value={opt.id}>
+                                    <div className="flex items-center gap-2">
+                                      <span>{opt.icon}</span>
+                                      <span>{opt.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
 
                         {/* Enable 3D Animations */}
@@ -6250,7 +6520,7 @@ onClick={() => setShowImageModal(false)}
                             className="h-4 w-4 rounded border-slate-800 bg-slate-950 text-purple-650 focus:ring-purple-500/20"
                           />
                           <Label htmlFor="enable-3d-checkbox" className="text-xs font-bold text-slate-300 cursor-pointer">
-                            Enable 3D Themes & Animations
+                            Enable 3D Themes & Background Effects
                           </Label>
                         </div>
                       </div>
