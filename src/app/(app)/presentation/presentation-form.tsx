@@ -867,7 +867,9 @@ function getSlideTransitionStyle(
   currentIndex: number, // 1-based (current)
   isFullscreen: boolean
 ): React.CSSProperties {
-  const activeIndex = currentIndex - 1;
+  // If currentIndex is not yet initialized (0), safely treat slide 0 as current active slide
+  const effectiveCurrent = currentIndex <= 0 ? 1 : currentIndex;
+  const activeIndex = effectiveCurrent - 1;
   const offset = slideIndex - activeIndex;
   const isCurrent = offset === 0;
 
@@ -2146,8 +2148,10 @@ export function PresentationForm() {
 
   const slidePointWordLimits = React.useRef<{ [key: number]: number[] }>({});
 
-  // Slide content revealing logic: Each slide starts with its first key point visible so slides are never empty.
-  // Tapping reveals the next full bullet point instantly without sluggish micro-word lag!
+  const lastTapRef = React.useRef<number>(0);
+
+  // Slide content setup: By default, ALL bullet points and content are 100% visible
+  // so slides are never blank, cut off, or missing!
   const setupWordAnimation = React.useCallback((slides: GeneratePresentationOutput['slides']) => {
     const wordCounts: { [key: number]: number } = {};
     const wordsBySlide: { [key: number]: string[] } = {};
@@ -2166,8 +2170,8 @@ export function PresentationForm() {
       pointLimits[index] = limits;
       wordsBySlide[index] = (slide.content || []).flatMap((point) => point.split(' '));
 
-      // First point visible by default so slide content and pictures are never blank or missing!
-      wordCounts[index] = limits[0] || (wordsBySlide[index].length > 0 ? wordsBySlide[index].length : 0);
+      // All points visible by default so slides are immediately readable and full
+      wordCounts[index] = wordsBySlide[index].length;
     });
 
     setVisibleWordCounts(wordCounts);
@@ -2175,23 +2179,31 @@ export function PresentationForm() {
     slidePointWordLimits.current = pointLimits;
   }, []);
 
-  const handleRevealNextWord = React.useCallback(() => {
+  const handleRevealNextWord = React.useCallback((targetSlideIdx?: number) => {
     if (!presentation) return;
+    const now = Date.now();
+    if (now - lastTapRef.current < 250) return; // Prevent duplicate rapid taps
+    lastTapRef.current = now;
+
     if (typeof window !== 'undefined') {
       const selection = window.getSelection();
       if (selection && selection.toString().trim().length > 0) return;
     }
 
-    const currentSlideIndex = api?.selectedScrollSnap() || 0;
+    const currentSlideIndex = targetSlideIdx !== undefined 
+      ? targetSlideIdx 
+      : (api?.selectedScrollSnap() ?? (current > 0 ? current - 1 : 0));
+
     const currentWords = allWordsOnSlide.current[currentSlideIndex];
     if (!currentWords || currentWords.length === 0) return;
 
     const limits = slidePointWordLimits.current[currentSlideIndex] || [currentWords.length];
 
     setVisibleWordCounts((prevCounts) => {
-      const currentVisibleCount = prevCounts[currentSlideIndex] ?? 0;
+      const currentVisibleCount = prevCounts[currentSlideIndex] ?? currentWords.length;
+      if (currentVisibleCount >= currentWords.length) return prevCounts;
 
-      // Instantly advance to the end of the next bullet point!
+      // Advance to the end of the next bullet point
       const nextLimit = limits.find(lim => lim > currentVisibleCount);
 
       if (nextLimit !== undefined) {
@@ -2201,10 +2213,12 @@ export function PresentationForm() {
         };
       }
 
-      // If all points are already visible, keep them visible.
-      return prevCounts;
+      return {
+        ...prevCounts,
+        [currentSlideIndex]: currentWords.length,
+      };
     });
-  }, [presentation, api]);
+  }, [presentation, api, current]);
 
   // Restore saved presentation from localStorage on initial page mount/refresh/reconnect
   React.useEffect(() => {
@@ -3421,14 +3435,16 @@ export function PresentationForm() {
   };
 
   // Slide content render helper
-  const renderAnimatedContent = (content: string[], visibleCount: number, slideIdx: number) => {
+  const renderAnimatedContent = (content: string[], visibleCount: number | undefined, slideIdx: number) => {
+    // If visibleCount is undefined, safely show all content so slide is never blank
+    const effectiveCount = visibleCount === undefined ? Infinity : visibleCount;
     let wordCounter = 0;
     return content
       .map((point, pointIndex) => {
         const words = point.split(' ');
         const visibleWords = [];
         for (let i = 0; i < words.length; i++) {
-          if (wordCounter < visibleCount) {
+          if (wordCounter < effectiveCount) {
             visibleWords.push(words[i]);
             wordCounter++;
           }
@@ -4244,40 +4260,20 @@ export function PresentationForm() {
                               : "transition-all duration-700 ease-out"
                           )}
                           style={getSlideTransitionStyle(slideTransition, index, current, isFullscreen)}
-                          onPointerDown={(e) => {
-                            if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
-                            pointerStartRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
-                          }}
-                          onPointerUp={(e) => {
-                            if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
-                            if (pointerStartRef.current) {
-                              const dx = Math.abs(e.clientX - pointerStartRef.current.x);
-                              const dy = Math.abs(e.clientY - pointerStartRef.current.y);
-                              const dt = Date.now() - pointerStartRef.current.time;
-                              // Clean tap detection (< 12px movement, < 400ms duration)
-                              if (dx < 12 && dy < 12 && dt < 400) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleRevealNextWord();
-                              }
-                              pointerStartRef.current = null;
-                            }
-                          }}
                           onClick={(e) => {
                             if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
-                            e.stopPropagation();
-                            handleRevealNextWord();
+                            handleRevealNextWord(index);
                           }}
                         >
                           <div className={cn(
-                            "w-full flex flex-col justify-center h-full",
-                            !isFullscreen && "overflow-y-auto py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-y-auto pt-16 sm:pt-24 pb-16 px-3 sm:px-6 md:px-12 lg:px-16 overscroll-contain touch-pan-y"
+                            "w-full flex flex-col h-full",
+                            !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
+                            isFullscreen && "overflow-y-auto justify-start pt-14 sm:pt-20 pb-16 px-3 sm:px-6 md:px-12 lg:px-16 overscroll-contain touch-pan-y"
                           )}>
                             <div className={cn(
-                              "w-full mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
+                              "w-full mx-auto flex flex-col md:flex-row items-stretch justify-start md:justify-center min-h-full",
                               !isFullscreen && "animate-in fade-in duration-700",
-                              isFullscreen ? "w-full max-w-full gap-3 sm:gap-4 md:gap-8 min-h-0 flex-1" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
+                              isFullscreen ? "w-full max-w-full gap-3 sm:gap-4 md:gap-8 flex-1" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
                               {/* Left side text content */}
@@ -4294,6 +4290,7 @@ export function PresentationForm() {
                                 {!isEditMode && (
                                   <div className={cn(
                                     "w-full mb-2.5 sm:mb-3.5 p-2 sm:p-2.5 rounded-xl shadow-md select-none shrink-0 transition-colors",
+                                    isFullscreen && "hidden md:block",
                                     isThemeLight
                                       ? "bg-stone-200/90 border border-stone-300/80 text-stone-800 shadow-stone-200/50"
                                       : "bg-slate-900/80 border border-purple-500/30 text-purple-200"
@@ -5543,22 +5540,22 @@ onClick={() => setShowImageModal(false)}
                 >
                   {/* Top Bar */}
                   <div 
-                    className="w-full max-w-5xl flex items-center justify-between z-10 pointer-events-auto"
+                    className="w-full max-w-5xl flex items-center justify-between gap-2 z-10 pointer-events-auto"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center gap-2.5 bg-black/60 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border border-white/10 text-white shadow-xl">
-                      <Sparkles className="h-4 w-4 text-purple-400" />
-                      <span className="text-xs font-black tracking-wide truncate max-w-[200px] md:max-w-md">
+                    <div className="flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/15 text-white shadow-xl min-w-0 flex-1 sm:flex-initial">
+                      <Sparkles className="h-4 w-4 text-purple-400 shrink-0" />
+                      <span className="text-xs font-black tracking-wide truncate max-w-[130px] sm:max-w-md">
                         {activeLightboxImage.title}
                       </span>
-                      <span className="text-[10px] text-purple-300/80 font-mono px-1.5 py-0.5 rounded bg-purple-950/60 border border-purple-500/20">
+                      <span className="text-[10px] text-purple-300/80 font-mono px-1.5 py-0.5 rounded bg-purple-950/60 border border-purple-500/20 shrink-0">
                         Slide {activeLightboxImage.index + 1}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {/* Zoom Controls */}
-                      <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md p-1 rounded-2xl border border-white/10 text-white shadow-xl">
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Zoom Controls (hidden on small mobile screens to keep Close button accessible) */}
+                      <div className="hidden sm:flex items-center gap-1 bg-black/60 backdrop-blur-md p-1 rounded-2xl border border-white/10 text-white shadow-xl">
                         <Button
                           size="icon"
                           variant="ghost"
@@ -5594,13 +5591,13 @@ onClick={() => setShowImageModal(false)}
                       </div>
 
                       <Button
-                        size="icon"
-                        variant="secondary"
+                        size="sm"
                         onClick={(e) => { e.stopPropagation(); setActiveLightboxImage(null); }}
-                        className="h-8 w-8 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 shadow-xl"
+                        className="h-8 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-xl shrink-0"
                         title="Close preview"
                       >
                         <X className="h-4 w-4" />
+                        <span>Close</span>
                       </Button>
                     </div>
                   </div>
@@ -5608,21 +5605,38 @@ onClick={() => setShowImageModal(false)}
                   {/* Image Viewport */}
                   <div 
                     className="relative w-full flex-1 max-w-6xl max-h-[82vh] flex items-center justify-center overflow-hidden my-auto"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={() => setActiveLightboxImage(null)}
                   >
-                    <img
-                      src={activeLightboxImage.url}
-                      alt={activeLightboxImage.title}
-                      className={cn(
-                        "max-w-full max-h-full object-contain transition-transform select-none rounded-2xl shadow-2xl border border-white/10",
-                        lightboxZoom > 1 ? "cursor-grab" : "cursor-default"
-                      )}
-                      style={{
-                        transform: `translate(${lightboxPan.x}px, ${lightboxPan.y}px) scale(${lightboxZoom})`,
-                        transition: "transform 0.15s ease-out"
-                      }}
-                      draggable={false}
-                    />
+                    {activeLightboxImage.url ? (
+                      <img
+                        src={activeLightboxImage.url}
+                        alt={activeLightboxImage.title}
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                        className={cn(
+                          "max-w-full max-h-full object-contain transition-transform select-none rounded-2xl shadow-2xl border border-white/10",
+                          lightboxZoom > 1 ? "cursor-grab" : "cursor-pointer"
+                        )}
+                        style={{
+                          transform: `translate(${lightboxPan.x}px, ${lightboxPan.y}px) scale(${lightboxZoom})`,
+                          transition: "transform 0.15s ease-out"
+                        }}
+                        draggable={false}
+                      />
+                    ) : (
+                      <div className="text-center p-6 text-slate-400 text-sm">
+                        <p>No preview picture available for this slide.</p>
+                        <Button 
+                          size="sm" 
+                          variant="secondary"
+                          onClick={() => setActiveLightboxImage(null)}
+                          className="mt-3 rounded-xl"
+                        >
+                          Return to Presentation
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Footer hint */}
