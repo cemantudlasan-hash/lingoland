@@ -1024,6 +1024,60 @@
   will-change: transform, opacity;
 }
 
+/* Seasonal Lounge Chatbox Themed Animations */
+@keyframes eerieFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(-6deg); }
+}
+.animate-eerie-float {
+  animation: eerieFloat 2.6s ease-in-out infinite;
+}
+
+@keyframes snowSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.animate-snow-spin {
+  animation: snowSpin 9s linear infinite;
+}
+
+@keyframes sparkleGlow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(234, 179, 8, 0.4)); }
+  50% { transform: scale(1.18); filter: drop-shadow(0 0 8px rgba(234, 179, 8, 0.9)); }
+}
+.animate-sparkle-glow {
+  animation: sparkleGlow 1.8s ease-in-out infinite;
+}
+
+@keyframes waterBob {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-3.5px) scale(1.12); }
+}
+.animate-water-bob {
+  animation: waterBob 2s ease-in-out infinite;
+}
+
+@keyframes lanternSwing {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+.animate-lantern-swing {
+  animation: lanternSwing 3s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.22); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.18); }
+  70% { transform: scale(1); }
+}
+.animate-heart-beat {
+  animation: heartBeat 2s ease-in-out infinite;
+}
+
+
 
 
 

@@ -32,6 +32,8 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import type { InternalQuery } from "@/firebase/firestore/use-collection";
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useSeasonalTheme } from "@/context/seasonal-theme-context";
+import type { SeasonalThemeId } from "@/lib/types/seasonal-theme";
 
 
 const stickerStyles = [
@@ -83,9 +85,253 @@ const containsForbiddenLink = (text: string): boolean => {
 };
 
 
+interface SeasonalChatboxTheme {
+  name: string;
+  badgeLabel: string;
+  badgeEmoji: string;
+  badgeBg: string;
+  badgeBorder: string;
+  badgeText: string;
+  footerBg: string;
+  topLineGradient: string;
+  dockBg: string;
+  dockBorder: string;
+  dockFocusRing: string;
+  dockGlow: string;
+  avatarRing: string;
+  sendGradientActive: string;
+  sendGradientIdle: string;
+  sendGlow: string;
+  promptsToggleActive: string;
+  promptChipHover: string;
+  actionHover: string;
+  mascotEmoji: string;
+  mascotClass: string;
+  seasonalStarters: { label: string; text: string }[];
+  seasonalEmojis: string[];
+}
+
+const SEASONAL_CHATBOX_CONFIG: Record<SeasonalThemeId, SeasonalChatboxTheme> = {
+  default: {
+    name: "Cosmic Universe",
+    badgeLabel: "Cosmic Lounge",
+    badgeEmoji: "🌌",
+    badgeBg: "bg-indigo-950/70",
+    badgeBorder: "border-indigo-500/30",
+    badgeText: "text-indigo-300",
+    footerBg: "bg-gradient-to-t from-slate-950 via-slate-950/95 to-slate-900/60",
+    topLineGradient: "from-transparent via-indigo-500/60 to-transparent",
+    dockBg: "bg-slate-900/85 hover:bg-slate-900/95 focus-within:bg-slate-900/95",
+    dockBorder: "border-slate-750 focus-within:border-indigo-500/70",
+    dockFocusRing: "focus-within:ring-1 focus-within:ring-indigo-500/40",
+    dockGlow: "focus-within:shadow-[0_0_25px_rgba(99,102,241,0.22)]",
+    avatarRing: "ring-2 ring-indigo-500/40 ring-offset-2 ring-offset-slate-950",
+    sendGradientActive: "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white shadow-purple-500/30",
+    sendGradientIdle: "bg-slate-800 text-slate-500 hover:bg-slate-750 border border-slate-700/50",
+    sendGlow: "shadow-indigo-500/30",
+    promptsToggleActive: "bg-purple-600/30 border-purple-400/50 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.3)]",
+    promptChipHover: "hover:bg-indigo-600/20 hover:border-indigo-500/40",
+    actionHover: "hover:text-indigo-400 hover:bg-indigo-500/10",
+    mascotEmoji: "✨",
+    mascotClass: "animate-pulse",
+    seasonalStarters: LOUNGE_STARTERS,
+    seasonalEmojis: ["✨", "🚀", "🌟", "💡", "🎯", "🧠", "🎓", "💬"],
+  },
+  halloween: {
+    name: "Halloween Spooktacular",
+    badgeLabel: "Spooky Lounge 🎃",
+    badgeEmoji: "🎃",
+    badgeBg: "bg-orange-950/90",
+    badgeBorder: "border-orange-500/50",
+    badgeText: "text-orange-200",
+    footerBg: "bg-gradient-to-t from-slate-950 via-slate-950/95 to-purple-950/40",
+    topLineGradient: "from-transparent via-orange-500/80 to-transparent",
+    dockBg: "bg-slate-900/90 hover:bg-slate-900/95 focus-within:bg-slate-900/98",
+    dockBorder: "border-orange-500/35 focus-within:border-orange-500/80",
+    dockFocusRing: "focus-within:ring-1 focus-within:ring-orange-500/50",
+    dockGlow: "focus-within:shadow-[0_0_28px_rgba(249,115,22,0.35)] shadow-orange-950/50",
+    avatarRing: "ring-2 ring-orange-500/70 ring-offset-2 ring-offset-slate-950",
+    sendGradientActive: "bg-gradient-to-r from-orange-500 via-amber-500 to-purple-600 hover:from-orange-400 hover:via-amber-400 hover:to-purple-500 text-white shadow-orange-500/40",
+    sendGradientIdle: "bg-slate-800 text-slate-500 hover:bg-slate-750 border border-orange-500/20",
+    sendGlow: "shadow-orange-500/40",
+    promptsToggleActive: "bg-orange-500/30 border-orange-400/50 text-orange-200 shadow-[0_0_12px_rgba(249,115,22,0.4)]",
+    promptChipHover: "hover:bg-orange-600/20 hover:border-orange-500/50",
+    actionHover: "hover:text-orange-400 hover:bg-orange-500/10",
+    mascotEmoji: "🎃",
+    mascotClass: "animate-eerie-float",
+    seasonalStarters: [
+      { label: "🎃 Trick or Treat!", text: "🎃 Happy Halloween cadets! How are you celebrating today? Any fun traditions?" },
+      { label: "👻 Ghost Story", text: "👻 Have you ever experienced an eerie or mysterious event in your life?" },
+      { label: "🍬 Favorite Treat", text: "🍬 What is your absolute favorite candy or sweet treat to eat in October?" },
+      { label: "🧛 Spooky Vocab", text: "🧛 Let's practice Halloween English! Who can use 'eerie', 'phantom', or 'haunted' in a sentence?" },
+      { label: "🎬 Spooky Movie", text: "🎬 What is the best Halloween movie to watch in English for practicing listening?" },
+    ],
+    seasonalEmojis: ["🎃", "👻", "🦇", "🕷️", "🍬", "🧛", "🕸️", "💀", "🧟", "🧙", "🌙", "🕯️"],
+  },
+  christmas: {
+    name: "Christmas & Winter Holiday",
+    badgeLabel: "Winter Holiday Lounge 🎄",
+    badgeEmoji: "🎄",
+    badgeBg: "bg-emerald-950/90",
+    badgeBorder: "border-emerald-500/50",
+    badgeText: "text-emerald-200",
+    footerBg: "bg-gradient-to-t from-slate-950 via-slate-950/95 to-emerald-950/30",
+    topLineGradient: "from-transparent via-emerald-400/80 to-transparent",
+    dockBg: "bg-slate-900/90 hover:bg-slate-900/95 focus-within:bg-slate-900/98",
+    dockBorder: "border-emerald-500/35 focus-within:border-emerald-400/80",
+    dockFocusRing: "focus-within:ring-1 focus-within:ring-emerald-400/50",
+    dockGlow: "focus-within:shadow-[0_0_28px_rgba(16,185,129,0.35)] shadow-emerald-950/50",
+    avatarRing: "ring-2 ring-emerald-500/70 ring-offset-2 ring-offset-slate-950",
+    sendGradientActive: "bg-gradient-to-r from-emerald-500 via-teal-500 to-red-500 hover:from-emerald-400 hover:via-teal-400 hover:to-red-400 text-white shadow-emerald-500/40",
+    sendGradientIdle: "bg-slate-800 text-slate-500 hover:bg-slate-750 border border-emerald-500/20",
+    sendGlow: "shadow-emerald-500/40",
+    promptsToggleActive: "bg-emerald-500/30 border-emerald-400/50 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.4)]",
+    promptChipHover: "hover:bg-emerald-600/20 hover:border-emerald-500/50",
+    actionHover: "hover:text-emerald-400 hover:bg-emerald-500/10",
+    mascotEmoji: "❄️",
+    mascotClass: "animate-snow-spin",
+    seasonalStarters: [
+      { label: "🎄 Holiday Wish", text: "🎄 Season's greetings everyone! Wishing you joy, warmth, and great language progress!" },
+      { label: "❄️ Winter Cozy", text: "❄️ How do you stay cozy and focused while practicing English during winter?" },
+      { label: "🎁 Dream Gift", text: "🎁 If you could receive any English book, learning tool, or course as a holiday gift, what would it be?" },
+      { label: "☕ Warm Drink", text: "☕ Hot cocoa, spiced cinnamon tea, or fresh coffee while studying?" },
+      { label: "🎵 Festive Song", text: "🎵 What's your favorite English holiday song or carol to sing along to?" },
+    ],
+    seasonalEmojis: ["🎄", "❄️", "🎅", "⛄", "🎁", "🔔", "🦌", "🍪", "🌟", "🧦", "🧣", "🕯️"],
+  },
+  new_year: {
+    name: "New Year Celebration",
+    badgeLabel: "New Year Celebration ✨",
+    badgeEmoji: "✨",
+    badgeBg: "bg-amber-950/90",
+    badgeBorder: "border-amber-500/50",
+    badgeText: "text-amber-200",
+    footerBg: "bg-gradient-to-t from-slate-950 via-slate-950/95 to-amber-950/30",
+    topLineGradient: "from-transparent via-amber-400/90 to-transparent",
+    dockBg: "bg-slate-900/90 hover:bg-slate-900/95 focus-within:bg-slate-900/98",
+    dockBorder: "border-amber-500/35 focus-within:border-amber-400/80",
+    dockFocusRing: "focus-within:ring-1 focus-within:ring-amber-400/50",
+    dockGlow: "focus-within:shadow-[0_0_28px_rgba(245,158,11,0.35)] shadow-amber-950/50",
+    avatarRing: "ring-2 ring-amber-400/70 ring-offset-2 ring-offset-slate-950",
+    sendGradientActive: "bg-gradient-to-r from-amber-500 via-yellow-500 to-indigo-600 hover:from-amber-400 hover:via-yellow-400 hover:to-indigo-500 text-white shadow-amber-500/40",
+    sendGradientIdle: "bg-slate-800 text-slate-500 hover:bg-slate-750 border border-amber-500/20",
+    sendGlow: "shadow-amber-500/40",
+    promptsToggleActive: "bg-amber-500/30 border-amber-400/50 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.4)]",
+    promptChipHover: "hover:bg-amber-600/20 hover:border-amber-500/50",
+    actionHover: "hover:text-amber-400 hover:bg-amber-500/10",
+    mascotEmoji: "✨",
+    mascotClass: "animate-sparkle-glow",
+    seasonalStarters: [
+      { label: "✨ New Year Cheer", text: "✨ Happy New Year everyone! Ready for an amazing year of English growth!" },
+      { label: "🎯 Learning Goal", text: "🎯 What is your number one English learning goal for this brand new year?" },
+      { label: "🌟 Best Habit", text: "🌟 What daily learning habit helped you the most this past year?" },
+      { label: "🥂 Celebration", text: "🥂 How did you celebrate and ring in the new year with loved ones?" },
+      { label: "🚀 One Word", text: "🚀 What single English word represents your theme or intention for this year?" },
+    ],
+    seasonalEmojis: ["✨", "🎆", "🥂", "🎉", "🍾", "🥳", "🌟", "🎇", "🎊", "🎯", "💫", "🕒"],
+  },
+  songkran: {
+    name: "Songkran Water Festival",
+    badgeLabel: "Songkran Festival 💦",
+    badgeEmoji: "💦",
+    badgeBg: "bg-cyan-950/90",
+    badgeBorder: "border-cyan-400/50",
+    badgeText: "text-cyan-200",
+    footerBg: "bg-gradient-to-t from-slate-950 via-slate-950/95 to-cyan-950/35",
+    topLineGradient: "from-transparent via-cyan-400/90 to-transparent",
+    dockBg: "bg-slate-900/90 hover:bg-slate-900/95 focus-within:bg-slate-900/98",
+    dockBorder: "border-cyan-500/35 focus-within:border-cyan-400/80",
+    dockFocusRing: "focus-within:ring-1 focus-within:ring-cyan-400/50",
+    dockGlow: "focus-within:shadow-[0_0_28px_rgba(6,182,212,0.38)] shadow-cyan-950/50",
+    avatarRing: "ring-2 ring-cyan-400/70 ring-offset-2 ring-offset-slate-950",
+    sendGradientActive: "bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 hover:from-cyan-400 hover:via-sky-400 hover:to-indigo-500 text-white shadow-cyan-500/40",
+    sendGradientIdle: "bg-slate-800 text-slate-500 hover:bg-slate-750 border border-cyan-500/20",
+    sendGlow: "shadow-cyan-500/40",
+    promptsToggleActive: "bg-cyan-500/30 border-cyan-400/50 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.4)]",
+    promptChipHover: "hover:bg-cyan-600/20 hover:border-cyan-500/50",
+    actionHover: "hover:text-cyan-400 hover:bg-cyan-500/10",
+    mascotEmoji: "💦",
+    mascotClass: "animate-water-bob",
+    seasonalStarters: [
+      { label: "💦 Songkran Wish", text: "💦 สุขสันต์วันสงกรานต์! Happy Songkran Festival to all learners around the world!" },
+      { label: "🔫 Splash Battle", text: "🔫 Have you ever joined a huge water splash fight? What was your funniest moment?" },
+      { label: "🏖️ Summer Cool", text: "🏖️ How do you stay cool in the summer heat while practicing English?" },
+      { label: "🌺 Tradition Talk", text: "🌺 What traditional festive customs or celebrations do you cherish most?" },
+      { label: "☀️ Refreshing Words", text: "☀️ Refreshing words of the day: 'exhilarating', 'invigorating', 'rejuvenating'!" },
+    ],
+    seasonalEmojis: ["💦", "💧", "🫧", "🌊", "🔫", "🏖️", "🌺", "☀️", "🍹", "🌴", "🕶️", "🍉"],
+  },
+  lunar_new_year: {
+    name: "Lunar New Year / Spring Festival",
+    badgeLabel: "Spring Festival 🧧",
+    badgeEmoji: "🧧",
+    badgeBg: "bg-red-950/90",
+    badgeBorder: "border-red-500/50",
+    badgeText: "text-amber-200",
+    footerBg: "bg-gradient-to-t from-slate-950 via-slate-950/95 to-red-950/35",
+    topLineGradient: "from-transparent via-red-500/90 to-transparent",
+    dockBg: "bg-slate-900/90 hover:bg-slate-900/95 focus-within:bg-slate-900/98",
+    dockBorder: "border-red-500/35 focus-within:border-amber-400/80",
+    dockFocusRing: "focus-within:ring-1 focus-within:ring-amber-400/50",
+    dockGlow: "focus-within:shadow-[0_0_28px_rgba(239,68,68,0.35)] shadow-red-950/50",
+    avatarRing: "ring-2 ring-red-500/70 ring-offset-2 ring-offset-slate-950",
+    sendGradientActive: "bg-gradient-to-r from-red-600 via-amber-500 to-rose-600 hover:from-red-500 hover:via-amber-400 hover:to-rose-500 text-white shadow-red-500/40",
+    sendGradientIdle: "bg-slate-800 text-slate-500 hover:bg-slate-750 border border-red-500/20",
+    sendGlow: "shadow-red-500/40",
+    promptsToggleActive: "bg-red-500/30 border-red-400/50 text-amber-200 shadow-[0_0_12px_rgba(239,68,68,0.4)]",
+    promptChipHover: "hover:bg-red-600/20 hover:border-amber-500/50",
+    actionHover: "hover:text-red-400 hover:bg-red-500/10",
+    mascotEmoji: "🏮",
+    mascotClass: "animate-lantern-swing",
+    seasonalStarters: [
+      { label: "🧧 Spring Greeting", text: "🧧 恭喜发财! Happy Lunar New Year! Wishing everyone great health and fluency!" },
+      { label: "🥟 Feast Delights", text: "🥟 What are your absolute favorite holiday dishes, dumplings, or spring feasts?" },
+      { label: "🏮 Spring Wishes", text: "🏮 May your English learning journey flourish like fresh spring blossoms!" },
+      { label: "🐉 Zodiac Talk", text: "🐉 What Chinese zodiac animal represents you? What traits describe you best?" },
+      { label: "🧨 Holiday Stories", text: "🧨 What is your favorite family tradition or celebration during Spring Festival?" },
+    ],
+    seasonalEmojis: ["🧧", "🏮", "🐉", "🥟", "🍊", "🧨", "🪙", "🌸", "🦁", "🥢", "✨", "🎋"],
+  },
+  valentine: {
+    name: "Valentine's & Friendship Day",
+    badgeLabel: "Season of Love 💖",
+    badgeEmoji: "💖",
+    badgeBg: "bg-pink-950/90",
+    badgeBorder: "border-pink-500/50",
+    badgeText: "text-pink-200",
+    footerBg: "bg-gradient-to-t from-slate-950 via-slate-950/95 to-pink-950/35",
+    topLineGradient: "from-transparent via-pink-400/90 to-transparent",
+    dockBg: "bg-slate-900/90 hover:bg-slate-900/95 focus-within:bg-slate-900/98",
+    dockBorder: "border-pink-500/35 focus-within:border-pink-400/80",
+    dockFocusRing: "focus-within:ring-1 focus-within:ring-pink-400/50",
+    dockGlow: "focus-within:shadow-[0_0_28px_rgba(236,72,153,0.38)] shadow-pink-950/50",
+    avatarRing: "ring-2 ring-pink-400/70 ring-offset-2 ring-offset-slate-950",
+    sendGradientActive: "bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 hover:from-pink-400 hover:via-rose-400 hover:to-purple-500 text-white shadow-pink-500/40",
+    sendGradientIdle: "bg-slate-800 text-slate-500 hover:bg-slate-750 border border-pink-500/20",
+    sendGlow: "shadow-pink-500/40",
+    promptsToggleActive: "bg-pink-500/30 border-pink-400/50 text-pink-200 shadow-[0_0_12px_rgba(236,72,153,0.4)]",
+    promptChipHover: "hover:bg-pink-600/20 hover:border-pink-500/50",
+    actionHover: "hover:text-pink-400 hover:bg-pink-500/10",
+    mascotEmoji: "💖",
+    mascotClass: "animate-heart-beat",
+    seasonalStarters: [
+      { label: "💖 Kind Words", text: "💖 Happy Valentine's Day! Sending kindness and encouragement to every learner!" },
+      { label: "💌 Compliment", text: "💌 Give someone in the lounge a thoughtful and genuine English compliment!" },
+      { label: "🍫 Sweet Delights", text: "🍫 Dark, milk, or white chocolate while memorizing new vocabulary words?" },
+      { label: "📖 Warm Quote", text: "📖 What is your favorite romantic or heartwarming quote in the English language?" },
+      { label: "🌹 Acts of Kindness", text: "🌹 What small act of kindness or friendship made your day brighter recently?" },
+    ],
+    seasonalEmojis: ["💖", "💕", "💌", "🌹", "🍫", "🧸", "💝", "💋", "💐", "🥰", "✨", "🎀"],
+  },
+};
+
 export default function LoungePage() {
   const { user, isAdmin, isGuest, userProfile, isLoading: isAuthLoading } = useAuth();
   const firestore = useFirestore();
+  const { activeTheme, isThemeActiveForUser, settings: seasonalSettings } = useSeasonalTheme();
+  const isSeasonalActive = isThemeActiveForUser && activeTheme.id !== 'default';
+  const currentThemeId: SeasonalThemeId = isSeasonalActive ? activeTheme.id : 'default';
+  const seasonalConfig = SEASONAL_CHATBOX_CONFIG[currentThemeId] || SEASONAL_CHATBOX_CONFIG.default;
   const PinnedMessagesKey = `lingoland_pinned_messages_${user?.uid || 'guest'}`;
 
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -794,6 +1040,19 @@ export default function LoungePage() {
               Community Lounge
             </CardTitle>
             <CardDescription className="text-slate-400 text-center font-medium mt-1">Share suggestions, interact with emojis, and shape the future of LingoLand.</CardDescription>
+            {isSeasonalActive && (
+              <div className="mt-2.5 flex items-center justify-center gap-2 animate-in fade-in duration-300">
+                <span className={cn(
+                  "px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 shadow-sm transition-all duration-300",
+                  seasonalConfig.badgeBg,
+                  seasonalConfig.badgeBorder,
+                  seasonalConfig.badgeText
+                )}>
+                  <span className={seasonalConfig.mascotClass}>{seasonalConfig.badgeEmoji}</span>
+                  <span>{seasonalSettings.customHeadline || seasonalConfig.name}</span>
+                </span>
+              </div>
+            )}
             {pinnedSuggestions.length > 0 && !isGuest && (
               <Button 
                 onClick={() => setShowPinnedDrawer(true)}
@@ -937,13 +1196,23 @@ export default function LoungePage() {
               </div>
             )}
             {user && !isGuest && userProfile && (
-              <CardFooter className="p-2.5 sm:p-4 border-t border-indigo-500/20 flex flex-col items-stretch gap-2 flex-shrink-0 bg-gradient-to-t from-slate-950 via-slate-950/95 to-slate-900/60 backdrop-blur-2xl relative shadow-[0_-12px_40px_rgba(0,0,0,0.6)]">
+              <CardFooter className={cn(
+                "p-2.5 sm:p-4 border-t flex flex-col items-stretch gap-2 flex-shrink-0 backdrop-blur-2xl relative shadow-[0_-12px_40px_rgba(0,0,0,0.6)] transition-all duration-500",
+                seasonalConfig.footerBg,
+                isSeasonalActive ? seasonalConfig.dockBorder : "border-indigo-500/20"
+              )}>
                 {/* Glowing top ambient border accent line */}
-                <div className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-48 sm:w-96 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent blur-[1px] pointer-events-none" />
+                <div className={cn(
+                  "absolute -top-[1px] left-1/2 -translate-x-1/2 w-48 sm:w-96 h-[2px] bg-gradient-to-r blur-[1px] pointer-events-none transition-all duration-500",
+                  seasonalConfig.topLineGradient
+                )} />
 
                 {/* Mention autocomplete popup */}
                 {mentionState.show && (
-                  <div className="bg-slate-950/90 border border-indigo-500/30 p-2 rounded-2xl w-full max-h-36 overflow-y-auto backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <div className={cn(
+                    "bg-slate-950/90 border p-2 rounded-2xl w-full max-h-36 overflow-y-auto backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200",
+                    isSeasonalActive ? seasonalConfig.dockBorder : "border-indigo-500/30"
+                  )}>
                     <div className="px-2 py-1 text-[10px] font-bold tracking-wider text-indigo-400 uppercase flex items-center gap-1">
                       <AtSign className="h-3 w-3" /> Mention a user
                     </div>
@@ -972,7 +1241,10 @@ export default function LoungePage() {
 
                 {/* Replying banner */}
                 {replyingTo && (
-                  <div className="text-xs text-indigo-200 bg-gradient-to-r from-indigo-950/80 via-purple-950/50 to-indigo-950/80 border border-indigo-500/40 p-2 sm:p-2.5 rounded-2xl w-full flex justify-between items-center shadow-lg animate-in slide-in-from-bottom-2 duration-200 backdrop-blur-md">
+                  <div className={cn(
+                    "text-xs text-indigo-200 bg-gradient-to-r from-indigo-950/80 via-purple-950/50 to-indigo-950/80 border p-2 sm:p-2.5 rounded-2xl w-full flex justify-between items-center shadow-lg animate-in slide-in-from-bottom-2 duration-200 backdrop-blur-md",
+                    isSeasonalActive ? seasonalConfig.dockBorder : "border-indigo-500/40"
+                  )}>
                     <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
                       <div className="w-7 h-7 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
                         <Reply className="h-3.5 w-3.5 text-indigo-400" />
@@ -1022,13 +1294,26 @@ export default function LoungePage() {
 
                 {/* Quick Conversation Starter Pills */}
                 <div className="w-full flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 select-none">
+                  {/* Seasonal Theme Badge in Chatbox */}
+                  {isSeasonalActive && (
+                    <div className={cn(
+                      "px-2.5 py-1 text-[11px] font-extrabold rounded-full border transition-all shrink-0 flex items-center gap-1 shadow-sm",
+                      seasonalConfig.badgeBg,
+                      seasonalConfig.badgeBorder,
+                      seasonalConfig.badgeText
+                    )}>
+                      <span className={seasonalConfig.mascotClass}>{seasonalConfig.badgeEmoji}</span>
+                      <span>{seasonalConfig.badgeLabel}</span>
+                    </div>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => setShowStarters(prev => !prev)}
                     className={cn(
                       "px-2.5 py-1 text-[11px] font-bold rounded-full border transition-all shrink-0 flex items-center gap-1",
                       showStarters
-                        ? "bg-purple-600/30 border-purple-400/50 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.3)]"
+                        ? seasonalConfig.promptsToggleActive
                         : "bg-slate-900/80 hover:bg-slate-800 border-slate-750 text-slate-400 hover:text-slate-200"
                     )}
                     title="Toggle conversation starters"
@@ -1037,36 +1322,75 @@ export default function LoungePage() {
                     <span>Prompts</span>
                   </button>
 
-                  {showStarters && LOUNGE_STARTERS.map((s, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        setNewSuggestion(s.text);
-                        textareaRef.current?.focus();
-                      }}
-                      className="px-2.5 py-1 text-[11px] font-medium rounded-full bg-slate-900/70 hover:bg-indigo-600/20 border border-slate-750 hover:border-indigo-500/40 text-slate-300 hover:text-white transition-all shrink-0 active:scale-95 shadow-sm"
-                    >
-                      {s.label}
-                    </button>
-                  ))}
+                  {showStarters && (
+                    <>
+                      {seasonalConfig.seasonalStarters.map((s, idx) => (
+                        <button
+                          key={`seasonal-${idx}`}
+                          type="button"
+                          onClick={() => {
+                            setNewSuggestion(s.text);
+                            textareaRef.current?.focus();
+                          }}
+                          className={cn(
+                            "px-2.5 py-1 text-[11px] font-medium rounded-full bg-slate-900/70 border text-slate-300 hover:text-white transition-all shrink-0 active:scale-95 shadow-sm",
+                            isSeasonalActive
+                              ? cn("border-slate-750", seasonalConfig.promptChipHover)
+                              : "border-slate-750 hover:bg-indigo-600/20 hover:border-indigo-500/40"
+                          )}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                      {isSeasonalActive && LOUNGE_STARTERS.map((s, idx) => (
+                        <button
+                          key={`default-${idx}`}
+                          type="button"
+                          onClick={() => {
+                            setNewSuggestion(s.text);
+                            textareaRef.current?.focus();
+                          }}
+                          className="px-2.5 py-1 text-[11px] font-medium rounded-full bg-slate-900/70 hover:bg-slate-800 border border-slate-750 text-slate-400 hover:text-slate-200 transition-all shrink-0 active:scale-95 shadow-sm"
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </>
+                  )}
                 </div>
 
                 {/* The Floating Glassmorphic Chatbox Pill Dock */}
-                <div className="relative flex items-end w-full gap-2 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl bg-slate-900/85 hover:bg-slate-900/95 focus-within:bg-slate-900/95 border border-slate-750 focus-within:border-indigo-500/70 shadow-lg shadow-black/30 focus-within:shadow-[0_0_25px_rgba(99,102,241,0.22)] transition-all duration-300">
-                  {/* User Avatar with pulsing status indicator */}
+                <div className={cn(
+                  "relative flex items-end w-full gap-2 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl border shadow-lg shadow-black/30 transition-all duration-300",
+                  seasonalConfig.dockBg,
+                  seasonalConfig.dockBorder,
+                  seasonalConfig.dockGlow,
+                  seasonalConfig.dockFocusRing
+                )}>
+                  {/* User Avatar with pulsing status indicator & seasonal mascot */}
                   <div className="relative shrink-0 mb-0.5 ml-0.5 hidden xs:block sm:block">
-                    <Avatar className="h-8 w-8 sm:h-9 sm:w-9 ring-2 ring-indigo-500/40 ring-offset-2 ring-offset-slate-950">
+                    <Avatar className={cn(
+                      "h-8 w-8 sm:h-9 sm:w-9 ring-offset-2 ring-offset-slate-950 transition-all",
+                      seasonalConfig.avatarRing
+                    )}>
                       <AvatarImage src={userProfile.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${userProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${userProfile.displayName}`} alt={userProfile.displayName || ''} />
                       <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
                     </Avatar>
                     <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-slate-950 rounded-full animate-pulse shadow-sm" title="Online" />
+                    {isSeasonalActive && (
+                      <span 
+                        className={cn("absolute -top-1.5 -left-1.5 text-xs select-none pointer-events-none drop-shadow-md", seasonalConfig.mascotClass)}
+                        title={seasonalConfig.name}
+                      >
+                        {seasonalConfig.mascotEmoji}
+                      </span>
+                    )}
                   </div>
 
                   {/* Auto-growing Textarea */}
                   <Textarea
                     ref={textareaRef}
-                    placeholder={editingSuggestion ? "Edit your suggestion..." : "Share a thought, English question, or practice speaking... (@ to mention)"}
+                    placeholder={editingSuggestion ? "Edit your suggestion..." : `Share a thought in ${seasonalConfig.name}... (@ to mention)`}
                     value={newSuggestion}
                     onChange={handleTextChange}
                     onKeyDown={(e) => {
@@ -1087,7 +1411,7 @@ export default function LoungePage() {
                       size="icon" 
                       type="button"
                       onClick={handleTriggerMention}
-                      className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                      className={cn("h-8 w-8 sm:h-9 sm:w-9 rounded-xl text-slate-400 transition-colors", seasonalConfig.actionHover)}
                       title="Mention a cadet (@)"
                     >
                       <AtSign className="h-4 w-4" />
@@ -1100,7 +1424,7 @@ export default function LoungePage() {
                           variant="ghost" 
                           size="icon" 
                           type="button"
-                          className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-amber-400/10 transition-colors"
+                          className={cn("h-8 w-8 sm:h-9 sm:w-9 rounded-xl text-slate-400 transition-colors", seasonalConfig.actionHover)}
                           title="Quick Emojis"
                         >
                           <Smile className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
@@ -1113,6 +1437,32 @@ export default function LoungePage() {
                           </span>
                           <span className="text-[10px] text-slate-500 font-mono">Tap to add</span>
                         </div>
+
+                        {/* Special Seasonal Emojis Row when active */}
+                        {isSeasonalActive && (
+                          <div className="mb-2 pb-2 border-b border-slate-800/80">
+                            <div className="flex items-center justify-between pb-1.5 text-[11px] font-bold text-slate-300">
+                              <span className="flex items-center gap-1.5">
+                                <span className={seasonalConfig.mascotClass}>{seasonalConfig.mascotEmoji}</span>
+                                <span>{seasonalConfig.name}</span>
+                              </span>
+                              <span className="text-[9px] text-slate-500 font-mono">Festive</span>
+                            </div>
+                            <div className="grid grid-cols-6 gap-1 max-h-24 overflow-y-auto">
+                              {seasonalConfig.seasonalEmojis.map((emoji) => (
+                                <button
+                                  key={`festive-${emoji}`}
+                                  type="button"
+                                  onClick={() => handleInsertEmoji(emoji)}
+                                  className="h-8 flex items-center justify-center text-lg rounded-lg hover:bg-white/10 hover:scale-125 transition-transform active:scale-95"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-8 gap-1.5 max-h-48 overflow-y-auto pr-1">
                           {QUICK_EMOJIS.map((emoji) => (
                             <button
@@ -1135,7 +1485,7 @@ export default function LoungePage() {
                           variant="ghost" 
                           size="icon" 
                           type="button"
-                          className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 transition-colors"
+                          className={cn("h-8 w-8 sm:h-9 sm:w-9 rounded-xl text-slate-400 transition-colors", seasonalConfig.actionHover)}
                           title="Stickers"
                         >
                           <Sticker className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
@@ -1179,8 +1529,8 @@ export default function LoungePage() {
                       className={cn(
                         "rounded-xl sm:rounded-2xl h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 transition-all duration-200 shadow-md",
                         newSuggestion.trim() 
-                          ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white shadow-purple-500/30 active:scale-90 scale-100" 
-                          : "bg-slate-800 text-slate-500 hover:bg-slate-750 border border-slate-700/50"
+                          ? seasonalConfig.sendGradientActive
+                          : seasonalConfig.sendGradientIdle
                       )}
                       title={editingSuggestion ? "Update message" : "Send message"}
                     >
@@ -1201,7 +1551,7 @@ export default function LoungePage() {
                     <span className="hidden sm:inline">Press <kbd className="px-1 py-0.2 bg-slate-800/80 rounded border border-slate-750 text-slate-400 font-mono text-[9px]">Enter ↵</kbd> to send</span>
                     <span className="hidden sm:inline">•</span>
                     <span className="hidden sm:inline"><kbd className="px-1 py-0.2 bg-slate-800/80 rounded border border-slate-750 text-slate-400 font-mono text-[9px]">Shift + Enter</kbd> for new line</span>
-                    <span className="sm:hidden">English Lounge • Keep it friendly! 💬</span>
+                    <span className="sm:hidden">{isSeasonalActive ? `${seasonalConfig.badgeLabel}` : "English Lounge • Keep it friendly! 💬"}</span>
                   </div>
                   {newSuggestion.length > 0 && (
                     <span className={cn(
