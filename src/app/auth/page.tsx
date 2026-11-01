@@ -94,7 +94,11 @@ function LoginForm() {
 
   const onSubmit = async (data: LoginValues) => {
     setIsLoading(true);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('lingoland_auth_loading_start'));
+    }
     setAuthAction('login');
+    router.prefetch('/');
     const { error } = await signInWithEmail(data.email, data.password);
     setIsLoading(false);
     if (error) {
@@ -565,6 +569,9 @@ export default function AuthPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Warm up home route bundle immediately for instant transition on mobile
+    router.prefetch('/');
+
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const mode = params.get('mode') || params.get('tab');
@@ -581,7 +588,7 @@ export default function AuthPage() {
         }, 150);
       }
     }
-  }, []);
+  }, [router]);
 
   const firestore = useFirestore();
   const loginFormRef = useMemoFirebase(() => {
@@ -597,7 +604,11 @@ export default function AuthPage() {
   const resolvedLogo = rawLogo ? resolveImageUrl(rawLogo) : "/logo.png";
 
   const handleGuestLogin = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('lingoland_auth_loading_start'));
+    }
     setAuthAction('login');
+    router.prefetch('/');
     loginAsGuest();
     router.push("/");
   };
@@ -827,7 +838,7 @@ export default function AuthPage() {
               <div id="login-card-section" className="xl:col-span-1 w-full flex flex-col">
                 <Card 
                   className={cn(
-                    "backdrop-blur-3xl relative overflow-hidden rounded-3xl flex-1 flex flex-col justify-between transition-all duration-700 select-none",
+                    "backdrop-blur-md md:backdrop-blur-3xl relative overflow-hidden rounded-3xl flex-1 flex flex-col justify-between transition-all duration-700 select-none",
                     isSeasonalActive
                       ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
                       : "border border-cyan-500/40 bg-slate-950/90 shadow-[0_12px_60px_rgba(0,0,0,0.8),0_0_50px_rgba(6,182,212,0.25)]"

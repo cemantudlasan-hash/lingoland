@@ -193,7 +193,7 @@ export function LoginCarousel() {
   return (
     <div 
       className={cn(
-        "relative w-full backdrop-blur-3xl rounded-3xl overflow-hidden p-4 sm:p-5 lg:p-6 flex flex-col md:flex-row gap-6 lg:gap-8 min-h-[300px] md:min-h-[390px] lg:min-h-[440px] xl:min-h-[480px] transition-all duration-700 group select-none border",
+        "relative w-full backdrop-blur-md md:backdrop-blur-3xl rounded-3xl overflow-hidden p-4 sm:p-5 lg:p-6 flex flex-col md:flex-row gap-6 lg:gap-8 min-h-[300px] md:min-h-[390px] lg:min-h-[440px] xl:min-h-[480px] transition-all duration-700 group select-none border",
         isSeasonalActive
           ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
           : "border-cyan-500/35 bg-slate-950/70 shadow-[0_16px_50px_rgba(0,0,0,0.7)]"

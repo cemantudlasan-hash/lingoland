@@ -68,11 +68,14 @@ export function SeasonalEffectsLayer() {
         symbols = ['✨'];
     }
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const finalCount = isMobile ? Math.min(count, 7) : count;
+
     const items: Particle[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < finalCount; i++) {
       items.push({
         id: i,
-        x: (i * 100) / count + (i % 5) * 2,
+        x: (i * 100) / finalCount + (i % 5) * 2,
         y: (i * 23) % 100,
         size: 10 + (i % 12),
         speed: 8 + (i % 8) * 1.5,

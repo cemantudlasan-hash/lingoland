@@ -301,7 +301,7 @@ export function BeautifulWeather({ className = "" }: BeautifulWeatherProps) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={cn(
-        "w-full h-full backdrop-blur-2xl rounded-3xl p-4 sm:p-5 relative overflow-hidden select-none flex flex-col justify-between transition-all duration-700 group",
+        "w-full h-full backdrop-blur-md md:backdrop-blur-2xl rounded-3xl p-4 sm:p-5 relative overflow-hidden select-none flex flex-col justify-between transition-all duration-700 group",
         isSeasonalActive
           ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
           : `bg-gradient-to-br ${theme.bg} ${theme.border} border shadow-[0_12px_40px_rgba(0,0,0,0.65)]`,

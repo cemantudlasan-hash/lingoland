@@ -201,7 +201,7 @@ export function HolidayCountdown({ className = "" }: HolidayCountdownProps) {
   return (
     <Card
       className={cn(
-        "w-full h-full backdrop-blur-2xl rounded-3xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-700 select-none group",
+        "w-full h-full backdrop-blur-md md:backdrop-blur-2xl rounded-3xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-700 select-none group",
         isSeasonalActive
           ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
           : "border border-cyan-500/30 bg-slate-950/85 hover:border-cyan-400/50 shadow-[0_12px_40px_rgba(0,0,0,0.65)]"

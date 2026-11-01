@@ -293,7 +293,7 @@ export function BeautifulCalendar() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={cn(
-        "w-full h-full flex flex-col justify-between backdrop-blur-2xl rounded-3xl p-4 sm:p-5 relative overflow-hidden transition-all duration-700 select-none group border",
+        "w-full h-full flex flex-col justify-between backdrop-blur-md md:backdrop-blur-2xl rounded-3xl p-4 sm:p-5 relative overflow-hidden transition-all duration-700 select-none group border",
         isSeasonalActive
           ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
           : "border border-indigo-500/35 hover:border-indigo-400/50 bg-slate-950/90 shadow-[0_12px_40px_rgba(0,0,0,0.65)]"

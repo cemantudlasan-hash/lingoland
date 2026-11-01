@@ -16,10 +16,27 @@ export function LoginCockpit3DBackground() {
     let animId: number;
     let isVisible = true;
 
+    // Detect mobile phone screens: completely bypass heavy 3D canvas loops on mobile to eliminate lag
+    const isMobile = typeof window !== 'undefined' && (
+      window.innerWidth < 768 ||
+      ('ontouchstart' in window && window.innerWidth < 1024)
+    );
+
+    if (isMobile) {
+      return;
+    }
+
     const handleVisibility = () => {
       isVisible = !document.hidden;
     };
     document.addEventListener('visibilitychange', handleVisibility);
+
+    // Instantly halt animation when user initiates login/navigation
+    const handleAuthLoadingStart = () => {
+      cancelAnimationFrame(animId);
+      isVisible = false;
+    };
+    window.addEventListener('lingoland_auth_loading_start', handleAuthLoadingStart);
 
     let width = 0;
     let height = 0;
@@ -511,6 +528,7 @@ export function LoginCockpit3DBackground() {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('lingoland_auth_loading_start', handleAuthLoadingStart);
     };
   }, []);
 
@@ -520,7 +538,7 @@ export function LoginCockpit3DBackground() {
       aria-hidden="true"
       className="fixed inset-0 w-full h-full pointer-events-none select-none overflow-hidden z-0 bg-[#030712]"
     >
-      {/* Layer 1: Static 4K Panoramic Spaceship Cockpit Image (no 3D hover tilt or drift) */}
+      {/* Layer 1: Static 4K Panoramic Spaceship Cockpit Image (High performance, crisp rendering on all devices) */}
       <div className="absolute inset-0 w-full h-full">
         <img
           src="/images/login-cosmic-panoramic.jpg"
@@ -532,33 +550,33 @@ export function LoginCockpit3DBackground() {
         />
       </div>
 
-      {/* Layer 2: Volumetric Interstellar Nebular Lighting (Teal & Magenta Blooms) */}
+      {/* Layer 2: Volumetric Interstellar Nebular Lighting (Desktop only to prevent mobile GPU blur re-rasterization lag) */}
       <div
-        className="absolute top-[20%] left-[36%] w-[480px] h-[380px] rounded-full blur-[110px] opacity-75 mix-blend-screen pointer-events-none"
+        className="hidden md:block absolute top-[20%] left-[36%] w-[480px] h-[380px] rounded-full blur-[110px] opacity-75 mix-blend-screen pointer-events-none"
         style={{
           background: 'radial-gradient(circle, rgba(56, 189, 248, 0.85) 0%, rgba(168, 85, 247, 0.55) 50%, transparent 75%)',
           animation: 'lingoland-aurora-glow 12s ease-in-out infinite alternate',
         }}
       />
       <div
-        className="absolute top-[30%] right-[8%] w-[420px] h-[420px] rounded-full blur-[120px] opacity-65 mix-blend-screen pointer-events-none"
+        className="hidden md:block absolute top-[30%] right-[8%] w-[420px] h-[420px] rounded-full blur-[120px] opacity-65 mix-blend-screen pointer-events-none"
         style={{
           background: 'radial-gradient(circle, rgba(192, 132, 252, 0.75) 0%, rgba(56, 189, 248, 0.4) 60%, transparent 80%)',
           animation: 'lingoland-nebula-pulse 16s ease-in-out infinite alternate',
         }}
       />
       <div
-        className="absolute bottom-[20%] left-[6%] w-[400px] h-[400px] rounded-full blur-[100px] opacity-60 mix-blend-screen pointer-events-none"
+        className="hidden md:block absolute bottom-[20%] left-[6%] w-[400px] h-[400px] rounded-full blur-[100px] opacity-60 mix-blend-screen pointer-events-none"
         style={{
           background: 'radial-gradient(circle, rgba(45, 212, 191, 0.75) 0%, rgba(56, 189, 248, 0.45) 55%, transparent 75%)',
           animation: 'lingoland-aurora-glow 18s ease-in-out infinite alternate-reverse',
         }}
       />
 
-      {/* Layer 3: Ultra-Realistic 3D Cyber Constellation, Swirling Galaxy & Floating Crystals Canvas */}
+      {/* Layer 3: Ultra-Realistic 3D Cyber Constellation, Swirling Galaxy & Floating Crystals Canvas (Desktop only) */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full block pointer-events-none z-10"
+        className="hidden md:block absolute inset-0 w-full h-full pointer-events-none z-10"
       />
 
       {/* Layer 4: Subtle Soft Vignette to maintain ultra quality and readability */}
