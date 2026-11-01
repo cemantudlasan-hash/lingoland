@@ -17,6 +17,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSeasonalTheme } from "@/context/seasonal-theme-context";
 
 interface CarouselSlide {
   id: string;
@@ -94,6 +95,9 @@ function resolveImageUrl(url: string) {
 }
 
 export function LoginCarousel() {
+  const { activeTheme, isThemeActiveForUser, settings: seasonalSettings } = useSeasonalTheme();
+  const isSeasonalActive = isThemeActiveForUser && (seasonalSettings.includeLoginPage ?? true) && activeTheme.id !== 'default';
+
   const firestore = useFirestore();
   const [slides, setSlides] = useState<CarouselSlide[]>(defaultSlides);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -187,12 +191,42 @@ export function LoginCarousel() {
   const isVideo = currentSlide.mediaType === "video";
 
   return (
-    <div className="relative w-full bg-slate-950/70 backdrop-blur-3xl rounded-3xl border border-cyan-500/35 overflow-hidden shadow-[0_16px_50px_rgba(0,0,0,0.7)] p-4 sm:p-5 lg:p-6 flex flex-col md:flex-row gap-6 lg:gap-8 min-h-[300px] md:min-h-[390px] lg:min-h-[440px] xl:min-h-[480px] transition-all duration-500 group select-none">
+    <div 
+      className={cn(
+        "relative w-full backdrop-blur-3xl rounded-3xl overflow-hidden p-4 sm:p-5 lg:p-6 flex flex-col md:flex-row gap-6 lg:gap-8 min-h-[300px] md:min-h-[390px] lg:min-h-[440px] xl:min-h-[480px] transition-all duration-700 group select-none border",
+        isSeasonalActive
+          ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
+          : "border-cyan-500/35 bg-slate-950/70 shadow-[0_16px_50px_rgba(0,0,0,0.7)]"
+      )}
+      style={{
+        boxShadow: isSeasonalActive
+          ? `0 0 50px ${activeTheme.glowColor}, inset 0 0 25px ${activeTheme.glowColor}`
+          : undefined,
+      }}
+    >
       
-      {/* ── Ambient Background Glow Orbs ── */}
-      <div className="absolute -top-20 -left-20 w-64 h-64 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-96 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* ── Ambient Background Glow Orbs (Themed to Season) ── */}
+      <div 
+        className="absolute -top-20 -left-20 w-64 h-64 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
+        style={{ 
+          backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#06b6d4', 
+          opacity: isSeasonalActive ? 0.22 : 0.15 
+        }} 
+      />
+      <div 
+        className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
+        style={{ 
+          backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#6366f1', 
+          opacity: isSeasonalActive ? 0.22 : 0.15 
+        }} 
+      />
+      <div 
+        className="absolute top-1/2 left-1/3 -translate-y-1/2 w-96 h-40 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
+        style={{ 
+          backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#a855f7', 
+          opacity: isSeasonalActive ? 0.14 : 0.10 
+        }} 
+      />
 
       {/* ── Sleek Top Edge Highlight Beam ── */}
       <div className="absolute top-0 inset-x-8 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent pointer-events-none" />
@@ -205,7 +239,10 @@ export function LoginCarousel() {
           }
         }}
         title="Click to view full preview in new tab"
-        className="relative w-full md:w-[58%] lg:w-[60%] h-[230px] sm:h-[290px] md:h-[350px] lg:h-[400px] xl:h-[440px] rounded-2xl overflow-hidden bg-slate-950/90 border border-cyan-500/35 shrink-0 cursor-pointer hover:border-cyan-400/70 transition-all duration-300 shadow-[0_10px_35px_rgba(0,0,0,0.8)] group/media"
+        className={cn(
+          "relative w-full md:w-[58%] lg:w-[60%] h-[230px] sm:h-[290px] md:h-[350px] lg:h-[400px] xl:h-[440px] rounded-2xl overflow-hidden bg-slate-950/90 shrink-0 cursor-pointer transition-all duration-300 shadow-[0_10px_35px_rgba(0,0,0,0.8)] group/media border",
+          isSeasonalActive ? activeTheme.borderColor : "border-cyan-500/35 hover:border-cyan-400/70"
+        )}
       >
         {/* Futuristic Cyber Corner Bracket Crosshairs */}
         <div className="absolute top-2.5 left-2.5 z-30 pointer-events-none flex items-center gap-1 text-[10px] text-cyan-400/70 font-mono font-bold">
@@ -315,8 +352,19 @@ export function LoginCarousel() {
               transition={{ duration: 0.35, ease: "easeOut" }}
               className="space-y-3 lg:space-y-4"
             >
-              {/* Category Pill Tag */}
-              <div className="flex items-center gap-2">
+              {/* Category Pill Tag & Seasonal Badge */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {isSeasonalActive && (
+                  <span className={cn(
+                    "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider border shadow-md animate-pulse",
+                    activeTheme.badgeBg,
+                    activeTheme.borderColor,
+                    activeTheme.badgeText
+                  )}>
+                    <span className="text-sm">{activeTheme.emoji}</span>
+                    <span>{seasonalSettings?.customHeadline || activeTheme.name}</span>
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 border border-cyan-400/40 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
                   <Sparkles className="w-3 h-3 text-cyan-300 animate-pulse" />
                   <span>Spotlight • Module 0{currentIndex + 1} of 0{slides.length}</span>

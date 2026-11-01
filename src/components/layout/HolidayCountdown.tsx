@@ -201,14 +201,14 @@ export function HolidayCountdown({ className = "" }: HolidayCountdownProps) {
   return (
     <Card
       className={cn(
-        "w-full h-full backdrop-blur-2xl rounded-3xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-700 select-none group border shadow-[0_12px_40px_rgba(0,0,0,0.65)]",
+        "w-full h-full backdrop-blur-2xl rounded-3xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-700 select-none group",
         isSeasonalActive
-          ? `bg-slate-950/90 ${activeTheme.borderColor}`
-          : "border-cyan-500/30 bg-slate-950/85 hover:border-cyan-400/50"
+          ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
+          : "border border-cyan-500/30 bg-slate-950/85 hover:border-cyan-400/50 shadow-[0_12px_40px_rgba(0,0,0,0.65)]"
       )}
       style={{
         boxShadow: isSeasonalActive
-          ? `0 0 45px ${activeTheme.glowColor}, inset 0 0 20px ${activeTheme.glowColor}`
+          ? `0 0 50px ${activeTheme.glowColor}, inset 0 0 25px ${activeTheme.glowColor}`
           : undefined,
       }}
     >
@@ -217,14 +217,14 @@ export function HolidayCountdown({ className = "" }: HolidayCountdownProps) {
         className="absolute -top-16 -right-16 w-44 h-44 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
         style={{ 
           backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#06b6d4', 
-          opacity: 0.18 
+          opacity: isSeasonalActive ? 0.22 : 0.18 
         }} 
       />
       <div 
         className="absolute -bottom-16 -left-16 w-44 h-44 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
         style={{ 
           backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#6366f1', 
-          opacity: 0.15 
+          opacity: isSeasonalActive ? 0.22 : 0.15 
         }} 
       />
 

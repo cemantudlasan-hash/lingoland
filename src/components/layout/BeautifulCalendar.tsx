@@ -25,7 +25,9 @@ import {
 } from '@/lib/holidays';
 
 export function BeautifulCalendar() {
-  const { activeTheme, isThemeActiveForUser } = useSeasonalTheme();
+  const { activeTheme, isThemeActiveForUser, settings: seasonalSettings } = useSeasonalTheme();
+  const isSeasonalActive = isThemeActiveForUser && (seasonalSettings?.includeLoginPage ?? true) && activeTheme.id !== 'default';
+
   const [today, setToday] = useState(new Date());
   const [currentDayString, setCurrentDayString] = useState(new Date().toDateString());
   const [viewDate, setViewDate] = useState(new Date());
@@ -290,12 +292,40 @@ export function BeautifulCalendar() {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
-      className="w-full h-full flex flex-col justify-between bg-slate-950/90 backdrop-blur-2xl border border-indigo-500/35 hover:border-indigo-400/50 rounded-3xl p-4 sm:p-5 shadow-[0_12px_40px_rgba(0,0,0,0.65)] relative overflow-hidden transition-all duration-300 select-none group"
+      className={cn(
+        "w-full h-full flex flex-col justify-between backdrop-blur-2xl rounded-3xl p-4 sm:p-5 relative overflow-hidden transition-all duration-700 select-none group border",
+        isSeasonalActive
+          ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
+          : "border border-indigo-500/35 hover:border-indigo-400/50 bg-slate-950/90 shadow-[0_12px_40px_rgba(0,0,0,0.65)]"
+      )}
+      style={{
+        boxShadow: isSeasonalActive
+          ? `0 0 50px ${activeTheme.glowColor}, inset 0 0 25px ${activeTheme.glowColor}`
+          : undefined,
+      }}
     >
-      {/* ── Ambient Neon Cyber Orbs ── */}
-      <div className="absolute -top-16 -right-16 w-48 h-48 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-36 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* ── Ambient Neon Cyber Orbs (Themed to Season) ── */}
+      <div 
+        className="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
+        style={{ 
+          backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#6366f1',
+          opacity: isSeasonalActive ? 0.22 : 0.15 
+        }} 
+      />
+      <div 
+        className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
+        style={{ 
+          backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#06b6d4',
+          opacity: isSeasonalActive ? 0.22 : 0.15 
+        }} 
+      />
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-36 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
+        style={{ 
+          backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#a855f7',
+          opacity: isSeasonalActive ? 0.14 : 0.10 
+        }} 
+      />
 
       {/* ── Sleek Top Edge Highlight ── */}
       <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-indigo-400/50 to-transparent pointer-events-none" />
@@ -321,6 +351,19 @@ export function BeautifulCalendar() {
             </div>
           </div>
 
+          {/* Seasonal Theme Badge in Top Bar */}
+          {isSeasonalActive && (
+            <div className={cn(
+              "flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold shadow-sm backdrop-blur-md transition-all animate-pulse",
+              activeTheme.badgeBg,
+              activeTheme.borderColor,
+              activeTheme.badgeText
+            )}>
+              <span className="text-sm">{activeTheme.emoji}</span>
+              <span className="hidden sm:inline font-bold">{activeTheme.name}</span>
+            </div>
+          )}
+
           {/* Right: Live Digital Clock & Timezone */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-950/60 to-indigo-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-bold font-mono shadow-[0_0_15px_rgba(34,211,238,0.2)]">
@@ -336,7 +379,7 @@ export function BeautifulCalendar() {
 
         {/* ── Month Title & Navigation Bar ── */}
         <div className="flex items-center justify-between pt-0.5 flex-wrap gap-2">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h3 className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent capitalize drop-shadow-sm">
               {monthName}
             </h3>
@@ -360,6 +403,19 @@ export function BeautifulCalendar() {
                 <span className="text-sm">{getHolidayEmoji(upcomingHolidayInMonth.holiday.name)}</span>
                 <span className="text-[10px] uppercase font-bold text-rose-400">Day {upcomingHolidayInMonth.day}:</span>
                 <span className="truncate max-w-[150px]">{upcomingHolidayInMonth.holiday.name}</span>
+              </div>
+            )}
+
+            {/* Seasonal Celebration Tag in Month Bar */}
+            {isSeasonalActive && (
+              <div className={cn(
+                "hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold shadow-sm transition-all",
+                activeTheme.badgeBg,
+                activeTheme.borderColor,
+                activeTheme.badgeText
+              )}>
+                <span className="text-sm">{activeTheme.emoji}</span>
+                <span className="truncate max-w-[200px]">{seasonalSettings?.customBadgeText || activeTheme.defaultBadgeText}</span>
               </div>
             )}
           </div>
@@ -424,6 +480,15 @@ export function BeautifulCalendar() {
             const isWeekend = (idx % 7 === 0) || (idx % 7 === 6);
             const holidayEmoji = holiday ? getHolidayEmoji(holiday.name) : null;
 
+            const isSeasonalDay = isSeasonalActive && (
+              (activeTheme.id === 'halloween' && month === 9 && day === 31) ||
+              (activeTheme.id === 'christmas' && month === 11 && day === 25) ||
+              (activeTheme.id === 'valentine' && month === 1 && day === 14) ||
+              (activeTheme.id === 'songkran' && month === 3 && (day >= 13 && day <= 15)) ||
+              (activeTheme.id === 'new_year' && month === 0 && day === 1) ||
+              (activeTheme.id === 'lunar_new_year' && month === 0 && (day >= 28 && day <= 31))
+            );
+
             return (
               <motion.button
                 key={`day-${day}`}
@@ -437,18 +502,29 @@ export function BeautifulCalendar() {
                   'h-10 sm:h-12 w-full rounded-2xl flex flex-col items-center justify-between p-1 sm:p-1.5 text-xs font-bold transition-all duration-200 relative group/cell overflow-hidden cursor-pointer select-none',
                   // Today cell (Hero cyberpunk luminous style)
                   isToday
-                    ? 'bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 text-white font-black shadow-[0_0_25px_rgba(99,102,241,0.65)] border-2 border-indigo-200 ring-2 ring-indigo-400/50'
+                    ? isSeasonalActive
+                      ? `bg-gradient-to-tr from-purple-800 via-indigo-600 to-amber-500 text-white font-black border-2 ${activeTheme.borderColor} shadow-lg ring-2 ring-amber-400/50`
+                      : 'bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-400 text-white font-black shadow-[0_0_25px_rgba(99,102,241,0.65)] border-2 border-indigo-200 ring-2 ring-indigo-400/50'
+                    // Themed holiday day
+                    : isSeasonalDay
+                    ? `bg-gradient-to-b from-amber-500/25 via-orange-950/60 to-slate-950/80 text-white border-2 ${activeTheme.borderColor} shadow-md animate-pulse`
                     // Selected cell (Luminous frosted ring)
                     : isSelected
                     ? holiday
                       ? 'bg-rose-950/80 text-rose-100 border-2 border-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.5)]'
+                      : isSeasonalActive
+                      ? `bg-slate-900/90 text-white border-2 ${activeTheme.borderColor} shadow-md`
                       : 'bg-indigo-600/35 text-white border-2 border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.5)]'
                     // Public Holiday cell (Warm ruby glass with subtle badge)
                     : holiday
                     ? 'bg-gradient-to-b from-rose-500/20 via-rose-950/40 to-slate-950/70 text-rose-200 border border-rose-500/40 hover:border-rose-400/80 hover:bg-rose-500/30 shadow-sm'
                     // Regular Day cell (Frosted glass squircle)
                     : isWeekend
-                    ? 'bg-gradient-to-b from-white/[0.06] to-white/[0.02] hover:from-white/[0.12] hover:to-white/[0.05] text-indigo-200/90 hover:text-white border border-white/[0.08] hover:border-indigo-400/40 shadow-inner'
+                    ? isSeasonalActive
+                      ? `bg-gradient-to-b from-white/[0.06] to-white/[0.02] hover:from-white/[0.12] hover:to-white/[0.05] text-slate-200 hover:text-white border border-white/[0.08] hover:${activeTheme.borderColor} shadow-inner`
+                      : 'bg-gradient-to-b from-white/[0.06] to-white/[0.02] hover:from-white/[0.12] hover:to-white/[0.05] text-indigo-200/90 hover:text-white border border-white/[0.08] hover:border-indigo-400/40 shadow-inner'
+                    : isSeasonalActive
+                    ? `bg-gradient-to-b from-white/[0.04] to-white/[0.015] hover:from-white/[0.1] hover:to-white/[0.04] text-slate-300 hover:text-white border border-white/[0.07] hover:${activeTheme.borderColor} shadow-inner`
                     : 'bg-gradient-to-b from-white/[0.04] to-white/[0.015] hover:from-white/[0.1] hover:to-white/[0.04] text-slate-300 hover:text-white border border-white/[0.07] hover:border-indigo-400/40 shadow-inner'
                 )}
               >
@@ -466,18 +542,22 @@ export function BeautifulCalendar() {
                     {day}
                   </span>
 
-                  {/* Micro Holiday Emoji Badge right in the cell */}
-                  {holiday && (
+                  {/* Micro Holiday or Seasonal Theme Emoji Badge right in the cell */}
+                  {(holiday || isSeasonalDay) && (
                     <span className="text-[11px] sm:text-xs leading-none drop-shadow-sm select-none">
-                      {holidayEmoji}
+                      {isSeasonalDay ? activeTheme.emoji : holidayEmoji}
                     </span>
                   )}
                 </div>
 
                 {/* Bottom Indicator Dot or Accent Pill */}
                 <div className="w-full flex items-center justify-center pb-0.5">
-                  {holiday ? (
+                  {isSeasonalDay ? (
+                    <span className="h-1 w-3 sm:w-4 rounded-full shadow-sm" style={{ backgroundColor: activeTheme.accentColor }} />
+                  ) : holiday ? (
                     <span className="h-1 w-3 sm:w-4 rounded-full bg-rose-400 shadow-[0_0_8px_#f43f5e]" />
+                  ) : isSelected ? (
+                    <span className="h-1 w-2 rounded-full" style={{ backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#6366f1' }} />
                   ) : isToday ? (
                     <span className="h-1 w-3 sm:w-4 rounded-full bg-cyan-200 shadow-[0_0_8px_#a5f3fc]" />
                   ) : (

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useSeasonalTheme } from '@/context/seasonal-theme-context';
 
 interface WeatherData {
   temp: number;
@@ -36,6 +37,9 @@ interface BeautifulWeatherProps {
 }
 
 export function BeautifulWeather({ className = "" }: BeautifulWeatherProps) {
+  const { activeTheme, isThemeActiveForUser, settings: seasonalSettings } = useSeasonalTheme();
+  const isSeasonalActive = isThemeActiveForUser && (seasonalSettings.includeLoginPage ?? true) && activeTheme.id !== 'default';
+
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [unit, setUnit] = useState<'C' | 'F'>('C');
@@ -297,18 +301,32 @@ export function BeautifulWeather({ className = "" }: BeautifulWeatherProps) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={cn(
-        `w-full h-full bg-gradient-to-br ${theme.bg} ${theme.border} backdrop-blur-2xl border rounded-3xl p-4 sm:p-5 shadow-[0_12px_40px_rgba(0,0,0,0.65)] relative overflow-hidden select-none flex flex-col justify-between transition-all duration-500 group`,
+        "w-full h-full backdrop-blur-2xl rounded-3xl p-4 sm:p-5 relative overflow-hidden select-none flex flex-col justify-between transition-all duration-700 group",
+        isSeasonalActive
+          ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
+          : `bg-gradient-to-br ${theme.bg} ${theme.border} border shadow-[0_12px_40px_rgba(0,0,0,0.65)]`,
         className
       )}
+      style={{
+        boxShadow: isSeasonalActive
+          ? `0 0 50px ${activeTheme.glowColor}, inset 0 0 25px ${activeTheme.glowColor}`
+          : undefined,
+      }}
     >
-      {/* Dynamic Ambient Glow Aura */}
+      {/* Dynamic Ambient Glow Aura (Themed to Seasonal Accent) */}
       <div 
         className="absolute -top-16 -right-16 w-44 h-44 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
-        style={{ backgroundColor: theme.auraColor }} 
+        style={{ 
+          backgroundColor: isSeasonalActive ? activeTheme.accentColor : theme.auraColor,
+          opacity: isSeasonalActive ? 0.22 : 0.18
+        }} 
       />
       <div 
         className="absolute -bottom-16 -left-16 w-44 h-44 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
-        style={{ backgroundColor: theme.auraColor }} 
+        style={{ 
+          backgroundColor: isSeasonalActive ? activeTheme.accentColor : theme.auraColor,
+          opacity: isSeasonalActive ? 0.22 : 0.15
+        }} 
       />
 
       {/* Sleek Top Edge Highlight */}
@@ -353,6 +371,19 @@ export function BeautifulWeather({ className = "" }: BeautifulWeatherProps) {
               {weather ? weather.country : 'Earth'}
             </span>
           </div>
+
+          {/* Seasonal Festive Tag in Location Header */}
+          {isSeasonalActive && (
+            <div className={cn(
+              "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold shadow-sm backdrop-blur-md transition-all animate-pulse",
+              activeTheme.badgeBg,
+              activeTheme.borderColor,
+              activeTheme.badgeText
+            )}>
+              <span className="text-xs">{activeTheme.emoji}</span>
+              <span className="hidden sm:inline font-bold">{activeTheme.name}</span>
+            </div>
+          )}
 
           {/* Action Controls: Refresh & °C / °F Switch */}
           <div className="flex items-center gap-1.5">
@@ -406,10 +437,17 @@ export function BeautifulWeather({ className = "" }: BeautifulWeatherProps) {
             {/* Hero Weather Section: 3D Icon Pod & Large Temperature */}
             <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-gradient-to-r from-white/[0.05] to-white/[0.02] border border-white/[0.1] shadow-inner">
               <div className="flex items-center gap-3.5">
-                {/* 3D Glowing Weather Pod */}
+                {/* 3D Glowing Weather Pod (Themed Glow) */}
                 <div 
-                  className="p-3 rounded-2xl bg-gradient-to-b from-white/[0.1] to-black/40 border border-white/[0.15] shadow-lg shrink-0 relative overflow-hidden"
-                  style={{ boxShadow: `0 0 20px ${theme.auraColor}` }}
+                  className={cn(
+                    "p-3 rounded-2xl bg-gradient-to-b from-white/[0.1] to-black/40 border shrink-0 relative overflow-hidden transition-all duration-700",
+                    isSeasonalActive ? activeTheme.borderColor : "border-white/[0.15]"
+                  )}
+                  style={{ 
+                    boxShadow: isSeasonalActive 
+                      ? `0 0 25px ${activeTheme.glowColor}` 
+                      : `0 0 20px ${theme.auraColor}` 
+                  }}
                 >
                   <div className="absolute top-0 inset-x-1 h-[1px] bg-white/40 pointer-events-none" />
                   {theme.icon}
@@ -423,12 +461,14 @@ export function BeautifulWeather({ className = "" }: BeautifulWeatherProps) {
                   )}>
                     {displayTemp(weather.temp)}
                   </h3>
-                  <div className="flex items-center gap-2 mt-1.5">
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     <span className={cn(
                       "text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-sm",
-                      theme.badgeBg
+                      isSeasonalActive ? activeTheme.badgeBg : theme.badgeBg,
+                      isSeasonalActive ? activeTheme.borderColor : undefined,
+                      isSeasonalActive ? activeTheme.badgeText : undefined
                     )}>
-                      {theme.label}
+                      {isSeasonalActive ? `${activeTheme.emoji} ${theme.label}` : theme.label}
                     </span>
                   </div>
                 </div>
@@ -498,13 +538,23 @@ export function BeautifulWeather({ className = "" }: BeautifulWeatherProps) {
               </div>
             </div>
 
-            {/* ── Inspirational Motivational Banner ── */}
-            <div className="p-2.5 sm:p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center gap-2.5 shadow-inner relative overflow-hidden">
-              <div className="w-7 h-7 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-sm shadow-sm shrink-0">
-                💡
+            {/* ── Inspirational Motivational Banner (Themed to Season) ── */}
+            <div className={cn(
+              "p-2.5 sm:p-3 rounded-2xl border flex items-center gap-2.5 shadow-inner relative overflow-hidden transition-all duration-700",
+              isSeasonalActive 
+                ? `bg-slate-900/80 ${activeTheme.borderColor}` 
+                : "bg-white/[0.03] border-white/[0.08]"
+            )}>
+              <div className={cn(
+                "w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-sm shrink-0 border",
+                isSeasonalActive
+                  ? `${activeTheme.badgeBg} ${activeTheme.borderColor}`
+                  : "bg-amber-500/15 border-amber-400/30"
+              )}>
+                {isSeasonalActive ? activeTheme.emoji : "💡"}
               </div>
               <p className="text-[11px] text-slate-200 font-medium leading-relaxed text-left line-clamp-2">
-                {theme.quote}
+                {isSeasonalActive ? activeTheme.greetingText : theme.quote}
               </p>
             </div>
 
