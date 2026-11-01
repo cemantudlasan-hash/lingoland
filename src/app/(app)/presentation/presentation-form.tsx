@@ -2083,14 +2083,18 @@ export function PresentationForm() {
     }
   }, [presentation, editableTitle, editableSlides, slidePhotos, theme, fontFamily, fontSize, align, activeDbId, coveredTexts, revealedTexts]);
 
-  // Fullscreen listeners
+  // Fullscreen listeners with cross-browser and mobile webkit support
   React.useEffect(() => {
     const handleFullscreenChange = () => {
-      const isCurrentlyFullscreen = !!document.fullscreenElement;
+      const isCurrentlyFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
       setIsFullscreen(isCurrentlyFullscreen);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -2417,54 +2421,90 @@ export function PresentationForm() {
     };
   }, [presentation, handleRevealNextWord, isFullscreen, isEditMode]);
 
+  const activeSnapRef = React.useRef(0);
+  const isTransitioningRef = React.useRef(false);
+  const lastViewportDimensionsRef = React.useRef({ width: 0, height: 0 });
+
   React.useEffect(() => {
     if (!api) return;
 
     const onSelect = () => {
-      setCurrent(api.selectedScrollSnap() + 1);
+      const snap = api.selectedScrollSnap();
+      activeSnapRef.current = snap;
+      setCurrent(snap + 1);
+      isTransitioningRef.current = false;
+    };
+
+    const onScroll = () => {
+      isTransitioningRef.current = true;
     };
     
     const onReInit = () => {
-        setCount(api.scrollSnapList().length);
-        setCurrent(api.selectedScrollSnap() + 1);
+      const snapList = api.scrollSnapList();
+      setCount(snapList.length);
+      const currentSnap = api.selectedScrollSnap();
+      activeSnapRef.current = currentSnap;
+      setCurrent(currentSnap + 1);
+      isTransitioningRef.current = false;
     };
     
     onReInit();
 
     api.on("select", onSelect);
+    api.on("scroll", onScroll);
     api.on("reInit", onReInit);
 
     return () => {
       api.off("select", onSelect);
+      api.off("scroll", onScroll);
       api.off("reInit", onReInit);
     };
   }, [api, presentation]);
 
-  // Ensure Embla carousel cleanly recalculates snap sizes whenever entering/exiting fullscreen or screen rotates
+  // Ensure Embla carousel smoothly recalculates layout on true orientation changes or fullscreen toggles
+  // without jumping, shaking, or stuttering on mobile address-bar micro-resizes
   React.useEffect(() => {
     if (!api) return;
 
-    const timer1 = setTimeout(() => {
-      api.reInit();
-      api.scrollTo(Math.max(0, current - 1), true);
-    }, 60);
+    // Single gentle layout stabilization after fullscreen switch completes
+    const fsTimer = setTimeout(() => {
+      if (api) {
+        api.reInit();
+      }
+    }, 150);
 
-    const timer2 = setTimeout(() => {
-      api.reInit();
-      api.scrollTo(Math.max(0, current - 1), true);
-    }, 250);
+    let resizeDebounceTimer: NodeJS.Timeout | null = null;
 
     const handleResize = () => {
-      api.reInit();
-      api.scrollTo(Math.max(0, current - 1), true);
+      if (typeof window === 'undefined') return;
+      const newWidth = window.innerWidth;
+      const newHeight = window.innerHeight;
+
+      // Ignore mobile vertical micro-resizes (address bar show/hide ~15-60px)
+      const widthChanged = Math.abs(newWidth - lastViewportDimensionsRef.current.width) > 10;
+      const significantHeightChange = Math.abs(newHeight - lastViewportDimensionsRef.current.height) > 120;
+
+      if (!widthChanged && !significantHeightChange) {
+        return;
+      }
+
+      lastViewportDimensionsRef.current = { width: newWidth, height: newHeight };
+
+      if (resizeDebounceTimer) clearTimeout(resizeDebounceTimer);
+      resizeDebounceTimer = setTimeout(() => {
+        // Only re-measure if user is not in the middle of a touch swipe/slide transition
+        if (!isTransitioningRef.current && api) {
+          api.reInit();
+        }
+      }, 200);
     };
 
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('orientationchange', handleResize, { passive: true });
 
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
+      clearTimeout(fsTimer);
+      if (resizeDebounceTimer) clearTimeout(resizeDebounceTimer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
     };
@@ -3077,12 +3117,35 @@ export function PresentationForm() {
     setIsDownloadingPptx(false);
   };
 
-  const handleFullScreen = () => {
-    if (presentationContainerRef.current) {
-      if (!document.fullscreenElement) {
-        presentationContainerRef.current.requestFullscreen();
-      } else {
-        document.exitFullscreen();
+  const handleFullScreen = async () => {
+    const container = presentationContainerRef.current;
+    if (!container) return;
+
+    const isFs = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+    if (!isFs) {
+      try {
+        if (container.requestFullscreen) {
+          await container.requestFullscreen();
+        } else if ((container as any).webkitRequestFullscreen) {
+          await (container as any).webkitRequestFullscreen();
+        } else {
+          setIsFullscreen(true);
+        }
+      } catch (err) {
+        // Fallback for browsers that restrict Element.requestFullscreen (like iOS Safari on iPhone)
+        setIsFullscreen(true);
+      }
+    } else {
+      try {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        } else {
+          setIsFullscreen(false);
+        }
+      } catch (err) {
+        setIsFullscreen(false);
       }
     }
   };
@@ -3693,7 +3756,7 @@ export function PresentationForm() {
               className={cn(
                   'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden rounded-3xl border transition-all duration-300', 
                   isThemeLight ? "bg-white border-slate-200" : "bg-slate-950 border-slate-800",
-                  isFullscreen && 'fixed inset-0 z-50 w-screen h-screen !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-none overflow-hidden',
+                  isFullscreen && 'fixed inset-0 z-50 w-full h-full h-[100dvh] max-h-[100dvh] !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-none overflow-hidden !transition-none overscroll-none',
                   isFullscreen && (currentThemeObj.bgFullScreen || (isThemeLight ? "bg-white text-slate-900" : "bg-slate-950 text-white")),
                   showSplitSearch && 'flex flex-row',
                   !isEditMode && activeDrawSlideIndex === null && 'cursor-pointer'
@@ -3842,15 +3905,16 @@ export function PresentationForm() {
                       </Button>
                     </div>
 
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-slate-950/95 border border-white/20 text-white/90 px-3 py-1 text-xs select-none shadow-2xl">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-slate-950/95 border border-white/20 text-white/90 px-3 py-1 text-xs select-none shadow-2xl touch-manipulation">
                       <button
                         type="button"
                         onClick={(e) => { 
+                          e.preventDefault();
                           e.stopPropagation(); 
                           if (api?.canScrollPrev()) api.scrollPrev(); 
                         }}
                         disabled={!api?.canScrollPrev()}
-                        className="p-1 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90"
+                        className="p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90 touch-manipulation"
                         title="Previous Slide"
                       >
                         <ChevronLeft className="h-4 w-4" />
@@ -3859,11 +3923,12 @@ export function PresentationForm() {
                       <button
                         type="button"
                         onClick={(e) => { 
+                          e.preventDefault();
                           e.stopPropagation(); 
                           if (api?.canScrollNext()) api.scrollNext(); 
                         }}
                         disabled={!api?.canScrollNext()}
-                        className="p-1 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90"
+                        className="p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90 touch-manipulation"
                         title="Next Slide"
                       >
                         <ChevronRight className="h-4 w-4" />
@@ -3883,15 +3948,16 @@ export function PresentationForm() {
                       <Maximize className="h-3.5 w-3.5 text-cyan-400" />
                       <span className="text-xs font-bold uppercase tracking-wider">Full</span>
                     </Button>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white/90 px-3 py-1 text-xs select-none shadow-md">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white/90 px-3 py-1 text-xs select-none shadow-md touch-manipulation">
                       <button
                         type="button"
                         onClick={(e) => { 
+                          e.preventDefault();
                           e.stopPropagation(); 
                           if (api?.canScrollPrev()) api.scrollPrev(); 
                         }}
                         disabled={!api?.canScrollPrev()}
-                        className="p-1 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90"
+                        className="p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90 touch-manipulation"
                         title="Previous Slide"
                       >
                         <ChevronLeft className="h-3.5 w-3.5" />
@@ -3900,11 +3966,12 @@ export function PresentationForm() {
                       <button
                         type="button"
                         onClick={(e) => { 
+                          e.preventDefault();
                           e.stopPropagation(); 
                           if (api?.canScrollNext()) api.scrollNext(); 
                         }}
                         disabled={!api?.canScrollNext()}
-                        className="p-1 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90"
+                        className="p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90 touch-manipulation"
                         title="Next Slide"
                       >
                         <ChevronRight className="h-3.5 w-3.5" />
@@ -3921,8 +3988,10 @@ export function PresentationForm() {
                     containScroll: false,
                     loop: false,
                     skipSnaps: false,
+                    duration: 20,
+                    dragFree: false,
                   }} 
-                  className="w-full h-full"
+                  className="w-full h-full select-none"
                 >
                   <CarouselContent className={cn("h-full", isFullscreen && "ml-0 bg-transparent")}>
                     {(isEditMode ? (editableSlides.length > 0 ? editableSlides : presentation.slides) : presentation.slides).map((slide, index) => (
@@ -3933,7 +4002,7 @@ export function PresentationForm() {
                             theme,
                             fontFamily,
                             isFullscreen 
-                              ? "!rounded-none !shadow-none !opacity-100 !backdrop-blur-none" 
+                              ? "!rounded-none !shadow-none !opacity-100 !backdrop-blur-none !transform-none !transition-none will-change-transform" 
                               : "transition-all duration-700 ease-out transform-gpu"
                           )}
                           style={(!isFullscreen && enable3D) ? {
@@ -3954,7 +4023,7 @@ export function PresentationForm() {
                           <div className={cn(
                             "w-full flex flex-col justify-center h-full",
                             !isFullscreen && "overflow-y-auto py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-y-auto pt-20 sm:pt-24 pb-12 px-3 sm:px-6 md:px-12 lg:px-16"
+                            isFullscreen && "overflow-y-auto pt-20 sm:pt-24 pb-12 px-3 sm:px-6 md:px-12 lg:px-16 overscroll-contain touch-pan-y"
                           )}>
                             <div className={cn(
                               "w-full mx-auto flex flex-col md:flex-row items-stretch justify-center h-full",
@@ -4713,11 +4782,12 @@ export function PresentationForm() {
                   </CarouselContent>
                   <CarouselPrevious 
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       if (api?.canScrollPrev()) api.scrollPrev();
                     }}
                     className={cn(
-                      "absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90",
+                      "absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90 touch-manipulation",
                       "left-2 sm:left-4 top-1/2 -translate-y-1/2",
                       !isFullscreen 
                         ? "bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
@@ -4726,11 +4796,12 @@ export function PresentationForm() {
                   />
                   <CarouselNext 
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       if (api?.canScrollNext()) api.scrollNext();
                     }}
                     className={cn(
-                      "absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90",
+                      "absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90 touch-manipulation",
                       "right-2 sm:right-4 top-1/2 -translate-y-1/2",
                       !isFullscreen 
                         ? "bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
