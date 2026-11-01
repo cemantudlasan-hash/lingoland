@@ -2,8 +2,6 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { AuthProviderWrapper } from '@/context/auth-provider-wrapper';
 import { FirebaseClientProvider } from '@/firebase';
-import { SeasonalThemeProvider } from '@/context/seasonal-theme-context';
-import { SeasonalEffectsLayer } from '@/components/seasonal/SeasonalEffectsLayer';
 import PlexusBackground from '@/components/layout/PlexusBackground';
 import Script from 'next/script';
 
@@ -170,10 +168,7 @@ export default function RootLayout({
         <div id="root" suppressHydrationWarning className="relative z-10">
           <FirebaseClientProvider>
               <AuthProviderWrapper>
-                  <SeasonalThemeProvider>
-                      <SeasonalEffectsLayer />
-                      {children}
-                  </SeasonalThemeProvider>
+                  {children}
               </AuthProviderWrapper>
           </FirebaseClientProvider>
         </div>

@@ -40,7 +40,6 @@ import {
 import type { InternalQuery } from "@/firebase/firestore/use-collection";
 import { allGames } from "@/lib/games";
 import { AuthGateModal } from "@/components/auth/auth-gate-modal";
-import { useSeasonalTheme } from "@/context/seasonal-theme-context";
 
 const pageTitles: { [key: string]: string } = {
   "/": "LingoLandVerse Home",
@@ -85,7 +84,6 @@ export function AppHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, userProfile, isGuest, logoutGuest, isAdmin, setAuthAction } = useAuth();
-  const { activeTheme, isThemeActiveForUser, settings: seasonalSettings } = useSeasonalTheme();
   const title = getTitleForPathname(pathname);
   const firestore = useFirestore();
 
@@ -474,24 +472,12 @@ export function AppHeader() {
             )}
         </div>
         <div className={cn(
-          "flex-1 min-w-0 mx-2 text-center items-center justify-center gap-2",
+          "flex-1 min-w-0 mx-2 text-center items-center justify-center pointer-events-none",
           pathname?.startsWith('/games/') ? "hidden 2xl:flex" : "hidden md:flex"
         )}>
-          <h1 className="text-sm md:text-base lg:text-lg font-black truncate tracking-tight font-headline text-foreground max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg pointer-events-none">
+          <h1 className="text-sm md:text-base lg:text-lg font-black truncate tracking-tight font-headline text-foreground max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg">
             {title}
           </h1>
-          {isThemeActiveForUser && seasonalSettings.headerBadge && (
-            <div
-              className={cn(
-                "hidden xl:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm transition-all pointer-events-auto select-none",
-                activeTheme.badgeText,
-                activeTheme.badgeBg
-              )}
-            >
-              <span>{activeTheme.emoji}</span>
-              <span>{seasonalSettings.customBadgeText || activeTheme.defaultBadgeText}</span>
-            </div>
-          )}
         </div>
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             {renderAuthContent()}
