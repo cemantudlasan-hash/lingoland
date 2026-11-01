@@ -27,7 +27,16 @@ import {
   ChevronRight, 
   Globe,
   Layers,
-  GraduationCap
+  GraduationCap,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+  Rocket,
+  UserPlus,
+  Play
 } from "lucide-react";
 import {
   AlertDialog,
@@ -73,6 +82,7 @@ type SignupValues = z.infer<typeof signupSchema>;
 
 function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [isPasswordResetting, setIsPasswordResetting] = useState(false);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const router = useRouter();
@@ -129,61 +139,93 @@ function LoginForm() {
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-1">
+        {/* Email Field with Left Icon */}
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-xs text-zinc-300 font-medium">Email Address</Label>
-          <Input 
-            id="email" 
-            type="email" 
-            placeholder="agent@lingolandverse.io" 
-            {...register("email")} 
-            autoComplete="email" 
-            className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-10 text-sm shadow-inner"
-          />
-          {errors.email && <p className="text-xs text-rose-400">{errors.email.message}</p>}
+          <Label htmlFor="email" className="text-xs text-slate-200 font-bold flex items-center justify-between">
+            <span>Email Address</span>
+            <span className="text-[10px] text-cyan-400/80 font-mono font-medium">Cadet ID</span>
+          </Label>
+          <div className="relative flex items-center group">
+            <Mail className="w-4 h-4 text-cyan-400 absolute left-3.5 pointer-events-none transition-colors group-focus-within:text-cyan-300" />
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="pilot@lingolandverse.io" 
+              {...register("email")} 
+              autoComplete="email" 
+              className="pl-10 pr-3.5 bg-black/60 border border-cyan-500/30 text-white placeholder:text-zinc-500 focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400/25 rounded-2xl h-11 text-sm shadow-inner transition-all backdrop-blur-md"
+            />
+          </div>
+          {errors.email && <p className="text-xs text-rose-400 font-medium pl-1">{errors.email.message}</p>}
         </div>
+
+        {/* Password Field with Left Icon & Eye Toggle */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-xs text-zinc-300 font-medium">Password</Label>
+            <Label htmlFor="password" className="text-xs text-slate-200 font-bold">Password</Label>
             <button
               type="button"
               onClick={() => setIsResetDialogOpen(true)}
-              className="text-xs font-semibold text-teal-400 hover:text-teal-300 hover:underline transition-colors"
+              className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 hover:underline transition-colors cursor-pointer"
             >
-              Forgot?
+              Forgot Password?
             </button>
           </div>
-          <Input 
-            id="password" 
-            type="password" 
-            placeholder="••••••••"
-            {...register("password")} 
-            autoComplete="current-password" 
-            className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-10 text-sm shadow-inner"
-          />
-          {errors.password && <p className="text-xs text-rose-400">{errors.password.message}</p>}
+          <div className="relative flex items-center group">
+            <Lock className="w-4 h-4 text-cyan-400 absolute left-3.5 pointer-events-none transition-colors group-focus-within:text-cyan-300" />
+            <Input 
+              id="password" 
+              type={showPassword ? "text" : "password"} 
+              placeholder="••••••••"
+              {...register("password")} 
+              autoComplete="current-password" 
+              className="pl-10 pr-10 bg-black/60 border border-cyan-500/30 text-white placeholder:text-zinc-500 focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400/25 rounded-2xl h-11 text-sm shadow-inner transition-all backdrop-blur-md"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 text-zinc-400 hover:text-cyan-300 transition-colors cursor-pointer"
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {errors.password && <p className="text-xs text-rose-400 font-medium pl-1">{errors.password.message}</p>}
         </div>
+
+        {/* Action Button */}
         <Button 
           type="submit" 
-          className="w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white font-extrabold h-11 rounded-xl shadow-lg shadow-teal-500/25 transition-all hover:scale-[1.02] active:scale-95" 
+          className="w-full bg-gradient-to-r from-teal-400 via-cyan-400 to-indigo-500 hover:from-teal-300 hover:to-indigo-400 text-slate-950 font-black text-sm tracking-wide h-12 rounded-2xl shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 cursor-pointer mt-2" 
           disabled={isLoading}
         >
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Begin Your AI Journey"}
+          {isLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <>
+              <span>Ignite Pilot Cockpit</span>
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
         </Button>
       </form>
 
       <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
-        <AlertDialogContent className="bg-zinc-950/95 border border-teal-500/30 backdrop-blur-xl">
+        <AlertDialogContent className="bg-slate-950/95 border border-cyan-500/40 backdrop-blur-2xl rounded-3xl p-6 shadow-[0_0_40px_rgba(6,182,212,0.3)]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Reset Password</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400">
-              Enter your email address to receive a secure password reset link.
+            <AlertDialogTitle className="text-white text-lg font-black flex items-center gap-2">
+              <Lock className="w-5 h-5 text-cyan-400" />
+              <span>Reset Pilot Password</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-300 text-xs leading-relaxed">
+              Enter your registered email address and our cosmic security gateway will send you a secure one-click link to reset your credentials.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-900 border-zinc-800 text-zinc-300">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handlePasswordReset} disabled={isPasswordResetting} className="bg-teal-500 hover:bg-teal-400 text-black font-bold">
-              {isPasswordResetting ? <Loader2 className="animate-spin" /> : "Send Reset Link"}
+          <AlertDialogFooter className="gap-2 pt-2">
+            <AlertDialogCancel className="bg-white/[0.05] border-white/10 text-slate-300 hover:text-white rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePasswordReset} disabled={isPasswordResetting} className="bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-950 font-black rounded-xl">
+              {isPasswordResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Reset Link"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -194,6 +236,8 @@ function LoginForm() {
 
 function SignUpForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
   const { setAuthAction } = useAuth();
   const { register, handleSubmit, formState: { errors } } = useForm<SignupValues>({
@@ -226,49 +270,91 @@ function SignUpForm({ onSignupSuccess }: { onSignupSuccess: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 pt-1">
+      {/* Email Field with Left Icon */}
       <div className="space-y-1.5">
-        <Label htmlFor="signup-email" className="text-xs text-zinc-300 font-medium">Email</Label>
-        <Input 
-          id="signup-email" 
-          type="email" 
-          placeholder="new.agent@lingolandverse.io" 
-          {...register("email")} 
-          autoComplete="email" 
-          className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-9 text-sm"
-        />
-        {errors.email && <p className="text-xs text-rose-400">{errors.email.message}</p>}
+        <Label htmlFor="signup-email" className="text-xs text-slate-200 font-bold flex items-center justify-between">
+          <span>Email Address</span>
+          <span className="text-[10px] text-cyan-400/80 font-mono font-medium">New Cadet</span>
+        </Label>
+        <div className="relative flex items-center group">
+          <Mail className="w-4 h-4 text-cyan-400 absolute left-3.5 pointer-events-none transition-colors group-focus-within:text-cyan-300" />
+          <Input 
+            id="signup-email" 
+            type="email" 
+            placeholder="new.cadet@lingolandverse.io" 
+            {...register("email")} 
+            autoComplete="email" 
+            className="pl-10 pr-3.5 bg-black/60 border border-cyan-500/30 text-white placeholder:text-zinc-500 focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400/25 rounded-2xl h-10 text-sm shadow-inner transition-all backdrop-blur-md"
+          />
+        </div>
+        {errors.email && <p className="text-xs text-rose-400 font-medium pl-1">{errors.email.message}</p>}
       </div>
+
+      {/* Password Field */}
       <div className="space-y-1.5">
-        <Label htmlFor="signup-password" className="text-xs text-zinc-300 font-medium">Password</Label>
-        <Input 
-          id="signup-password" 
-          type="password" 
-          placeholder="••••••••"
-          {...register("password")} 
-          autoComplete="new-password" 
-          className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-9 text-sm"
-        />
-        {errors.password && <p className="text-xs text-rose-400">{errors.password.message}</p>}
+        <Label htmlFor="signup-password" className="text-xs text-slate-200 font-bold">Password</Label>
+        <div className="relative flex items-center group">
+          <Lock className="w-4 h-4 text-cyan-400 absolute left-3.5 pointer-events-none transition-colors group-focus-within:text-cyan-300" />
+          <Input 
+            id="signup-password" 
+            type={showPassword ? "text" : "password"} 
+            placeholder="••••••••"
+            {...register("password")} 
+            autoComplete="new-password" 
+            className="pl-10 pr-10 bg-black/60 border border-cyan-500/30 text-white placeholder:text-zinc-500 focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400/25 rounded-2xl h-10 text-sm shadow-inner transition-all backdrop-blur-md"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3.5 text-zinc-400 hover:text-cyan-300 transition-colors cursor-pointer"
+            title={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
+        {errors.password && <p className="text-xs text-rose-400 font-medium pl-1">{errors.password.message}</p>}
       </div>
+
+      {/* Confirm Password Field */}
       <div className="space-y-1.5">
-        <Label htmlFor="confirmPassword" className="text-xs text-zinc-300 font-medium">Confirm Password</Label>
-        <Input 
-          id="confirmPassword" 
-          type="password" 
-          placeholder="••••••••"
-          {...register("confirmPassword")} 
-          autoComplete="new-password"
-          className="bg-black/60 border-teal-500/30 text-white placeholder:text-zinc-500 focus-visible:ring-teal-400 rounded-xl h-9 text-sm"
-        />
-        {errors.confirmPassword && <p className="text-xs text-rose-400">{errors.confirmPassword.message}</p>}
+        <Label htmlFor="confirmPassword" className="text-xs text-slate-200 font-bold">Confirm Password</Label>
+        <div className="relative flex items-center group">
+          <ShieldCheck className="w-4 h-4 text-cyan-400 absolute left-3.5 pointer-events-none transition-colors group-focus-within:text-cyan-300" />
+          <Input 
+            id="confirmPassword" 
+            type={showConfirmPassword ? "text" : "password"} 
+            placeholder="••••••••"
+            {...register("confirmPassword")} 
+            autoComplete="new-password"
+            className="pl-10 pr-10 bg-black/60 border border-cyan-500/30 text-white placeholder:text-zinc-500 focus-visible:border-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-400/25 rounded-2xl h-10 text-sm shadow-inner transition-all backdrop-blur-md"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-3.5 text-zinc-400 hover:text-cyan-300 transition-colors cursor-pointer"
+            title={showConfirmPassword ? "Hide password" : "Show password"}
+          >
+            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
+        {errors.confirmPassword && <p className="text-xs text-rose-400 font-medium pl-1">{errors.confirmPassword.message}</p>}
       </div>
+
+      {/* Submit Button */}
       <Button 
         type="submit" 
-        className="w-full bg-gradient-to-r from-teal-500 via-cyan-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white font-extrabold h-11 rounded-xl shadow-lg shadow-teal-500/25 transition-all hover:scale-[1.02] active:scale-95 mt-2" 
+        className="w-full bg-gradient-to-r from-teal-400 via-cyan-400 to-indigo-500 hover:from-teal-300 hover:to-indigo-400 text-slate-950 font-black text-sm tracking-wide h-12 rounded-2xl shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 cursor-pointer mt-2" 
         disabled={isLoading}
       >
-        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Start Learning for Free"}
+        {isLoading ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <>
+            <Sparkles className="w-4 h-4 text-slate-950" />
+            <span>Create Cadet Account Free</span>
+          </>
+        )}
       </Button>
     </form>
   );
@@ -721,10 +807,10 @@ export default function AuthPage() {
               <div id="login-card-section" className="xl:col-span-1 w-full flex flex-col">
                 <Card 
                   className={cn(
-                    "backdrop-blur-3xl relative overflow-hidden rounded-3xl flex-1 flex flex-col justify-between transition-all duration-700",
+                    "backdrop-blur-3xl relative overflow-hidden rounded-3xl flex-1 flex flex-col justify-between transition-all duration-700 select-none",
                     isSeasonalActive
                       ? `bg-slate-950/95 border-2 ${activeTheme.borderColor}`
-                      : "border border-cyan-500/40 bg-slate-950/90 shadow-[0_0_70px_rgba(6,182,212,0.3)]"
+                      : "border border-cyan-500/40 bg-slate-950/90 shadow-[0_12px_60px_rgba(0,0,0,0.8),0_0_50px_rgba(6,182,212,0.25)]"
                   )}
                   style={{
                     boxShadow: isSeasonalActive
@@ -732,21 +818,39 @@ export default function AuthPage() {
                       : undefined
                   }}
                 >
-                  {/* Neon Edge Glow */}
+                  {/* Sleek Top Edge Highlight Beam */}
+                  <div className="absolute top-0 inset-x-8 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent pointer-events-none" />
+
+                  {/* Neon Edge Glow Orbs */}
                   <div 
                     className="absolute -top-16 -right-16 w-44 h-44 blur-3xl rounded-full pointer-events-none transition-all duration-700" 
-                    style={{ backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#06b6d4', opacity: 0.25 }}
+                    style={{ backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#06b6d4', opacity: 0.22 }}
                   />
                   <div 
                     className="absolute -bottom-16 -left-16 w-44 h-44 blur-3xl rounded-full pointer-events-none transition-all duration-700" 
-                    style={{ backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#a855f7', opacity: 0.25 }}
+                    style={{ backgroundColor: isSeasonalActive ? activeTheme.accentColor : '#a855f7', opacity: 0.22 }}
                   />
 
-                  <CardHeader className="text-center pb-4 pt-6 px-6 relative z-10">
+                  <CardHeader className="text-center pb-3 pt-5 px-5 sm:px-6 relative z-10 space-y-2.5">
+                    {/* Top Security Status Bar */}
+                    <div className="flex items-center justify-between w-full pb-2.5 border-b border-white/[0.08]">
+                      <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-300">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Pilot Access Gateway</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-cyan-300 bg-cyan-950/70 px-2.5 py-0.5 rounded-full border border-cyan-500/35 shadow-sm">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                        </span>
+                        <span>256-Bit SSL</span>
+                      </div>
+                    </div>
+
                     {/* Seasonal Holiday Festival Announcement on Login Card */}
                     {isSeasonalActive && (
                       <div className={cn(
-                        "w-full py-2 px-3 rounded-2xl border mb-3 text-center flex flex-col items-center justify-center gap-1 shadow-lg transition-all animate-pulse",
+                        "w-full py-2 px-3 rounded-2xl border text-center flex flex-col items-center justify-center gap-1 shadow-lg transition-all animate-pulse",
                         activeTheme.badgeBg,
                         activeTheme.borderColor
                       )}>
@@ -761,29 +865,34 @@ export default function AuthPage() {
                       </div>
                     )}
 
-                    <div className="flex justify-center mb-3">
+                    {/* Logo with Luminous Halo */}
+                    <div className="relative flex justify-center pt-1">
+                      <div className="absolute inset-0 w-28 h-28 mx-auto rounded-full bg-cyan-400/25 blur-2xl pointer-events-none animate-pulse" />
                       <Image
                         src="/logo.png"
                         alt="LingoLandVerse Logo"
-                        width={120}
-                        height={120}
-                        className="object-contain drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]"
+                        width={110}
+                        height={110}
+                        className="relative z-10 object-contain drop-shadow-[0_0_25px_rgba(34,211,238,0.6)]"
                         priority
                       />
                     </div>
-                    {/* Dynamic Title (Admin configurable in /admin) */}
-                    <CardTitle className="text-xl md:text-2xl font-black tracking-tight text-white drop-shadow-[0_0_15px_rgba(56,189,248,0.85)] whitespace-pre-wrap">
+
+                    {/* Dynamic Title */}
+                    <CardTitle className="text-lg sm:text-xl md:text-2xl font-black tracking-tight text-white drop-shadow-[0_2px_15px_rgba(56,189,248,0.7)] whitespace-pre-wrap leading-tight">
                       {title}
                     </CardTitle>
-                    {/* Dynamic Subtitle / Description (Admin configurable in /admin) */}
-                    <CardDescription className="text-slate-300 text-xs md:text-sm mt-1.5 whitespace-pre-wrap leading-relaxed">
+
+                    {/* Dynamic Subtitle / Description */}
+                    <CardDescription className="text-slate-300 text-xs sm:text-sm whitespace-pre-wrap leading-relaxed font-medium">
                       {description}
                     </CardDescription>
+
                     {/* Dynamic Credits */}
-                    <p className="text-xs text-cyan-400 font-semibold pt-1 whitespace-pre-wrap">{credits}</p>
+                    <p className="text-xs text-cyan-400 font-bold whitespace-pre-wrap">{credits}</p>
                   </CardHeader>
 
-                  <CardContent className="px-6 pb-6 relative z-10 space-y-4">
+                  <CardContent className="px-5 sm:px-6 pb-6 relative z-10 space-y-4">
                     {(user || isGuest) && (
                       <div className="p-3.5 rounded-2xl bg-cyan-950/60 border border-cyan-400/40 text-xs space-y-2.5 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
                         <div className="flex items-center justify-between text-cyan-300 font-bold">
@@ -816,56 +925,78 @@ export default function AuthPage() {
                       </div>
                     )}
 
+                    {/* High-Tech Tabs Selector with Glowing Pill Switch */}
                     <Tabs value={activeTab} onValueChange={setActiveTab}>
-                      <TabsList className="grid w-full grid-cols-3 bg-slate-900/80 p-1 border border-cyan-500/30 rounded-2xl shadow-inner">
-                        <TabsTrigger value="signin" className="rounded-xl text-xs font-bold data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                          Pilot Sign In
+                      <TabsList className="grid w-full grid-cols-3 bg-black/60 p-1 border border-cyan-500/30 rounded-2xl shadow-inner backdrop-blur-md">
+                        <TabsTrigger 
+                          value="signin" 
+                          className="rounded-xl text-xs font-bold data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.6)] flex items-center justify-center gap-1 transition-all"
+                        >
+                          <LogIn className="w-3.5 h-3.5" />
+                          <span>Sign In</span>
                         </TabsTrigger>
-                        <TabsTrigger value="signup" className="rounded-xl text-xs font-bold data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                          New Cadet
+                        <TabsTrigger 
+                          value="signup" 
+                          className="rounded-xl text-xs font-bold data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.6)] flex items-center justify-center gap-1 transition-all"
+                        >
+                          <UserPlus className="w-3.5 h-3.5" />
+                          <span>Cadet</span>
                         </TabsTrigger>
-                        <TabsTrigger value="demo" className="rounded-xl text-xs font-bold text-cyan-300 data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                          Try Demo
+                        <TabsTrigger 
+                          value="demo" 
+                          className="rounded-xl text-xs font-bold text-cyan-300 data-[state=active]:bg-cyan-500 data-[state=active]:text-slate-950 data-[state=active]:shadow-[0_0_15px_rgba(6,182,212,0.6)] flex items-center justify-center gap-1 transition-all"
+                        >
+                          <Play className="w-3.5 h-3.5" />
+                          <span>Demo</span>
                         </TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="signin" className="pt-3">
+                      <TabsContent value="signin" className="pt-2">
                         <LoginForm />
                       </TabsContent>
 
-                      <TabsContent value="signup" className="pt-3">
+                      <TabsContent value="signup" className="pt-2">
                         <SignUpForm onSignupSuccess={() => setActiveTab("signin")} />
                       </TabsContent>
 
-                      <TabsContent value="demo" className="pt-3">
+                      <TabsContent value="demo" className="pt-2">
                         <InteractiveDemo onGoToSignup={() => setActiveTab("signup")} />
                       </TabsContent>
                     </Tabs>
 
                     {/* Divider */}
-                    <div className="relative my-3">
+                    <div className="relative my-2">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-teal-500/15" />
+                        <span className="w-full border-t border-cyan-500/20" />
                       </div>
                       <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
-                        <span className="px-2 text-zinc-500 bg-zinc-950">
-                          Or Instant Access
+                        <span className="px-2.5 py-0.5 text-slate-400 bg-slate-950 rounded-full border border-white/10">
+                          Instant Access Pass
                         </span>
                       </div>
                     </div>
 
-                    {/* Explore as Guest Button */}
-                    <Button 
-                      variant="secondary" 
-                      onClick={handleGuestLogin} 
-                      className="w-full border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-200 font-extrabold h-11 rounded-xl shadow-inner transition-all hover:scale-[1.02] active:scale-95 text-xs cursor-pointer"
-                    >
-                      <LogIn className="mr-2 h-4 w-4 text-teal-300" /> 
-                      Explore as Guest (Instant Access)
-                    </Button>
+                    {/* Explore as Guest Card with Quick Perks */}
+                    <div className="p-3 rounded-2xl bg-gradient-to-b from-white/[0.04] to-black/40 border border-teal-500/30 space-y-2 shadow-inner">
+                      <Button 
+                        variant="secondary" 
+                        onClick={handleGuestLogin} 
+                        className="w-full border border-teal-500/40 bg-gradient-to-r from-teal-500/20 via-cyan-500/20 to-indigo-500/20 hover:from-teal-500/30 hover:to-indigo-500/30 text-teal-200 hover:text-white font-black h-11 rounded-xl shadow-inner transition-all hover:scale-[1.02] active:scale-95 text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer group"
+                      >
+                        <Rocket className="w-4 h-4 text-teal-300 group-hover:scale-110 transition-transform" /> 
+                        <span>Explore as Guest (Instant Access)</span>
+                      </Button>
+                      <div className="flex items-center justify-center gap-2.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                        <span>⚡ Zero Password</span>
+                        <span>•</span>
+                        <span>🎮 79+ Games Live</span>
+                        <span>•</span>
+                        <span>🚀 Instant Pass</span>
+                      </div>
+                    </div>
 
                     {/* Live Visitor Counter */}
-                    <div className="pt-1">
+                    <div className="pt-0.5">
                       <VisitorCounter />
                     </div>
                   </CardContent>
