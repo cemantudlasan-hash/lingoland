@@ -8,9 +8,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Loader2, Clapperboard, ExternalLink, Plus, Trash2, Edit3, UserPlus, Sparkles, Film, Search } from 'lucide-react';
+import {
+  Loader2,
+  Clapperboard,
+  ExternalLink,
+  Plus,
+  Trash2,
+  Edit3,
+  UserPlus,
+  Sparkles,
+  Film,
+  Search,
+  ImagePlus,
+  Image as ImageIcon,
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AddEditMovieDialog } from './add-movie-dialog';
+import { UploadThumbnailDialog, resolveImageUrl } from './thumbnail-upload-dialog';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,6 +38,8 @@ export default function MovieRelaxPage() {
   
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingMovie, setEditingMovie] = React.useState<any | null>(null);
+  const [thumbnailMovie, setThumbnailMovie] = React.useState<any | null>(null);
+  const [isThumbnailDialogOpen, setIsThumbnailDialogOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const moviesQuery = useMemoFirebase(() => {
@@ -77,6 +93,11 @@ export default function MovieRelaxPage() {
     setIsDialogOpen(true);
   };
 
+  const handleOpenThumbnailUpload = (movie: any) => {
+    setThumbnailMovie(movie);
+    setIsThumbnailDialogOpen(true);
+  };
+
   const handleAdd = () => {
     setEditingMovie(null);
     setIsDialogOpen(true);
@@ -115,82 +136,144 @@ export default function MovieRelaxPage() {
       ) : filteredMovies.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           <AnimatePresence mode="popLayout">
-            {filteredMovies.map((movie, index) => (
-              <motion.div
-                key={movie.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className="group h-full flex flex-col bg-card/50 backdrop-blur-xl border-border/10 hover:border-primary/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl overflow-hidden rounded-[2.5rem]">
-                  <div className="relative aspect-video bg-muted overflow-hidden flex items-center justify-center">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
-                    <span className="text-8xl drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-transform duration-500 group-hover:scale-125 group-hover:rotate-6 select-none">
-                        {movie.thumbnailEmoji || '🎬'}
-                    </span>
-                    <Badge className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border-none uppercase font-black text-[10px] tracking-widest px-3 py-1 text-white">
+            {filteredMovies.map((movie) => {
+              const displayThumbnail = movie.thumbnailUrl ? resolveImageUrl(movie.thumbnailUrl) : null;
+
+              return (
+                <motion.div
+                  key={movie.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="group h-full flex flex-col bg-card/50 backdrop-blur-xl border-border/10 hover:border-primary/30 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl overflow-hidden rounded-[2.5rem]">
+                    {/* Thumbnail Header Area */}
+                    <div className="relative aspect-video bg-muted overflow-hidden flex items-center justify-center">
+                      {displayThumbnail ? (
+                        <>
+                          <img
+                            src={displayThumbnail}
+                            alt={movie.title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
+                        </>
+                      ) : (
+                        <>
+                          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
+                          <span className="text-8xl drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-transform duration-500 group-hover:scale-125 group-hover:rotate-6 select-none">
+                            {movie.thumbnailEmoji || '🎬'}
+                          </span>
+                        </>
+                      )}
+
+                      <Badge className="absolute top-4 left-4 bg-black/60 backdrop-blur-md border-none uppercase font-black text-[10px] tracking-widest px-3 py-1 text-white z-10">
                         Movie Pick
-                    </Badge>
-                  </div>
-                  <CardHeader className="p-6 pb-2">
-                    <CardTitle className="text-xl md:text-2xl font-black text-card-foreground line-clamp-2 group-hover:text-primary transition-colors uppercase italic min-h-[3.5rem] flex items-center">{movie.title}</CardTitle>
-                    <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Shared by {movie.authorName}</p>
-                  </CardHeader>
-                  <CardContent className="px-6 flex-grow pb-4">
-                    <ScrollArea className="h-24 w-full pr-4">
-                      <p className="text-foreground/80 font-medium italic text-sm md:text-base whitespace-pre-wrap">"{movie.description}"</p>
-                    </ScrollArea>
-                  </CardContent>
-                  <CardFooter className="p-6 pt-0 flex flex-col gap-4">
-                    <Button asChild className="w-full h-12 rounded-xl font-black uppercase tracking-widest bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-lg">
-                      <a href={movie.url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-4 w-4" /> Watch Now
-                      </a>
-                    </Button>
-                    <div className="flex justify-between items-center w-full">
+                      </Badge>
+
+                      {/* Direct Upload Thumbnail Button for Admin */}
+                      {isAdmin && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenThumbnailUpload(movie);
+                          }}
+                          className="absolute top-3 right-3 z-10 bg-black/75 hover:bg-black text-white text-[11px] font-bold rounded-xl px-2.5 py-1.5 h-auto backdrop-blur-md border border-white/20 shadow-xl opacity-90 group-hover:opacity-100 hover:scale-105 transition-all flex items-center gap-1.5"
+                          title="Upload/change thumbnail for this movie"
+                        >
+                          <ImagePlus className="h-3.5 w-3.5 text-primary" />
+                          <span>{displayThumbnail ? 'Edit Thumbnail' : 'Upload Thumbnail'}</span>
+                        </Button>
+                      )}
+                    </div>
+
+                    <CardHeader className="p-6 pb-2">
+                      <CardTitle className="text-xl md:text-2xl font-black text-card-foreground line-clamp-2 group-hover:text-primary transition-colors uppercase italic min-h-[3.5rem] flex items-center">{movie.title}</CardTitle>
+                      <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Shared by {movie.authorName}</p>
+                    </CardHeader>
+                    <CardContent className="px-6 flex-grow pb-4">
+                      <ScrollArea className="h-24 w-full pr-4">
+                        <p className="text-foreground/80 font-medium italic text-sm md:text-base whitespace-pre-wrap">"{movie.description}"</p>
+                      </ScrollArea>
+                    </CardContent>
+                    <CardFooter className="p-6 pt-0 flex flex-col gap-4">
+                      <Button asChild className="w-full h-12 rounded-xl font-black uppercase tracking-widest bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-lg">
+                        <a href={movie.url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="mr-2 h-4 w-4" /> Watch Now
+                        </a>
+                      </Button>
+                      <div className="flex justify-between items-center w-full">
                         <span className="text-[10px] text-muted-foreground font-bold uppercase">
-                            {movie.createdAt ? formatDistanceToNow(movie.createdAt.toDate(), { addSuffix: true }) : 'Recently'}
+                          {movie.createdAt ? formatDistanceToNow(movie.createdAt.toDate(), { addSuffix: true }) : 'Recently'}
                         </span>
                         {(isAdmin || user?.uid === movie.authorId) && (
-                            <div className="flex gap-1">
-                                <Button variant="ghost" size="icon" onClick={() => handleEdit(movie)} className="h-8 w-8 text-blue-400 hover:bg-blue-400/10">
-                                    <Edit3 className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(movie.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
+                          <div className="flex gap-1 items-center">
+                            {isAdmin && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenThumbnailUpload(movie)}
+                                className="h-8 w-8 text-primary hover:bg-primary/10"
+                                title="Upload/Change Thumbnail"
+                              >
+                                <ImagePlus className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(movie)} className="h-8 w-8 text-blue-400 hover:bg-blue-400/10" title="Edit Post">
+                              <Edit3 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(movie.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10" title="Delete Post">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
-                    </div>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            ))}
+                      </div>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </div>
       ) : (
         <div className="text-center py-20 bg-muted/20 rounded-[3rem] border-4 border-dashed border-border/5 flex flex-col items-center gap-4 mx-4">
-            {searchTerm ? (
-              <>
-                <Search className="h-12 w-12 text-muted-foreground/40" />
-                <p className="text-lg md:text-xl font-bold text-muted-foreground px-4">No movies found matching "{searchTerm}"</p>
-                <Button variant="ghost" onClick={() => setSearchTerm('')}>Clear Search</Button>
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-12 w-12 text-primary/40" />
-                <p className="text-lg md:text-xl font-bold text-muted-foreground px-4">The theatre is currently empty. Be the first to share a masterpiece!</p>
-              </>
-            )}
+          {searchTerm ? (
+            <>
+              <Search className="h-12 w-12 text-muted-foreground/40" />
+              <p className="text-lg md:text-xl font-bold text-muted-foreground px-4">No movies found matching "{searchTerm}"</p>
+              <Button variant="ghost" onClick={() => setSearchTerm('')}>Clear Search</Button>
+            </>
+          ) : (
+            <>
+              <Film className="h-16 w-16 text-muted-foreground/40 animate-pulse" />
+              <div className="space-y-1">
+                <p className="text-xl md:text-2xl font-black uppercase tracking-tight text-foreground">The Screening Room is Empty</p>
+                <p className="text-muted-foreground text-sm font-medium">Be the first to share an inspiring cinematic link!</p>
+              </div>
+              <Button onClick={handleAdd} className="mt-2 rounded-xl font-bold uppercase tracking-wider text-xs">
+                <Plus className="mr-2 h-4 w-4" /> Add Movie
+              </Button>
+            </>
+          )}
         </div>
       )}
 
-      <AddEditMovieDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        movie={editingMovie}
+      {/* Main Post / Edit Dialog */}
+      <AddEditMovieDialog 
+        isOpen={isDialogOpen} 
+        onOpenChange={setIsDialogOpen} 
+        movie={editingMovie} 
+      />
+
+      {/* Dedicated Quick Thumbnail Upload Dialog for Admins */}
+      <UploadThumbnailDialog
+        isOpen={isThumbnailDialogOpen}
+        onOpenChange={setIsThumbnailDialogOpen}
+        movie={thumbnailMovie}
       />
     </div>
   );
