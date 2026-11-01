@@ -87,7 +87,6 @@ export function SeasonalThemeProvider({ children }: { children: React.ReactNode 
             floatingParticles: data.floatingParticles ?? true,
             headerBadge: data.headerBadge ?? true,
             ambientGlow: data.ambientGlow ?? true,
-            includeLoginPage: data.includeLoginPage ?? true,
             updatedAt: data.updatedAt,
             updatedBy: data.updatedBy,
           });
