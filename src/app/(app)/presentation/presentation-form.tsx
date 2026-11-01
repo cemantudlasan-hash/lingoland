@@ -741,29 +741,29 @@ const fontSizes = [
       name: 'Small text', 
       className: 'text-sm sm:text-base leading-relaxed', 
       titleClassName: 'text-xl sm:text-2xl font-bold leading-tight', 
-      fullScreenClassName: 'text-base sm:text-lg md:text-xl lg:text-2xl leading-normal sm:leading-relaxed md:leading-relaxed', 
-      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight' 
+      fullScreenClassName: 'text-sm sm:text-base md:text-xl lg:text-2xl leading-snug sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-xl sm:text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight' 
     },
     { 
       name: 'Medium text', 
       className: 'text-base sm:text-lg leading-relaxed', 
       titleClassName: 'text-2xl sm:text-3xl font-bold leading-tight', 
-      fullScreenClassName: 'text-lg sm:text-xl md:text-2xl lg:text-3xl leading-normal sm:leading-relaxed md:leading-relaxed', 
-      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight' 
+      fullScreenClassName: 'text-base sm:text-lg md:text-2xl lg:text-3xl leading-snug sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight' 
     },
     { 
       name: 'Large text', 
       className: 'text-lg sm:text-xl leading-relaxed', 
       titleClassName: 'text-3xl sm:text-4xl font-bold leading-tight', 
-      fullScreenClassName: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl leading-normal sm:leading-relaxed md:leading-relaxed', 
-      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight' 
+      fullScreenClassName: 'text-base sm:text-xl md:text-2xl lg:text-3xl leading-snug sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight' 
     },
     { 
       name: 'Extra Large', 
       className: 'text-xl sm:text-2xl md:text-3xl leading-relaxed', 
       titleClassName: 'text-3xl sm:text-4xl md:text-5xl font-bold leading-tight', 
-      fullScreenClassName: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl leading-normal sm:leading-relaxed md:leading-relaxed', 
-      fullScreenTitleClassName: 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight' 
+      fullScreenClassName: 'text-lg sm:text-2xl md:text-3xl lg:text-4xl leading-snug sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight' 
     },
 ];
 
@@ -873,68 +873,48 @@ function getSlideTransitionStyle(
   const offset = slideIndex - activeIndex;
   const isCurrent = offset === 0;
 
-  // Fullscreen mode: clean, GPU-stable transitions that never clip or cause visual glitching on mobile
-  // Keeps all scales <= 1.0 so elements never expand outside viewport boundaries
+  // Fullscreen mode: 100% GPU-safe transitions that NEVER drop raster tiles or clip on mobile
   if (isFullscreen) {
     switch (effect) {
-      case 'cube3d': {
-        const deg = isCurrent ? 0 : offset < 0 ? 18 : -18;
+      case 'fade': {
         return {
-          transform: `perspective(1000px) rotateY(${deg}deg) scale(${isCurrent ? 1 : 0.94})`,
-          opacity: 1,
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
-          transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
+          opacity: isCurrent ? 1 : 0.2,
+          transition: 'opacity 0.4s ease-in-out',
         };
       }
       case 'zoom': {
-        const scale = isCurrent ? 1 : 0.92;
         return {
-          transform: `scale(${scale})`,
-          opacity: 1,
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
-          transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
+          opacity: isCurrent ? 1 : 0.25,
+          transform: isCurrent ? 'scale(1)' : 'scale(0.96)',
+          transition: 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'cardstack': {
-        const y = isCurrent ? 0 : offset < 0 ? -16 : 16;
         return {
-          transform: `translateY(${y}px) scale(${isCurrent ? 1 : 0.93})`,
-          opacity: 1,
-          transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
-        };
-      }
-      case 'flip': {
-        const deg = isCurrent ? 0 : offset < 0 ? 22 : -22;
-        return {
-          transform: `perspective(1000px) rotateY(${deg}deg) scale(${isCurrent ? 1 : 0.93})`,
-          opacity: 1,
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
-          transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
+          opacity: isCurrent ? 1 : 0.35,
+          transform: isCurrent ? 'translateY(0)' : 'translateY(14px)',
+          transition: 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'bouncy': {
         return {
-          transform: isCurrent ? 'scale(1)' : 'scale(0.90)',
-          opacity: 1,
-          transition: 'transform 0.6s cubic-bezier(0.34, 1.45, 0.64, 1)',
+          opacity: isCurrent ? 1 : 0.45,
+          transform: isCurrent ? 'scale(1)' : 'scale(0.95)',
+          transition: 'opacity 0.45s ease, transform 0.45s cubic-bezier(0.34, 1.35, 0.64, 1)',
         };
       }
-      case 'fade': {
+      case 'cube3d':
+      case 'flip': {
         return {
-          opacity: isCurrent ? 1 : 0.4,
+          opacity: isCurrent ? 1 : 0.35,
           transform: isCurrent ? 'scale(1)' : 'scale(0.96)',
-          transition: 'opacity 0.55s ease, transform 0.55s ease',
+          transition: 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'slide':
       default: {
         return {
-          transform: isCurrent ? 'scale(1)' : 'scale(0.97)',
           opacity: 1,
-          transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
     }
@@ -1423,6 +1403,7 @@ export function PresentationForm() {
   const [slideImagePans, setSlideImagePans] = React.useState<{ [key: number]: { x: number; y: number } }>({});
   const [slideImageFitModes, setSlideImageFitModes] = React.useState<{ [key: number]: 'contain' | 'cover' | 'fill' }>({});
   const [activeLightboxImage, setActiveLightboxImage] = React.useState<{ url: string; title: string; index: number } | null>(null);
+  const [isLightboxError, setIsLightboxError] = React.useState(false);
   const [lightboxZoom, setLightboxZoom] = React.useState(1);
   const [lightboxPan, setLightboxPan] = React.useState({ x: 0, y: 0 });
   const [isDraggingSlide, setIsDraggingSlide] = React.useState(false);
@@ -3457,16 +3438,16 @@ export function PresentationForm() {
         if (visibleWords.length > 0) {
           const joinedText = visibleWords.join(' ');
           return (
-            <li key={pointIndex} className="flex items-start gap-3 md:gap-5 text-left group/item pl-1 mb-3.5 sm:mb-5 md:mb-6 last:mb-0 shrink-0 w-full animate-in fade-in slide-in-from-bottom-1 duration-300">
+            <li key={pointIndex} className="flex items-start gap-2.5 sm:gap-3 md:gap-5 text-left group/item pl-1 mb-2.5 sm:mb-3.5 md:mb-5 last:mb-0 shrink-0 w-full animate-in fade-in duration-150">
               {align !== 'center' && (
                 <span className={cn(
-                  "inline-block mt-2 sm:mt-2.5 md:mt-3 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full shrink-0 shadow-sm border",
+                  "inline-block mt-1 sm:mt-1.5 md:mt-2 w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 rounded-full shrink-0 shadow-sm border",
                   isThemeLight
                     ? "bg-purple-600 border-purple-700/40 shadow-purple-200"
                     : "bg-gradient-to-r from-purple-400 to-indigo-400 shadow-[0_0_10px_rgba(168,85,247,0.8)] border-purple-300/40"
                 )} />
               )}
-              <div className="flex-1 min-w-0 leading-normal sm:leading-relaxed md:leading-relaxed break-words">
+              <div className="flex-1 min-w-0 leading-snug sm:leading-relaxed md:leading-relaxed break-words">
                 {renderTextWithCoverAndReveal(joinedText, slideIdx)}
               </div>
             </li>
@@ -4086,8 +4067,8 @@ export function PresentationForm() {
                         onClick={(e) => { 
                           e.stopPropagation(); 
                           const idx = api?.selectedScrollSnap() || 0;
-                          const total = allWordsOnSlide.current[idx]?.length || 0;
-                          const curCount = visibleWordCounts[idx] || 0;
+                          const total = allWordsOnSlide.current[idx]?.length || (editableSlides[idx] || presentation.slides[idx])?.content.flatMap(p => p.split(' ')).length || 0;
+                          const curCount = visibleWordCounts[idx] ?? total;
                           setVisibleWordCounts(prev => ({
                             ...prev,
                             [idx]: curCount >= total ? 0 : total
@@ -4100,7 +4081,7 @@ export function PresentationForm() {
                       >
                         <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
                         <span className="text-xs font-bold hidden xs:inline sm:inline">
-                          {(visibleWordCounts[api?.selectedScrollSnap() || 0] || 0) >= (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 0)
+                          {(visibleWordCounts[api?.selectedScrollSnap() || 0] ?? (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 1)) >= (allWordsOnSlide.current[api?.selectedScrollSnap() || 0]?.length || 1)
                             ? "Hide Text"
                             : "Reveal All"}
                         </span>
@@ -4273,7 +4254,7 @@ export function PresentationForm() {
                           <div className={cn(
                             "w-full flex flex-col h-full",
                             !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-y-auto justify-start pt-12 sm:pt-16 pb-20 px-3 sm:px-6 md:px-10 overscroll-contain touch-pan-y"
+                            isFullscreen && "overflow-y-auto justify-start pt-12 sm:pt-16 pb-32 sm:pb-24 px-4 sm:px-6 md:px-10 overscroll-contain touch-pan-y"
                           )}>
                             <div className={cn(
                               "w-full mx-auto flex flex-col items-stretch justify-start min-h-full",
@@ -4283,13 +4264,13 @@ export function PresentationForm() {
                             )}>
                               {/* Left side text content */}
                               <div className={cn(
-                                "w-full flex flex-col px-2 sm:px-4 md:px-6 shrink-0 min-h-0",
+                                "w-full flex flex-col px-1 sm:px-4 md:px-6 shrink-0 min-h-0",
                                 isFullscreen 
                                   ? "lg:w-1/2 justify-start py-1" 
                                   : "flex-1 justify-center",
                                 (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode 
                                   ? (isFullscreen ? "w-full lg:w-1/2" : "md:w-1/2") 
-                                  : (isFullscreen ? "max-w-4xl mx-auto my-auto" : "w-full")
+                                  : (isFullscreen ? "w-full max-w-4xl mx-auto" : "w-full")
                               )}>
                                 {/* Helpful Slide Text Interaction Tips Banner */}
                                 {!isEditMode && (
@@ -4345,7 +4326,7 @@ export function PresentationForm() {
                                     isThemeLight ? (currentThemeObj.titleClass || "text-slate-900") : (currentThemeObj.titleClass || "text-white"),
                                     !isFullscreen 
                                       ? `mb-4 sm:mb-6 ${fontSize.titleClassName}` 
-                                      : `mb-3 sm:mb-5 leading-tight font-extrabold tracking-tight pr-24 sm:pr-0 ${fontSize.fullScreenTitleClassName}`
+                                      : `mb-3 sm:mb-5 leading-tight font-extrabold tracking-tight ${fontSize.fullScreenTitleClassName}`
                                   )}>
                                     {slide.title}
                                   </h2>
@@ -4427,16 +4408,16 @@ export function PresentationForm() {
                                   </div>
                                 ) : (
                                   <>
-                                    <ul className={cn("list-none pl-0 w-full mb-4 sm:mb-6",
+                                    <ul className={cn("list-none pl-0 w-full mb-3 sm:mb-5",
                                       align === 'center' ? 'text-center' : 'text-left',
                                       !isFullscreen 
                                         ? fontSize.className 
                                         : fontSize.fullScreenClassName
                                     )}>
-                                      {renderAnimatedContent(slide.content, visibleWordCounts[index] || 0, index)}
+                                      {renderAnimatedContent(slide.content, visibleWordCounts[index] !== undefined ? visibleWordCounts[index] : (allWordsOnSlide.current[index]?.length || Infinity), index)}
                                     </ul>
-                                    {(visibleWordCounts[index] || 0) < (allWordsOnSlide.current[index]?.length || 0) && !isEditMode && (
-                                      <p className={cn("text-xs sm:text-sm mt-3 flex items-center gap-1.5 select-none opacity-80",
+                                    {(visibleWordCounts[index] !== undefined ? visibleWordCounts[index] : (allWordsOnSlide.current[index]?.length || 0)) < (allWordsOnSlide.current[index]?.length || 0) && !isEditMode && (
+                                      <p className={cn("text-xs sm:text-sm mt-2 sm:mt-3 flex items-center gap-1.5 select-none opacity-80",
                                         isThemeLight ? "text-purple-700 font-medium" : "text-purple-300/80"
                                       )}>
                                         <span>👆 Tap anywhere to reveal next point</span>
@@ -4453,7 +4434,7 @@ export function PresentationForm() {
                                 <div className={cn(
                                   "w-full select-none flex flex-col items-center justify-center",
                                   !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-1/2 flex-1 min-h-[350px] h-full",
-                                  isFullscreen && "w-full lg:w-1/2 shrink-0 flex items-center justify-center mt-3 sm:mt-5 mb-8 pb-10"
+                                  isFullscreen && "w-full lg:w-1/2 shrink-0 flex items-center justify-center mt-3 sm:mt-5 mb-4 pb-2"
                                 )}>
                                   {brokenSlideImages[index] ? (
                                     <div className={cn(
@@ -4672,6 +4653,7 @@ export function PresentationForm() {
                                               title="Expand image to large fullscreen view"
                                               onClick={(e) => {
                                                 e.stopPropagation();
+                                                setIsLightboxError(false);
                                                 setActiveLightboxImage({
                                                   url: slidePhotos[index] || (slide as any).photoUrl,
                                                   title: slide.title,
@@ -5612,12 +5594,12 @@ onClick={() => setShowImageModal(false)}
                     className="relative w-full flex-1 max-w-6xl max-h-[82vh] flex items-center justify-center overflow-hidden my-auto"
                     onClick={() => setActiveLightboxImage(null)}
                   >
-                    {activeLightboxImage.url ? (
+                    {activeLightboxImage.url && !isLightboxError ? (
                       <img
                         src={activeLightboxImage.url}
                         alt={activeLightboxImage.title}
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
+                        onError={() => {
+                          setIsLightboxError(true);
                         }}
                         className={cn(
                           "max-w-full max-h-full object-contain transition-transform select-none rounded-2xl shadow-2xl border border-white/10",
@@ -5630,13 +5612,14 @@ onClick={() => setShowImageModal(false)}
                         draggable={false}
                       />
                     ) : (
-                      <div className="text-center p-6 text-slate-400 text-sm">
-                        <p>No preview picture available for this slide.</p>
+                      <div className="text-center p-6 text-slate-300 text-sm max-w-md bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <p className="font-semibold text-slate-200">Slide visual preview unavailable</p>
+                        <p className="text-xs text-slate-400 mt-1">The image could not be loaded or is unavailable for this slide.</p>
                         <Button 
                           size="sm" 
                           variant="secondary"
                           onClick={() => setActiveLightboxImage(null)}
-                          className="mt-3 rounded-xl"
+                          className="mt-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs"
                         >
                           Return to Presentation
                         </Button>

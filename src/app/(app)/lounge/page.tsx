@@ -9,7 +9,7 @@ import { useFirestore, useMemoFirebase } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Send, Edit, Trash2, MessageCircle, Sticker, Pin, PinOff, UserPlus, Reply, X, ChevronDown, ChevronUp, ShieldBan, Smile } from "lucide-react";
+import { Loader2, Send, Edit, Trash2, MessageCircle, Sticker, Pin, PinOff, UserPlus, Reply, X, ChevronDown, ChevronUp, ShieldBan, Smile, Sparkles, AtSign, Check } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import type { Suggestion, UserProfile } from "@/lib/types";
@@ -45,6 +45,22 @@ const stickerStyles = [
 ];
 
 const forbiddenKeywords = ['porn', 'hentai', 'gambling', 'casino', 'betting', 'xxx'];
+
+const QUICK_EMOJIS = [
+  "👍", "❤️", "🔥", "✨", "😂", "🎉", "👏", "💡",
+  "🚀", "🌟", "💯", "🤝", "☕", "📖", "🇺🇸", "🇬🇧",
+  "🙌", "😍", "🎯", "🧠", "💪", "🎓", "💬", "🥳",
+  "⚡", "🤩", "😊", "🙏", "🥇", "🏆", "🌈", "🎈"
+];
+
+const LOUNGE_STARTERS = [
+  { label: "👋 Say Hello", text: "Hello everyone! Happy to connect and practice English here! 👋" },
+  { label: "💡 Daily Question", text: "Question of the day: What is your favorite English word or phrase? 💡" },
+  { label: "📖 Word of the Day", text: "Word of the day: Share one new vocabulary word you learned recently! 📖" },
+  { label: "🎯 Weekly Goal", text: "My English learning goal for this week is: 🎯" },
+  { label: "☕ Daily Chat", text: "How is everyone's day going? What are you working on? ☕" },
+  { label: "🎬 Movie Tip", text: "Any movie, series, or book recommendations in English? 🎬" },
+];
 
 const containsForbiddenLink = (text: string): boolean => {
     try {
@@ -89,6 +105,42 @@ export default function LoungePage() {
   const [mentionState, setMentionState] = useState<{ show: boolean; query: string }>({ show: false, query: '' });
   const { toast } = useToast();
   const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const [showStarters, setShowStarters] = useState(false);
+
+  const handleInsertEmoji = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setNewSuggestion(prev => prev + emoji);
+      return;
+    }
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const text = newSuggestion;
+    const next = text.substring(0, start) + emoji + text.substring(end);
+    setNewSuggestion(next);
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+    }, 0);
+  };
+
+  const handleTriggerMention = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setNewSuggestion(prev => prev + "@");
+      setMentionState({ show: true, query: '' });
+      return;
+    }
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const next = newSuggestion.substring(0, start) + "@" + newSuggestion.substring(end);
+    setNewSuggestion(next);
+    setMentionState({ show: true, query: '' });
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + 1, start + 1);
+    }, 0);
+  };
 
   const checkScrollable = useCallback(() => {
     const el = chatContainerRef.current;
@@ -885,41 +937,136 @@ export default function LoungePage() {
               </div>
             )}
             {user && !isGuest && userProfile && (
-              <CardFooter className="pt-4 border-t border-slate-800/80 flex flex-col items-start gap-2 flex-shrink-0 bg-slate-950/20 backdrop-blur-md">
+              <CardFooter className="p-2.5 sm:p-4 border-t border-indigo-500/20 flex flex-col items-stretch gap-2 flex-shrink-0 bg-gradient-to-t from-slate-950 via-slate-950/95 to-slate-900/60 backdrop-blur-2xl relative shadow-[0_-12px_40px_rgba(0,0,0,0.6)]">
+                {/* Glowing top ambient border accent line */}
+                <div className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-48 sm:w-96 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent blur-[1px] pointer-events-none" />
+
+                {/* Mention autocomplete popup */}
                 {mentionState.show && (
-                  <div className="bg-slate-950/60 border border-slate-850 p-2 rounded-2xl w-full max-h-32 overflow-y-auto backdrop-blur-md">
+                  <div className="bg-slate-950/90 border border-indigo-500/30 p-2 rounded-2xl w-full max-h-36 overflow-y-auto backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <div className="px-2 py-1 text-[10px] font-bold tracking-wider text-indigo-400 uppercase flex items-center gap-1">
+                      <AtSign className="h-3 w-3" /> Mention a user
+                    </div>
                     {mentionableUsers.length > 0 ? (
                       mentionableUsers.map(p => (
-                        <div key={p.uid} onClick={() => handleMentionSelect(p.displayName!)} className="p-2 hover:bg-indigo-500/10 text-slate-200 hover:text-white rounded-xl cursor-pointer flex items-center gap-2 transition-all">
-                          <Avatar className="h-6 w-6 border border-slate-800">
+                        <div 
+                          key={p.uid} 
+                          onClick={() => handleMentionSelect(p.displayName!)} 
+                          className="p-2 hover:bg-indigo-500/20 text-slate-200 hover:text-white rounded-xl cursor-pointer flex items-center gap-2.5 transition-all group"
+                        >
+                          <Avatar className="h-7 w-7 border border-indigo-500/30 ring-1 ring-white/10 group-hover:scale-105 transition-transform">
                             <AvatarImage src={p.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${p.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${p.displayName}`} alt={p.displayName!} />
                             <AvatarFallback>{getInitials(p.displayName)}</AvatarFallback>
                           </Avatar>
-                          <span className="font-bold text-xs">{p.displayName}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-bold text-xs group-hover:text-indigo-300 transition-colors truncate">{p.displayName}</span>
+                            <span className="text-[10px] text-slate-500 truncate">@{p.displayName?.toLowerCase().replace(/\s+/g, '')}</span>
+                          </div>
                         </div>
                       ))
                     ) : (
-                      <p className="p-2 text-xs text-slate-500 font-bold uppercase tracking-wider">No users found matching "{mentionState.query}"</p>
+                      <p className="p-2 text-xs text-slate-400 italic">No users found matching "{mentionState.query}"</p>
                     )}
                   </div>
                 )}
+
+                {/* Replying banner */}
                 {replyingTo && (
-                  <div className="text-xs text-indigo-300 bg-indigo-950/30 border border-indigo-900/40 p-2.5 rounded-xl w-full flex justify-between items-center backdrop-blur-sm">
-                    <div className="flex items-center gap-1">
-                      <Reply className="h-3.5 w-3.5 text-indigo-400" />
-                      <span>Replying to <strong className="text-white font-bold">{replyingTo.authorName}</strong>: <em className="opacity-80">"{replyingTo.text?.substring(0, 30)}..."</em></span>
+                  <div className="text-xs text-indigo-200 bg-gradient-to-r from-indigo-950/80 via-purple-950/50 to-indigo-950/80 border border-indigo-500/40 p-2 sm:p-2.5 rounded-2xl w-full flex justify-between items-center shadow-lg animate-in slide-in-from-bottom-2 duration-200 backdrop-blur-md">
+                    <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                      <div className="w-7 h-7 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                        <Reply className="h-3.5 w-3.5 text-indigo-400" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] text-indigo-400 font-semibold">Replying to</span>
+                          <span className="text-white font-bold truncate">@{replyingTo.authorName}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-300/80 truncate italic">"{replyingTo.text || 'a sticker'}"</p>
+                      </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-5 w-5 text-slate-400 hover:text-white rounded-lg" onClick={() => setReplyingTo(null)}><X className="h-3 w-3"/></Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg shrink-0" 
+                      onClick={() => setReplyingTo(null)}
+                      title="Cancel reply"
+                    >
+                      <X className="h-3.5 w-3.5"/>
+                    </Button>
                   </div>
                 )}
-                <div className="flex w-full items-center gap-2">
-                  <Avatar className="border border-slate-800">
-                    <AvatarImage src={userProfile.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${userProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${userProfile.displayName}`} alt={userProfile.displayName || ''} />
-                    <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
-                  </Avatar>
+
+                {/* Editing banner */}
+                {editingSuggestion && (
+                  <div className="text-xs text-amber-200 bg-gradient-to-r from-amber-950/80 via-yellow-950/50 to-amber-950/80 border border-amber-500/40 p-2 sm:p-2.5 rounded-2xl w-full flex justify-between items-center shadow-lg animate-in slide-in-from-bottom-2 duration-200 backdrop-blur-md">
+                    <div className="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                      <div className="w-7 h-7 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+                        <Edit className="h-3.5 w-3.5 text-amber-400" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-amber-300 font-bold">Editing suggestion</span>
+                        <p className="text-[11px] text-amber-200/80 truncate italic">"{editingSuggestion.text}"</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 px-2.5 text-[11px] font-bold text-amber-400 hover:text-amber-300 hover:bg-amber-400/10 rounded-lg shrink-0" 
+                      onClick={() => { setEditingSuggestion(null); setNewSuggestion(""); }}
+                    >
+                      Cancel Edit
+                    </Button>
+                  </div>
+                )}
+
+                {/* Quick Conversation Starter Pills */}
+                <div className="w-full flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 select-none">
+                  <button
+                    type="button"
+                    onClick={() => setShowStarters(prev => !prev)}
+                    className={cn(
+                      "px-2.5 py-1 text-[11px] font-bold rounded-full border transition-all shrink-0 flex items-center gap-1",
+                      showStarters
+                        ? "bg-purple-600/30 border-purple-400/50 text-purple-200 shadow-[0_0_12px_rgba(168,85,247,0.3)]"
+                        : "bg-slate-900/80 hover:bg-slate-800 border-slate-750 text-slate-400 hover:text-slate-200"
+                    )}
+                    title="Toggle conversation starters"
+                  >
+                    <Sparkles className="h-3 w-3 text-amber-400" />
+                    <span>Prompts</span>
+                  </button>
+
+                  {showStarters && LOUNGE_STARTERS.map((s, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setNewSuggestion(s.text);
+                        textareaRef.current?.focus();
+                      }}
+                      className="px-2.5 py-1 text-[11px] font-medium rounded-full bg-slate-900/70 hover:bg-indigo-600/20 border border-slate-750 hover:border-indigo-500/40 text-slate-300 hover:text-white transition-all shrink-0 active:scale-95 shadow-sm"
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* The Floating Glassmorphic Chatbox Pill Dock */}
+                <div className="relative flex items-end w-full gap-2 p-1.5 sm:p-2 rounded-2xl sm:rounded-3xl bg-slate-900/85 hover:bg-slate-900/95 focus-within:bg-slate-900/95 border border-slate-750 focus-within:border-indigo-500/70 shadow-lg shadow-black/30 focus-within:shadow-[0_0_25px_rgba(99,102,241,0.22)] transition-all duration-300">
+                  {/* User Avatar with pulsing status indicator */}
+                  <div className="relative shrink-0 mb-0.5 ml-0.5 hidden xs:block sm:block">
+                    <Avatar className="h-8 w-8 sm:h-9 sm:w-9 ring-2 ring-indigo-500/40 ring-offset-2 ring-offset-slate-950">
+                      <AvatarImage src={userProfile.avatarSeed ? `https://api.dicebear.com/8.x/notionists/svg?seed=${userProfile.avatarSeed}&backgroundColor=18181b` : `https://api.dicebear.com/8.x/initials/svg?seed=${userProfile.displayName}`} alt={userProfile.displayName || ''} />
+                      <AvatarFallback>{getInitials(userProfile?.displayName)}</AvatarFallback>
+                    </Avatar>
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-slate-950 rounded-full animate-pulse shadow-sm" title="Online" />
+                  </div>
+
+                  {/* Auto-growing Textarea */}
                   <Textarea
                     ref={textareaRef}
-                    placeholder={editingSuggestion ? "Edit your suggestion..." : "Type your suggestion here... use @ to mention"}
+                    placeholder={editingSuggestion ? "Edit your suggestion..." : "Share a thought, English question, or practice speaking... (@ to mention)"}
                     value={newSuggestion}
                     onChange={handleTextChange}
                     onKeyDown={(e) => {
@@ -929,35 +1076,140 @@ export default function LoungePage() {
                       }
                     }}
                     rows={1}
-                    className="flex-1 bg-slate-950/50 text-slate-100 border-slate-800/80 focus-visible:ring-1 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500/40 min-h-[40px] max-h-32 py-2 resize-none rounded-2xl placeholder:text-slate-500 font-medium"
+                    className="flex-1 bg-transparent text-slate-100 placeholder:text-slate-500 border-none focus-visible:ring-0 focus-visible:outline-none min-h-[42px] max-h-36 py-2 px-2 sm:px-3 resize-none font-medium text-xs sm:text-sm leading-relaxed"
                   />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0 text-slate-400 hover:text-white hover:bg-slate-800/80">
-                        <Sticker className="h-5 w-5" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 h-96 bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl">
-                      <div className="grid grid-cols-4 gap-4 overflow-y-auto h-full">
-                        {stickerStyles.map((style) => (
-                          <Button key={style} variant="ghost" className="h-16 w-16 hover:bg-slate-800/50 rounded-xl" onClick={() => handleSendSticker(style)}>
-                            <Image 
-                              unoptimized
-                              src={`https://api.dicebear.com/8.x/${style}/svg?seed=${user?.uid || 'guest'}&flip=true&radius=10&backgroundType=gradientLinear,solid&backgroundColor=transparent`}
-                              alt={style}
-                              width={64}
-                              height={64}
-                            />
-                          </Button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <Button onClick={handlePostSuggestion} disabled={isSubmitting || !newSuggestion.trim()} size="icon" className="rounded-full flex-shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-650/20 active:scale-95 transition-all">
-                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Send className="h-4.5 w-4.5" />}
-                  </Button>
-                  {editingSuggestion && (
-                    <Button variant="ghost" onClick={() => { setEditingSuggestion(null); setNewSuggestion(""); }}>Cancel</Button>
+
+                  {/* Actions Bar inside dock */}
+                  <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 mb-0.5">
+                    {/* Quick Mention Button */}
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      type="button"
+                      onClick={handleTriggerMention}
+                      className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                      title="Mention a cadet (@)"
+                    >
+                      <AtSign className="h-4 w-4" />
+                    </Button>
+
+                    {/* Emoji Palette Picker */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          type="button"
+                          className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-amber-400/10 transition-colors"
+                          title="Quick Emojis"
+                        >
+                          <Smile className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent side="top" align="center" className="w-72 sm:w-80 p-3 bg-slate-900/95 border border-slate-800 shadow-2xl rounded-2xl backdrop-blur-2xl">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+                          <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                            <Smile className="h-4 w-4 text-amber-400" /> Emojis & Reactions
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-mono">Tap to add</span>
+                        </div>
+                        <div className="grid grid-cols-8 gap-1.5 max-h-48 overflow-y-auto pr-1">
+                          {QUICK_EMOJIS.map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => handleInsertEmoji(emoji)}
+                              className="h-8 w-8 flex items-center justify-center text-lg rounded-lg hover:bg-white/10 hover:scale-125 transition-transform active:scale-95"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* Stickers Popover */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          type="button"
+                          className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl text-slate-400 hover:text-purple-400 hover:bg-purple-500/10 transition-colors"
+                          title="Stickers"
+                        >
+                          <Sticker className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent side="top" align="end" className="w-80 h-96 p-3 bg-slate-900/95 border border-slate-800 shadow-2xl rounded-2xl backdrop-blur-2xl flex flex-col">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 shrink-0">
+                          <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                            <Sticker className="h-4 w-4 text-purple-400" /> Cadet Avatars & Stickers
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-mono">Click to send</span>
+                        </div>
+                        <div className="grid grid-cols-4 gap-3 overflow-y-auto flex-1 pr-1">
+                          {stickerStyles.map((style) => (
+                            <Button 
+                              key={style} 
+                              variant="ghost" 
+                              className="h-16 w-16 p-1.5 hover:bg-purple-500/15 hover:border hover:border-purple-500/30 rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center" 
+                              onClick={() => handleSendSticker(style)}
+                              title={style}
+                            >
+                              <Image 
+                                unoptimized
+                                src={`https://api.dicebear.com/8.x/${style}/svg?seed=${user?.uid || 'guest'}&flip=true&radius=10&backgroundType=gradientLinear,solid&backgroundColor=transparent`}
+                                alt={style}
+                                width={56}
+                                height={56}
+                                className="drop-shadow-md"
+                              />
+                            </Button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* Send / Update Button */}
+                    <Button 
+                      onClick={handlePostSuggestion} 
+                      disabled={isSubmitting || !newSuggestion.trim()} 
+                      size="icon" 
+                      className={cn(
+                        "rounded-xl sm:rounded-2xl h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 transition-all duration-200 shadow-md",
+                        newSuggestion.trim() 
+                          ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white shadow-purple-500/30 active:scale-90 scale-100" 
+                          : "bg-slate-800 text-slate-500 hover:bg-slate-750 border border-slate-700/50"
+                      )}
+                      title={editingSuggestion ? "Update message" : "Send message"}
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-white" />
+                      ) : editingSuggestion ? (
+                        <Check className="h-4 w-4 text-white" />
+                      ) : (
+                        <Send className={cn("h-4 w-4", newSuggestion.trim() ? "text-white" : "text-slate-400")} />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Footer hints & Character count */}
+                <div className="w-full flex items-center justify-between text-[10px] text-slate-500 px-2 pt-0.5 select-none font-medium">
+                  <div className="flex items-center gap-2">
+                    <span className="hidden sm:inline">Press <kbd className="px-1 py-0.2 bg-slate-800/80 rounded border border-slate-750 text-slate-400 font-mono text-[9px]">Enter ↵</kbd> to send</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="hidden sm:inline"><kbd className="px-1 py-0.2 bg-slate-800/80 rounded border border-slate-750 text-slate-400 font-mono text-[9px]">Shift + Enter</kbd> for new line</span>
+                    <span className="sm:hidden">English Lounge • Keep it friendly! 💬</span>
+                  </div>
+                  {newSuggestion.length > 0 && (
+                    <span className={cn(
+                      "font-mono text-[10px]",
+                      newSuggestion.length > 400 ? "text-amber-400" : "text-slate-500"
+                    )}>
+                      {newSuggestion.length} chars
+                    </span>
                   )}
                 </div>
               </CardFooter>
