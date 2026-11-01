@@ -24,7 +24,9 @@ const isSafe = (text: string): boolean => {
   return !ADULT_PATTERNS.some(regex => regex.test(text));
 };
 
-const NON_ENGLISH_SCRIPTS_REGEX = /[\u0400-\u04FF\u0600-\u06FF\u0E00-\u0E7F\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0900-\u097F\u0590-\u05FF]/;
+const NON_ENGLISH_SCRIPTS_REGEX = /[\u0400-\u04FF\u0600-\u06FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF\u0900-\u097F\u0590-\u05FF]/;
+
+const isThaiQuery = (query: string): boolean => /[\u0E00-\u0E7F]/.test(query);
 
 const NON_ENGLISH_OR_WORKSHEET_KEYWORDS = [
   'lembar', 'kerja', 'peserta', 'didik', 'soal', 'tugas', 'jawaban', 'latihan',
@@ -41,15 +43,15 @@ const FOREIGN_WORKSHEET_DOMAINS = [
   'kemdikbud.go.id', 'academia.edu/attachment'
 ];
 
-const isEnglishAndSafe = (url: string, title: string = '', pageUrl: string = ''): boolean => {
+const isEnglishAndSafe = (url: string, title: string = '', pageUrl: string = '', query: string = ''): boolean => {
   if (!isSafe(url) || !isSafe(title) || !isSafe(pageUrl)) return false;
 
   const lowerTitle = (title || '').toLowerCase();
   const lowerUrl = (url || '').toLowerCase();
   const lowerPageUrl = (pageUrl || '').toLowerCase();
 
-  // 1. Reject non-Latin scripts (Cyrillic, Arabic, Chinese, Japanese, Korean, Thai, Hindi, etc.)
-  if (NON_ENGLISH_SCRIPTS_REGEX.test(title)) return false;
+  // 1. Reject non-Latin scripts, but allow Thai when query is Thai
+  if (!isThaiQuery(query) && NON_ENGLISH_SCRIPTS_REGEX.test(title)) return false;
 
   // 2. Reject foreign educational worksheets domains
   if (FOREIGN_WORKSHEET_DOMAINS.some(domain => lowerUrl.includes(domain) || lowerPageUrl.includes(domain))) {
@@ -72,10 +74,36 @@ const isEnglishAndSafe = (url: string, title: string = '', pageUrl: string = '')
   return true;
 };
 
+// Thai Educational & Business Keywords to English Photography Query Map
+const THAI_TRANSLATION_MAP: Record<string, string> = {
+  'ระบบสุริยะ': 'solar system planets space universe',
+  'การสังเคราะห์ด้วยแสง': 'plant photosynthesis leaves sunlight biology',
+  'พืช': 'green plants nature leaves botanical',
+  'สัตว์': 'wildlife animals nature biology',
+  'ชีววิทยา': 'biology laboratory cells science nature',
+  'ฟิสิกส์': 'physics science motion energy laboratory',
+  'เคมี': 'chemistry science laboratory test tubes molecules',
+  'คณิตศาสตร์': 'mathematics geometry calculus equations blackboard',
+  'ประวัติศาสตร์': 'ancient history architecture temple museum ruins',
+  'ภาษาไทย': 'thai culture literature temple bangkok tradition',
+  'ภาษาอังกฤษ': 'english classroom learning students books reading',
+  'วิทยาการคำนวณ': 'computer science coding algorithm artificial intelligence',
+  'ปัญญาประดิษฐ์': 'artificial intelligence technology futuristic neural network',
+  'แผนธุรกิจ': 'business startup meeting pitch presentation strategy team',
+  'การตลาด': 'digital marketing strategy analytics team branding',
+  'การเงิน': 'finance investment banking money growth analytics',
+  'การบริหารโครงการ': 'project management agile sprint whiteboard meeting',
+  'ภาวะผู้นำ': 'leadership executive team business corporate',
+  'สิ่งแวดล้อม': 'environmental conservation green nature solar energy',
+  'ภาวะโลกร้อน': 'climate change glacier arctic earth planet sustainability',
+  'สุขภาพ': 'health wellness meditation fitness healthy food',
+  'โรงเรียน': 'school classroom teacher students study',
+};
+
 const cleanQuery = (query: string): string => {
   return query
     .replace(/\b(worksheet|clipart|diagram|lembar|kerja|soal|tugas|peserta|didik)\b/gi, '')
-    .replace(/[^\w\s-]/g, ' ')
+    .replace(/[^\w\s\u0E00-\u0E7F-]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 };
@@ -83,6 +111,14 @@ const cleanQuery = (query: string): string => {
 const enhanceEducationalQuery = (query: string): string => {
   const cleaned = cleanQuery(query) || query;
   const lower = cleaned.toLowerCase();
+
+  // Check if any Thai keyword matches
+  for (const [thaiKey, engVal] of Object.entries(THAI_TRANSLATION_MAP)) {
+    if (cleaned.includes(thaiKey)) {
+      return engVal;
+    }
+  }
+
   if (lower === 'environments' || lower === 'environment') {
     return 'nature outdoors environment landscape';
   }
@@ -154,7 +190,7 @@ const tryDuckDuckGoSingleImage = async (query: string) => {
       const title = item.title || `${query} photo`;
       const pageUrl = item.url || '';
 
-      if (imageUrl && isEnglishAndSafe(imageUrl, title, pageUrl)) {
+      if (imageUrl && isEnglishAndSafe(imageUrl, title, pageUrl, query)) {
         return {
           imageUrl,
           thumbUrl,
@@ -197,7 +233,7 @@ const tryBingSingleImage = async (query: string) => {
         const pageUrl = data.purl || '';
         const title = data.desc || `${query} image`;
 
-        if (imageUrl && isEnglishAndSafe(imageUrl, title, pageUrl)) {
+        if (imageUrl && isEnglishAndSafe(imageUrl, title, pageUrl, query)) {
           return {
             imageUrl,
             thumbUrl: data.turl || imageUrl,
@@ -230,7 +266,7 @@ const tryWikipediaSearchImage = async (query: string) => {
     for (const key of Object.keys(pages)) {
       const page = pages[key];
       const imageUrl = page.original?.source;
-      if (imageUrl && isEnglishAndSafe(imageUrl, page.title || query)) {
+      if (imageUrl && isEnglishAndSafe(imageUrl, page.title || query, '', query)) {
         return { imageUrl, thumbUrl: imageUrl, engine: 'wikipedia' };
       }
     }

@@ -71,7 +71,11 @@ import {
   Eraser,
   Undo2,
   Palette,
-  Check
+  Check,
+  Languages,
+  BookOpen,
+  Briefcase,
+  GraduationCap
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -140,6 +144,436 @@ interface DbPresentation {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface PresetTopic {
+  id: string;
+  title: string;
+  category: 'school' | 'business' | 'other';
+  language: 'en' | 'th';
+  categoryLabel: string;
+  icon: string;
+  slideCount: number;
+  description: string;
+}
+
+export const PRESET_TOPICS: PresetTopic[] = [
+  // ─── Thai School Subjects (วิชาเรียน / วิชาการ) ───
+  {
+    id: 'th-sci-1',
+    title: 'ระบบสุริยะจักรวาลและการสำรวจอวกาศ',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'วิทยาศาสตร์ (Science)',
+    icon: '🪐',
+    slideCount: 6,
+    description: 'เรียนรู้เรื่องดาวเคราะห์ในระบบสุริยะ ดวงอาทิตย์ และเทคโนโลยีการสำรวจอวกาศ'
+  },
+  {
+    id: 'th-bio-1',
+    title: 'การสังเคราะห์ด้วยแสงและวงจรชีวิตพืช',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'ชีววิทยา (Biology)',
+    icon: '🌿',
+    slideCount: 5,
+    description: 'กระบวนการสร้างอาหารของพืช ปฏิกิริยาแสง และความสำคัญต่อระบบนิเวศ'
+  },
+  {
+    id: 'th-phy-1',
+    title: 'กฎการเคลื่อนที่ของนิวตันในชีวิตประจำวัน',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'ฟิสิกส์ (Physics)',
+    icon: '⚡',
+    slideCount: 5,
+    description: 'แรง ความเร่ง แรงกิริยาและปฏิกิริยาที่เกิดขึ้นรอบตัวเรา'
+  },
+  {
+    id: 'th-chem-1',
+    title: 'ตารางธาตุและปฏิกิริยาเคมีรอบตัวเรา',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'เคมี (Chemistry)',
+    icon: '🧪',
+    slideCount: 5,
+    description: 'โครงสร้างอะตอม ธาตุสำคัญ และการเปลี่ยนแปลงทางเคมีในธรรมชาติ'
+  },
+  {
+    id: 'th-math-1',
+    title: 'ทฤษฎีบทพีทาโกรัสและเรขาคณิตประยุกต์',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'คณิตศาสตร์ (Math)',
+    icon: '📐',
+    slideCount: 5,
+    description: 'สามเหลี่ยมมุมฉาก สูตรคำนวณระยะทาง และการนำไปใช้ในงานช่างและสถาปัตยกรรม'
+  },
+  {
+    id: 'th-lang-1',
+    title: 'คุณค่าและวรรณศิลป์ในวรรณคดีไทยรามเกียรติ์',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'ภาษาไทย (Thai Language)',
+    icon: '📜',
+    slideCount: 6,
+    description: 'ตัวละครเอก บทประพันธ์คำกลอน และข้อคิดเตือนใจในการดำเนินชีวิต'
+  },
+  {
+    id: 'th-hist-1',
+    title: 'ประวัติศาสตร์อาณาจักรสุโขทัยและอยุธยา',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'ประวัติศาสตร์ (History)',
+    icon: '🏛️',
+    slideCount: 6,
+    description: 'การกำเนิดอาณาจักรไทย การค้ากับต่างชาติ และมรดกทางวัฒนธรรม'
+  },
+  {
+    id: 'th-soc-1',
+    title: 'หน้าที่พลเมืองและสิทธิมนุษยชนในยุคดิจิทัล',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'สังคมศึกษา (Social Studies)',
+    icon: '⚖️',
+    slideCount: 5,
+    description: 'กฎหมายในชีวิตประจำวัน มารยาทดิจิทัล และการมีส่วนร่วมในสังคม'
+  },
+  {
+    id: 'th-cs-1',
+    title: 'วิทยาการคำนวณและพื้นฐานปัญญาประดิษฐ์ (AI)',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'วิทยาการคำนวณ (Computer Science)',
+    icon: '💻',
+    slideCount: 6,
+    description: 'การคิดเชิงคำนวณ อัลกอริทึม และการใช้งาน AI อย่างปลอดภัยและสร้างสรรค์'
+  },
+  {
+    id: 'th-health-sch-1',
+    title: 'โภชนาการที่ถูกต้องและการสร้างเสริมสุขภาพสำหรับวัยรุ่น',
+    category: 'school',
+    language: 'th',
+    categoryLabel: 'สุขศึกษา (Health Education)',
+    icon: '🥗',
+    slideCount: 5,
+    description: 'อาหารหลัก 5 หมู่ การออกกำลังกาย และการดูแลสุขอนามัยที่ดี'
+  },
+
+  // ─── Thai Business & Professional (ธุรกิจและการทำงาน) ───
+  {
+    id: 'th-biz-1',
+    title: 'แผนธุรกิจสตาร์ตอัป: การนำเสนอโมเดลธุรกิจ EdTech AI',
+    category: 'business',
+    language: 'th',
+    categoryLabel: 'แผนธุรกิจสตาร์ตอัป (Startup Pitch)',
+    icon: '🚀',
+    slideCount: 6,
+    description: 'ปัญหา ตลาดเป้าหมาย โซลูชัน โมเดลรายได้ และกลยุทธ์การเติบโตของธุรกิจ'
+  },
+  {
+    id: 'th-mkt-1',
+    title: 'กลยุทธ์การตลาดดิจิทัลและ Omnichannel ยุค 2026',
+    category: 'business',
+    language: 'th',
+    categoryLabel: 'การตลาด (Marketing Strategy)',
+    icon: '📈',
+    slideCount: 6,
+    description: 'การเจาะกลุ่มลูกค้า Gen Z การยิงแอดโซเชียลมีเดีย และการวัดผล ROI'
+  },
+  {
+    id: 'th-fin-1',
+    title: 'การวางแผนการเงินและบริหารกระแสเงินสดสำหรับ SME',
+    category: 'business',
+    language: 'th',
+    categoryLabel: 'การเงินและการลงทุน (Finance)',
+    icon: '💰',
+    slideCount: 5,
+    description: 'การควบคุมต้นทุน จุดคุ้มทุน และการจัดสรรงบประมาณเพื่อขยายสาขา'
+  },
+  {
+    id: 'th-proj-1',
+    title: 'การบริหารโครงการแบบ Agile และการตั้งเป้าหมายด้วย OKRs',
+    category: 'business',
+    language: 'th',
+    categoryLabel: 'การบริหารโครงการ (Project Management)',
+    icon: '🎯',
+    slideCount: 5,
+    description: 'การแบ่ง Sprint การทำ Daily Standup และการติดตามเป้าหมายอย่างมีประสิทธิภาพ'
+  },
+  {
+    id: 'th-hr-1',
+    title: 'การสร้างภาวะผู้นำและวัฒนธรรมองค์กรเพื่อคนรุ่นใหม่',
+    category: 'business',
+    language: 'th',
+    categoryLabel: 'การบริหารบุคคล (HR & Leadership)',
+    icon: '👔',
+    slideCount: 5,
+    description: 'การจูงใจทีมงาน การสื่อสารเชิงบวก และการลดอัตราการลาออกของพนักงาน'
+  },
+  {
+    id: 'th-sales-1',
+    title: 'กลยุทธ์การขายแบบ B2B และการรักษาฐานลูกค้าอย่างยั่งยืน',
+    category: 'business',
+    language: 'th',
+    categoryLabel: 'การขาย (Sales & CRM)',
+    icon: '🤝',
+    slideCount: 5,
+    description: 'Sales Pipeline การเจรจาต่อรอง และการบริการหลังการขายเพื่อสร้างความภักดี'
+  },
+
+  // ─── Thai Other & General (ทั่วไปและเทคโนโลยี) ───
+  {
+    id: 'th-gen-1',
+    title: 'Generative AI และอนาคตของการทำงานในศตวรรษที่ 21',
+    category: 'other',
+    language: 'th',
+    categoryLabel: 'เทคโนโลยีและ AI (Modern Tech)',
+    icon: '🤖',
+    slideCount: 6,
+    description: 'การประยุกต์ใช้โมเดลภาษาขนาดใหญ่ ทักษะการ Prompt และผลกระทบต่อตลาดแรงงาน'
+  },
+  {
+    id: 'th-env-1',
+    title: 'ภาวะโลกร้อน พลังงานสะอาด และเป้าหมาย Net Zero',
+    category: 'other',
+    language: 'th',
+    categoryLabel: 'สิ่งแวดล้อม (Environment)',
+    icon: '🌍',
+    slideCount: 5,
+    description: 'วิกฤตการเปลี่ยนแปลงสภาพภูมิอากาศ พลังงานแสงอาทิตย์ และบทบาทของทุกคน'
+  },
+  {
+    id: 'th-health-1',
+    title: 'วิทยาศาสตร์การนอนหลับและการดูแลสุขภาพจิตเชิงบวก',
+    category: 'other',
+    language: 'th',
+    categoryLabel: 'สุขภาพและสุขภาวะ (Health & Wellness)',
+    icon: '🧠',
+    slideCount: 5,
+    description: 'ระยะการนอนหลับ REM การหลั่งฮอร์โมน และเทคนิคลดความเครียดในการเรียนและการทำงาน'
+  },
+  {
+    id: 'th-speak-1',
+    title: 'ศิลปะการพูดในที่สาธารณะและการนำเสนออย่างมั่นใจ',
+    category: 'other',
+    language: 'th',
+    categoryLabel: 'การสื่อสาร (Public Speaking)',
+    icon: '🎤',
+    slideCount: 5,
+    description: 'การจัดลำดับโครงเรื่อง ภาษากาย และเทคนิคดึงดูดความสนใจของผู้ฟัง'
+  },
+  {
+    id: 'th-tour-1',
+    title: 'ซอฟต์พาวเวอร์ไทย: วัฒนธรรม อาหาร และการท่องเที่ยวระดับโลก',
+    category: 'other',
+    language: 'th',
+    categoryLabel: 'วัฒนธรรม (Culture & Soft Power)',
+    icon: '🇹🇭',
+    slideCount: 6,
+    description: 'อาหารไทย เทศกาลประเพณี และการส่งออกวัฒนธรรมสู่สากล'
+  },
+
+  // ─── English School Subjects ───
+  {
+    id: 'en-sci-1',
+    title: 'The Solar System & Planetary Exploration',
+    category: 'school',
+    language: 'en',
+    categoryLabel: 'Science',
+    icon: '🪐',
+    slideCount: 6,
+    description: 'Explore the inner terrestrial planets, gas giants, and deep space telescope missions'
+  },
+  {
+    id: 'en-bio-1',
+    title: 'Photosynthesis & Plant Cell Biology',
+    category: 'school',
+    language: 'en',
+    categoryLabel: 'Biology',
+    icon: '🌿',
+    slideCount: 5,
+    description: 'Cellular respiration, chlorophyll functions, and energy conversion in nature'
+  },
+  {
+    id: 'en-phy-1',
+    title: 'Newton\'s Laws of Motion in Modern Technology',
+    category: 'school',
+    language: 'en',
+    categoryLabel: 'Physics',
+    icon: '⚡',
+    slideCount: 5,
+    description: 'Inertia, acceleration, momentum, and aerospace engineering applications'
+  },
+  {
+    id: 'en-chem-1',
+    title: 'The Periodic Table & Chemical Bonding in Daily Life',
+    category: 'school',
+    language: 'en',
+    categoryLabel: 'Chemistry',
+    icon: '🧪',
+    slideCount: 5,
+    description: 'Atomic structure, ionic vs covalent bonds, and everyday chemical reactions'
+  },
+  {
+    id: 'en-math-1',
+    title: 'The Pythagorean Theorem & Real-World Geometry',
+    category: 'school',
+    language: 'en',
+    categoryLabel: 'Mathematics',
+    icon: '📐',
+    slideCount: 5,
+    description: 'Right triangles, Euclidean geometric proofs, and construction surveying'
+  },
+  {
+    id: 'en-hist-1',
+    title: 'Ancient Civilizations of Mesopotamia and Egypt',
+    category: 'school',
+    language: 'en',
+    categoryLabel: 'History',
+    icon: '🏛️',
+    slideCount: 6,
+    description: 'The fertile crescent, hieroglyphs, pyramids, and the invention of writing'
+  },
+  {
+    id: 'en-eng-1',
+    title: 'Mastering English Tenses & CEFR Grammar Fluency',
+    category: 'school',
+    language: 'en',
+    categoryLabel: 'English Language',
+    icon: '📚',
+    slideCount: 6,
+    description: 'Sentence structures, modal verbs, and idiomatic conversational mastery'
+  },
+  {
+    id: 'en-cs-1',
+    title: 'Computer Science: How Algorithms & Search Engines Work',
+    category: 'school',
+    language: 'en',
+    categoryLabel: 'Computer Science',
+    icon: '💻',
+    slideCount: 6,
+    description: 'Binary logic, sorting algorithms, PageRank, and computational thinking'
+  },
+
+  // ─── English Business & Professional ───
+  {
+    id: 'en-biz-1',
+    title: 'AI EdTech Startup Pitch: Transforming Global Learning',
+    category: 'business',
+    language: 'en',
+    categoryLabel: 'Startup Pitch Deck',
+    icon: '🚀',
+    slideCount: 6,
+    description: 'Problem-solution fit, TAM/SAM market size, unit economics, and growth roadmap'
+  },
+  {
+    id: 'en-mkt-1',
+    title: 'Digital Marketing & Omnichannel Growth Strategies',
+    category: 'business',
+    language: 'en',
+    categoryLabel: 'Marketing Strategy',
+    icon: '📈',
+    slideCount: 6,
+    description: 'Customer acquisition cost (CAC), LTV optimization, and multi-platform social campaigns'
+  },
+  {
+    id: 'en-fin-1',
+    title: 'Startup Financial Planning & Cash Flow Management',
+    category: 'business',
+    language: 'en',
+    categoryLabel: 'Finance & Investment',
+    icon: '💰',
+    slideCount: 5,
+    description: 'Runway forecasting, gross margin targets, and investor funding rounds'
+  },
+  {
+    id: 'en-proj-1',
+    title: 'Agile Project Management & OKR Goal Alignment',
+    category: 'business',
+    language: 'en',
+    categoryLabel: 'Project Management',
+    icon: '🎯',
+    slideCount: 5,
+    description: 'Scrum frameworks, continuous delivery sprints, and measurable quarterly key results'
+  },
+  {
+    id: 'en-lead-1',
+    title: 'High-Performance Leadership & Remote Work Culture',
+    category: 'business',
+    language: 'en',
+    categoryLabel: 'Leadership & HR',
+    icon: '👔',
+    slideCount: 5,
+    description: 'Empathetic management, asynchronous communication, and team alignment'
+  },
+
+  // ─── English Other & General ───
+  {
+    id: 'en-tech-1',
+    title: 'Generative AI, Large Language Models & Future Careers',
+    category: 'other',
+    language: 'en',
+    categoryLabel: 'Modern Tech & AI',
+    icon: '🤖',
+    slideCount: 6,
+    description: 'Transformer architecture, prompt engineering techniques, and societal impacts'
+  },
+  {
+    id: 'en-env-1',
+    title: 'Climate Change, Renewable Energy & Net-Zero Targets',
+    category: 'other',
+    language: 'en',
+    categoryLabel: 'Environment',
+    icon: '🌍',
+    slideCount: 5,
+    description: 'Carbon reduction roadmaps, photovoltaic solar grids, and global sustainability'
+  },
+  {
+    id: 'en-health-1',
+    title: 'The Science of Sleep, Circadian Rhythms & Mental Focus',
+    category: 'other',
+    language: 'en',
+    categoryLabel: 'Health & Wellness',
+    icon: '🧠',
+    slideCount: 5,
+    description: 'REM cycles, melatonin regulation, and habits for peak cognitive performance'
+  },
+  {
+    id: 'en-speak-1',
+    title: 'The Art of Persuasive Public Speaking & Storytelling',
+    category: 'other',
+    language: 'en',
+    categoryLabel: 'Public Speaking',
+    icon: '🎤',
+    slideCount: 5,
+    description: 'Aristotelian rhetoric, vocal variety, narrative arcs, and slide design psychology'
+  }
+];
+
+const THAI_TO_ENGLISH_IMAGE_MAP: Record<string, string> = {
+  'ระบบสุริยะ': 'solar system planets orbit space',
+  'การสังเคราะห์ด้วยแสง': 'plant photosynthesis leaves sunlight biology',
+  'พืช': 'green plants nature leaves botanical',
+  'สัตว์': 'wildlife animals nature biology',
+  'ชีววิทยา': 'biology laboratory cells science nature',
+  'ฟิสิกส์': 'physics science motion energy laboratory',
+  'เคมี': 'chemistry science laboratory test tubes molecules',
+  'คณิตศาสตร์': 'mathematics geometry calculus equations blackboard',
+  'ประวัติศาสตร์': 'ancient history architecture temple museum ruins',
+  'ภาษาไทย': 'thai culture literature temple bangkok tradition',
+  'ภาษาอังกฤษ': 'english classroom learning students books reading',
+  'วิทยาการคำนวณ': 'computer science coding algorithm artificial intelligence',
+  'ปัญญาประดิษฐ์': 'artificial intelligence technology futuristic neural network',
+  'แผนธุรกิจ': 'business startup meeting pitch presentation strategy team',
+  'การตลาด': 'digital marketing strategy analytics team branding',
+  'การเงิน': 'finance investment banking money growth analytics',
+  'การบริหารโครงการ': 'project management agile sprint whiteboard meeting',
+  'ภาวะผู้นำ': 'leadership executive team business corporate',
+  'สิ่งแวดล้อม': 'environmental conservation green nature solar energy',
+  'ภาวะโลกร้อน': 'climate change glacier arctic earth planet sustainability',
+  'สุขภาพ': 'health wellness meditation fitness healthy food',
+  'โรงเรียน': 'school classroom teacher students study',
+};
 
 interface PresentationTheme {
   name: string;
@@ -783,6 +1217,11 @@ export function PresentationForm() {
   const [showVideoLightbox, setShowVideoLightbox] = React.useState(false);
   const [activeVideoUrl, setActiveVideoUrl] = React.useState<string | null>(null);
   const [activeVideoTitle, setActiveVideoTitle] = React.useState<string | null>(null);
+
+  // Language & Preset Topics states
+  const [presentationLanguage, setPresentationLanguage] = React.useState<'en' | 'th'>('en');
+  const [topicSearchTerm, setTopicSearchTerm] = React.useState('');
+  const [activeCategoryTab, setActiveCategoryTab] = React.useState<'all' | 'school' | 'business' | 'other'>('all');
 
   // Presentation Cover & Reveal states
   const [coveredTexts, setCoveredTexts] = React.useState<{ [slideIndex: number]: string[] }>({});
@@ -2130,6 +2569,8 @@ export function PresentationForm() {
         documentName: uploadedFile?.name || undefined,
         insertPhotos,
         enable3D,
+        language: presentationLanguage,
+        category: activeCategoryTab === 'school' ? 'school_subject' : activeCategoryTab === 'business' ? 'business' : 'general',
       });
 
       setPresentation(result);
@@ -2139,7 +2580,7 @@ export function PresentationForm() {
       // If insertPhotos is enabled, fetch related photos from the selected source
       if (insertPhotos && result.slides && result.slides.length > 0) {
         toast({
-          title: "Presentation Generated 🧠",
+          title: presentationLanguage === 'th' ? "สร้างงานนำเสนอสำเร็จแล้ว 🧠" : "Presentation Generated 🧠",
           description: `Fetching slide-related photos from ${photoSource}...`,
         });
         
@@ -2148,13 +2589,26 @@ export function PresentationForm() {
           result.slides.map(async (slide, idx) => {
             let query = (slide.imageQuery || '').trim();
             if (!query || query.length < 3) {
-              const cleanTopic = (values.topic || '')
-                .replace(/\b(presentation|lesson|overview|guide|slides?|talk|document)\b/gi, '')
-                .trim();
-              const cleanTitle = (slide.title || '')
-                .replace(/\b(welcome to|introduction to|overview of|summary of|conclusion|part \d+|slide \d+)\b/gi, '')
-                .trim();
-              query = `${cleanTopic} ${cleanTitle}`.trim() || cleanTopic || "education nature photo";
+              const fullContext = `${values.topic || ''} ${slide.title || ''}`;
+              let matchedMapQuery = '';
+              for (const [thaiWord, engQuery] of Object.entries(THAI_TO_ENGLISH_IMAGE_MAP)) {
+                if (fullContext.includes(thaiWord)) {
+                  matchedMapQuery = engQuery;
+                  break;
+                }
+              }
+
+              if (matchedMapQuery) {
+                query = matchedMapQuery;
+              } else {
+                const cleanTopic = (values.topic || '')
+                  .replace(/\b(presentation|lesson|overview|guide|slides?|talk|document)\b/gi, '')
+                  .trim();
+                const cleanTitle = (slide.title || '')
+                  .replace(/\b(welcome to|introduction to|overview of|summary of|conclusion|part \d+|slide \d+)\b/gi, '')
+                  .trim();
+                query = `${cleanTopic} ${cleanTitle}`.trim() || cleanTopic || "education nature photo";
+              }
             }
             query = query
               .replace(/\b(worksheet|clipart|diagram|slides?|presentation|soal|tugas|lembar|tutorial|drawing|sketch)\b/gi, '')
@@ -2968,8 +3422,17 @@ export function PresentationForm() {
                         className="text-xl sm:text-2xl font-black bg-slate-950 border-slate-800 text-white rounded-xl tracking-tight animate-pulse"
                       />
                     ) : (
-                      <CardTitle className="text-xl sm:text-2xl font-black text-slate-100 flex items-center gap-2 break-words">
+                      <CardTitle className="text-xl sm:text-2xl font-black text-slate-100 flex flex-wrap items-center gap-2.5 break-words">
                         <span>{presentation.title}</span>
+                        {((presentation as any).language === 'th' || /[\u0E00-\u0E7F]/.test(presentation.title)) ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                            🇹🇭 ภาษาไทย (Thai)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
+                            🇬🇧 English (EN)
+                          </span>
+                        )}
                       </CardTitle>
                     )}
                     <CardDescription className="text-slate-400 font-medium text-xs sm:text-sm mt-0.5">
@@ -5377,7 +5840,180 @@ onClick={() => setShowImageModal(false)}
                 Enter a topic or upload your lesson plan/document, and our Genkit AI agent will construct a stunning slideshow.
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 space-y-6">
+              {/* 1. Presentation Language Switcher */}
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 shadow-inner space-y-2.5">
+                <div className="flex items-center justify-between flex-wrap gap-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-9 w-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                      <Languages className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white flex items-center gap-2">
+                        Presentation Language / ภาษาในการนำเสนอ
+                        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                          {presentationLanguage === 'th' ? '🇹🇭 ภาษาไทย' : '🇬🇧 English'}
+                        </span>
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        Select language for titles, slide content, and educational points. Photo searches remain optimized in English.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setPresentationLanguage('en')}
+                      className={cn(
+                        "h-8 px-3 rounded-lg text-xs font-bold transition-all",
+                        presentationLanguage === 'en'
+                          ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20"
+                          : "text-slate-400 hover:text-white hover:bg-slate-800"
+                      )}
+                    >
+                      🇬🇧 English (EN)
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setPresentationLanguage('th')}
+                      className={cn(
+                        "h-8 px-3 rounded-lg text-xs font-bold transition-all",
+                        presentationLanguage === 'th'
+                          ? "bg-gradient-to-r from-amber-500 to-rose-600 text-white shadow-md shadow-amber-500/20"
+                          : "text-slate-400 hover:text-white hover:bg-slate-800"
+                      )}
+                    >
+                      🇹🇭 ภาษาไทย (TH)
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Topic Search & Subject Explorer */}
+              <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-850 space-y-3.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-amber-400" />
+                      <h4 className="text-sm font-bold text-slate-200">
+                        {presentationLanguage === 'th' ? 'ค้นหาหัวข้อวิชาเรียน & ธุรกิจ (Quick Topic Explorer)' : 'Search Topics & Subjects (Quick Explorer)'}
+                      </h4>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      {presentationLanguage === 'th' 
+                        ? 'เลือกหัวข้อวิชาเรียนในโรงเรียน ธุรกิจ หรือค้นหาเป็นภาษาไทยเพื่อสร้างสไลด์ได้ทันที'
+                        : 'Explore or search pre-curated school subjects, business pitch decks, and tech topics'}
+                    </p>
+                  </div>
+
+                  {/* Search Input */}
+                  <div className="relative w-full sm:w-72">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                    <Input
+                      value={topicSearchTerm}
+                      onChange={(e) => setTopicSearchTerm(e.target.value)}
+                      placeholder={presentationLanguage === 'th' ? "ค้นหาวิชาเรียน, ธุรกิจ, อวกาศ..." : "Search topics, biology, startup..."}
+                      className="pl-9 pr-8 h-9 text-xs bg-slate-900 border-slate-800 text-white rounded-xl placeholder:text-slate-500"
+                    />
+                    {topicSearchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setTopicSearchTerm('')}
+                        className="absolute right-2.5 top-2.5 text-slate-500 hover:text-white"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Category Filter Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+                  {[
+                    { id: 'all', label: presentationLanguage === 'th' ? 'ทั้งหมด (All)' : 'All Topics', icon: Sparkles },
+                    { id: 'school', label: presentationLanguage === 'th' ? '🎒 วิชาเรียน (School Subjects)' : '🎒 School Subjects', icon: GraduationCap },
+                    { id: 'business', label: presentationLanguage === 'th' ? '💼 ธุรกิจ & สตาร์ทอัพ (Business)' : '💼 Business & Pitch', icon: Briefcase },
+                    { id: 'other', label: presentationLanguage === 'th' ? '🚀 ทั่วไป & เทคโนโลยี (Other / Tech)' : '🚀 Other / Tech', icon: BookOpen },
+                  ].map((tab) => {
+                    const isActive = activeCategoryTab === tab.id;
+                    return (
+                      <Button
+                        key={tab.id}
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setActiveCategoryTab(tab.id as any)}
+                        className={cn(
+                          "h-7 px-2.5 text-xs font-semibold rounded-lg shrink-0 transition-all border",
+                          isActive
+                            ? "bg-purple-600/20 text-purple-300 border-purple-500/50 shadow-sm"
+                            : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-900"
+                        )}
+                      >
+                        {tab.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                {/* Presets Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto p-1 pr-2 scrollbar-thin">
+                  {PRESET_TOPICS
+                    .filter((preset) => {
+                      const matchesCat = activeCategoryTab === 'all' || preset.category === activeCategoryTab;
+                      const matchesLang = !topicSearchTerm ? (preset.language === presentationLanguage) : true;
+                      const matchesSearch = !topicSearchTerm || 
+                        preset.title.toLowerCase().includes(topicSearchTerm.toLowerCase()) ||
+                        preset.categoryLabel.toLowerCase().includes(topicSearchTerm.toLowerCase()) ||
+                        preset.description.toLowerCase().includes(topicSearchTerm.toLowerCase());
+                      return matchesCat && matchesLang && matchesSearch;
+                    })
+                    .map((preset) => (
+                      <div
+                        key={preset.id}
+                        onClick={() => {
+                          form.setValue('topic', preset.title);
+                          form.setValue('slideCount', preset.slideCount);
+                          setPresentationLanguage(preset.language);
+                          toast({
+                            title: preset.language === 'th' ? "เลือกหัวข้อเรียบร้อย 🇹🇭" : "Topic Selected 🇬🇧",
+                            description: preset.title,
+                          });
+                        }}
+                        className="group text-left p-3 rounded-xl bg-slate-900/80 hover:bg-purple-950/30 border border-slate-800/80 hover:border-purple-500/50 cursor-pointer transition-all duration-200 hover:shadow-lg flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                            <span className="text-lg">{preset.icon}</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                                {preset.categoryLabel.split(' ')[0]}
+                              </span>
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/30">
+                                {preset.slideCount} slides
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-xs font-bold text-slate-100 group-hover:text-purple-300 transition-colors line-clamp-1">
+                            {preset.title}
+                          </p>
+                          <p className="text-[11px] text-slate-400 group-hover:text-slate-300 line-clamp-2 mt-1">
+                            {preset.description}
+                          </p>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-500 group-hover:text-purple-400 font-bold">
+                          <span>{preset.language === 'th' ? '🇹🇭 ภาษาไทย' : '🇬🇧 English'}</span>
+                          <span className="group-hover:translate-x-0.5 transition-transform">Use this &rarr;</span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
@@ -5389,12 +6025,18 @@ onClick={() => setShowImageModal(false)}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-semibold text-slate-200">
-                          Topic or Presentation Theme (Optional if document uploaded)
+                          {presentationLanguage === 'th' 
+                            ? 'หัวข้อการนำเสนอ หรือ เนื้อหาที่ต้องการ (Topic or Theme)'
+                            : 'Topic or Presentation Theme (Optional if document uploaded)'}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="e.g., The History of the Internet, Benefits of Regular Exercise"
-                            className="bg-slate-950 border-slate-855 text-white rounded-xl h-11"
+                            placeholder={
+                              presentationLanguage === 'th'
+                                ? 'เช่น ระบบสุริยะจักรวาล, การสังเคราะห์ด้วยแสง, แผนธุรกิจสตาร์ทอัพ หรือ การตลาดดิจิทัล'
+                                : 'e.g., The History of the Internet, Benefits of Regular Exercise, Startup Pitch Deck'
+                            }
+                            className="bg-slate-950 border-slate-800 text-white rounded-xl h-11"
                             {...field}
                           />
                         </FormControl>
