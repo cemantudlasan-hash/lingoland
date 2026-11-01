@@ -873,63 +873,68 @@ function getSlideTransitionStyle(
   const offset = slideIndex - activeIndex;
   const isCurrent = offset === 0;
 
-  // Fullscreen mode: enhanced visible animations with comfortable, cinematic timing (0.6s-0.7s)
-  // Maintains 100% visibility for text/images so nothing is clipped or lost!
+  // Fullscreen mode: clean, GPU-stable transitions that never clip or cause visual glitching on mobile
+  // Keeps all scales <= 1.0 so elements never expand outside viewport boundaries
   if (isFullscreen) {
     switch (effect) {
       case 'cube3d': {
-        const deg = isCurrent ? 0 : offset < 0 ? 30 : -30;
-        const z = isCurrent ? 0 : -80;
+        const deg = isCurrent ? 0 : offset < 0 ? 18 : -18;
         return {
-          transform: `perspective(1200px) rotateY(${deg}deg) translateZ(${z}px) scale(${isCurrent ? 1 : 0.92})`,
+          transform: `perspective(1000px) rotateY(${deg}deg) scale(${isCurrent ? 1 : 0.94})`,
           opacity: 1,
-          transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+          transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'zoom': {
-        const scale = isCurrent ? 1 : offset < 0 ? 1.08 : 0.88;
+        const scale = isCurrent ? 1 : 0.92;
         return {
           transform: `scale(${scale})`,
           opacity: 1,
-          transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+          transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'cardstack': {
-        const y = isCurrent ? 0 : offset < 0 ? -28 : 28;
+        const y = isCurrent ? 0 : offset < 0 ? -16 : 16;
         return {
-          transform: `translateY(${y}px) scale(${isCurrent ? 1 : 0.90})`,
+          transform: `translateY(${y}px) scale(${isCurrent ? 1 : 0.93})`,
           opacity: 1,
-          transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'flip': {
-        const deg = isCurrent ? 0 : offset < 0 ? 40 : -40;
+        const deg = isCurrent ? 0 : offset < 0 ? 22 : -22;
         return {
-          transform: `perspective(1200px) rotateY(${deg}deg) scale(${isCurrent ? 1 : 0.90})`,
+          transform: `perspective(1000px) rotateY(${deg}deg) scale(${isCurrent ? 1 : 0.93})`,
           opacity: 1,
-          transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+          transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'bouncy': {
         return {
-          transform: isCurrent ? 'scale(1)' : 'scale(0.86)',
+          transform: isCurrent ? 'scale(1)' : 'scale(0.90)',
           opacity: 1,
-          transition: 'transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transition: 'transform 0.6s cubic-bezier(0.34, 1.45, 0.64, 1)',
         };
       }
       case 'fade': {
         return {
-          opacity: isCurrent ? 1 : 0.35,
-          transform: isCurrent ? 'scale(1)' : 'scale(0.94)',
-          transition: 'opacity 0.65s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)',
+          opacity: isCurrent ? 1 : 0.4,
+          transform: isCurrent ? 'scale(1)' : 'scale(0.96)',
+          transition: 'opacity 0.55s ease, transform 0.55s ease',
         };
       }
       case 'slide':
       default: {
         return {
-          transform: isCurrent ? 'scale(1)' : 'scale(0.95)',
+          transform: isCurrent ? 'scale(1)' : 'scale(0.97)',
           opacity: 1,
-          transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
     }
@@ -4252,7 +4257,7 @@ export function PresentationForm() {
                       <CarouselItem key={index} className={cn("h-full basis-full min-w-full max-w-full shrink-0 grow-0", isFullscreen ? "pl-0 bg-transparent" : "pl-4")}>
                         <div 
                           className={cn(
-                            "w-full h-full flex cursor-pointer transform-gpu will-change-transform",
+                            "w-full h-full flex flex-col cursor-pointer",
                             theme,
                             fontFamily,
                             isFullscreen 
@@ -4268,22 +4273,22 @@ export function PresentationForm() {
                           <div className={cn(
                             "w-full flex flex-col h-full",
                             !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-y-auto justify-start pt-14 sm:pt-20 pb-16 px-3 sm:px-6 md:px-12 lg:px-16 overscroll-contain touch-pan-y"
+                            isFullscreen && "overflow-y-auto justify-start pt-12 sm:pt-16 pb-20 px-3 sm:px-6 md:px-10 overscroll-contain touch-pan-y"
                           )}>
                             <div className={cn(
-                              "w-full mx-auto flex flex-col md:flex-row items-stretch justify-start md:justify-center min-h-full",
+                              "w-full mx-auto flex flex-col items-stretch justify-start min-h-full",
+                              isFullscreen ? "lg:flex-row lg:items-center lg:justify-center w-full max-w-full gap-4 lg:gap-8 flex-1" : "md:flex-row md:justify-center max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
                               !isFullscreen && "animate-in fade-in duration-700",
-                              isFullscreen ? "w-full max-w-full gap-3 sm:gap-4 md:gap-8 flex-1" : "max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
                               {/* Left side text content */}
                               <div className={cn(
-                                "flex-1 min-w-0 w-full flex flex-col px-2 sm:px-4 md:px-8",
+                                "w-full flex flex-col px-2 sm:px-4 md:px-6 shrink-0 min-h-0",
                                 isFullscreen 
-                                  ? "justify-start md:justify-center min-h-0 py-1" 
-                                  : "justify-center",
+                                  ? "lg:w-1/2 justify-start py-1" 
+                                  : "flex-1 justify-center",
                                 (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode 
-                                  ? (isFullscreen ? "w-full md:w-1/2 lg:w-[50%]" : "md:w-1/2") 
+                                  ? (isFullscreen ? "w-full lg:w-1/2" : "md:w-1/2") 
                                   : (isFullscreen ? "max-w-4xl mx-auto my-auto" : "w-full")
                               )}>
                                 {/* Helpful Slide Text Interaction Tips Banner */}
@@ -4422,7 +4427,7 @@ export function PresentationForm() {
                                   </div>
                                 ) : (
                                   <>
-                                    <ul className={cn("list-none pl-0 w-full",
+                                    <ul className={cn("list-none pl-0 w-full mb-4 sm:mb-6",
                                       align === 'center' ? 'text-center' : 'text-left',
                                       !isFullscreen 
                                         ? fontSize.className 
@@ -4448,7 +4453,7 @@ export function PresentationForm() {
                                 <div className={cn(
                                   "w-full select-none flex flex-col items-center justify-center",
                                   !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-1/2 flex-1 min-h-[350px] h-full",
-                                  isFullscreen && "w-full md:w-1/2 lg:w-[50%] flex-1 min-h-0 max-h-[30vh] sm:max-h-[38vh] md:max-h-none shrink-0 flex items-center justify-center"
+                                  isFullscreen && "w-full lg:w-1/2 shrink-0 flex items-center justify-center mt-3 sm:mt-5 mb-8 pb-10"
                                 )}>
                                   {brokenSlideImages[index] ? (
                                     <div className={cn(
@@ -4519,9 +4524,9 @@ export function PresentationForm() {
                                     <div className="relative group w-full h-full flex flex-col items-center justify-center">
                                       <div 
                                         className={cn(
-                                          "relative w-full h-full flex-1 flex items-center justify-center rounded-2xl overflow-hidden border select-none",
+                                          "relative w-full flex items-center justify-center rounded-2xl overflow-hidden border select-none transition-all",
                                           isFullscreen
-                                            ? "min-h-[160px] sm:min-h-[220px] md:min-h-[440px] lg:min-h-[540px] !bg-slate-950 border-white/10 !backdrop-blur-none shadow-none"
+                                            ? "h-[28vh] min-h-[160px] max-h-[220px] sm:max-h-[300px] lg:h-full lg:max-h-none lg:min-h-[460px] bg-black/20 backdrop-blur-sm border-white/10 shadow-lg"
                                             : "min-h-[340px] md:min-h-[460px] lg:min-h-[560px] border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md"
                                         )}
                                         onClick={(e) => e.stopPropagation()}
