@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Rocket, BookOpen, Grid, Sparkles, LogIn, ArrowRight } from 'lucide-react';
+import { Rocket, BookOpen, Grid, Sparkles, LogIn, ArrowRight, Share2 } from 'lucide-react';
 
 export function PublicHeader() {
   const pathname = usePathname();
@@ -69,6 +69,18 @@ export function PublicHeader() {
             >
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               <span>Study Room</span>
+            </Link>
+
+            <Link
+              href="/invite"
+              className={`flex items-center gap-1.5 transition-colors ${
+                pathname.startsWith('/invite')
+                  ? 'text-amber-300 font-bold drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]'
+                  : 'text-amber-300/90 hover:text-amber-200'
+              }`}
+            >
+              <Share2 className="w-3.5 h-3.5 text-amber-400" />
+              <span>Invite Teachers &amp; Students</span>
             </Link>
           </nav>
         </div>

@@ -8,6 +8,7 @@ import { useAuth } from "@/context/auth-context";
 import { DonationPopup } from "@/components/layout/donation-popup";
 import { FloatingPetWidget } from "@/components/layout/floating-pet-widget";
 import { DailyLoginModal } from "@/components/layout/daily-login-modal";
+import { InviteShareModal } from "@/components/layout/invite-share-modal";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const isMounted = useIsMounted();
@@ -16,6 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const isPublicSeoRoute =
     pathname === '/' ||
+    pathname === '/invite' ||
     pathname === '/about' ||
     pathname === '/about-us' ||
     pathname === '/contact' ||
@@ -36,6 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return (
       <div className="min-h-screen w-full overflow-x-hidden relative" suppressHydrationWarning>
         {children}
+        {isMounted && <InviteShareModal />}
         {isMounted && (user || isGuest) && <FloatingPetWidget />}
       </div>
     );
@@ -63,6 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <AppHeader />
       <main className="flex-1 min-h-0 overflow-y-auto p-3 md:p-4 lg:p-5 relative flex flex-col">
         {children}
+        {isMounted && <InviteShareModal />}
         {isMounted && <DailyLoginModal />}
         {isMounted && <DonationPopup />}
         {isMounted && <FloatingPetWidget />}

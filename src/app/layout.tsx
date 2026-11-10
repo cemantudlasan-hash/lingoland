@@ -8,33 +8,45 @@ import PlexusBackground from '@/components/layout/PlexusBackground';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: 'LingoLandVerse | Interactive ESL Learning Universe & Classroom Suite',
+  metadataBase: new URL('https://www.lingolandverse.com'),
+  title: {
+    default: 'LingoLandVerse | Free Interactive ESL, Math & Science Games for Teachers & Students',
+    template: '%s | LingoLandVerse',
+  },
   description:
-    'Master English and 9 world languages with 79+ CEFR-aligned interactive ESL games, SuperMemo-2 spaced repetition, graded reading comprehension, and AI classroom tools created by Ceman Tudlasan.',
+    'Free interactive educational universe for teachers and students: 79+ CEFR A1–C2 ESL, Math & Science classroom games, AI slide deck & exam generator, SuperMemo-2 flashcards, graded reading lab, and Lingo-Pet companion.',
   publisher: 'LingoLandVerse',
   authors: [{ name: 'Ceman Tudlasan' }],
   keywords: [
-    'ESL learning',
-    'English grammar games',
-    'spaced repetition vocabulary',
+    'ESL games for teachers',
+    'free classroom games for students',
+    'interactive smartboard games ESL',
+    'English grammar games online free',
+    'CEFR A1 A2 B1 B2 C1 C2 games',
+    'spaced repetition vocabulary flashcards',
     'SuperMemo-2 ESL',
-    'CEFR English lessons',
-    'interactive classroom tools',
+    'AI lesson plan and presentation maker for teachers',
+    'graded reading comprehension ESL',
+    'gamified math and science games for kids',
     'LingoLandVerse',
   ],
+  alternates: {
+    canonical: 'https://www.lingolandverse.com',
+  },
   openGraph: {
     type: 'website',
-    title: 'LingoLandVerse | Interactive ESL Learning Universe & Classroom Suite',
+    title: 'LingoLandVerse | 79+ Free Interactive Classroom Games & AI Teacher Suite',
     description:
-      'Master English and 9 world languages with 79+ CEFR-aligned interactive ESL games, SuperMemo-2 spaced repetition, and graded reading comprehension.',
+      'Invite your teachers and students! Play 79+ CEFR-aligned ESL, Math & Science games, project instant Smartboard activities, and generate AI lessons for free.',
     siteName: 'LingoLandVerse',
     url: 'https://www.lingolandverse.com',
+    locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LingoLandVerse | Interactive ESL Learning Universe & Classroom Suite',
+    title: 'LingoLandVerse | 79+ Free Interactive Classroom Games & AI Suite',
     description:
-      'Master English and 9 world languages with 79+ CEFR-aligned interactive ESL games, SuperMemo-2 spaced repetition, and graded reading comprehension.',
+      '100% Free for Teachers & Students: 79+ ESL, Math & Science classroom games, CEFR Reading Lab, AI Slide Deck Maker & 3D Lingo-Pets.',
   },
 };
 
@@ -149,6 +161,30 @@ export default function RootLayout({
                   '@type': 'WebSite',
                   name: 'LingoLandVerse',
                   url: 'https://www.lingolandverse.com',
+                },
+                {
+                  '@type': 'WebApplication',
+                  name: 'LingoLandVerse Classroom & Self-Study Suite',
+                  url: 'https://www.lingolandverse.com',
+                  applicationCategory: 'EducationalApplication',
+                  operatingSystem: 'All',
+                  isAccessibleForFree: true,
+                  educationalUse: [
+                    'Classroom Smartboard Game',
+                    'ESL Vocabulary & Grammar Practice',
+                    'Reading Comprehension',
+                    'AI Lesson & Presentation Generation',
+                    'Self-Directed Student Study',
+                  ],
+                  audience: {
+                    '@type': 'EducationalAudience',
+                    educationalRole: ['teacher', 'student'],
+                  },
+                  offers: {
+                    '@type': 'Offer',
+                    price: '0',
+                    priceCurrency: 'USD',
+                  },
                 },
               ],
             }),

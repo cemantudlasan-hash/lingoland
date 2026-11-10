@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { signOut } from "@/lib/auth";
-import { User as UserIcon, Coffee, Megaphone, Bell, Trash2, GraduationCap, ArrowLeft, LogOut } from "lucide-react";
+import { User as UserIcon, Coffee, Megaphone, Bell, Trash2, GraduationCap, ArrowLeft, LogOut, Share2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "../ui/badge";
@@ -472,6 +472,22 @@ export function AppHeader() {
                 <span className="sm:hidden">Guide</span>
               </Button>
             )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent('lingoland_open_invite_modal', {
+                    detail: { shareScope: pathname?.startsWith('/games/') ? 'current' : 'site' },
+                  })
+                )
+              }
+              className="px-2.5 sm:px-3 py-1.5 h-10 rounded-2xl border-amber-400/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 hover:text-white shadow-[0_0_15px_rgba(251,191,36,0.2)] transition-all hover:scale-105 active:scale-95 gap-1.5 font-bold text-xs shrink-0"
+              title="Invite Teachers & Students (+15 Lingo-Coins Daily Bonus)"
+            >
+              <Share2 className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+              <span className="hidden md:inline">Invite &amp; Share</span>
+            </Button>
         </div>
         <div className={cn(
           "flex-1 min-w-0 mx-2 text-center items-center justify-center gap-2",

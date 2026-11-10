@@ -79,6 +79,7 @@ import {
   X,
   Wrench,
   ArrowRight,
+  Share2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -111,6 +112,7 @@ const ALL_PLATFORM_MENUS = [
   { href: "/homework-hub", label: "Homework Hub", category: "Universe & Social", icon: BookMarked, color: "text-purple-400", bg: "bg-purple-500/15 border-purple-500/30", desc: "Assign, submit, and review English assignments online" },
   { href: "/jobs", label: "Job Matcher", category: "Universe & Social", icon: Briefcase, color: "text-blue-400", bg: "bg-blue-500/15 border-blue-500/30", desc: "Global ESL teaching job listings and career opportunities" },
   { href: "/quotes", label: "English Quotes", category: "Universe & Social", icon: Quote, color: "text-rose-400", bg: "bg-rose-500/15 border-rose-500/30", desc: "Daily idioms, vocabulary breakdowns, and wisdom quotes" },
+  { href: "/invite", label: "Invite Teachers & Students", category: "Universe & Social", icon: Share2, color: "text-amber-300", bg: "bg-amber-500/15 border-amber-500/30", desc: "Share LingoLandVerse via Classroom QR Code, LINE, Facebook & WhatsApp (+15 Coins)" },
 
   // 4. Pilot & Flight Deck (7 items)
   { href: "/dashboard", label: "Command Dashboard", category: "Pilot & Flight Deck", icon: LayoutDashboard, color: "text-cyan-300", bg: "bg-cyan-500/20 border-cyan-400/40", desc: "Mission center, streak fuel, and AI Smart-Review Asteroids" },
@@ -350,7 +352,24 @@ export default function LingoLandVerseHomePage() {
         </div>
 
         {/* Navigation Links + Utility Controls */}
-        <div className="flex items-center gap-5 sm:gap-8">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <button
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(
+                new CustomEvent("lingoland_open_invite_modal", {
+                  detail: { audience: "teachers", shareScope: "site" },
+                })
+              )
+            }
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-cyan-500/20 hover:from-amber-500/30 hover:to-cyan-500/30 border border-amber-400/40 text-amber-200 text-xs font-extrabold transition-all shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:scale-105 active:scale-95 cursor-pointer"
+            title="Invite Teachers & Students — Get Classroom QR Code & +15 Lingo-Coins"
+          >
+            <Share2 className="w-3.5 h-3.5 text-amber-300" />
+            <span className="hidden md:inline">Invite Teachers &amp; Students</span>
+            <span className="md:hidden">Invite</span>
+          </button>
+
           <nav className="hidden sm:flex items-center gap-6 md:gap-8 text-xs md:text-sm font-semibold text-slate-300">
             {user && !isGuest && (
               <button

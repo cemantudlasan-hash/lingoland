@@ -19,6 +19,12 @@ export function PublicFooter() {
         {/* Global Compliance & Discovery Links */}
         <div className="flex flex-wrap items-center justify-center gap-5 sm:gap-7 font-medium">
           <Link
+            href="/invite"
+            className="text-amber-300 hover:text-amber-200 font-bold hover:underline transition-colors"
+          >
+            Invite Teachers &amp; Students (QR &amp; Share)
+          </Link>
+          <Link
             href="/apps"
             className="text-slate-300 hover:text-cyan-400 hover:underline transition-colors"
           >
