@@ -464,10 +464,10 @@ export function GameClientWrapper({ slug }: { slug: string }) {
       <div
         ref={gameContainerRef}
         className={cn(
-          "relative transition-all duration-300 flex flex-col w-full max-w-full overflow-x-hidden",
+          "relative transition-all duration-300 flex flex-col w-full max-w-full",
           isFullscreen
             ? "fixed inset-0 z-50 bg-background w-full h-[100dvh] max-h-[100dvh] overflow-y-auto overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]"
-            : "-m-3 md:-m-4 lg:-m-5 min-h-[calc(100dvh-4rem)] flex-1 max-w-[calc(100%+1.5rem)] md:max-w-[calc(100%+2rem)] lg:max-w-[calc(100%+2.5rem)] overflow-x-hidden"
+            : "-m-3 md:-m-4 lg:-m-5 grow shrink-0 max-w-[calc(100%+1.5rem)] md:max-w-[calc(100%+2rem)] lg:max-w-[calc(100%+2.5rem)]"
         )}
         data-fullscreen-container={isFullscreen}
         onMouseDown={startTimerOnInteraction}
@@ -476,8 +476,8 @@ export function GameClientWrapper({ slug }: { slug: string }) {
         <div
           data-game-stage="true"
           className={cn(
-            "w-full max-w-full transition-all duration-300 flex-1 flex flex-col overflow-x-hidden",
-            isFullscreen ? "min-h-[100dvh]" : "min-h-[calc(100dvh-4rem)] flex-1"
+            "w-full max-w-full transition-all duration-300 grow shrink-0 flex flex-col",
+            isFullscreen && "min-h-[100dvh]"
           )}
         >
           <React.Suspense fallback={<LoadingPlaceholder />}>

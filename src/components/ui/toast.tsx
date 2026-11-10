@@ -36,7 +36,7 @@ const ToastViewport = React.forwardRef<
       ref={ref}
       className={cn(
         // Base styles for all toasts: bottom-right
-        "fixed bottom-0 right-0 z-[100] flex w-full flex-col-reverse p-4 md:max-w-[420px]",
+        "fixed bottom-0 right-0 z-[100] flex w-full flex-col-reverse p-4 md:max-w-[420px] pointer-events-none",
         // If in fullscreen, make it absolute to the container
         portalContainer && "absolute",
         className
