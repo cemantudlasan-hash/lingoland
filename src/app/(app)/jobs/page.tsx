@@ -240,15 +240,15 @@ function JobsPageComponent() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
           {/* Jobs list pane */}
-          <div className="lg:col-span-4 flex flex-col gap-4">
+          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4">
             <div className="flex items-center justify-between px-2">
               <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
                 {filteredJobs.length} Openings Found
               </h2>
             </div>
 
-            <ScrollArea className="h-[calc(100vh-280px)] pr-4">
-              <div className="flex flex-col gap-3">
+            <ScrollArea className="h-[calc(100vh-280px)] pr-2">
+              <div className="flex flex-col gap-3 pr-2">
                 {isLoading ? (
                   Array.from({ length: 4 }).map((_, i) => (
                     <div
@@ -263,27 +263,35 @@ function JobsPageComponent() {
                 ) : (
                   <LayoutGroup>
                     {filteredJobs.map((job, index) => (
-                      <motion.button
+                      <motion.div
                         layout
+                        role="button"
+                        tabIndex={0}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
                         key={job.id}
                         className={cn(
-                          "relative w-full text-left p-3.5 sm:p-4 rounded-2xl transition-all duration-300 group overflow-hidden border shadow-lg backdrop-blur-xl",
+                          "relative w-full max-w-full text-left p-3.5 sm:p-4 rounded-2xl transition-all duration-300 group border shadow-lg backdrop-blur-xl cursor-pointer select-none overflow-hidden",
                           selectedJobId === job.id
                             ? "bg-primary/25 border-primary/60 shadow-xl shadow-primary/20"
                             : "bg-zinc-950/90 border-white/15 hover:bg-zinc-900/90 hover:border-white/25"
                         )}
                         onClick={() => handleSelectJob(job)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSelectJob(job);
+                          }
+                        }}
                       >
                         {selectedJobId === job.id && (
                           <motion.div
                             layoutId="active-job"
-                            className="absolute left-0 top-0 bottom-0 w-1 bg-primary"
+                            className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"
                           />
                         )}
-                        <div className="flex items-start gap-3 sm:gap-3.5 w-full min-w-0 relative z-10">
+                        <div className="flex items-start gap-3 w-full min-w-0 relative z-10">
                           {/* Thumbnail on the LEFT - always fully visible on all screens (mobile & desktop) */}
                           {job.imageUrl ? (
                             <div
@@ -310,23 +318,21 @@ function JobsPageComponent() {
                             </div>
                           )}
 
-                          <div className="space-y-1 min-w-0 flex-1">
-                            <div className="flex justify-between items-start gap-2">
-                              <p
-                                className={cn(
-                                  "font-bold text-base sm:text-lg transition-colors line-clamp-2 break-words leading-snug flex-1",
-                                  selectedJobId === job.id ? "text-primary" : "text-white"
-                                )}
-                              >
-                                {job.title}
-                              </p>
-                            </div>
-                            <p className="text-xs sm:text-sm text-zinc-300 font-medium group-hover:text-white transition-colors truncate">
+                          <div className="space-y-1.5 min-w-0 flex-1 w-full overflow-hidden">
+                            <p
+                              className={cn(
+                                "font-bold text-sm sm:text-base transition-colors break-words [overflow-wrap:anywhere] leading-snug",
+                                selectedJobId === job.id ? "text-primary" : "text-white group-hover:text-primary/95"
+                              )}
+                            >
+                              {job.title}
+                            </p>
+                            <p className="text-xs sm:text-sm text-zinc-300 font-medium group-hover:text-white transition-colors break-words [overflow-wrap:anywhere]">
                               {job.company}
                             </p>
-                            <div className="flex items-center gap-1.5 text-xs text-zinc-400 pt-0.5 font-medium">
-                              <MapPin className="h-3 w-3 text-primary shrink-0" />
-                              <span className="truncate">{job.location}</span>
+                            <div className="flex items-start gap-1.5 text-xs text-zinc-400 font-medium pt-0.5">
+                              <MapPin className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                              <span className="break-words [overflow-wrap:anywhere] leading-snug">{job.location}</span>
                             </div>
                             <div className="flex flex-wrap items-center gap-1.5 pt-1">
                               {job.isRemote && (
@@ -337,22 +343,37 @@ function JobsPageComponent() {
                                   Remote
                                 </Badge>
                               )}
+                              {job.type && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px] py-0 px-2 bg-white/10 text-zinc-300 border-none shrink-0"
+                                >
+                                  {job.type}
+                                </Badge>
+                              )}
                               {job.imageUrl && (
-                                <button
-                                  type="button"
+                                <span
+                                  role="button"
+                                  tabIndex={0}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     openImageViewer(job.imageUrl!, `${job.title} - ${job.company}`);
                                   }}
-                                  className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-medium transition-colors"
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.stopPropagation();
+                                      openImageViewer(job.imageUrl!, `${job.title} - ${job.company}`);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-medium transition-colors cursor-pointer"
                                 >
                                   <ImageIcon className="h-2.5 w-2.5" /> View Picture
-                                </button>
+                                </span>
                               )}
                             </div>
                           </div>
                         </div>
-                      </motion.button>
+                      </motion.div>
                     ))}
                   </LayoutGroup>
                 )}
@@ -361,7 +382,7 @@ function JobsPageComponent() {
           </div>
 
           {/* Details pane */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-7 xl:col-span-8">
             <AnimatePresence mode="wait">
               {selectedJob ? (
                 <motion.div
