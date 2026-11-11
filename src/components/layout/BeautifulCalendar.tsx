@@ -12,7 +12,9 @@ import {
   Sparkles,
   PartyPopper,
   BookmarkCheck,
-  Compass
+  Compass,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSeasonalTheme } from '@/context/seasonal-theme-context';
@@ -20,6 +22,8 @@ import {
   THAI_AND_INTERNATIONAL_HOLIDAYS,
   TIMEZONE_TO_COUNTRY,
   COUNTRY_INFO,
+  SUPPORTED_COUNTRIES,
+  fetchPublicHolidays,
   type ApiHolidayRaw,
   type HolidayEntry
 } from '@/lib/holidays';
@@ -40,16 +44,17 @@ export function BeautifulCalendar() {
   // API holiday data: keyed by "YYYY-MM-DD"
   const [apiHolidays, setApiHolidays] = useState<Record<string, HolidayEntry[]>>({});
   const [isLoadingHolidays, setIsLoadingHolidays] = useState(false);
-  const [usingFallback, setUsingFallback] = useState(false);
   const fetchedKeys = useRef<Set<string>>(new Set());
 
   // Locale & Timezone detection
   const [userLocale, setUserLocale] = useState('en-US');
-  const [userTimezone, setUserTimezone] = useState('UTC');
-  const [countryCode, setCountryCode] = useState<string | null>(null);
+  const [userTimezone, setUserTimezone] = useState('Asia/Bangkok');
+  const [countryCode, setCountryCode] = useState<string>('TH');
+  const [isCountryPickerOpen, setIsCountryPickerOpen] = useState(false);
+  const countryPickerRef = useRef<HTMLDivElement | null>(null);
 
   const countryInfo = useMemo(() =>
-    (countryCode && COUNTRY_INFO[countryCode]) || { name: 'International', flag: '🌐' },
+    (countryCode && COUNTRY_INFO[countryCode]) || { name: 'Thailand', flag: '🇹🇭' },
     [countryCode]
   );
 
@@ -59,11 +64,23 @@ export function BeautifulCalendar() {
     const browserTimezone = typeof Intl !== 'undefined'
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : 'Asia/Bangkok';
-    const browserCountry = TIMEZONE_TO_COUNTRY[browserTimezone] ?? 'TH';
+
+    // Prioritize cached user preference if available
+    let initialCountry = 'TH';
+    try {
+      const cached = sessionStorage.getItem('lingoland_user_country');
+      if (cached && COUNTRY_INFO[cached]) {
+        initialCountry = cached;
+      } else {
+        initialCountry = TIMEZONE_TO_COUNTRY[browserTimezone] ?? 'TH';
+      }
+    } catch {
+      initialCountry = TIMEZONE_TO_COUNTRY[browserTimezone] ?? 'TH';
+    }
 
     setUserLocale(browserLocale);
     setUserTimezone(browserTimezone);
-    setCountryCode(browserCountry);
+    setCountryCode(initialCountry);
 
     // Live clock ticker
     const updateClock = () => {
@@ -86,83 +103,65 @@ export function BeautifulCalendar() {
     updateClock();
     const clockTimer = setInterval(updateClock, 1000);
 
-    // Background IP Geo-location
+    // Background Geo-location confirmation (overrides only if no manual cache exists)
     const detectLocation = async () => {
       try {
-        const res = await fetch('https://freeipapi.com/api/json', { signal: AbortSignal.timeout(2000) });
+        const hasManualChoice = sessionStorage.getItem('lingoland_user_country_manual');
+        if (hasManualChoice) return;
+
+        const res = await fetch('/api/geo', { signal: AbortSignal.timeout(2000) });
         if (res.ok) {
           const data = await res.json();
-          if (data && data.countryCode && data.timeZone) {
-            setCountryCode(prev => prev !== data.countryCode ? data.countryCode : prev);
-            setUserTimezone(prev => prev !== data.timeZone ? data.timeZone : prev);
+          if (data && data.country && data.country !== 'UNKNOWN' && COUNTRY_INFO[data.country]) {
+            setCountryCode(data.country);
           }
         }
-      } catch (err) {
-        console.warn('IP geolocation failed, using browser timezone:', err);
-      }
+      } catch {}
     };
     detectLocation();
 
     return () => clearInterval(clockTimer);
   }, []);
 
-  // ─── Fetch holidays from Nager.Date public API ────────────────────────────
-  const fetchHolidays = useCallback(async (year: number) => {
-    if (!countryCode) return;
-    const key = `${year}_${countryCode}`;
+  // Close country picker on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (countryPickerRef.current && !countryPickerRef.current.contains(e.target as Node)) {
+        setIsCountryPickerOpen(false);
+      }
+    };
+    if (isCountryPickerOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [isCountryPickerOpen]);
+
+  // ─── Fetch Location-Specific Holidays ─────────────────────────────────────
+  const loadHolidays = useCallback(async (targetYear: number, targetCountry: string) => {
+    if (!targetCountry) return;
+    const key = `${targetYear}_${targetCountry}`;
     if (fetchedKeys.current.has(key)) return;
     fetchedKeys.current.add(key);
 
-    const cacheKey = `ll_holidays_${key}`;
-    try {
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        const parsed: ApiHolidayRaw[] = JSON.parse(cached);
-        const converted: Record<string, HolidayEntry[]> = {};
-        parsed.forEach(h => {
-          if (!converted[h.date]) converted[h.date] = [];
-          converted[h.date].push({ name: h.name, localName: h.localName });
-        });
-        setApiHolidays(prev => ({ ...prev, ...converted }));
-        setUsingFallback(false);
-        return;
-      }
-    } catch {}
-
     setIsLoadingHolidays(true);
     try {
-      const res = await fetch(
-        `https://date.nager.at/api/v3/PublicHolidays/${year}/${countryCode}`,
-        { signal: AbortSignal.timeout(6000) }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: ApiHolidayRaw[] = await res.json();
-
-      try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch {}
-
-      const converted: Record<string, HolidayEntry[]> = {};
-      data.forEach(h => {
-        if (!converted[h.date]) converted[h.date] = [];
-        converted[h.date].push({ name: h.name, localName: h.localName });
-      });
-      setApiHolidays(prev => ({ ...prev, ...converted }));
-      setUsingFallback(false);
-    } catch {
-      setUsingFallback(true);
+      const data = await fetchPublicHolidays(targetYear, targetCountry);
+      setApiHolidays(prev => ({ ...prev, ...data }));
+    } catch (err) {
+      console.warn(`Failed loading holidays for ${targetCountry}:`, err);
     } finally {
       setIsLoadingHolidays(false);
     }
-  }, [countryCode]);
+  }, []);
 
+  // Fetch when year or country changes
   useEffect(() => {
-    const year = new Date().getFullYear();
-    fetchHolidays(year);
-    fetchHolidays(year + 1);
-  }, [fetchHolidays]);
-
-  useEffect(() => {
-    fetchHolidays(viewDate.getFullYear());
-  }, [viewDate, fetchHolidays]);
+    fetchedKeys.current.clear();
+    const currentYear = new Date().getFullYear();
+    loadHolidays(currentYear, countryCode);
+    loadHolidays(currentYear + 1, countryCode);
+    loadHolidays(viewDate.getFullYear(), countryCode);
+  }, [countryCode, loadHolidays, viewDate]);
 
   // Midnight tracker
   useEffect(() => {
@@ -202,10 +201,13 @@ export function BeautifulCalendar() {
     return days;
   }, [firstDayIndex, daysInMonth]);
 
-  // Merge API + fallback holidays
+  // ─── Location-Strict Holiday Aggregation ──────────────────────────────────
+  // STRICT RULE: Only holidays belonging to the active country are displayed!
   const activeMonthHolidays = useMemo(() => {
     const list: Record<number, HolidayEntry> = {};
+    const normCountry = (countryCode || 'TH').toUpperCase();
 
+    // 1. Populate from apiHolidays (which are strictly fetched for this country)
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       if (apiHolidays[dateStr]?.length) {
@@ -213,21 +215,24 @@ export function BeautifulCalendar() {
       }
     }
 
-    if (usingFallback || !countryCode || Object.keys(list).length === 0) {
-      const isThai = countryCode === 'TH' || userTimezone.includes('Bangkok');
-      THAI_AND_INTERNATIONAL_HOLIDAYS.forEach(h => {
-        const [hYear, hMonth, hDay] = h.date.split('-').map(Number);
-        if ((hMonth - 1) === month && hYear === year) {
-          const isThaiOnly = h.type === 'thai_public';
-          if (isThai || !isThaiOnly) {
-            if (!list[hDay]) list[hDay] = { name: h.name };
-          }
+    // 2. Supplement/Verify strictly with static verified database for this country
+    THAI_AND_INTERNATIONAL_HOLIDAYS.forEach(h => {
+      // STRICT LOCATION CHECK: Never allow holidays from other countries!
+      if (h.country !== normCountry) return;
+
+      const [hYear, hMonth, hDay] = h.date.split('-').map(Number);
+      if ((hMonth - 1) === month && hYear === year) {
+        if (!list[hDay]) {
+          list[hDay] = {
+            name: h.name,
+            localName: h.localName || h.name,
+          };
         }
-      });
-    }
+      }
+    });
 
     return list;
-  }, [year, month, daysInMonth, apiHolidays, usingFallback, countryCode, userTimezone]);
+  }, [year, month, daysInMonth, apiHolidays, countryCode]);
 
   // Compute upcoming holiday in this month for top pill
   const upcomingHolidayInMonth = useMemo(() => {
@@ -252,6 +257,7 @@ export function BeautifulCalendar() {
   // Holiday Emoji resolver
   const getHolidayEmoji = (name: string): string => {
     const lower = name.toLowerCase();
+    if (lower.includes('loy krathong') || lower.includes('krathong')) return '🪷';
     if (lower.includes('halloween')) return '🎃';
     if (lower.includes('christmas')) return '🎄';
     if (lower.includes('songkran')) return '💦';
@@ -259,9 +265,9 @@ export function BeautifulCalendar() {
     if (lower.includes('valentine')) return '💖';
     if (lower.includes('chulalongkorn') || lower.includes('chakri') || lower.includes('coronation')) return '👑';
     if (lower.includes('buddha') || lower.includes('bucha') || lower.includes('lent')) return '🪷';
-    if (lower.includes('mother') || lower.includes('queen')) return '👸';
-    if (lower.includes('father') || lower.includes('king')) return '🤴';
-    if (lower.includes('labour')) return '🛠️';
+    if (lower.includes('mother') || lower.includes('queen') || lower.includes('sirikit')) return '👸';
+    if (lower.includes('father') || lower.includes('king') || lower.includes('bhumibol')) return '🤴';
+    if (lower.includes('labour') || lower.includes('labor')) return '🛠️';
     if (lower.includes('constitution')) return '📜';
     if (lower.includes('thanksgiving')) return '🦃';
     if (lower.includes('easter')) return '🥚';
@@ -287,6 +293,15 @@ export function BeautifulCalendar() {
 
   const isViewingCurrentMonth = viewDate.getMonth() === today.getMonth() && viewDate.getFullYear() === today.getFullYear();
 
+  const handleSelectCountry = (code: string) => {
+    setCountryCode(code);
+    setIsCountryPickerOpen(false);
+    try {
+      sessionStorage.setItem('lingoland_user_country', code);
+      sessionStorage.setItem('lingoland_user_country_manual', 'true');
+    } catch {}
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
@@ -304,7 +319,7 @@ export function BeautifulCalendar() {
           : undefined,
       }}
     >
-      {/* ── Ambient Neon Cyber Orbs (Themed to Season) ── */}
+      {/* ── Ambient Neon Cyber Orbs ── */}
       <div 
         className="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl pointer-events-none transition-all duration-700" 
         style={{ 
@@ -332,11 +347,17 @@ export function BeautifulCalendar() {
 
       <div className="relative z-10 space-y-4">
 
-        {/* ── Top Bar: Location, Status, and Live Digital Clock ── */}
-        <div className="flex items-center justify-between pb-1 flex-wrap gap-2">
-          {/* Location & Status Pill */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md text-slate-300 text-xs font-semibold shadow-sm">
+        {/* ── Top Bar: Location Selector, Seasonal Tag, and Live Digital Clock ── */}
+        <div className="flex items-center justify-between pb-1 flex-wrap gap-2 relative">
+          
+          {/* Location & Country Selector Pill */}
+          <div className="relative" ref={countryPickerRef}>
+            <button
+              type="button"
+              onClick={() => setIsCountryPickerOpen(prev => !prev)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/15 backdrop-blur-md text-slate-300 text-xs font-semibold shadow-sm transition-all active:scale-95 cursor-pointer group/loc"
+              title="Click to change country holidays"
+            >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
@@ -344,11 +365,54 @@ export function BeautifulCalendar() {
               <span className="uppercase text-[10px] text-slate-400 font-mono">{userLocale}</span>
               <span className="text-zinc-600">·</span>
               <span className="text-sm">{countryInfo.flag}</span>
-              <span className="text-xs font-bold text-indigo-300">{countryInfo.name}</span>
+              <span className="text-xs font-bold text-indigo-300 group-hover/loc:text-white transition-colors">{countryInfo.name}</span>
+              <span className="text-[10px] text-zinc-400 font-mono">({countryCode})</span>
+              <ChevronDown className="h-3 w-3 text-zinc-400 ml-0.5 group-hover/loc:text-white transition-transform" />
               {isLoadingHolidays && (
                 <Loader2 className="h-3 w-3 animate-spin text-indigo-400 ml-0.5" />
               )}
-            </div>
+            </button>
+
+            {/* Country Selector Dropdown Menu */}
+            <AnimatePresence>
+              {isCountryPickerOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 4, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 top-full mt-1 w-64 rounded-2xl bg-slate-950/95 border border-indigo-500/40 shadow-2xl backdrop-blur-2xl p-2 z-50 max-h-72 overflow-y-auto space-y-1"
+                >
+                  <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-300 border-b border-white/10 flex items-center justify-between">
+                    <span>Select Country Holidays</span>
+                    <span className="text-zinc-400 font-normal">Location-based</span>
+                  </div>
+                  {SUPPORTED_COUNTRIES.map((c) => {
+                    const isSelected = c.code === countryCode;
+                    return (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onClick={() => handleSelectCountry(c.code)}
+                        className={cn(
+                          "w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer",
+                          isSelected
+                            ? "bg-indigo-600/30 text-white border border-indigo-400/40 shadow-sm"
+                            : "text-slate-300 hover:text-white hover:bg-white/[0.08]"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{c.flag}</span>
+                          <span className="truncate">{c.name}</span>
+                          <span className="text-[10px] text-zinc-400 font-mono">({c.code})</span>
+                        </div>
+                        {isSelected && <Check className="h-3.5 w-3.5 text-indigo-400" />}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Seasonal Theme Badge in Top Bar */}
@@ -397,7 +461,7 @@ export function BeautifulCalendar() {
               </button>
             )}
 
-            {/* Quick Holiday Banner in Month Bar */}
+            {/* Quick Holiday Banner in Month Bar (Strictly Location-Accurate) */}
             {upcomingHolidayInMonth && (
               <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] font-semibold">
                 <span className="text-sm">{getHolidayEmoji(upcomingHolidayInMonth.holiday.name)}</span>
@@ -441,7 +505,7 @@ export function BeautifulCalendar() {
           </div>
         </div>
 
-        {/* ── Sleek Weekday Bar ── */}
+        {/* ── Weekday Bar ── */}
         <div className="grid grid-cols-7 gap-1 sm:gap-2 p-1.5 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
           {weekdays.map((d, i) => {
             const isWeekend = i === 0 || i === 6;
@@ -459,7 +523,7 @@ export function BeautifulCalendar() {
           })}
         </div>
 
-        {/* ── Calendar Grid (Sleek Modern Glass Cells) ── */}
+        {/* ── Calendar Grid ── */}
         <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {calendarDays.map((day, idx) => {
             if (day === null) {
@@ -569,11 +633,11 @@ export function BeautifulCalendar() {
           })}
         </div>
 
-        {/* ── Selected Day Interactive Deck (Never Dry!) ── */}
+        {/* ── Selected Day Interactive Deck (Strictly Location-Accurate) ── */}
         <AnimatePresence mode="wait">
           {selectedHolidayInfo ? (
             <motion.div
-              key={`hol-${selectedDay}`}
+              key={`hol-${selectedDay}-${countryCode}`}
               initial={{ opacity: 0, y: 6, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.98 }}
@@ -590,7 +654,7 @@ export function BeautifulCalendar() {
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase text-rose-300 tracking-wider flex items-center gap-1.5 truncate">
                     <MapPin className="h-3 w-3 text-rose-400 shrink-0" />
-                    <span>Public Holiday</span>
+                    <span>Public Holiday · {countryInfo.name}</span>
                     <span className="text-rose-400/60">·</span>
                     <span className="text-slate-200 font-bold">{formattedSelectedDate}</span>
                   </p>
@@ -613,7 +677,7 @@ export function BeautifulCalendar() {
             </motion.div>
           ) : selectedDay !== null ? (
             <motion.div
-              key={`reg-${selectedDay}`}
+              key={`reg-${selectedDay}-${countryCode}`}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
@@ -626,7 +690,7 @@ export function BeautifulCalendar() {
                 <div>
                   <span className="font-extrabold text-white">{formattedSelectedDate}</span>
                   <span className="text-slate-400 text-[11px] ml-2 hidden sm:inline">
-                    · Regular Academic Focus Day (No Public Holiday)
+                    · Regular Academic Focus Day in {countryInfo.name} (No Public Holiday)
                   </span>
                 </div>
               </div>
