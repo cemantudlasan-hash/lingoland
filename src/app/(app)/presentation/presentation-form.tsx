@@ -741,29 +741,29 @@ const fontSizes = [
       name: 'Small text', 
       className: 'text-sm sm:text-base leading-relaxed', 
       titleClassName: 'text-xl sm:text-2xl font-bold leading-tight', 
-      fullScreenClassName: 'text-sm sm:text-base md:text-xl lg:text-2xl leading-snug sm:leading-relaxed md:leading-relaxed', 
-      fullScreenTitleClassName: 'text-xl sm:text-2xl md:text-4xl lg:text-5xl font-extrabold leading-tight' 
+      fullScreenClassName: 'text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl leading-snug sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-extrabold leading-tight' 
     },
     { 
       name: 'Medium text', 
       className: 'text-base sm:text-lg leading-relaxed', 
       titleClassName: 'text-2xl sm:text-3xl font-bold leading-tight', 
-      fullScreenClassName: 'text-base sm:text-lg md:text-2xl lg:text-3xl leading-snug sm:leading-relaxed md:leading-relaxed', 
-      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight' 
+      fullScreenClassName: 'text-base sm:text-lg md:text-xl lg:text-2xl xl:text-[1.75rem] leading-snug sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight' 
     },
     { 
       name: 'Large text', 
       className: 'text-lg sm:text-xl leading-relaxed', 
       titleClassName: 'text-3xl sm:text-4xl font-bold leading-tight', 
-      fullScreenClassName: 'text-base sm:text-xl md:text-2xl lg:text-3xl leading-snug sm:leading-relaxed md:leading-relaxed', 
-      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight' 
+      fullScreenClassName: 'text-base sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl leading-snug sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight' 
     },
     { 
       name: 'Extra Large', 
       className: 'text-xl sm:text-2xl md:text-3xl leading-relaxed', 
       titleClassName: 'text-3xl sm:text-4xl md:text-5xl font-bold leading-tight', 
-      fullScreenClassName: 'text-lg sm:text-2xl md:text-3xl lg:text-4xl leading-snug sm:leading-relaxed md:leading-relaxed', 
-      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight' 
+      fullScreenClassName: 'text-lg sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl leading-snug sm:leading-relaxed md:leading-relaxed', 
+      fullScreenTitleClassName: 'text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-tight tracking-tight' 
     },
 ];
 
@@ -3995,7 +3995,10 @@ export function PresentationForm() {
                 {isFullscreen ? (
                   <>
                     {/* Fullscreen Floating Controls Bar */}
-                    <div className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 max-w-[95vw] overflow-x-auto scrollbar-none py-1">
+                    <div 
+                      className="absolute right-2.5 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 max-w-[95vw] overflow-x-auto scrollbar-none py-1"
+                      style={{ top: 'max(0.625rem, calc(env(safe-area-inset-top, 0px) + 0.5rem))' }}
+                    >
                       {/* Edit Slides Toggle in Fullscreen */}
                       <Button
                         onClick={(e) => {
@@ -4234,7 +4237,9 @@ export function PresentationForm() {
                   className="w-full h-full select-none"
                 >
                   <CarouselContent className={cn("h-full", isFullscreen && "ml-0 bg-transparent")}>
-                    {(isEditMode ? (editableSlides.length > 0 ? editableSlides : presentation.slides) : presentation.slides).map((slide, index) => (
+                    {(isEditMode ? (editableSlides.length > 0 ? editableSlides : presentation.slides) : presentation.slides).map((slide, index) => {
+                      const hasSlidePhoto = !!(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode;
+                      return (
                       <CarouselItem key={index} className={cn("h-full basis-full min-w-full max-w-full shrink-0 grow-0", isFullscreen ? "pl-0 bg-transparent" : "pl-4")}>
                         <div 
                           className={cn(
@@ -4251,14 +4256,21 @@ export function PresentationForm() {
                             handleRevealNextWord(index);
                           }}
                         >
-                          <div className={cn(
-                            "w-full flex flex-col h-full",
-                            !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                            isFullscreen && "overflow-y-auto justify-start pt-12 sm:pt-16 pb-32 sm:pb-24 px-4 sm:px-6 md:px-10 overscroll-contain touch-pan-y"
-                          )}>
+                          <div 
+                            className={cn(
+                              "w-full flex flex-col h-full",
+                              !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
+                              isFullscreen && "overflow-y-auto justify-start pt-20 sm:pt-24 lg:pt-28 pb-32 sm:pb-24 px-4 sm:px-8 md:px-12 overscroll-contain touch-pan-y"
+                            )}
+                            style={isFullscreen ? { paddingTop: 'max(5.5rem, calc(env(safe-area-inset-top, 0px) + 3.75rem))' } : undefined}
+                          >
                             <div className={cn(
-                              "w-full mx-auto flex flex-col items-stretch justify-start min-h-full",
-                              isFullscreen ? "lg:flex-row lg:items-center lg:justify-center w-full max-w-full gap-4 lg:gap-8 flex-1" : "md:flex-row md:justify-center max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
+                              "w-full mx-auto flex flex-col justify-start min-h-full",
+                              isFullscreen 
+                                ? (hasSlidePhoto 
+                                    ? "lg:flex-row lg:items-start lg:justify-center w-full max-w-7xl gap-6 lg:gap-12 flex-1 my-auto" 
+                                    : "items-stretch justify-start w-full max-w-5xl gap-4 flex-1 my-auto") 
+                                : "md:flex-row md:justify-center max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
                               !isFullscreen && "animate-in fade-in duration-700",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
@@ -4266,17 +4278,13 @@ export function PresentationForm() {
                               <div className={cn(
                                 "w-full flex flex-col px-1 sm:px-4 md:px-6 shrink-0 min-h-0",
                                 isFullscreen 
-                                  ? "lg:w-1/2 justify-start py-1" 
-                                  : "flex-1 justify-center",
-                                (slidePhotos[index] || (slide as any).photoUrl) && !isEditMode 
-                                  ? (isFullscreen ? "w-full lg:w-1/2" : "md:w-1/2") 
-                                  : (isFullscreen ? "w-full max-w-4xl mx-auto" : "w-full")
+                                  ? (hasSlidePhoto ? "lg:w-1/2 justify-start py-1 my-auto" : "w-full max-w-5xl mx-auto justify-start py-1 my-auto") 
+                                  : (hasSlidePhoto ? "md:w-1/2 flex-1 justify-center" : "w-full flex-1 justify-center")
                               )}>
                                 {/* Helpful Slide Text Interaction Tips Banner */}
-                                {!isEditMode && (
+                                {!isEditMode && !isFullscreen && (
                                   <div className={cn(
                                     "w-full mb-2.5 sm:mb-3.5 p-2 sm:p-2.5 rounded-xl shadow-md select-none shrink-0 transition-colors",
-                                    isFullscreen && "hidden md:block",
                                     isThemeLight
                                       ? "bg-stone-200/90 border border-stone-300/80 text-stone-800 shadow-stone-200/50"
                                       : "bg-slate-900/80 border border-purple-500/30 text-purple-200"
@@ -4322,7 +4330,7 @@ export function PresentationForm() {
                                     />
                                   </div>
                                 ) : (
-                                  <h2 className={cn("font-bold transition-all duration-300",
+                                  <h2 className={cn("font-bold transition-all duration-300 break-words",
                                     isThemeLight ? (currentThemeObj.titleClass || "text-slate-900") : (currentThemeObj.titleClass || "text-white"),
                                     !isFullscreen 
                                       ? `mb-4 sm:mb-6 ${fontSize.titleClassName}` 
@@ -4430,9 +4438,9 @@ export function PresentationForm() {
                               </div>
 
                               {/* Beautiful dynamic slide photo with auto-fit, vertical stretch and interactive zoom */}
-                              {(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode && (
+                              {hasSlidePhoto && (
                                 <div className={cn(
-                                  "w-full select-none flex flex-col items-center justify-center",
+                                  "w-full select-none flex flex-col items-center justify-center my-auto",
                                   !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-1/2 flex-1 min-h-[350px] h-full",
                                   isFullscreen && "w-full lg:w-1/2 shrink-0 flex items-center justify-center mt-3 sm:mt-5 mb-4 pb-2"
                                 )}>
@@ -5011,7 +5019,8 @@ export function PresentationForm() {
                           </div>
                         </div>
                       </CarouselItem>
-                    ))}
+                    );
+                    })}
                   </CarouselContent>
                   <CarouselPrevious 
                     onClick={(e) => {
