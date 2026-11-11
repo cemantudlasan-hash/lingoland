@@ -2295,6 +2295,10 @@ export function PresentationForm() {
 
   React.useEffect(() => {
     const handleSelectionChange = () => {
+      if (showImageModal || showTextModal || activeLightboxImage) {
+        setShowPill(false);
+        return;
+      }
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) {
         setShowPill(false);
@@ -2341,7 +2345,7 @@ export function PresentationForm() {
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
     };
-  }, [presentation]);
+  }, [presentation, showImageModal, showTextModal, activeLightboxImage]);
 
   const handleInsertTextToSlide = (textToInsert: string) => {
     const activeIdx = api?.selectedScrollSnap() || 0;
@@ -2529,6 +2533,10 @@ export function PresentationForm() {
   };
 
   const handleShowImage = async (text: string) => {
+    setShowPill(false);
+    if (typeof window !== 'undefined' && window.getSelection) {
+      window.getSelection()?.removeAllRanges();
+    }
     setZoomScale(1);
     setTransformOrigin("center center");
     if (showSplitSearch) {
@@ -4276,18 +4284,18 @@ export function PresentationForm() {
                           <div 
                             className={cn(
                               "w-full flex flex-col h-full",
-                              !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-24",
-                              isFullscreen && "overflow-y-auto justify-start pt-20 sm:pt-24 lg:pt-28 pb-32 sm:pb-24 px-4 sm:px-8 md:px-12 overscroll-contain touch-pan-y"
+                              !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-20",
+                              isFullscreen && "overflow-y-auto justify-start lg:justify-center pt-16 sm:pt-20 lg:pt-16 pb-24 sm:pb-20 lg:pb-16 px-4 sm:px-8 md:px-12 lg:px-14 xl:px-20 overscroll-contain touch-pan-y"
                             )}
-                            style={isFullscreen ? { paddingTop: 'max(5.5rem, calc(env(safe-area-inset-top, 0px) + 3.75rem))' } : undefined}
+                            style={isFullscreen ? { paddingTop: 'max(4rem, calc(env(safe-area-inset-top, 0px) + 3.25rem))' } : undefined}
                           >
                             <div className={cn(
                               "w-full mx-auto flex flex-col justify-start min-h-full",
                               isFullscreen 
                                 ? (hasSlidePhoto 
-                                    ? "lg:flex-row lg:items-start lg:justify-center w-full max-w-7xl gap-6 lg:gap-12 flex-1 my-auto" 
-                                    : "items-stretch justify-start w-full max-w-5xl gap-4 flex-1 my-auto") 
-                                : "md:flex-row md:justify-center max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
+                                    ? "lg:flex-row lg:items-center lg:justify-between w-full max-w-[96vw] xl:max-w-[94vw] gap-6 lg:gap-10 xl:gap-14 flex-1 my-auto" 
+                                    : "items-stretch justify-center w-full max-w-6xl xl:max-w-7xl gap-4 flex-1 my-auto") 
+                                : "md:flex-row md:items-center md:justify-center max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
                               !isFullscreen && "animate-in fade-in duration-700",
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
@@ -4301,8 +4309,8 @@ export function PresentationForm() {
                                 className={cn(
                                   "w-full flex flex-col px-1 sm:px-4 md:px-6 shrink-0 min-h-0 select-text cursor-auto",
                                   isFullscreen 
-                                    ? (hasSlidePhoto ? "lg:w-1/2 justify-start py-1 my-auto" : "w-full max-w-5xl mx-auto justify-start py-1 my-auto") 
-                                    : (hasSlidePhoto ? "md:w-1/2 flex-1 justify-center" : "w-full flex-1 justify-center")
+                                    ? (hasSlidePhoto ? "lg:w-[44%] xl:w-[42%] justify-center py-2 my-auto" : "w-full max-w-6xl mx-auto justify-center py-2 my-auto") 
+                                    : (hasSlidePhoto ? "md:w-[46%] flex-1 justify-center" : "w-full flex-1 justify-center")
                                 )}
                               >
                                 {/* Helpful Slide Text Interaction Tips Banner */}
@@ -4467,15 +4475,15 @@ export function PresentationForm() {
                               {/* Beautiful dynamic slide photo with auto-fit, vertical stretch and interactive zoom */}
                               {hasSlidePhoto && (
                                 <div className={cn(
-                                  "w-full select-none flex flex-col items-center justify-center my-auto",
-                                  !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-1/2 flex-1 min-h-[350px] h-full",
-                                  isFullscreen && "w-full lg:w-1/2 shrink-0 flex items-center justify-center mt-3 sm:mt-5 mb-4 pb-2"
+                                  "w-full select-none flex flex-col items-center justify-center",
+                                  !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-[54%] flex-1 min-h-[350px] h-full my-auto",
+                                  isFullscreen && "w-full lg:w-[56%] xl:w-[58%] shrink-0 flex items-center justify-center mt-3 sm:mt-4 lg:my-auto lg:h-full mb-4 lg:mb-0 pb-2 lg:pb-0"
                                 )}>
                                   {brokenSlideImages[index] ? (
                                     <div className={cn(
                                       "relative w-full h-full rounded-2xl overflow-hidden border border-amber-500/30 bg-slate-900/90 shadow-[0_15px_40px_rgba(245,158,11,0.12)] p-4 sm:p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300",
                                       isFullscreen
-                                        ? "min-h-[160px] sm:min-h-[220px] md:min-h-[420px]"
+                                        ? "min-h-[200px] sm:min-h-[300px] lg:h-[76vh] xl:h-[80vh] lg:min-h-[520px]"
                                         : "min-h-[320px] md:min-h-[440px]"
                                     )}>
                                       <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-purple-500/10 pointer-events-none" />
@@ -4542,8 +4550,8 @@ export function PresentationForm() {
                                         className={cn(
                                           "relative w-full flex items-center justify-center rounded-2xl overflow-hidden border select-none transition-all",
                                           isFullscreen
-                                            ? "h-[28vh] min-h-[160px] max-h-[220px] sm:max-h-[300px] lg:h-full lg:max-h-none lg:min-h-[460px] bg-black/20 backdrop-blur-sm border-white/10 shadow-lg"
-                                            : "min-h-[340px] md:min-h-[460px] lg:min-h-[560px] border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md"
+                                            ? "h-[32vh] min-h-[200px] max-h-[260px] sm:h-[42vh] sm:max-h-[380px] md:h-[52vh] md:max-h-[500px] lg:h-[76vh] lg:min-h-[520px] lg:max-h-[82vh] xl:h-[80vh] xl:min-h-[600px] xl:max-h-[84vh] bg-black/20 backdrop-blur-sm border-white/10 shadow-2xl"
+                                            : "h-[360px] sm:h-[420px] md:h-[500px] lg:h-[560px] min-h-[340px] md:min-h-[460px] lg:min-h-[560px] border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md"
                                         )}
                                         onClick={(e) => e.stopPropagation()}
                                         onMouseDown={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageMouseDown(index, e) : undefined}
@@ -4557,10 +4565,10 @@ export function PresentationForm() {
                                       >
                                         <div className={cn(
                                           "w-full h-full flex items-center justify-center overflow-hidden",
-                                          slideImageFitModes[index] === 'cover' ? "p-0" : "p-3 sm:p-5 md:p-6"
+                                          slideImageFitModes[index] === 'cover' ? "p-0" : "p-1.5 sm:p-2.5"
                                         )}>
                                           <div 
-                                            className="relative flex items-center justify-center max-w-full max-h-full"
+                                            className="relative w-full h-full flex items-center justify-center"
                                             style={{
                                               transform: `translate(${slideImagePans[index]?.x || 0}px, ${slideImagePans[index]?.y || 0}px) scale(${slideImageZooms[index] || 1})`,
                                               transformOrigin: "center center",
@@ -4574,7 +4582,7 @@ export function PresentationForm() {
                                                 setBrokenSlideImages(prev => ({ ...prev, [index]: true }));
                                               }}
                                               className={cn(
-                                                "max-w-full max-h-full object-contain select-none pointer-events-auto rounded-xl drop-shadow-md block",
+                                                "w-full h-full max-w-full max-h-full object-contain select-none pointer-events-auto rounded-xl drop-shadow-md block",
                                                 slideImageFitModes[index] === 'cover' && "!w-full !h-full !max-w-none !max-h-none !object-cover !rounded-none",
                                                 slideImageFitModes[index] === 'fill' && "!w-full !h-full !max-w-none !max-h-none object-fill",
                                                 (slideImageZooms[index] || 1) > 1 && activeDrawSlideIndex !== index ? (isDraggingSlide ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
@@ -5080,10 +5088,10 @@ export function PresentationForm() {
                 </Carousel>
 
                 {/* Highlighted text visual search option button */}
-                {showPill && (
+                {showPill && !showImageModal && !showTextModal && !activeLightboxImage && (
                   <div 
                     className={cn(
-                      "absolute z-50 transition-all duration-200 select-none animate-in fade-in zoom-in-95 flex items-center gap-1.5 bg-slate-900/95 border border-purple-500/40 p-1.5 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.5)] backdrop-blur-md",
+                      "absolute z-40 transition-all duration-200 select-none animate-in fade-in zoom-in-95 flex items-center gap-1.5 bg-slate-900/95 border border-purple-500/40 p-1.5 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.5)] backdrop-blur-md",
                       "fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-auto"
                     )}
                     style={typeof window !== 'undefined' && window.innerWidth >= 768 && selectionCoords ? {
@@ -5131,13 +5139,13 @@ export function PresentationForm() {
                 {/* Floating glassmorphic image search modal */}
                 {showImageModal && (
                   <div 
-                    className="absolute inset-0 z-40 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300 select-none"
-onClick={() => setShowImageModal(false)}
+                    className="absolute inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300 select-none"
+                    onClick={() => setShowImageModal(false)}
                   >
                     <div 
                       className={cn(
                         "relative bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-[0_20px_50px_rgba(99,102,241,0.3)] animate-in zoom-in-95 duration-300 text-center space-y-4 backdrop-blur-md",
-                        isFullscreen ? "w-full max-w-4xl max-h-[85vh] flex flex-col justify-between" : "w-full max-w-sm"
+                        isFullscreen ? "w-full max-w-4xl max-h-[85vh] flex flex-col justify-between" : "w-full max-w-sm sm:max-w-md"
                       )}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -5155,7 +5163,7 @@ onClick={() => setShowImageModal(false)}
 
                       <div className={cn(
                         "relative rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center border border-slate-800 p-4",
-                        isFullscreen ? "min-h-[500px] w-full flex-1" : "aspect-square w-full"
+                        isFullscreen ? "h-[60vh] min-h-[420px] max-h-[68vh] w-full flex-1" : "aspect-square w-full"
                       )}>
                         {isLoadingImage || isLoadingPicker ? (
                           <div className="flex flex-col items-center gap-3">
