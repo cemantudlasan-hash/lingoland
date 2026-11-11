@@ -1,11 +1,24 @@
-
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Job } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, MapPin, Globe, Check, School2, Search, PlusCircle, Edit, Trash2, UserPlus, Loader2, Calendar, Filter, X } from "lucide-react";
+import {
+  Briefcase,
+  MapPin,
+  Globe,
+  Check,
+  Search,
+  PlusCircle,
+  Edit,
+  Trash2,
+  Calendar,
+  X,
+  Image as ImageIcon,
+  Maximize2,
+  ExternalLink,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ApplyJobDialog } from "./apply-job-dialog";
 import { AddEditJobDialog } from "./add-edit-job-dialog";
@@ -22,20 +35,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/context/auth-context";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, addDoc, setDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import Image from "next/image";
-import { formatDistanceToNow } from 'date-fns';
+import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-
 
 function JobsPageComponent() {
   const { user, isAdmin, isGuest } = useAuth();
@@ -52,6 +69,10 @@ function JobsPageComponent() {
   const [locationFilter, setLocationFilter] = useState("");
   const [remoteOnly, setRemoteOnly] = useState(false);
 
+  // Image lightbox viewer state
+  const [viewingImageUrl, setViewingImageUrl] = useState<string | null>(null);
+  const [viewingImageTitle, setViewingImageTitle] = useState<string>("");
+
   const jobsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(collection(firestore, "jobs"), orderBy("createdAt", "desc"));
@@ -67,7 +88,7 @@ function JobsPageComponent() {
 
   const filteredJobs = useMemo(() => {
     if (!jobs) return [];
-    return jobs.filter(job => {
+    return jobs.filter((job) => {
       const locationMatch = job.location.toLowerCase().includes(locationFilter.toLowerCase());
       const remoteMatch = !remoteOnly || job.isRemote;
       return locationMatch && remoteMatch;
@@ -75,7 +96,7 @@ function JobsPageComponent() {
   }, [jobs, locationFilter, remoteOnly]);
 
   useEffect(() => {
-    if (filteredJobs.length > 0 && (!selectedJobId || !filteredJobs.find(j => j.id === selectedJobId))) {
+    if (filteredJobs.length > 0 && (!selectedJobId || !filteredJobs.find((j) => j.id === selectedJobId))) {
       setSelectedJobId(filteredJobs[0].id);
     } else if (filteredJobs.length === 0) {
       setSelectedJobId(null);
@@ -83,7 +104,7 @@ function JobsPageComponent() {
   }, [filteredJobs, selectedJobId]);
 
   const selectedJob = useMemo(() => {
-    return filteredJobs.find(j => j.id === selectedJobId) || null;
+    return filteredJobs.find((j) => j.id === selectedJobId) || null;
   }, [filteredJobs, selectedJobId]);
 
   const handleApplyClick = () => {
@@ -94,17 +115,17 @@ function JobsPageComponent() {
 
   const handleSelectJob = (job: Job) => {
     setSelectedJobId(job.id);
-  }
+  };
 
   const handleAddJobClick = () => {
     setEditingJob(null);
     setIsAddEditDialogOpen(true);
-  }
+  };
 
   const handleEditJobClick = (job: Job) => {
     setEditingJob(job);
     setIsAddEditDialogOpen(true);
-  }
+  };
 
   const handleDeleteClick = (job: Job) => {
     setJobToDelete(job);
@@ -114,21 +135,25 @@ function JobsPageComponent() {
   const confirmDeleteJob = async () => {
     if (!jobToDelete || !firestore) return;
 
-    const jobRef = doc(firestore, 'jobs', jobToDelete.id);
+    const jobRef = doc(firestore, "jobs", jobToDelete.id);
     deleteDocumentNonBlocking(jobRef);
-    toast({ title: 'Job Deleted', description: `"${jobToDelete.title}" has been removed.` });
+    toast({ title: "Job Deleted", description: `"${jobToDelete.title}" has been removed.` });
     setJobToDelete(null);
     setIsDeleteDialogOpen(false);
-  }
+  };
 
   const onJobSave = () => {
-    // This function is now just for refreshing data if needed.
-    // The dialog handles its own save logic.
-  }
+    // Dialog handles save; Firestore useCollection automatically syncs
+  };
+
+  const openImageViewer = (url: string, title: string) => {
+    setViewingImageUrl(url);
+    setViewingImageTitle(title);
+  };
 
   return (
     <div className="flex flex-col gap-6 w-full min-h-screen">
-      {/* modern dashboard header */}
+      {/* Modern dashboard header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -143,14 +168,17 @@ function JobsPageComponent() {
           </p>
         </div>
         {user && !isGuest && (
-          <Button onClick={handleAddJobClick} className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95">
+          <Button
+            onClick={handleAddJobClick}
+            className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95"
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             Post a Job
           </Button>
         )}
       </motion.div>
 
-      {/* glass search/filter bar */}
+      {/* Search and filter bar */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -173,7 +201,9 @@ function JobsPageComponent() {
               onCheckedChange={setRemoteOnly}
               className="data-[state=checked]:bg-primary"
             />
-            <Label htmlFor="remote-only" className="text-sm font-semibold text-zinc-200 cursor-pointer">Remote Only</Label>
+            <Label htmlFor="remote-only" className="text-sm font-semibold text-zinc-200 cursor-pointer">
+              Remote Only
+            </Label>
           </div>
           {locationFilter && (
             <Button
@@ -199,7 +229,9 @@ function JobsPageComponent() {
           </div>
           <div className="space-y-2 max-w-sm">
             <h3 className="text-2xl font-bold text-white">Unlock Opportunities</h3>
-            <p className="text-zinc-300 font-medium">Sign in to view detailed candidate requirements and apply for top teaching positions.</p>
+            <p className="text-zinc-300 font-medium">
+              Sign in to view detailed candidate requirements, job flyers, and apply for top teaching positions.
+            </p>
           </div>
           <Button asChild size="lg" className="px-8 rounded-xl font-bold shadow-xl shadow-primary/20">
             <Link href="/auth">Connect Now</Link>
@@ -207,7 +239,7 @@ function JobsPageComponent() {
         </motion.div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
-          {/* jobs list pane */}
+          {/* Jobs list pane */}
           <div className="lg:col-span-4 flex flex-col gap-4">
             <div className="flex items-center justify-between px-2">
               <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-300">
@@ -219,7 +251,10 @@ function JobsPageComponent() {
               <div className="flex flex-col gap-3">
                 {isLoading ? (
                   Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="h-24 w-full bg-zinc-900 animate-pulse rounded-2xl border border-white/10" />
+                    <div
+                      key={i}
+                      className="h-24 w-full bg-zinc-900 animate-pulse rounded-2xl border border-white/10"
+                    />
                   ))
                 ) : filteredJobs.length === 0 ? (
                   <div className="text-center py-12 text-zinc-400 bg-zinc-950/80 rounded-2xl border border-dashed border-white/15">
@@ -248,23 +283,62 @@ function JobsPageComponent() {
                             className="absolute left-0 top-0 bottom-0 w-1 bg-primary"
                           />
                         )}
-                        <div className="space-y-1 relative z-10 min-w-0">
-                          <div className="flex justify-between items-start gap-2">
-                            <p className={cn(
-                              "font-bold text-lg transition-colors line-clamp-2 flex-1",
-                              selectedJobId === job.id ? "text-primary" : "text-white"
-                            )}>
-                              {job.title}
+                        <div className="flex items-start justify-between gap-3 relative z-10 min-w-0">
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <div className="flex justify-between items-start gap-2">
+                              <p
+                                className={cn(
+                                  "font-bold text-lg transition-colors line-clamp-2 flex-1",
+                                  selectedJobId === job.id ? "text-primary" : "text-white"
+                                )}
+                              >
+                                {job.title}
+                              </p>
+                            </div>
+                            <p className="text-sm text-zinc-300 font-medium group-hover:text-white transition-colors truncate">
+                              {job.company}
                             </p>
-                            {job.isRemote && (
-                              <Badge variant="outline" className="text-[10px] py-0 px-2 border-primary/40 text-primary shrink-0 mt-1">Remote</Badge>
-                            )}
+                            <div className="flex items-center gap-2 text-xs text-zinc-400 pt-1.5 font-medium">
+                              <MapPin className="h-3 w-3 text-primary shrink-0" />
+                              <span className="truncate">{job.location}</span>
+                            </div>
+                            <div className="flex items-center gap-2 pt-1">
+                              {job.isRemote && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] py-0 px-2 border-primary/40 text-primary shrink-0"
+                                >
+                                  Remote
+                                </Badge>
+                              )}
+                              {job.imageUrl && (
+                                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium">
+                                  <ImageIcon className="h-2.5 w-2.5" /> Picture Attached
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-sm text-zinc-300 font-medium group-hover:text-white transition-colors truncate">{job.company}</p>
-                          <div className="flex items-center gap-2 text-xs text-zinc-400 pt-2 font-medium">
-                            <MapPin className="h-3 w-3 text-primary" />
-                            <span className="truncate">{job.location}</span>
-                          </div>
+
+                          {job.imageUrl && (
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openImageViewer(job.imageUrl!, `${job.title} - ${job.company}`);
+                              }}
+                              title="Click to view picture"
+                              className="relative h-14 w-14 rounded-xl overflow-hidden border border-white/20 shrink-0 bg-black/50 shadow-md group/thumb hover:border-primary transition-all"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={job.imageUrl}
+                                alt={job.title}
+                                className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
+                                <Maximize2 className="h-3.5 w-3.5 text-white" />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </motion.button>
                     ))}
@@ -274,7 +348,7 @@ function JobsPageComponent() {
             </ScrollArea>
           </div>
 
-          {/* details pane */}
+          {/* Details pane */}
           <div className="lg:col-span-8">
             <AnimatePresence mode="wait">
               {selectedJob ? (
@@ -288,26 +362,39 @@ function JobsPageComponent() {
                 >
                   <Card className="bg-zinc-950/95 backdrop-blur-2xl border-white/15 rounded-3xl overflow-hidden shadow-2xl h-full flex flex-col">
                     <div className="h-2 w-full bg-gradient-to-r from-primary to-indigo-500" />
-                    <CardHeader className="p-8">
+                    <CardHeader className="p-8 pb-6">
                       <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                         <div className="space-y-3 flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-3">
-                            <CardTitle className="text-3xl font-black text-white leading-tight break-words">{selectedJob.title}</CardTitle>
+                            <CardTitle className="text-3xl font-black text-white leading-tight break-words">
+                              {selectedJob.title}
+                            </CardTitle>
                             <Badge className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 shrink-0">
                               {selectedJob.type}
                             </Badge>
                           </div>
-                          <CardDescription className="text-lg font-medium text-zinc-200 truncate">at {selectedJob.company}</CardDescription>
+                          <CardDescription className="text-lg font-medium text-zinc-200 truncate">
+                            at {selectedJob.company}
+                          </CardDescription>
                         </div>
-
 
                         <div className="flex gap-2 w-full md:w-auto">
                           {user && (isAdmin || user.uid === selectedJob.userId) && (
                             <div className="flex gap-2">
-                              <Button variant="outline" size="sm" onClick={() => handleEditJobClick(selectedJob)} className="border-white/15 bg-zinc-900 hover:bg-zinc-800 text-white">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditJobClick(selectedJob)}
+                                className="border-white/15 bg-zinc-900 hover:bg-zinc-800 text-white"
+                              >
                                 <Edit className="h-4 w-4 mr-2" /> Edit
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteClick(selectedJob)} className="text-destructive hover:bg-destructive/10">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteClick(selectedJob)}
+                                className="text-destructive hover:bg-destructive/10"
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -315,7 +402,7 @@ function JobsPageComponent() {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-4 text-sm text-zinc-300 pt-6 font-medium">
+                      <div className="flex flex-wrap gap-3 text-sm text-zinc-300 pt-5 font-medium">
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-full border border-white/10">
                           <MapPin className="h-4 w-4 text-primary" />
                           <span>{selectedJob.location}</span>
@@ -329,14 +416,68 @@ function JobsPageComponent() {
                         {selectedJob.createdAt && (
                           <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-full border border-white/10">
                             <Calendar className="h-4 w-4 text-primary" />
-                            <span>{formatDistanceToNow(selectedJob.createdAt.toDate(), { addSuffix: true })}</span>
+                            <span>
+                              {formatDistanceToNow(
+                                typeof selectedJob.createdAt.toDate === "function"
+                                  ? selectedJob.createdAt.toDate()
+                                  : new Date(selectedJob.createdAt),
+                                { addSuffix: true }
+                              )}
+                            </span>
                           </div>
                         )}
                       </div>
                     </CardHeader>
 
                     <div className="flex-1 overflow-y-auto min-h-0 overflow-x-hidden">
-                      <CardContent className="px-8 pb-8 space-y-10">
+                      <CardContent className="px-8 pb-8 space-y-8">
+                        {/* Interactive Job Poster / Picture */}
+                        {selectedJob.imageUrl && (
+                          <div className="space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-sm font-bold text-zinc-200">
+                                <ImageIcon className="h-4 w-4 text-primary" />
+                                <span>Hiring Poster / Job Photo</span>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  openImageViewer(selectedJob.imageUrl!, `${selectedJob.title} - ${selectedJob.company}`)
+                                }
+                                className="text-xs text-primary hover:text-primary hover:bg-primary/10 h-7 px-2"
+                              >
+                                <Maximize2 className="h-3.5 w-3.5 mr-1" /> View Full Picture
+                              </Button>
+                            </div>
+
+                            <div
+                              onClick={() =>
+                                openImageViewer(selectedJob.imageUrl!, `${selectedJob.title} - ${selectedJob.company}`)
+                              }
+                              className="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/15 bg-zinc-900/90 hover:border-primary/60 transition-all shadow-xl"
+                            >
+                              <div className="relative w-full max-h-[340px] min-h-[160px] bg-black/60 flex items-center justify-center p-3">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={selectedJob.imageUrl}
+                                  alt={`${selectedJob.title} flyer`}
+                                  className="max-h-[320px] w-auto max-w-full rounded-xl object-contain shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-4 backdrop-blur-[1px]">
+                                  <span className="text-sm font-semibold text-white flex items-center gap-2">
+                                    <Maximize2 className="h-4 w-4 text-primary" />
+                                    Click to enlarge & view full poster
+                                  </span>
+                                  <Badge className="bg-primary text-white border-none shadow-md">
+                                    Click to Enlarge
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="space-y-4">
                           <div className="flex items-center gap-2 pb-2 border-b border-white/10">
                             <Briefcase className="h-5 w-5 text-primary" />
@@ -354,7 +495,10 @@ function JobsPageComponent() {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {selectedJob.requirements.map((req, i) => (
-                              <div key={i} className="flex items-start gap-3 p-3.5 bg-zinc-900/90 rounded-xl border border-white/10 group transition-colors hover:border-primary/40 shadow-sm">
+                              <div
+                                key={i}
+                                className="flex items-start gap-3 p-3.5 bg-zinc-900/90 rounded-xl border border-white/10 group transition-colors hover:border-primary/40 shadow-sm"
+                              >
                                 <div className="mt-1 h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/30">
                                   <Check className="h-3 w-3 text-primary" />
                                 </div>
@@ -371,7 +515,11 @@ function JobsPageComponent() {
                         <p className="text-xs text-zinc-400">Ready to take the next step?</p>
                         <p className="text-sm font-semibold text-white">Apply now to start your journey.</p>
                       </div>
-                      <Button onClick={handleApplyClick} size="lg" className="bg-primary hover:bg-primary/90 text-white px-10 rounded-xl font-bold transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto">
+                      <Button
+                        onClick={handleApplyClick}
+                        size="lg"
+                        className="bg-primary hover:bg-primary/90 text-white px-10 rounded-xl font-bold transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto"
+                      >
                         Apply for this Position
                       </Button>
                     </CardFooter>
@@ -387,13 +535,66 @@ function JobsPageComponent() {
                     <Briefcase className="h-20 w-20 text-white/10" />
                   </div>
                   <h3 className="text-2xl font-bold text-white mt-6">Select a position</h3>
-                  <p className="text-muted-foreground mt-2 max-w-xs mx-auto">Click on a job from the list to view full details and apply.</p>
+                  <p className="text-muted-foreground mt-2 max-w-xs mx-auto">
+                    Click on a job from the list to view full details and apply.
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
       )}
+
+      {/* Picture Full View Lightbox Modal */}
+      <Dialog
+        open={!!viewingImageUrl}
+        onOpenChange={(open) => {
+          if (!open) setViewingImageUrl(null);
+        }}
+      >
+        <DialogContent className="max-w-[95vw] md:max-w-4xl lg:max-w-5xl max-h-[92vh] flex flex-col p-0 overflow-hidden bg-zinc-950/95 border-white/20 backdrop-blur-2xl">
+          <DialogHeader className="p-4 md:px-6 border-b border-white/10 flex flex-row items-center justify-between space-y-0">
+            <div>
+              <DialogTitle className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-primary" />
+                {viewingImageTitle || "Job Picture / Poster"}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-zinc-400">
+                Click outside or press Escape to close
+              </DialogDescription>
+            </div>
+            <div className="flex items-center gap-2 pr-6">
+              {viewingImageUrl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="h-8 text-xs border-white/15 bg-zinc-900 text-white hover:bg-zinc-800"
+                >
+                  <a
+                    href={viewingImageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download="job-poster.jpg"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 mr-1" /> Open Original
+                  </a>
+                </Button>
+              )}
+            </div>
+          </DialogHeader>
+          <div className="relative flex-1 overflow-auto p-4 md:p-6 flex items-center justify-center bg-black/80 min-h-[300px]">
+            {viewingImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={viewingImageUrl}
+                alt={viewingImageTitle}
+                className="max-h-[75vh] w-auto max-w-full rounded-xl object-contain shadow-2xl border border-white/10"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <ApplyJobDialog
         isOpen={isApplyDialogOpen}
@@ -416,7 +617,9 @@ function JobsPageComponent() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteJob} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDeleteJob} className="bg-destructive hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -427,8 +630,4 @@ function JobsPageComponent() {
 const JobsPage = dynamic(() => Promise.resolve(JobsPageComponent), { ssr: false });
 
 export default JobsPage;
-export const preload = () => import('./page');
-
-
-
-
+export const preload = () => import("./page");

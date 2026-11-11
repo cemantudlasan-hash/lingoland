@@ -161,6 +161,7 @@ export type Job = {
     description: string;
     requirements: string[];
     contactEmail?: string;
+    imageUrl?: string;
     userId?: string;
     createdAt?: any;
 };
