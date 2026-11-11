@@ -247,7 +247,7 @@ function JobsPageComponent() {
               </h2>
             </div>
 
-            <ScrollArea className="h-[calc(100vh-280px)] pr-2">
+            <ScrollArea className="h-[calc(100vh-140px)] min-h-[680px] lg:min-h-[750px] pr-2">
               <div className="flex flex-col gap-3 pr-2">
                 {isLoading ? (
                   Array.from({ length: 4 }).map((_, i) => (
@@ -391,27 +391,29 @@ function JobsPageComponent() {
                   animate={{ opacity: 1, scale: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.98, x: -10 }}
                   transition={{ type: "spring", damping: 20 }}
-                  className="w-full h-auto lg:h-[calc(100vh-280px)] flex flex-col"
+                  className="w-full h-auto lg:h-[calc(100vh-140px)] min-h-[680px] lg:min-h-[750px] flex flex-col"
                 >
                   <Card className="bg-zinc-950/95 backdrop-blur-2xl border-white/15 rounded-3xl overflow-hidden shadow-2xl h-full flex flex-col">
-                    <div className="h-2 w-full bg-gradient-to-r from-primary to-indigo-500" />
-                    <CardHeader className="p-8 pb-6">
-                      <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                        <div className="space-y-3 flex-1 min-w-0">
+                    <div className="h-2 w-full bg-gradient-to-r from-primary to-indigo-500 shrink-0" />
+                    
+                    {/* Header: spacious, modern typography */}
+                    <CardHeader className="p-6 sm:p-8 pb-5 border-b border-white/10 shrink-0">
+                      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                        <div className="space-y-2 flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-3">
-                            <CardTitle className="text-3xl font-black text-white leading-tight break-words">
+                            <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight break-words">
                               {selectedJob.title}
                             </CardTitle>
-                            <Badge className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 shrink-0">
+                            <Badge className="bg-primary/20 text-primary border-primary/30 hover:bg-primary/30 shrink-0 text-xs sm:text-sm py-1 px-3">
                               {selectedJob.type}
                             </Badge>
                           </div>
-                          <CardDescription className="text-lg font-medium text-zinc-200 truncate">
+                          <CardDescription className="text-base sm:text-lg lg:text-xl font-bold text-zinc-100">
                             at {selectedJob.company}
                           </CardDescription>
                         </div>
 
-                        <div className="flex gap-2 w-full md:w-auto">
+                        <div className="flex gap-2 w-full md:w-auto shrink-0">
                           {user && (isAdmin || user.uid === selectedJob.userId) && (
                             <div className="flex gap-2">
                               <Button
@@ -435,20 +437,20 @@ function JobsPageComponent() {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-3 text-sm text-zinc-300 pt-5 font-medium">
+                      <div className="flex flex-wrap gap-2.5 text-xs sm:text-sm text-zinc-300 pt-4 font-medium">
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-full border border-white/10">
-                          <MapPin className="h-4 w-4 text-primary" />
+                          <MapPin className="h-4 w-4 text-primary shrink-0" />
                           <span>{selectedJob.location}</span>
                         </div>
                         {selectedJob.isRemote && (
                           <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-full border border-white/10">
-                            <Globe className="h-4 w-4 text-primary" />
+                            <Globe className="h-4 w-4 text-primary shrink-0" />
                             <span>Worldwide Remote</span>
                           </div>
                         )}
                         {selectedJob.createdAt && (
                           <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-full border border-white/10">
-                            <Calendar className="h-4 w-4 text-primary" />
+                            <Calendar className="h-4 w-4 text-primary shrink-0" />
                             <span>
                               {formatDistanceToNow(
                                 typeof selectedJob.createdAt.toDate === "function"
@@ -462,96 +464,98 @@ function JobsPageComponent() {
                       </div>
                     </CardHeader>
 
-                    <div className="flex-1 overflow-y-auto min-h-0 overflow-x-hidden">
-                      <CardContent className="px-8 pb-8 space-y-8">
-                        {/* Interactive Job Poster / Picture */}
-                        {selectedJob.imageUrl && (
-                          <div className="space-y-2.5">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-sm font-bold text-zinc-200">
-                                <ImageIcon className="h-4 w-4 text-primary" />
-                                <span>Hiring Poster / Job Photo</span>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  openImageViewer(selectedJob.imageUrl!, `${selectedJob.title} - ${selectedJob.company}`)
-                                }
-                                className="text-xs text-primary hover:text-primary hover:bg-primary/10 h-7 px-2"
-                              >
-                                <Maximize2 className="h-3.5 w-3.5 mr-1" /> View Full Picture
-                              </Button>
+                    {/* Content: expansive, high readability on desktop */}
+                    <div className="flex-1 overflow-y-auto min-h-0 overflow-x-hidden p-6 sm:p-8 space-y-8 pb-16">
+                      {/* Interactive Job Poster / Picture */}
+                      {selectedJob.imageUrl && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-100">
+                              <ImageIcon className="h-5 w-5 text-primary" />
+                              <span>Hiring Poster / Job Photo</span>
                             </div>
-
-                            <div
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() =>
                                 openImageViewer(selectedJob.imageUrl!, `${selectedJob.title} - ${selectedJob.company}`)
                               }
-                              className="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/15 bg-zinc-900/90 hover:border-primary/60 transition-all shadow-xl"
+                              className="text-xs sm:text-sm text-primary hover:text-primary hover:bg-primary/10 h-8 px-3"
                             >
-                              <div className="relative w-full max-h-[340px] min-h-[160px] bg-black/60 flex items-center justify-center p-3">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={selectedJob.imageUrl}
-                                  alt={`${selectedJob.title} flyer`}
-                                  className="max-h-[320px] w-auto max-w-full rounded-xl object-contain shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-4 backdrop-blur-[1px]">
-                                  <span className="text-sm font-semibold text-white flex items-center gap-2">
-                                    <Maximize2 className="h-4 w-4 text-primary" />
-                                    Click to enlarge & view full poster
-                                  </span>
-                                  <Badge className="bg-primary text-white border-none shadow-md">
-                                    Click to Enlarge
-                                  </Badge>
-                                </div>
+                              <Maximize2 className="h-4 w-4 mr-1.5" /> View Full Picture
+                            </Button>
+                          </div>
+
+                          <div
+                            onClick={() =>
+                              openImageViewer(selectedJob.imageUrl!, `${selectedJob.title} - ${selectedJob.company}`)
+                            }
+                            className="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/15 bg-zinc-900/90 hover:border-primary/60 transition-all shadow-xl"
+                          >
+                            <div className="relative w-full max-h-[460px] lg:max-h-[520px] min-h-[200px] bg-black/60 flex items-center justify-center p-3">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={selectedJob.imageUrl}
+                                alt={`${selectedJob.title} flyer`}
+                                className="max-h-[440px] lg:max-h-[500px] w-auto max-w-full rounded-xl object-contain shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-5 backdrop-blur-[1px]">
+                                <span className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
+                                  <Maximize2 className="h-4 w-4 text-primary" />
+                                  Click to enlarge & view full poster
+                                </span>
+                                <Badge className="bg-primary text-white border-none shadow-md text-xs sm:text-sm py-1 px-3">
+                                  Click to Enlarge
+                                </Badge>
                               </div>
                             </div>
                           </div>
-                        )}
-
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-                            <Briefcase className="h-5 w-5 text-primary" />
-                            <h3 className="font-bold text-white text-lg">Job Description</h3>
-                          </div>
-                          <p className="text-zinc-200 leading-relaxed whitespace-pre-line text-base font-medium">
-                            {selectedJob.description}
-                          </p>
                         </div>
+                      )}
 
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-                            <Check className="h-5 w-5 text-primary" />
-                            <h3 className="font-bold text-white text-lg">Requirements</h3>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {selectedJob.requirements.map((req, i) => (
-                              <div
-                                key={i}
-                                className="flex items-start gap-3 p-3.5 bg-zinc-900/90 rounded-xl border border-white/10 group transition-colors hover:border-primary/40 shadow-sm"
-                              >
-                                <div className="mt-1 h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/30">
-                                  <Check className="h-3 w-3 text-primary" />
-                                </div>
-                                <span className="text-zinc-200 text-sm leading-snug font-medium">{req}</span>
+                      {/* Job Description */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2.5 pb-2.5 border-b border-white/10">
+                          <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                          <h3 className="font-bold text-white text-lg sm:text-xl">Job Description</h3>
+                        </div>
+                        <p className="text-zinc-100 leading-relaxed whitespace-pre-line text-base sm:text-lg font-normal tracking-wide">
+                          {selectedJob.description}
+                        </p>
+                      </div>
+
+                      {/* Requirements */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2.5 pb-2.5 border-b border-white/10">
+                          <Check className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                          <h3 className="font-bold text-white text-lg sm:text-xl">Requirements</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                          {selectedJob.requirements.map((req, i) => (
+                            <div
+                              key={i}
+                              className="flex items-start gap-3.5 p-4 rounded-2xl bg-zinc-900/90 border border-white/10 group transition-colors hover:border-primary/40 shadow-sm"
+                            >
+                              <div className="mt-0.5 h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/30">
+                                <Check className="h-3.5 w-3.5 text-primary" />
                               </div>
-                            ))}
-                          </div>
+                              <span className="text-zinc-100 text-sm sm:text-base leading-snug font-medium">{req}</span>
+                            </div>
+                          ))}
                         </div>
-                      </CardContent>
+                      </div>
                     </div>
 
-                    <CardFooter className="p-8 bg-zinc-900/80 border-t border-white/10 flex justify-between items-center shrink-0">
-                      <div className="hidden md:block">
-                        <p className="text-xs text-zinc-400">Ready to take the next step?</p>
-                        <p className="text-sm font-semibold text-white">Apply now to start your journey.</p>
+                    {/* Footer: streamlined and non-intrusive */}
+                    <CardFooter className="p-5 sm:px-8 bg-zinc-900/95 backdrop-blur-md border-t border-white/10 flex justify-between items-center shrink-0">
+                      <div className="hidden sm:block">
+                        <p className="text-xs sm:text-sm text-zinc-400">Ready to take the next step?</p>
+                        <p className="text-sm sm:text-base font-bold text-white">Apply now to start your journey.</p>
                       </div>
                       <Button
                         onClick={handleApplyClick}
                         size="lg"
-                        className="bg-primary hover:bg-primary/90 text-white px-10 rounded-xl font-bold transition-all shadow-xl shadow-primary/20 active:scale-95 w-full md:w-auto"
+                        className="bg-primary hover:bg-primary/90 text-white px-8 sm:px-10 py-5 rounded-xl font-bold text-base transition-all shadow-xl shadow-primary/20 active:scale-95 w-full sm:w-auto"
                       >
                         Apply for this Position
                       </Button>
