@@ -270,7 +270,7 @@ function JobsPageComponent() {
                         transition={{ delay: index * 0.05 }}
                         key={job.id}
                         className={cn(
-                          "relative w-full text-left p-4 rounded-2xl transition-all duration-300 group overflow-hidden border shadow-lg backdrop-blur-xl",
+                          "relative w-full text-left p-3.5 sm:p-4 rounded-2xl transition-all duration-300 group overflow-hidden border shadow-lg backdrop-blur-xl",
                           selectedJobId === job.id
                             ? "bg-primary/25 border-primary/60 shadow-xl shadow-primary/20"
                             : "bg-zinc-950/90 border-white/15 hover:bg-zinc-900/90 hover:border-white/25"
@@ -283,26 +283,52 @@ function JobsPageComponent() {
                             className="absolute left-0 top-0 bottom-0 w-1 bg-primary"
                           />
                         )}
-                        <div className="flex items-start justify-between gap-3 relative z-10 min-w-0">
+                        <div className="flex items-start gap-3 sm:gap-3.5 w-full min-w-0 relative z-10">
+                          {/* Thumbnail on the LEFT - always fully visible on all screens (mobile & desktop) */}
+                          {job.imageUrl ? (
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openImageViewer(job.imageUrl!, `${job.title} - ${job.company}`);
+                              }}
+                              title="Click to view full picture"
+                              className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border border-white/20 shrink-0 bg-black/60 shadow-md group/thumb hover:border-primary transition-all cursor-pointer"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={job.imageUrl}
+                                alt={job.title}
+                                className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
+                                <Maximize2 className="h-4 w-4 text-white drop-shadow" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl border border-white/10 bg-zinc-900/90 flex items-center justify-center shrink-0 text-zinc-400 group-hover:text-primary transition-colors">
+                              <Briefcase className="h-5 w-5 sm:h-6 sm:w-6" />
+                            </div>
+                          )}
+
                           <div className="space-y-1 min-w-0 flex-1">
                             <div className="flex justify-between items-start gap-2">
                               <p
                                 className={cn(
-                                  "font-bold text-lg transition-colors line-clamp-2 flex-1",
+                                  "font-bold text-base sm:text-lg transition-colors line-clamp-2 break-words leading-snug flex-1",
                                   selectedJobId === job.id ? "text-primary" : "text-white"
                                 )}
                               >
                                 {job.title}
                               </p>
                             </div>
-                            <p className="text-sm text-zinc-300 font-medium group-hover:text-white transition-colors truncate">
+                            <p className="text-xs sm:text-sm text-zinc-300 font-medium group-hover:text-white transition-colors truncate">
                               {job.company}
                             </p>
-                            <div className="flex items-center gap-2 text-xs text-zinc-400 pt-1.5 font-medium">
+                            <div className="flex items-center gap-1.5 text-xs text-zinc-400 pt-0.5 font-medium">
                               <MapPin className="h-3 w-3 text-primary shrink-0" />
                               <span className="truncate">{job.location}</span>
                             </div>
-                            <div className="flex items-center gap-2 pt-1">
+                            <div className="flex flex-wrap items-center gap-1.5 pt-1">
                               {job.isRemote && (
                                 <Badge
                                   variant="outline"
@@ -312,33 +338,19 @@ function JobsPageComponent() {
                                 </Badge>
                               )}
                               {job.imageUrl && (
-                                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium">
-                                  <ImageIcon className="h-2.5 w-2.5" /> Picture Attached
-                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openImageViewer(job.imageUrl!, `${job.title} - ${job.company}`);
+                                  }}
+                                  className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-medium transition-colors"
+                                >
+                                  <ImageIcon className="h-2.5 w-2.5" /> View Picture
+                                </button>
                               )}
                             </div>
                           </div>
-
-                          {job.imageUrl && (
-                            <div
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openImageViewer(job.imageUrl!, `${job.title} - ${job.company}`);
-                              }}
-                              title="Click to view picture"
-                              className="relative h-14 w-14 rounded-xl overflow-hidden border border-white/20 shrink-0 bg-black/50 shadow-md group/thumb hover:border-primary transition-all"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={job.imageUrl}
-                                alt={job.title}
-                                className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
-                              />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
-                                <Maximize2 className="h-3.5 w-3.5 text-white" />
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </motion.button>
                     ))}
@@ -552,24 +564,24 @@ function JobsPageComponent() {
           if (!open) setViewingImageUrl(null);
         }}
       >
-        <DialogContent className="max-w-[95vw] md:max-w-4xl lg:max-w-5xl max-h-[92vh] flex flex-col p-0 overflow-hidden bg-zinc-950/95 border-white/20 backdrop-blur-2xl">
-          <DialogHeader className="p-4 md:px-6 border-b border-white/10 flex flex-row items-center justify-between space-y-0">
-            <div>
-              <DialogTitle className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-primary" />
-                {viewingImageTitle || "Job Picture / Poster"}
+        <DialogContent className="w-[95vw] sm:max-w-3xl md:max-w-4xl lg:max-w-5xl max-h-[92vh] flex flex-col p-0 overflow-hidden bg-zinc-950/95 border-white/20 backdrop-blur-2xl">
+          <DialogHeader className="p-3 sm:p-4 md:px-6 border-b border-white/10 flex flex-row items-center justify-between space-y-0 gap-2">
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="text-base sm:text-lg md:text-xl font-bold text-white flex items-center gap-2 truncate">
+                <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <span className="truncate">{viewingImageTitle || "Job Picture / Poster"}</span>
               </DialogTitle>
-              <DialogDescription className="text-xs text-zinc-400">
+              <DialogDescription className="text-[11px] sm:text-xs text-zinc-400">
                 Click outside or press Escape to close
               </DialogDescription>
             </div>
-            <div className="flex items-center gap-2 pr-6">
+            <div className="flex items-center gap-2 pr-6 shrink-0">
               {viewingImageUrl && (
                 <Button
                   variant="outline"
                   size="sm"
                   asChild
-                  className="h-8 text-xs border-white/15 bg-zinc-900 text-white hover:bg-zinc-800"
+                  className="h-7 sm:h-8 text-xs border-white/15 bg-zinc-900 text-white hover:bg-zinc-800"
                 >
                   <a
                     href={viewingImageUrl}
@@ -577,19 +589,19 @@ function JobsPageComponent() {
                     rel="noopener noreferrer"
                     download="job-poster.jpg"
                   >
-                    <ExternalLink className="h-3.5 w-3.5 mr-1" /> Open Original
+                    <ExternalLink className="h-3.5 w-3.5 mr-1" /> Open
                   </a>
                 </Button>
               )}
             </div>
           </DialogHeader>
-          <div className="relative flex-1 overflow-auto p-4 md:p-6 flex items-center justify-center bg-black/80 min-h-[300px]">
+          <div className="relative flex-1 overflow-auto p-3 sm:p-4 md:p-6 flex items-center justify-center bg-black/80 min-h-[220px]">
             {viewingImageUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={viewingImageUrl}
                 alt={viewingImageTitle}
-                className="max-h-[75vh] w-auto max-w-full rounded-xl object-contain shadow-2xl border border-white/10"
+                className="max-h-[70vh] sm:max-h-[75vh] w-auto max-w-full rounded-xl object-contain shadow-2xl border border-white/10"
               />
             )}
           </div>
