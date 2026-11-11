@@ -2293,8 +2293,10 @@ export function PresentationForm() {
     };
   }, []);
 
+  const isPointerSelectingRef = React.useRef(false);
+
   React.useEffect(() => {
-    const handleSelectionChange = () => {
+    const evaluateSelection = () => {
       if (showImageModal || showTextModal || activeLightboxImage) {
         setShowPill(false);
         return;
@@ -2306,7 +2308,7 @@ export function PresentationForm() {
       }
       const text = selection.toString().trim();
       
-      // Support word selection and multi-word selection with Shift key (up to 25 words or 150 chars)
+      // Support word selection and multi-word selection with Shift key or mouse drag (up to 25 words or 150 chars)
       if (text.length >= 1 && text.length <= 150 && text.split(/\s+/).length <= 25) {
         const container = presentationContainerRef.current;
         if (container) {
@@ -2341,8 +2343,52 @@ export function PresentationForm() {
       setShowPill(false);
     };
 
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      // Do not mark as selecting if clicking on the floating pill itself
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-selection-pill="true"]')) return;
+      isPointerSelectingRef.current = true;
+    };
+
+    const handlePointerUp = () => {
+      if (isPointerSelectingRef.current) {
+        isPointerSelectingRef.current = false;
+        setTimeout(evaluateSelection, 15);
+      }
+    };
+
+    const handleKeyUp = () => {
+      if (!isPointerSelectingRef.current) {
+        evaluateSelection();
+      }
+    };
+
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      const text = selection ? selection.toString().trim() : '';
+      if (!text) {
+        setShowPill(false);
+        return;
+      }
+      // Avoid re-rendering the entire presentation on every character while holding and dragging the mouse
+      if (isPointerSelectingRef.current) {
+        return;
+      }
+      evaluateSelection();
+    };
+
+    document.addEventListener('mousedown', handlePointerDown, true);
+    document.addEventListener('mouseup', handlePointerUp, true);
+    document.addEventListener('touchstart', handlePointerDown, { capture: true, passive: true });
+    document.addEventListener('touchend', handlePointerUp, { capture: true, passive: true });
+    document.addEventListener('keyup', handleKeyUp);
     document.addEventListener('selectionchange', handleSelectionChange);
     return () => {
+      document.removeEventListener('mousedown', handlePointerDown, true);
+      document.removeEventListener('mouseup', handlePointerUp, true);
+      document.removeEventListener('touchstart', handlePointerDown, true);
+      document.removeEventListener('touchend', handlePointerUp, true);
+      document.removeEventListener('keyup', handleKeyUp);
       document.removeEventListener('selectionchange', handleSelectionChange);
     };
   }, [presentation, showImageModal, showTextModal, activeLightboxImage]);
@@ -4251,7 +4297,7 @@ export function PresentationForm() {
                 <Carousel 
                   setApi={setApi} 
                   opts={{ 
-                    watchDrag: activeDrawSlideIndex === null && !isEditMode,
+                    watchDrag: false,
                     align: 'center',
                     containScroll: false,
                     loop: false,
@@ -5090,6 +5136,7 @@ export function PresentationForm() {
                 {/* Highlighted text visual search option button */}
                 {showPill && !showImageModal && !showTextModal && !activeLightboxImage && (
                   <div 
+                    data-selection-pill="true"
                     className={cn(
                       "absolute z-40 transition-all duration-200 select-none animate-in fade-in zoom-in-95 flex items-center gap-1.5 bg-slate-900/95 border border-purple-500/40 p-1.5 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.5)] backdrop-blur-md",
                       "fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-auto"
