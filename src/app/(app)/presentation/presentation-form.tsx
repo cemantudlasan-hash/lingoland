@@ -1554,8 +1554,10 @@ export function PresentationForm() {
   };
 
   const handleCoverText = (text: string) => {
-    const slideIdx = api?.selectedScrollSnap() || 0;
-    const lowerText = text.toLowerCase();
+    const slideIdx = api ? api.selectedScrollSnap() : (current > 0 ? current - 1 : 0);
+    const cleanText = text.trim();
+    if (!cleanText) return;
+    const lowerText = cleanText.toLowerCase();
     
     setCoveredTexts(prev => {
       const list = prev[slideIdx] || [];
@@ -1566,10 +1568,13 @@ export function PresentationForm() {
     });
     
     setShowPill(false);
+    if (typeof window !== 'undefined' && window.getSelection) {
+      window.getSelection()?.removeAllRanges();
+    }
     
     toast({
       title: "Cover Effect Applied 🫣",
-      description: `"${text}" is now covered on Slide ${slideIdx + 1}. Click to reveal!`
+      description: `"${cleanText}" is now covered on Slide ${slideIdx + 1}. Click to reveal!`
     });
   };
 
@@ -2291,11 +2296,14 @@ export function PresentationForm() {
   React.useEffect(() => {
     const handleSelectionChange = () => {
       const selection = window.getSelection();
-      if (!selection) return;
+      if (!selection || selection.rangeCount === 0) {
+        setShowPill(false);
+        return;
+      }
       const text = selection.toString().trim();
       
-      // Limit selection search between 1 and 4 words
-      if (text.length > 1 && text.length < 50 && text.split(/\s+/).length <= 4) {
+      // Support word selection and multi-word selection with Shift key (up to 25 words or 150 chars)
+      if (text.length >= 1 && text.length <= 150 && text.split(/\s+/).length <= 25) {
         const container = presentationContainerRef.current;
         if (container) {
           try {
@@ -2304,9 +2312,18 @@ export function PresentationForm() {
               const rect = range.getBoundingClientRect();
               const containerRect = container.getBoundingClientRect();
               
+              const calculatedX = rect.left - containerRect.left + rect.width / 2;
+              const clampedX = Math.max(120, Math.min(containerRect.width - 120, calculatedX));
+
+              // If too close to bottom of container, position pill above the selected text
+              const spaceBelow = containerRect.bottom - rect.bottom;
+              const calculatedY = spaceBelow < 60 
+                ? Math.max(10, rect.top - containerRect.top - 46)
+                : rect.bottom - containerRect.top + 8;
+
               setSelectionCoords({
-                x: rect.left - containerRect.left + rect.width / 2,
-                y: rect.bottom - containerRect.top + 8, // 8px offset below
+                x: clampedX,
+                y: calculatedY,
               });
               setSelectionText(text);
               setShowPill(true);
@@ -3970,7 +3987,7 @@ export function PresentationForm() {
               className={cn(
                   'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden rounded-3xl border transition-all duration-300', 
                   isThemeLight ? "bg-white border-slate-200" : "bg-slate-950 border-slate-800",
-                  isFullscreen && 'fixed inset-0 z-50 w-full h-full h-[100dvh] max-h-[100dvh] !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-none overflow-hidden !transition-none overscroll-none',
+                  isFullscreen && 'fixed inset-0 z-50 w-full h-full h-[100dvh] max-h-[100dvh] !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-text overflow-hidden !transition-none overscroll-none',
                   isFullscreen && (currentThemeObj.bgFullScreen || (isThemeLight ? "bg-white text-slate-900" : "bg-slate-950 text-white")),
                   showSplitSearch && 'flex flex-row',
                   !isEditMode && activeDrawSlideIndex === null && 'cursor-pointer'
@@ -4234,7 +4251,7 @@ export function PresentationForm() {
                     duration: 35,
                     dragFree: false,
                   }} 
-                  className="w-full h-full select-none"
+                  className="w-full h-full select-text"
                 >
                   <CarouselContent className={cn("h-full", isFullscreen && "ml-0 bg-transparent")}>
                     {(isEditMode ? (editableSlides.length > 0 ? editableSlides : presentation.slides) : presentation.slides).map((slide, index) => {
@@ -4275,20 +4292,30 @@ export function PresentationForm() {
                               align === 'center' ? 'text-center' : 'text-left'
                             )}>
                               {/* Left side text content */}
-                              <div className={cn(
-                                "w-full flex flex-col px-1 sm:px-4 md:px-6 shrink-0 min-h-0",
-                                isFullscreen 
-                                  ? (hasSlidePhoto ? "lg:w-1/2 justify-start py-1 my-auto" : "w-full max-w-5xl mx-auto justify-start py-1 my-auto") 
-                                  : (hasSlidePhoto ? "md:w-1/2 flex-1 justify-center" : "w-full flex-1 justify-center")
-                              )}>
+                              <div 
+                                onPointerDown={(e) => {
+                                  // Stop pointerdown from bubbling to Embla Carousel drag listener
+                                  // so text selection with mouse or Shift key works cleanly!
+                                  e.stopPropagation();
+                                }}
+                                className={cn(
+                                  "w-full flex flex-col px-1 sm:px-4 md:px-6 shrink-0 min-h-0 select-text cursor-auto",
+                                  isFullscreen 
+                                    ? (hasSlidePhoto ? "lg:w-1/2 justify-start py-1 my-auto" : "w-full max-w-5xl mx-auto justify-start py-1 my-auto") 
+                                    : (hasSlidePhoto ? "md:w-1/2 flex-1 justify-center" : "w-full flex-1 justify-center")
+                                )}
+                              >
                                 {/* Helpful Slide Text Interaction Tips Banner */}
-                                {!isEditMode && !isFullscreen && (
-                                  <div className={cn(
-                                    "w-full mb-2.5 sm:mb-3.5 p-2 sm:p-2.5 rounded-xl shadow-md select-none shrink-0 transition-colors",
-                                    isThemeLight
-                                      ? "bg-stone-200/90 border border-stone-300/80 text-stone-800 shadow-stone-200/50"
-                                      : "bg-slate-900/80 border border-purple-500/30 text-purple-200"
-                                  )}>
+                                {!isEditMode && (
+                                  <div 
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={cn(
+                                      "w-full mb-2.5 sm:mb-3.5 p-2 sm:p-2.5 rounded-xl shadow-md select-none shrink-0 transition-colors",
+                                      isThemeLight
+                                        ? "bg-stone-200/90 border border-stone-300/80 text-stone-800 shadow-stone-200/50"
+                                        : "bg-slate-900/80 border border-purple-500/30 text-purple-200"
+                                    )}
+                                  >
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-3 text-[11px] sm:text-xs">
                                       <div className={cn("flex items-start sm:items-center gap-1.5", isThemeLight ? "text-stone-700 font-medium" : "text-purple-200")}>
                                         <span className={cn("font-extrabold shrink-0", isThemeLight ? "text-amber-700" : "text-amber-300")}>💡 Tip 1:</span>
@@ -4330,13 +4357,13 @@ export function PresentationForm() {
                                     />
                                   </div>
                                 ) : (
-                                  <h2 className={cn("font-bold transition-all duration-300 break-words",
+                                  <h2 className={cn("font-bold transition-all duration-300 break-words select-text cursor-text",
                                     isThemeLight ? (currentThemeObj.titleClass || "text-slate-900") : (currentThemeObj.titleClass || "text-white"),
                                     !isFullscreen 
                                       ? `mb-4 sm:mb-6 ${fontSize.titleClassName}` 
                                       : `mb-3 sm:mb-5 leading-tight font-extrabold tracking-tight ${fontSize.fullScreenTitleClassName}`
                                   )}>
-                                    {slide.title}
+                                    {renderTextWithCoverAndReveal(slide.title, index)}
                                   </h2>
                                 )}
 
@@ -4416,7 +4443,7 @@ export function PresentationForm() {
                                   </div>
                                 ) : (
                                   <>
-                                    <ul className={cn("list-none pl-0 w-full mb-3 sm:mb-5",
+                                    <ul className={cn("list-none pl-0 w-full mb-3 sm:mb-5 select-text cursor-text",
                                       align === 'center' ? 'text-center' : 'text-left',
                                       !isFullscreen 
                                         ? fontSize.className 
@@ -5056,7 +5083,7 @@ export function PresentationForm() {
                 {showPill && (
                   <div 
                     className={cn(
-                      "absolute z-30 transition-all duration-200 select-none animate-in fade-in zoom-in-95 flex items-center gap-1 bg-slate-900/90 border border-slate-700/80 p-1.5 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.3)] backdrop-blur-md",
+                      "absolute z-50 transition-all duration-200 select-none animate-in fade-in zoom-in-95 flex items-center gap-1.5 bg-slate-900/95 border border-purple-500/40 p-1.5 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.5)] backdrop-blur-md",
                       "fixed bottom-24 left-1/2 -translate-x-1/2 md:absolute md:bottom-auto md:left-auto"
                     )}
                     style={typeof window !== 'undefined' && window.innerWidth >= 768 && selectionCoords ? {
@@ -5064,23 +5091,37 @@ export function PresentationForm() {
                       top: `${selectionCoords.y}px`,
                       transform: 'translateX(-50%)',
                     } : undefined}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleShowImage(selectionText);
                       }}
-                      className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full flex items-center gap-1 transition-all active:scale-95 shrink-0"
+                      className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full flex items-center gap-1 transition-all active:scale-95 shrink-0 shadow-sm"
                     >
                       <Search className="h-3 w-3" /> Show Image
                     </button>
                     <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCoverText(selectionText);
                       }}
-                      className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-slate-800 hover:bg-slate-750 text-slate-200 rounded-full flex items-center gap-1 transition-all active:scale-95 shrink-0 border border-slate-700"
+                      className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-slate-800 hover:bg-slate-750 text-slate-200 rounded-full flex items-center gap-1 transition-all active:scale-95 shrink-0 border border-slate-700 hover:border-purple-500/50"
                     >
                       <EyeOff className="h-3 w-3 text-purple-400" /> Cover Text
                     </button>
