@@ -3,7 +3,7 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
@@ -35,7 +35,15 @@ export function initializeFirebase() {
 
 export function getSdks(firebaseApp: FirebaseApp) {
   const auth = getAuth(firebaseApp);
-  const firestore = getFirestore(firebaseApp);
+  let firestore: Firestore;
+  try {
+    firestore = initializeFirestore(firebaseApp, {
+      ignoreUndefinedProperties: true,
+      experimentalForceLongPolling: true,
+    });
+  } catch {
+    firestore = getFirestore(firebaseApp);
+  }
   const storage = getStorage(firebaseApp);
   return {
     firebaseApp,

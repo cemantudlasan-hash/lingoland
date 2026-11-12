@@ -5,6 +5,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { SeasonalThemeProvider } from '@/context/seasonal-theme-context';
 import { SeasonalEffectsLayer } from '@/components/seasonal/SeasonalEffectsLayer';
 import PlexusBackground from '@/components/layout/PlexusBackground';
+import PwaInstaller from '@/components/pwa-installer';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
@@ -48,6 +49,25 @@ export const metadata: Metadata = {
     description:
       '100% Free for Teachers & Students: 79+ ESL, Math & Science classroom games, CEFR Reading Lab, AI Slide Deck Maker & 3D Lingo-Pets.',
   },
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    shortcut: ['/favicon.ico'],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'LingoLandVerse',
+  },
 };
 
 export default function RootLayout({
@@ -61,6 +81,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#6366f1" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="LingoLandVerse" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -209,6 +236,7 @@ export default function RootLayout({
                   <SeasonalThemeProvider>
                       <SeasonalEffectsLayer />
                       {children}
+                      <PwaInstaller />
                   </SeasonalThemeProvider>
               </AuthProviderWrapper>
           </FirebaseClientProvider>

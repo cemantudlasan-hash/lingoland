@@ -1,0 +1,107 @@
+{
+  "name": "LingoLandVerse - Free Classroom Games & AI Teacher Suite",
+  "short_name": "LingoLandVerse",
+  "description": "79+ Free Interactive ESL, Math & Science Games for Teachers & Students, AI Presentation Maker, Flashcards & Study Room.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#0a0a1f",
+  "theme_color": "#6366f1",
+  "categories": [
+    "education",
+    "games",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Classroom Games Arena",
+      "short_name": "Games",
+      "description": "79+ Interactive ESL, Math and Science smartboard games",
+      "url": "/games",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "AI Presentation Maker",
+      "short_name": "Presentations",
+      "description": "Create instant 3D interactive educational slide decks",
+      "url": "/presentation",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Study Room & Flashcards",
+      "short_name": "Study Room",
+      "description": "Spaced repetition SM-2 flashcards and cozy learning ambiance",
+      "url": "/study-room",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Invite Teachers & Students",
+      "short_name": "Invite Studio",
+      "description": "Classroom QR codes and invitation cards",
+      "url": "/invite",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/opengraph-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "LingoLandVerse Educational Universe"
+    }
+  ]
+}
