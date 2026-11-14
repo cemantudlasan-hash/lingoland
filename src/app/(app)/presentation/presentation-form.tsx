@@ -995,6 +995,183 @@ function getSlideTransitionStyle(
   }
 }
 
+const fullscreenKeyframeStyles = `
+@keyframes fsSlideInNext {
+  from { transform: translate3d(100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+@keyframes fsSlideOutNext {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
+}
+@keyframes fsSlideInPrev {
+  from { transform: translate3d(-100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+@keyframes fsSlideOutPrev {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(100%, 0, 0); }
+}
+@keyframes fsFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fsFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes fsZoomInNext {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes fsZoomOutNext {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(1.08); opacity: 0; }
+}
+@keyframes fsZoomInPrev {
+  from { transform: scale(1.08); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes fsZoomOutPrev {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.92); opacity: 0; }
+}
+@keyframes fsCardInNext {
+  from { transform: translate3d(0, 40px, 0) scale(0.96); opacity: 0; }
+  to { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+}
+@keyframes fsCardOutNext {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+  to { transform: translate3d(0, -30px, 0) scale(0.96); opacity: 0; }
+}
+@keyframes fsCardInPrev {
+  from { transform: translate3d(0, -40px, 0) scale(0.96); opacity: 0; }
+  to { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+}
+@keyframes fsCardOutPrev {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+  to { transform: translate3d(0, 30px, 0) scale(0.96); opacity: 0; }
+}
+@keyframes fsBouncyInNext {
+  from { transform: translate3d(100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+@keyframes fsBouncyOutNext {
+  from { transform: translate3d(0, 0, 0); opacity: 1; }
+  to { transform: translate3d(-40%, 0, 0) scale(0.95); opacity: 0; }
+}
+@keyframes fsBouncyInPrev {
+  from { transform: translate3d(-100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+@keyframes fsBouncyOutPrev {
+  from { transform: translate3d(0, 0, 0); opacity: 1; }
+  to { transform: translate3d(40%, 0, 0) scale(0.95); opacity: 0; }
+}
+@keyframes fsFlipInNext {
+  from { transform: perspective(1000px) rotateY(25deg) scale(0.95); opacity: 0; }
+  to { transform: perspective(1000px) rotateY(0deg) scale(1); opacity: 1; }
+}
+@keyframes fsFlipOutNext {
+  from { transform: perspective(1000px) rotateY(0deg) scale(1); opacity: 1; }
+  to { transform: perspective(1000px) rotateY(-25deg) scale(0.95); opacity: 0; }
+}
+@keyframes fsFlipInPrev {
+  from { transform: perspective(1000px) rotateY(-25deg) scale(0.95); opacity: 0; }
+  to { transform: perspective(1000px) rotateY(0deg) scale(1); opacity: 1; }
+}
+@keyframes fsFlipOutPrev {
+  from { transform: perspective(1000px) rotateY(0deg) scale(1); opacity: 1; }
+  to { transform: perspective(1000px) rotateY(25deg) scale(0.95); opacity: 0; }
+}
+@keyframes fsCubeInNext {
+  from { transform: perspective(1000px) rotateY(30deg) translate3d(20%, 0, -40px); opacity: 0; }
+  to { transform: perspective(1000px) rotateY(0deg) translate3d(0, 0, 0); opacity: 1; }
+}
+@keyframes fsCubeOutNext {
+  from { transform: perspective(1000px) rotateY(0deg) translate3d(0, 0, 0); opacity: 1; }
+  to { transform: perspective(1000px) rotateY(-30deg) translate3d(-20%, 0, -40px); opacity: 0; }
+}
+@keyframes fsCubeInPrev {
+  from { transform: perspective(1000px) rotateY(-30deg) translate3d(-20%, 0, -40px); opacity: 0; }
+  to { transform: perspective(1000px) rotateY(0deg) translate3d(0, 0, 0); opacity: 1; }
+}
+@keyframes fsCubeOutPrev {
+  from { transform: perspective(1000px) rotateY(0deg) translate3d(0, 0, 0); opacity: 1; }
+  to { transform: perspective(1000px) rotateY(30deg) translate3d(20%, 0, -40px); opacity: 0; }
+}
+`;
+
+function getFullscreenSlideAnimationStyle(
+  effect: SlideTransitionEffect,
+  isIncoming: boolean,
+  isExiting: boolean,
+  direction: 'next' | 'prev' | null
+): React.CSSProperties {
+  if (!isIncoming && !isExiting) {
+    return {
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      zIndex: 10,
+    };
+  }
+
+  const dir = direction || 'next';
+  const duration = '0.32s';
+  const timing = 'cubic-bezier(0.16, 1, 0.3, 1)';
+
+  let animationName = '';
+
+  switch (effect) {
+    case 'fade':
+      animationName = isIncoming ? 'fsFadeIn' : 'fsFadeOut';
+      break;
+    case 'zoom':
+      animationName = isIncoming 
+        ? (dir === 'next' ? 'fsZoomInNext' : 'fsZoomInPrev') 
+        : (dir === 'next' ? 'fsZoomOutNext' : 'fsZoomOutPrev');
+      break;
+    case 'cardstack':
+      animationName = isIncoming 
+        ? (dir === 'next' ? 'fsCardInNext' : 'fsCardInPrev') 
+        : (dir === 'next' ? 'fsCardOutNext' : 'fsCardOutPrev');
+      break;
+    case 'bouncy':
+      animationName = isIncoming 
+        ? (dir === 'next' ? 'fsBouncyInNext' : 'fsBouncyInPrev') 
+        : (dir === 'next' ? 'fsBouncyOutNext' : 'fsBouncyOutPrev');
+      break;
+    case 'flip':
+      animationName = isIncoming 
+        ? (dir === 'next' ? 'fsFlipInNext' : 'fsFlipInPrev') 
+        : (dir === 'next' ? 'fsFlipOutNext' : 'fsFlipOutPrev');
+      break;
+    case 'cube3d':
+      animationName = isIncoming 
+        ? (dir === 'next' ? 'fsCubeInNext' : 'fsCubeInPrev') 
+        : (dir === 'next' ? 'fsCubeOutNext' : 'fsCubeOutPrev');
+      break;
+    case 'slide':
+    default:
+      animationName = isIncoming 
+        ? (dir === 'next' ? 'fsSlideInNext' : 'fsSlideInPrev') 
+        : (dir === 'next' ? 'fsSlideOutNext' : 'fsSlideOutPrev');
+      break;
+  }
+
+  return {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: isIncoming ? 20 : 10,
+    pointerEvents: isIncoming ? 'auto' : 'none',
+    animation: `${animationName} ${duration} ${timing} forwards`,
+    willChange: 'transform, opacity',
+  };
+}
+
 const ACTIVE_PRESENTATION_STORAGE_KEY = 'lingoland_active_presentation_v1';
 
 interface ActivePresentationSession {
@@ -2681,6 +2858,103 @@ export function PresentationForm() {
     setSelectedPickerImage(null);
   };
 
+  // Fullscreen slide virtualization and touch navigation states
+  const [fsExitingIndex, setFsExitingIndex] = React.useState<number | null>(null);
+  const [fsDirection, setFsDirection] = React.useState<'next' | 'prev' | null>(null);
+  const fsNavTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const touchStartXRef = React.useRef<number | null>(null);
+  const touchStartYRef = React.useRef<number | null>(null);
+
+  const handleFullscreenNavigate = React.useCallback((targetIndex: number, dir: 'next' | 'prev') => {
+    if (fsNavTimerRef.current) {
+      clearTimeout(fsNavTimerRef.current);
+      fsNavTimerRef.current = null;
+    }
+    
+    const fromIdx = current > 0 ? current - 1 : 0;
+    if (targetIndex === fromIdx) return;
+    
+    setFsExitingIndex(fromIdx);
+    setFsDirection(dir);
+    setCurrent(targetIndex + 1);
+    if (api) {
+      try {
+        api.scrollTo(targetIndex, true);
+      } catch (e) {
+        // ignore
+      }
+    }
+    
+    fsNavTimerRef.current = setTimeout(() => {
+      setFsExitingIndex(null);
+      setFsDirection(null);
+      fsNavTimerRef.current = null;
+    }, 320);
+  }, [current, api]);
+
+  const handleFullscreenNext = React.useCallback(() => {
+    const activeSlides = isEditMode 
+      ? (editableSlides.length > 0 ? editableSlides : (presentation?.slides || [])) 
+      : (presentation?.slides || []);
+    const totalSlides = activeSlides.length;
+    const currentIdx = current > 0 ? current - 1 : 0;
+    if (currentIdx < totalSlides - 1) {
+      handleFullscreenNavigate(currentIdx + 1, 'next');
+    }
+  }, [current, isEditMode, editableSlides, presentation, handleFullscreenNavigate]);
+
+  const handleFullscreenPrev = React.useCallback(() => {
+    const currentIdx = current > 0 ? current - 1 : 0;
+    if (currentIdx > 0) {
+      handleFullscreenNavigate(currentIdx - 1, 'prev');
+    }
+  }, [current, handleFullscreenNavigate]);
+
+  const handleFullscreenTouchStart = React.useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      touchStartXRef.current = e.touches[0].clientX;
+      touchStartYRef.current = e.touches[0].clientY;
+    }
+  }, []);
+
+  const handleFullscreenTouchEnd = React.useCallback((e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+
+    if (activeDrawSlideIndex === null && !isEditMode && Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+      if (deltaX < 0) {
+        handleFullscreenNext();
+      } else {
+        handleFullscreenPrev();
+      }
+    }
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+  }, [activeDrawSlideIndex, isEditMode, handleFullscreenNext, handleFullscreenPrev]);
+
+  React.useEffect(() => {
+    if (presentation && presentation.slides) {
+      const activeCount = isEditMode 
+        ? (editableSlides.length > 0 ? editableSlides.length : presentation.slides.length)
+        : presentation.slides.length;
+      setCount(activeCount);
+      if (current === 0 && activeCount > 0) {
+        setCurrent(1);
+      }
+    }
+  }, [presentation, isEditMode, editableSlides.length, current]);
+
+  React.useEffect(() => {
+    if (!isFullscreen && api && current > 0) {
+      try {
+        api.scrollTo(current - 1, true);
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [isFullscreen, api, current]);
+
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!presentation) return;
@@ -2692,9 +2966,27 @@ export function PresentationForm() {
         return;
       }
 
-      if (event.key === ' ' || event.key === 'ArrowRight') {
-        event.preventDefault();
-        handleRevealNextWord();
+      if (isFullscreen) {
+        if (event.key === 'ArrowRight' || event.key === 'PageDown') {
+          event.preventDefault();
+          handleFullscreenNext();
+          return;
+        }
+        if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+          event.preventDefault();
+          handleFullscreenPrev();
+          return;
+        }
+        if (event.key === ' ') {
+          event.preventDefault();
+          handleRevealNextWord();
+          return;
+        }
+      } else {
+        if (event.key === ' ' || event.key === 'ArrowRight') {
+          event.preventDefault();
+          handleRevealNextWord();
+        }
       }
     };
     
@@ -2712,7 +3004,7 @@ export function PresentationForm() {
         container.removeEventListener('keydown', handleKeyDown);
       }
     };
-  }, [presentation, handleRevealNextWord, isFullscreen, isEditMode]);
+  }, [presentation, handleRevealNextWord, isFullscreen, isEditMode, handleFullscreenNext, handleFullscreenPrev]);
 
   const activeSnapRef = React.useRef(0);
   const isTransitioningRef = React.useRef(false);
@@ -3586,6 +3878,787 @@ export function PresentationForm() {
     );
   }
 
+  const renderSlideInner = (slide: { title: string; content: string[] }, index: number, isFs: boolean) => {
+    const isFullscreen = isFs;
+    const hasSlidePhoto = !!(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode;
+    return (
+                          <div 
+                            className={cn(
+                              "w-full flex flex-col h-full",
+                              !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-20",
+                              isFullscreen && "overflow-y-auto justify-start lg:justify-center pt-14 sm:pt-16 lg:pt-16 pb-20 sm:pb-20 lg:pb-16 px-3 sm:px-8 md:px-12 lg:px-14 xl:px-20 overscroll-contain touch-pan-y"
+                            )}
+                            style={isFullscreen ? { paddingTop: 'max(3.5rem, calc(env(safe-area-inset-top, 0px) + 2.75rem))' } : undefined}
+                          >
+                            <div className={cn(
+                              "w-full mx-auto flex flex-col justify-start min-h-full",
+                              isFullscreen 
+                                ? (hasSlidePhoto 
+                                    ? "lg:flex-row lg:items-center lg:justify-between w-full max-w-[96vw] xl:max-w-[94vw] gap-6 lg:gap-10 xl:gap-14 flex-1 my-auto" 
+                                    : "items-stretch justify-center w-full max-w-6xl xl:max-w-7xl gap-4 flex-1 my-auto") 
+                                : "md:flex-row md:items-center md:justify-center max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
+                              !isFullscreen && "animate-in fade-in duration-700",
+                              align === 'center' ? 'text-center' : 'text-left'
+                            )}>
+                              {/* Left side text content */}
+                              <div 
+                                onPointerDown={(e) => {
+                                  // Stop pointerdown from bubbling to Embla Carousel drag listener
+                                  // so text selection with mouse or Shift key works cleanly!
+                                  e.stopPropagation();
+                                }}
+                                className={cn(
+                                  "w-full flex flex-col px-1 sm:px-4 md:px-6 shrink-0 min-h-0 select-text cursor-auto",
+                                  isFullscreen 
+                                    ? (hasSlidePhoto ? "lg:w-[44%] xl:w-[42%] justify-center py-2 my-auto" : "w-full max-w-6xl mx-auto justify-center py-2 my-auto") 
+                                    : (hasSlidePhoto ? "md:w-[46%] flex-1 justify-center" : "w-full flex-1 justify-center")
+                                )}
+                              >
+                                {/* Helpful Slide Text Interaction Tips Banner */}
+                                {!isEditMode && (
+                                  <div 
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={cn(
+                                      "w-full mb-2.5 sm:mb-3.5 p-2 sm:p-2.5 rounded-xl shadow-md select-none shrink-0 transition-colors",
+                                      isThemeLight
+                                        ? "bg-stone-200/90 border border-stone-300/80 text-stone-800 shadow-stone-200/50"
+                                        : "bg-slate-900/80 border border-purple-500/30 text-purple-200"
+                                    )}
+                                  >
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-3 text-[11px] sm:text-xs">
+                                      <div className={cn("flex items-start sm:items-center gap-1.5", isThemeLight ? "text-stone-700 font-medium" : "text-purple-200")}>
+                                        <span className={cn("font-extrabold shrink-0", isThemeLight ? "text-amber-700" : "text-amber-300")}>💡 Tip 1:</span>
+                                        <span>Select/highlight a word to search an image or cover the word.</span>
+                                      </div>
+                                      <div className={cn("flex items-start sm:items-center gap-1.5", isThemeLight ? "text-indigo-950 font-medium" : "text-indigo-200")}>
+                                        <span className={cn("font-extrabold shrink-0", isThemeLight ? "text-indigo-700" : "text-cyan-300")}>💡 Tip 2:</span>
+                                        <span>Highlight a word and hold <kbd className={cn("px-1 py-0.5 rounded text-[9px] font-mono font-bold", isThemeLight ? "bg-stone-300 border border-stone-400 text-stone-900" : "bg-black/70 border border-white/20 text-purple-200")}>Shift</kbd> to select multiple words.</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Slide Title field */}
+                                {isEditMode ? (
+                                  <div className="space-y-1.5 mb-4 text-left w-full max-w-2xl">
+                                    <Label className={cn("text-[11px] font-extrabold uppercase tracking-wider", isThemeLight ? "text-stone-700" : "text-purple-300")}>
+                                      ✏️ Slide Title
+                                    </Label>
+                                    <Input 
+                                      value={editableSlides[index]?.title ?? slide.title} 
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setEditableSlides(prev => {
+                                          const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation?.slides || []));
+                                          if (updated[index]) {
+                                            updated[index] = { ...updated[index], title: val };
+                                          }
+                                          return updated;
+                                        });
+                                      }}
+                                      className={cn(
+                                        "font-bold h-10 rounded-xl border text-sm sm:text-base px-3 transition-colors",
+                                        isThemeLight 
+                                          ? "bg-white/95 border-stone-300 text-stone-900 focus:border-stone-500 shadow-sm" 
+                                          : "bg-slate-950/90 border-slate-700 text-white focus:border-purple-400 shadow-md"
+                                      )}
+                                      placeholder="Enter slide title..."
+                                    />
+                                  </div>
+                                ) : (
+                                  <h2 className={cn("font-bold transition-all duration-300 break-words select-text cursor-text",
+                                    isThemeLight ? (currentThemeObj.titleClass || "text-slate-900") : (currentThemeObj.titleClass || "text-white"),
+                                    !isFullscreen 
+                                      ? `mb-4 sm:mb-6 ${fontSize.titleClassName}` 
+                                      : `mb-3 sm:mb-5 leading-tight font-extrabold tracking-tight ${fontSize.fullScreenTitleClassName}`
+                                  )}>
+                                    {renderTextWithCoverAndReveal(slide.title, index)}
+                                  </h2>
+                                )}
+
+                                {/* Slide Bullet points */}
+                                {isEditMode ? (
+                                  <div className="space-y-3 mt-2 text-left w-full max-w-2xl">
+                                    <Label className={cn("text-[11px] font-extrabold uppercase tracking-wider", isThemeLight ? "text-stone-700" : "text-purple-300")}>
+                                      📝 Bullet Outline Points
+                                    </Label>
+                                    {(editableSlides[index]?.content ?? slide.content).map((point, ptIdx) => (
+                                      <div key={ptIdx} className="flex gap-2 items-center">
+                                        <Input 
+                                          value={point}
+                                          onChange={(e) => {
+                                            const val = e.target.value;
+                                            setEditableSlides(prev => {
+                                              const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation?.slides || []));
+                                              if (updated[index] && updated[index].content) {
+                                                const newContent = [...updated[index].content];
+                                                newContent[ptIdx] = val;
+                                                updated[index] = { ...updated[index], content: newContent };
+                                              }
+                                              return updated;
+                                            });
+                                          }}
+                                          className={cn(
+                                            "text-xs sm:text-sm h-10 rounded-xl border px-3 transition-colors flex-1",
+                                            isThemeLight 
+                                              ? "bg-white/95 border-stone-300 text-stone-900 focus:border-stone-500 shadow-sm" 
+                                              : "bg-slate-950/90 border-slate-700 text-white focus:border-purple-400 shadow-md"
+                                          )}
+                                          placeholder={`Point ${ptIdx + 1}...`}
+                                        />
+                                        <Button 
+                                          size="icon" 
+                                          variant="ghost" 
+                                          onClick={() => {
+                                            setEditableSlides(prev => {
+                                              const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation?.slides || []));
+                                              if (updated[index] && updated[index].content) {
+                                                const newContent = [...updated[index].content];
+                                                newContent.splice(ptIdx, 1);
+                                                updated[index] = { ...updated[index], content: newContent };
+                                              }
+                                              return updated;
+                                            });
+                                          }}
+                                          className="h-9 w-9 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl shrink-0"
+                                          title="Delete bullet point"
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      onClick={() => {
+                                        setEditableSlides(prev => {
+                                          const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation?.slides || []));
+                                          if (updated[index]) {
+                                            const newContent = [...(updated[index].content || []), "New slide point outline statement."];
+                                            updated[index] = { ...updated[index], content: newContent };
+                                          }
+                                          return updated;
+                                        });
+                                      }}
+                                      className={cn(
+                                        "h-9 text-xs font-bold rounded-xl border mt-1",
+                                        isThemeLight 
+                                          ? "border-stone-300 bg-white/80 hover:bg-white text-stone-700" 
+                                          : "border-slate-700 bg-slate-900/80 hover:bg-slate-800 text-slate-300"
+                                      )}
+                                    >
+                                      <Plus className="mr-1.5 h-3.5 w-3.5 text-purple-400" /> Add slide point
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <ul className={cn("list-none pl-0 w-full mb-3 sm:mb-5 select-text cursor-text",
+                                      align === 'center' ? 'text-center' : 'text-left',
+                                      !isFullscreen 
+                                        ? fontSize.className 
+                                        : fontSize.fullScreenClassName
+                                    )}>
+                                      {renderAnimatedContent(slide.content, visibleWordCounts[index] !== undefined ? visibleWordCounts[index] : (allWordsOnSlide.current[index]?.length || Infinity), index)}
+                                    </ul>
+                                    {(visibleWordCounts[index] !== undefined ? visibleWordCounts[index] : (allWordsOnSlide.current[index]?.length || 0)) < (allWordsOnSlide.current[index]?.length || 0) && !isEditMode && (
+                                      <p className={cn("text-xs sm:text-sm mt-2 sm:mt-3 flex items-center gap-1.5 select-none opacity-80",
+                                        isThemeLight ? "text-purple-700 font-medium" : "text-purple-300/80"
+                                      )}>
+                                        <span>👆 Tap anywhere to reveal next point</span>
+                                        <span className={isThemeLight ? "text-stone-400" : "text-slate-500"}>•</span>
+                                        <span className={isThemeLight ? "text-stone-600" : "text-slate-400"}>or click &quot;Reveal All&quot; above</span>
+                                      </p>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+
+                              {/* Beautiful dynamic slide photo with auto-fit, vertical stretch and interactive zoom */}
+                              {hasSlidePhoto && (
+                                <div className={cn(
+                                  "w-full select-none flex flex-col items-center justify-center",
+                                  !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-[54%] flex-1 min-h-[350px] h-full my-auto",
+                                  isFullscreen && "w-full lg:w-[56%] xl:w-[58%] shrink-0 flex items-center justify-center mt-3 sm:mt-4 lg:my-auto lg:h-full mb-4 lg:mb-0 pb-2 lg:pb-0"
+                                )}>
+                                  {brokenSlideImages[index] ? (
+                                    <div className={cn(
+                                      "relative w-full rounded-2xl overflow-hidden border p-3 sm:p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300",
+                                      isThemeLight
+                                        ? "bg-amber-500/10 border-amber-500/25 text-stone-800 shadow-sm"
+                                        : "bg-slate-900/90 border-amber-500/30 text-slate-100 shadow-[0_15px_40px_rgba(245,158,11,0.12)]",
+                                      isFullscreen
+                                        ? "min-h-[140px] max-h-[200px] sm:min-h-[220px] lg:h-[76vh] xl:h-[80vh] lg:min-h-[520px] lg:max-h-none"
+                                        : "min-h-[240px] md:min-h-[440px]"
+                                    )}>
+                                      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-purple-500/10 pointer-events-none" />
+                                      
+                                      {regeneratingSlide[index] ? (
+                                        <div className="relative z-10 flex flex-col items-center gap-3">
+                                          <div className="relative">
+                                            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                                              <Loader2 className="h-6 w-6 text-purple-400 animate-spin" />
+                                            </div>
+                                            <Sparkles className="h-4 w-4 text-amber-400 absolute -top-1 -right-1 animate-pulse" />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <p className="text-xs font-black text-slate-100 uppercase tracking-wider">Generating Image...</p>
+                                            <p className="text-[11px] text-slate-400 max-w-[220px] truncate">
+                                              Topic: "{slide.title}"
+                                            </p>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-xs">
+                                          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
+                                            <ImageOff className="h-6 w-6" />
+                                          </div>
+                                          
+                                          <div className="space-y-1">
+                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                                              <AlertCircle className="h-3 w-3" /> Image Failed to Load
+                                            </div>
+                                            <p className="text-xs text-slate-300 font-medium leading-snug pt-0.5">
+                                              The visual for this slide is broken or unavailable.
+                                            </p>
+                                          </div>
+
+                                          <div className="flex flex-col gap-2 w-full pt-1">
+                                            <Button
+                                              size="sm"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRegenerateSlideImage(index, slide.title);
+                                              }}
+                                              className="w-full h-9 text-xs font-black rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-indigo-500/25 transition-all hover:scale-[1.02] active:scale-95"
+                                            >
+                                              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-amber-300 animate-pulse" /> Generate New Image
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenSideSearchForSlide(index, slide.title);
+                                              }}
+                                              className="w-full h-9 text-xs font-bold rounded-xl border-slate-700 bg-slate-950/80 hover:bg-slate-800 text-slate-200 shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+                                            >
+                                              <PanelRightOpen className="mr-1.5 h-3.5 w-3.5 text-purple-400" /> Search Visual Image on Side
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="relative group w-full h-full flex flex-col items-center justify-center">
+                                      <div 
+                                        className={cn(
+                                          "relative w-full flex items-center justify-center rounded-2xl overflow-hidden border select-none transition-all",
+                                          isFullscreen
+                                            ? "h-[28vh] min-h-[160px] max-h-[240px] sm:h-[38vh] sm:max-h-[340px] md:h-[48vh] md:max-h-[440px] lg:h-[76vh] lg:min-h-[520px] lg:max-h-[82vh] xl:h-[80vh] xl:min-h-[600px] xl:max-h-[84vh] bg-black/20 backdrop-blur-sm border-white/10 shadow-2xl"
+                                            : "h-[360px] sm:h-[420px] md:h-[500px] lg:h-[560px] min-h-[340px] md:min-h-[460px] lg:min-h-[560px] border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md"
+                                        )}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onMouseDown={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageMouseDown(index, e) : undefined}
+                                        onMouseMove={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageMouseMove(index, e) : undefined}
+                                        onMouseUp={handleSlideImageMouseUp}
+                                        onMouseLeave={handleSlideImageMouseUp}
+                                        onTouchStart={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageTouchStart(index, e) : undefined}
+                                        onTouchMove={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageTouchMove(index, e) : undefined}
+                                        onTouchEnd={handleSlideImageMouseUp}
+                                        onWheel={(e) => handleSlideImageWheel(index, e)}
+                                      >
+                                        <div className={cn(
+                                          "w-full h-full flex items-center justify-center overflow-hidden",
+                                          slideImageFitModes[index] === 'cover' ? "p-0" : "p-1.5 sm:p-2.5"
+                                        )}>
+                                          <div 
+                                            className="relative w-full h-full flex items-center justify-center"
+                                            style={{
+                                              transform: `translate(${slideImagePans[index]?.x || 0}px, ${slideImagePans[index]?.y || 0}px) scale(${slideImageZooms[index] || 1})`,
+                                              transformOrigin: "center center",
+                                              transition: (isDraggingSlide || (slideImageZooms[index] || 1) <= 1) ? "none" : "transform 0.15s ease-out"
+                                            }}
+                                          >
+                                            <img 
+                                              src={slidePhotos[index] || (slide as any).photoUrl} 
+                                              alt={slide.title} 
+                                              onError={() => {
+                                                setBrokenSlideImages(prev => ({ ...prev, [index]: true }));
+                                              }}
+                                              className={cn(
+                                                "w-full h-full max-w-full max-h-full object-contain select-none pointer-events-auto rounded-xl drop-shadow-md block",
+                                                slideImageFitModes[index] === 'cover' && "!w-full !h-full !max-w-none !max-h-none !object-cover !rounded-none",
+                                                slideImageFitModes[index] === 'fill' && "!w-full !h-full !max-w-none !max-h-none object-fill",
+                                                (slideImageZooms[index] || 1) > 1 && activeDrawSlideIndex !== index ? (isDraggingSlide ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
+                                              )}
+                                              draggable={false}
+                                            />
+
+                                            {/* Digital Annotation Canvas Overlay */}
+                                            <SlideAnnotationCanvas
+                                              slideIndex={index}
+                                              isActive={activeDrawSlideIndex === index}
+                                              tool={drawingTool}
+                                              color={drawingColor}
+                                              size={drawingThickness}
+                                              strokes={slideDrawings[index] || []}
+                                              onAddStroke={(newStroke) => {
+                                                setSlideDrawings(prev => ({
+                                                  ...prev,
+                                                  [index]: [...(prev[index] || []), newStroke]
+                                                }));
+                                                if (autoHideDrawToolbar) {
+                                                  setIsDrawToolbarCollapsed(true);
+                                                }
+                                              }}
+                                            />
+                                          </div>
+                                        </div>
+
+                                        {/* Top Controls Overlay (Fit Mode, Expand Lightbox, Regenerate & Side Search) */}
+                                        <div className="absolute top-2 inset-x-2 z-20 flex items-center justify-between gap-1 max-w-full overflow-x-auto no-scrollbar py-0.5 opacity-90 group-hover:opacity-100 transition-opacity pointer-events-auto select-none">
+                                          {/* Clear Segmented Fit Mode Selector: Full Picture vs Fill Frame */}
+                                          <div className="flex items-center gap-0.5 sm:gap-1 bg-black/90 p-1 rounded-xl border border-white/20 shadow-lg shrink-0">
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              title="Display entire uncropped image (100% full picture)"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSlideImageFitModes(prev => ({ ...prev, [index]: 'contain' }));
+                                              }}
+                                              className={cn(
+                                                "h-7 px-2 sm:px-2.5 text-[10px] font-black rounded-lg transition-all flex items-center gap-1",
+                                                (slideImageFitModes[index] || 'contain') === 'contain'
+                                                  ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                                  : "text-slate-300 hover:text-white hover:bg-white/10"
+                                              )}
+                                            >
+                                              <Scan className="h-3.5 w-3.5 text-cyan-300" />
+                                              <span className="hidden sm:inline">Full Picture (Auto)</span>
+                                              <span className="sm:hidden">Full</span>
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              title="Fill entire box (may crop outer edges)"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSlideImageFitModes(prev => ({ ...prev, [index]: 'cover' }));
+                                              }}
+                                              className={cn(
+                                                "h-7 px-2 sm:px-2.5 text-[10px] font-black rounded-lg transition-all flex items-center gap-1",
+                                                slideImageFitModes[index] === 'cover'
+                                                  ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                                  : "text-slate-300 hover:text-white hover:bg-white/10"
+                                              )}
+                                            >
+                                              <Maximize2 className="h-3.5 w-3.5 text-amber-300" />
+                                              <span className="hidden sm:inline">Fill Frame</span>
+                                              <span className="sm:hidden">Fill</span>
+                                            </Button>
+                                          </div>
+
+                                          <div className="flex items-center gap-1 shrink-0">
+                                            {/* Digital Marker / Pen Button */}
+                                            <Button
+                                              size="sm"
+                                              variant={activeDrawSlideIndex === index ? "default" : "secondary"}
+                                              title="Digital Pen & Marker - Draw or write directly on this picture"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (activeDrawSlideIndex === index) {
+                                                  if (isDrawToolbarCollapsed) {
+                                                    setIsDrawToolbarCollapsed(false);
+                                                  } else {
+                                                    setActiveDrawSlideIndex(null);
+                                                  }
+                                                } else {
+                                                  setActiveDrawSlideIndex(index);
+                                                  setIsDrawToolbarCollapsed(false);
+                                                }
+                                              }}
+                                              className={cn(
+                                                "h-7 px-2 sm:px-2.5 text-[10px] font-bold rounded-lg border shadow-md flex items-center gap-1 transition-all",
+                                                activeDrawSlideIndex === index
+                                                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.5)]"
+                                                  : "bg-black/90 hover:bg-black text-white border-white/15"
+                                              )}
+                                            >
+                                              <PenTool className="h-3.5 w-3.5 text-amber-300" />
+                                              <span className="hidden sm:inline">{activeDrawSlideIndex === index ? (isDrawToolbarCollapsed ? "Tools Hidden" : "Drawing...") : "Draw / Pen"}</span>
+                                              <span className="sm:hidden">{activeDrawSlideIndex === index ? "Draw" : "Pen"}</span>
+                                              {slideDrawings[index] && slideDrawings[index].length > 0 && (
+                                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse ml-0.5" />
+                                              )}
+                                            </Button>
+
+                                            {/* Expand / Detailed Full View */}
+                                            <Button
+                                              size="icon"
+                                              variant="secondary"
+                                              title="Expand image to large fullscreen view"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsLightboxError(false);
+                                                setActiveLightboxImage({
+                                                  url: slidePhotos[index] || (slide as any).photoUrl,
+                                                  title: slide.title,
+                                                  index
+                                                });
+                                                setLightboxZoom(1);
+                                                setLightboxPan({ x: 0, y: 0 });
+                                              }}
+                                              className="h-7 w-7 rounded-lg bg-black/85 hover:bg-black text-white border border-white/15 shadow-md"
+                                            >
+                                              <Maximize2 className="h-3.5 w-3.5 text-blue-300" />
+                                            </Button>
+
+                                            <Button
+                                              size="sm"
+                                              variant="secondary"
+                                              title="Generate a new image related to this slide topic"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleRegenerateSlideImage(index, slide.title);
+                                              }}
+                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/85 hover:bg-black text-white border border-white/15 shadow-md flex items-center gap-1"
+                                            >
+                                              <RefreshCw className={cn("h-3 w-3 text-purple-400", regeneratingSlide[index] && "animate-spin")} />
+                                              <span className="hidden sm:inline">Change</span>
+                                            </Button>
+
+                                            <Button
+                                              size="sm"
+                                              variant="secondary"
+                                              title="Search visual images on the side panel"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenSideSearchForSlide(index, slide.title);
+                                              }}
+                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/85 hover:bg-black text-white border border-white/15 shadow-md flex items-center gap-1"
+                                            >
+                                              <PanelRightOpen className="h-3 w-3 text-indigo-400" />
+                                              <span className="hidden sm:inline">Search</span>
+                                            </Button>
+                                          </div>
+                                        </div>
+
+                                        {/* Floating Digital Whiteboard & Marker Toolbar (Full View) */}
+                                        {activeDrawSlideIndex === index && !isDrawToolbarCollapsed && (
+                                          <div 
+                                            className="absolute top-12 sm:top-14 inset-x-2 sm:inset-x-4 z-30 flex flex-wrap items-center justify-between gap-2 p-2 sm:p-2.5 rounded-2xl bg-slate-950/95 border border-purple-500/40 shadow-[0_15px_35px_rgba(0,0,0,0.8)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200 pointer-events-auto select-none"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            {/* Tools Selector (Pen, Highlighter, Eraser) */}
+                                            <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10">
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setDrawingTool('pen')}
+                                                className={cn(
+                                                  "h-7 px-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5",
+                                                  drawingTool === 'pen'
+                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                                                )}
+                                                title="Solid Ink Pen"
+                                              >
+                                                <PenTool className="h-3.5 w-3.5 text-amber-300" />
+                                                <span className="hidden sm:inline">Pen</span>
+                                              </Button>
+
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setDrawingTool('highlighter')}
+                                                className={cn(
+                                                  "h-7 px-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5",
+                                                  drawingTool === 'highlighter'
+                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                                                )}
+                                                title="Highlighter Marker (Translucent)"
+                                              >
+                                                <Highlighter className="h-3.5 w-3.5 text-yellow-300" />
+                                                <span className="hidden sm:inline">Marker</span>
+                                              </Button>
+
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setDrawingTool('eraser')}
+                                                className={cn(
+                                                  "h-7 px-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5",
+                                                  drawingTool === 'eraser'
+                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                                                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                                                )}
+                                                title="Precision Eraser (Freehand)"
+                                              >
+                                                <Eraser className="h-3.5 w-3.5 text-rose-300" />
+                                                <span className="hidden sm:inline">Eraser</span>
+                                              </Button>
+                                            </div>
+
+                                            {/* Color Palette (dimmed when eraser is active) */}
+                                            <div className={cn(
+                                              "flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10 transition-opacity",
+                                              drawingTool === 'eraser' && "opacity-40 pointer-events-none"
+                                            )}>
+                                              {MARKER_COLORS.map((c) => (
+                                                <button
+                                                  key={c.hex}
+                                                  type="button"
+                                                  onClick={() => { setDrawingColor(c.hex); if (drawingTool === 'eraser') setDrawingTool('pen'); }}
+                                                  title={c.name}
+                                                  className={cn(
+                                                    "w-5 h-5 sm:w-6 sm:h-6 rounded-full border transition-all transform hover:scale-110",
+                                                    drawingColor === c.hex
+                                                      ? "ring-2 ring-purple-400 ring-offset-1 ring-offset-black scale-110 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                                                      : "border-black/50 opacity-80 hover:opacity-100"
+                                                  )}
+                                                  style={{ backgroundColor: c.hex }}
+                                                />
+                                              ))}
+
+                                              {/* Custom Color Input */}
+                                              <label className="relative cursor-pointer w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 border border-white/40 flex items-center justify-center hover:scale-110 transition-transform">
+                                                <input 
+                                                  type="color" 
+                                                  value={drawingColor} 
+                                                  onChange={(e) => { setDrawingColor(e.target.value); if (drawingTool === 'eraser') setDrawingTool('pen'); }} 
+                                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                                  title="Pick Custom Color"
+                                                />
+                                                <Palette className="h-2.5 w-2.5 text-white drop-shadow" />
+                                              </label>
+                                            </div>
+
+                                            {/* Thickness Selector */}
+                                            <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10">
+                                              {MARKER_THICKNESSES.map((t) => (
+                                                <button
+                                                  key={t.value}
+                                                  type="button"
+                                                  onClick={() => setDrawingThickness(t.value)}
+                                                  title={`Thickness: ${t.label} (${t.value}px)`}
+                                                  className={cn(
+                                                    "h-6 px-1.5 sm:px-2 rounded-lg flex items-center gap-1 text-[10px] font-bold transition-all",
+                                                    drawingThickness === t.value
+                                                      ? "bg-purple-600 text-white shadow"
+                                                      : "text-slate-400 hover:text-white hover:bg-white/10"
+                                                  )}
+                                                >
+                                                  <span 
+                                                    className={cn("rounded-full", t.dotSize)} 
+                                                    style={{ backgroundColor: drawingTool === 'eraser' ? '#ffffff' : drawingColor }} 
+                                                  />
+                                                  <span className="hidden md:inline">{t.label}</span>
+                                                </button>
+                                              ))}
+                                            </div>
+
+                                            {/* Optional Hide Button & Auto-hide */}
+                                            <div className="flex items-center gap-1.5">
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setIsDrawToolbarCollapsed(true)}
+                                                className="h-7 px-2.5 text-xs font-bold text-purple-200 hover:text-white bg-purple-950/50 hover:bg-purple-900/70 border border-purple-500/40 rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+                                                title="Hide toolbar so it doesn't block the picture at the top (drawing remains active)"
+                                              >
+                                                <EyeOff className="h-3.5 w-3.5 text-cyan-300" />
+                                                <span className="text-[11px] font-bold">Hide Bar</span>
+                                              </Button>
+
+                                              <label 
+                                                className="hidden lg:flex items-center gap-1.5 text-[10px] text-slate-300 font-bold cursor-pointer bg-black/60 px-2 py-1 rounded-xl border border-white/10 hover:text-white select-none transition-colors"
+                                                title="Automatically collapse toolbar when drawing begins"
+                                              >
+                                                <input 
+                                                  type="checkbox" 
+                                                  checked={autoHideDrawToolbar} 
+                                                  onChange={(e) => setAutoHideDrawToolbar(e.target.checked)} 
+                                                  className="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer" 
+                                                />
+                                                <span>Auto-hide</span>
+                                              </label>
+                                            </div>
+
+                                            {/* Actions (Undo, Clear, Done) */}
+                                            <div className="flex items-center gap-1 ml-auto">
+                                              <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                onClick={() => handleUndoDrawing(index)}
+                                                disabled={!slideDrawings[index] || slideDrawings[index].length === 0}
+                                                className="h-7 w-7 text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 rounded-lg"
+                                                title="Undo last stroke"
+                                              >
+                                                <Undo2 className="h-3.5 w-3.5" />
+                                              </Button>
+
+                                              <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                onClick={() => handleClearDrawings(index)}
+                                                disabled={!slideDrawings[index] || slideDrawings[index].length === 0}
+                                                className="h-7 w-7 text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 disabled:opacity-30 rounded-lg"
+                                                title="Clear all drawings on this slide"
+                                              >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                              </Button>
+
+                                              <Button
+                                                size="sm"
+                                                onClick={() => {
+                                                  setActiveDrawSlideIndex(null);
+                                                  setIsDrawToolbarCollapsed(false);
+                                                }}
+                                                className="h-7 px-3 text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md transition-all ml-1 flex items-center gap-1"
+                                                title="Finished drawing / Hide toolbar"
+                                              >
+                                                <Check className="h-3.5 w-3.5" />
+                                                <span>Done</span>
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {/* Collapsed Compact Floating Marker Pill (Unblocks view of the generated picture at the top) */}
+                                        {activeDrawSlideIndex === index && isDrawToolbarCollapsed && (
+                                          <div 
+                                            className="absolute top-12 sm:top-14 right-2 sm:right-4 z-30 flex items-center gap-1.5 p-1.5 px-3 rounded-2xl bg-slate-950/90 border border-purple-500/50 shadow-2xl backdrop-blur-xl animate-in fade-in duration-200 pointer-events-auto select-none"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            {/* Active Feature Indicator */}
+                                            <div className="flex items-center gap-1.5 pr-2 border-r border-white/15">
+                                              <span 
+                                                className="w-2.5 h-2.5 rounded-full ring-1 ring-white/50 shrink-0" 
+                                                style={{ backgroundColor: drawingTool === 'eraser' ? '#ffffff' : drawingColor }} 
+                                              />
+                                              <span className="text-[10px] font-extrabold text-purple-200 capitalize tracking-wide">
+                                                {drawingTool} ({drawingThickness}px)
+                                              </span>
+                                            </div>
+
+                                            {/* Expand / Show Full Toolbar */}
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => setIsDrawToolbarCollapsed(false)}
+                                              className="h-6 px-2.5 text-[10px] font-black bg-purple-600/40 hover:bg-purple-600 text-white rounded-lg flex items-center gap-1 transition-all shadow-sm"
+                                              title="Show full toolbar, colors & thickness settings"
+                                            >
+                                              <Eye className="h-3 w-3 text-cyan-300" />
+                                              <span>Show Tools</span>
+                                            </Button>
+
+                                            {/* Quick Undo */}
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={() => handleUndoDrawing(index)}
+                                              disabled={!slideDrawings[index] || slideDrawings[index].length === 0}
+                                              className="h-6 w-6 text-slate-300 hover:text-white rounded-lg disabled:opacity-30"
+                                              title="Undo last stroke"
+                                            >
+                                              <Undo2 className="h-3 w-3" />
+                                            </Button>
+
+                                            {/* Done / Finish drawing */}
+                                            <Button
+                                              size="sm"
+                                              onClick={() => {
+                                                setActiveDrawSlideIndex(null);
+                                                setIsDrawToolbarCollapsed(false);
+                                              }}
+                                              className="h-6 px-2 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg flex items-center gap-0.5 transition-all shadow-sm"
+                                              title="Finish drawing"
+                                            >
+                                              <Check className="h-3 w-3" />
+                                              <span>Done</span>
+                                            </Button>
+                                          </div>
+                                        )}
+
+                                        {/* Bottom Controls Overlay: Zoom In, Zoom Out, Reset, and Pan Nudge */}
+                                        <div className="absolute bottom-2 inset-x-2 z-20 flex items-center justify-between gap-1 max-w-full overflow-x-auto no-scrollbar pointer-events-auto">
+                                          {/* Pan hint when zoomed */}
+                                          {(slideImageZooms[index] || 1) > 1 ? (
+                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/90 border border-purple-500/30 text-[9px] font-mono text-purple-300 shadow-md shrink-0">
+                                              <Move className="h-2.5 w-2.5 animate-pulse" />
+                                              <span className="hidden sm:inline">Drag image to pan</span>
+                                              <span className="sm:hidden">Drag to pan</span>
+                                            </div>
+                                          ) : (
+                                            <p className="text-[9px] text-white/70 font-mono italic bg-black/75 px-1.5 py-0.5 rounded truncate max-w-[120px] sm:max-w-none shrink-0">
+                                              Source: {photoSource}
+                                            </p>
+                                          )}
+
+                                          {/* Zoom Controls Pill with Quick Reset to Full Picture */}
+                                          <div 
+                                            className="flex items-center gap-1 bg-black/90 p-1 rounded-xl border border-white/15 shadow-xl text-white ml-auto shrink-0"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            {((slideImageZooms[index] || 1) !== 1 || (slideImagePans[index]?.x || 0) !== 0 || (slideImagePans[index]?.y || 0) !== 0 || slideImageFitModes[index] === 'cover') && (
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleZoomSlideImage(index, 'reset');
+                                                  setSlideImageFitModes(prev => ({ ...prev, [index]: 'contain' }));
+                                                }}
+                                                className="h-6 px-1.5 sm:px-2 text-[10px] font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-500/40 hover:bg-cyan-900/90 rounded-lg flex items-center gap-1 mr-1"
+                                                title="Reset to 100% uncropped full picture"
+                                              >
+                                                <RotateCcw className="h-3 w-3" />
+                                                <span className="hidden sm:inline">Full Picture</span>
+                                                <span className="sm:hidden">Reset</span>
+                                              </Button>
+                                            )}
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'out'); }}
+                                              className="h-6 w-6 text-white hover:bg-white/20 rounded-lg"
+                                              title="Zoom Out"
+                                              disabled={(slideImageZooms[index] || 1) <= 0.6}
+                                            >
+                                              <ZoomOut className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'reset'); }}
+                                              className="text-[10px] text-white/90 hover:text-white font-mono font-bold px-1.5 min-w-[36px] text-center"
+                                              title="Click to reset zoom"
+                                            >
+                                              {Math.round((slideImageZooms[index] || 1) * 100)}%
+                                            </button>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'in'); }}
+                                              className="h-6 w-6 text-white hover:bg-white/20 rounded-lg"
+                                              title="Zoom In"
+                                              disabled={(slideImageZooms[index] || 1) >= 3.5}
+                                            >
+                                              <ZoomIn className="h-3.5 w-3.5" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+    );
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* 1. Left Library Sidebar Manager */}
@@ -4256,9 +5329,9 @@ export function PresentationForm() {
                         onClick={(e) => { 
                           e.preventDefault();
                           e.stopPropagation(); 
-                          if (api?.canScrollPrev()) api.scrollPrev(); 
+                          handleFullscreenPrev(); 
                         }}
-                        disabled={!api?.canScrollPrev()}
+                        disabled={current <= 1}
                         className="p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90 touch-manipulation"
                         title="Previous Slide"
                       >
@@ -4270,9 +5343,9 @@ export function PresentationForm() {
                         onClick={(e) => { 
                           e.preventDefault();
                           e.stopPropagation(); 
-                          if (api?.canScrollNext()) api.scrollNext(); 
+                          handleFullscreenNext(); 
                         }}
-                        disabled={!api?.canScrollNext()}
+                        disabled={current >= count}
                         className="p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-transform active:scale-90 touch-manipulation"
                         title="Next Slide"
                       >
@@ -4325,853 +5398,123 @@ export function PresentationForm() {
                   </>
                 )}
                 
-                <Carousel 
-                  setApi={setApi} 
-                  opts={{ 
-                    watchDrag: false,
-                    align: 'start',
-                    containScroll: 'trimSnaps',
-                    loop: false,
-                    skipSnaps: false,
-                    duration: 25,
-                    dragFree: false,
-                  }} 
-                  className="w-full h-full select-text"
-                >
-                  <CarouselContent className={cn("h-full w-full", isFullscreen ? "!ml-0 bg-transparent" : "-ml-4")}>
-                    {(isEditMode ? (editableSlides.length > 0 ? editableSlides : presentation.slides) : presentation.slides).map((slide, index) => {
-                      const hasSlidePhoto = !!(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode;
+                {isFullscreen ? (
+                  /* Dedicated Fullscreen Virtualized Presentation Deck (Single/Two-Slide Max, Zero Dropped GPU Tiles) */
+                  <div 
+                    className="relative w-full h-full overflow-hidden select-text touch-pan-y"
+                    onTouchStart={handleFullscreenTouchStart}
+                    onTouchEnd={handleFullscreenTouchEnd}
+                  >
+                    <style>{fullscreenKeyframeStyles}</style>
+                    {(isEditMode ? (editableSlides.length > 0 ? editableSlides : (presentation?.slides || [])) : (presentation?.slides || [])).map((slide, index) => {
+                      const isCurrent = index === current - 1;
+                      const isExiting = index === fsExitingIndex;
+                      if (!isCurrent && !isExiting) return null;
+
+                      const isIncoming = isCurrent && fsExitingIndex !== null;
+                      const animStyle = getFullscreenSlideAnimationStyle(slideTransition, isIncoming, isExiting, fsDirection);
+
                       return (
-                      <CarouselItem 
-                        key={index} 
-                        className={cn(
-                          "h-full w-full min-w-full max-w-full shrink-0 grow-0 basis-full select-text", 
-                          isFullscreen ? "!pl-0 bg-transparent" : "pl-4"
-                        )}
-                      >
-                        <div 
+                        <div
+                          key={`fs-slide-${index}`}
                           className={cn(
-                            "w-full h-full min-w-full max-w-full flex flex-col cursor-pointer overflow-hidden",
+                            "absolute inset-0 w-full h-full flex flex-col select-text overflow-hidden",
                             theme,
                             fontFamily,
-                            isFullscreen 
-                              ? "!rounded-none !shadow-none !backdrop-blur-none" 
-                              : "transition-all duration-700 ease-out"
+                            isCurrent ? "z-10" : "z-0 pointer-events-none"
                           )}
-                          style={getSlideTransitionStyle(slideTransition, index, current, isFullscreen)}
+                          style={animStyle}
                           onClick={(e) => {
                             if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
                             handleRevealNextWord(index);
                           }}
                         >
+                          {renderSlideInner(slide, index, true)}
+                        </div>
+                      );
+                    })}
+
+                    {/* Desktop Side Navigation Buttons in Fullscreen */}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFullscreenPrev(); }}
+                      disabled={current <= 1}
+                      className={cn(
+                        "hidden md:flex absolute left-3 lg:left-5 top-1/2 -translate-y-1/2 z-40 h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-full bg-black/75 hover:bg-black text-white border border-white/25 shadow-2xl transition-all active:scale-90",
+                        current <= 1 && "opacity-0 pointer-events-none"
+                      )}
+                      title="Previous Slide"
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFullscreenNext(); }}
+                      disabled={current >= count}
+                      className={cn(
+                        "hidden md:flex absolute right-3 lg:right-5 top-1/2 -translate-y-1/2 z-40 h-11 w-11 lg:h-12 lg:w-12 items-center justify-center rounded-full bg-black/75 hover:bg-black text-white border border-white/25 shadow-2xl transition-all active:scale-90",
+                        current >= count && "opacity-0 pointer-events-none"
+                      )}
+                      title="Next Slide"
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </button>
+                  </div>
+                ) : (
+                  <Carousel 
+                    setApi={setApi} 
+                    opts={{ 
+                      watchDrag: false,
+                      align: "start",
+                      containScroll: "trimSnaps",
+                      loop: false,
+                      skipSnaps: false,
+                      duration: 25,
+                      dragFree: false,
+                    }} 
+                    className="w-full h-full select-text"
+                  >
+                    <CarouselContent className="-ml-4 h-full w-full">
+                      {(isEditMode ? (editableSlides.length > 0 ? editableSlides : (presentation?.slides || [])) : (presentation?.slides || [])).map((slide, index) => (
+                        <CarouselItem 
+                          key={index} 
+                          className="h-full w-full min-w-full max-w-full shrink-0 grow-0 basis-full select-text pl-4"
+                        >
                           <div 
                             className={cn(
-                              "w-full flex flex-col h-full",
-                              !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-20",
-                              isFullscreen && "overflow-y-auto justify-start lg:justify-center pt-14 sm:pt-16 lg:pt-16 pb-20 sm:pb-20 lg:pb-16 px-3 sm:px-8 md:px-12 lg:px-14 xl:px-20 overscroll-contain touch-pan-y"
+                              "w-full h-full min-w-full max-w-full flex flex-col cursor-pointer overflow-hidden transition-all duration-700 ease-out",
+                              theme,
+                              fontFamily
                             )}
-                            style={isFullscreen ? { paddingTop: 'max(3.5rem, calc(env(safe-area-inset-top, 0px) + 2.75rem))' } : undefined}
+                            style={getSlideTransitionStyle(slideTransition, index, current, false)}
+                            onClick={(e) => {
+                              if (isEditMode || activeDrawSlideIndex !== null || showSplitSearch) return;
+                              handleRevealNextWord(index);
+                            }}
                           >
-                            <div className={cn(
-                              "w-full mx-auto flex flex-col justify-start min-h-full",
-                              isFullscreen 
-                                ? (hasSlidePhoto 
-                                    ? "lg:flex-row lg:items-center lg:justify-between w-full max-w-[96vw] xl:max-w-[94vw] gap-6 lg:gap-10 xl:gap-14 flex-1 my-auto" 
-                                    : "items-stretch justify-center w-full max-w-6xl xl:max-w-7xl gap-4 flex-1 my-auto") 
-                                : "md:flex-row md:items-center md:justify-center max-w-7xl gap-6 md:gap-8 h-full min-h-[480px]",
-                              !isFullscreen && "animate-in fade-in duration-700",
-                              align === 'center' ? 'text-center' : 'text-left'
-                            )}>
-                              {/* Left side text content */}
-                              <div 
-                                onPointerDown={(e) => {
-                                  // Stop pointerdown from bubbling to Embla Carousel drag listener
-                                  // so text selection with mouse or Shift key works cleanly!
-                                  e.stopPropagation();
-                                }}
-                                className={cn(
-                                  "w-full flex flex-col px-1 sm:px-4 md:px-6 shrink-0 min-h-0 select-text cursor-auto",
-                                  isFullscreen 
-                                    ? (hasSlidePhoto ? "lg:w-[44%] xl:w-[42%] justify-center py-2 my-auto" : "w-full max-w-6xl mx-auto justify-center py-2 my-auto") 
-                                    : (hasSlidePhoto ? "md:w-[46%] flex-1 justify-center" : "w-full flex-1 justify-center")
-                                )}
-                              >
-                                {/* Helpful Slide Text Interaction Tips Banner */}
-                                {!isEditMode && (
-                                  <div 
-                                    onClick={(e) => e.stopPropagation()}
-                                    className={cn(
-                                      "w-full mb-2.5 sm:mb-3.5 p-2 sm:p-2.5 rounded-xl shadow-md select-none shrink-0 transition-colors",
-                                      isThemeLight
-                                        ? "bg-stone-200/90 border border-stone-300/80 text-stone-800 shadow-stone-200/50"
-                                        : "bg-slate-900/80 border border-purple-500/30 text-purple-200"
-                                    )}
-                                  >
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-3 text-[11px] sm:text-xs">
-                                      <div className={cn("flex items-start sm:items-center gap-1.5", isThemeLight ? "text-stone-700 font-medium" : "text-purple-200")}>
-                                        <span className={cn("font-extrabold shrink-0", isThemeLight ? "text-amber-700" : "text-amber-300")}>💡 Tip 1:</span>
-                                        <span>Select/highlight a word to search an image or cover the word.</span>
-                                      </div>
-                                      <div className={cn("flex items-start sm:items-center gap-1.5", isThemeLight ? "text-indigo-950 font-medium" : "text-indigo-200")}>
-                                        <span className={cn("font-extrabold shrink-0", isThemeLight ? "text-indigo-700" : "text-cyan-300")}>💡 Tip 2:</span>
-                                        <span>Highlight a word and hold <kbd className={cn("px-1 py-0.5 rounded text-[9px] font-mono font-bold", isThemeLight ? "bg-stone-300 border border-stone-400 text-stone-900" : "bg-black/70 border border-white/20 text-purple-200")}>Shift</kbd> to select multiple words.</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Slide Title field */}
-                                {isEditMode ? (
-                                  <div className="space-y-1.5 mb-4 text-left w-full max-w-2xl">
-                                    <Label className={cn("text-[11px] font-extrabold uppercase tracking-wider", isThemeLight ? "text-stone-700" : "text-purple-300")}>
-                                      ✏️ Slide Title
-                                    </Label>
-                                    <Input 
-                                      value={editableSlides[index]?.title ?? slide.title} 
-                                      onChange={(e) => {
-                                        const val = e.target.value;
-                                        setEditableSlides(prev => {
-                                          const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation.slides));
-                                          if (updated[index]) {
-                                            updated[index] = { ...updated[index], title: val };
-                                          }
-                                          return updated;
-                                        });
-                                      }}
-                                      className={cn(
-                                        "font-bold h-10 rounded-xl border text-sm sm:text-base px-3 transition-colors",
-                                        isThemeLight 
-                                          ? "bg-white/95 border-stone-300 text-stone-900 focus:border-stone-500 shadow-sm" 
-                                          : "bg-slate-950/90 border-slate-700 text-white focus:border-purple-400 shadow-md"
-                                      )}
-                                      placeholder="Enter slide title..."
-                                    />
-                                  </div>
-                                ) : (
-                                  <h2 className={cn("font-bold transition-all duration-300 break-words select-text cursor-text",
-                                    isThemeLight ? (currentThemeObj.titleClass || "text-slate-900") : (currentThemeObj.titleClass || "text-white"),
-                                    !isFullscreen 
-                                      ? `mb-4 sm:mb-6 ${fontSize.titleClassName}` 
-                                      : `mb-3 sm:mb-5 leading-tight font-extrabold tracking-tight ${fontSize.fullScreenTitleClassName}`
-                                  )}>
-                                    {renderTextWithCoverAndReveal(slide.title, index)}
-                                  </h2>
-                                )}
-
-                                {/* Slide Bullet points */}
-                                {isEditMode ? (
-                                  <div className="space-y-3 mt-2 text-left w-full max-w-2xl">
-                                    <Label className={cn("text-[11px] font-extrabold uppercase tracking-wider", isThemeLight ? "text-stone-700" : "text-purple-300")}>
-                                      📝 Bullet Outline Points
-                                    </Label>
-                                    {(editableSlides[index]?.content ?? slide.content).map((point, ptIdx) => (
-                                      <div key={ptIdx} className="flex gap-2 items-center">
-                                        <Input 
-                                          value={point}
-                                          onChange={(e) => {
-                                            const val = e.target.value;
-                                            setEditableSlides(prev => {
-                                              const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation.slides));
-                                              if (updated[index] && updated[index].content) {
-                                                const newContent = [...updated[index].content];
-                                                newContent[ptIdx] = val;
-                                                updated[index] = { ...updated[index], content: newContent };
-                                              }
-                                              return updated;
-                                            });
-                                          }}
-                                          className={cn(
-                                            "text-xs sm:text-sm h-10 rounded-xl border px-3 transition-colors flex-1",
-                                            isThemeLight 
-                                              ? "bg-white/95 border-stone-300 text-stone-900 focus:border-stone-500 shadow-sm" 
-                                              : "bg-slate-950/90 border-slate-700 text-white focus:border-purple-400 shadow-md"
-                                          )}
-                                          placeholder={`Point ${ptIdx + 1}...`}
-                                        />
-                                        <Button 
-                                          size="icon" 
-                                          variant="ghost" 
-                                          onClick={() => {
-                                            setEditableSlides(prev => {
-                                              const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation.slides));
-                                              if (updated[index] && updated[index].content) {
-                                                const newContent = [...updated[index].content];
-                                                newContent.splice(ptIdx, 1);
-                                                updated[index] = { ...updated[index], content: newContent };
-                                              }
-                                              return updated;
-                                            });
-                                          }}
-                                          className="h-9 w-9 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl shrink-0"
-                                          title="Delete bullet point"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline" 
-                                      onClick={() => {
-                                        setEditableSlides(prev => {
-                                          const updated = prev.length > 0 ? [...prev] : JSON.parse(JSON.stringify(presentation.slides));
-                                          if (updated[index]) {
-                                            const newContent = [...(updated[index].content || []), "New slide point outline statement."];
-                                            updated[index] = { ...updated[index], content: newContent };
-                                          }
-                                          return updated;
-                                        });
-                                      }}
-                                      className={cn(
-                                        "h-9 text-xs font-bold rounded-xl border mt-1",
-                                        isThemeLight 
-                                          ? "border-stone-300 bg-white/80 hover:bg-white text-stone-700" 
-                                          : "border-slate-700 bg-slate-900/80 hover:bg-slate-800 text-slate-300"
-                                      )}
-                                    >
-                                      <Plus className="mr-1.5 h-3.5 w-3.5 text-purple-400" /> Add slide point
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <>
-                                    <ul className={cn("list-none pl-0 w-full mb-3 sm:mb-5 select-text cursor-text",
-                                      align === 'center' ? 'text-center' : 'text-left',
-                                      !isFullscreen 
-                                        ? fontSize.className 
-                                        : fontSize.fullScreenClassName
-                                    )}>
-                                      {renderAnimatedContent(slide.content, visibleWordCounts[index] !== undefined ? visibleWordCounts[index] : (allWordsOnSlide.current[index]?.length || Infinity), index)}
-                                    </ul>
-                                    {(visibleWordCounts[index] !== undefined ? visibleWordCounts[index] : (allWordsOnSlide.current[index]?.length || 0)) < (allWordsOnSlide.current[index]?.length || 0) && !isEditMode && (
-                                      <p className={cn("text-xs sm:text-sm mt-2 sm:mt-3 flex items-center gap-1.5 select-none opacity-80",
-                                        isThemeLight ? "text-purple-700 font-medium" : "text-purple-300/80"
-                                      )}>
-                                        <span>👆 Tap anywhere to reveal next point</span>
-                                        <span className={isThemeLight ? "text-stone-400" : "text-slate-500"}>•</span>
-                                        <span className={isThemeLight ? "text-stone-600" : "text-slate-400"}>or click &quot;Reveal All&quot; above</span>
-                                      </p>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-
-                              {/* Beautiful dynamic slide photo with auto-fit, vertical stretch and interactive zoom */}
-                              {hasSlidePhoto && (
-                                <div className={cn(
-                                  "w-full select-none flex flex-col items-center justify-center",
-                                  !isFullscreen && "animate-in zoom-in-95 duration-500 md:w-[54%] flex-1 min-h-[350px] h-full my-auto",
-                                  isFullscreen && "w-full lg:w-[56%] xl:w-[58%] shrink-0 flex items-center justify-center mt-3 sm:mt-4 lg:my-auto lg:h-full mb-4 lg:mb-0 pb-2 lg:pb-0"
-                                )}>
-                                  {brokenSlideImages[index] ? (
-                                    <div className={cn(
-                                      "relative w-full rounded-2xl overflow-hidden border p-3 sm:p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300",
-                                      isThemeLight
-                                        ? "bg-amber-500/10 border-amber-500/25 text-stone-800 shadow-sm"
-                                        : "bg-slate-900/90 border-amber-500/30 text-slate-100 shadow-[0_15px_40px_rgba(245,158,11,0.12)]",
-                                      isFullscreen
-                                        ? "min-h-[140px] max-h-[200px] sm:min-h-[220px] lg:h-[76vh] xl:h-[80vh] lg:min-h-[520px] lg:max-h-none"
-                                        : "min-h-[240px] md:min-h-[440px]"
-                                    )}>
-                                      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-purple-500/10 pointer-events-none" />
-                                      
-                                      {regeneratingSlide[index] ? (
-                                        <div className="relative z-10 flex flex-col items-center gap-3">
-                                          <div className="relative">
-                                            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
-                                              <Loader2 className="h-6 w-6 text-purple-400 animate-spin" />
-                                            </div>
-                                            <Sparkles className="h-4 w-4 text-amber-400 absolute -top-1 -right-1 animate-pulse" />
-                                          </div>
-                                          <div className="space-y-1">
-                                            <p className="text-xs font-black text-slate-100 uppercase tracking-wider">Generating Image...</p>
-                                            <p className="text-[11px] text-slate-400 max-w-[220px] truncate">
-                                              Topic: "{slide.title}"
-                                            </p>
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div className="relative z-10 flex flex-col items-center gap-3 w-full max-w-xs">
-                                          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
-                                            <ImageOff className="h-6 w-6" />
-                                          </div>
-                                          
-                                          <div className="space-y-1">
-                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300 text-[10px] font-black uppercase tracking-wider">
-                                              <AlertCircle className="h-3 w-3" /> Image Failed to Load
-                                            </div>
-                                            <p className="text-xs text-slate-300 font-medium leading-snug pt-0.5">
-                                              The visual for this slide is broken or unavailable.
-                                            </p>
-                                          </div>
-
-                                          <div className="flex flex-col gap-2 w-full pt-1">
-                                            <Button
-                                              size="sm"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRegenerateSlideImage(index, slide.title);
-                                              }}
-                                              className="w-full h-9 text-xs font-black rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-indigo-500/25 transition-all hover:scale-[1.02] active:scale-95"
-                                            >
-                                              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-amber-300 animate-pulse" /> Generate New Image
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleOpenSideSearchForSlide(index, slide.title);
-                                              }}
-                                              className="w-full h-9 text-xs font-bold rounded-xl border-slate-700 bg-slate-950/80 hover:bg-slate-800 text-slate-200 shadow-sm transition-all hover:scale-[1.02] active:scale-95"
-                                            >
-                                              <PanelRightOpen className="mr-1.5 h-3.5 w-3.5 text-purple-400" /> Search Visual Image on Side
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <div className="relative group w-full h-full flex flex-col items-center justify-center">
-                                      <div 
-                                        className={cn(
-                                          "relative w-full flex items-center justify-center rounded-2xl overflow-hidden border select-none transition-all",
-                                          isFullscreen
-                                            ? "h-[28vh] min-h-[160px] max-h-[240px] sm:h-[38vh] sm:max-h-[340px] md:h-[48vh] md:max-h-[440px] lg:h-[76vh] lg:min-h-[520px] lg:max-h-[82vh] xl:h-[80vh] xl:min-h-[600px] xl:max-h-[84vh] bg-black/20 backdrop-blur-sm border-white/10 shadow-2xl"
-                                            : "h-[360px] sm:h-[420px] md:h-[500px] lg:h-[560px] min-h-[340px] md:min-h-[460px] lg:min-h-[560px] border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md"
-                                        )}
-                                        onClick={(e) => e.stopPropagation()}
-                                        onMouseDown={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageMouseDown(index, e) : undefined}
-                                        onMouseMove={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageMouseMove(index, e) : undefined}
-                                        onMouseUp={handleSlideImageMouseUp}
-                                        onMouseLeave={handleSlideImageMouseUp}
-                                        onTouchStart={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageTouchStart(index, e) : undefined}
-                                        onTouchMove={(slideImageZooms[index] || 1) > 1 ? (e) => handleSlideImageTouchMove(index, e) : undefined}
-                                        onTouchEnd={handleSlideImageMouseUp}
-                                        onWheel={(e) => handleSlideImageWheel(index, e)}
-                                      >
-                                        <div className={cn(
-                                          "w-full h-full flex items-center justify-center overflow-hidden",
-                                          slideImageFitModes[index] === 'cover' ? "p-0" : "p-1.5 sm:p-2.5"
-                                        )}>
-                                          <div 
-                                            className="relative w-full h-full flex items-center justify-center"
-                                            style={{
-                                              transform: `translate(${slideImagePans[index]?.x || 0}px, ${slideImagePans[index]?.y || 0}px) scale(${slideImageZooms[index] || 1})`,
-                                              transformOrigin: "center center",
-                                              transition: (isDraggingSlide || (slideImageZooms[index] || 1) <= 1) ? "none" : "transform 0.15s ease-out"
-                                            }}
-                                          >
-                                            <img 
-                                              src={slidePhotos[index] || (slide as any).photoUrl} 
-                                              alt={slide.title} 
-                                              onError={() => {
-                                                setBrokenSlideImages(prev => ({ ...prev, [index]: true }));
-                                              }}
-                                              className={cn(
-                                                "w-full h-full max-w-full max-h-full object-contain select-none pointer-events-auto rounded-xl drop-shadow-md block",
-                                                slideImageFitModes[index] === 'cover' && "!w-full !h-full !max-w-none !max-h-none !object-cover !rounded-none",
-                                                slideImageFitModes[index] === 'fill' && "!w-full !h-full !max-w-none !max-h-none object-fill",
-                                                (slideImageZooms[index] || 1) > 1 && activeDrawSlideIndex !== index ? (isDraggingSlide ? "cursor-grabbing" : "cursor-grab") : "cursor-default"
-                                              )}
-                                              draggable={false}
-                                            />
-
-                                            {/* Digital Annotation Canvas Overlay */}
-                                            <SlideAnnotationCanvas
-                                              slideIndex={index}
-                                              isActive={activeDrawSlideIndex === index}
-                                              tool={drawingTool}
-                                              color={drawingColor}
-                                              size={drawingThickness}
-                                              strokes={slideDrawings[index] || []}
-                                              onAddStroke={(newStroke) => {
-                                                setSlideDrawings(prev => ({
-                                                  ...prev,
-                                                  [index]: [...(prev[index] || []), newStroke]
-                                                }));
-                                                if (autoHideDrawToolbar) {
-                                                  setIsDrawToolbarCollapsed(true);
-                                                }
-                                              }}
-                                            />
-                                          </div>
-                                        </div>
-
-                                        {/* Top Controls Overlay (Fit Mode, Expand Lightbox, Regenerate & Side Search) */}
-                                        <div className="absolute top-2 inset-x-2 z-20 flex items-center justify-between gap-1 max-w-full overflow-x-auto no-scrollbar py-0.5 opacity-90 group-hover:opacity-100 transition-opacity pointer-events-auto select-none">
-                                          {/* Clear Segmented Fit Mode Selector: Full Picture vs Fill Frame */}
-                                          <div className="flex items-center gap-0.5 sm:gap-1 bg-black/90 p-1 rounded-xl border border-white/20 shadow-lg shrink-0">
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              title="Display entire uncropped image (100% full picture)"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSlideImageFitModes(prev => ({ ...prev, [index]: 'contain' }));
-                                              }}
-                                              className={cn(
-                                                "h-7 px-2 sm:px-2.5 text-[10px] font-black rounded-lg transition-all flex items-center gap-1",
-                                                (slideImageFitModes[index] || 'contain') === 'contain'
-                                                  ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                                                  : "text-slate-300 hover:text-white hover:bg-white/10"
-                                              )}
-                                            >
-                                              <Scan className="h-3.5 w-3.5 text-cyan-300" />
-                                              <span className="hidden sm:inline">Full Picture (Auto)</span>
-                                              <span className="sm:hidden">Full</span>
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              title="Fill entire box (may crop outer edges)"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSlideImageFitModes(prev => ({ ...prev, [index]: 'cover' }));
-                                              }}
-                                              className={cn(
-                                                "h-7 px-2 sm:px-2.5 text-[10px] font-black rounded-lg transition-all flex items-center gap-1",
-                                                slideImageFitModes[index] === 'cover'
-                                                  ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                                                  : "text-slate-300 hover:text-white hover:bg-white/10"
-                                              )}
-                                            >
-                                              <Maximize2 className="h-3.5 w-3.5 text-amber-300" />
-                                              <span className="hidden sm:inline">Fill Frame</span>
-                                              <span className="sm:hidden">Fill</span>
-                                            </Button>
-                                          </div>
-
-                                          <div className="flex items-center gap-1 shrink-0">
-                                            {/* Digital Marker / Pen Button */}
-                                            <Button
-                                              size="sm"
-                                              variant={activeDrawSlideIndex === index ? "default" : "secondary"}
-                                              title="Digital Pen & Marker - Draw or write directly on this picture"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (activeDrawSlideIndex === index) {
-                                                  if (isDrawToolbarCollapsed) {
-                                                    setIsDrawToolbarCollapsed(false);
-                                                  } else {
-                                                    setActiveDrawSlideIndex(null);
-                                                  }
-                                                } else {
-                                                  setActiveDrawSlideIndex(index);
-                                                  setIsDrawToolbarCollapsed(false);
-                                                }
-                                              }}
-                                              className={cn(
-                                                "h-7 px-2 sm:px-2.5 text-[10px] font-bold rounded-lg border shadow-md flex items-center gap-1 transition-all",
-                                                activeDrawSlideIndex === index
-                                                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.5)]"
-                                                  : "bg-black/90 hover:bg-black text-white border-white/15"
-                                              )}
-                                            >
-                                              <PenTool className="h-3.5 w-3.5 text-amber-300" />
-                                              <span className="hidden sm:inline">{activeDrawSlideIndex === index ? (isDrawToolbarCollapsed ? "Tools Hidden" : "Drawing...") : "Draw / Pen"}</span>
-                                              <span className="sm:hidden">{activeDrawSlideIndex === index ? "Draw" : "Pen"}</span>
-                                              {slideDrawings[index] && slideDrawings[index].length > 0 && (
-                                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse ml-0.5" />
-                                              )}
-                                            </Button>
-
-                                            {/* Expand / Detailed Full View */}
-                                            <Button
-                                              size="icon"
-                                              variant="secondary"
-                                              title="Expand image to large fullscreen view"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                setIsLightboxError(false);
-                                                setActiveLightboxImage({
-                                                  url: slidePhotos[index] || (slide as any).photoUrl,
-                                                  title: slide.title,
-                                                  index
-                                                });
-                                                setLightboxZoom(1);
-                                                setLightboxPan({ x: 0, y: 0 });
-                                              }}
-                                              className="h-7 w-7 rounded-lg bg-black/85 hover:bg-black text-white border border-white/15 shadow-md"
-                                            >
-                                              <Maximize2 className="h-3.5 w-3.5 text-blue-300" />
-                                            </Button>
-
-                                            <Button
-                                              size="sm"
-                                              variant="secondary"
-                                              title="Generate a new image related to this slide topic"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRegenerateSlideImage(index, slide.title);
-                                              }}
-                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/85 hover:bg-black text-white border border-white/15 shadow-md flex items-center gap-1"
-                                            >
-                                              <RefreshCw className={cn("h-3 w-3 text-purple-400", regeneratingSlide[index] && "animate-spin")} />
-                                              <span className="hidden sm:inline">Change</span>
-                                            </Button>
-
-                                            <Button
-                                              size="sm"
-                                              variant="secondary"
-                                              title="Search visual images on the side panel"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleOpenSideSearchForSlide(index, slide.title);
-                                              }}
-                                              className="h-7 px-2 text-[10px] font-bold rounded-lg bg-black/85 hover:bg-black text-white border border-white/15 shadow-md flex items-center gap-1"
-                                            >
-                                              <PanelRightOpen className="h-3 w-3 text-indigo-400" />
-                                              <span className="hidden sm:inline">Search</span>
-                                            </Button>
-                                          </div>
-                                        </div>
-
-                                        {/* Floating Digital Whiteboard & Marker Toolbar (Full View) */}
-                                        {activeDrawSlideIndex === index && !isDrawToolbarCollapsed && (
-                                          <div 
-                                            className="absolute top-12 sm:top-14 inset-x-2 sm:inset-x-4 z-30 flex flex-wrap items-center justify-between gap-2 p-2 sm:p-2.5 rounded-2xl bg-slate-950/95 border border-purple-500/40 shadow-[0_15px_35px_rgba(0,0,0,0.8)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200 pointer-events-auto select-none"
-                                            onClick={(e) => e.stopPropagation()}
-                                          >
-                                            {/* Tools Selector (Pen, Highlighter, Eraser) */}
-                                            <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10">
-                                              <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setDrawingTool('pen')}
-                                                className={cn(
-                                                  "h-7 px-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5",
-                                                  drawingTool === 'pen'
-                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                                                    : "text-slate-300 hover:text-white hover:bg-white/10"
-                                                )}
-                                                title="Solid Ink Pen"
-                                              >
-                                                <PenTool className="h-3.5 w-3.5 text-amber-300" />
-                                                <span className="hidden sm:inline">Pen</span>
-                                              </Button>
-
-                                              <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setDrawingTool('highlighter')}
-                                                className={cn(
-                                                  "h-7 px-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5",
-                                                  drawingTool === 'highlighter'
-                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                                                    : "text-slate-300 hover:text-white hover:bg-white/10"
-                                                )}
-                                                title="Highlighter Marker (Translucent)"
-                                              >
-                                                <Highlighter className="h-3.5 w-3.5 text-yellow-300" />
-                                                <span className="hidden sm:inline">Marker</span>
-                                              </Button>
-
-                                              <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setDrawingTool('eraser')}
-                                                className={cn(
-                                                  "h-7 px-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5",
-                                                  drawingTool === 'eraser'
-                                                    ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                                                    : "text-slate-300 hover:text-white hover:bg-white/10"
-                                                )}
-                                                title="Precision Eraser (Freehand)"
-                                              >
-                                                <Eraser className="h-3.5 w-3.5 text-rose-300" />
-                                                <span className="hidden sm:inline">Eraser</span>
-                                              </Button>
-                                            </div>
-
-                                            {/* Color Palette (dimmed when eraser is active) */}
-                                            <div className={cn(
-                                              "flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10 transition-opacity",
-                                              drawingTool === 'eraser' && "opacity-40 pointer-events-none"
-                                            )}>
-                                              {MARKER_COLORS.map((c) => (
-                                                <button
-                                                  key={c.hex}
-                                                  type="button"
-                                                  onClick={() => { setDrawingColor(c.hex); if (drawingTool === 'eraser') setDrawingTool('pen'); }}
-                                                  title={c.name}
-                                                  className={cn(
-                                                    "w-5 h-5 sm:w-6 sm:h-6 rounded-full border transition-all transform hover:scale-110",
-                                                    drawingColor === c.hex
-                                                      ? "ring-2 ring-purple-400 ring-offset-1 ring-offset-black scale-110 border-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
-                                                      : "border-black/50 opacity-80 hover:opacity-100"
-                                                  )}
-                                                  style={{ backgroundColor: c.hex }}
-                                                />
-                                              ))}
-
-                                              {/* Custom Color Input */}
-                                              <label className="relative cursor-pointer w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-rose-500 via-yellow-400 to-indigo-500 border border-white/40 flex items-center justify-center hover:scale-110 transition-transform">
-                                                <input 
-                                                  type="color" 
-                                                  value={drawingColor} 
-                                                  onChange={(e) => { setDrawingColor(e.target.value); if (drawingTool === 'eraser') setDrawingTool('pen'); }} 
-                                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                                                  title="Pick Custom Color"
-                                                />
-                                                <Palette className="h-2.5 w-2.5 text-white drop-shadow" />
-                                              </label>
-                                            </div>
-
-                                            {/* Thickness Selector */}
-                                            <div className="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10">
-                                              {MARKER_THICKNESSES.map((t) => (
-                                                <button
-                                                  key={t.value}
-                                                  type="button"
-                                                  onClick={() => setDrawingThickness(t.value)}
-                                                  title={`Thickness: ${t.label} (${t.value}px)`}
-                                                  className={cn(
-                                                    "h-6 px-1.5 sm:px-2 rounded-lg flex items-center gap-1 text-[10px] font-bold transition-all",
-                                                    drawingThickness === t.value
-                                                      ? "bg-purple-600 text-white shadow"
-                                                      : "text-slate-400 hover:text-white hover:bg-white/10"
-                                                  )}
-                                                >
-                                                  <span 
-                                                    className={cn("rounded-full", t.dotSize)} 
-                                                    style={{ backgroundColor: drawingTool === 'eraser' ? '#ffffff' : drawingColor }} 
-                                                  />
-                                                  <span className="hidden md:inline">{t.label}</span>
-                                                </button>
-                                              ))}
-                                            </div>
-
-                                            {/* Optional Hide Button & Auto-hide */}
-                                            <div className="flex items-center gap-1.5">
-                                              <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setIsDrawToolbarCollapsed(true)}
-                                                className="h-7 px-2.5 text-xs font-bold text-purple-200 hover:text-white bg-purple-950/50 hover:bg-purple-900/70 border border-purple-500/40 rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
-                                                title="Hide toolbar so it doesn't block the picture at the top (drawing remains active)"
-                                              >
-                                                <EyeOff className="h-3.5 w-3.5 text-cyan-300" />
-                                                <span className="text-[11px] font-bold">Hide Bar</span>
-                                              </Button>
-
-                                              <label 
-                                                className="hidden lg:flex items-center gap-1.5 text-[10px] text-slate-300 font-bold cursor-pointer bg-black/60 px-2 py-1 rounded-xl border border-white/10 hover:text-white select-none transition-colors"
-                                                title="Automatically collapse toolbar when drawing begins"
-                                              >
-                                                <input 
-                                                  type="checkbox" 
-                                                  checked={autoHideDrawToolbar} 
-                                                  onChange={(e) => setAutoHideDrawToolbar(e.target.checked)} 
-                                                  className="w-3.5 h-3.5 rounded accent-purple-500 cursor-pointer" 
-                                                />
-                                                <span>Auto-hide</span>
-                                              </label>
-                                            </div>
-
-                                            {/* Actions (Undo, Clear, Done) */}
-                                            <div className="flex items-center gap-1 ml-auto">
-                                              <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                onClick={() => handleUndoDrawing(index)}
-                                                disabled={!slideDrawings[index] || slideDrawings[index].length === 0}
-                                                className="h-7 w-7 text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 rounded-lg"
-                                                title="Undo last stroke"
-                                              >
-                                                <Undo2 className="h-3.5 w-3.5" />
-                                              </Button>
-
-                                              <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                onClick={() => handleClearDrawings(index)}
-                                                disabled={!slideDrawings[index] || slideDrawings[index].length === 0}
-                                                className="h-7 w-7 text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 disabled:opacity-30 rounded-lg"
-                                                title="Clear all drawings on this slide"
-                                              >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                              </Button>
-
-                                              <Button
-                                                size="sm"
-                                                onClick={() => {
-                                                  setActiveDrawSlideIndex(null);
-                                                  setIsDrawToolbarCollapsed(false);
-                                                }}
-                                                className="h-7 px-3 text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md transition-all ml-1 flex items-center gap-1"
-                                                title="Finished drawing / Hide toolbar"
-                                              >
-                                                <Check className="h-3.5 w-3.5" />
-                                                <span>Done</span>
-                                              </Button>
-                                            </div>
-                                          </div>
-                                        )}
-
-                                        {/* Collapsed Compact Floating Marker Pill (Unblocks view of the generated picture at the top) */}
-                                        {activeDrawSlideIndex === index && isDrawToolbarCollapsed && (
-                                          <div 
-                                            className="absolute top-12 sm:top-14 right-2 sm:right-4 z-30 flex items-center gap-1.5 p-1.5 px-3 rounded-2xl bg-slate-950/90 border border-purple-500/50 shadow-2xl backdrop-blur-xl animate-in fade-in duration-200 pointer-events-auto select-none"
-                                            onClick={(e) => e.stopPropagation()}
-                                          >
-                                            {/* Active Feature Indicator */}
-                                            <div className="flex items-center gap-1.5 pr-2 border-r border-white/15">
-                                              <span 
-                                                className="w-2.5 h-2.5 rounded-full ring-1 ring-white/50 shrink-0" 
-                                                style={{ backgroundColor: drawingTool === 'eraser' ? '#ffffff' : drawingColor }} 
-                                              />
-                                              <span className="text-[10px] font-extrabold text-purple-200 capitalize tracking-wide">
-                                                {drawingTool} ({drawingThickness}px)
-                                              </span>
-                                            </div>
-
-                                            {/* Expand / Show Full Toolbar */}
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={() => setIsDrawToolbarCollapsed(false)}
-                                              className="h-6 px-2.5 text-[10px] font-black bg-purple-600/40 hover:bg-purple-600 text-white rounded-lg flex items-center gap-1 transition-all shadow-sm"
-                                              title="Show full toolbar, colors & thickness settings"
-                                            >
-                                              <Eye className="h-3 w-3 text-cyan-300" />
-                                              <span>Show Tools</span>
-                                            </Button>
-
-                                            {/* Quick Undo */}
-                                            <Button
-                                              size="icon"
-                                              variant="ghost"
-                                              onClick={() => handleUndoDrawing(index)}
-                                              disabled={!slideDrawings[index] || slideDrawings[index].length === 0}
-                                              className="h-6 w-6 text-slate-300 hover:text-white rounded-lg disabled:opacity-30"
-                                              title="Undo last stroke"
-                                            >
-                                              <Undo2 className="h-3 w-3" />
-                                            </Button>
-
-                                            {/* Done / Finish drawing */}
-                                            <Button
-                                              size="sm"
-                                              onClick={() => {
-                                                setActiveDrawSlideIndex(null);
-                                                setIsDrawToolbarCollapsed(false);
-                                              }}
-                                              className="h-6 px-2 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg flex items-center gap-0.5 transition-all shadow-sm"
-                                              title="Finish drawing"
-                                            >
-                                              <Check className="h-3 w-3" />
-                                              <span>Done</span>
-                                            </Button>
-                                          </div>
-                                        )}
-
-                                        {/* Bottom Controls Overlay: Zoom In, Zoom Out, Reset, and Pan Nudge */}
-                                        <div className="absolute bottom-2 inset-x-2 z-20 flex items-center justify-between gap-1 max-w-full overflow-x-auto no-scrollbar pointer-events-auto">
-                                          {/* Pan hint when zoomed */}
-                                          {(slideImageZooms[index] || 1) > 1 ? (
-                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/90 border border-purple-500/30 text-[9px] font-mono text-purple-300 shadow-md shrink-0">
-                                              <Move className="h-2.5 w-2.5 animate-pulse" />
-                                              <span className="hidden sm:inline">Drag image to pan</span>
-                                              <span className="sm:hidden">Drag to pan</span>
-                                            </div>
-                                          ) : (
-                                            <p className="text-[9px] text-white/70 font-mono italic bg-black/75 px-1.5 py-0.5 rounded truncate max-w-[120px] sm:max-w-none shrink-0">
-                                              Source: {photoSource}
-                                            </p>
-                                          )}
-
-                                          {/* Zoom Controls Pill with Quick Reset to Full Picture */}
-                                          <div 
-                                            className="flex items-center gap-1 bg-black/90 p-1 rounded-xl border border-white/15 shadow-xl text-white ml-auto shrink-0"
-                                            onClick={(e) => e.stopPropagation()}
-                                          >
-                                            {((slideImageZooms[index] || 1) !== 1 || (slideImagePans[index]?.x || 0) !== 0 || (slideImagePans[index]?.y || 0) !== 0 || slideImageFitModes[index] === 'cover') && (
-                                              <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  handleZoomSlideImage(index, 'reset');
-                                                  setSlideImageFitModes(prev => ({ ...prev, [index]: 'contain' }));
-                                                }}
-                                                className="h-6 px-1.5 sm:px-2 text-[10px] font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-500/40 hover:bg-cyan-900/90 rounded-lg flex items-center gap-1 mr-1"
-                                                title="Reset to 100% uncropped full picture"
-                                              >
-                                                <RotateCcw className="h-3 w-3" />
-                                                <span className="hidden sm:inline">Full Picture</span>
-                                                <span className="sm:hidden">Reset</span>
-                                              </Button>
-                                            )}
-                                            <Button
-                                              size="icon"
-                                              variant="ghost"
-                                              onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'out'); }}
-                                              className="h-6 w-6 text-white hover:bg-white/20 rounded-lg"
-                                              title="Zoom Out"
-                                              disabled={(slideImageZooms[index] || 1) <= 0.6}
-                                            >
-                                              <ZoomOut className="h-3.5 w-3.5" />
-                                            </Button>
-                                            <button
-                                              onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'reset'); }}
-                                              className="text-[10px] text-white/90 hover:text-white font-mono font-bold px-1.5 min-w-[36px] text-center"
-                                              title="Click to reset zoom"
-                                            >
-                                              {Math.round((slideImageZooms[index] || 1) * 100)}%
-                                            </button>
-                                            <Button
-                                              size="icon"
-                                              variant="ghost"
-                                              onClick={(e) => { e.stopPropagation(); handleZoomSlideImage(index, 'in'); }}
-                                              className="h-6 w-6 text-white hover:bg-white/20 rounded-lg"
-                                              title="Zoom In"
-                                              disabled={(slideImageZooms[index] || 1) >= 3.5}
-                                            >
-                                              <ZoomIn className="h-3.5 w-3.5" />
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                            {renderSlideInner(slide, index, false)}
                           </div>
-                        </div>
-                      </CarouselItem>
-                    );
-                    })}
-                  </CarouselContent>
-                  <CarouselPrevious 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (api?.canScrollPrev()) api.scrollPrev();
-                    }}
-                    className={cn(
-                      "absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90 touch-manipulation",
-                      "left-2 sm:left-4 top-1/2 -translate-y-1/2",
-                      !isFullscreen 
-                        ? "bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
-                        : "hidden md:flex bg-black/80 text-white hover:bg-black border border-white/30"
-                    )} 
-                  />
-                  <CarouselNext 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (api?.canScrollNext()) api.scrollNext();
-                    }}
-                    className={cn(
-                      "absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90 touch-manipulation",
-                      "right-2 sm:right-4 top-1/2 -translate-y-1/2",
-                      !isFullscreen 
-                        ? "bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
-                        : "hidden md:flex bg-black/80 text-white hover:bg-black border border-white/30"
-                    )} 
-                  />
-                </Carousel>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation(); 
+                        if (api?.canScrollPrev()) api.scrollPrev();
+                      }}
+                      className="absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90 touch-manipulation left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
+                    />
+                    <CarouselNext 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation(); 
+                        if (api?.canScrollNext()) api.scrollNext();
+                      }}
+                      className="absolute z-40 h-10 w-10 sm:h-12 sm:w-12 rounded-full shadow-2xl transition-all active:scale-90 touch-manipulation right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-slate-950/90 border border-slate-800 text-white hover:bg-slate-900" 
+                    />
+                  </Carousel>
+                )}
 
                 {/* Highlighted text visual search option button */}
                 {showPill && !showImageModal && !showTextModal && !activeLightboxImage && (
