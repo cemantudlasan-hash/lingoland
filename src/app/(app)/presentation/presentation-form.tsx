@@ -873,48 +873,64 @@ function getSlideTransitionStyle(
   const offset = slideIndex - activeIndex;
   const isCurrent = offset === 0;
 
+  // Offscreen slides beyond adjacent should be completely hidden from layout/paint to preserve GPU memory on mobile
+  if (isFullscreen && Math.abs(offset) > 1) {
+    return {
+      visibility: 'hidden',
+      pointerEvents: 'none',
+      opacity: 0,
+    };
+  }
+
   // Fullscreen mode: 100% GPU-safe transitions that NEVER drop raster tiles or clip on mobile
   if (isFullscreen) {
     switch (effect) {
       case 'fade': {
         return {
-          opacity: isCurrent ? 1 : 0.2,
-          transition: 'opacity 0.4s ease-in-out',
+          opacity: isCurrent ? 1 : 0.05,
+          pointerEvents: isCurrent ? 'auto' : 'none',
+          transition: 'opacity 0.35s ease-in-out',
         };
       }
       case 'zoom': {
         return {
-          opacity: isCurrent ? 1 : 0.25,
+          opacity: isCurrent ? 1 : 0.1,
+          pointerEvents: isCurrent ? 'auto' : 'none',
           transform: isCurrent ? 'scale(1)' : 'scale(0.96)',
-          transition: 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: 'opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'cardstack': {
         return {
-          opacity: isCurrent ? 1 : 0.35,
-          transform: isCurrent ? 'translateY(0)' : 'translateY(14px)',
-          transition: 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          opacity: isCurrent ? 1 : 0.2,
+          pointerEvents: isCurrent ? 'auto' : 'none',
+          transform: isCurrent ? 'translateY(0)' : 'translateY(10px)',
+          transition: 'opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'bouncy': {
         return {
-          opacity: isCurrent ? 1 : 0.45,
+          opacity: isCurrent ? 1 : 0.3,
+          pointerEvents: isCurrent ? 'auto' : 'none',
           transform: isCurrent ? 'scale(1)' : 'scale(0.95)',
-          transition: 'opacity 0.45s ease, transform 0.45s cubic-bezier(0.34, 1.35, 0.64, 1)',
+          transition: 'opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.35, 0.64, 1)',
         };
       }
       case 'cube3d':
       case 'flip': {
         return {
-          opacity: isCurrent ? 1 : 0.35,
+          opacity: isCurrent ? 1 : 0.2,
+          pointerEvents: isCurrent ? 'auto' : 'none',
           transform: isCurrent ? 'scale(1)' : 'scale(0.96)',
-          transition: 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: 'opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
         };
       }
       case 'slide':
       default: {
         return {
           opacity: 1,
+          visibility: 'visible',
+          pointerEvents: isCurrent ? 'auto' : 'none',
         };
       }
     }
@@ -1587,9 +1603,24 @@ export function PresentationForm() {
   const [slideTransition, setSlideTransition] = React.useState<SlideTransitionEffect>('slide');
 
   // Resolved active theme & contrast helper
-  const currentThemeObj = themes.find(t => t.className === theme || t.name === theme) || themes[5];
-  const isThemeDark = currentThemeObj ? currentThemeObj.isDark : !theme.includes('bg-white') && !theme.includes('bg-[#fdfbf7]') && !theme.includes('bg-amber-100') && !theme.includes('bg-[#fef3c7]') && !theme.includes('bg-[#f8f9fa]') && !theme.includes('bg-gradient-to-br from-slate-100');
+  const isThemeExplicitlyLight = theme.includes('bg-white') || theme.includes('bg-[#fdfbf7]') || theme.includes('bg-amber-100') || theme.includes('bg-[#fef3c7]') || theme.includes('bg-[#f8f9fa]') || theme.includes('bg-gradient-to-br from-slate-100');
+  const currentThemeObj = React.useMemo(() => {
+    const found = themes.find(t => t.className === theme || t.name === theme || (t.className && theme.includes(t.className.split(' ')[0])));
+    if (found) return found;
+    return isThemeExplicitlyLight ? themes[0] : themes[5];
+  }, [theme, isThemeExplicitlyLight]);
+  const isThemeDark = currentThemeObj ? currentThemeObj.isDark : !isThemeExplicitlyLight;
   const isThemeLight = !isThemeDark;
+
+  const activeFullscreenBg = React.useMemo(() => {
+    if (isThemeLight) {
+      if (currentThemeObj && !currentThemeObj.isDark && currentThemeObj.bgFullScreen) {
+        return currentThemeObj.bgFullScreen;
+      }
+      return "bg-[#fdfbf7] text-stone-900";
+    }
+    return currentThemeObj?.bgFullScreen || "bg-slate-950 text-white";
+  }, [currentThemeObj, isThemeLight]);
 
   // Slide words reveal states
   const [visibleWordCounts, setVisibleWordCounts] = React.useState<{ [key: number]: number }>({});
@@ -2729,12 +2760,10 @@ export function PresentationForm() {
   React.useEffect(() => {
     if (!api) return;
 
-    // Single gentle layout stabilization after fullscreen switch completes
-    const fsTimer = setTimeout(() => {
-      if (api) {
-        api.reInit();
-      }
-    }, 150);
+    // Multi-stage stabilization after fullscreen toggle completes across all mobile browsers
+    const fsTimer1 = setTimeout(() => { if (api) api.reInit(); }, 60);
+    const fsTimer2 = setTimeout(() => { if (api) api.reInit(); }, 200);
+    const fsTimer3 = setTimeout(() => { if (api) api.reInit(); }, 450);
 
     let resizeDebounceTimer: NodeJS.Timeout | null = null;
 
@@ -2744,8 +2773,8 @@ export function PresentationForm() {
       const newHeight = window.innerHeight;
 
       // Ignore mobile vertical micro-resizes (address bar show/hide ~15-60px)
-      const widthChanged = Math.abs(newWidth - lastViewportDimensionsRef.current.width) > 10;
-      const significantHeightChange = Math.abs(newHeight - lastViewportDimensionsRef.current.height) > 120;
+      const widthChanged = Math.abs(newWidth - lastViewportDimensionsRef.current.width) > 6;
+      const significantHeightChange = Math.abs(newHeight - lastViewportDimensionsRef.current.height) > 80;
 
       if (!widthChanged && !significantHeightChange) {
         return;
@@ -2759,14 +2788,16 @@ export function PresentationForm() {
         if (!isTransitioningRef.current && api) {
           api.reInit();
         }
-      }, 200);
+      }, 120);
     };
 
     window.addEventListener('resize', handleResize, { passive: true });
     window.addEventListener('orientationchange', handleResize, { passive: true });
 
     return () => {
-      clearTimeout(fsTimer);
+      clearTimeout(fsTimer1);
+      clearTimeout(fsTimer2);
+      clearTimeout(fsTimer3);
       if (resizeDebounceTimer) clearTimeout(resizeDebounceTimer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
@@ -4042,7 +4073,7 @@ export function PresentationForm() {
                   'relative min-h-[580px] h-[78vh] max-h-[850px] w-full mt-4 select-text overflow-hidden rounded-3xl border transition-all duration-300', 
                   isThemeLight ? "bg-white border-slate-200" : "bg-slate-950 border-slate-800",
                   isFullscreen && 'fixed inset-0 z-50 w-full h-full h-[100dvh] max-h-[100dvh] !m-0 !max-h-none !min-h-none rounded-none touch-manipulation select-text overflow-hidden !transition-none overscroll-none',
-                  isFullscreen && (currentThemeObj.bgFullScreen || (isThemeLight ? "bg-white text-slate-900" : "bg-slate-950 text-white")),
+                  isFullscreen && activeFullscreenBg,
                   showSplitSearch && 'flex flex-row',
                   !isEditMode && activeDrawSlideIndex === null && 'cursor-pointer'
               )}
@@ -4298,23 +4329,29 @@ export function PresentationForm() {
                   setApi={setApi} 
                   opts={{ 
                     watchDrag: false,
-                    align: 'center',
-                    containScroll: false,
+                    align: 'start',
+                    containScroll: 'trimSnaps',
                     loop: false,
                     skipSnaps: false,
-                    duration: 35,
+                    duration: 25,
                     dragFree: false,
                   }} 
                   className="w-full h-full select-text"
                 >
-                  <CarouselContent className={cn("h-full", isFullscreen && "ml-0 bg-transparent")}>
+                  <CarouselContent className={cn("h-full w-full", isFullscreen ? "!ml-0 bg-transparent" : "-ml-4")}>
                     {(isEditMode ? (editableSlides.length > 0 ? editableSlides : presentation.slides) : presentation.slides).map((slide, index) => {
                       const hasSlidePhoto = !!(slidePhotos[index] || (slide as any).photoUrl) && !isEditMode;
                       return (
-                      <CarouselItem key={index} className={cn("h-full basis-full min-w-full max-w-full shrink-0 grow-0", isFullscreen ? "pl-0 bg-transparent" : "pl-4")}>
+                      <CarouselItem 
+                        key={index} 
+                        className={cn(
+                          "h-full w-full min-w-full max-w-full shrink-0 grow-0 basis-full select-text", 
+                          isFullscreen ? "!pl-0 bg-transparent" : "pl-4"
+                        )}
+                      >
                         <div 
                           className={cn(
-                            "w-full h-full flex flex-col cursor-pointer",
+                            "w-full h-full min-w-full max-w-full flex flex-col cursor-pointer overflow-hidden",
                             theme,
                             fontFamily,
                             isFullscreen 
@@ -4331,9 +4368,9 @@ export function PresentationForm() {
                             className={cn(
                               "w-full flex flex-col h-full",
                               !isFullscreen && "overflow-y-auto justify-center py-4 sm:py-6 px-4 sm:px-10 md:px-16 lg:px-20",
-                              isFullscreen && "overflow-y-auto justify-start lg:justify-center pt-16 sm:pt-20 lg:pt-16 pb-24 sm:pb-20 lg:pb-16 px-4 sm:px-8 md:px-12 lg:px-14 xl:px-20 overscroll-contain touch-pan-y"
+                              isFullscreen && "overflow-y-auto justify-start lg:justify-center pt-14 sm:pt-16 lg:pt-16 pb-20 sm:pb-20 lg:pb-16 px-3 sm:px-8 md:px-12 lg:px-14 xl:px-20 overscroll-contain touch-pan-y"
                             )}
-                            style={isFullscreen ? { paddingTop: 'max(4rem, calc(env(safe-area-inset-top, 0px) + 3.25rem))' } : undefined}
+                            style={isFullscreen ? { paddingTop: 'max(3.5rem, calc(env(safe-area-inset-top, 0px) + 2.75rem))' } : undefined}
                           >
                             <div className={cn(
                               "w-full mx-auto flex flex-col justify-start min-h-full",
@@ -4527,10 +4564,13 @@ export function PresentationForm() {
                                 )}>
                                   {brokenSlideImages[index] ? (
                                     <div className={cn(
-                                      "relative w-full h-full rounded-2xl overflow-hidden border border-amber-500/30 bg-slate-900/90 shadow-[0_15px_40px_rgba(245,158,11,0.12)] p-4 sm:p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300",
+                                      "relative w-full rounded-2xl overflow-hidden border p-3 sm:p-5 flex flex-col items-center justify-center text-center backdrop-blur-md transition-all duration-300",
+                                      isThemeLight
+                                        ? "bg-amber-500/10 border-amber-500/25 text-stone-800 shadow-sm"
+                                        : "bg-slate-900/90 border-amber-500/30 text-slate-100 shadow-[0_15px_40px_rgba(245,158,11,0.12)]",
                                       isFullscreen
-                                        ? "min-h-[200px] sm:min-h-[300px] lg:h-[76vh] xl:h-[80vh] lg:min-h-[520px]"
-                                        : "min-h-[320px] md:min-h-[440px]"
+                                        ? "min-h-[140px] max-h-[200px] sm:min-h-[220px] lg:h-[76vh] xl:h-[80vh] lg:min-h-[520px] lg:max-h-none"
+                                        : "min-h-[240px] md:min-h-[440px]"
                                     )}>
                                       <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-purple-500/10 pointer-events-none" />
                                       
@@ -4596,7 +4636,7 @@ export function PresentationForm() {
                                         className={cn(
                                           "relative w-full flex items-center justify-center rounded-2xl overflow-hidden border select-none transition-all",
                                           isFullscreen
-                                            ? "h-[32vh] min-h-[200px] max-h-[260px] sm:h-[42vh] sm:max-h-[380px] md:h-[52vh] md:max-h-[500px] lg:h-[76vh] lg:min-h-[520px] lg:max-h-[82vh] xl:h-[80vh] xl:min-h-[600px] xl:max-h-[84vh] bg-black/20 backdrop-blur-sm border-white/10 shadow-2xl"
+                                            ? "h-[28vh] min-h-[160px] max-h-[240px] sm:h-[38vh] sm:max-h-[340px] md:h-[48vh] md:max-h-[440px] lg:h-[76vh] lg:min-h-[520px] lg:max-h-[82vh] xl:h-[80vh] xl:min-h-[600px] xl:max-h-[84vh] bg-black/20 backdrop-blur-sm border-white/10 shadow-2xl"
                                             : "h-[360px] sm:h-[420px] md:h-[500px] lg:h-[560px] min-h-[340px] md:min-h-[460px] lg:min-h-[560px] border-white/15 bg-slate-950/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-md"
                                         )}
                                         onClick={(e) => e.stopPropagation()}
