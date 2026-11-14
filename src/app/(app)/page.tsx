@@ -309,6 +309,21 @@ export default function LingoLandVerseHomePage() {
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isGuestSession = sessionStorage.getItem("isGuest") === "true";
+      const hasCookie = document.cookie.includes("lingoland_auth=1");
+      const isCrawler = /Mediapartners-Google|AdsBot-Google|Googlebot|Google-InspectionTool|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot/i.test(
+        navigator.userAgent || ""
+      );
+
+      // If clearly unauthenticated on cold start, redirect immediately without waiting or mounting heavy canvases
+      if (!isGuestSession && !hasCookie && !isCrawler) {
+        router.replace('/auth');
+      }
+    }
+  }, [router]);
+
+  useEffect(() => {
     const isCrawler =
       typeof navigator !== "undefined" &&
       /Mediapartners-Google|AdsBot-Google|Googlebot|Google-InspectionTool|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot/i.test(
@@ -318,6 +333,30 @@ export default function LingoLandVerseHomePage() {
       router.replace('/auth');
     }
   }, [isLoading, user, isGuest, router]);
+
+  // Prevent flashing or mounting heavy 3D canvases for unauthenticated users or during initial cold auth check
+  if (!user && !isGuest) {
+    return (
+      <div className="flex h-screen min-h-svh flex-col bg-[#030712] text-foreground items-center justify-center p-6 relative overflow-hidden select-none">
+        {/* Subtle glowing ambient pulse matching #0a0a1f */}
+        <div className="absolute w-72 h-72 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none animate-pulse" />
+        <div className="relative z-10 flex flex-col items-center gap-4 text-center">
+          <div className="relative w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-600 via-cyan-500 to-purple-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+            <span className="text-2xl animate-spin" style={{ animationDuration: '6s' }}>🪐</span>
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            <p className="text-base font-black tracking-tight text-white drop-shadow-[0_0_10px_rgba(56,189,248,0.7)]">
+              lingoland<span className="text-cyan-400">Verse</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+              <p className="text-xs font-medium text-slate-400">Entering Station Gateway...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen w-full bg-transparent text-white flex flex-col font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">

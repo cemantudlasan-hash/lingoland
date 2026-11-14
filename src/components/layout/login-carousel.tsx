@@ -301,6 +301,7 @@ export function LoginCarousel() {
                     title={currentSlide.title}
                     className="w-full h-full object-cover pointer-events-none"
                     allow="autoplay; encrypted-media"
+                    loading="lazy"
                     frameBorder="0"
                   />
                 ) : (
@@ -310,6 +311,7 @@ export function LoginCarousel() {
                     loop
                     muted
                     playsInline
+                    preload="metadata"
                     className="object-cover w-full h-full pointer-events-none"
                   />
                 )
@@ -320,11 +322,15 @@ export function LoginCarousel() {
                     src={resolvedImageUrl}
                     alt=""
                     aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none"
                   />
                   <img
                     src={resolvedImageUrl}
                     alt={currentSlide.title}
+                    loading="lazy"
+                    decoding="async"
                     className="relative z-10 object-contain w-full h-full pointer-events-none drop-shadow-2xl transition-transform duration-700 group-hover/media:scale-105"
                   />
                 </>

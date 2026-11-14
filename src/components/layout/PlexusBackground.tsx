@@ -112,8 +112,8 @@ export default function PlexusBackground() {
     }
 
     const isMobile = window.innerWidth < 768;
-    const nodeCount = isMobile ? 30 : 60;
-    const emberCount = isMobile ? 25 : 50;
+    const nodeCount = isMobile ? 12 : 60;
+    const emberCount = isMobile ? 10 : 50;
 
     // Palette matching the uploaded artwork (neon cyan, electric violet, celestial gold, aurora emerald)
     const nodeColors = [
@@ -208,7 +208,7 @@ export default function PlexusBackground() {
       };
     };
 
-    const polyhedrons: Polyhedron[] = [
+    const polyhedrons: Polyhedron[] = isMobile ? [] : [
       createOctahedron(window.innerWidth * 0.16, window.innerHeight * 0.26, 26, 'rgba(192, 132, 252, 0.85)'),
       createOctahedron(window.innerWidth * 0.78, window.innerHeight * 0.32, 32, 'rgba(56, 189, 248, 0.85)'),
       createOctahedron(window.innerWidth * 0.48, window.innerHeight * 0.68, 22, 'rgba(253, 224, 71, 0.85)'),

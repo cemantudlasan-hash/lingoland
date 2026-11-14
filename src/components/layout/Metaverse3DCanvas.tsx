@@ -11,6 +11,16 @@ export function Metaverse3DCanvas({ className = "", intensity = 1.0 }: Metaverse
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    // Detect mobile phone screens: completely bypass heavy 3D canvas loops on mobile to eliminate lag & stutter
+    const isMobile = typeof window !== 'undefined' && (
+      window.innerWidth < 768 ||
+      ('ontouchstart' in window && window.innerWidth < 1024)
+    );
+
+    if (isMobile) {
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 

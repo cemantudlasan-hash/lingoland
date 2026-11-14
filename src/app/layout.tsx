@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import { AuthProviderWrapper } from '@/context/auth-provider-wrapper';
 import { FirebaseClientProvider } from '@/firebase';
@@ -70,6 +70,14 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: '#0a0a1f',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -83,7 +91,7 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta name="theme-color" content="#6366f1" />
+        <meta name="theme-color" content="#0a0a1f" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -132,32 +140,23 @@ export default function RootLayout({
                   };
                 } catch(e) {}
 
-                // 3. Continuously clean any attributes injected before/during hydration
-                try {
-                  const cleanNode = (node) => {
-                    if (!node || node.nodeType !== 1) return;
-                    if (node.hasAttribute('bis_skin_checked')) node.removeAttribute('bis_skin_checked');
-                    if (node.hasAttribute('bis_use')) node.removeAttribute('bis_use');
-                  };
-                  const observer = new MutationObserver((mutations) => {
-                    for (let i = 0; i < mutations.length; i++) {
-                      const m = mutations[i];
-                      if (m.type === 'attributes' && (m.attributeName === 'bis_skin_checked' || m.attributeName === 'bis_use')) {
-                        m.target.removeAttribute(m.attributeName);
-                      } else if (m.type === 'childList') {
-                        for (let j = 0; j < m.addedNodes.length; j++) {
-                          cleanNode(m.addedNodes[j]);
-                        }
+                // 3. Clean attributes in background after initial render without blocking mobile hydration
+                if (typeof window !== 'undefined') {
+                  const cleanExisting = () => {
+                    try {
+                      const els = document.querySelectorAll('[bis_skin_checked], [bis_use]');
+                      for (let i = 0; i < els.length; i++) {
+                        els[i].removeAttribute('bis_skin_checked');
+                        els[i].removeAttribute('bis_use');
                       }
-                    }
-                  });
-                  observer.observe(document.documentElement, {
-                    attributes: true,
-                    subtree: true,
-                    childList: true,
-                    attributeFilter: ['bis_skin_checked', 'bis_use']
-                  });
-                } catch(e) {}
+                    } catch(e) {}
+                  };
+                  if (window.requestIdleCallback) {
+                    window.requestIdleCallback(cleanExisting);
+                  } else {
+                    setTimeout(cleanExisting, 1000);
+                  }
+                }
               })();
             `,
           }}
