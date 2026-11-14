@@ -30,30 +30,50 @@ interface CarouselSlide {
 
 const defaultSlides: CarouselSlide[] = [
   {
-    id: "default-1",
-    title: "Welcome to LingoLandVerse",
-    description: "Learn languages and educational subjects with 79+ interactive classroom games, AI speaking simulations, and CEFR-aligned mastery tracks.",
-    mediaUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60",
-    mediaType: "image",
-    createdAt: 1
+    id: "w22ny14",
+    title: "🌏 Young Explorer EP.01 | Discover Traditional Thai Fabric | Nong Bua Lamphu, Thailand",
+    description: "Discover how beautiful handmade fabric is created through traditional weaving techniques that have been passed down through generations. This journey is more than exploring beautiful fabric—it is about understanding the people, culture, wisdom, and stories behind every thread.",
+    mediaUrl: "https://youtu.be/vp8YknSRglE?si=S8nxH6NT2fuDmcvP",
+    mediaType: "video",
+    createdAt: 1784834003569
   },
   {
-    id: "default-2",
-    title: "Interactive Lingo-Pet & Companion",
-    description: "Adopt, nurture, and level up your animated cosmic companion while completing daily spaced-repetition vocabulary quests.",
-    mediaUrl: "https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=800&auto=format&fit=crop&q=60",
-    mediaType: "image",
-    createdAt: 2
+    id: "qkkurs7",
+    title: "Discover Nong Bua Lamphu Pu Lup Shrine & Wat Doi Thep Sombun",
+    description: "Discover Nong Bua Lamphu: Pu Lup Shrine & Wat Doi Thep Sombun Presented by Puen, Mina, and Ingdao, Grade 4 students from Nong Bua Wittayayon School.",
+    mediaUrl: "https://youtu.be/gjA_41H02o4?si=88NY0tA4G0WCKv2U",
+    mediaType: "video",
+    createdAt: 1784834209509
   },
   {
-    id: "default-3",
-    title: "Real-Time Arena & Leaderboard",
-    description: "Challenge your classmates in real-time speed battles, grammar duels, and climb global language leaderboards.",
-    mediaUrl: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format&fit=crop&q=60",
+    id: "8akid4g",
+    title: "Explore Nonguba Lamphu Market and Phu Phan Noi!",
+    description: "Phu Phan Noi ViewpointPhu Phan Noi is a beautiful mountain peak located just 6 kilometers (about a 15-minute drive) outside of Nong Bua Lamphu city. Part of the Phu Phan Mountain Range, it is best known as an ecological tourism site and a peaceful camping ground.The View: It is famous for offering a stunning panoramic view of the town in the valley below. At night, the town illuminates the valley, which locals call \"Dao Bon Din,\" translating to \"Stars on the Ground\".Accessibility: It is easily accessible by car or scooter, and the uphill road is well-paved.",
+    mediaUrl: "https://youtu.be/gMgTTlBug84?si=cuWB4IfSHndKNWNu",
+    mediaType: "video",
+    createdAt: 1784834328519
+  },
+  {
+    id: "u11hv4c",
+    title: "Christmas Season is Here! 2026",
+    description: "Ho ho ho! Merry Christmas, the season of love and giving is here. Let's make Christmas a wonderful season and cherish every moment to the one we love.",
+    mediaUrl: "https://drive.google.com/file/d/1yjti5q0bRralJwMG_-E1kw6Y375YfJmL/view?usp=sharing",
     mediaType: "image",
-    createdAt: 3
+    createdAt: 1793666461632
   }
 ];
+
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+  const ytMatch = url.match(ytRegExp);
+  return ytMatch && ytMatch[2].length === 11 ? ytMatch[2] : null;
+}
+
+function getYouTubeThumbnail(url: string): string | null {
+  const id = getYouTubeId(url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+}
 
 function getGoogleDriveFileId(url: string) {
   if (!url) return null;
@@ -99,7 +119,18 @@ export function LoginCarousel() {
   const isSeasonalActive = isThemeActiveForUser && (seasonalSettings.includeLoginPage ?? true) && activeTheme.id !== 'default';
 
   const firestore = useFirestore();
-  const [slides, setSlides] = useState<CarouselSlide[]>(defaultSlides);
+  const [slides, setSlides] = useState<CarouselSlide[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("lingoland_carousel_slides");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    return defaultSlides;
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
@@ -118,6 +149,9 @@ export function LoginCarousel() {
           const data = snapshot.data();
           if (data.slides && Array.isArray(data.slides) && data.slides.length > 0) {
             setSlides(data.slides);
+            try {
+              localStorage.setItem("lingoland_carousel_slides", JSON.stringify(data.slides));
+            } catch (e) {}
           } else {
             setSlides(defaultSlides);
           }
@@ -167,9 +201,9 @@ export function LoginCarousel() {
 
   const slideVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 350 : -350,
-      opacity: 0,
-      scale: 0.96
+      x: direction === 0 ? 0 : direction > 0 ? 300 : -300,
+      opacity: direction === 0 ? 1 : 0,
+      scale: direction === 0 ? 1 : 0.96
     }),
     center: {
       x: 0,
@@ -177,7 +211,7 @@ export function LoginCarousel() {
       scale: 1
     },
     exit: (direction: number) => ({
-      x: direction < 0 ? 350 : -350,
+      x: direction === 0 ? 0 : direction < 0 ? 300 : -300,
       opacity: 0,
       scale: 0.96
     })
@@ -189,6 +223,7 @@ export function LoginCarousel() {
   const embedUrl = getEmbedUrl(currentSlide.mediaUrl, true);
   const resolvedImageUrl = resolveImageUrl(currentSlide.mediaUrl);
   const isVideo = currentSlide.mediaType === "video";
+  const ytThumbnail = isVideo ? getYouTubeThumbnail(currentSlide.mediaUrl) : null;
 
   return (
     <div 
@@ -295,26 +330,44 @@ export function LoginCarousel() {
           >
             {currentSlide.mediaUrl ? (
               isVideo ? (
-                embedUrl ? (
-                  <iframe
-                    src={embedUrl}
-                    title={currentSlide.title}
-                    className="w-full h-full object-cover pointer-events-none"
-                    allow="autoplay; encrypted-media"
-                    loading="lazy"
-                    frameBorder="0"
-                  />
-                ) : (
-                  <video
-                    src={resolveVideoUrl(currentSlide.mediaUrl)}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="object-cover w-full h-full pointer-events-none"
-                  />
-                )
+                <div className="relative w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden">
+                  {/* YouTube thumbnail backdrop so the frame is never a pitch-black void while the player connects */}
+                  {ytThumbnail && (
+                    <>
+                      <img
+                        src={ytThumbnail}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-45 scale-110 pointer-events-none"
+                      />
+                      <img
+                        src={ytThumbnail}
+                        alt={currentSlide.title}
+                        className="relative z-10 object-contain w-full h-full pointer-events-none drop-shadow-2xl"
+                      />
+                    </>
+                  )}
+                  {embedUrl ? (
+                    <iframe
+                      src={embedUrl}
+                      title={currentSlide.title}
+                      className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
+                      allow="autoplay; encrypted-media"
+                      loading="eager"
+                      frameBorder="0"
+                    />
+                  ) : (
+                    <video
+                      src={resolveVideoUrl(currentSlide.mediaUrl)}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
+                    />
+                  )}
+                </div>
               ) : (
                 <>
                   {/* Ambient blurred backdrop so any aspect ratio looks seamless */}
@@ -349,10 +402,10 @@ export function LoginCarousel() {
       {/* ── Content & Features Showcase (Right 40%) ── */}
       <div className="flex flex-col justify-between flex-1 relative min-h-[170px] py-1 lg:py-2">
         <div className="flex-1 flex flex-col justify-center space-y-3.5">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={currentSlide.id}
-              initial={{ opacity: 0, y: 12 }}
+              initial={direction === 0 ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35, ease: "easeOut" }}
