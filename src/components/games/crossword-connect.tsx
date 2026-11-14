@@ -122,10 +122,11 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
   const handleInputChange = (row: number, col: number, value: string) => {
     const newGrid = [...grid];
     if (newGrid[row]?.[col]) {
-      newGrid[row]![col]!.input = value.toUpperCase();
+      const char = value.slice(-1).toUpperCase();
+      newGrid[row]![col]!.input = char;
       setGrid(newGrid);
 
-      if (value && col + 1 < grid[0]!.length && grid[row]?.[col + 1]) {
+      if (char && col + 1 < grid[0]!.length && grid[row]?.[col + 1]) {
         inputRefs.current[row]?.[col+1]?.focus();
       }
     }
@@ -163,7 +164,8 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
     const { row, col } = activeCell;
     const newGrid = [...grid];
     if (newGrid[row]?.[col]) {
-        newGrid[row]![col]!.input = newGrid[row]![col]!.letter!;
+        newGrid[row]![col]!.input = (newGrid[row]![col]!.letter || '').toUpperCase();
+        newGrid[row]![col]!.isCorrect = null;
         setGrid(newGrid);
     }
   }
@@ -406,7 +408,7 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                       return (
                         <div
                           key={`${rowIndex}-${colIndex}`}
-                          className={cn("bg-transparent", isFullscreen ? "h-7 w-7 sm:h-11 sm:w-11 md:h-14 md:w-14" : "h-6 w-6 sm:h-8 sm:h-8 md:h-10 md:w-10")}
+                          className={cn("bg-transparent", isFullscreen ? "h-8 w-8 sm:h-11 sm:w-11 md:h-14 md:w-14" : "h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10")}
                         />
                       );
                     }
@@ -420,10 +422,13 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                     return (
                       <div
                         key={`${rowIndex}-${colIndex}`}
-                        className={cn("relative", isFullscreen ? "h-7 w-7 sm:h-11 sm:w-11 md:h-14 md:w-14" : "h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10")}
+                        className={cn("relative", isFullscreen ? "h-8 w-8 sm:h-11 sm:w-11 md:h-14 md:w-14" : "h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10")}
                       >
                         {clueNumber && (
-                          <span className={cn("absolute top-0 left-0.5 font-black text-muted-foreground", isFullscreen ? "text-[8px] sm:text-sm" : "text-[7px] sm:text-[8px] md:text-[10px]")}>
+                          <span className={cn(
+                            "absolute top-0.5 left-0.5 pointer-events-none select-none z-10 font-black leading-none text-slate-500",
+                            isFullscreen ? "text-[8px] sm:text-xs" : "text-[7px] sm:text-[9px] md:text-xs"
+                          )}>
                             {clueNumber}
                           </span>
                         )}
@@ -436,16 +441,27 @@ export function CrosswordConnect({ slug, onToggleFullscreen }: { slug: string; o
                           type="text"
                           maxLength={1}
                           value={cell.input}
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="characters"
+                          spellCheck="false"
                           onClick={() => handleCellClick(rowIndex, colIndex)}
                           onChange={(e) =>
                             handleInputChange(rowIndex, colIndex, e.target.value)
                           }
+                          onKeyDown={(e) => {
+                            if (e.key === 'Backspace' && !cell.input && colIndex > 0 && grid[rowIndex]?.[colIndex - 1]) {
+                              inputRefs.current[rowIndex]?.[colIndex - 1]?.focus();
+                            }
+                          }}
+                          style={{ padding: 0 }}
                           className={cn(
-                            'h-full w-full bg-white text-center font-black uppercase text-black dark:bg-card-foreground/10 border sm:border-2 rounded transition-all',
-                            isFullscreen ? "text-xs sm:text-2xl md:text-3xl" : "text-xs sm:text-base md:text-lg",
-                            cell.isCorrect === true && 'bg-green-500 text-white border-green-600',
-                            cell.isCorrect === false && 'bg-red-500 text-white border-red-600',
-                            activeCell?.row === rowIndex && activeCell?.col === colIndex && 'ring-2 sm:ring-4 ring-primary border-primary'
+                            'h-full w-full !p-0 !m-0 text-center font-black uppercase leading-none rounded transition-all',
+                            'bg-white text-slate-950 border border-slate-300 dark:border-slate-400 shadow-sm',
+                            isFullscreen ? "text-base sm:text-2xl md:text-3xl" : "text-sm sm:text-base md:text-lg",
+                            cell.isCorrect === true && '!bg-emerald-500 !text-white !border-emerald-600',
+                            cell.isCorrect === false && '!bg-rose-500 !text-white !border-rose-600',
+                            activeCell?.row === rowIndex && activeCell?.col === colIndex && 'ring-2 sm:ring-4 ring-primary border-primary !bg-purple-50'
                           )}
                         />
                       </div>

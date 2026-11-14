@@ -31,13 +31,14 @@ import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 
-type GameState = 'setup' | 'loading' | 'playing' | 'result' | 'finished' | 'instructions' | 'idle';
+type GameState = 'setup' | 'loading' | 'playing' | 'result' | 'time_up' | 'finished' | 'instructions' | 'idle';
 type Team = { name: string; score: number };
 type GiftChoice = {
     isGood: boolean;
     sentence: string;
     points: number;
     explanation?: string;
+    correctSentence?: string;
 };
 
 const POSITIVE_POINTS = [100, 200, 300, 400, 500];
@@ -94,7 +95,7 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
       setGameState('instructions');
   }
 
-  const prepareNextRound = async () => {
+  const prepareRound = async (targetRound: number) => {
     setGameState('loading');
     setChosenGift(null);
     setGifts([]);
@@ -112,20 +113,25 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
         const goodPoints = POSITIVE_POINTS[Math.floor(Math.random() * POSITIVE_POINTS.length)];
         const badPoints = NEGATIVE_POINTS[Math.floor(Math.random() * NEGATIVE_POINTS.length)];
 
-        const newGifts = [
-            { isGood: true, sentence: goodSentence, points: goodPoints },
-            { isGood: false, sentence: badSentence, points: badPoints, explanation: explanation },
+        const newGifts: GiftChoice[] = [
+            { isGood: true, sentence: goodSentence, points: goodPoints, correctSentence: goodSentence },
+            { isGood: false, sentence: badSentence, points: badPoints, explanation: explanation, correctSentence: goodSentence },
         ];
         
         setGifts(shuffleArray(newGifts)); // Shuffle the gifts
-        setRound(prev => prev + 1);
+        setRound(targetRound);
         setTimeLeft(30);
         setGameState('playing');
     } catch(e) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not generate a new round.'});
         setGameState('setup');
     }
-  }
+  };
+
+  const handleRetryRound = () => {
+    // Retry the round that hasn't been answered, generating a new word on the same round
+    prepareRound(round);
+  };
 
   const handleChooseGift = (gift: GiftChoice) => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -136,14 +142,14 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
     setTeams(newTeams);
     
     setGameState('result');
-  }
+  };
   
   const handleTimeUp = React.useCallback(() => {
     if (gameState !== 'playing') return;
-    toast({ title: "Time's up!", description: "A gift has been chosen for you." });
-    const randomGift = gifts[Math.floor(Math.random() * gifts.length)];
-    handleChooseGift(randomGift);
-  }, [gameState, gifts]);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    // Random gift will not be given; pop-up sorry, it's time's up, you cannot choose a gift
+    setGameState('time_up');
+  }, [gameState]);
 
   React.useEffect(() => {
     if (gameState === 'playing') {
@@ -163,9 +169,9 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
           setGameState('finished');
       } else {
           setCurrentTurn(prev => (prev + 1) % teams.length);
-          prepareNextRound();
+          prepareRound(round + 1);
       }
-  }
+  };
 
   const handleTeamNameChange = (index: number, name: string) => {
     const newTeams = [...teams];
@@ -186,9 +192,14 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
   };
 
   const resetGame = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
     setGameState('setup');
     setTeams([{ name: 'Team 1', score: 0 }, { name: 'Team 2', score: 0 }]);
     setRound(0);
+    setCurrentTurn(0);
+    setUsedItems([]);
+    setChosenGift(null);
+    setGifts([]);
   };
 
   const Icon = game.icon;
@@ -292,6 +303,14 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
                               <span className="text-purple-400 font-bold">3.</span>
                               <span>Select within 30 seconds. Higher precision yields maximum scoreboard capital.</span>
                             </p>
+                            <p className="flex items-start gap-2">
+                              <span className="text-cyan-400 font-bold">4.</span>
+                              <span>There will be random words. Player should speak or create a sentence using the word that was revealed within the time limit given and can be able to choose a gift.</span>
+                            </p>
+                            <p className="flex items-start gap-2">
+                              <span className="text-rose-400 font-bold">5.</span>
+                              <span>If the player was not able to create or speak a sentence and was not able to choose a gift after creating a sentence within the time limit, the round will still be the same until a player can be able to do Rule 4 to continue or proceed to the next round.</span>
+                            </p>
                           </div>
                         </div>
 
@@ -318,9 +337,11 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
                        <p>1. The game will show a focus word for the round. Discuss its usage with your class.</p>
                         <p>2. You have 30 seconds to choose one of the two mystery gifts.</p>
                         <p>3. One gift contains a <strong>correct</strong> sentence (+ Points), and the other is <strong>incorrect</strong> (- Points).</p>
-                        <p>4. The team with the highest capital at the end wins!</p>
+                        <p>4. There will be random words: player should speak or create a sentence using the word that was revealed within the time limit given and can be able to choose a gift.</p>
+                        <p>5. If the player was not able to create or speak a sentence and was not able to choose a gift after creating a sentence within the time limit, the round will still be the same until a player can be able to do Rule 4 to continue or proceed to the next round.</p>
+                        <p>6. The team with the highest capital at the end wins!</p>
                     </div>
-                    <Button onClick={() => { setRound(0); prepareNextRound(); }} size="lg" className={cn("mt-4 sm:mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black h-11 sm:h-12 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl shadow-lg", isFullscreen && "sm:h-20 sm:text-3xl sm:rounded-3xl shadow-xl")}>Let's Play!</Button>
+                    <Button onClick={() => { prepareRound(1); }} size="lg" className={cn("mt-4 sm:mt-8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black h-11 sm:h-12 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl shadow-lg", isFullscreen && "sm:h-20 sm:text-3xl sm:rounded-3xl shadow-xl")}>Let's Play!</Button>
                 </div>
             );
         case 'loading':
@@ -356,6 +377,46 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
                     </div>
                 </div>
             );
+        case 'time_up':
+            return (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+                    <Card className={cn(
+                        "w-full bg-card p-6 sm:p-12 rounded-2xl sm:rounded-[3rem] border-4 border-rose-500/40 text-center shadow-2xl animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto",
+                        isFullscreen ? "max-w-4xl" : "max-w-2xl"
+                    )}>
+                        <div className="flex justify-center mb-3 sm:mb-6">
+                            <div className="p-3.5 sm:p-5 rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                                <Timer className={cn("h-10 w-10 sm:h-16 sm:w-16 animate-pulse")} />
+                            </div>
+                        </div>
+                        <h2 className={cn("font-black uppercase tracking-tight text-rose-500 mb-2 sm:mb-3 text-xl sm:text-4xl", isFullscreen && "sm:text-5xl")}>
+                            Sorry, it's time's up!
+                        </h2>
+                        <p className={cn("font-bold text-foreground mb-4 sm:mb-6 text-sm sm:text-2xl", isFullscreen && "sm:text-3xl")}>
+                            You cannot choose a gift.
+                        </p>
+                        <div className={cn("p-4 sm:p-6 rounded-2xl bg-muted/30 border border-border/40 text-center mb-6 sm:mb-8 space-y-2", isFullscreen && "sm:p-8")}>
+                            <p className={cn("text-xs sm:text-base text-muted-foreground font-semibold", isFullscreen && "sm:text-xl")}>
+                                <span className="text-primary font-black">{teams[currentTurn]?.name}</span> was not able to answer within the time limit.
+                            </p>
+                            <p className={cn("text-xs sm:text-sm text-muted-foreground", isFullscreen && "sm:text-lg")}>
+                                Round <span className="font-bold text-foreground">{round}</span> will remain active. Click retry to generate a new word for this round and try again.
+                            </p>
+                        </div>
+                        <div className="flex justify-center items-center w-full">
+                            <Button
+                                onClick={handleRetryRound}
+                                size="lg"
+                                className={cn(
+                                    "w-full sm:w-auto h-11 sm:h-16 px-8 sm:px-14 text-sm sm:text-xl rounded-xl sm:rounded-2xl font-black uppercase shadow-xl bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white"
+                                )}
+                            >
+                                <Repeat className="mr-2 h-4 w-4 sm:h-6 sm:w-6" /> Retry Round {round}
+                            </Button>
+                        </div>
+                    </Card>
+                </div>
+            );
         case 'result':
             if (!chosenGift) return null;
             return (
@@ -364,17 +425,34 @@ export function ChooseYourGift({ slug, onToggleFullscreen }: { slug: string; onT
                         <h2 className={cn("font-black uppercase tracking-tighter mb-4 sm:mb-8 text-xl sm:text-4xl", isFullscreen && "sm:text-6xl")}>
                             {chosenGift.isGood ? 'A GOOD GIFT!' : 'A TRAPPED GIFT!'}
                         </h2>
-                        <div className="flex flex-col items-center gap-4 sm:gap-8">
+                        <div className="flex flex-col items-center gap-4 sm:gap-6 w-full">
                             {chosenGift.isGood ? <Gift className={cn("text-green-500 drop-shadow-[0_0_20px_rgba(34,197,94,0.5)]", isFullscreen ? "w-24 h-24 sm:w-48 sm:h-48" : "w-20 h-20 sm:w-32 sm:h-32")} /> : <Bomb className={cn("text-destructive drop-shadow-[0_0_20px_rgba(239,68,68,0.5)]", isFullscreen ? "w-24 h-24 sm:w-48 sm:h-48" : "w-20 h-20 sm:w-32 sm:h-32")} />}
                             <p className={cn('font-black tracking-tighter text-4xl sm:text-7xl', isFullscreen && "sm:text-9xl", chosenGift.isGood ? 'text-green-500' : 'text-destructive')}>
                                 {chosenGift.points > 0 ? `+${chosenGift.points}` : chosenGift.points}
                             </p>
-                             <div className={cn("p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-muted/20 border-2 border-primary/20 italic font-bold leading-tight text-sm sm:text-2xl", isFullscreen && "sm:text-4xl")}>
-                                "{chosenGift.sentence}"
-                             </div>
-                             {!chosenGift.isGood && chosenGift.explanation && (
-                                 <p className={cn("text-muted-foreground font-medium text-xs sm:text-sm", isFullscreen && "sm:text-2xl")}><strong>Correction:</strong> {chosenGift.explanation}</p>
-                             )}
+
+                            {!chosenGift.isGood && (
+                              <div className="w-full max-w-xl space-y-1">
+                                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-rose-400">Selected Sentence (Trapped)</span>
+                                <div className={cn("p-3 sm:p-5 rounded-2xl bg-destructive/10 border-2 border-destructive/30 italic font-bold leading-tight text-sm sm:text-xl text-rose-300", isFullscreen && "sm:text-2xl")}>
+                                    "{chosenGift.sentence}"
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="w-full max-w-xl space-y-1.5">
+                              <p className={cn("text-muted-foreground font-black uppercase tracking-wider text-xs sm:text-sm", isFullscreen && "sm:text-xl")}>
+                                Example sentence from the given word:
+                              </p>
+                              <div className={cn("p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-muted/20 border-2 border-primary/20 italic font-bold leading-tight text-sm sm:text-2xl", isFullscreen && "sm:text-4xl")}>
+                                  "{chosenGift.isGood ? chosenGift.sentence : (chosenGift.correctSentence || chosenGift.sentence)}"
+                              </div>
+                              {!chosenGift.isGood && chosenGift.explanation && (
+                                  <p className={cn("text-muted-foreground font-medium text-xs sm:text-sm pt-1", isFullscreen && "sm:text-xl")}>
+                                    {chosenGift.explanation}
+                                  </p>
+                              )}
+                            </div>
                         </div>
                         <Button onClick={handleNextTurn} size="lg" className={cn("mt-6 sm:mt-12 font-black uppercase w-full sm:w-auto h-11 sm:h-16 px-6 sm:px-16 text-sm sm:text-2xl rounded-xl sm:rounded-2xl")}>Proceed</Button>
                     </Card>
